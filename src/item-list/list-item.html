@@ -199,9 +199,9 @@
         <iron-media-query query="(max-width: 640px)" query-matches="{{narrowViewport}}"></iron-media-query>
         <iron-media-query query="(min-width: 641px) and (max-width: 1300px)" query-matches="{{mediumViewport}}"></iron-media-query>
         <content></content>
-        <template is="dom-repeat" items="{{fields}}" as="field">
-          <a href="{{_computeUri(uri, field, item, probes)}}" is="pushstate-anchor" ondragstart="return false" ondrop="return false" class$="field-link-[[index]]-[[field]]">
-            <div class$="[[field]] field field[[index]] {{itemField(item, field, index)}}  {{itemProbeClasses(item, field, index, probes)}}"><span class$="field-icon [[field]]"></span>{{itemField(item, field, index)}}</div>
+        <template is="dom-repeat" items="{{fields}}" as="field">        
+          <a href$="[[_computeUri(uri, field, item, probes)]]" is="pushstate-anchor" ondragstart="return false" ondrop="return false" class$="field-link-[[index]]-[[field]]" title$="[[itemField(item, field, index)]]">            
+            <div class$="[[field]] field field[[index]] [[itemField(item, field, index)]]  [[itemProbeClasses(item, field, index, probes)]]"><span class$="field-icon [[field]]"></span>[[itemField(item, field, index)]]</div>
           </a>
         </template>
         <div class="field tags" hidden$="[[!item.tags.length]]">
@@ -415,7 +415,7 @@ Polymer({
                 return item.extra.maxCpu + 'cpu, ' + item.extra.maxMemory + 'M ram';
             if (item.extra && item.extra.PLANID) {
                 var cloud = document.querySelector('mist-app').model.clouds[item.cloud.id];
-                return (cloud && cloud.sizes) ? cloud.sizes[item.extra.PLANID] : item.extra.PLANID;
+                return (cloud && cloud.sizes) ? cloud.sizes[item.extra.PLANID].ram + " ram " + cloud.sizes[item.extra.PLANID].name  : item.extra.PLANID
             }
             if (item.extra && item.extra.service_type)
                 return item.extra.service_type;
