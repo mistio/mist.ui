@@ -132,15 +132,6 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'libvirt',
     fields: [{
-        name: "libvirt_image_path",
-        type: "mist_dropdown",
-        add: true,
-        label: "Image",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: false,
-    },{
         name: "libvirt_disk_path",
         type: "text",
         label: "Path to create VM's disk",
