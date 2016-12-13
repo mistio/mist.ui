@@ -245,6 +245,9 @@
             margin: 10% auto;
             display: block;
         }
+        .disable-monitoring {
+            font-size: 0.8em;
+        }
         </style>
         <div id="content" class$="flex-horizontal-wide onb-[[!showDashboard]]" main>
             <div class="notice">
@@ -308,6 +311,7 @@
                         <paper-material class="graphs" hidden="[[!model.monitoring.machines.length]]">
                             <template is="dom-if" if="[[viewingDashboard]]" restamp>
                                 <mist-monitoring monitoring="[[model.monitoring]]" replace-targets="[[replaceTargets]]"></mist-monitoring>
+                                <paper-button on-tap="_disableMonitoringOnNonExisting" hidden$="[[!hasNonExistingMonitoredMachines]]" class="disable-monitoring">disable monitoring on non existing machines</paper-button>
                             </template>
                         </paper-material>
                     </div>
@@ -336,6 +340,8 @@
                 <paper-spinner active></paper-spinner>
             </div>
         </div>
+
+        <iron-ajax id="monitoringRequest" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
     </template>
 </dom-module>
 <script>
@@ -382,6 +388,11 @@
             viewingDashboard: {
                 type: Boolean,
                 value: true
+            },
+            hasNonExistingMonitoredMachines: {
+                type: Boolean,
+                computed: "_computeHasNonExistingMonitoredMachines(model.monitoring.*)",
+                value: false
             }
         },
         observers: [
@@ -552,6 +563,34 @@
 
             }
             return show;
+        },
+        _computeHasNonExistingMonitoredMachines: function(monitoredmachines){
+            var hasNonExisting = false;
+            if (this.model && this.model.clouds && this.model.clouds.monitoring && this.model.clouds.monitoring.machines) {
+                for (var i=0; i < this.model.monitoring.machines.length; i++) {
+                    if (!this.model.clouds[machines[i][0]] || !this.model.clouds[machines[i][0]].machines || !this.model.clouds[machines[i][0]].machines[machines[i][1]]) {
+                        hasNonExisting = true;
+                        break;
+                    }
+                }
+            }
+            return hasNonExisting;
+        },
+        _disableMonitoringOnNonExisting: function(e){
+            this.model.monitoring.machines.forEach(function(m){
+                var cloud = m[0], 
+                    machine = m[1];
+                if (!this.model.clouds[cloud] || !this.model.clouds[cloud].machines || !this.model.clouds[cloud].machines[machine])
+                    this._disableMonitoring(m);
+            }, this);
+        },
+        _disableMonitoring: function(m){
+            var payload = {};
+            payload.action = "disable";
+            this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.monitoringRequest.url = "/api/v1/clouds/"+m[0]+"/machines/"+m[1]+"/monitoring"
+            this.$.monitoringRequest.params = payload;
+            this.$.monitoringRequest.generateRequest();
         }
     });
 </script>
