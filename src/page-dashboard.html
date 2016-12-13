@@ -246,7 +246,7 @@
             display: block;
         }
         .disable-monitoring {
-            font-size: 0.8em;
+            font-size: 0.9em;
         }
         </style>
         <div id="content" class$="flex-horizontal-wide onb-[[!showDashboard]]" main>
@@ -311,7 +311,10 @@
                         <paper-material class="graphs" hidden="[[!model.monitoring.machines.length]]">
                             <template is="dom-if" if="[[viewingDashboard]]" restamp>
                                 <mist-monitoring monitoring="[[model.monitoring]]" replace-targets="[[replaceTargets]]"></mist-monitoring>
-                                <paper-button on-tap="_disableMonitoringOnNonExisting" hidden$="[[!hasNonExistingMonitoredMachines]]" class="disable-monitoring">disable monitoring on non existing machines</paper-button>
+                                <div hidden$="[[!hasMissingMonitored]]">
+                                    <p> It seems you have monitoring enabled on missing machines. <paper-button on-tap="_disableMonitoringOnNonExisting" hidden$="[[!hasMissingMonitored]]" class="disable-monitoring">disable monitoring on missing machines</paper-button>
+                                    </p>
+                                </div>
                             </template>
                         </paper-material>
                     </div>
@@ -389,9 +392,9 @@
                 type: Boolean,
                 value: true
             },
-            hasNonExistingMonitoredMachines: {
+            hasMissingMonitored: {
                 type: Boolean,
-                computed: "_computeHasNonExistingMonitoredMachines(model.monitoring.*)",
+                computed: "_computeHasMissingMonitored(model.clouds.*, model.monitoring.*)",
                 value: false
             }
         },
@@ -564,15 +567,15 @@
             }
             return show;
         },
-        _computeHasNonExistingMonitoredMachines: function(monitoredmachines){
-            var hasNonExisting = false;
-            if (this.model && this.model.clouds && this.model.clouds.monitoring && this.model.clouds.monitoring.machines) {
-                for (var i=0; i < this.model.monitoring.machines.length; i++) {
-                    if (!this.model.clouds[machines[i][0]] || !this.model.clouds[machines[i][0]].machines || !this.model.clouds[machines[i][0]].machines[machines[i][1]]) {
-                        hasNonExisting = true;
-                        break;
-                    }
-                }
+        _computeHasMissingMonitored: function(clouds, monitoring){
+            var hasNonExisting;
+
+            console.log('_computeHasMissingMonitored',this.model.monitoring);
+            
+            if (this.model && this.model.clouds && this.model.monitoring && this.model.monitoring.machines) {
+                hasNonExisting = this.model.monitoring.machines.find(function(m){
+                    return !this.model.clouds[m[0]] || !this.model.clouds[m[0]].machines || !this.model.clouds[m[0]].machines[m[1]];
+                }, this);
             }
             return hasNonExisting;
         },
