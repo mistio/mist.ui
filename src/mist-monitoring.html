@@ -91,7 +91,7 @@
             }
         </style>
         <template is="dom-if" if="[[!resource.id]]" restamp>
-            <template is="dom-if" if="[[!hidden]]" restamp>
+            <template is="dom-if" if="[[showHomeDashboard]]" restamp>
                 <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
             </template>
         </template>
@@ -317,6 +317,10 @@
                 type: Boolean,
                 computed: 'computeShowLogs(jobId, isMonitored, isActivated)',
                 value: false
+            },
+            showHomeDashboard: {
+                type: Boolean,
+                computed: '_computeShowHomeDashboard(monitoring, hidden)'
             },
             datasources: {
                 type: Array,
@@ -599,5 +603,10 @@
             this.set('intervalMonitoringID', false);
             console.log('clearInterval');
         },
+        _computeShowHomeDashboard: function(monitoring, hidden){
+            if (hidden || !monitoring.machines.length)
+              return false;
+            return true;
+        }
     });
 </script>
