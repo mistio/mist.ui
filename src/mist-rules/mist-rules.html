@@ -196,7 +196,7 @@
                 },
                 availableMetrics: {
                     type: Array,
-                    computed: "_computeMetrics(builtinMetrics)"
+                    computed: "_computeMetrics(resource, builtinMetrics, customMetrics)"
                 },
                 newRule: Object,
                 editNew: {
@@ -278,7 +278,7 @@
                 });
                 return !find ? false : true;
             },
-            _computeMetrics: function(machine){
+            _computeMetrics: function(resource, builtinMetrics, customMetrics){
                 var metrics = [];
                 for (var p in this.builtinMetrics){
                     metrics.push(this.builtinMetrics[p])
@@ -286,8 +286,8 @@
                 if (this.customMetrics) {
                     for (var q in this.customMetrics){
                         var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
-                            return m[0] == this.machine.cloud.id && m[1] == this.machine.id;
-                        })
+                            return m[0] == this.resource.cloud.id && m[1] == this.resource.id;
+                        }, this)
                         if (machineHasCustomMetric) 
                             metrics.push(this.customMetrics[q])
                     }
