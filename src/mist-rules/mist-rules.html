@@ -89,7 +89,7 @@
         </style>
         <paper-material elevation="0">
             <template is="dom-repeat" items="{{items}}">
-                <rules-item builtin-metrics="[[builtinMetrics]]" rule="[[item]]" incidents="[[incidents]]" resource="[[resource]]"></rules-item>
+                <rules-item builtin-metrics="[[builtinMetrics]]" custom-metrics="[[customMetrics]]" rule="[[item]]" incidents="[[incidents]]" resource="[[resource]]"></rules-item>
             </template>
             
             <paper-button toggles active="{{editNew}}" hidden$="{{editNew}}"><iron-icon icon="icons:add-circle"></iron-icon> add new rule</paper-button>
@@ -117,7 +117,7 @@
 
                     <paper-input id="metricValue" value="{{newRule.value}}" auto-validate></paper-input>
 
-                    {{computeUnits(newMetric, builtinMetrics)}}
+                    {{computeUnits(newMetric, availableMetrics)}}
 
                     for 
 
@@ -250,11 +250,12 @@
                 }
                 return rulesArray.reverse();
             },
-            computeUnits: function(metric) {
-                return this.builtinMetrics[metric] ? this.builtinMetrics[metric].unit : 'unit';
+            computeUnits: function(metric, availableMetrics) {
+                console.log('computeUnits',availableMetrics);
+                return this.availableMetrics[metric] ? this.availableMetrics[metric].unit : '';
             },
-            computeName: function(metric) {
-                return this.builtinMetrics[metric]? this.builtinMetrics[metric].name : 'name';
+            computeName: function(metric, availableMetrics) {
+                return this.availableMetrics[metric]? this.availableMetrics[metric].name : 'name';
             },
             computeTime: function(time){
                 return time/60 + 1;
