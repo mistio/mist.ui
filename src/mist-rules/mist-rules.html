@@ -117,7 +117,7 @@
 
                     <paper-input id="metricValue" value="{{newRule.value}}" auto-validate></paper-input>
 
-                    {{computeUnits(newMetric, availableMetrics)}}
+                    {{computeUnits(newMetric, builtinMetrics, customMetrics)}}
 
                     for 
 
@@ -250,12 +250,11 @@
                 }
                 return rulesArray.reverse();
             },
-            computeUnits: function(metric, availableMetrics) {
-                console.log('computeUnits',availableMetrics);
-                return this.availableMetrics[metric] ? this.availableMetrics[metric].unit : '';
-            },
-            computeName: function(metric, availableMetrics) {
-                return this.availableMetrics[metric]? this.availableMetrics[metric].name : 'name';
+            computeUnits: function(metric, builtinMetrics, customMetrics) {
+                var ref;
+                if (this.builtinMetrics || this.customMetrics)
+                    ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
+                return ref && ref.unit ? ref.unit : '';
             },
             computeTime: function(time){
                 return time/60 + 1;
