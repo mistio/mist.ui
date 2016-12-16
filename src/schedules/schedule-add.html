@@ -1,0 +1,164 @@
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+
+<link rel="import" href="../app-form/app-form.html">
+
+<dom-module id="schedule-add">
+    <template>
+        <style is="custom-style" include="forms"></style>
+        <style is="custom-style" include="single-page"></style>
+        <style include="shared-styles">
+        :host {
+            display: block;
+        }
+        
+        #content {
+            max-width: 900px;
+        }
+        
+        paper-material {
+            display: block;
+            padding: 24px;
+        }
+        
+        paper-progress {
+            position: absolute;
+            bottom: 85px;
+            width: 100%;
+            left: 0;
+            right: 0;
+        }
+        
+        :host >::content paper-input-container {
+            padding-top: 16px;
+            padding-bottom: 16px;
+        }
+        </style>
+        <div id="content">
+            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <div class="title flex">
+                    <h2>
+                        Add Schedule
+                    </h2>
+                    <div class="subtitle">
+                    </div>
+                </div>
+            </paper-material>
+            <paper-material>
+                <app-form fields="[[fields]]" form="[[schedule]]" url="/api/v1//schedules" on-response="_handleAddScheduleResponse" on-error="_handleError"></app-form>
+            </paper-material>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+
+        Polymer({
+            is: 'schedule-add',
+
+            properties: {
+                section: Object,
+                model: Object,
+                schedule: Object,
+                fields: {
+                    type: Array,
+                    value: [{
+                        name: "name",
+                        label: "Name *",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        placeholder: "",
+                        errorMessage: "Please enter schedule's name",
+                        show: true,
+                        required: true
+                    }],
+                    notify: true
+                }
+            },
+            observers: [
+
+            ],
+            listeners: {
+
+            },
+            ready: function(){
+                // required fields according to backend
+
+                // script_id:
+                //   type: string
+                // action:
+                //   type: string
+                // machines_uuids:
+                //   required: true
+                //   type: array
+                //   description: list of machines_uuids
+                // machines_tags:
+                //   required: true
+                //   type: array
+                //   description: list of machines_tags
+                // name:
+                //   required:true
+                //   type:string
+                //   description: schedule name
+                // enabled:
+                //   type: boolean
+                //   description: schedule is ready to run
+                // run_immediately:
+                //   type: boolean
+                //   description: run immediately only  the first time
+                // expires:
+                //   type: string
+                //   description: expiration date
+                // description:
+                //   type: string
+                //   description: describe schedule
+                // schedule_type:
+                //   type: string
+                //   description: three different types, interval, crontab, one_off
+                // schedule_entry:
+                //   type: object
+                //   description: period of time
+                // params:
+                //   type: string
+                this.updatePayload();
+            },
+            updateFields: function(e){
+                this.updatePayoad();            
+            },
+            updatePayload: function(){
+                var payload = {
+                    script_id: "",
+                    action: "",
+                    machines_uuids: [],
+                    machines_tags: [],
+                    name: "Schedule Prototype",
+                    enabled: true,
+                    run_immediately: true,
+                    expires: false,
+                    description: "",
+                    schedule_type: "one_off",
+                    schedule_entry: {},
+                    params: ""
+                };
+                this.set('schedule', payload);
+            },
+            _handleAddScheduleResponse: function(e){
+                var response = YAML.parse(e.detail.xhr.response);
+                document.querySelector('app-location').set('path', '/schedules/' + response.id);
+            },
+            _handleError: function(e) {
+                console.log(e);
+                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+                this.set('formError', true);
+            },
+            _goBack: function() {
+                history.back();
+            }
+        });
+    })();
+    </script>
+</dom-module>
