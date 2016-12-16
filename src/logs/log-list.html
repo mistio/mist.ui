@@ -86,12 +86,17 @@
               white-space: pre-wrap;
           }
 
-          vaadin-grid table > thead > tr > th {
-              background-color: #F2F2F2 !important;
+          paper-button {
+            display: block;
+            text-transform: none;
           }
 
-          tr[odd] td {
-            background-color: #fafafa;
+          div.time-header {
+            padding-left: 16px;
+          }
+
+          iron-icon.error {
+            float: right;
           }
       </style>
       <paper-material>
@@ -115,18 +120,14 @@
                 </table>
               </div>
             </template>
-            <vaadin-grid-column width="20px" flex="1">
+            <vaadin-grid-column flex="4">
+              <template class="header"><div class="time-header">Time</div></template>
               <template>
-                <paper-icon-button icon="icons:arrow-drop-down" toggles active="{{expanded}}" style$="[[_computeIconStyle(expanded)]]"></paper-icon-button>
+                <paper-button toggles active="{{expanded}}" id="btn-[[_computeLogId(item)]]">
+                  <iron-icon icon="icons:arrow-drop-down" style$="[[_computeIconStyle(expanded)]]"></iron-icon>[[_computeRelativeTime(item.time)]]
+                  <iron-icon id="error-[[_computeLogId(item)]]" icon="error" class="error" hidden$=[[!item.error]]></iron-icon>
+                </paper-button>
               </template>
-            </vaadin-grid-column>
-            <vaadin-grid-column flex="3">
-              <template class="header">Time</template>
-              <template>[[_computeRelativeTime(item.time)]]</template>
-            </vaadin-grid-column>
-            <vaadin-grid-column width="20px" flex="1">
-              <template class="header"></template>
-              <template><iron-icon icon="error" hidden$=[[!item.error]]></template>
             </vaadin-grid-column>
           </vaadin-grid-column-group>
 
@@ -206,8 +207,6 @@ Polymer({
         wait: false
     },
 
-    //listeners: { 'filter-changed': '_updateLogFilter'},
-
     ready: function() {
         var socket = document.querySelector('mist-socket'), that = this;
         if (!socket || !socket.get('initialized')) {
@@ -278,7 +277,7 @@ Polymer({
     },
 
     _computeFilterMap: function(filterText, resourceFilter) {
-        var ret = Object.create(resourceFilter), terms = filterText.split(' ');
+        var ret = JSON.parse(JSON.stringify(this.resourceFilter)), terms = filterText.split(' ');
 
         for (var i = 0; i < terms.length; i++) {
             if (terms[i].indexOf(':') > -1) {
@@ -292,16 +291,11 @@ Polymer({
         }
 
         ret['_'] = terms.join(' ').trim();
-        console.debug('grid filterMap computed', ret);
         return ret;
     },
 
     _computeRelativeTime: function(timestamp) {
         return moment(timestamp * 1000).fromNow();
-    },
-
-    _getItemValue: function(item, key) {
-        return item[key];
     },
 
     eventReceived: function(entry) {
@@ -310,51 +304,12 @@ Polymer({
     },
 
     _computeIconStyle: function(expanded) {
+        // TODO: animate icon
         if (!expanded) return "transform: rotate(270deg)";
     },
 
-    _onCellClick: function(e) {
-        var item = e.detail.model.item;
-        console.warn('cellClick', e);
-        /*
-        if (this.$.grid.expandedItems.indexOf(item) == -1) {
-            console.warn('expand', item);
-            item.keys = Object.keys(item).forEach(function(k) {
-                return {key: k, value: item[k]}
-            });
-            this.$.grid.expandItem(item);
-        } else {
-            console.warn('collapse', item, e);
-            //this.$.grid.collapseItem(item);
-        }*/
-    },
-
-    _onDetailsTap: function(e) {
-        console.log('tap', e);
-    },
-
-    _updateColumns: function(items) {
-        var Set = swiftSet.Set;
-        var allKeys = new Set(), allTypes = new Set(), allActions = new Set();
-        for (var i=0;i<items.length;i++) {
-            allKeys.addItems(Object.keys(items[i]));
-            allTypes.add('type:' + items[i].type);
-            allActions.add('action:' + items[i].action);
-        }
-
-        var existingColumns = new Set();
-        for (var i=0;i<this.$.grid.columns.length;i++) {
-            existingColumns.add(this.$.grid.columns[i].name);
-        }
-
-        var keyItems = allKeys.items()
-        for (var i=0;i<keyItems.length;i++)
-            if (!existingColumns.has(keyItems[i]))
-                this.$.grid.addColumn({name: keyItems[i], hidden: true, hidable: true})
-
-        var logFilterSuggestions = new Set(this.get('logFilterSuggestions')).union(allActions);
-
-        this.set('logFilterSuggestions', logFilterSuggestions);
+    _computeLogId: function(item) {
+        return item && item.time * 1000000;
     },
 
     _updateLogFilter: function(data) {
@@ -362,7 +317,6 @@ Polymer({
             console.debug('grid not yet ready');
             return;
         }
-        console.debug('grid _updateLogFilter', data, this.filterText);
         this.set('items', []);
         this.hasReachedEnd = false;
         this.$.grid.$.scroller._resetScrollPosition(0);
@@ -378,17 +332,7 @@ Polymer({
             return true;
         });
         return ret;
-    },
+    }
 });
-
-var TIME_MAP = {
-    SECOND: 1000,
-    MINUTE: 60 * 1000,
-    HOUR: 60 * 60 * 1000,
-    DAY: 24 * 60 * 60 * 1000,
-    WEEK: 7 * 24 * 60 * 60 * 1000,
-    MONTH: 30 * 24 * 60 * 60 * 1000,
-    YEAR: 12 * 30 * 24 * 60 * 60 * 1000,
-};
 
 </script>
