@@ -475,19 +475,6 @@ Polymer({
     },
     itemMonitoringStatus: function(item, incidents, monitoring){
         var classes = "";
-        //nstallation_status
-//case
-        // manual:true
-        // started_at:1477334865
-        // state:"installing"
-
-//case
-        // error_msg :""
-        // finished_at:1477335451
-        // manual:false
-        // started_at:1477335136
-        // state:"succeeded"
-        // stdout:
 
         // check if machine is monitored
         if (!this.model.monitoring) {
@@ -509,7 +496,6 @@ Polymer({
         if (this.model.monitoring.monitored_machines[item.uuid].installation_status == "failed"){
             classes += "failed "
         }
-
 
         if (this.incidents.length > 0 && this.incidents.indexOf(item.id) > -1) {
             classes += "has-incidents "
@@ -540,7 +526,6 @@ Polymer({
         }
     },
     itemsChanged: function (changeRecord) {
-        console.warn('scrollTop', this.querySelector('iron-list').scrollTop);
         var that = this;
         // update height of list depending on number of items
         var topOfset = 168;
@@ -558,24 +543,22 @@ Polymer({
         }
 
         this.debounce('itemsChanged', function () {
+            // redraw iron-list
+            this.querySelector('iron-list').notifyResize();
+
             // If some selectedItems are no longer in the items list, unselect them
-            // console.debug('itemsChanged');
             if (!that.selectedItems) {
-                // console.log('returning');
                 return;
             }
             var oldSelected = that.get('selectedItems').slice(0);
             while (that.get('selectedItems.length')) {
                 var popped = that.pop('selectedItems');
-                // console.log('poping 1 element', popped);
             }
             for (var i=0; i < that.items.length; i++) {
                 if (oldSelected.indexOf(that.itemUid(that.items[i]))>-1) {
                   that.push('selectedItems', that.itemUid(that.items[i]));
-                  // console.log('pushing back 1 element', that.itemUid(that.items[i]));
                 }
             }
-            // console.log('new selected', this.selectedItems);
 
             if (that.get('items.length') != that.get('selectedItems.length'))
                 that.set('allselected', false);
