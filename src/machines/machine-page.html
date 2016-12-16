@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
@@ -320,6 +321,21 @@
                 width: 80px;
                 opacity: 0.54;
             }
+            .probe-button > * {
+                vertical-align: middle;
+            }
+            #probeButton {
+                background-color: transparent;
+                font-weight: 400;
+                font-size: 0.9em;
+                color: #2196F3;
+                display: inline-block;
+                padding: 0;
+            }
+            #probeSpinner {
+                display: inline-block;
+                padding: 8px;
+            }
         </style>
 
         <div id="content">
@@ -342,18 +358,22 @@
             </paper-material>
             <div class="columns">
                 <paper-material id="leftcolumn" class="left">
-                    <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span>
+                    <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span> 
                         [[machine.cloud.title]]</span>
-                    <span hidden$="[[!machine.extra.image]]" class="break"><span class="m-info-head">Image:</span>
+                    <span hidden$="[[!machine.extra.image]]" class="break"><span class="m-info-head">Image:</span> 
                         [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
                         [[_computeMachineSize(machine)]]</span>
-                    <span hidden$="[[!machine.extra.created]]"><span class="m-info-head">Created:</span>
+                    <span hidden$="[[!machine.extra.created]]"><span class="m-info-head">Created:</span> 
                         [[machine.extra.created]]</span>
                     <div hidden$="[[!probeData]]"> <span class="m-info-head">Probe Data:</span>
                         <span class$="probe-data [[itemProbeClasses(machine, model.probes)]]"> </span>
                         <span hidden$="[[!probeData]]"> [[probeData]] </span> <br/>
                         <span hidden$="[[!lastProbe]]"> [[lastProbe]] </span>
+                    </div>
+                    <div class="probe-button" hidden$="[[!machineKeys.length]]" >
+                        <paper-button id="probeButton" on-tap="_probeMachine" disabled="{{probeLoading}}">probe now</paper-button>
+                        <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
                     </div>
                     <div hidden$="[[!kernelInfo]]">
                         [[kernelInfo]]
@@ -479,8 +499,18 @@
                     on-request="_disassociateKeyRequest"
                     handle-as="xml"></iron-ajax>
 
+        <iron-ajax  id="probeMachine"
+                    url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/probe"
+                    method="POST"
+                    loading="{{probeLoading}}"
+                    on-response="_probeResponse"
+                    on-error="_probeError"
+                    on-request="_probeRequest"
+                    handle-as="xml"></iron-ajax>
+
         <machine-edit machine="[[machine]]"></machine-edit>
         <tags-list model="[[model]]"></tags-list>
+        <paper-toast></paper-toast>
     </template>
 </dom-module>
 <script>
@@ -663,8 +693,7 @@ Polymer({
         }
     },
     observers: [
-        '_isMonitored(machine, model.monitoring.machines.*)',
-        'isInPageChanged(machine, isInPage)'
+        '_isMonitored(machine, model.monitoring.machines.*)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -677,40 +706,6 @@ Polymer({
     _showRecommendationDialog: function(){
         this.fire("open-recommendation-dialog", {'item-type': 'machines', 'item': this.machine, 'caller': "machine_page"});
     },
-
-    isInPageChanged: function(machine, isInPage){
-        // console.log('machine', machine);
-        // if (!this.machine)
-        //     return;
-
-        // var parent = this.$.monitoringBlock;
-        // if (this.isInPage == true ) {
-        //     if (!this.querySelector('#mistMonitoring')) {
-        //         var monitoringNode = document.createElement('mist-monitoring');
-        //         monitoringNode.id = "mistMonitoring";
-        //         monitoringNode.resource = this.machine;
-        //         monitoringNode.set('monitoring',this.model.monitoring);
-        //         monitoringNode.section = this.section;
-        //         monitoringNode.datasources = this.datasources;
-
-        //         Polymer.dom(parent).insertBefore(monitoringNode, this.$.monitoringRules);
-        //         // <mist-monitoring
-        //         //         id="mistMonitoring"
-        //         //         resource="[[machine]]"
-        //         //         monitoring="[[model.monitoring]]"
-        //         //         section="[[section]]"
-        //         //         datasources="[[datasources]]"></mist-monitoring>
-        //     }
-        // }
-        // else {
-        //     console.log('delete ', this.querySelector('#mistMonitoring'))
-        //     if (this.querySelector('#mistMonitoring')){
-        //         Polymer.dom(parent).removeChild(this.querySelector('#mistMonitoring'));
-        //     }
-        // }
-        // Polymer.dom.flush()
-    },
-
     _computeActions: function(item) {
         var ret = [];
         if (item && item.state == 'running') {
@@ -763,7 +758,6 @@ Polymer({
                 return m[1] == this.machine.id && m[0] == this.machine.cloud.id;
             }, this)
         }, this);
-        console.log("machine-page",keys);
         return keys || [];
     },
     computeMachineIp: function(machineips) {
@@ -820,6 +814,11 @@ Polymer({
         }
         dialog._openDialog();
     },
+    _showToast: function(msg) {
+        var toast = this.querySelector('paper-toast');
+        toast.text = msg;
+        toast.show();
+    },
     isState: function(machine) {
         if (machine)
             return machine.state == machine.extra.status;
@@ -831,11 +830,7 @@ Polymer({
         var keyId = e.target['dataKeyid'];
         var keyName = e.target['dataKeyname'];
 
-        // console.log('disassociateKey',keyId, keyName);
-
         this.set('disassociateKeyId', keyId);
-
-        // console.log(this.disassociateKeyId);
 
         this._showDialog({
             title: 'Disassociate key',
@@ -851,12 +846,11 @@ Polymer({
     },
     _disassociateKeyResponse: function(e) {
         this.set('isPendingKeyRequest', false);
-        this.fire('toast',{msg:'Key was removed from machine!',duration:3000});
+        document.querySelector('paper-toast#mist-toast').show({text: 'Key was removed from machine!'})
     },
     _disassociateKeyError: function(e) {
         this.set('isPendingKeyRequest', false);
-        console.log(e)
-        this.fire('toast',{msg:e.detail.request.xhr.responseText,duration:3000});
+        document.querySelector('paper-toast#mist-toast').show({text: e.detail.request.xhr.responseText})
     },
     _machineActionConfirmation: function(e){
         if (e.detail.reason == "disassociate.key") {
@@ -871,27 +865,26 @@ Polymer({
             this.set('isPendingKeyRequest', false);
         } else if (e.detail.error) {
             this.set('isPendingKeyRequest', false);
-            this.fire('toast',{msg:e.detail.errormsg,duration:3000});
+            this._showToast(e.detail.errormsg);
         }
     },
     _feedbackOnScript: function(e) {
         if (e.detail.response) {
-            this.fire('toast',{msg:'Script run request succeded. Script ' + this.model.scripts[e.detail.scriptId].name + ' has been queued for execution',duration:5000});
+            this._showToast('Script run request succeded. Script ' + this.model.scripts[e.detail.scriptId].name + ' has been queued for execution');
         }
         if (e.detail.error) {
-            this.fire('toast',{msg:e.detail.errormsg,duration:3000});
+            this._showToast(e.detail.errormsg);
         }
     },
     _feedbackOnRename: function(e) {
-        // console.log("_feedbackOnRename")
         if (e.detail.request) {
-            this.fire('toast',{msg:'Rename request sent. Waiting for machine to respond',duration:3000});
+            this._showToast('Rename request sent. Waiting for machine to respond');
         }
         if (e.detail.response) {
-            this.fire('toast',{msg:'Renaming was successful.',duration:3000});
+            this._showToast('Renaming was successful.');
         }
         if (e.detail.error) {
-            this.fire('toast',{msg:e.detail.errormsg,duration:3000});
+            this._showToast(e.detail.errormsg);
         }
     },
     _computeProbeData: function(machine, probes){
@@ -974,7 +967,7 @@ Polymer({
         // field could be in the 'extra' section, but should not be an object
         if (item) {
             var ret = item['size'];
-
+            
             if (ret && typeof(ret) != 'object')
                 return ret;
             if (!ret && item.extra && item.extra['size'] && typeof(item.extra['size']) != 'object')
@@ -996,6 +989,16 @@ Polymer({
             if (item.extra && item.extra.service_type)
                 return item.extra.service_type;
         }
+    },
+    _probeMachine: function(e){
+        var mhost = this.machine.public_ips && this.machine.public_ips[0] ? this.machine.public_ips[0] : '';
+        var payload = { 
+            'host': mhost, 
+            'key': this.machineKeys[0].id
+        };
+        this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.probeMachine.params = payload;
+        this.$.probeMachine.generateRequest();
     }
 });
 </script>
