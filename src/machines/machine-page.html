@@ -503,9 +503,7 @@
                     url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/probe"
                     method="POST"
                     loading="{{probeLoading}}"
-                    on-response="_probeResponse"
                     on-error="_probeError"
-                    on-request="_probeRequest"
                     handle-as="xml"></iron-ajax>
 
         <machine-edit machine="[[machine]]"></machine-edit>
@@ -999,6 +997,9 @@ Polymer({
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.probeMachine.params = payload;
         this.$.probeMachine.generateRequest();
+    },
+    _probeError: function(e){
+        this.fire('toast', { msg:'Error probing machine '+ detail.request.xhr.responseText, duration: 3000 });
     }
 });
 </script>
