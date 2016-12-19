@@ -11,6 +11,7 @@
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-behavior.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-addon-behavior.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
@@ -98,6 +99,9 @@
                 margin-top: 16px;
                 margin-bottom: 16px;
             }
+            paper-checkbox {
+                display: block;
+            }
         </style>
 
         <div class="grid-row">
@@ -121,6 +125,14 @@
                                 <paper-radio-button name="[[option.val]]">[[option.title]]</paper-radio-button>
                             </template>
                         </paper-radio-group>
+                    </template>
+                    <template is="dom-if" if="[[_computeFieldType(field, 'checkboxes', field.show)]]">
+                        <div id="[[field.name]]" class="dropdown-block xs12 m6" horizontal-align="left" hidden="[[field.hidden]]"> 
+                            [[field.name]]:
+                            <template is="dom-repeat" items="[[field.options]]" as="option">
+                                <paper-checkbox name$="[[field.name]]" data-value="[[option.id]]">[[option.name]]</paper-checkbox>
+                            </template>
+                        </div>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'dropdown', field.show)]]">
                         <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
@@ -302,6 +314,9 @@
                 observers: [
                     '_fieldsChanged(fields.*, sendingData)',
                 ],
+                listeners: {
+                    'change': '_checkedEvent'
+                },
                 ready: function(){
                     this.fields = [];
                 },
@@ -383,9 +398,12 @@
                                 this.set('fields.' + index + '.show', show);
 
                                 // update form values regardless of el.show
-                                if(el.type == "ip_textarea") {
+                                if (el.type == "ip_textarea") {
                                     var cidrsArray = el.value.split('\n');
                                     this.set('form.' + el.name, cidrsArray);
+                                }
+                                else if (el.type == "checkboxes") {
+                                    this.set('form' + el.name, this._constructCheckboxValue(el.name))
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
@@ -435,7 +453,7 @@
                                 return el.show && el.required ? el.value : true;
                             }
                         }, this);
-
+                        
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
@@ -569,6 +587,31 @@
                 },
                 _replaceAsterisk: function(str){
                     return str.replace("*", "");
+                },
+                _constructCheckboxValue: function(fieldname) {
+                    var checkboxes = this.querySelectorAll('paper-checkbox[name='+fieldname+']'); // get checkboxes
+                    var arr = [];
+                    checkboxes.forEach(function(c){
+                        console.log('in loop',c)
+                        if (c.checked)
+                            arr.push(c.dataValue);
+                    })
+                    var index = -1;
+                    var field = this.fields.find(function(f, ind){
+                        index = ind;
+                        return f.name == fieldname;
+                    })
+                    if (field && arr.length > 0)
+                        this.set('fields.'+index+'.value', arr);
+                    else if (field && arr.length == 0)
+                        this.set('fields.'+index+'.value', '');
+                },
+                _checkedEvent: function(e) {
+                    console.log('_checkedEvent', e, e.target, this.querySelector('div#'+e.target.name), e.target.tagName == 'PAPER-CHECKBOX');
+                    if (e.target.tagName == 'PAPER-CHECKBOX'){
+                        this.querySelector('div#'+e.target.name);
+                        this._constructCheckboxValue(e.target.name);
+                    }
                 }
             });
         })();
