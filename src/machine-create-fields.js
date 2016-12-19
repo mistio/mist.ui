@@ -194,6 +194,18 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         options: []
+    }, {
+        name: "associate_floating_ip",
+        label: "Associate Floating IP",
+        type: "toggle",
+        value: "true",
+        defaultValue: "true",
+        show: false,
+        required: false,
+        showIf: {
+            fieldName: "networks",
+            fieldExists: true
+        }
     }]
 });
 
