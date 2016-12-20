@@ -145,6 +145,7 @@ SCHEDULEACTIONS = {
                         helptext: "The scheduler can either perform an action or run a script",
                         show: true,
                         required: true,
+                        class: "bind-bottom radio-highight",
                         options: [{
                             title: "Perform an action",
                             val: "action"
@@ -163,6 +164,7 @@ SCHEDULEACTIONS = {
                         required: false,
                         helptext: "Schedule an existing script to run.",
                         options: [],
+                        class: "bind-top background",
                         showIf: {
                             fieldName: "script_or_action",
                             fieldValues: ["script"]
@@ -177,6 +179,7 @@ SCHEDULEACTIONS = {
                         required: false,
                         helptext: "Schedule a machine action to be performed.",
                         options: [],
+                        class: "bind-top background",
                         showIf: {
                             fieldName: "script_or_action",
                             fieldValues: ["action"]
@@ -190,6 +193,7 @@ SCHEDULEACTIONS = {
                         show: true,
                         required: false,
                         helptext: "The scheduled task can run either on specific machines, or on machines with the specified tags at the scheduled time",
+                        class: "bind-bottom radio-highight",
                         options: [{
                             title: "Specific Machines",
                             val: "ids"
@@ -200,13 +204,15 @@ SCHEDULEACTIONS = {
                     }, {
                         name: "machines_uuids",
                         label: "Machines",
-                        type: "checkboxes",
+                        type: "mist_dropdown",
+                        // type: "checkboxes",
                         value: "",
                         defaultValue: "",
                         show: true,
                         required: false,
                         helptext: "Select specific machines to be included in scheduler.",
                         options: [],
+                        class: "bind-top background",
                         showIf: {
                             fieldName: "ids_or_tags",
                             fieldValues: ["ids"]
@@ -220,6 +226,7 @@ SCHEDULEACTIONS = {
                         show: true,
                         required: false,
                         helptext: "Scheduler will include all machines with the specified tags.",
+                        class: "bind-top background",
                         showIf: {
                             fieldName: "ids_or_tags",
                             fieldValues: ["tags"]
@@ -234,6 +241,7 @@ SCHEDULEACTIONS = {
                         helpHref: "http://docs.mist.io/article/118-running-scheduled-tasks-cronjobs-with-mist-io",
                         show: true,
                         required: true,
+                        class: "bind-bottom radio-highight",
                         options: [{
                             title: "Interval",
                             val: "interval"
@@ -251,6 +259,7 @@ SCHEDULEACTIONS = {
                         value: "",
                         defaultValue: "",
                         helptext: "",
+                        class: "bind-top background",
                         show: true,
                         required: true
                     }, {
@@ -312,9 +321,15 @@ SCHEDULEACTIONS = {
                     if (f.name  == "script_id") {
                         f.options = this.model.scriptsArray;
                     }
+
+                    if (f.name  == "machines_uuids") {
+                        f.options = this.model.machinesArray;
+                    }
+
                     if (f.name.startsWith("action")) {
                         f.options = this.actions;
                     }
+
                     // // select unique options
                     // if (f.options && f.options.length == 1){
                     //     if (f.type == "dropdown")
@@ -337,10 +352,12 @@ SCHEDULEACTIONS = {
 
                     if (changeRecord.value == "action") {
                         this.set('fields.'+ scriptInd +'.value', '');
+                        this.querySelector('paper-menu#action').selected = -1;
                         this.set('fields.'+ scriptInd +'.excludeFromPayload', true);
                         this.set('fields.'+ actionInd +'.excludeFromPayload', false);
                     }
                     else if (changeRecord.value == "script") {
+                        this.querySelector('paper-menu#script_id').selected = -1;
                         this.set('fields.'+ actionInd +'.value', '');
                         this.set('fields.'+ actionInd +'.excludeFromPayload', true);
                         this.set('fields.'+ scriptInd +'.excludeFromPayload', false);
