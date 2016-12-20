@@ -48,7 +48,7 @@
                 </div>
             </paper-material>
             <paper-material>
-                <app-form fields="[[fields]]" form="[[schedule]]" url="/api/v1/schedules" on-response="_handleAddScheduleResponse" on-error="_handleError"></app-form>
+                <app-form fields="{{fields}}" form="[[schedule]]" url="/api/v1/schedules" on-response="_handleAddScheduleResponse" on-error="_handleError"></app-form>
             </paper-material>
         </div>
     </template>
@@ -209,7 +209,7 @@ SCHEDULEACTIONS = {
                         value: "",
                         defaultValue: "",
                         show: true,
-                        required: false,
+                        required: true,
                         helptext: "Select specific machines to be included in scheduler.",
                         options: [],
                         class: "bind-top background",
@@ -224,7 +224,7 @@ SCHEDULEACTIONS = {
                         value: "",
                         defaultValue: "",
                         show: true,
-                        required: false,
+                        required: true,
                         helptext: "Scheduler will include all machines with the specified tags.",
                         class: "bind-top background",
                         showIf: {
@@ -259,9 +259,55 @@ SCHEDULEACTIONS = {
                         value: "",
                         defaultValue: "",
                         helptext: "",
-                        class: "bind-top background",
-                        show: true,
+                        show: false,
                         required: true
+                    }, {
+                        name: "schedule_entry_interval",
+                        label: "Interval",
+                        type: "text",
+                        value: '{"every" : 10, "period" : "minutes"}',
+                        defaultValue: "",
+                        excludeFromPayload: true,
+                        placeholder: 'eg: {"every" : 10, "period" : "minutes"}',
+                        helptext: "",
+                        class: "bind-both background",
+                        show: true,
+                        required: false,
+                        showIf: {
+                            fieldName: "schedule_type",
+                            fieldValues: ["interval"]
+                        }
+                    }, {
+                        name: "schedule_entry_crontab",
+                        label: "Crontab",
+                        type: "text",
+                        value: '{"minute": "*/5"}',
+                        defaultValue: "",
+                        placeholder: 'eg: {"minute": "*/5"}',
+                        helptext: "",
+                        excludeFromPayload: true,
+                        class: "bind-both background",
+                        show: true,
+                        required: false,
+                        showIf: {
+                            fieldName: "schedule_type",
+                            fieldValues: ["crontab"]
+                        }
+                    }, {
+                        name: "schedule_entry_one_off",
+                        label: "Date",
+                        type: "date",
+                        value: "Select",
+                        defaultValue: "",
+                        class: "bind-both background",
+                        icon: "schedule",
+                        excludeFromPayload: true,
+                        show: true,
+                        required: false,
+                        showIf: {
+                            fieldName: "schedule_type",
+                            fieldValues: ["one_off"]
+                        }
                     }, {
                         name: "params",
                         label: "Parameters",
@@ -269,6 +315,18 @@ SCHEDULEACTIONS = {
                         value: "",
                         defaultValue: "",
                         helptext: "",
+                        show: true,
+                        class: "bind-top background",
+                        required: false
+                    }, {
+                        name: "expires",
+                        label: "Expires",
+                        type: "date",
+                        value: "",
+                        excludeFromPayload: true,
+                        defaultValue: "",
+                        helptext: "",
+                        icon: "schedule",
                         show: true,
                         required: false
                     }, {
@@ -293,7 +351,6 @@ SCHEDULEACTIONS = {
                 '_updateFields(model.*)'
             ],
             listeners: {
-
             },
             _computeActions: function(machinesArray) {
                 var ret = ['start', 'stop', 'suspend', 'reboot', 'resume', 'destroy'];
@@ -329,17 +386,7 @@ SCHEDULEACTIONS = {
                     if (f.name.startsWith("action")) {
                         f.options = this.actions;
                     }
-
-                    // // select unique options
-                    // if (f.options && f.options.length == 1){
-                    //     if (f.type == "dropdown")
-                    //        this.set('fields.'+index+'.value', f.options[0].val);
-                    //     else
-                    //        this.set('fields.'+index+'.value', f.options[0].id);
-                    // }
                 }, this);
-
-                // this.updatePayload(this.fields);
             },
             _fieldsChanged: function(changeRecord){
                 console.log('changeRecord', changeRecord);
@@ -351,19 +398,28 @@ SCHEDULEACTIONS = {
                     var scriptInd = this._fieldIndexByName("script_id");
 
                     if (changeRecord.value == "action") {
-                        this.set('fields.'+ scriptInd +'.value', '');
-                        this.querySelector('paper-menu#action').selected = -1;
                         this.set('fields.'+ scriptInd +'.excludeFromPayload', true);
                         this.set('fields.'+ actionInd +'.excludeFromPayload', false);
                     }
                     else if (changeRecord.value == "script") {
-                        this.querySelector('paper-menu#script_id').selected = -1;
-                        this.set('fields.'+ actionInd +'.value', '');
                         this.set('fields.'+ actionInd +'.excludeFromPayload', true);
                         this.set('fields.'+ scriptInd +'.excludeFromPayload', false);
                     }
                 }
-                // this._updateFields(this.model);
+
+                if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_")){
+                    var entryInd = this._fieldIndexByName("schedule_entry");
+                    this.set('fields.'+ entryInd +'.value', changeRecord.value);
+                }
+
+                if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name == "expires"){
+                    var expiresInd = this._fieldIndexByName("expires");
+                    this.set('fields.'+ expiresInd +'.excludeFromPayload', changeRecord.value != "" ? false : true);
+                }
+                // test code
+                // if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name == "machines_uuids" && typeOf(this.get(changeRecord.path)) != 'array'){
+                //     this.set(changeRecord.path, [ changeRecord.value ]);
+                // }
             },
             updatePayload: function(fields){
                 // test code: hardcoded data for testing
