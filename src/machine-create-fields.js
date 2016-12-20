@@ -188,12 +188,24 @@ MACHINE_CREATE_FIELDS.push({
     fields: [{
         name: "networks",
         label: "Networks *",
-        type: "mist_dropdown",
+        type: "checkboxes",
         value: "",
         defaultValue: "",
         show: true,
         required: false,
         options: []
+    }, {
+        name: "associate_floating_ip",
+        label: "Associate Floating IP",
+        type: "toggle",
+        value: "true",
+        defaultValue: "true",
+        show: false,
+        required: false,
+        showIf: {
+            fieldName: "networks",
+            fieldExists: true
+        }
     }]
 });
 
