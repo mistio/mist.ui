@@ -53,9 +53,50 @@
         </div>
     </template>
     <script>
-    (function() {
-        'use strict';
-
+SCHEDULEACTIONS = {
+  'reboot': {
+    'name': 'reboot',
+    'icon': 'av:replay',
+    'confirm': true,
+    'multi': true
+  },
+  'start': {
+    'name': 'start',
+    'icon': 'av:replay',
+    'confirm': true,
+    'multi': true
+  },
+  'stop': {
+    'name': 'stop',
+    'icon': 'av:stop',
+    'confirm': true,
+    'multi': true
+  },
+  'suspend': {
+    'name': 'suspend',
+    'icon': 'av:stop',
+    'confirm': true,
+    'multi': true
+  },
+  'resume': {
+    'name': 'resume',
+    'icon': 'av:replay',
+    'confirm': true,
+    'multi': true
+  },
+  'undefine': {
+    'name': 'undefine',
+    'icon': 'image:panorama-fish-eye',
+    'confirm': true,
+    'multi': true
+  },
+  'destroy': {
+    'name': 'destroy',
+    'icon': 'delete',
+    'confirm': true,
+    'multi': true
+  }
+};
         Polymer({
             is: 'schedule-add',
 
@@ -72,83 +113,258 @@
                         value: "",
                         defaultValue: "",
                         placeholder: "",
-                        errorMessage: "Please enter schedule's name",
+                        errorMessage: "Please enter schedule's name.",
+                        show: true,
+                        required: true,
+                        helptext: ""                    
+                    }, {
+                        name: "description",
+                        label: "Description",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        placeholder: "",
+                        show: true,
+                        required: false,
+                        helptext: "Optional. Helpful descriptions improve a team's workflows."
+                    }, {
+                        name: "enabled",
+                        label: "Enabled",
+                        type: "toggle",
+                        value: true,
+                        defaultValue: true,
+                        show: true,
+                        required: true,
+                        helptext: "You can save your schedule and enable it later."
+                    }, {
+                        name: "script_or_action",
+                        label: "Scheduler task",
+                        type: "radio",
+                        value: "script",
+                        defaultValue: "script",
+                        helptext: "The scheduler can either perform an action or run a script",
+                        show: true,
+                        required: true,
+                        options: [{
+                            title: "Perform an action",
+                            val: "action"
+                        },{
+                            title: "Run a script",
+                            val: "script"
+                        }]
+                    }, {
+                        name: "script_id",
+                        label: "Script",
+                        type: "mist_dropdown",
+                        value: "",
+                        add: true,
+                        defaultValue: "",
+                        show: false,
+                        required: false,
+                        helptext: "Schedule an existing script to run.",
+                        options: [],
+                        showIf: {
+                            fieldName: "script_or_action",
+                            fieldValues: ["script"]
+                        }
+                    }, {
+                        name: "action",
+                        label: "Action",
+                        type: "dropdown",
+                        value: "",
+                        defaultValue: "",
+                        show: false,
+                        required: false,
+                        helptext: "Schedule a machine action to be performed.",
+                        options: [],
+                        showIf: {
+                            fieldName: "script_or_action",
+                            fieldValues: ["action"]
+                        }
+                    }, {
+                        name: "ids_or_tags",
+                        label: "Specific machines or machines with tags",
+                        type: "radio",
+                        value: "tags",
+                        defaultValue: "tags",
+                        show: true,
+                        required: false,
+                        helptext: "The scheduled task can run either on specific machines, or on machines with the specified tags at the scheduled time",
+                        options: [{
+                            title: "Specific Machines",
+                            val: "ids"
+                        },{
+                            title: "Machines with tags",
+                            val: "tags"
+                        }]
+                    }, {
+                        name: "machines_uuids",
+                        label: "Machines",
+                        type: "checkboxes",
+                        value: "",
+                        defaultValue: "",
+                        show: true,
+                        required: false,
+                        helptext: "Select specific machines to be included in scheduler.",
+                        options: [],
+                        showIf: {
+                            fieldName: "ids_or_tags",
+                            fieldValues: ["ids"]
+                        }
+                    }, {
+                        name: "machines_tags",
+                        label: "Machines with tags",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        show: true,
+                        required: false,
+                        helptext: "Scheduler will include all machines with the specified tags.",
+                        showIf: {
+                            fieldName: "ids_or_tags",
+                            fieldValues: ["tags"]
+                        }
+                    }, {
+                        name: "schedule_type",
+                        label: "Schedule Type",
+                        type: "radio",
+                        value: "interval",
+                        defaultValue: "interval",
+                        helptext: "Choose the scheduler type. Read more on the docs ",
+                        helpHref: "http://docs.mist.io/article/118-running-scheduled-tasks-cronjobs-with-mist-io",
+                        show: true,
+                        required: true,
+                        options: [{
+                            title: "Interval",
+                            val: "interval"
+                        }, {
+                            title: "Crontab",
+                            val: "crontab"
+                        }, {
+                            title: "One off",
+                            val: "one_off"
+                        }]
+                    }, {
+                        name: "schedule_entry",
+                        label: "Schedule time",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        helptext: "",
                         show: true,
                         required: true
+                    }, {
+                        name: "params",
+                        label: "Parameters",
+                        type: "textarea",
+                        value: "",
+                        defaultValue: "",
+                        helptext: "",
+                        show: true,
+                        required: false
+                    }, {
+                        name: "run_immediately",
+                        label: "Run once immediately",
+                        type: "toggle",
+                        value: false,
+                        defaultValue: false,
+                        show: true,
+                        required: false,
+                        helptext: "Set to true to run the scheduled task once upon creation and then as scheduled."
                     }],
                     notify: true
+                },
+                actions: {
+                    type: Array,
+                    computed: "_computeActions(model.machinesArray)"
                 }
             },
             observers: [
-
+                '_fieldsChanged(fields.*)',
+                '_updateFields(model.*)'
             ],
             listeners: {
 
             },
-            ready: function(){
-                // required fields according to backend
+            _computeActions: function(machinesArray) {
+                var ret = ['start', 'stop', 'suspend', 'reboot', 'resume', 'destroy'];
+                
+                var actions = [];
+                for (var i = 0; i < ret.length; i++) {
+                    var act = SCHEDULEACTIONS[ret[i]];
+                    var transformRet = { 
+                        title: act.name.toUpperCase(), 
+                        val: act.name, 
+                        icon: act.icon 
+                    };
+                    actions.push(transformRet);
+                }
 
-                // script_id:
-                //   type: string
-                // action:
-                //   type: string
-                // machines_uuids:
-                //   required: true
-                //   type: array
-                //   description: list of machines_uuids
-                // machines_tags:
-                //   required: true
-                //   type: array
-                //   description: list of machines_tags
-                // name:
-                //   required:true
-                //   type:string
-                //   description: schedule name
-                // enabled:
-                //   type: boolean
-                //   description: schedule is ready to run
-                // run_immediately:
-                //   type: boolean
-                //   description: run immediately only  the first time
-                // expires:
-                //   type: string
-                //   description: expiration date
-                // description:
-                //   type: string
-                //   description: describe schedule
-                // schedule_type:
-                //   type: string
-                //   description: three different types, interval, crontab, one_off
-                // schedule_entry:
-                //   type: object
-                //   description: period of time
-                // params:
-                //   type: string
-                this.updatePayload();
+                return actions;
             },
-            updateFields: function(e){
-                this.updatePayoad(this.fields);            
+            _atLeastOne: function(action) {
+                return this.model.machinesArray.find(function(m){
+                    return m[action];
+                });
+            },
+            _updateFields: function(model){
+                this.fields.forEach(function(f, index) {
+                    if (f.name  == "script_id") {
+                        f.options = this.model.scriptsArray;
+                    }
+                    if (f.name.startsWith("action")) {
+                        f.options = this.actions;
+                    }
+                    // // select unique options
+                    // if (f.options && f.options.length == 1){
+                    //     if (f.type == "dropdown")
+                    //        this.set('fields.'+index+'.value', f.options[0].val);
+                    //     else
+                    //        this.set('fields.'+index+'.value', f.options[0].id);
+                    // }
+                }, this);
+
+                // this.updatePayload(this.fields);
+            },
+            _fieldsChanged: function(changeRecord){
+                console.log('changeRecord', changeRecord);
+
+                // selecting action or script
+                if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name == "script_or_action"){
+                    
+                    var actionInd = this._fieldIndexByName("action");
+                    var scriptInd = this._fieldIndexByName("script_id");
+
+                    if (changeRecord.value == "action") {
+                        this.set('fields.'+ scriptInd +'.value', '');
+                        this.set('fields.'+ scriptInd +'.excludeFromPayload', true);
+                        this.set('fields.'+ actionInd +'.excludeFromPayload', false);
+                    }
+                    else if (changeRecord.value == "script") {
+                        this.set('fields.'+ actionInd +'.value', '');
+                        this.set('fields.'+ actionInd +'.excludeFromPayload', true);
+                        this.set('fields.'+ scriptInd +'.excludeFromPayload', false);
+                    }
+                }
+                // this._updateFields(this.model);
             },
             updatePayload: function(fields){
-                var schedName = this.fields[0].value;
-                var newDate = moment().unix();
-
                 // test code: hardcoded data for testing
-                var payload = {
-                    script_id: "beca93f47e334929a8cb2a489a856ac5",
-                    action: "",
-                    machines_uuids: ['030da16913a04e0e93a3a54bc420be1b'],
-                    machines_tags: [],
-                    name: schedName,
-                    enabled: true,
-                    run_immediately: true,
-                    expires: "2016-12-20 17:20:00",
-                    description: "",
-                    schedule_type: "crontab",
-                    schedule_entry: '{"minute": "*/5"}',
-                    params: ""
-                };
-                this.set('schedule', payload);
+                // var payload = {
+                //     script_id: "beca93f47e334929a8cb2a489a856ac5",
+                //     action: "",
+                //     machines_uuids: ['030da16913a04e0e93a3a54bc420be1b'],
+                //     machines_tags: [],
+                //     name: schedName,
+                //     enabled: true,
+                //     run_immediately: true,
+                //     expires: "2016-12-20 17:20:00",
+                //     description: "",
+                //     schedule_type: "crontab",
+                //     schedule_entry: '{"minute": "*/5"}',
+                //     params: ""
+                // };
+                // this.set('schedule', payload);
                 // schedule_entry: {date: '2017-3-24 17:20:00'},
             },
             _handleAddScheduleResponse: function(e){
@@ -160,10 +376,17 @@
                 this.$.errormsg.textContent = e.detail.request.xhr.responseText;
                 this.set('formError', true);
             },
+            _fieldIndexByName: function(name){
+                var index;
+                var passField = this.fields.find(function(f, ind){
+                    index = ind;
+                    return f.name == name;
+                });
+                return index;
+            },
             _goBack: function() {
                 history.back();
             }
         });
-    })();
     </script>
 </dom-module>
