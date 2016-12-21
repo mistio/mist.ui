@@ -27,6 +27,7 @@
             }
             #content {
                 max-width: 900px;
+                padding-bottom: 250px;
             }
             paper-card,
             paper-checkbox {
@@ -254,6 +255,24 @@
                         return f.name == name;
                     });
                     return index;
+                },
+                fieldsOfType: function(type){
+                    var typeIndexes = [];
+                    var fieldsOfType = this.providerFields.filter(function(f, ind){
+                        if (f.type == type)
+                            typeIndexes.push(ind);
+                        return f.type == type;
+                    });
+                    return typeIndexes;
+                },
+                updateKeys: function(e){
+                    var keyFieldsIndexes = this.fieldsOfType('ssh_key');
+                    this.async(function(){
+                        for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                            this.set('providerFields.'+ keyFieldsIndexes[i] +'.options', this.keys);
+                            this.set('providerFields.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
+                        }
+                    }.bind(this), 1000);
                 },
             });
         })();
