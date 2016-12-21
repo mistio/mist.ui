@@ -450,7 +450,7 @@
                                 this.set('fields.' + index + '.show', show);
 
                                 // update form values regardless of el.show
-                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1 && !el.excludeFromPayload) {
+                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1) {
                                     var textToArray = el.value.split('\n');
                                     this.set('form.' + el.name, textToArray);
                                 }
@@ -458,7 +458,7 @@
                                     this.set('form.' + el.name, el.value);
                                 }
                             } else {
-                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1 && !el.excludeFromPayload) {
+                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1) {
                                     var textToArray = el.value.split('\n');
                                     this.set('form.' + el.name, textToArray);
                                 }
@@ -477,10 +477,6 @@
                                         }
                                 }
                             }, this);
-
-                            if (el.excludeFromPayload && this.get('form.' + el.name)) {
-                                delete this.form[el.name]
-                            }
 
                             if (el.placeholderIf) {
                                 dependency = form[el.placeholderIf.fieldName];
@@ -509,12 +505,6 @@
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
-
-                    //console
-                    // for (var p in this.form){
-                    //     console.log('f ', p, this.form[p]);
-                    // }
-                    // console.log(this.form.stackinputs);
                 },
                 _submitForm: function(e) {
                     var payload;
@@ -537,10 +527,17 @@
                             inputs: inps
                         }
                     } else {
-                        payload = this.form;
+                        payload = {};
+                        // clean up form for payload
+                        this.fields.forEach(function(el) {
+                            if (!el.excludeFromPayload) {
+                                payload[el.name] = this.form[el.name];
+                            }
+                        }, this);
+
                     }
 
-                    // console.log('Payload',payload);
+                    console.log('Payload', payload, this.form);
 
                     this.$.formAjax.headers["Content-Type"] = 'application/json';
                     this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;

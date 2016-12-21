@@ -145,6 +145,7 @@ SCHEDULEACTIONS = {
                         helptext: "The scheduler can either perform an action or run a script",
                         show: true,
                         required: true,
+                        excludeFromPayload: true,
                         class: "bind-bottom radio-highight",
                         options: [{
                             title: "Perform an action",
@@ -192,6 +193,7 @@ SCHEDULEACTIONS = {
                         defaultValue: "tags",
                         show: true,
                         required: false,
+                        excludeFromPayload: true,
                         helptext: "The scheduled task can run either on specific machines, or on machines with the specified tags at the scheduled time",
                         class: "bind-bottom radio-highight",
                         options: [{
@@ -210,6 +212,7 @@ SCHEDULEACTIONS = {
                         defaultValue: "",
                         show: true,
                         required: true,
+                        excludeFromPayload: false,
                         helptext: "Select specific machines to be included in scheduler.",
                         options: [],
                         class: "bind-top background",
@@ -225,6 +228,7 @@ SCHEDULEACTIONS = {
                         defaultValue: "",
                         show: true,
                         required: true,
+                        excludeFromPayload: false,
                         helptext: "Scheduler will include all machines with the specified tags.",
                         class: "bind-top background",
                         showIf: {
@@ -405,6 +409,24 @@ SCHEDULEACTIONS = {
                         this.set('fields.'+ actionInd +'.excludeFromPayload', true);
                         this.set('fields.'+ scriptInd +'.excludeFromPayload', false);
                     }
+                    // console.log("SCRIPT:", !this.get('fields.'+ scriptInd +'.excludeFromPayload'), " ACTION:", !this.get('fields.'+ tagstInd +'.excludeFromPayload'))
+                }
+
+                // selecting uuids or tags
+                if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name == "ids_or_tags"){
+
+                    var uuidsInd = this._fieldIndexByName("machines_uuids");
+                    var tagstInd = this._fieldIndexByName("machines_tags");
+
+                    if (changeRecord.value == "ids") {
+                        this.set('fields.'+ uuidsInd +'.excludeFromPayload', false);
+                        this.set('fields.'+ tagstInd +'.excludeFromPayload', true);
+                    }
+                    else if (changeRecord.value == "tags") {
+                        this.set('fields.'+ uuidsInd +'.excludeFromPayload', true);
+                        this.set('fields.'+ tagstInd +'.excludeFromPayload', false);
+                    }
+                    // console.log("UUIDS:", !this.get('fields.'+ uuidsInd +'.excludeFromPayload'), " TAGS:", !this.get('fields.'+ tagstInd +'.excludeFromPayload'))
                 }
 
                 if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_")){
@@ -414,7 +436,8 @@ SCHEDULEACTIONS = {
 
                 if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name == "expires"){
                     var expiresInd = this._fieldIndexByName("expires");
-                    this.set('fields.'+ expiresInd +'.excludeFromPayload', changeRecord.value != "" ? false : true);
+                    var include = changeRecord.value != "" ? false : true;
+                    this.set('fields.'+ expiresInd +'.excludeFromPayload', include);
                 }
             },
             updatePayload: function(fields){
@@ -452,22 +475,6 @@ SCHEDULEACTIONS = {
                     return f.name == name;
                 });
                 return index;
-            },
-            _toArray: function(entry){
-                console.log(typeof(entry));
-                if (typeof(entry) == 'array'){
-                    return entry;
-                }
-                else {
-                    var lines = entry.toString().split('\n');
-                    var arr = [];
-                    for (var i = 0; i < lines.length; i++) {
-                        if (lines[i].trim() != "")
-                            arr.push(lines[i]);
-                    }
-                    return arr;
-                }
-
             },
             _goBack: function() {
                 history.back();
