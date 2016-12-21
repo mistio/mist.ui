@@ -450,17 +450,17 @@
                                 this.set('fields.' + index + '.show', show);
 
                                 // update form values regardless of el.show
-                                if(el.type == "ip_textarea") {
-                                    var cidrsArray = el.value.split('\n');
-                                    this.set('form.' + el.name, cidrsArray);
+                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1 && !el.excludeFromPayload) {
+                                    var textToArray = el.value.split('\n');
+                                    this.set('form.' + el.name, textToArray);
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
                                 }
                             } else {
-                                if(el.type == "ip_textarea") {
-                                    var cidrsArray = el.value.split('\n');
-                                    this.set('form.' + el.name, cidrsArray);
+                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1 && !el.excludeFromPayload) {
+                                    var textToArray = el.value.split('\n');
+                                    this.set('form.' + el.name, textToArray);
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
@@ -538,9 +538,8 @@
                         }
                     } else {
                         payload = this.form;
-                        if (payload["expires"] == "never")
-                            payload["expires"] = null;
                     }
+
                     // console.log('Payload',payload);
 
                     this.$.formAjax.headers["Content-Type"] = 'application/json';
@@ -660,7 +659,7 @@
                     }, this);
                     // apply date to the trigger fields
                     if (ind)
-                        this.set('fields.'+ ind +'.value', moment(this.$.pickDate.date).utc());
+                        this.set('fields.'+ ind +'.value', moment(this.$.pickDate.date).utc().format().toString().replace('T',' ').replace('Z',''));
                     
                     this.$.dateTimePickers.close();
                 },
@@ -668,7 +667,7 @@
                     if (!moment(date).isValid())
                         return "never";
                     else {
-                        return moment(date).utc().fromNow()+': '+moment(date).utc().format();
+                        return moment(date).utc().fromNow()+': '+moment(date).utc().format().toString().replace('T',' ').replace('Z','');
                     }
                 }
             });

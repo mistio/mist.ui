@@ -220,7 +220,7 @@ SCHEDULEACTIONS = {
                     }, {
                         name: "machines_tags",
                         label: "Machines with tags",
-                        type: "text",
+                        type: "textarea",
                         value: "",
                         defaultValue: "",
                         show: true,
@@ -416,10 +416,6 @@ SCHEDULEACTIONS = {
                     var expiresInd = this._fieldIndexByName("expires");
                     this.set('fields.'+ expiresInd +'.excludeFromPayload', changeRecord.value != "" ? false : true);
                 }
-                // test code
-                // if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name == "machines_uuids" && typeOf(this.get(changeRecord.path)) != 'array'){
-                //     this.set(changeRecord.path, [ changeRecord.value ]);
-                // }
             },
             updatePayload: function(fields){
                 // test code: hardcoded data for testing
@@ -456,6 +452,22 @@ SCHEDULEACTIONS = {
                     return f.name == name;
                 });
                 return index;
+            },
+            _toArray: function(entry){
+                console.log(typeof(entry));
+                if (typeof(entry) == 'array'){
+                    return entry;
+                }
+                else {
+                    var lines = entry.toString().split('\n');
+                    var arr = [];
+                    for (var i = 0; i < lines.length; i++) {
+                        if (lines[i].trim() != "")
+                            arr.push(lines[i]);
+                    }
+                    return arr;
+                }
+
             },
             _goBack: function() {
                 history.back();
