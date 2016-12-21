@@ -273,6 +273,7 @@ SCHEDULEACTIONS = {
                         class: "bind-both background",
                         show: true,
                         required: false,
+                        helptext: "Example, every 10 minutes",
                         showIf: {
                             fieldName: "schedule_type",
                             fieldValues: ["interval"]
@@ -317,6 +318,8 @@ SCHEDULEACTIONS = {
                         class: "bind-both background",
                         show: true,
                         required: false,
+                        helptext: "Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: minute hour day_of_week day_of_month month_of_year.",
+                        helpHref: "http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules",
                         showIf: {
                             fieldName: "schedule_type",
                             fieldValues: ["crontab"]
@@ -453,20 +456,38 @@ SCHEDULEACTIONS = {
                         // console.log("UUIDS:", !this.get('fields.'+ uuidsInd +'.excludeFromPayload'), " TAGS:", !this.get('fields.'+ tagstInd +'.excludeFromPayload'))
                     }
 
-                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_")){
+                    // initial values in shedule entry
+                    if (this.get(changeRecord.path.replace('.value','')).name == "schedule_type"){
+                        var entryInd = this._fieldIndexByName("schedule_entry"),
+                            entry;
+                        if (changeRecord.value == "interval") {
+                            entry = this._processInterval();
+                        }
+                        else if (changeRecord.value == "crontab") {
+                            entry = this._processCrotab(changeRecord.value);
+                        }
+                        else if (changeRecord.value == "one_off") {
+                            entry = changeRecord.value;
+                        }
+                        this.set('fields.'+ entryInd +'.value', entry);
+                    }
+
+                    // date in shedule entry
+                    if (this.get(changeRecord.path.replace('.value','')).name == "schedule_entry_one_off"){
                         var entryInd = this._fieldIndexByName("schedule_entry");
                         this.set('fields.'+ entryInd +'.value', changeRecord.value);
                     }
 
+                    // crontab in schedule entry
+                    if (this.get(changeRecord.path.replace('.value','')).name == "schedule_entry_crontab"){
+                        var entryInd = this._fieldIndexByName("schedule_entry");
+                        this.set('fields.'+ entryInd +'.value', this._processCrotab(changeRecord.value));
+                    }
+
+                    // interval changes in schedule entry
                     if (this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_interval_")) {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        var everyInd = this._fieldIndexByName("schedule_entry_interval_every");
-                        var periodInd = this._fieldIndexByName("schedule_entry_interval_period");
-
-                        var interval = {};
-                            interval.every = this.get('fields.'+ everyInd +'.value');
-                            interval.period = this.get('fields.'+ periodInd +'.value');
-                        this.set('fields.'+ entryInd +'.value', JSON.stringify(interval));
+                        this.set('fields.'+ entryInd +'.value', this._processInterval());
                     }
 
                     if (this.get(changeRecord.path.replace('.value','')).name == "expires"){
@@ -475,6 +496,33 @@ SCHEDULEACTIONS = {
                         this.set('fields.'+ expiresInd +'.excludeFromPayload', include);
                     }
                 }
+            },
+            _processInterval: function() {
+                var everyInd = this._fieldIndexByName("schedule_entry_interval_every");
+                var periodInd = this._fieldIndexByName("schedule_entry_interval_period");
+
+                var interval = {};
+                    interval.every = this.get('fields.'+ everyInd +'.value');
+                    interval.period = this.get('fields.'+ periodInd +'.value');
+
+                return JSON.stringify(interval);
+            },
+            _processCrotab: function(entry) {
+                var chunchs = entry.split(" ");
+                //"minute" : "30", "hour" : "2", "day_of_week" : "*", "day_of_month" : "*", "month_of_year" : "*"
+                // fill in missing 
+                for (var i = 0; i < 5; i++) {
+                    if (!chunchs[i])
+                        chunchs[i] = "*"
+                }
+                var construct = {
+                        "minute": chunchs[0],
+                        "hour": chunchs[1],
+                        "day_of_week": chunchs[2],
+                        "day_of_month": chunchs[3],
+                        "month_of_year": chunchs[4]
+                    };
+                return JSON.stringify(construct);
             },
             updatePayload: function(fields){
                 // test code: hardcoded data for testing
