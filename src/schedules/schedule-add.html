@@ -30,10 +30,8 @@
             left: 0;
             right: 0;
         }
-        
-        :host >::content paper-input-container {
-            padding-top: 16px;
-            padding-bottom: 16px;
+        app-form::content #schedule_entry_interval_period {
+            width: 100px;
         }
         </style>
         <div id="content">
@@ -212,7 +210,7 @@ SCHEDULEACTIONS = {
                         defaultValue: "",
                         show: true,
                         required: true,
-                        excludeFromPayload: false,
+                        excludeFromPayload: true,
                         helptext: "Select specific machines to be included in scheduler.",
                         options: [],
                         class: "bind-top background",
@@ -229,7 +227,7 @@ SCHEDULEACTIONS = {
                         show: true,
                         required: true,
                         excludeFromPayload: false,
-                        helptext: "Scheduler will include all machines with the specified tags.",
+                        helptext: "Scheduler will include all machines with the specified tags. Tag's keys can only be defined. Alphanumerical only.",
                         class: "bind-top background",
                         showIf: {
                             fieldName: "ids_or_tags",
@@ -260,20 +258,18 @@ SCHEDULEACTIONS = {
                         name: "schedule_entry",
                         label: "Schedule time",
                         type: "text",
-                        value: "",
+                        value: '{"every": 10, "period": "minutes"}',
                         defaultValue: "",
                         helptext: "",
                         show: false,
                         required: true
                     }, {
-                        name: "schedule_entry_interval",
+                        name: "schedule_entry_interval_every",
                         label: "Interval",
                         type: "text",
-                        value: '{"every" : 10, "period" : "minutes"}',
+                        value: "10",
                         defaultValue: "",
                         excludeFromPayload: true,
-                        placeholder: 'eg: {"every" : 10, "period" : "minutes"}',
-                        helptext: "",
                         class: "bind-both background",
                         show: true,
                         required: false,
@@ -282,12 +278,40 @@ SCHEDULEACTIONS = {
                             fieldValues: ["interval"]
                         }
                     }, {
+                        name: "schedule_entry_interval_period",
+                        type: "radio",
+                        value: "minutes",
+                        defaultValue: "minutes",
+                        excludeFromPayload: true,
+                        class: "bind-both background",
+                        show: true,
+                        required: false,
+                        showIf: {
+                            fieldName: "schedule_type",
+                            fieldValues: ["interval"]
+                        },
+                        options: [{ //days, hours, minutes, seconds, microseconds
+                            title: "days",
+                            val: "days"
+                        },{
+                            title: "hours",
+                            val: "hours"
+                        },{
+                            title: "mins",
+                            val: "minutes"
+                        },{
+                            title: "secs",
+                            val: "seconds"
+                        },{
+                            title: "ms",
+                            val: "microseconds"
+                        }]
+                    }, {
                         name: "schedule_entry_crontab",
                         label: "Crontab",
                         type: "text",
-                        value: '{"minute": "*/5"}',
+                        value: "*/10 * * * *",
                         defaultValue: "",
-                        placeholder: 'eg: {"minute": "*/5"}',
                         helptext: "",
                         excludeFromPayload: true,
                         class: "bind-both background",
@@ -432,6 +456,17 @@ SCHEDULEACTIONS = {
                 if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_")){
                     var entryInd = this._fieldIndexByName("schedule_entry");
                     this.set('fields.'+ entryInd +'.value', changeRecord.value);
+                }
+
+                if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_interval_")) {
+                    var entryInd = this._fieldIndexByName("schedule_entry");
+                    var everyInd = this._fieldIndexByName("schedule_entry_interval_every");
+                    var periodInd = this._fieldIndexByName("schedule_entry_interval_period");
+
+                    var interval = {};
+                        interval.every = this.get('fields.'+ everyInd +'.value');
+                        interval.period = this.get('fields.'+ periodInd +'.value');
+                    this.set('fields.'+ entryInd +'.value', JSON.stringify(interval));
                 }
 
                 if (changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace('.value','')).name == "expires"){
