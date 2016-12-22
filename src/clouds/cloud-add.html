@@ -54,6 +54,29 @@
             paper-dropdown-menu ::content .dropdown-content {
                 max-height: 400px !important;
             }
+            :host paper-menu.providers paper-item {
+                display: inline-block;
+                width: 20%;
+                min-width: 160px;
+                line-height: 48px;
+            }
+            :host paper-menu.providers img {
+                margin-right: 8px;
+                vertical-align: middle;
+            }
+            .help {
+                align-self: flex-end;
+            }
+            @media screen and (max-width: 870px) {
+                :host paper-menu.providers paper-item {
+                    width: 40%;
+                }
+            }
+            @media screen and (max-width: 1125px) and (min-width: 1024px) {
+                :host paper-menu.providers paper-item {
+                    width: 28%;
+                }
+            }
         </style>
 
         <div id="content">
@@ -64,27 +87,29 @@
                         Add Cloud
                     </h2>
                     <div class="subtitle">
-                        Mist.io supports over 17 providers
+                        Mist.io supports over 17 providers 
                     </div>
                 </div>
+                <!-- <span class="help" hidden$=[[!selectedProvider]]><iron-icon icon="help"></iron-icon></span> -->
             </paper-material>
             <paper-material>
                 <div class="grid-row">
-                    <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Provider" horizontal-align="left">
-                        <paper-menu attr-for-selected="value" selected="{{selectedProvider}}" class="dropdown-content">
-                            <template is="dom-repeat" items="[[providers]]" as="provider">
-                                <paper-item value="[[provider.val]]"><img src="[[_computeProviderLogo(provider.className)]]" width="24px" /><span>[[provider.title]]</span></paper-item>
-                            </template>
-                        </paper-menu>
-                    </paper-dropdown-menu>
+                    <h3 class="xs12 smallcaps">Choose a Provider</h3>
+                    <paper-menu class="providers" attr-for-selected="value" selected="{{selectedProvider}}" class="dropdown-content">
+                        <template is="dom-repeat" items="[[providers]]" as="provider">
+                            <paper-item value="[[provider.val]]"><img src="[[_computeProviderLogo(provider.className)]]" width="24px" /><span>[[provider.title]]</span></paper-item>
+                        </template>
+                    </paper-menu>
                 </div>
             </paper-material>
             <paper-material class$="selected-[[!selectedProvider]]">
                 <div hidden$=[[selectedProvider]]>
-                    <h3 class="smallcaps">Verification</h3>
-                    <p>Choose a provider above to fill in the required fields.</p>
+                    <!-- <h3 class="smallcaps">Adding your Cloud</h3> -->
+                    <p>After adding a cloud Mist.io will redirect you to your dashboard where you can monitor your cost and usage statistics, enabling you to manage permissions and reduce costs.</p>
+                    <p><a href="http://docs.mist.io/category/75-adding-clouds-bare-metal-and-containers" target="new" class="regular blue-link">Need help with the process?</a></p>
                 </div>
                 <div hidden$=[[!selectedProvider]]>
+                    <h3 class="smallcaps">Adding cloud from [[selectedProvider]]</h3>
                     <app-form fields="[[providerFields]]" method="POST" url="/api/v1/clouds" on-response="_cloudAddAjaxResponse" on-error="_cloudAddAjaxError" btncontent="Add Cloud"></app-form>
                 </div>
             </paper-material>
