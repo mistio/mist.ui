@@ -54,10 +54,12 @@
                 margin-top: 24px;
             }
             app-form::content paper-radio-group {
-                margin-top: 36px;
+                margin-top: 36px !important;
+                margin-bottom: 0;
             }
             app-form::content .helptext-radio {
-                margin-top: 36px;
+                margin-top: 36px !important;
+                margin-bottom: 0;
             }
             paper-dialog#addKvmImage {
                 width: 260px;
@@ -353,8 +355,6 @@
                     var keyInd = this._fieldIndexByName('key');
                     var monInd = this._fieldIndexByName('monitoring');
 
-                    console.log('indexes', sizeInd, locInd, monInd);
-
                     //hide size and location
                     this.set('machineFields.'+ sizeInd +'.show', false);
                     this.set('machineFields.'+ locInd +'.show', false);
@@ -453,6 +453,13 @@
                     this.set('machineFields.'+ imaInd +'.value', this.newImage);
 
                     this.querySelector("paper-dialog#addKvmImage").close();
+                },
+                updateKeys: function(e){
+                    var keyInd = this._fieldIndexByName('key');
+                    this.async(function(){
+                        this.set('machineFields.'+ keyInd +'.options', this.model.keysArray);
+                        this.set('machineFields.'+ keyInd +'.value', e.detail.key);
+                    }.bind(this), 1000);
                 },
                 _goBack: function(){
                     history.back();
