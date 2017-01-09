@@ -149,6 +149,13 @@
                 </div>
             </paper-material>
         </div>
+        <dialog-element></dialog-element>
+        <iron-ajax  id="deleteSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="DELETE"
+                    on-response="_handleScheduleDeleteResponse"
+                    on-error="_handleScheduleDeleteError"></iron-ajax>
+
     </template>
     <script>
         Polymer({
@@ -160,11 +167,44 @@
                 schedule: Object
             },
             listeners: {
-                
+                'confirmation': '_deleteConfirmed',
             },
             _deleteSchedule: function(e) {
+                this._showDialog({
+                    title: 'Delete Schedule?',
+                    body: "Deleting schedules cannot be undone." ,
+                    danger: true,
+                    reason: "schedule.delete"
+                });
+            },
+            _deleteConfirmed: function(e) {
+                var reason = e.detail.reason,
+                    response = e.detail.response;
 
-            }
+                if (response.confirmed && reason == "schedule.delete") {
+                    this.$.deleteSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.deleteSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.deleteSchedule.generateRequest();
+                }
+            },
+            _handleScheduleDeleteResponse: function(e) {
+                document.querySelector('app-location').path = '/schedules';
+            },
+            _handleScheduleDeleteError: function(e) {
+                console.log('handleScheduleDeleteError',e);
+                var message = e.detail.error;
+                if (e.detail.request.statusText)
+                    message += " "+e.detail.request.statusText;
+
+                this.fire('toast', { msg: message, duration: 5000 });
+            },
+            _showDialog: function(info) {
+                var dialog = this.querySelector('dialog-element');
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
+                dialog._openDialog();
+            },
         });
     </script>
 </dom-module>
