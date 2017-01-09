@@ -379,7 +379,7 @@ SCHEDULEACTIONS = {
             },
             observers: [
                 '_fieldsChanged(fields.*)',
-                '_updateFields(model.*)'
+                '_updateFields(fields, model.*)'
             ],
             listeners: {
             },
@@ -404,20 +404,22 @@ SCHEDULEACTIONS = {
                     return m[action];
                 });
             },
-            _updateFields: function(model){
-                this.fields.forEach(function(f, index) {
-                    if (f.name  == "script_id") {
-                        f.options = this.model.scriptsArray;
-                    }
+            _updateFields: function(fields, model){
+                if (this.model && this.fields) {
+                    this.fields.forEach(function(f, index) {
+                        if (f.name  == "script_id") {
+                            f.options = this.model.scriptsArray || [];
+                        }
 
-                    if (f.name  == "machines_uuids") {
-                        f.options = this.model.machinesArray;
-                    }
+                        if (f.name  == "machines_uuids") {
+                            f.options = this.model.machinesArray || [];
+                        }
 
-                    if (f.name.startsWith("action")) {
-                        f.options = this.actions;
-                    }
-                }, this);
+                        if (f.name.startsWith("action")) {
+                            f.options = this.actions;
+                        }
+                    }, this);
+                }
             },
             _fieldsChanged: function(changeRecord){
                 console.log('changeRecord', changeRecord);
