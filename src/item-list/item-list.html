@@ -284,7 +284,7 @@
             <template is="dom-if" if="[[!currentSelectedItems]]">
               <template is="dom-repeat" items="[[fields]]">
                   <div class$="[[item]] field field[[index]] [[_isSortedBy(item, sortBy, sortOrder)]]" on-tap="_changeSortOrder">
-                      [[item]]
+                      [[removeUnderscore(item)]]
                       <span id="sortarrow"><iron-icon icon$="[[_icon(sortOrder)]]"></iron-icon></span>
                   </div>
               </template>
@@ -644,6 +644,10 @@ Polymer({
         return section && section.id == "incidents";
     },
 
+    isSchedules: function(section) {
+        return section && section.id == "schedules";
+    },
+
     isSelected: function(item, selectedItems, items) {
         return this.selectedItems.indexOf(this.itemUid(item)) > -1;
     },
@@ -687,6 +691,18 @@ Polymer({
         }
         if (this.isIncidents(this.section)) {
             return ['incident_id', 'machine_id', 'cloud_id', 'rule_id', 'started_at', 'finished_at']
+        }
+        if (this.isSchedules(this.section)) {
+            if (this.get('xxwideViewport'))
+                return ['schedule_name', 'schedule_type', 'task_type', 'total_run_count', 'enabled', 'expires']
+            if (this.get('xwideViewport'))
+                return ['schedule_name', 'schedule_type', 'task_type', 'total_run_count', 'enabled']
+            if (this.get('wideViewport'))
+                return ['schedule_name', 'schedule_type', 'task_type', 'enabled']
+            if (!this.get('mediumViewport') && !this.get('narrowViewport'))
+                return ['schedule_name', 'schedule_type', 'task_type']
+            else
+                return ['schedule_name', 'schedule_type', 'task_type']
         }
         return ['id'];
 
@@ -835,7 +851,12 @@ Polymer({
             }
         }
 
+    },
+
+    removeUnderscore: function(action){
+        return action.replace(/_/g, " ");
     }
+
 });
 
 </script>
