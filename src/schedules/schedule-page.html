@@ -6,6 +6,8 @@
 <link rel="import" href="../item-list/item-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 
+<link rel="import" href="schedule-edit.html">
+
 <dom-module id="schedule-page">
     <template>
         <style is="custom-style" include="single-page"></style>
@@ -132,7 +134,10 @@
                         [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]]                        
                     </div>
                 </div>
-                <div class="item-actions">                    
+                <div class="item-actions">
+                    <paper-button on-tap="_editSchedule" class="simple">edit
+                        <iron-icon icon="edit"></iron-icon>
+                    </paper-button>
                     <paper-button on-tap="_deleteSchedule" class="simple">delete
                         <iron-icon icon="delete"></iron-icon>
                     </paper-button>
@@ -158,11 +163,20 @@
             </paper-material>
         </div>
         <dialog-element></dialog-element>
+
+        <schedule-edit id="editScheduleDialog" schedule="[[schedule]]"></schedule-edit>
+
         <iron-ajax  id="deleteSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
                     method="DELETE"
                     on-response="_handleScheduleDeleteResponse"
                     on-error="_handleScheduleDeleteError"></iron-ajax>
+
+        <iron-ajax  id="editSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="PATCH"
+                    on-response="_handleScheduleEditResponse"
+                    on-error="_handleScheduleEditError"></iron-ajax>
 
     </template>
     <script>
@@ -250,6 +264,9 @@
                 this.tags = ["test", "dog"];
                 return true;
             },
+            _editSchedule: function(e) {
+                this.$.editScheduleDialog._openEditScheduleModal();
+            },
             _deleteSchedule: function(e) {
                 this._showDialog({
                     title: 'Delete Schedule?',
@@ -272,7 +289,6 @@
                 document.querySelector('app-location').path = '/schedules';
             },
             _handleScheduleDeleteError: function(e) {
-                console.log('handleScheduleDeleteError',e);
                 var message = e.detail.error;
                 if (e.detail.request.statusText)
                     message += " "+e.detail.request.statusText;

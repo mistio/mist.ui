@@ -1,0 +1,133 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+
+<dom-module id="schedule-edit">
+    <template>
+        <style is="custom-style" include="dialogs"></style>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            paper-card {
+                display: block;
+            }
+
+            .submit-btn {
+                background-color: var(--mist-blue);
+                color: #fff;
+            }
+
+        </style>
+
+        <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <h2>Edit Schedule</h2>
+            <paper-icon-button class="close" icon="clear" dialog-dismiss></paper-icon-button>
+            <paper-dialog-scrollable>
+                <p>
+                    <paper-input id="name" label="Name" error-message="Please enter schedule's name" value="{{newScript.name}}"></paper-input>
+                    <paper-textarea id="description" label="Description (optional)" rows="5" max-rows="5" error-message="Please enter schedule's description" value="{{newScript.description}}"></paper-textarea>
+                </p>
+                <div class="clearfix btn-group">
+                    <paper-button class="submit-btn btn-block" disabled$="[[!formReady]]" raised on-tap="_submitForm">Submit</paper-button>
+                </div>
+            </paper-dialog-scrollable>
+        </paper-dialog>
+
+        <iron-ajax  id="editSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="PATCH"
+                    on-response="_handleScheduleEditResponse"
+                    on-error="_handleScheduleEditError"></iron-ajax>
+    </template>
+
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'schedule-edit',
+
+                properties: {
+                    schedule: {
+                        type: Object
+                    },
+                    newSchedule: {
+                        type: Object,
+                        computed: '_computeNewSchedule(script)',
+                        notify: true
+                    },
+                    sendingData: {
+                        type: Boolean,
+                        value: false
+                    },
+                    formReady: {
+                        type: Boolean,
+                        computed: '_computeFormReady(newSchedule.name, sendingData)'
+                    }
+                },
+                listeners: {
+                    'iron-overlay-closed': '_modalClosed'
+                },
+                _computeNewScript: function(schedule) {
+                    if (schedule){
+                        return {
+                            name: schedule.name,
+                            description: schedule.description
+                        };
+                    }
+                },
+                _computeFormReady: function(name, sendingData) {
+                    var formReady = false;
+
+                    if (name) {
+                        formReady = true;
+                    }
+
+                    if (sendingData) {
+                        formReady = false;
+                    }
+
+                    return formReady;
+                },
+                _openEditScheduleModal: function(e) {
+                    this.$.editScheduleModal.open();
+                },
+                _closeEditScriptModal: function(e) {
+                    this.$.editScheduleModal.close();
+                },
+                _modalClosed: function() {
+                    this._formReset();
+                },
+                _submitForm: function(e) {
+                    this.$.editSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.editSchedule.body = {
+                        new_name: this.newSchedule.name,
+                        new_description: this.newSchedule.description
+                    };
+                    this.$.editSchedule.generateRequest();
+
+                    this.set('sendingData', true);
+                },
+                _formReset: function() {
+                    //   this.set('schedule.id', '');
+                },
+                _handleScheduleEditResponse: function(e) {
+                    this.set('sendingData', false);
+                    this._closeEditScriptModal();
+                },
+                _handleScheduleEditError: function(e) {
+                    var message = e.detail.error;
+                    if (e.detail.request.statusText)
+                        message += " "+e.detail.request.statusText;
+
+                    this.fire('toast', { msg: message, duration: 5000 });
+                },
+            });
+        })();
+    </script>
+</dom-module>
