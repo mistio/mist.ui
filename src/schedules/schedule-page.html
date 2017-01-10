@@ -125,10 +125,10 @@
                 text-align: center;
                 min-height: 500px;
             }
-            .machines-desc {
+            .smaller {
                 font-size: 0.9em
             }
-            .machines-desc .tag {
+            .smaller .tag {
                 display: inline;
                 vertical-align: middle;
                 padding: 2px 0.5em !important;
@@ -170,13 +170,13 @@
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[schedule.last_run_at]]</div>
                 <div hidden$="[[!schedule.total_run_count]]"><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
                 <div>
-                    <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
+                    <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
                 </div>
             </paper-material>
             <paper-material>
                 <h4 class="id">Machines</h4>
-                <span hidden$="[[!isSpecificMachines]]" class="machines-desc"> [[schedule.machines.length]] selected machines. </span>
-                <span hidden$="[[!isMachinesWithTags]]" class="machines-desc">
+                <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machines.length]] selected machines. </span>
+                <span hidden$="[[!isMachinesWithTags]]" class="smaller">
                     Machines with tags
                     <template is="dom-repeat" items="[[schedule.tags]]">
                         <span class="tag">[[item]]</span>
@@ -225,8 +225,7 @@
                     computed: '_computeShowScriptLink(schedule)'
                 },
                 filteredItems: {
-                    type: Array,
-                    computed: '_computeMachines(schedule, model.machinesArray)'
+                    type: Array
                 },
                 sortBy: {
                     type: String,
@@ -268,7 +267,8 @@
                 tags: Array
             },
             observers: [
-                '_scheduleChanged(schedule)'
+                '_scheduleChanged(schedule)',
+                '_computeMachines(schedule.*, model.machinesArray)'
             ],
             listeners: {
                 'confirmation': '_deleteConfirmed',
@@ -392,9 +392,11 @@
                 }
             },
             _computeMachines: function(schedule, machines) {
-                return this.model.machinesArray.filter(function(m){
+                var filteredMachines = [];
+                filteredMachines = this.model.machinesArray.filter(function(m){
                     return this.condition(m);
                 }, this)
+                this.set('filteredItems', filteredMachines);
             },
             condition: function(m) {
                 if (this.isSpecificMachines) {
