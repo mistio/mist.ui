@@ -153,6 +153,14 @@
             paper-checkbox {
                 display: block;
             }
+            .checkboxes-label {
+                margin: 16px 0 8px 0;
+                display: block;
+            }
+            .checkboxes {
+                max-height: 400px;
+                overflow: scroll;
+            }
         </style>
 
         <div class="grid-row">
@@ -178,10 +186,11 @@
                         </paper-radio-group>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'checkboxes', field.show)]]">
-                        <div id="[[field.name]]" class="dropdown-block xs12 m6" horizontal-align="left" hidden="[[field.hidden]]"> 
-                            [[field.name]]:
+                        <div id="[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" horizontal-align="left" hidden="[[field.hidden]]"> 
+                            <span class="checkboxes-label" hidden$="[[field.label]]">[[field.name]]:</span>
+                            <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                             <template is="dom-repeat" items="[[field.options]]" as="option">
-                                <paper-checkbox name$="[[field.name]]" data-value="[[option.id]]">[[option.name]]</paper-checkbox>
+                                <paper-checkbox name$="[[field.name]]" data-value="[[_computeID(option.id, option.uuid, field.name)]]">[[option.name]]</paper-checkbox>
                             </template>
                         </div>
                     </template>
@@ -389,9 +398,6 @@
                 observers: [
                     '_fieldsChanged(fields.*, sendingData)',
                 ],
-                listeners: {
-                    'change': '_checkedEvent'
-                },
                 ready: function(){
                     this.fields = [];
                 },
@@ -473,18 +479,18 @@
                                 this.set('fields.' + index + '.show', show);
 
                                 // update form values regardless of el.show
-                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1) {
+                                if (el.type == "ip_textarea" || ["machines_tags"].indexOf(el.name) > -1) {
                                     var textToArray = el.value.split('\n');
                                     this.set('form.' + el.name, textToArray);
                                 }
                                 else if (el.type == "checkboxes") {
-                                    this.set('form' + el.name, this._constructCheckboxValue(el.name))
+                                    this.set('form.' + el.name, this._constructCheckboxValue(el.name));
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
                                 }
                             } else {
-                                if (el.type == "ip_textarea" || ["machines_tags", "machines_uuids"].indexOf(el.name) > -1) {
+                                if (el.type == "ip_textarea" || ["machines_tags"].indexOf(el.name) > -1) {
                                     var textToArray = el.value.split('\n');
                                     this.set('form.' + el.name, textToArray);
                                 }
@@ -513,6 +519,9 @@
                         var valid = fields.base.every(function(el, index) {
                             if (el.type == "ip_textarea") {
                                 return el.show && el.required ? this.validatecidr(el.value, index) : true;
+                            }
+                            else if (el.type == "checkboxes") {
+                                return el.show && el.required ? this._constructCheckboxValue(el.name).length : true;
                             }
                             else if (el.type == "date") {
                                 return el.show && el.required ? moment(el.value).isValid()  : true;
@@ -696,26 +705,22 @@
                 _constructCheckboxValue: function(fieldname) {
                     var checkboxes = this.querySelectorAll('paper-checkbox[name='+fieldname+']'); // get checkboxes
                     var arr = [];
-                    checkboxes.forEach(function(c){
-                        console.log('in loop',c)
-                        if (c.checked)
-                            arr.push(c.dataValue);
-                    })
                     var index = -1;
                     var field = this.fields.find(function(f, ind){
                         index = ind;
                         return f.name == fieldname;
                     })
-                    if (field && arr.length > 0)
-                        this.set('fields.'+index+'.value', arr);
-                    else if (field && arr.length == 0)
-                        this.set('fields.'+index+'.value', '');
+                    checkboxes.forEach(function(c){
+                        if (c.checked)
+                            arr.push(c.dataValue);
+                    })
+                    return arr;
                 },
-                _checkedEvent: function(e) {
-                    if (e.target.tagName == 'PAPER-CHECKBOX'){
-                        this.querySelector('div#'+e.target.name);
-                        this._constructCheckboxValue(e.target.name);
-                    }
+                _computeID: function(id, uuid, fieldname) {
+                    if (fieldname == "machines_uuids")
+                        return uuid;
+                    else
+                        return id;
                 }
             });
         })();
