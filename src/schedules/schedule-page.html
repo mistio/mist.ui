@@ -11,6 +11,7 @@
 <dom-module id="schedule-page">
     <template>
         <style is="custom-style" include="single-page"></style>
+        <style is="custom-style" include="tags-and-labels"></style>
         <style include="shared-styles">
             :host {
                 display: block;
@@ -124,6 +125,14 @@
                 text-align: center;
                 min-height: 500px;
             }
+            .machines-desc {
+                font-size: 0.9em
+            }
+            .machines-desc .tag {
+                display: inline;
+                vertical-align: middle;
+                padding: 2px 0.5em !important;
+            }
         </style>
         <div id="content" class="does-not-exist" hidden$="[[exists]]">
             <h1>404</h1>
@@ -166,6 +175,13 @@
             </paper-material>
             <paper-material>
                 <h4 class="id">Machines</h4>
+                <span hidden$="[[!isSpecificMachines]]" class="machines-desc"> [[schedule.machines.length]] selected machines. </span>
+                <span hidden$="[[!isMachinesWithTags]]" class="machines-desc">
+                    Machines with tags
+                    <template is="dom-repeat" items="[[schedule.tags]]">
+                        <span class="tag">[[item]]</span>
+                    </template>
+                    [[filteredItems.length]] machines affected. </span>
                 <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
             </paper-material>
         </div>
@@ -289,14 +305,18 @@
                     return this.schedule.task_type.startsWith("Run script:");
             },
             _computeIsSpecificMachines: function(schedule) {
-                //TOOD remove hardcoded when backend brings in info
-                this.machines = []
-                return false;
+                return this.schedule.machines && this.schedule.machines.length > 0 ? true : false;
             },
             _computeIsMachinesWithTags: function(schedule) {
-                //TOOD remove hardcoded when backend brings in info
-                this.tags = ["test", "dog"];
-                return true;
+                // TODO remove hardcoded 
+                // return this.schedule.tags && this.schedule.tags.length > 0 ? true : false;
+                if (!this.schedule.machines) {
+                    this.schedule.tags = ['test', 'dog'];
+                    return true;
+                }
+                else {
+                    return false;
+                }
             },
             _editSchedule: function(e) {
                 this.$.editScheduleDialog._openEditScheduleModal();
@@ -385,8 +405,14 @@
                 }
                 return false;
             },
-            isSelectedMachine: function(m) {
-                return this.machines.indexOf(m.id) > -1;
+            isSelectedMachine: function(machine) {
+                var exists;
+                if (this.schedule.machines) {
+                    exists = this.schedule.machines.find(function(m){
+                        return machine.cloud.id == m[0] && machine.id == m[1];
+                    })
+                }
+                return exists ? true : false;
             },
             machineHasTag: function(m) {
                 var exists = false;
@@ -394,13 +420,13 @@
                     return t.key;
                 })
                 for (var i = 0; i < machineTags.length; i++){
-                    if (this.tags.indexOf(machineTags[i]) > -1){
+                    if (this.schedule.tags.indexOf(machineTags[i]) > -1){
                         exists = true;
                         break;
                     }
                 }
                 return exists;
-            },
+            }
         });
     </script>
 </dom-module>
