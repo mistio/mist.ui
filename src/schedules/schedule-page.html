@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <link rel="import" href="../item-list/item-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -130,6 +131,22 @@
                 vertical-align: middle;
                 padding: 2px 0.5em !important;
             }
+            paper-button.blue-link {
+                background-color: transparent !important;
+                font-weight: 400 !important;
+                color: var(--mist-blue) !important;
+                margin: 0;
+            }
+            :host paper-toggle-button {
+                display: inline-block;
+                vertical-align: top;
+                --paper-toggle-button-checked-bar-color:  var(--green-color);
+                --paper-toggle-button-checked-button-color:  var(--green-color);
+                --paper-toggle-button-checked-ink-color: var(--green-color);
+                --paper-toggle-button-unchecked-bar-color:  var(--red-color);
+                --paper-toggle-button-unchecked-button-color:  var(--red-color);
+                --paper-toggle-button-unchecked-ink-color: var(--red-color);
+            }
         </style>
         <div id="content" class="does-not-exist" hidden$="[[exists]]">
             <h1>404</h1>
@@ -157,15 +174,21 @@
                 </div>
             </paper-material>
             <paper-material>
-                <h4 class="id" hidden$="[[!schedule.enabled]]">Schedule Enabled</h4>
-                <h4 class="id" hidden$="[[schedule.enabled]]">Schedule Disabled</h4>
+                <h4 class="id">
+                    <paper-toggle-button id="scheduleEnabled" checked="[[schedule.enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
+                    <span hidden$="[[hasExpired]]">
+                        <span hidden$="[[!schedule.enabled]]">Enabled</span>
+                        <span hidden$="[[schedule.enabled]]">Disabled</span>
+                    </span>                    
+                    <span class="" hidden$="[[!hasExpired]]">Scheduler has expired.</span>
+                </h4>
             </paper-material>
             <paper-material>
                 <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.:</span> [[schedule.description]]</div>
                 <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
-                <div hidden$="[[!schedule.expires]]"><span class="m-info-head">Expires:</span> [[schedule.expires]]</div>
-                <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[schedule.last_run_at]]</div>
+                <div hidden$="[[!schedule.expires]]"><span class="m-info-head">Expires:</span> [[_computeAbsoluteDateText(schedule.expires)]]</div>
                 <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
+                <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
                     <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
                 </div>
@@ -192,11 +215,13 @@
                     on-response="_handleScheduleDeleteResponse"
                     on-error="_handleScheduleDeleteError"></iron-ajax>
 
-        <iron-ajax  id="editSchedule"
+        <iron-ajax  id="editToggleSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
                     method="PATCH"
-                    on-response="_handleScheduleEditResponse"
-                    on-error="_handleScheduleEditError"></iron-ajax>
+                    loading="{{toogleLoading}}"
+                    handle-as="xml"
+                    on-response="_handleScheduleEditToggleResponse"
+                    on-error="_handleScheduleEditToggleError"></iron-ajax>
 
     </template>
     <script>
@@ -208,6 +233,7 @@
                 sections: Array,
                 section: Object,
                 schedule: Object,
+                toogleLoading: Boolean,
                 isLoading: {
                     type: Boolean,
                     value: true
@@ -231,6 +257,10 @@
                 sortOrder: {
                     type: Number,
                     value: 1
+                },
+                hasExpired: {
+                    type: Boolean,
+                    computed: "_computeHasExpired(schedule)"
                 },
                 isSpecificMachines: {
                     type: Boolean,
@@ -280,6 +310,12 @@
                 else {
                     this.exists = false;
                 }
+            },
+            _computeHasExpired: function(schedule) {
+                if (this.schedule && this.schedule.expires && moment().diff(this.schedule.expires) > 0)
+                    return true
+                else
+                    return false
             },
             _computeIsInterval: function(schedule) {
                 if (this.schedule)
@@ -428,7 +464,29 @@
                     }
                 }
                 return exists;
-            }
+            },
+            toggleEnable: function(){
+                this.$.editToggleSchedule.body = {enabled: !this.schedule.enabled};
+                this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
+                this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.editToggleSchedule.generateRequest();
+            },
+            _handleScheduleEditToggleResponse: function() {
+                var message = !this.schedule.enabled ? 'Enabling schedule..' : 'Disabling schedule..'
+                this.fire('toast', { msg: message, duration: 5000 });
+            },
+            _handleScheduleEditToggleError: function(e) {
+                console.log('_handleScheduleEditToggleError',e);
+                var message = e.detail.request.xhr.response;
+                this.fire('toast', { msg: message, duration: 5000 });
+                this.$.scheduleEnabled.setAttribute('checked', this.schedule.enabled);
+            },
+            _computeDateFromNow: function(time) {
+                return moment.utc(time).fromNow();
+            },
+            _computeAbsoluteDateText: function(time) {
+                return moment.utc(time).format("MMMM D YYYY");
+            },
         });
     </script>
 </dom-module>
