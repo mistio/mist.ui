@@ -46,7 +46,7 @@
                 </div>
             </paper-material>
             <paper-material>
-                <app-form fields="{{fields}}" form="[[schedule]]" url="/api/v1/schedules" on-response="_handleAddScheduleResponse" on-error="_handleError"></app-form>
+                <app-form id="scheduleAddForm" fields="{{fields}}" form="[[schedule]]" url="/api/v1/schedules" on-response="_handleAddScheduleResponse" on-error="_handleError"></app-form>
             </paper-material>
         </div>
     </template>
@@ -458,6 +458,13 @@ SCHEDULEACTIONS = {
                         else if (changeRecord.value == "tags") {
                             this.set('fields.'+ uuidsInd +'.excludeFromPayload', true);
                             this.set('fields.'+ tagstInd +'.excludeFromPayload', false);
+
+                            // clear checkbox selection
+                            this.set('fields.'+ uuidsInd +'.value', []);
+                            var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
+                            [].forEach.call(checkboxes, function(el, index) {
+                                el.checked = false;
+                            });
                         }
                         // console.log("UUIDS:", !this.get('fields.'+ uuidsInd +'.excludeFromPayload'), " TAGS:", !this.get('fields.'+ tagstInd +'.excludeFromPayload'))
                     }
@@ -552,7 +559,9 @@ SCHEDULEACTIONS = {
             },
             _handleAddScheduleResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);
-                document.querySelector('app-location').set('path', '/schedules/' + response.id);
+                this.async(function(){
+                    document.querySelector('app-location').set('path', '/schedules/' + response.id);
+                }, 500)
             },
             _handleError: function(e) {
                 console.log(e);
