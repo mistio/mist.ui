@@ -168,7 +168,7 @@
                 <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
                 <div hidden$="[[!schedule.expires]]"><span class="m-info-head">Expires:</span> [[schedule.expires]]</div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[schedule.last_run_at]]</div>
-                <div hidden$="[[!schedule.total_run_count]]"><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
+                <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
                 <div>
                     <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
                 </div>
@@ -311,7 +311,7 @@
             _computeIsMachinesWithTags: function(schedule) {
                 // TODO remove hardcoded 
                 // return this.schedule.tags && this.schedule.tags.length > 0 ? true : false;
-                if (!this.schedule.machines) {
+                if (this.schedule && !this.schedule.machines) {
                     this.schedule.tags = ['test', 'dog'];
                     return true;
                 }
@@ -358,20 +358,22 @@
                 dialog._openDialog();
             },
             _makeCleanerTask: function(str) {
-                var ret = str.replace(" script:", "").replace("Action:", "");
+                if (str) {
+                    var ret = str.replace(" script:", "").replace("Action:", "");
 
-                if (this.isAction) {
-                    ret = ret.toUpperCase();
-                    ret += " machines";
-                }
-                else if (this.isRunScript) {
-                    var script = str.split(": ")[1],
-                        scriptName = this.model.scripts[script] ? this.model.scripts[script].name : "Missing Script";
+                    if (this.isAction) {
+                        ret = ret.toUpperCase();
+                        ret += " machines";
+                    }
+                    else if (this.isRunScript) {
+                        var script = str.split(": ")[1],
+                            scriptName = this.model.scripts[script] ? this.model.scripts[script].name : "Missing Script";
 
-                    ret = ret.replace(script, "");
-                    ret += scriptName;
+                        ret = ret.replace(script, "");
+                        ret += scriptName;
+                    }
+                    return ret;
                 }
-                return ret;
             },
             _makeCleanerType: function(str) {
                 var ret = ""; 
