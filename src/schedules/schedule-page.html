@@ -3,6 +3,8 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
+<link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
 
 <link rel="import" href="../item-list/item-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -136,6 +138,7 @@
                 font-weight: 400 !important;
                 color: var(--mist-blue) !important;
                 margin: 0;
+                padding: 0;
             }
             :host paper-toggle-button {
                 display: inline-block;
@@ -146,6 +149,14 @@
                 --paper-toggle-button-unchecked-bar-color:  var(--red-color);
                 --paper-toggle-button-unchecked-button-color:  var(--red-color);
                 --paper-toggle-button-unchecked-ink-color: var(--red-color);
+            }
+            #dateTimePickers .bottom-actions {
+                display: flex;
+                justify-content: flex-end;
+            }
+            paper-date-picker::content #heading,
+            paper-time-picker::content #heading {
+                background-color: #424242;
             }
         </style>
         <div id="content" class="does-not-exist" hidden$="[[exists]]">
@@ -186,7 +197,11 @@
             <paper-material>
                 <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.:</span> [[schedule.description]]</div>
                 <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
-                <div hidden$="[[!schedule.expires]]"><span class="m-info-head">Expires:</span> [[_computeAbsoluteDateText(schedule.expires)]]</div>
+                <div><span class="m-info-head">Expires:</span> 
+                    <span hidden$="[[schedule.expires.length]]">Never</span>
+                    <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
+                    <paper-button id="editExpiration" on-tap="_selectDate" class="simple-button blue-link smaller">change</paper-button>
+                </div>
                 <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
@@ -206,6 +221,16 @@
             </paper-material>
         </div>
         <dialog-element id="deleteScheduleModal"></dialog-element>
+        <paper-dialog id="dateTimePickers" with-backdrop>
+            <div class="pickers">
+                <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
+                <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
+            </div>
+            <div class="bottom-actions">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="blue" on-tap="_applyDateTime">Apply</paper-button>
+            </div>
+        </paper-dialog>
 
         <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
 
@@ -222,6 +247,14 @@
                     handle-as="xml"
                     on-response="_handleScheduleEditToggleResponse"
                     on-error="_handleScheduleEditToggleError"></iron-ajax>
+
+        <iron-ajax  id="editExpirationSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="PATCH"
+                    loading="{{toogleLoading}}"
+                    handle-as="xml"
+                    on-response="_handleScheduleEditExpirationResponse"
+                    on-error="_handleScheduleEditExpirationError"></iron-ajax>
 
     </template>
     <script>
@@ -423,7 +456,7 @@
 
             },
             _computeScriptLink: function(schedule) {
-                if (this.schedule.task_type.startsWith("Run script:")) {
+                if (this.schedule && this.schedule.task_type.startsWith("Run script:")) {
                     return '/scripts/'+this.schedule.task_type.split(": ")[1]
                 }
             },
@@ -487,6 +520,31 @@
             _computeAbsoluteDateText: function(time) {
                 return moment.utc(time).format("MMMM D YYYY");
             },
+            editExpiration: function(e) {
+
+            },
+            _selectDate: function(e) {
+                if (moment(this.schedule.expires).isValid())
+                    this.$.pickDate.date = moment(this.schedule.expires).toDate();
+
+                this.$.pickDate.minDate = new Date();
+                this.$.dateTimePickers.open();
+            },
+            _applyDateTime: function(e) {
+                this.$.editExpirationSchedule.body = {expires: moment(this.$.pickDate.date).utc().format().toString().replace('T',' ').replace('Z','')}
+
+                this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
+                this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.editExpirationSchedule.generateRequest();
+            },
+            _handleScheduleEditExpirationResponse: function() {
+                this.$.dateTimePickers.close();
+            },
+            _handleScheduleEditExpirationError: function() {
+                console.log('_handleScheduleEditToggleError',e);
+                var message = e.detail.request.xhr.response;
+                this.fire('toast', { msg: message, duration: 5000 });
+            }
         });
     </script>
 </dom-module>
