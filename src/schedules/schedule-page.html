@@ -223,7 +223,7 @@
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
-                    <h2>[[schedule.schedule_name]]</h2>
+                    <h2>[[schedule.name]]</h2>
                     <div class="subtitle">
                         [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]]                        
                     </div>
@@ -264,10 +264,10 @@
             </paper-material>
             <paper-material>
                 <h4 class="id">Machines</h4>
-                <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machines.length]] selected machines. </span>
+                <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machine_uuids.length]] selected machines. </span>
                 <span hidden$="[[!isMachinesWithTags]]" class="smaller">
                     Machines with tags
-                    <template is="dom-repeat" items="[[schedule.tags]]">
+                    <template is="dom-repeat" items="[[schedule.machine_tags]]">
                         <span class="tag">[[item]]</span>
                     </template>
                     [[filteredItems.length]] machines affected. </span>
@@ -443,11 +443,11 @@
             },
             _computeIsSpecificMachines: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.machines && this.schedule.machines.length > 0 ? true : false;
+                    return this.schedule.machine_uuids && this.schedule.machine_uuids.length > 0 ? true : false;
             },
             _computeIsMachinesWithTags: function(schedule) {
                 // return this.schedule.tags && this.schedule.tags.length > 0 ? true : false;
-                return this.schedule.tags && this.schedule.tags.length ? true : false;
+                return this.schedule.machine_tags && this.schedule.machine_tags.length ? true : false;
             },
             _editSchedule: function(e) {
                 this.$.editScheduleDialog._openEditScheduleModal();
@@ -533,21 +533,15 @@
             },
             condition: function(m) {
                 if (this.isSpecificMachines) {
-                    return this.isSelectedMachine(m);
+                    return this.isSelectedMachine(m.uuid);
                 }
                 else if (this.isMachinesWithTags) {
                     return this.machineHasTag(m);
                 }
                 return false;
             },
-            isSelectedMachine: function(machine) {
-                var exists;
-                if (this.schedule.machines) {
-                    exists = this.schedule.machines.find(function(m){
-                        return machine.cloud.id == m[0] && machine.id == m[1];
-                    })
-                }
-                return exists ? true : false;
+            isSelectedMachine: function(machineId) {
+                return this.schedule.machine_uuids.indexOf(machineId) > -1;
             },
             machineHasTag: function(m) {
                 var exists = false;
@@ -555,7 +549,7 @@
                     return t.key;
                 })
                 for (var i = 0; i < machineTags.length; i++){
-                    if (this.schedule.tags.indexOf(machineTags[i]) > -1){
+                    if (this.schedule.machine_tags.indexOf(machineTags[i]) > -1){
                         exists = true;
                         break;
                     }
