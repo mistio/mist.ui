@@ -71,11 +71,11 @@
                 </div>
                 <div hidden$="{{!isUuids}}" class="background">
                     <template is="dom-repeat" items="[[model.machinesArray]]" as="machine">
-                        <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machine)]]">[[machine.name]]</paper-checkbox>
+                        <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(schedule, machine.uuid)]]">[[machine.name]]</paper-checkbox>
                     </template>
                 </div>
                 <div hidden$="{{!isTags}}" class="background">
-                    <paper-textarea value="{{newSchedule.tags}}"></paper-textarea>
+                    <paper-textarea value="{{newSchedule.machines_tags}}"></paper-textarea>
                 </div>
                 <div class="progress">
                     <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
@@ -146,15 +146,15 @@
                 _computeNewSchedule: function(schedule) {
                     if (this.schedule){
                         var newSchedule = {
-                            machines: this.schedule.machines,
-                            tags: this.schedule.tags
+                            machines_uuid: this.schedule.machine_uuid || [],
+                            machines_tags: this.schedule.machine_tags || []
                         };
                         this.set('newSchedule', newSchedule);
                         this._computeIsUuidsOrTags(schedule);
                     }
                 },
                 _computeIsUuidsOrTags: function(schedule) {
-                    if (this.schedule && this.schedule.machines)
+                    if (this.schedule && this.schedule.machine_uuids)
                         this.set('isUuidsOrTags', 'uuids')
                     else 
                         this.set('isUuidsOrTags', 'tags')
@@ -208,49 +208,33 @@
                     this.fire('toast', { msg: message, duration: 5000 });
                 },
                 _updatePayload: function(e) {
-                    var pl = {};
-                    var plLength = 0;
-                    for (var p in this.newSchedule) {
-                        if (this.schedule[p] != this.newSchedule[p]) {
-                            plLength++;
-                            if (p != "tags" && p != "machines"){
-                                pl[p] = this.newSchedule[p];
-                            }
-                            else if (p != "tags") {
-                                pl[p] = this.textToArray(this.newSchedule[p]);
-                            }
-                            else if (p != "machines") {
-                                pl[p] = this._constructCheckboxValue();
-                            }
-                            console.log('_updatePayload', pl[p], this.newSchedule[p]);
-                        }
+                    var pl = {},
+                        plLength;
+                    
+                    if (this.isUuids){
+                        pl["machines_uuids"] = this._constructCheckboxValue();
+                    }
+                    else if (this.isTags) {
+                        pl["machines_tags"] = this.textToArray(this.newSchedule["machines_tags"]);
                     }
                     this.set('payload', pl);
-                    this._updateformReady(plLength, this.sendingData);
+                    this.set('formReady', true);
                 },
-                _updateformReady: function(plLength, sendingData) {
-                    if (this.sendingData) {
-                        this.set('formReady', false);
-                    }
-                    else {
-                        this.set('formReady', plLength);
-                    }
-                },
-                _computeIfChecked: function(schedule, machine) {
-                    var exists;
-                    console.log(machine);
-                    if (machine)
-                        exists = this.schedule.machines.find(function(m){
-                            return machine.cloud.id == m[0] && machine.id == m[1];
-                        });
-                    return exists ? true : false;
+                _computeIfChecked: function(schedule, machineId) {
+                    if (schedule && this.schedule.machine_uuids)
+                        return this.schedule.machine_uuids.indexOf(machineId) > -1;
+                    else
+                        return false;
                 },
                 textToArray: function(str) {
-                    var arr = str.split(',');
-                    for (var i = 0; i < arr.length; i++) {
-                        arr[i] = arr[i].trim();
+                    if (str) {
+                        var arr = [];
+                            arr = str.split(',');
+                        for (var i = 0; i < arr.length; i++) {
+                            arr[i] = arr[i].trim();
+                        }
+                        return arr;
                     }
-                    return arr;
                 },
                 _constructCheckboxValue: function() {
 
