@@ -1,0 +1,261 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+
+<dom-module id="schedule-edit-condition">
+    <template>
+        <style is="custom-style" include="dialogs"></style>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            .submit-btn {
+                background-color: var(--mist-blue);
+                color: #fff;
+            }
+
+            paper-dialog {
+                width: 500px !important;
+            }
+
+            paper-button {
+                margin: 0 0.29em !important;
+            }
+
+            .progress {
+                overflow: hidden;
+                margin: 0 -24px;
+            }
+            paper-progress {
+                width: 100%;
+            }
+            paper-progress#progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: rgba(255,255,255,0.54);
+            }
+            .errormsg-container iron-icon {
+                color: var(--red-color);
+                margin: 8px;
+            }
+            paper-radio-button[checked],
+            .background {
+                background-color: #eee;
+            }
+            .background {
+                padding: 16px;
+                max-height: 300px;
+                overflow: scroll;
+            }
+            paper-checkbox {
+                display: block;
+            }
+        </style>
+
+        <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <h2>Edit Schedule Machines </h2>
+            <paper-dialog-scrollable>
+                <div>
+                    <paper-radio-group selected="{{isUuidsOrTags}}">
+                        <paper-radio-button name="uuids">Specific Machines</paper-radio-button>
+                        <paper-radio-button name="tags">Machines with tags</paper-radio-button>
+                    </paper-radio-group>
+                </div>
+                <div hidden$="{{!isUuids}}" class="background">
+                    <template is="dom-repeat" items="[[model.machinesArray]]" as="machine">
+                        <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machine)]]">[[machine.name]]</paper-checkbox>
+                    </template>
+                </div>
+                <div hidden$="{{!isTags}}" class="background">
+                    <paper-textarea value="{{newSchedule.tags}}"></paper-textarea>
+                </div>
+                <div class="progress">
+                    <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
+                    <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                    <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                </div>
+                <div class="clearfix btn-group">
+                    <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
+                    <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+                </div>
+            </paper-dialog-scrollable>
+        </paper-dialog>
+
+        <iron-ajax  id="editSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="PATCH"
+                    loading= "{{loading}}"
+                    on-response="_handleResponse"
+                    on-error="_handleError"></iron-ajax>
+    </template>
+
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'schedule-edit-condition',
+
+                properties: {
+                    schedule: Object,
+                    model: Object,
+                    // modelmachines: Array,
+                    newSchedule: {
+                        type: Object,
+                        notify: true
+                    },
+                    formReady: {
+                        type: Boolean,
+                        value: false
+                    },
+                    isUuidsOrTags: {
+                        type: String
+                    },
+                    isUuids: Boolean,
+                    isTags: Boolean,
+                    loading: {
+                        type: Boolean,
+                        value: false
+                    },
+                    formError: {
+                        type: Boolean,
+                        value: false
+                    },
+                    payload: {
+                        type: Object,
+                        value: {}
+                    }
+                },
+                observers: [
+                    '_computeNewSchedule(schedule.*)',
+                    '_isUuidsOrTagsChanged(isUuidsOrTags)'
+                ],
+                listeners: {
+                    'iron-overlay-closed': '_modalClosed',
+                    'input': '_updatePayload',
+                    'change': '_updatePayload'
+                },
+                _computeNewSchedule: function(schedule) {
+                    if (this.schedule){
+                        var newSchedule = {
+                            machines: this.schedule.machines,
+                            tags: this.schedule.tags
+                        };
+                        this.set('newSchedule', newSchedule);
+                        this._computeIsUuidsOrTags(schedule);
+                    }
+                },
+                _computeIsUuidsOrTags: function(schedule) {
+                    if (this.schedule && this.schedule.machines)
+                        this.set('isUuidsOrTags', 'uuids')
+                    else 
+                        this.set('isUuidsOrTags', 'tags')
+                },
+                _computeIsUuids: function(schedule) {
+                    if (this.schedule && this.schedule.machines)
+                        return this.schedule.machines.length;
+                    return false
+                },
+                _computeIsTags: function(schedule) {
+                    if (this.schedule && this.schedule.tags)
+                        return this.schedule.tags.length;
+                    return false;
+                },
+                _isUuidsOrTagsChanged: function(isUuidsOrTags) {
+                    if (isUuidsOrTags == "uuids"){
+                        this.set('isUuids', true);
+                        this.set('isTags', false);
+                    }
+                    else if (isUuidsOrTags == "tags"){
+                        this.set('isUuids', false);
+                        this.set('isTags', true);
+                    }
+                },
+                _openEditScheduleModal: function(e) {
+                    this.$.editScheduleModal.open();
+                },
+                _closeEditScheduleModal: function(e) {
+                    this.$.editScheduleModal.close();
+                },
+                _modalClosed: function() {
+                    this._formReset();
+                },
+                _submitForm: function(e) {
+                    this.$.editSchedule.body = this.payload;
+                    this.$.editSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.editSchedule.generateRequest();
+                },
+                _formReset: function() {
+                    this._computeNewSchedule();
+                },
+                _handleResponse: function(e) {
+                    this._closeEditScheduleModal();
+                },
+                _handleError: function(e) {
+                    var message = e.detail.error;
+                    if (e.detail.request.statusText)
+                        message += " "+e.detail.request.statusText;
+
+                    this.fire('toast', { msg: message, duration: 5000 });
+                },
+                _updatePayload: function(e) {
+                    var pl = {};
+                    var plLength = 0;
+                    for (var p in this.newSchedule) {
+                        if (this.schedule[p] != this.newSchedule[p]) {
+                            plLength++;
+                            if (p != "tags" && p != "machines"){
+                                pl[p] = this.newSchedule[p];
+                            }
+                            else if (p != "tags") {
+                                pl[p] = this.textToArray(this.newSchedule[p]);
+                            }
+                            else if (p != "machines") {
+                                pl[p] = this._constructCheckboxValue();
+                            }
+                            console.log('_updatePayload', pl[p], this.newSchedule[p]);
+                        }
+                    }
+                    this.set('payload', pl);
+                    this._updateformReady(plLength, this.sendingData);
+                },
+                _updateformReady: function(plLength, sendingData) {
+                    if (this.sendingData) {
+                        this.set('formReady', false);
+                    }
+                    else {
+                        this.set('formReady', plLength);
+                    }
+                },
+                _computeIfChecked: function(schedule, machine) {
+                    var exists;
+                    console.log(machine);
+                    if (machine)
+                        exists = this.schedule.machines.find(function(m){
+                            return machine.cloud.id == m[0] && machine.id == m[1];
+                        });
+                    return exists ? true : false;
+                },
+                textToArray: function(str) {
+                    var arr = str.split(',');
+                    for (var i = 0; i < arr.length; i++) {
+                        arr[i] = arr[i].trim();
+                    }
+                    return arr;
+                },
+                _constructCheckboxValue: function() {
+
+                }
+            });
+        })();
+    </script>
+</dom-module>

@@ -10,6 +10,8 @@
 <link rel="import" href="../helpers/dialog-element.html">
 
 <link rel="import" href="schedule-edit.html">
+<link rel="import" href="schedule-edit-condition.html">
+<link rel="import" href="schedule-edit-task.html">
 
 <dom-module id="schedule-page">
     <template>
@@ -179,10 +181,6 @@
                 background-color: #424242;
                 padding: 16px;
             }
-            .progress {
-                background-color: #424242;
-                overflow: hidden;
-            }
             .never-expire paper-checkbox {
                 color: #fff;
                 font-weight: 500;
@@ -195,6 +193,10 @@
                 --paper-checkbox-label-color: #fff !important;
                 --paper-checkbox-checked-color: var(--mist-blue) !important;
                 --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+            }
+            .progress {
+                background-color: #424242;
+                overflow: hidden;
             }
             paper-progress {
                 width: 100%;
@@ -257,6 +259,7 @@
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
                     <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
+                    <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink>change</paper-button>
                 </div>
             </paper-material>
             <paper-material>
@@ -268,6 +271,7 @@
                         <span class="tag">[[item]]</span>
                     </template>
                     [[filteredItems.length]] machines affected. </span>
+                <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink>change</paper-button>
                 <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
             </paper-material>
         </div>
@@ -292,6 +296,8 @@
         </paper-dialog>
 
         <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
+        <schedule-edit-task id="editScheduleTask" schedule="[[schedule]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
+        <schedule-edit-condition id="editScheduleCondition" schedule="[[schedule]]" model="[[model]]"></schedule-edit-condition>
 
         <iron-ajax  id="deleteSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -440,15 +446,8 @@
                     return this.schedule.machines && this.schedule.machines.length > 0 ? true : false;
             },
             _computeIsMachinesWithTags: function(schedule) {
-                // TODO remove hardcoded 
                 // return this.schedule.tags && this.schedule.tags.length > 0 ? true : false;
-                if (this.schedule && !this.schedule.machines) {
-                    this.schedule.tags = ['test', 'dog'];
-                    return true;
-                }
-                else {
-                    return false;
-                }
+                return this.schedule.tags && this.schedule.tags.length ? true : false;
             },
             _editSchedule: function(e) {
                 this.$.editScheduleDialog._openEditScheduleModal();
@@ -585,9 +584,6 @@
             _computeAbsoluteDateText: function(time) {
                 return moment.utc(time).format("MMMM D YYYY");
             },
-            editExpiration: function(e) {
-
-            },
             _selectDate: function(e) {
                 if (moment(this.schedule.expires).isValid())
                     this.$.pickDate.date = moment(this.schedule.expires).toDate();
@@ -627,6 +623,12 @@
                 this.expError = true;
 
                 this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+            },
+            _changeCondition: function() {
+                this.$.editScheduleCondition._openEditScheduleModal();
+            },
+            _editTask: function() {
+                this.$.editScheduleTask._openEditScheduleModal();
             }
         });
     </script>
