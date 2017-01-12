@@ -153,10 +153,61 @@
             #dateTimePickers .bottom-actions {
                 display: flex;
                 justify-content: flex-end;
+                padding: 16px 24px !important;
+                background-color: #424242;
+                color: rgba(255,255,255,0.54);
+                border-top: 1px solid #555;
             }
             paper-date-picker::content #heading,
             paper-time-picker::content #heading {
                 background-color: #424242;
+            }
+            paper-date-picker ::content .day-item.selected.paper-calendar {
+                background: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .line.paper-clock-selector {
+                stroke: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .disc-large.paper-clock-selector {
+                fill: var(--mist-blue) !important;
+            }
+            paper-dialog > * {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .never-expire {
+                background-color: #424242;
+                padding: 16px;
+            }
+            .progress {
+                background-color: #424242;
+                overflow: hidden;
+            }
+            .never-expire paper-checkbox {
+                color: #fff;
+                font-weight: 500;
+                font-size: 16px;
+                text-transform: uppercase;
+            }
+            paper-checkbox {
+                --paper-checkbox-unchecked-color: #fff !important;
+                --paper-checkbox-unchecked-ink-color: #fff !important;
+                --paper-checkbox-label-color: #fff !important;
+                --paper-checkbox-checked-color: var(--mist-blue) !important;
+                --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+            }
+            paper-progress {
+                width: 100%;
+            }
+            paper-progress#progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: rgba(255,255,255,0.54);
+            }
+            .errormsg-container iron-icon {
+                color: var(--red-color);
+                margin: 8px;
             }
         </style>
         <div id="content" class="does-not-exist" hidden$="[[exists]]">
@@ -198,9 +249,9 @@
                 <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.:</span> [[schedule.description]]</div>
                 <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
                 <div><span class="m-info-head">Expires:</span> 
-                    <span hidden$="[[schedule.expires.length]]">Never</span>
+                    <span hidden$="[[schedule.expires.length]]">never</span>
                     <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
-                    <paper-button id="editExpiration" on-tap="_selectDate" class="simple-button blue-link smaller">change</paper-button>
+                    <paper-button id="editExpiration" on-tap="_selectDate" class="simple-button blue-link smaller" noink>change</paper-button>
                 </div>
                 <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
@@ -225,6 +276,14 @@
             <div class="pickers">
                 <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
                 <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
+                <div class="never-expire">
+                    <paper-checkbox checked="{{neverExpire}}">Never expire</paper-checkbox>
+                </div>
+            </div>
+            <div class="progress">
+                <paper-progress id="progress" indeterminate active="{{expLoading}}" hidden$="[[!expLoading]]"></paper-progress>
+                <paper-progress id="progresserror" value="100" hidden$="[[!expError]]"></paper-progress>
+                <p class="errormsg-container" hidden$="[[!expError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
             </div>
             <div class="bottom-actions">
                 <paper-button dialog-dismiss>Cancel</paper-button>
@@ -251,7 +310,7 @@
         <iron-ajax  id="editExpirationSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
                     method="PATCH"
-                    loading="{{toogleLoading}}"
+                    loading="{{expLoading}}"
                     handle-as="xml"
                     on-response="_handleScheduleEditExpirationResponse"
                     on-error="_handleScheduleEditExpirationError"></iron-ajax>
@@ -323,6 +382,12 @@
                     type: Boolean,
                     computed: "_computeIsRunScript(schedule)"
                 },
+                expLoading: {
+                    type: Boolean,
+                    value: false
+                },
+                neverExpire: Boolean,
+                expError: Boolean,
                 machines: Array,
                 tags: Array
             },
@@ -528,22 +593,40 @@
                     this.$.pickDate.date = moment(this.schedule.expires).toDate();
 
                 this.$.pickDate.minDate = new Date();
+                this.neverExpire = false;
+                this.expError = false;
                 this.$.dateTimePickers.open();
             },
             _applyDateTime: function(e) {
-                this.$.editExpirationSchedule.body = {expires: moment(this.$.pickDate.date).utc().format().toString().replace('T',' ').replace('Z','')}
-
+                var payload;
+                if (!this.neverExpire){
+                    payload = { expires: moment(this.$.pickDate.date).utc().format().toString().replace('T',' ').replace('Z','')}
+                }
+                else {
+                    payload = { expires: ""};
+                }
+                this.$.editExpirationSchedule.body = payload;
                 this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
                 this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.editExpirationSchedule.generateRequest();
+
+                this.expError = false;
             },
             _handleScheduleEditExpirationResponse: function() {
+                var message = 'Updating expiration date...';
+                this.fire('toast', { msg: message, duration: 3000 });
+
                 this.$.dateTimePickers.close();
+                this.expError = false;
+                this.neverExpire = false;
             },
             _handleScheduleEditExpirationError: function() {
                 console.log('_handleScheduleEditToggleError',e);
                 var message = e.detail.request.xhr.response;
                 this.fire('toast', { msg: message, duration: 5000 });
+                this.expError = true;
+
+                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
             }
         });
     </script>
