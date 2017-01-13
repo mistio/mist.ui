@@ -133,7 +133,7 @@
                 padding-right: 0;
             }
             .field-helptext.background {
-                background-color: transparent;   
+                background-color: transparent;
             }
             #dateTimePickers .pickers {
                 
@@ -141,6 +141,10 @@
             #dateTimePickers .bottom-actions {
                 display: flex;
                 justify-content: flex-end;
+                padding: 16px 24px !important;
+                background-color: #424242;
+                color: rgba(255,255,255,0.54);
+                border-top: 1px solid #555;
             }
             paper-date-picker::content #heading,
             paper-time-picker::content #heading {
@@ -160,6 +164,47 @@
             .checkboxes {
                 max-height: 400px;
                 overflow: scroll;
+            }
+            paper-date-picker ::content .day-item.selected.paper-calendar {
+                background: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .line.paper-clock-selector {
+                stroke: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .disc-large.paper-clock-selector {
+                fill: var(--mist-blue) !important;
+            }
+            paper-dialog > * {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            paper-dialog > .never-expire {
+                background-color: #424242;
+                padding: 16px !important;
+            }
+            .never-expire paper-checkbox {
+                color: #fff;
+                font-weight: 500;
+                font-size: 16px;
+                text-transform: uppercase;
+            }
+            paper-checkbox {
+                --paper-checkbox-unchecked-color: #fff !important;
+                --paper-checkbox-unchecked-ink-color: #fff !important;
+                --paper-checkbox-label-color: #fff !important;
+                --paper-checkbox-checked-color: var(--mist-blue) !important;
+                --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+            }
+            @media (max-width: 991px) {
+                .field-helptext.background,
+                .field-helptext.bind-bottom {
+                    background-color: #eee;
+                    margin: 0 !important;
+                    padding: 24px 16px 0;
+                }
+                .bind-top {
+                    margin-bottom: 0 !important;
+                }
             }
         </style>
 
@@ -287,6 +332,9 @@
                 <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
                 <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
             </div>
+            <div class="never-expire">
+                <paper-checkbox id="neverDate" checked="{{neverDate}}" on-value-change="">Never</paper-checkbox>
+            </div>
             <div class="bottom-actions">
                 <paper-button dialog-dismiss>Cancel</paper-button>
                 <paper-button class="blue" on-tap="_applyDateTime">Apply</paper-button>
@@ -393,10 +441,11 @@
                     dateTriggerField: {
                         type: Object,
                         value: {}
-                    }
+                    },
+                    neverDaye: Boolean
                 },
                 observers: [
-                    '_fieldsChanged(fields.*, sendingData)',
+                    '_fieldsChanged(fields.*, sendingData)'
                 ],
                 ready: function(){
                     this.fields = [];
@@ -681,6 +730,8 @@
                         this.$.pickDate.date = moment(this.form[event.rootTarget.id]).toDate();
 
                     this.$.pickDate.minDate = new Date();
+                    this.$.pickTime.time = moment().format('hh:mm a');
+                    this.neverDate = false;
                     this.$.dateTimePickers.open();
                 },
                 _applyDateTime: function(e) {
@@ -689,14 +740,26 @@
                         ind = index;
                         return f.name == this.dateTriggerField
                     }, this);
+
                     // apply date to the trigger fields
-                    if (ind)
-                        this.set('fields.'+ ind +'.value', moment(this.$.pickDate.date).utc().format().toString().replace('T',' ').replace('Z',''));
+                    if (ind){
+                        if (!this.neverDate) {
+                            var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
+                            var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+
+                            console.log('combinedDate', combinedDate);
+
+                            this.set('fields.'+ ind +'.value', moment(combinedDate).utc().format().toString().replace('T',' ').replace('Z',''));
+                        }
+                        else {
+                            this.set('fields.'+ ind +'.value', "");   
+                        }
+                    }
                     
                     this.$.dateTimePickers.close();
                 },
                 _displayDate: function(date){
-                    if (!moment(date).isValid())
+                    if (!moment(date).isValid() || date.trim() == "")
                         return "never";
                     else {
                         return moment(date).utc().fromNow()+': '+moment(date).utc().format().toString().replace('T',' ').replace('Z','');
