@@ -363,7 +363,8 @@ SCHEDULEACTIONS = {
                         helptext: "",
                         icon: "schedule",
                         show: true,
-                        required: false
+                        required: false,
+                        disabled: false
                     }, {
                         name: "run_immediately",
                         label: "Run once immediately",
@@ -472,16 +473,20 @@ SCHEDULEACTIONS = {
                     // initial values in shedule entry
                     if (this.get(changeRecord.path.replace('.value','')).name == "schedule_type"){
                         var entryInd = this._fieldIndexByName("schedule_entry"),
+                            expInd = this._fieldIndexByName("expires"),
                             entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab"),
                             entry;
                         if (changeRecord.value == "interval") {
                             entry = this._processInterval();
+                            this.set('fields.'+ expInd +'.disabled', false);
                         }
                         else if (changeRecord.value == "crontab") {
                             entry = this._processCrotab(this.get('fields.'+entryCronTabInd+'.value'));
+                            this.set('fields.'+ expInd +'.disabled', false);
                         }
                         else if (changeRecord.value == "one_off") {
-                            entry = changeRecord.value;
+                            entry = "";
+                            this.set('fields.'+ expInd +'.disabled', true);
                         }
                         this.set('fields.'+ entryInd +'.value', entry);
                     }
