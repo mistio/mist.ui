@@ -3,6 +3,8 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
+<link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
@@ -20,8 +22,17 @@
                 color: #fff;
             }
 
-            paper-dialog {
+            paper-dialog#editScheduleModal {
                 width: 500px !important;
+            }
+
+            paper-dialog#dateTimePickers {
+                width: 540px !important;
+            }
+
+            paper-dialog#dateTimePickers > * {
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             paper-button {
@@ -55,6 +66,33 @@
             }
             paper-checkbox {
                 display: block;
+            }
+            paper-button.simple-button {
+                padding: 0;
+            }
+            paper-button.simple-button iron-icon {
+                padding: 8px; 
+            }
+            paper-date-picker::content #heading,
+            paper-time-picker::content #heading {
+                background-color: #424242;
+            }
+            paper-date-picker ::content .day-item.selected.paper-calendar {
+                background: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .line.paper-clock-selector {
+                stroke: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .disc-large.paper-clock-selector {
+                fill: var(--mist-blue) !important;
+            }
+            #dateTimePickers .bottom-actions {
+                display: flex;
+                justify-content: flex-end;
+                padding: 16px 24px !important;
+                background-color: #424242;
+                color: rgba(255,255,255,0.54);
+                border-top: 1px solid #555;
             }
 
         </style>
@@ -97,10 +135,13 @@
                         <paper-radio-button name="one_off">One off</paper-radio-button>
                     </paper-radio-group>
                 </div>
-                <div class="background" hidden$="[[_computeIsOneOff(newSchedule.schedule_type)]]">
-                    <paper-textarea value="[[newSchedule.schedule_entry]]"></paper-textarea>
+                <div class="background" hidden$="{{!_computeIsInterval(newSchedule.schedule_type)}}">
+                    <paper-textarea value="{{_computeInterval(newSchedule.schedule_entry)}}"></paper-textarea>
                 </div>
-                <div class="background" hidden$="[[!_computeIsOneOff(newSchedule.schedule_type)]]">
+                <div class="background" hidden$="{{!_computeIsCrontab(newSchedule.schedule_type)}}">
+                    <paper-textarea value="{{_computeCrontab(newSchedule.schedule_entry)}}"></paper-textarea>
+                </div>
+                <div class="background" hidden$="{{!_computeIsOneOff(newSchedule.schedule_type)}}">
                     <paper-button id="date" on-tap="_selectDate" class="simple-button">
                         <iron-icon icon="schedule"></iron-icon>
                         [[_displayDate(newSchedule.schedule_entry)]]
@@ -111,6 +152,17 @@
                     <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
                 </div>
             </paper-dialog-scrollable>
+        </paper-dialog>
+
+        <paper-dialog id="dateTimePickers" with-backdrop>
+            <div class="pickers">
+                <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
+                <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
+            </div>
+            <div class="bottom-actions">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="blue" on-tap="_applyDateTime">Apply</paper-button>
+            </div>
         </paper-dialog>
 
         <iron-ajax  id="editSchedule"
@@ -148,11 +200,6 @@
                         type: String
                     },
                     taskType: String,
-                    isOneOff: {
-                        type:Boolean,
-                        computed: '_computeIsOneOff(newSchedule)',
-                        notify: true
-                    },
                     action: String,
                     scriptId: String,
                     actions: {
@@ -215,8 +262,14 @@
                         this.taskType = this._computeAction(this.schedule.task_type) != undefined ? 'action' : 'script';
                     }
                 },
-                _computeIsOneOff: function(newSchedule){
-                    return this._computeType(newSchedule.schedule_type) == "one_off";
+                _computeIsInterval: function(scheduleType){
+                    return scheduleType == "interval";
+                },
+                _computeIsCrontab: function(scheduleType){
+                    return scheduleType == "crontab";
+                },
+                _computeIsOneOff: function(scheduleType){
+                    return scheduleType == "one_off";
                 },
                 _computeIsAction: function(taskType) {
                     if (taskType && taskType == "action"){
@@ -235,10 +288,10 @@
                     }
                 },
                 _computeType: function(type){
-                    if (type && type.startsWith('Interval')){
+                    if (type && (type.startsWith('Interval') || type.startsWith('{every'))){
                         return "interval";
                     }
-                    else if (type && type.startsWith('Crontab')){
+                    else if (type && (type.startsWith('Crontab') || type.startsWith('{minute')) ){
                         return "crontab";
                     }
                     else if (type && type.startsWith('One')){
@@ -246,26 +299,77 @@
                     }
                 },
                 _computeEntry: function(entry){
-                    var type = this._computeType(entry);
+                    var type, 
+                        scheduleEntry = "";
+                    // decide on type    
+                    if (this.newSchedule && this.newSchedule.schedule_type){
+                        type = this.newSchedule.schedule_type;
+                        console.log('_computeEntry', type, this.newSchedule.schedule_type, entry);
+                    }
+                    else {
+                        type = this._computeType(entry);
+                        console.log('_computeEntry', type, 'no newSchedule ', entry);
+                    }
 
-                    console.log("_computeEntry", type, entry);
-
-                    if (type == 'interval'){
-                        // return this._parseInterval(type);
+                    // calculate entry
+                    if (entry) {
+                        if (type == 'interval'){
+                            return this._computeInterval(entry);
+                        }
+                        else if (type == 'crontab'){
+                            return this._computeCrontab(entry);
+                        }
+                        else if (type == 'one_off'){
+                            if (entry && (!entry.startsWith('Crontab') || !entry.startsWith('Interval'))){
+                                return entry;
+                            }
+                            else {
+                                return "";
+                            }
+                        }
+                    }
+                    else {
+                        return "";
+                    }
+                },
+                _computeInterval: function(entry){
+                    var scheduleEntry = "";
+                    if (entry && entry.startsWith('Interval every')) {
+                        var num = entry.replace('Interval every ', '').split(" ")[0];
+                        var unit = entry.replace('Interval every ', '').split(" ")[1];
+                        scheduleEntry = '{every:'+ num +', period:'+ unit+'}';
+                        return scheduleEntry;
+                    }
+                    else if (entry && entry.startsWith('{every')){
                         return entry;
                     }
-                    else if (type == 'crontab'){
-                        // return this._parseCrontab(type);
+                    else {
+                        return "";   
+                    }
+                },
+                _computeCrontab: function(entry){
+                    console.log('_computeCrontab');
+                    var scheduleEntry = "";
+                    if (entry && entry.startsWith('Crontab')) {
+                        var crontab = entry.replace('Crontab ', '').replace('(m/h/d/dM/MY)', '').split(" ");
+                        scheduleEntry = "{minute: " + crontab[0] +
+                                        ", hour: " + crontab[1] +
+                                        ", day_of_week: " + crontab[2] +
+                                        ", day_of_month:" + crontab[3] +
+                                        ", month_of_year:" + crontab[4] +"}";
+                        return scheduleEntry;
+                    }
+                    else if (entry && entry.startsWith('{minute')){
                         return entry;
                     }
-                    else if (type == 'one_off'){
-                        // return this._parseDate(type);
-                        return entry;
+                    else {
+                        return "";   
                     }
                 },
                 _updateValues: function(){
-                    // upudate entries
-
+                    // update entries
+                    // console.log(this.newSchedule.action, this.newSchedule.script_id, this.newSchedule.schedule_type, this.newSchedule.schedule_entry);
+                    this.set('newSchedule.schedule_entry', this._computeEntry(this.newSchedule.schedule_entry));
                 },
                 _openEditScheduleModal: function(e) {
                     this.$.editScheduleModal.open();
@@ -312,38 +416,20 @@
                     // }
                 },
                 _selectDate: function(e) {
-                    var event = Polymer.dom(e);
-                    // save the triggering field
-                    this.set('dateTriggerField', event.rootTarget.id);
-                    if (moment(this.form[event.rootTarget.id]).isValid())
-                        this.$.pickDate.date = moment(this.form[event.rootTarget.id]).toDate();
-
-                    this.$.pickDate.minDate = new Date();
-                    this.$.pickTime.time = moment().format('hh:mm a');
-                    this.neverDate = false;
+                    if (this.newSchedule.schedule_type == "one_off" && moment(this.newSchedule.schedule_entry).isValid()) {
+                        this.$.pickDate.date = moment(this.newSchedule.schedule_entry).toDate();
+                        this.$.pickTime.time = moment(this.newSchedule.schedule_entry).format('hh:mm a')
+                    }
+                    else {
+                        this.$.pickTime.time = moment().format('hh:mm a');
+                    }
+                    this.$.pickDate.minDate = moment().toDate();
                     this.$.dateTimePickers.open();
                 },
                 _applyDateTime: function(e) {
-                    var ind;
-                    var datefield = this.fields.find(function(f, index){
-                        ind = index;
-                        return f.name == this.dateTriggerField
-                    }, this);
-
-                    // apply date to the trigger fields
-                    if (ind){
-                        if (!this.neverDate) {
-                            var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
-                            var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
-
-                            console.log('combinedDate', combinedDate);
-
-                            this.set('fields.'+ ind +'.value', moment(combinedDate).utc().format().toString().replace('T',' ').replace('Z',''));
-                        }
-                        else {
-                            this.set('fields.'+ ind +'.value', "");
-                        }
-                    }
+                    var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
+                    var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+                    this.set('newSchedule.schedule_entry', moment(combinedDate).format().toString().replace('T',' ').replace('Z',''));     
                     this.$.dateTimePickers.close();
                 },
                 _displayDate: function(date){
