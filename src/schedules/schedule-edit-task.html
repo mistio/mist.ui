@@ -104,15 +104,15 @@
                 <h4>Task Type</h4>
                 <div>
                     <paper-radio-group selected="{{taskType}}">
-                        <paper-radio-button name="action">Perform action</paper-radio-button>
-                        <paper-radio-button name="script">Run script</paper-radio-button>
+                        <paper-radio-button name="action" tabindex="1">Perform action</paper-radio-button>
+                        <paper-radio-button name="script" tabindex="1">Run script</paper-radio-button>
                     </paper-radio-group>
                 </div>
                 <div class="background" hidden$="[[!_computeIsAction(taskType)]]">
                     <paper-dropdown-menu>
                         <paper-menu attr-for-selected="value" selected="{{newSchedule.action}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[actions]]" as="action">
-                                <paper-item value="[[action.name]]">[[action.name]]</paper-item>
+                                <paper-item value="[[action.name]]" tabindex="1">[[action.name]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
@@ -121,7 +121,7 @@
                     <paper-dropdown-menu>
                         <paper-menu attr-for-selected="value" selected="{{newSchedule.script_id}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[scripts]]" as="script">
-                                <paper-item value="[[script.id]]">[[script.name]]</paper-item>
+                                <paper-item value="[[script.id]]" tabindex="1">[[script.name]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
@@ -130,26 +130,26 @@
                 <h4>Task Schedule</h4>
                 <div>
                     <paper-radio-group selected="{{newSchedule.schedule_type}}">
-                        <paper-radio-button name="interval">Interval</paper-radio-button>
-                        <paper-radio-button name="crontab">Crontab</paper-radio-button>
-                        <paper-radio-button name="one_off">One off</paper-radio-button>
+                        <paper-radio-button name="interval" tabindex="1">Interval</paper-radio-button>
+                        <paper-radio-button name="crontab" tabindex="1">Crontab</paper-radio-button>
+                        <paper-radio-button name="one_off" tabindex="1">One off</paper-radio-button>
                     </paper-radio-group>
                 </div>
                 <div class="background" hidden$="{{!_computeIsInterval(newSchedule.schedule_type)}}">
-                    <paper-textarea value="{{_computeInterval(newSchedule.schedule_entry)}}"></paper-textarea>
+                    <paper-textarea id="interval" value="{{_computeInterval(newSchedule.schedule_entry)}}" tabindex="1"></paper-textarea>
                 </div>
                 <div class="background" hidden$="{{!_computeIsCrontab(newSchedule.schedule_type)}}">
-                    <paper-textarea value="{{_computeCrontab(newSchedule.schedule_entry)}}"></paper-textarea>
+                    <paper-textarea id="crontab" value="{{_computeCrontab(newSchedule.schedule_entry)}}" tabindex="1"></paper-textarea>
                 </div>
                 <div class="background" hidden$="{{!_computeIsOneOff(newSchedule.schedule_type)}}">
-                    <paper-button id="date" on-tap="_selectDate" class="simple-button">
+                    <paper-button id="date" on-tap="_selectDate" class="simple-button" tabindex="1">
                         <iron-icon icon="schedule"></iron-icon>
                         [[_displayDate(newSchedule.schedule_entry)]]
                     </paper-button>
                 </div>
                 <div class="clearfix btn-group">
-                    <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+                    <paper-button class="blue-link" dialog-dismiss tabindex="1">Cancel</paper-button>
+                    <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm" tabindex="1">Save</paper-button>
                 </div>
             </paper-dialog-scrollable>
         </paper-dialog>
@@ -191,7 +191,10 @@
                         type: Boolean,
                         value: false
                     },
-                    sendingData: Boolean,
+                    sendingData: {
+                        type: Boolean,
+                        value: false
+                    },
                     payload: {
                         type: Object,
                         value: {}
@@ -247,8 +250,8 @@
                 ],
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
-                    'input': '_updateValues',
-                    'change': '_updateValues'
+                    'input': '_updatePayload',
+                    'change': '_updatePayload'
                 },
                 _computeNewSchedule: function(schedule) {
                     if (schedule){
@@ -366,11 +369,6 @@
                         return "";   
                     }
                 },
-                _updateValues: function(){
-                    // update entries
-                    // console.log(this.newSchedule.action, this.newSchedule.script_id, this.newSchedule.schedule_type, this.newSchedule.schedule_entry);
-                    this.set('newSchedule.schedule_entry', this._computeEntry(this.newSchedule.schedule_entry));
-                },
                 _openEditScheduleModal: function(e) {
                     this.$.editScheduleModal.open();
                 },
@@ -401,19 +399,32 @@
                 },
                 _updatePayload: function(e) {
                     var pl ={};
-                    if (this.isCrontab){
-                        pl.schedule_entry = {}
+                    this.set("newSchedule.schedule_entry", this._computeEntry(this.$.interval.value));
+                    // check if task changed
+                    if ((!this._computeIsAction(this.schedule.schedule_type) && this.taskType == "action" ) || (this._computeIsAction(this.schedule.schedule_type) && this._computeAction(this.schedule.schedule_type) != this.newSchedule.action)) {
+                        pl.action = this.newSchedule.action;
                     }
-                    // this.set('payload', pl);
-                    // this._updateformReady(plLength, this.sendingData);
+                    else if ((this._computeIsAction(this.schedule.schedule_type) && this.taskType == "script") || (!this._computeIsAction(this.schedule.schedule_type) && this.schedule.script_id != this.newSchedule.script_id)) {
+                        pl.script_id = this.newSchedule.script_id; 
+                    }
+                    //check if entry changed
+                    if (this._computeType(this.schedule.schedule_type) != this.newSchedule.schedule_type) {
+                        pl.schedule_type = this.newSchedule.schedule_type;
+                    }
+                    if (this._computeEntry(this.schedule.schedule_type) != this.newSchedule.schedule_entry) {
+                        pl.schedule_entry = this.newSchedule.schedule_entry;
+                    }
+                    
+                    this.set('payload', pl);
+                    this._updateformReady(this.sendingData);
                 },
-                _updateformReady: function(plLength, sendingData) {
-                    // if (this.sendingData) {
-                    //     this.set('formReady', false);
-                    // }
-                    // else {
-                    //     this.set('formReady', plLength);
-                    // }
+                _updateformReady: function(sendingData) {
+                    // TODO test condition if changed
+                    if (!this.sendingData)
+                        this.set("formReady", true);
+                    else {
+                        this.set("formReady", false);
+                    }
                 },
                 _selectDate: function(e) {
                     if (this.newSchedule.schedule_type == "one_off" && moment(this.newSchedule.schedule_entry).isValid()) {
