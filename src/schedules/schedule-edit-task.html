@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
 <link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
@@ -20,6 +21,11 @@
             .submit-btn {
                 background-color: var(--mist-blue);
                 color: #fff;
+            }
+
+            .smaller {
+                font-size: 0.9em;
+                opacity: 0.54;
             }
 
             paper-dialog#editScheduleModal {
@@ -127,7 +133,7 @@
                     </paper-dropdown-menu>
                 </div>
 
-                <h4>Task Schedule</h4>
+                <h4>Task Schedule {{newSchedule.schedule_entry}} {{payload.schedule_entry}}</h4>
                 <div>
                     <paper-radio-group selected="{{newSchedule.schedule_type}}">
                         <paper-radio-button name="interval" tabindex="1">Interval</paper-radio-button>
@@ -136,10 +142,12 @@
                     </paper-radio-group>
                 </div>
                 <div class="background" hidden$="{{!_computeIsInterval(newSchedule.schedule_type)}}">
-                    <paper-textarea id="interval" value="{{_computeInterval(newSchedule.schedule_entry)}}" tabindex="1"></paper-textarea>
+                    <paper-input id="interval" value="{{_computeInterval(newSchedule.schedule_entry)}}" tabindex="1"></paper-input>
+                    <span class="smaller">{every: 10, period: minutes}</span>
                 </div>
                 <div class="background" hidden$="{{!_computeIsCrontab(newSchedule.schedule_type)}}">
-                    <paper-textarea id="crontab" value="{{_computeCrontab(newSchedule.schedule_entry)}}" tabindex="1"></paper-textarea>
+                    <paper-input id="crontab" value="{{_computeCrontab(newSchedule.schedule_entry)}}" tabindex="1"></paper-input>
+                    <span class="smaller">{minute : */10, hour: *, day_of_week: *, day_of_month: 1, month_of_year: *}</span>
                 </div>
                 <div class="background" hidden$="{{!_computeIsOneOff(newSchedule.schedule_type)}}">
                     <paper-button id="date" on-tap="_selectDate" class="simple-button" tabindex="1">
@@ -253,8 +261,7 @@
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
                     'iron-select': '_updatePayload',
-                    'input': '_updatePayload',
-                    'change': '_updatePayload'
+                    'input': '_updateValues'
                 },
                 _computeNewSchedule: function(schedule) {
                     if (schedule){
@@ -400,16 +407,7 @@
 
                     this.fire('toast', { msg: message, duration: 5000 });
                 },
-                _updatePayload: function(e) {
-                    var pl ={};
-                    
-                    // check if task changed
-                    if (this.taskType == 'action' && this._computeAction(this.schedule.schedule_type) != this.newSchedule.action) {
-                        pl.action = this.newSchedule.action;
-                    }
-                    else if (this.taskType == 'script' && this.schedule.script_id != this.newSchedule.script_id) {
-                        pl.script_id = this.newSchedule.script_id; 
-                    }
+                _updateValues: function(e){
                     //update entry
                     if (this.newSchedule.schedule_type == "interval") {
                         this.set("newSchedule.schedule_entry", this._computeInterval(this.$.interval.value));
@@ -417,22 +415,45 @@
                     else if (this.newSchedule.schedule_type == "crontab") {
                         this.set("newSchedule.schedule_entry", this._computeCrontab(this.$.crontab.value));
                     }
-
-                    //check if entry changed
-                    if (this._computeType(this.schedule.schedule_type) != this.newSchedule.schedule_type) {
-                        pl.schedule_type = this.newSchedule.schedule_type;
+                    this._updatePayload(e);
+                },
+                _updatePayload: function(e) {
+                    var pl ={};
+                    if (this.schedule) {
+                        // check if task changed
+                        if (this.taskType == 'action' && this._computeAction(this.schedule.task_type) != this.newSchedule.action) {
+                            pl.action = this.newSchedule.action;
+                        }
+                        else if (this.taskType == 'script' && this.schedule.script_id != this.newSchedule.script_id) {
+                            pl.script_id = this.newSchedule.script_id; 
+                        }
+                        //check if entry changed
+                        if (this._computeType(this.schedule.schedule_type) != this.newSchedule.schedule_type) {
+                            pl.schedule_type = this.newSchedule.schedule_type;
+                        }
+                        if (this._computeEntry(this.schedule.schedule_type) != this.newSchedule.schedule_entry) {
+                            pl.schedule_entry = this.newSchedule.schedule_type != 'one_off' ? this.newSchedule.schedule_entry : moment(this.newSchedule.schedule_entry).utc().format('YYYY-MM-DD HH:mm:ss').toString();
+                        }
+                        this.set('payload', pl);
                     }
-                    if (this._computeEntry(this.schedule.schedule_type) != this.newSchedule.schedule_entry) {
-                        pl.schedule_entry = this.newSchedule.schedule_entry;
-                    }
-                    
-                    this.set('payload', pl);
                     this._updateformReady(this.sendingData);
                 },
                 _updateformReady: function(sendingData) {
-                    // TODO test condition if changed
-                    if (!this.sendingData)
-                        this.set("formReady", true);
+                    // not sending data && payload has atleast one property
+                    if (!this.sendingData && (this.payload.hasOwnProperty('action') || this.payload.hasOwnProperty('script_id') || this.payload.hasOwnProperty('schedule_type') || this.payload.hasOwnProperty('schedule_entry')))
+                        if (this.taskType == "action" && !this.newSchedule.action)
+                            this.set("formReady", false);
+                        else if (this.taskType == "script" && !this.newSchedule.script_id)
+                            this.set("formReady", false);
+                        else if (this.newSchedule.schedule_type == "interval" && this._computeInterval(this.newSchedule.schedule_entry) == "")
+                            this.set("formReady", false);
+                        else if (this.newSchedule.schedule_type == "crontab" && this._computeCrontab(this.newSchedule.schedule_entry) == "")
+                            this.set("formReady", false);
+                        else if (this.newSchedule.schedule_type == "one_off" && !moment(this.newSchedule.schedule_entry).isValid())
+                            this.set("formReady", false);
+                        else {
+                            this.set("formReady", true);
+                        }
                     else {
                         this.set("formReady", false);
                     }
@@ -451,14 +472,15 @@
                 _applyDateTime: function(e) {
                     var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
                     var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
-                    this.set('newSchedule.schedule_entry', moment(combinedDate).format().toString().replace('T',' ').replace('Z',''));     
+                    this.set('newSchedule.schedule_entry', moment(combinedDate).format('YYYY-MM-DD HH:mm:ss').toString());
+                    this._updatePayload(e);
                     this.$.dateTimePickers.close();
                 },
                 _displayDate: function(date){
                     if (!moment(date).isValid() || !date || date.trim() == "")
                         return "never";
                     else {
-                        return moment(date).utc().fromNow()+': '+moment(date).utc().format().toString().replace('T',' ').replace('Z','');
+                        return moment(date).utc().fromNow()+': '+moment(date).format('YYYY-MM-DD HH:mm:ss').toString();
                     }
                 },
             });
