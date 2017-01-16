@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
@@ -8,6 +9,7 @@
 <dom-module id="schedule-edit-task">
     <template>
         <style is="custom-style" include="dialogs"></style>
+        <style is="custom-style" include="forms"></style>
         <style include="shared-styles">
             :host {
                 display: block;
@@ -18,34 +20,92 @@
                 color: #fff;
             }
 
+            paper-dialog {
+                width: 500px !important;
+            }
+
             paper-button {
                 margin: 0 0.29em !important;
             }
 
-            :host paper-toggle-button {
-                --paper-toggle-button-checked-bar-color:  var(--green-color);
-                --paper-toggle-button-checked-button-color:  var(--green-color);
-                --paper-toggle-button-checked-ink-color: var(--green-color);
-                --paper-toggle-button-unchecked-bar-color:  var(--red-color);
-                --paper-toggle-button-unchecked-button-color:  var(--red-color);
-                --paper-toggle-button-unchecked-ink-color: var(--red-color);
+            .progress {
+                overflow: hidden;
+                margin: 0 -24px;
+            }
+            paper-progress {
+                width: 100%;
+            }
+            paper-progress#progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: rgba(255,255,255,0.54);
+            }
+            .errormsg-container iron-icon {
+                color: var(--red-color);
+                margin: 8px;
+            }
+            paper-radio-button[checked],
+            .background {
+                background-color: #eee;
+            }
+            .background {
+                padding: 16px;
+                max-height: 300px;
+            }
+            paper-checkbox {
+                display: block;
             }
 
         </style>
 
         <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Schedule</h2>
+            <h2>Edit Schedule Task</h2>
             <paper-dialog-scrollable>
-                <p>
-                    <paper-input id="name" label="Name" error-message="Please enter schedule's name" value="{{newSchedule.schedule_name}}"></paper-input>
-                    <paper-textarea id="description" label="Description (optional)" rows="3" max-rows="5" error-message="Please enter schedule's description" value="{{newSchedule.description}}"></paper-textarea>
-                    <br/>
-                    <br/>
-                    <paper-toggle-button checked="{{newSchedule.enabled}}">
-                        <span hidden$="[[!schedule.enabled]]">Currently enabled. Disable.</span>
-                        <span hidden$="[[schedule.enabled]]">Currently disabled. Enable</span>
-                    </paper-toggle-button>
-                </p>
+
+                <h4>Task Type</h4>
+                <div>
+                    <paper-radio-group selected="{{taskType}}">
+                        <paper-radio-button name="action">Perform action</paper-radio-button>
+                        <paper-radio-button name="script">Run script</paper-radio-button>
+                    </paper-radio-group>
+                </div>
+                <div class="background" hidden$="[[!_computeIsAction(taskType)]]">
+                    <paper-dropdown-menu>
+                        <paper-menu attr-for-selected="value" selected="{{newSchedule.action}}" class="dropdown-content">
+                            <template is="dom-repeat" items="[[actions]]" as="action">
+                                <paper-item value="[[action.name]]">[[action.name]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+                <div class="background" hidden$="[[_computeIsAction(taskType)]]">
+                    <paper-dropdown-menu>
+                        <paper-menu attr-for-selected="value" selected="{{newSchedule.script_id}}" class="dropdown-content">
+                            <template is="dom-repeat" items="[[scripts]]" as="script">
+                                <paper-item value="[[script.id]]">[[script.name]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+
+                <h4>Task Schedule</h4>
+                <div>
+                    <paper-radio-group selected="{{newSchedule.schedule_type}}">
+                        <paper-radio-button name="interval">Interval</paper-radio-button>
+                        <paper-radio-button name="crontab">Crontab</paper-radio-button>
+                        <paper-radio-button name="one_off">One off</paper-radio-button>
+                    </paper-radio-group>
+                </div>
+                <div class="background" hidden$="[[_computeIsOneOff(newSchedule.schedule_type)]]">
+                    <paper-textarea value="[[newSchedule.schedule_entry]]"></paper-textarea>
+                </div>
+                <div class="background" hidden$="[[!_computeIsOneOff(newSchedule.schedule_type)]]">
+                    <paper-button id="date" on-tap="_selectDate" class="simple-button">
+                        <iron-icon icon="schedule"></iron-icon>
+                        [[_displayDate(newSchedule.schedule_entry)]]
+                    </paper-button>
+                </div>
                 <div class="clearfix btn-group">
                     <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
                     <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
@@ -56,6 +116,7 @@
         <iron-ajax  id="editSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
                     method="PATCH"
+                    loading = "{{sendingData}}"
                     on-response="_handleScheduleEditResponse"
                     on-error="_handleScheduleEditError"></iron-ajax>
     </template>
@@ -69,6 +130,7 @@
 
                 properties: {
                     schedule: Object,
+                    scripts: Array,
                     newSchedule: {
                         type: Object,
                         notify: true
@@ -81,25 +143,129 @@
                     payload: {
                         type: Object,
                         value: {}
+                    },
+                    scheduleEntry: {
+                        type: String
+                    },
+                    taskType: String,
+                    isOneOff: {
+                        type:Boolean,
+                        computed: '_computeIsOneOff(newSchedule)',
+                        notify: true
+                    },
+                    action: String,
+                    scriptId: String,
+                    actions: {
+                        type: Array,
+                        value: [{
+                        'name': 'reboot',
+                        'icon': 'av:replay',
+                        'confirm': true,
+                        'multi': true
+                      },{
+                        'name': 'start',
+                        'icon': 'av:replay',
+                        'confirm': true,
+                        'multi': true
+                      },{
+                        'name': 'stop',
+                        'icon': 'av:stop',
+                        'confirm': true,
+                        'multi': true
+                      },{
+                        'name': 'suspend',
+                        'icon': 'av:stop',
+                        'confirm': true,
+                        'multi': true
+                      },{
+                        'name': 'resume',
+                        'icon': 'av:replay',
+                        'confirm': true,
+                        'multi': true
+                      },{
+                        'name': 'undefine',
+                        'icon': 'image:panorama-fish-eye',
+                        'confirm': true,
+                        'multi': true
+                      },{
+                        'name': 'destroy',
+                        'icon': 'delete',
+                        'confirm': true,
+                        'multi': true
+                      }]
                     }
                 },
                 observers: [
-                    '_computeNewSchedule(schedule.*)'
+                    '_computeNewSchedule(schedule.id)'
                 ],
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
-                    'input': '_updatePayload',
-                    'change': '_updatePayload'
+                    'input': '_updateValues',
+                    'change': '_updateValues'
                 },
                 _computeNewSchedule: function(schedule) {
-                    if (this.schedule){
+                    if (schedule){
                         var newSchedule = {
-                            schedule_name: this.schedule.schedule_name,
-                            description: this.schedule.description,
-                            enabled: this.schedule.enabled
+                            action: this._computeAction(this.schedule.task_type),
+                            script_id: this._computeScript(this.schedule.task_type),
+                            schedule_type: this._computeType(this.schedule.schedule_type),
+                            schedule_entry: this._computeEntry(this.schedule.schedule_type)
                         };
                         this.set('newSchedule', newSchedule);
+                        this.taskType = this._computeAction(this.schedule.task_type) != undefined ? 'action' : 'script';
                     }
+                },
+                _computeIsOneOff: function(newSchedule){
+                    return this._computeType(newSchedule.schedule_type) == "one_off";
+                },
+                _computeIsAction: function(taskType) {
+                    if (taskType && taskType == "action"){
+                        return true;
+                    }
+                    return false;
+                },
+                _computeAction: function(task){
+                    if (task && task.startsWith('Action: ')){
+                        return task.replace('Action: ', '')
+                    }
+                },
+                _computeScript: function(task){
+                    if (task && task.startsWith('Run script: ')){
+                        return task.replace('Run script: ', '')
+                    }
+                },
+                _computeType: function(type){
+                    if (type && type.startsWith('Interval')){
+                        return "interval";
+                    }
+                    else if (type && type.startsWith('Crontab')){
+                        return "crontab";
+                    }
+                    else if (type && type.startsWith('One')){
+                        return "one_off";
+                    }
+                },
+                _computeEntry: function(entry){
+                    var type = this._computeType(entry);
+
+                    console.log("_computeEntry", type, entry);
+
+                    if (type == 'interval'){
+                        // return this._parseInterval(type);
+                        return entry;
+                    }
+                    else if (type == 'crontab'){
+                        // return this._parseCrontab(type);
+                        return entry;
+                    }
+                    else if (type == 'one_off'){
+                        // return this._parseDate(type);
+                        return entry;
+                    }
+                },
+                _updateValues: function(){
+                    // upudate entries
+
                 },
                 _openEditScheduleModal: function(e) {
                     this.$.editScheduleModal.open();
@@ -130,26 +296,63 @@
                     this.fire('toast', { msg: message, duration: 5000 });
                 },
                 _updatePayload: function(e) {
-                    var pl = {};
-                    var plLength = 0;
-                    for (var p in this.newSchedule) {
-                        if (this.schedule[p] != this.newSchedule[p]) {
-                            plLength++;
-                            pl[p] = this.newSchedule[p];
-                            console.log('_updatePayload', pl[p], this.newSchedule[p]);
-                        }
+                    var pl ={};
+                    if (this.isCrontab){
+                        pl.schedule_entry = {}
                     }
-                    this.set('payload', pl);
-                    this._updateformReady(plLength, this.sendingData);
+                    // this.set('payload', pl);
+                    // this._updateformReady(plLength, this.sendingData);
                 },
                 _updateformReady: function(plLength, sendingData) {
-                    if (this.sendingData) {
-                        this.set('formReady', false);
+                    // if (this.sendingData) {
+                    //     this.set('formReady', false);
+                    // }
+                    // else {
+                    //     this.set('formReady', plLength);
+                    // }
+                },
+                _selectDate: function(e) {
+                    var event = Polymer.dom(e);
+                    // save the triggering field
+                    this.set('dateTriggerField', event.rootTarget.id);
+                    if (moment(this.form[event.rootTarget.id]).isValid())
+                        this.$.pickDate.date = moment(this.form[event.rootTarget.id]).toDate();
+
+                    this.$.pickDate.minDate = new Date();
+                    this.$.pickTime.time = moment().format('hh:mm a');
+                    this.neverDate = false;
+                    this.$.dateTimePickers.open();
+                },
+                _applyDateTime: function(e) {
+                    var ind;
+                    var datefield = this.fields.find(function(f, index){
+                        ind = index;
+                        return f.name == this.dateTriggerField
+                    }, this);
+
+                    // apply date to the trigger fields
+                    if (ind){
+                        if (!this.neverDate) {
+                            var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
+                            var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+
+                            console.log('combinedDate', combinedDate);
+
+                            this.set('fields.'+ ind +'.value', moment(combinedDate).utc().format().toString().replace('T',' ').replace('Z',''));
+                        }
+                        else {
+                            this.set('fields.'+ ind +'.value', "");
+                        }
                     }
+                    this.$.dateTimePickers.close();
+                },
+                _displayDate: function(date){
+                    if (!moment(date).isValid() || !date || date.trim() == "")
+                        return "never";
                     else {
-                        this.set('formReady', plLength);
+                        return moment(date).utc().fromNow()+': '+moment(date).utc().format().toString().replace('T',' ').replace('Z','');
                     }
-                }
+                },
             });
         })();
     </script>
