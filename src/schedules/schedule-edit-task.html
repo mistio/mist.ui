@@ -101,7 +101,7 @@
             <h2>Edit Schedule Task</h2>
             <paper-dialog-scrollable>
 
-                <h4>Task Type</h4>
+                <h4>Task Type {{newSchedule.action}} {{payload.action}}</h4>
                 <div>
                     <paper-radio-group selected="{{taskType}}">
                         <paper-radio-button name="action" tabindex="1">Perform action</paper-radio-button>
@@ -223,21 +223,6 @@
                         'confirm': true,
                         'multi': true
                       },{
-                        'name': 'suspend',
-                        'icon': 'av:stop',
-                        'confirm': true,
-                        'multi': true
-                      },{
-                        'name': 'resume',
-                        'icon': 'av:replay',
-                        'confirm': true,
-                        'multi': true
-                      },{
-                        'name': 'undefine',
-                        'icon': 'image:panorama-fish-eye',
-                        'confirm': true,
-                        'multi': true
-                      },{
                         'name': 'destroy',
                         'icon': 'delete',
                         'confirm': true,
@@ -245,11 +230,29 @@
                       }]
                     }
                 },
+// to be added 
+//   {
+//     'name': 'suspend',
+//     'icon': 'av:stop',
+//     'confirm': true,
+//     'multi': true
+//   },{
+//     'name': 'resume',
+//     'icon': 'av:replay',
+//     'confirm': true,
+//     'multi': true
+//   },{
+//     'name': 'undefine',
+//     'icon': 'image:panorama-fish-eye',
+//     'confirm': true,
+//     'multi': true
+//   },
                 observers: [
                     '_computeNewSchedule(schedule.id)'
                 ],
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
+                    'iron-select': '_updatePayload',
                     'input': '_updatePayload',
                     'change': '_updatePayload'
                 },
@@ -376,7 +379,7 @@
                     this.$.editScheduleModal.close();
                 },
                 _modalClosed: function() {
-                    this._formReset();
+                    // this._formReset();
                 },
                 _submitForm: function(e) {
                     this.$.editSchedule.body = this.payload;
@@ -385,7 +388,7 @@
                     this.$.editSchedule.generateRequest();
                 },
                 _formReset: function() {
-                    this._computeNewSchedule();
+                    // this._computeNewSchedule(this.schedule);
                 },
                 _handleScheduleEditResponse: function(e) {
                     this._closeEditScheduleModal();
@@ -399,14 +402,22 @@
                 },
                 _updatePayload: function(e) {
                     var pl ={};
-                    this.set("newSchedule.schedule_entry", this._computeEntry(this.$.interval.value));
+                    
                     // check if task changed
-                    if ((!this._computeIsAction(this.schedule.schedule_type) && this.taskType == "action" ) || (this._computeIsAction(this.schedule.schedule_type) && this._computeAction(this.schedule.schedule_type) != this.newSchedule.action)) {
+                    if (this.taskType == 'action' && this._computeAction(this.schedule.schedule_type) != this.newSchedule.action) {
                         pl.action = this.newSchedule.action;
                     }
-                    else if ((this._computeIsAction(this.schedule.schedule_type) && this.taskType == "script") || (!this._computeIsAction(this.schedule.schedule_type) && this.schedule.script_id != this.newSchedule.script_id)) {
+                    else if (this.taskType == 'script' && this.schedule.script_id != this.newSchedule.script_id) {
                         pl.script_id = this.newSchedule.script_id; 
                     }
+                    //update entry
+                    if (this.newSchedule.schedule_type == "interval") {
+                        this.set("newSchedule.schedule_entry", this._computeInterval(this.$.interval.value));
+                    }
+                    else if (this.newSchedule.schedule_type == "crontab") {
+                        this.set("newSchedule.schedule_entry", this._computeCrontab(this.$.crontab.value));
+                    }
+
                     //check if entry changed
                     if (this._computeType(this.schedule.schedule_type) != this.newSchedule.schedule_type) {
                         pl.schedule_type = this.newSchedule.schedule_type;
