@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <dom-module id="page-insights">
     <template>
@@ -33,39 +34,100 @@
             font-size: 0.9em;
             color: rgba(0,0,0,0.54)
         }
+        .flex-horizontal {
+            @apply(--layout-horizontal);
+        }
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        .uppercase,
         paper-dropdown-menu.uppercase paper-item,
         paper-dropdown-menu.uppercase ::content #input {
             text-transform: uppercase;
+        }
+        .uppercase.tag {
+            text-transform: none;
+        }
+        h2.title {
+            font-size: 1.6em;
+            margin: 0 !important;
+        }
+        .cost-section {
+            text-align: right;
+        }
+        .cost {
+            font-size: 2.4em;
+            margin: 0;
+        }
+        .sup {
+            vertical-align: super;
+            font-size: 0.55em;
+            opacity: 0.34;
+        }
+        .filterby {
+            display: inline-block;
+        }
+        .highlight {
+            background-color: #ffff8d;
+            padding: 2px;
         }
     </style>
     <app-route route="{{route}}"></app-route>
 
     <div id="content">
         <paper-material class="margin-botttom">
-            <div class="smaller">Time </div>
-            <paper-dropdown-menu class="uppercase" no-label-float>
-                <paper-menu id="window" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.window}}">
-                    <paper-item value="week">weekly</paper-item>
-                    <paper-item value="month">monthly</paper-item>
-                    <paper-item value="quarter">quarterly</paper-item>
-                    <!-- <paper-item value="year"></paper-item> -->
-                </paper-menu>
-            </paper-dropdown-menu>
-            <paper-dropdown-menu class="uppercase" no-label-float>
-                <paper-menu id="past" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.past}}">
-                    <template is="dom-repeat" items="{{pastItems}}" as="past">
-                        <paper-item value="{{past.value}}">{{past.text}}</paper-item>
-                    </template>
-                    <!-- <paper-item value="0">this {{timeParams.window}}</paper-item>
-                    <paper-item value="1">last {{timeParams.window}}</paper-item>
-                    <paper-item value="2">2 {{timeParams.window}}s ago</paper-item>
-                    <paper-item value="3">3 {{timeParams.window}}s ago</paper-item> -->
-                </paper-menu>
-            </paper-dropdown-menu>
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <div class="smaller">Time</div>
+                    <paper-dropdown-menu class="uppercase" no-label-float>
+                        <paper-menu id="window" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.window}}">
+                            <paper-item value="week">weekly</paper-item>
+                            <paper-item value="month">monthly</paper-item>
+                            <paper-item value="quarter">quarterly</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <paper-dropdown-menu class="uppercase" no-label-float>
+                        <paper-menu id="past" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.past}}">
+                            <template is="dom-repeat" items="{{pastItems}}" as="past">
+                                <paper-item value="[[past.value]]">[[past.text]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+                <div>
+                    <div class="smaller">Filter by</div>
+                    <paper-dropdown-menu class="uppercase" no-label-float>
+                        <paper-menu id="window" class="dropdown-content" attr-for-selected="value" selected="{{filterby.type}}">
+                            <paper-item value="stack">Stack</paper-item>
+                            <paper-item value="cloud">Cloud</paper-item>
+                            <paper-item value="tag">Tag</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <paper-dropdown-menu class="uppercase" no-label-float>
+                        <paper-menu id="past" class="dropdown-content" attr-for-selected="value" selected="{{filterby.name}}">
+                            <template is="dom-repeat" items="{{filterbyItems}}">
+                                <paper-item value="[[item.name]][[item.title]]">[[item.name]][[item.title]]</paper-item>
+                            </template>
+                            <paper-item disabled hidden$="{{!filterbyDisable}}">no {{filterby.type}}s</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+            </div>
         </paper-material>
         <paper-material>
-            <h2>Cost Overview</h2>
-            <h4>Cost $[[report.cost]]</h4>
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <h2 class="title">Cost Overview</h2>
+                    <div class="filterby highlight"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Cost</div>
+                    <h2 class="cost"><span class="sup">$</span>[[_toFixed(report.cost)]]</h2>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material>
+            graph
         </paper-material>
     </div>
 
@@ -75,7 +137,8 @@
             handle-as="json"
             loading="loadingData"
             on-response="handleResponse"
-            on-error="handleError" auto></iron-ajax>
+            on-error="handleError" 
+            params="{{timeParams}}" auto></iron-ajax>
     </template>
     <script>
         Polymer({
@@ -97,16 +160,29 @@
                 timeParams: {
                     type: Object,
                     value: {
-                        window: "week",
+                        window: "month",
                         past: "0"
                     }
                 },
-                pastItems: Array
+                filterby: {
+                    type: Object,
+                    value: {
+                        type: 'cloud',
+                        name: ''
+                    }
+                },
+                pastItems: Array,
+                filterbyItems: Array,
+                filterbyDisable: {
+                    type: Boolean,
+                    value: false
+                }
             },
             listeners: {
             },
             observers: [
-                'computePastItems(timeParams.*)'
+                'computePastItems(timeParams.*)',
+                'computeFilterbyItems(filterby.*, model.*)'
             ],
             computePastItems: function (timeParamsChangeRecord) {
                 var items = [];
@@ -169,6 +245,47 @@
                     }, 100, this)
                 }
             },
+            computeFilterbyItems: function(filterby, model){
+                var items = [];
+                if (this.filterby.type == 'stack')
+                    items = this.model.stacksArray;
+                else if (this.filterby.type == 'cloud')
+                    items = this.model.cloudsArray;
+                else if (this.filterby.type == 'tag'){
+                    items = this.model.machinesArray.filter(function(m){
+                            return m.tags.length > 0
+                        }).map(function(m){
+                            for (var i=0; i < m.tags.length; i++){
+                                return {
+                                    'name': m.tags[i].key,
+                                    'id': m.tags[i].key,
+                                    'val': m.tags[i].val
+                                };
+                            }
+                        });
+                }
+                else
+                    items = [];
+
+                if (!items.length){
+                    this.set('filterbyDisable', true);
+                }
+                else {
+                    this.set('filterbyDisable', false);
+                }
+
+                console.log('items',items);
+
+                this.set('filterbyItems',items);
+
+                // if filterby changed reset selected item
+                if (filterby.path == 'filterby.type'){
+                    this.set('filterby.name', '');
+                    this.async(function(){
+                        this.$.past.selected = '';
+                    }, 100, this)
+                }
+            },
             handleResponse: function(e) {
                 console.log('handleResponse', e);
                 if (e.detail.xhr.response)
@@ -176,6 +293,9 @@
             },
             handleError: function(e){
                 console.log('handleError', e);
+            },
+            _toFixed: function(inp) {
+                return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
             }
         });
     </script>
