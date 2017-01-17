@@ -1,0 +1,182 @@
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+
+<dom-module id="page-insights">
+    <template>
+    <style is="custom-style" include="tags-and-labels"></style>
+    <style is="custom-style" include="forms"></style>
+    <style is="custom-style" include="single-page"></style>
+    <style is="custom-style">
+        :host {
+            display: block;
+        }
+        paper-material {
+            padding: 24px;
+        }
+        paper-material.margin-botttom {
+            margin-bottom: 16px;
+        }
+        paper-spinner {
+            margin: 4px;
+        }
+        .error iron-icon {
+            opacity: 0.32;
+            cursor: pointer;
+        }
+        .error {
+            color: var(--red-color);
+        }
+        .smaller {
+            text-transform: uppercase;
+            font-size: 0.9em;
+            color: rgba(0,0,0,0.54)
+        }
+        paper-dropdown-menu.uppercase paper-item,
+        paper-dropdown-menu.uppercase ::content #input {
+            text-transform: uppercase;
+        }
+    </style>
+    <app-route route="{{route}}"></app-route>
+
+    <div id="content">
+        <paper-material class="margin-botttom">
+            <div class="smaller">Time </div>
+            <paper-dropdown-menu class="uppercase" no-label-float>
+                <paper-menu id="window" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.window}}">
+                    <paper-item value="week">weekly</paper-item>
+                    <paper-item value="month">monthly</paper-item>
+                    <paper-item value="quarter">quarterly</paper-item>
+                    <!-- <paper-item value="year"></paper-item> -->
+                </paper-menu>
+            </paper-dropdown-menu>
+            <paper-dropdown-menu class="uppercase" no-label-float>
+                <paper-menu id="past" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.past}}">
+                    <template is="dom-repeat" items="{{pastItems}}" as="past">
+                        <paper-item value="{{past.value}}">{{past.text}}</paper-item>
+                    </template>
+                    <!-- <paper-item value="0">this {{timeParams.window}}</paper-item>
+                    <paper-item value="1">last {{timeParams.window}}</paper-item>
+                    <paper-item value="2">2 {{timeParams.window}}s ago</paper-item>
+                    <paper-item value="3">3 {{timeParams.window}}s ago</paper-item> -->
+                </paper-menu>
+            </paper-dropdown-menu>
+        </paper-material>
+        <paper-material>
+            <h2>Cost Overview</h2>
+            <h4>Cost $[[report.cost]]</h4>
+        </paper-material>
+    </div>
+
+    <iron-ajax id="getReport" 
+            method="GET"
+            url="/api/v1/report"
+            handle-as="json"
+            loading="loadingData"
+            on-response="handleResponse"
+            on-error="handleError" auto></iron-ajax>
+    </template>
+    <script>
+        Polymer({
+
+            is: 'page-insights',
+
+            properties: {
+                model: Object,
+                sections: Array,
+                onboarding: Object,
+                report: {
+                    type: Object,
+                    value: {}
+                },
+                loadingData: {
+                    type: Boolean,
+                    value: false
+                },
+                timeParams: {
+                    type: Object,
+                    value: {
+                        window: "week",
+                        past: "0"
+                    }
+                },
+                pastItems: Array
+            },
+            listeners: {
+            },
+            observers: [
+                'computePastItems(timeParams.*)'
+            ],
+            computePastItems: function (timeParamsChangeRecord) {
+                var items = [];
+                if (this.timeParams.window == "week") {
+                    items = [{
+                        value: '0',
+                        text: 'this week'
+                    },{
+                        value: '1',
+                        text: 'last week'
+                    },{
+                        value: '2',
+                        text: 'two weeks ago'
+                    },{
+                        value: '3',
+                        text: 'three weeks ago'
+                    }]
+                }
+                else if (this.timeParams.window == "month") {
+                    for (var i=0; i<12; i++){
+                        
+                        var t = '';
+                        if (i==0)
+                            t = 'this month';
+                        else if (i==1)
+                            t = 'last month';
+                        else 
+                            t = i+' months ago';
+
+                        items.push({
+                            value: i,
+                            text: t  
+                        })
+                    }
+                }
+                else if (this.timeParams.window == "quarter") {
+                    items = [{
+                        value: '0',
+                        text: 'current quarter'
+                    },{
+                        value: '1',
+                        text: 'previous quarter'
+                    },{
+                        value: '2',
+                        text: '2 quarters ago'
+                    },{
+                        value: '3',
+                        text: '3 quarters ago'
+                    }]
+                }
+
+                this.set('pastItems',items);
+
+                // if window changed reset selected past
+                if (timeParamsChangeRecord.path == 'timeParams.window'){
+                    this.set('timeParams.past', '0');
+                    this.async(function(){
+                        this.$.past.selected = -1;
+                        this.$.past.selected = 0;
+                    }, 100, this)
+                }
+            },
+            handleResponse: function(e) {
+                console.log('handleResponse', e);
+                if (e.detail.xhr.response)
+                    this.set('report', e.detail.xhr.response)
+            },
+            handleError: function(e){
+                console.log('handleError', e);
+            }
+        });
+    </script>
+</dom-module>
