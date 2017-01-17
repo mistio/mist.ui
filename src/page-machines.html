@@ -53,6 +53,12 @@
             <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]] <iron-icon icon="close" on-tap="clearLog"></iron-icon></span>
         </p>
     </div>
+
+    <div class="logs" hidden$="[[!performingAction]]">
+        <paper-spinner active></paper-spinner>
+        <p id="actionLogs"></p>
+    </div>
+
     <page-items name="machines" class="keys" model="[[model]]" items="[[model.machinesArray]]" sections="[[sections]]" section="[[sections.machines]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
     <machine-create model="[[model]]" machines-fields="[[machinesFields]]" sections="[[sections]]" section="[[sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]]></machine-create>
     <machine-page model="[[model]]" machine="[[_getMachine(data.machine, model.machines)]]" sections="[[sections]]" section="[[sections.machines]]" hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
@@ -103,9 +109,15 @@
                 intervalID: {
                     type: String
                 },
+                performingAction: {
+                    type: Boolean,
+                    value: false
+                }
             },
             listeners: {
-                'open-recommendation-dialog': 'openRecommendationsDialog'
+                'open-recommendation-dialog': 'openRecommendationsDialog',
+                'performing-action': 'updateActionLogs',
+                'action-finished': 'stopActionLogs'
             },
             observers: [
                 '_jobIdChanged(jobId)',
@@ -161,6 +173,7 @@
                     this.resetPolling();
                 } else {
                     this.startPolling(jobid);
+                    document.querySelector('paper-header-panel').scroller.scrollTop = 0; // Scroll to topscroll(0, 0);
                 }
             },
             startPolling: function(jobid) {
@@ -199,7 +212,15 @@
             clearLog: function(e) {
                 this.resetPolling();
                 this.set('logItem', '');
-            }
+            },
+            updateActionLogs: function(e) {
+                this.set('performingAction', true);
+                this.$.actionLogs.textContent = e.detail.log;
+            },
+            stopActionLogs: function(e) {
+                this.$.actionLogs.textContent = '';
+                this.set('performingAction', false);
+            },
         });
     </script>
 </dom-module>

@@ -125,7 +125,7 @@
                     },
                     list_machines: function(data) {
                         that.debounce(that._updateMachines(data), function() {
-                            //console.debug('list_machines', data);
+                            // console.debug('list_machines', data);
                         }, 250);
                     },
                     list_images: function(data) {
@@ -406,6 +406,17 @@
             }
             var ret = this._updateModel('clouds', data);
             this.set('onboarding.isLoadingClouds', false);
+
+            if (this.model != undefined && data) {
+                data.forEach(function(c){
+                    if (!c.enabled){
+                        this.cleanUpResources(c.id);
+                    }
+                }, this)
+            }
+            if (!data || this.model.cloudsArray.length == 0) {
+                this.cleanUpResources();
+            }
 
             // the case when clouds have loaded but handlers list_machines/list_images/list_networks
             // have never been triggered (ex. all clouds are disabled, list_machines never gets data)
@@ -734,6 +745,35 @@
                 }
                 return rules;
             }
+        },
+        cleanUpResources: function(id){
+            var newMachinesArray = [],
+                newImagesArray = [],
+                newNetworksArray = [];
+            if (id) {
+                // machines
+                newMachinesArray = this.model.machinesArray.filter(function(m){
+                    return m.cloud.id != id;
+                });
+
+                // images
+                newImagesArray = this.model.imagesArray.filter(function(im){
+                    return im.cloud.id != id;
+                });
+
+                // networks
+                newNetworksArray = this.model.networksArray.filter(function(n){
+                    return n.cloud_id != id;
+                });
+            }
+            this.set('model.machinesArray', newMachinesArray);
+            this.set('model.machines', _generateMap(newMachinesArray, 'uuid'));
+
+            this.set('model.imagesArray', newImagesArray);
+            this.set('model.images', _generateMap(newImagesArray));
+
+            this.set('model.networksArray', newNetworksArray);
+            this.set('model.networks', _generateMap(newNetworksArray));
         }
     });
 
