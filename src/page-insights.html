@@ -4,6 +4,7 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../bower_components/chart-elements/chart-elements.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
 <script src="../../bower_components/moment/moment.js"></script>
 
@@ -76,9 +77,37 @@
         }
         chart-line {
             width: 600px;
+            display: inline-block;
+        }
+        chart-doughnut {
+            width: 220px;
+            vertical-align: top;
+            display: inline-block;
+        }
+        #graphRow[largescreen="true"]  {
+            display: flex;
+        }
+        .inline {
+            display: inline-block;
+            vertical-align: top;
+        }
+        .padding {
+            padding: 16px;
+        }
+        #graphRow[largescreen="true"] .block + .block {
+            padding-left: 48px;
+        }
+        .row {
+            line-height: 1.8em;
+            margin-top: 16px;
+        }
+        .list {
+            margin-top: 16px;
+            margin-bottom: : 16px;
         }
     </style>
     <app-route route="{{route}}"></app-route>
+    <iron-media-query query="(min-width: 1170px)" query-matches="{{largescreen}}"></iron-media-query>
 
     <div id="content">
         <paper-material class="margin-botttom">
@@ -133,8 +162,44 @@
             </div>
         </paper-material>
         <paper-material>
-            <div id="graphRow">
-                <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+            <div id="graphRow" class="row" largescreen="{{largescreen}}">
+                <div class="block">
+                    <div class="row">
+                        <div class="smaller">Run Rate ($/mo)</div>
+                    </div>
+                    <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+                </div>
+                <div class="block">
+                    <div class="row">
+                        <div class="smaller">[[filterby.name]] on [[report.group_by.cloud.length]] clouds</div>
+                    </div>
+                    <div class="row">
+                        <chart-doughnut id="drillcostgraph" data="[[costDrillData]]" type="doughnut" style$="width: [[doughnutWidth]]px"></chart-doughnut>
+                        <div id="drillcostlist" class="inline">
+                            <div class="list">
+                                <template is="dom-repeat" items="{{report.group_by.cloud}}">
+                                    <div>
+                                        [[_index(index)]]. 
+                                        <strong class="name">[[item.name]]</strong> <strong hidden$="[[item.name.length]]">others</strong> 
+                                        [[item.machine_count]] machines [[_toFixed(item.cost)]]
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="smaller">[[filterby.name]] tags</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{report.group_by.tag}}">
+                                <div>
+                                    [[_index(index)]]. 
+                                    <strong class="name">[[item.name]]</strong>  <strong hidden$="[[item.name.length]]">others  </strong> 
+                                    [[item.machine_count]] machines [[_toFixed(item.cost)]]
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
             </div>
         </paper-material>
     </div>
@@ -157,6 +222,7 @@
                 model: Object,
                 sections: Array,
                 onboarding: Object,
+                largescreen: Boolean,
                 report: {
                     type: Object,
                     value: {}
@@ -202,10 +268,33 @@
                         }]
                     }
                 },
+                costDrillData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{   
+                            data: [],
+                            backgroundColor: [
+                                "#444444",
+                                "#666666",
+                                "#888888"
+                            ],
+                            hoverBackgroundColor: [
+                                "#444444",
+                                "#666666",
+                                "#888888"
+                            ]
+                        }]
+                    }
+                },
                 graphWidth: {
                     type: String,
                     value: 600
-                }
+                },
+                doughnutWidth:{
+                    type: String,
+                    value: 300
+                },
             },
             listeners: {
                 'resize' : 'updateChartWidth'
@@ -213,7 +302,8 @@
             observers: [
                 'computePastItems(timeParams.*)',
                 'computeFilterbyItems(filterby.*, model.*)',
-                'updateCostData(report.history)'
+                'updateCostData(report.history)',
+                'updateCostDrillData(report.group_by, filterby.*)',
             ],
             attached: function (e) {
                 this.updateChartWidth(e);
@@ -330,24 +420,69 @@
                     });
                 }
 
-                for (var i = 0; i < 5; i++) {
-                    labels.push(' ');
-                    data.push(null);
-                }
-                console.log('history', history, labels, data);
+                // for (var i = 0; i < 2; i++) {
+                //     labels.push(' ');
+                //     data.push(null);
+                // }
+                //console.log('history', history, labels, data);
 
                 this.set('costData.datasets.0.data', data);
                 this.set('costData.labels', labels);
+
+                this.$.costgraph.updateChart();
+            },
+            updateCostDrillData: function(groupby, filterby) {
+                var drillData = [],
+                    drillLabels = [],
+                    drill;
+
+                console.log('updateCostDrillData', groupby);
+
+                if (this.filterby.type == 'cloud') {
+                    drill = !groupby.stack ? 'tag' : 'stack' ;
+                }
+                else if (this.filterby.type == 'stack' || this.filterby.type == 'tag') {
+                    drill = 'cloud';
+                }
+
+                if (groupby[drill]){
+                    drillData = groupby[drill].map(function(point){
+                        return this._toFixed(point.cost);
+                    }, this);
+                    drillLabels = groupby[drill].map(function(point){
+                        return point.name.length ? point.name : 'others';
+                    });
+                }
+
+                this.set('costDrillData.datasets.0.data', drillData);
+                this.set('costDrillData.labels', drillLabels);
+
+                console.log('costDrillData', this.costDrillData, drillData, drillLabels)
+                
+                this.$.drillcostgraph.updateChart();
+            },
+            computeLastDrill: function(){
+
             },
             updateChartWidth: function(e) {
                 var parentWidth = this.$.graphRow.offsetWidth;
-                if (parentWidth > 800)
+                if (parentWidth > 800){
                     this.set('graphWidth', (parentWidth-50)/2);
-                else 
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 220));
+                }
+                else {
                     this.set('graphWidth', parentWidth-50);
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 220));
+                }
 
                 var that = this;
-                this.debounce(that.$.costgraph.resize(), function(){}, 500)
+                this.debounce(that.resizeGraphs(), function(){
+                    console.log('resized chart')
+                }, 1000)
+            },
+            resizeGraphs: function(){
+                this.$.costgraph.resize();
+                this.$.drillcostgraph.resize()
             },
             handleResponse: function(e) {
                 console.log('handleResponse', e);
@@ -359,6 +494,9 @@
             },
             _toFixed: function(inp) {
                 return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
+            },
+            _index: function(ind) {
+                return ind+1;
             }
         });
 
