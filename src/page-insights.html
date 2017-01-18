@@ -3,6 +3,9 @@
 <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/chart-elements/chart-elements.html">
+
+<script src="../../bower_components/moment/moment.js"></script>
 
 <dom-module id="page-insights">
     <template>
@@ -71,6 +74,9 @@
             background-color: #ffff8d;
             padding: 2px;
         }
+        chart-line {
+            width: 600px;
+        }
     </style>
     <app-route route="{{route}}"></app-route>
 
@@ -127,7 +133,9 @@
             </div>
         </paper-material>
         <paper-material>
-            graph
+            <div id="graphRow">
+                <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+            </div>
         </paper-material>
     </div>
 
@@ -176,14 +184,40 @@
                 filterbyDisable: {
                     type: Boolean,
                     value: false
+                },
+                costData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{
+                            label: "cost",
+                            backgroundColor: "rgba(220,220,220,0.2)",
+                            borderColor: "rgba(220,220,220,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(220,220,220,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(220,220,220,1)",
+                            data: []
+                        }]
+                    }
+                },
+                graphWidth: {
+                    type: String,
+                    value: 600
                 }
             },
             listeners: {
+                'resize' : 'updateChartWidth'
             },
             observers: [
                 'computePastItems(timeParams.*)',
-                'computeFilterbyItems(filterby.*, model.*)'
+                'computeFilterbyItems(filterby.*, model.*)',
+                'updateCostData(report.history)'
             ],
+            attached: function (e) {
+                this.updateChartWidth(e);
+            },
             computePastItems: function (timeParamsChangeRecord) {
                 var items = [];
                 if (this.timeParams.window == "week") {
@@ -274,8 +308,6 @@
                     this.set('filterbyDisable', false);
                 }
 
-                console.log('items',items);
-
                 this.set('filterbyItems',items);
 
                 // if filterby changed reset selected item
@@ -285,6 +317,37 @@
                         this.$.filterbyName.selected = '';
                     }, 100, this)
                 }
+            },
+            updateCostData: function (history) {
+                var data = [],
+                    labels = [];
+                if (history){
+                    labels = history.map(function(datapoint){
+                        return moment(datapoint.date).format('YYYY-MM-DD').toString();
+                    });
+                    data = history.map(function(datapoint){
+                        return datapoint.cost_per_month;
+                    });
+                }
+
+                for (var i = 0; i < 5; i++) {
+                    labels.push(' ');
+                    data.push(null);
+                }
+                console.log('history', history, labels, data);
+
+                this.set('costData.datasets.0.data', data);
+                this.set('costData.labels', labels);
+            },
+            updateChartWidth: function(e) {
+                var parentWidth = this.$.graphRow.offsetWidth;
+                if (parentWidth > 800)
+                    this.set('graphWidth', (parentWidth-50)/2);
+                else 
+                    this.set('graphWidth', parentWidth-50);
+
+                var that = this;
+                this.debounce(that.$.costgraph.resize(), function(){}, 500)
             },
             handleResponse: function(e) {
                 console.log('handleResponse', e);
@@ -298,5 +361,30 @@
                 return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
             }
         });
+
+        (function() {
+            var throttle = function(type, name, obj) {
+                obj = obj || window;
+                var running = false;
+                var func = function() {
+                    if (running) { return; }
+                    running = true;
+                     requestAnimationFrame(function() {
+                        obj.dispatchEvent(new CustomEvent(name));
+                        running = false;
+                    });
+                };
+                obj.addEventListener(type, func);
+            };
+
+            /* init - you can init any event */
+            throttle("resize", "optimizedResize");
+        })();
+
+        // handle event
+        window.addEventListener("optimizedResize", function() {
+            document.querySelector('page-insights').fire('resize')
+        });
+
     </script>
 </dom-module>
