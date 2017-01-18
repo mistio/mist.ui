@@ -3,10 +3,12 @@
 <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<script src="../../bower_components/moment/moment.js"></script>
+
 <link rel="import" href="../bower_components/chart-elements/chart-elements.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
-<script src="../../bower_components/moment/moment.js"></script>
 
 <dom-module id="page-insights">
     <template>
@@ -19,12 +21,15 @@
         }
         paper-material {
             padding: 24px;
+            position: relative;
         }
         paper-material.margin-botttom {
             margin-bottom: 16px;
         }
         paper-spinner {
-            margin: 4px;
+            margin: 10% calc(50% - 40px);
+            width: 80px !important;
+            height: 80px !important;
         }
         .error iron-icon {
             opacity: 0.32;
@@ -105,6 +110,27 @@
             margin-top: 16px;
             margin-bottom: : 16px;
         }
+        .name-col {
+            width: 40%;
+        }
+        .machines {
+            opacity: 0.54;
+        }
+        .tag {
+            vertical-align: middle;
+            line-height: 1.6em;
+        }
+        .loading-data {
+            position: absolute;
+            background-color: rgba(255,255,255,0.9);
+            width: 100%;
+            height: 100%;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 2;
+        }
     </style>
     <app-route route="{{route}}"></app-route>
     <iron-media-query query="(min-width: 1180px)" query-matches="{{largescreen}}"></iron-media-query>
@@ -162,6 +188,9 @@
             </div>
         </paper-material>
         <paper-material>
+            <div class="loading-data" hidden="{{!loadingData}}">
+                <paper-spinner active="{{loadingData}}"></paper-spinner>
+            </div>
             <div id="graphRow" class="row" largescreen$="{{largescreen}}">
                 <div class="block flex">
                     <div class="row">
@@ -171,24 +200,23 @@
                 </div>
                 <div class="block flex">
                     <div class="row">
-                        <div class="smaller">[[filterby.name]] on [[report.group_by.cloud.length]] clouds</div>
+                        <div class="smaller">[[filterby.type]] [[filterby.name]] on [[costDrillList.length]]</div>
                     </div>
-                    <div class="row">
+                    <div class="row flex-horizontal">
                         <chart-doughnut id="drillcostgraph" data="[[costDrillData]]" type="doughnut" style$="width: [[doughnutWidth]]px"></chart-doughnut>
-                        <div id="drillcostlist" class="inline">
+                        <div id="drillcostlist" class="flex">
                             <div class="list">
-                                <template is="dom-repeat" items="{{report.group_by.cloud}}">
+                                <template is="dom-repeat" items="{{costDrillList}}">
                                     <div class="flex-horizontal">
-                                        <span>
-                                            [[_index(index)]]. 
-                                            <strong class="name">[[item.name]]</strong> 
-                                            <strong hidden$="[[item.name.length]]">others</strong>
+                                        <span class="name-col">
+                                            [[_index(index)]].  [[item.name]]
+                                            <span hidden$="[[item.name.length]]">others</span>
                                         </span>
-                                        <div class="flexchild">
+                                        <div class="flexchild machines">
                                             [[item.machine_count]] machines 
                                         </div>
                                         <span>
-                                            [[_toFixed(item.cost)]]
+                                            $[[_toFixed(item.cost)]]
                                         </span>
                                     </div>
                                 </template>
@@ -200,16 +228,16 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{report.group_by.tag}}">
                                 <div class="flex-horizontal">
-                                        <span>
+                                        <span class="name-col">
                                             [[_index(index)]]. 
-                                            <strong class="name">[[item.name]]</strong>  
-                                            <strong hidden$="[[item.name.length]]">others  </strong> 
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">others</span> 
                                         </span>
-                                        <div class="flexchild">
+                                        <div class="flexchild machines">
                                             [[item.machine_count]] machines 
                                         </div>
                                         <span>
-                                            [[_toFixed(item.cost)]]
+                                            $[[_toFixed(item.cost)]]
                                         </span>
                                     </div>
                                 </div>
@@ -225,7 +253,7 @@
             method="GET"
             url="/api/v1/report"
             handle-as="json"
-            loading="loadingData"
+            loading="{{loadingData}}"
             on-response="handleResponse"
             on-error="handleError" 
             params="{{timeParams}}" auto></iron-ajax>
@@ -246,7 +274,7 @@
                 },
                 loadingData: {
                     type: Boolean,
-                    value: false
+                    value: true
                 },
                 timeParams: {
                     type: Object,
@@ -292,18 +320,19 @@
                         datasets: [{   
                             data: [],
                             backgroundColor: [
-                                "#444444",
-                                "#666666",
-                                "#888888"
+                                "#888888",
+                                "#aaaaaa",
+                                "#cccccc"
                             ],
                             hoverBackgroundColor: [
-                                "#444444",
-                                "#666666",
-                                "#888888"
+                                "#888888",
+                                "#aaaaaa",
+                                "#cccccc"
                             ]
                         }]
                     }
                 },
+                costDrillList: Array,
                 graphWidth: {
                     type: String,
                     value: 600
@@ -326,6 +355,7 @@
                 this.updateChartWidth(e);
             },
             computePastItems: function (timeParamsChangeRecord) {
+                console.log("loadingData", this.loadingData);
                 var items = [];
                 if (this.timeParams.window == "week") {
                     items = [{
@@ -393,7 +423,7 @@
                 else if (this.filterby.type == 'cloud')
                     items = this.model.cloudsArray;
                 else if (this.filterby.type == 'tag'){
-                    items = this.model.machinesArray.filter(function(m){
+                    var tags = this.model.machinesArray.filter(function(m){
                             return m.tags.length > 0
                         }).map(function(m){
                             for (var i=0; i < m.tags.length; i++){
@@ -404,6 +434,12 @@
                                 };
                             }
                         });
+                    var names = tags.map(function(t){
+                        return t.name;
+                    })
+                    items = tags.filter(function(t, ind){
+                        return names.indexOf(t.name) == ind;
+                    });
                 }
                 else
                     items = [];
@@ -462,6 +498,13 @@
                     drill = 'cloud';
                 }
 
+                if (drill == 'cloud')
+                    this.set('costDrillList', this.report.group_by.cloud ? this.report.group_by.cloud.sort(function(a,b){ return a.cost < b.cost}) : [])
+                else if (drill == 'stack')
+                    this.set('costDrillList', this.report.group_by.stack ? this.report.group_by.stack.sort(function(a,b){ return a.cost < b.cost}) : [])
+                else if (drill == 'tag')
+                    this.set('costDrillList', this.report.group_by.tag ? this.report.group_by.tag.sort(function(a,b){ return a.cost < b.cost}) : [])
+
                 if (groupby[drill]){
                     drillData = groupby[drill].map(function(point){
                         return this._toFixed(point.cost);
@@ -473,6 +516,7 @@
 
                 this.set('costDrillData.datasets.0.data', drillData);
                 this.set('costDrillData.labels', drillLabels);
+
 
                 console.log('costDrillData', this.costDrillData, drillData, drillLabels)
                 
@@ -491,13 +535,15 @@
                     this.set('graphWidth', parentWidth-50);
                     this.set('doughnutWidth', Math.min((parentWidth-50)/4, 220));
                 }
-
+                this.resizeGraphs();
                 var that = this;
-                this.debounce(that.resizeGraphs(), function(){
-                    console.log('resized chart')
-                }, 1000)
+                this.debounce('resizer', function(){
+                    console.log('resized chart');
+                    that.resizeGraphs();
+                }, 500)
             },
             resizeGraphs: function(){
+                console.log('resizeGraphs');
                 this.$.costgraph.resize();
                 this.$.drillcostgraph.resize()
             },
@@ -533,7 +579,7 @@
             };
 
             /* init - you can init any event */
-            throttle("resize", "optimizedResize");
+            // throttle("resize", "optimizedResize");
         })();
 
         // handle event
