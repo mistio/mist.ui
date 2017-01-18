@@ -84,7 +84,7 @@
             vertical-align: top;
             display: inline-block;
         }
-        #graphRow[largescreen="true"]  {
+        #graphRow[largescreen]  {
             display: flex;
         }
         .inline {
@@ -94,7 +94,7 @@
         .padding {
             padding: 16px;
         }
-        #graphRow[largescreen="true"] .block + .block {
+        #graphRow[largescreen] .block + .block {
             padding-left: 48px;
         }
         .row {
@@ -107,7 +107,7 @@
         }
     </style>
     <app-route route="{{route}}"></app-route>
-    <iron-media-query query="(min-width: 1170px)" query-matches="{{largescreen}}"></iron-media-query>
+    <iron-media-query query="(min-width: 1180px)" query-matches="{{largescreen}}"></iron-media-query>
 
     <div id="content">
         <paper-material class="margin-botttom">
@@ -162,14 +162,14 @@
             </div>
         </paper-material>
         <paper-material>
-            <div id="graphRow" class="row" largescreen="{{largescreen}}">
-                <div class="block">
+            <div id="graphRow" class="row" largescreen$="{{largescreen}}">
+                <div class="block flex">
                     <div class="row">
                         <div class="smaller">Run Rate ($/mo)</div>
                     </div>
                     <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
                 </div>
-                <div class="block">
+                <div class="block flex">
                     <div class="row">
                         <div class="smaller">[[filterby.name]] on [[report.group_by.cloud.length]] clouds</div>
                     </div>
@@ -178,10 +178,18 @@
                         <div id="drillcostlist" class="inline">
                             <div class="list">
                                 <template is="dom-repeat" items="{{report.group_by.cloud}}">
-                                    <div>
-                                        [[_index(index)]]. 
-                                        <strong class="name">[[item.name]]</strong> <strong hidden$="[[item.name.length]]">others</strong> 
-                                        [[item.machine_count]] machines [[_toFixed(item.cost)]]
+                                    <div class="flex-horizontal">
+                                        <span>
+                                            [[_index(index)]]. 
+                                            <strong class="name">[[item.name]]</strong> 
+                                            <strong hidden$="[[item.name.length]]">others</strong>
+                                        </span>
+                                        <div class="flexchild">
+                                            [[item.machine_count]] machines 
+                                        </div>
+                                        <span>
+                                            [[_toFixed(item.cost)]]
+                                        </span>
                                     </div>
                                 </template>
                             </div>
@@ -191,10 +199,19 @@
                         <div class="smaller">[[filterby.name]] tags</div>
                         <div class="list">
                             <template is="dom-repeat" items="{{report.group_by.tag}}">
-                                <div>
-                                    [[_index(index)]]. 
-                                    <strong class="name">[[item.name]]</strong>  <strong hidden$="[[item.name.length]]">others  </strong> 
-                                    [[item.machine_count]] machines [[_toFixed(item.cost)]]
+                                <div class="flex-horizontal">
+                                        <span>
+                                            [[_index(index)]]. 
+                                            <strong class="name">[[item.name]]</strong>  
+                                            <strong hidden$="[[item.name.length]]">others  </strong> 
+                                        </span>
+                                        <div class="flexchild">
+                                            [[item.machine_count]] machines 
+                                        </div>
+                                        <span>
+                                            [[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
                                 </div>
                             </template>
                         </div>
