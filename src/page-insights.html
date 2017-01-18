@@ -187,7 +187,7 @@
                 </div>
             </div>
         </paper-material>
-        <paper-material>
+        <paper-material class="margin-botttom">
             <div class="loading-data" hidden="{{!loadingData}}">
                 <paper-spinner active="{{loadingData}}"></paper-spinner>
             </div>
@@ -247,6 +247,104 @@
                 </div>
             </div>
         </paper-material>
+
+        <paper-material>
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <h2 class="title">Machines Overview</h2>
+                    <div class="filterby highlight"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Count</div>
+                    <h2 class="cost"><span class="sup"></span>[[machinesCount]]</h2>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material class="margin-botttom">
+            <div class="loading-data" hidden="{{!loadingData}}">
+                <paper-spinner active="{{loadingData}}"></paper-spinner>
+            </div>
+            <div id="graphRow" class="row" largescreen$="{{largescreen}}">
+                <div class="block flex">
+                    <div class="row">
+                        <div class="smaller">Machines count</div>
+                    </div>
+                    <chart-bar id="costgraph" data="[[machinesData]]" type="bar" style$="width: [[graphWidth]]px"></chart-bar>
+                </div>
+                <div class="block flex">
+                    <div class="row">
+                        <div class="smaller">Added vms</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{addedVms}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]]. 
+                                            <span class="name" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">others</span> 
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.date]]
+                                        </div>
+                                        <div class="flexchild machines">
+                                            [[item.provider]]
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="smaller">deleted vms</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{addedVms}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]]. 
+                                            <span class="name" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">others</span> 
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.date]]
+                                        </div>
+                                        <div class="flexchild machines">
+                                            [[item.provider]]
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="smaller">[[filterby.name]] tags</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{report.group_by.tag}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]]. 
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">others</span> 
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.machine_count]] machines 
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </paper-material>
+
     </div>
 
     <iron-ajax id="getReport" 
@@ -341,6 +439,10 @@
                     type: String,
                     value: 300
                 },
+                machinesCount: {
+                    type: Number,
+                    computed: "computeMachinesCount(report)"
+                }
             },
             listeners: {
                 'resize' : 'updateChartWidth'
@@ -560,6 +662,17 @@
             },
             _index: function(ind) {
                 return ind+1;
+            },
+            computeMachinesCount: function(report) {
+                var count = 0;
+                if (report && report.group_by && report.group_by.cloud) {
+                    count = this.report.group_by.cloud.map(function(c){
+                                return c.machine_count;
+                            }).reduce(function(a,b){
+                                return a+b;
+                            });
+                }
+                return count;
             }
         });
 
