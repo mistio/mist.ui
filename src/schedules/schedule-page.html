@@ -579,7 +579,7 @@
                 return moment.utc(time).fromNow();
             },
             _computeAbsoluteDateText: function(time) {
-                return moment.utc(time).format("MMMM D YYYY");
+                return moment.utc(time).local().format("MMMM D YYYY HH:mm:ss");
             },
             _selectDate: function(e) {
                 if (moment(this.schedule.expires).isValid())
@@ -593,7 +593,9 @@
             _applyDateTime: function(e) {
                 var payload;
                 if (!this.neverExpire){
-                    payload = { expires: moment(this.$.pickDate.date).utc().format().toString().replace('T',' ').replace('Z','')}
+                    var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
+                    var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+                    payload = { expires: moment(combinedDate).utc().format('YYYY-MM-DD HH:mm:ss').toString()}
                 }
                 else {
                     payload = { expires: ""};
