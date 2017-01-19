@@ -149,7 +149,7 @@
                 <div class="title flex">
                     <h2>
                         [[image.name]]
-                        <iron-icon icon="star" hidden$="{{!isStarred}}"></iron-icon>
+                        <iron-icon icon="star" hidden$="{{!image.star}}"></iron-icon>
                     </h2>
                     <div class="subtitle">
                         on [[image.cloud.title]]
@@ -158,8 +158,8 @@
                 <div class="item-actions">
                     <paper-button on-tap="_editTags" class="simple">tags</paper-button>
                     <paper-button on-tap="_starImage" class="simple">
-                        <span hidden$="{{!isStarred}}"> unstar </span>
-                        <span hidden$="{{isStarred}}"> star <iron-icon icon="star"></iron-icon> </span>
+                        <span hidden$="[[!image.star]]"> unstar </span>
+                        <span hidden$="[[image.star]]"> star <iron-icon icon="star"></iron-icon> </span>
                     </paper-button>
                 </div>
             </paper-material>
@@ -190,8 +190,8 @@
                 </paper-material>
             </template>
             <div class="absolute-bottom-right">
-                <paper-fab icon="star-border" on-tap="_starImage" id="starImageFab" hidden$={{!isStarred}}></paper-fab>
-                <paper-fab icon="star" on-tap="_starImage" id="starImageFab" hidden$={{isStarred}}></paper-fab>
+                <paper-fab icon="star-border" on-tap="_starImage" id="starImageFab" hidden$=[[!image.star]]></paper-fab>
+                <paper-fab icon="star" on-tap="_starImage" id="starImageFab" hidden$=[[image.star]]></paper-fab>
             </div>
         </div>
         <iron-ajax id="imageStarAjaxRequest" url="/api/v1/clouds/{{image.cloud.id}}/images/{{image.id}}" method="POST" on-response="_handleImageStarAjaxResponse" on-error="_handleImageStarAjaxError"></iron-ajax>
@@ -223,12 +223,7 @@
                     },
                     image: {
                         type: Object,
-                        computed: '_computeImage(params, model.imagesArray.*)',
                         notify: true
-                    },
-                    isStarred: {
-                        type: Boolean,
-                        computed: '_computeIsStarred(image.star)'
                     },
                     isLoading: {
                         type: Boolean,
@@ -240,9 +235,6 @@
                 },
                 _getHeaderStyle: function(section) {
                     return 'background-color: ' + section.color + '; color: #fff;';
-                },
-                _computeImage: function(params, images) {
-                    return params;
                 },
                 _computeIsStarred: function(star) {
                     return star;
@@ -261,10 +253,11 @@
                     this.$.imageStarAjaxRequest.generateRequest();
                 },
                 _handleImageStarAjaxResponse: function(e) {
+                    console.log('star', this.image.star);
                     var starred = !this.image.star;
                     var message = starred ? 'Image is starred. It will now appear as an option when creating machines' :
                     'Image unstarred. It will no longer appear as an option when creating machines';
-                    this.set('image.star', starred);
+                    // this.set('image.star', starred);
                     this.fire('toast',{msg:message,duration:5000});
                 },
                 _handleImageStarAjaxError: function(e) {
