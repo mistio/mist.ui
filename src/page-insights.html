@@ -269,7 +269,7 @@
                     <div class="row">
                         <div class="smaller">Machines count</div>
                     </div>
-                    <chart-bar id="costgraph" data="[[machinesData]]" type="bar" style$="width: [[graphWidth]]px"></chart-bar>
+                    <chart-bar id="machinesgraph" data="[[machinesData]]" type="bar" style$="width: [[graphWidth]]px"></chart-bar>
                 </div>
                 <div class="block flex">
                     <div class="row">
@@ -411,6 +411,23 @@
                         }]
                     }
                 },
+                machinesData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{
+                            label: "machines",
+                            backgroundColor: "rgba(220,220,220,0.2)",
+                            borderColor: "rgba(220,220,220,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(220,220,220,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(220,220,220,1)",
+                            data: []
+                        }]
+                    }
+                },
                 costDrillData: {
                     type: Object,
                     value: {
@@ -450,8 +467,8 @@
             observers: [
                 'computePastItems(timeParams.*)',
                 'computeFilterbyItems(filterby.*, model.*)',
-                'updateCostData(report.history)',
-                'updateCostDrillData(report.group_by, filterby.*)',
+                'updateData(report.history)',
+                'updateCostDrillData(report.group_by, filterby.*)'
             ],
             attached: function (e) {
                 this.updateChartWidth(e);
@@ -563,28 +580,29 @@
                     }, 100, this)
                 }
             },
-            updateCostData: function (history) {
-                var data = [],
+            updateData: function (history) {
+                var costData = [],
+                    machinesData = [],
                     labels = [];
                 if (history){
                     labels = history.map(function(datapoint){
                         return moment(datapoint.date).format('YYYY-MM-DD').toString();
                     });
-                    data = history.map(function(datapoint){
+                    costData = history.map(function(datapoint){
                         return datapoint.cost_per_month;
+                    });
+                    machinesData = history.map(function(datapoint){
+                        return datapoint.machine_count;
                     });
                 }
 
-                // for (var i = 0; i < 2; i++) {
-                //     labels.push(' ');
-                //     data.push(null);
-                // }
-                //console.log('history', history, labels, data);
-
-                this.set('costData.datasets.0.data', data);
+                this.set('costData.datasets.0.data', costData);
                 this.set('costData.labels', labels);
+                this.set('machinesData.datasets.0.data', machinesData);
+                this.set('machinesData.labels', labels);
 
                 this.$.costgraph.updateChart();
+                this.$.machinesgraph.updateChart();
             },
             updateCostDrillData: function(groupby, filterby) {
                 var drillData = [],
@@ -618,9 +636,6 @@
 
                 this.set('costDrillData.datasets.0.data', drillData);
                 this.set('costDrillData.labels', drillLabels);
-
-
-                console.log('costDrillData', this.costDrillData, drillData, drillLabels)
                 
                 this.$.drillcostgraph.updateChart();
             },
