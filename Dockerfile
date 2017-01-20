@@ -18,6 +18,6 @@ RUN mkdir -p bower_components && cd bower_components && \
 
 COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 80
+COPY ./container/entry.sh /entry.sh
 
-ENTRYPOINT nginx
+EXPOSE 80
