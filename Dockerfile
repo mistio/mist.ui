@@ -1,7 +1,7 @@
 FROM node:6.9.1-alpine
 MAINTAINER mist.io <support@mist.io>
 
-RUN apk add --no-cache git nginx
+RUN apk add --update --no-cache git nginx
 
 ADD . /ui
 
