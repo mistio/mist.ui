@@ -2,7 +2,7 @@
     <template>
         <style is="custom-style" include="shared-styles">
             :host {
-                font-size: 15px;
+                font-size: 14px;
             }
             :host ::content .flex-horizontal-with-ratios {
                 @apply(--layout-horizontal);
@@ -69,6 +69,7 @@
         },
         createTpl: function(content) {
             function replaceURLWithHTMLLinks(text) {
+                console.log('createTpl',text);
                 if (!text.replace)
                     return text;
                 var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i;
@@ -80,10 +81,21 @@
             for (var i = 0, len = content.length; i < len; i++) {
                 tpl += "<div class='info-item flex-horizontal-with-ratios'>";
                 tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
-                tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";
+                if (content[i].key != "ports")
+                    tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";
+                else
+                    tpl += "<div class='flexchild'>" + this.createObjTpl(YAML.parse(content[i].value)) + "</div>";
                 tpl += "</div>";
             }
 
+            return tpl;
+        },
+        createObjTpl: function(obj) {
+            var tpl = '';
+            console.log(obj)
+            for (var p in obj) {
+                tpl += "<div class='info-item'><pre><code>"+ YAML.dump(obj[p]) +"</code></pre></div>";
+            }
             return tpl;
         },
         processKeys: function(str) {
