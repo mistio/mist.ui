@@ -225,7 +225,7 @@
                 <div class="title flex">
                     <h2>[[schedule.name]]</h2>
                     <div class="subtitle">
-                        [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]]                        
+                        [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]]
                     </div>
                 </div>
                 <div class="item-actions">
@@ -258,7 +258,7 @@
                 <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
-                    <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]] [[_makeCleanerType(schedule.schedule_type)]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
+                    <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
                     <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink>change</paper-button>
                 </div>
             </paper-material>
@@ -267,7 +267,7 @@
                 <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machine_uuids.length]] selected machines. </span>
                 <span hidden$="[[!isMachinesWithTags]]" class="smaller">
                     Machines with tags
-                    <template is="dom-repeat" items="[[schedule.machine_tags]]">
+                    <template is="dom-repeat" items="[[schedule.machines_tags]]">
                         <span class="tag">[[item]]</span>
                     </template>
                     [[filteredItems.length]] machines affected. </span>
@@ -423,15 +423,15 @@
             },
             _computeIsInterval: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.schedule_type.startsWith("Interval");
+                    return this.schedule.schedule_type == "nterval";
             },
             _computeIsCrontab: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.schedule_type.startsWith("Crontab");
+                    return this.schedule.schedule_type == "crontab";
             },
             _computeIsOneOff: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.schedule_type.startsWith("One");
+                    return this.schedule.schedule_type == "one_off";
             },
             _computeIsAction: function(schedule) {
                 if (this.schedule)
@@ -447,8 +447,8 @@
             },
             _computeIsMachinesWithTags: function(schedule) {
                 // return this.schedule.tags && this.schedule.tags.length > 0 ? true : false;
-                if (schedule && this.schedule.machine_tags)
-                    return this.schedule.machine_tags && this.schedule.machine_tags.length ? true : false;
+                if (schedule && this.schedule.machines_tags)
+                    return this.schedule.machines_tags && this.schedule.machines_tags.length ? true : false;
                 else 
                     return false;
             },
@@ -508,20 +508,6 @@
                     return ret;
                 }
             },
-            _makeCleanerType: function(str) {
-                var ret = ""; 
-
-                if (this.isInterval) {
-                    ret = str.replace("Interval ", "");
-                }
-                else if (this.isCrontab) {
-                    ret = str.replace("Crontab ", "");
-                    ret = "every " + ret;
-                }
-
-                return ret;
-
-            },
             _computeScriptLink: function(schedule) {
                 if (this.schedule && this.schedule.task_type.startsWith("Run script:")) {
                     return '/scripts/'+this.schedule.task_type.split(": ")[1]
@@ -552,7 +538,7 @@
                     return t.key;
                 })
                 for (var i = 0; i < machineTags.length; i++){
-                    if (this.schedule.machine_tags.indexOf(machineTags[i]) > -1){
+                    if (this.schedule.machines_tags.indexOf(machineTags[i]) > -1){
                         exists = true;
                         break;
                     }
@@ -582,11 +568,11 @@
                 return moment.utc(time).local().format("MMMM D YYYY HH:mm:ss");
             },
             _selectDate: function(e) {
-                if (moment(this.schedule.expires).isValid())
+                if (moment(this.schedule.expires).isValid()){
                     this.$.pickDate.date = moment(this.schedule.expires).toDate();
-
+                    this.$.pickTime.time = moment.utc(this.schedule.expires).local().format('hh:mm a').toString();
+                }
                 this.$.pickDate.minDate = new Date();
-                this.$.pickTime.time = moment.utc(this.schedule.expires).local().format('hh:mm a');
                 this.neverExpire = false;
                 this.expError = false;
                 this.$.dateTimePickers.open();
@@ -616,7 +602,7 @@
                 this.expError = false;
                 this.neverExpire = false;
             },
-            _handleScheduleEditExpirationError: function() {
+            _handleScheduleEditExpirationError: function(e) {
                 console.log('_handleScheduleEditToggleError',e);
                 var message = e.detail.request.xhr.response;
                 this.fire('toast', { msg: message, duration: 5000 });
