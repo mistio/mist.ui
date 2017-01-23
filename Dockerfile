@@ -24,6 +24,7 @@ ARG build_tag
 
 ENV BUILD_TAG=$build_tag
 
-RUN cd /ui/build && ln -s . $BUILD_TAG && ln -s /ui/assets/ /ui/build/bundled/
+RUN cd /ui/build && ln -s . $BUILD_TAG && ln -s /ui/assets/ /ui/build/bundled/ && \
+    ln -s /ui/assets/ /ui/build/
 
 EXPOSE 80
