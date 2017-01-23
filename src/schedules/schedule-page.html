@@ -258,13 +258,14 @@
                 <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
-                    <span class="m-info-head">Schedule:</span>  [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
+                    <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] 
+                    <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
                     <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink>change</paper-button>
                 </div>
             </paper-material>
             <paper-material>
                 <h4 class="id">Machines</h4>
-                <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machine_uuids.length]] selected machines. </span>
+                <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machines_uuids.length]] selected machines. </span>
                 <span hidden$="[[!isMachinesWithTags]]" class="smaller">
                     Machines with tags
                     <template is="dom-repeat" items="[[schedule.machines_tags]]">
@@ -416,7 +417,7 @@
                 }
             },
             _computeHasExpired: function(schedule) {
-                if (this.schedule && this.schedule.expires && moment().diff(this.schedule.expires) > 0)
+                if (this.schedule && this.schedule.expires && this.schedule.expires.length && moment().diff(moment(this.schedule.expires).local()) > 0)
                     return true
                 else
                     return false
@@ -443,14 +444,11 @@
             },
             _computeIsSpecificMachines: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.machine_uuids && this.schedule.machine_uuids.length > 0 ? true : false;
+                    return this.schedule.machines_uuids && this.schedule.machines_uuids.length > 0 ? true : false;
             },
             _computeIsMachinesWithTags: function(schedule) {
-                // return this.schedule.tags && this.schedule.tags.length > 0 ? true : false;
-                if (schedule && this.schedule.machines_tags)
-                    return this.schedule.machines_tags && this.schedule.machines_tags.length ? true : false;
-                else 
-                    return false;
+                if (this.schedule)
+                    return this.schedule.machines_tags && this.schedule.machines_tags.length > 0 ? true : false;
             },
             _editSchedule: function(e) {
                 this.$.editScheduleDialog._openEditScheduleModal();
@@ -530,7 +528,7 @@
                 return false;
             },
             isSelectedMachine: function(machineId) {
-                return this.schedule.machine_uuids.indexOf(machineId) > -1;
+                return this.schedule.machines_uuids.indexOf(machineId) > -1;
             },
             machineHasTag: function(m) {
                 var exists = false;
@@ -571,6 +569,10 @@
                 if (moment(this.schedule.expires).isValid()){
                     this.$.pickDate.date = moment(this.schedule.expires).toDate();
                     this.$.pickTime.time = moment.utc(this.schedule.expires).local().format('hh:mm a').toString();
+                }
+                else {
+                    this.$.pickDate.date = new Date();
+                    this.$.pickTime.time = moment().format('hh:mm a').toString(); 
                 }
                 this.$.pickDate.minDate = new Date();
                 this.neverExpire = false;
