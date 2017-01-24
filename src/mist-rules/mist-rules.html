@@ -178,13 +178,22 @@
                 incidents: {
                     type: Array
                 },
-                machine: String,
-                cloud: String,
+                machine: {
+                    type: String,
+                    value: ''
+                },
+                cloud: {
+                    type: String,
+                    value: ''
+                },
                 resource: Object,  // machine, cloud or other later
-                rules: Object,
+                rules: {
+                    type: Object,
+                    notify: true
+                },
                 items: {
                     type: Array,
-                    computed: "_computeRules(rules)"
+                    value: []
                 },
                 builtinMetrics:{
                     type: Object,
@@ -223,6 +232,7 @@
             observers: [
                 'updateNewrule(resource, resource.id)',
                 "_computeShowCommandTextarea(newRule.action)",
+                "_computeRules(rules.*, machine, cloud)"
             ],
             ready: function() {
                 this.set("emails","");
@@ -243,16 +253,20 @@
                 this.set('newRule.cloudId', this.resource.cloud.id);
                 this.set('newRule.machineId', this.resource.id);
             },
-            _computeRules: function (rules) {
-                var rulesArray = []
-                if (rules) {
-                    for (var rule in rules) {
-                        if (rule.machine == this.machine && rule.cloud == this.cloud) {
-                            rulesArray.push(rules[rule]);
-                        }
+            _computeRules: function (rules, machine, cloud) {
+                var rulesArray = [],
+                    thisMachineRules = [];
+                if (this.rules) {
+                    for (var rule in this.rules) {
+                        rulesArray.push(this.rules[rule]);
                     }
                 }
-                return rulesArray.reverse();
+                thisMachineRules = rulesArray.filter(function(r){
+                    console.log('r.machine',r.machine == machine, 'r.cloud', r.cloud == cloud);
+                    return (r.machine == machine && r.cloud == cloud);
+                }).reverse();
+
+                this.set('items', thisMachineRules);
             },
             computeUnits: function(metric, builtinMetrics, customMetrics) {
                 var ref;
