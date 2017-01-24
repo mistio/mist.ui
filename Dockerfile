@@ -20,4 +20,11 @@ COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
 COPY ./container/entry.sh /entry.sh
 
+ARG build_tag
+
+ENV BUILD_TAG=$build_tag
+
+RUN cd /ui/build && ln -s . $BUILD_TAG && ln -s /ui/assets/ /ui/build/bundled/ && \
+    ln -s /ui/assets/ /ui/build/
+
 EXPOSE 80
