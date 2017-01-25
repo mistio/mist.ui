@@ -11,6 +11,8 @@
 <link rel="import" href="../bower_components/chart-elements/chart-elements.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
+<link rel="import" href="item-list/item-list.html">
+
 
 <dom-module id="page-insights">
     <template>
@@ -24,6 +26,9 @@
         paper-material {
             padding: 24px;
             position: relative;
+        }
+        paper-material.no-pad {
+            padding: 0 !important;
         }
         paper-material.margin-botttom {
             margin-bottom: 16px;
@@ -154,6 +159,17 @@
         }
         paper-button[disabled] {
             background-color: transparent !important;
+        }
+        #machinesCount {
+            padding-bottom: 48px;
+        }
+        items-list ::content .header.item-list {
+            border-left: 0 none !important;
+            border-right: 0 none !important;
+        }
+        items-list ::content .header.item-list {
+            border-left: 0 none !important;
+            border-right: 0 none !important;
         }
     </style>
     <app-route route="{{route}}"></app-route>
@@ -340,7 +356,7 @@
                 </div>
             </div>
         </paper-material>
-        <paper-material class="margin-botttom">
+        <paper-material id="machinesCount">
             <div class="loading-data" hidden="{{!loadingData}}">
                 <paper-spinner active="{{loadingData}}"></paper-spinner>
             </div>
@@ -466,9 +482,13 @@
                 </div>
             </div>
         </paper-material>
-        <!-- <paper-material hidden$="[[!isToCurrent]]">
-            
-        </paper-material> -->
+        <paper-material class="no-pad" hidden$="[[!isToCurrent]]">
+            <div class="loading-data" hidden="{{!loadingData}}">
+            </div>
+            <div class="machines-list">
+                <item-list section="[[sections.machines]]" items="[[machines]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
+            </div>
+        </paper-material>
 
     </div>
 
@@ -491,6 +511,7 @@
                 sections: Array,
                 onboarding: Object,
                 largescreen: Boolean,
+                machines: Array,
                 report: {
                     type: Object,
                     value: {}
@@ -622,7 +643,8 @@
                 'computePastItems(timeParams.*)',
                 'computeFilterbyItems(filterby.*, model.*)',
                 'updateData(report.history)',
-                'updateCostDrillData(report.group_by, filterby.name)'
+                'updateCostDrillData(report.group_by, filterby.name)',
+                'updateMachines(model.machinesArray, filterby.id)'
             ],
             attached: function (e) {
                 this.updateChartWidth(e);
@@ -716,9 +738,13 @@
                             return m.tags.length > 0
                         }).map(function(m){
                             for (var i=0; i < m.tags.length; i++){
+                                var postfix = '';
+                                if (m.tags[i].value != ''){
+                                    postfix = '='+m.tags[i].value;
+                                }
                                 return {
-                                    'name': m.tags[i].key,
-                                    'id': m.tags[i].key,
+                                    'name': m.tags[i].key+postfix,
+                                    'id': m.tags[i].key+postfix,
                                     'val': m.tags[i].val
                                 };
                             }
@@ -942,6 +968,41 @@
                     name: '',
                     id: ''
                 })
+            },
+            updateMachines: function(machines, filterby){
+                var m = [];
+                if (!filterby) {
+                    m = this.model.machinesArray;
+                }
+                else {
+                    if (this.filterby.type == 'tag'){
+                        m = this.model.machinesArray.filter(function(m){
+                            return this.hasTheTag(m, filterby);
+                        }, this)
+                    }
+                    else if (this.filterby.type == 'cloud') {
+                        m = this.model.machinesArray.filter(function(m){
+                            return m.cloud.id == filterby
+                        })
+                    }
+                    else {
+                        m = this.model.machinesArray.filter(function(m){
+                            //TODO filter by stack
+                            return m.cloud.id == filterby
+                        })
+                    }
+                }
+                this.set('machines', m)
+            },
+            hasTheTag: function(machine, tag) {
+                var mtags = machine.tags.map(function(t){
+                    var postfix = '';
+                    if (t.value != ''){
+                        postfix = '='+t.value;
+                    }
+                    return t.key+postfix;
+                });
+                return mtags.indexOf(tag) > -1;
             }
         });
 
