@@ -182,7 +182,8 @@
             <div class="container flex-horizontal">
                 <div class="flexchild">
                     <h2 class="title">Cost Overview</h2>
-                    <div class="filterby highlight"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
                 </div>
                 <div class="cost-section">
                     <div class="smaller">Cost</div>
@@ -276,7 +277,8 @@
             <div class="container flex-horizontal">
                 <div class="flexchild">
                     <h2 class="title">Machines Overview</h2>
-                    <div class="filterby highlight"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
                 </div>
                 <div class="cost-section">
                     <div class="smaller">Count</div>
@@ -397,6 +399,10 @@
                 loadingData: {
                     type: Boolean,
                     value: true
+                },
+                params: {
+                    type: Object,
+                    computed: 'combineParams(timeParams.*, filterby.*)'
                 },
                 timeParams: {
                     type: Object,
@@ -652,9 +658,9 @@
             updateCostDrillData: function(groupby, filterby) {
                 var drillData = [],
                     drillLabels = [],
-                    drill,
-                    drillList1,
-                    drillList2;
+                    drill, //Array
+                    drillList1, //String
+                    drillList2; //String
 
                 // show all categories when no filterby set : clouds in ring / stacks list / tags list
                 // show stacks in ring + tags list if filterby cloud
@@ -728,9 +734,6 @@
 
                 this.$.drillcostgraph.updateChart();
             },
-            computeLastDrill: function(){
-
-            },
             updateChartWidth: function(e) {
                 var parentWidth = this.$.graphRow.offsetWidth;
                 if (parentWidth > 800){
@@ -753,8 +756,19 @@
                 this.$.costgraph.resize();
                 this.$.drillcostgraph.resize()
             },
+            combineParams: function(time, filter) {
+                console.log(time, filter)
+                if (this.timeParams.window && this.timeParams.past)
+                    return {
+                        window: this.timeParams.window,
+                        past: this.timeParams.past,
+                        // type: this.filterBy.type,
+                        // name: this.filterBy.name
+                    }
+            }, 
             handleResponse: function(e) {
                 console.log('handleResponse', e);
+                // this.$.getReport.removeAttribute('auto');
                 if (e.detail.xhr.response)
                     this.set('report', e.detail.xhr.response)
             },
