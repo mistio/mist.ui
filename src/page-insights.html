@@ -201,7 +201,7 @@
                             </paper-item>
                         </paper-menu>
                     </paper-dropdown-menu>
-                    <paper-button class="inline baseline smaller" on-tap="clearFilter" disabled$="{{!filterby.name.length}}">clear</paper-button>
+                    <paper-button class="inline baseline smaller" on-tap="clearFilter" disabled$="{{!filterby.id.length}}">clear</paper-button>
                 </div>
             </div>
         </paper-material>
@@ -466,6 +466,9 @@
                 </div>
             </div>
         </paper-material>
+        <!-- <paper-material hidden$="[[!isToCurrent]]">
+            
+        </paper-material> -->
 
     </div>
 
@@ -516,6 +519,10 @@
                     }
                 },
                 pastItems: Array,
+                isToCurrent: {
+                    type: Boolean,
+                    computed: 'computeIsToCurrent(timeParams.past)'
+                },
                 filterbyItems: Array,
                 filterbyDisable: {
                     type: Boolean,
@@ -694,6 +701,9 @@
                         this.$.past.selected = 0;
                     }, 100, this)
                 }
+            },
+            computeIsToCurrent: function(past){
+                return past == 0;
             },
             computeFilterbyItems: function(filterby, model){
                 var items = [];
@@ -885,13 +895,14 @@
                         window: this.timeParams.window,
                         past: this.timeParams.past
                     };
-                    
+
                 if (this.filterby.type != '' && this.filterby.id != ''){
                     p[this.filterby.type] = this.filterby.id || this.filterby.name;
                 }
 
-                // dont update params if user changes window, type, or has not specified filter by id
-                if (filter.path == 'filterby.type' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "")) {
+                // dont update params so dont request, if user changes window, type, or has not specified filter by id
+                // also dont request for past = -1
+                if (filter.path == 'filterby.type' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
                     return;
                 }
                 else {
@@ -928,7 +939,8 @@
             clearFilter: function(e){
                 this.set('filterby', {
                     type: '',
-                    name: ''
+                    name: '',
+                    id: ''
                 })
             }
         });
