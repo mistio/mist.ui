@@ -400,10 +400,52 @@
                             </template>
                         </div>
                     </div> -->
-                    <div class="row">
-                        <div class="smaller">[[filterby.name]] tags</div>
+                    <div class="row" hidden$="[[!showRing]]">
+                        <div class="smaller">[[ringTitle]]</div>
                         <div class="list">
-                            <template is="dom-repeat" items="{{report.group_by.tag}}">
+                            <template is="dom-repeat" items="{{machinesDrillList}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]].
+                                            <span hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.machine_count]] machines
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showFirstList]]">
+                        <div class="smaller">[[firstListTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{machinesDrillList1}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]].
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.machine_count]] machines
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showSecondList]]">
+                        <div class="smaller">[[secondListTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{machinesDrillList2}}">
                                 <div class="flex-horizontal">
                                         <span class="name-col">
                                             [[_index(index)]].
@@ -540,6 +582,18 @@
                 costDrillList: Array,
                 costDrillList1: Array,
                 costDrillList2: Array,
+                machinesDrillList: {
+                    type: Array,
+                    computed: 'sortByMachines(costDrillList)'
+                },
+                machinesDrillList1: {
+                    type: Array,
+                    computed: 'sortByMachines(costDrillList1)'
+                },
+                machinesDrillList2: {
+                    type: Array,
+                    computed: 'sortByMachines(costDrillList2)'
+                },
                 graphWidth: {
                     type: String,
                     value: 600
@@ -752,6 +806,8 @@
 
                 if (drill){
                     this.set('showRing', true);
+                    this.set('ringTitle', this.filterby.name +" "+ drill.length +" "+ key);
+                    
                     drillData = drill.map(function(point){
                         return this._toFixed(point.cost);
                     }, this);
@@ -761,6 +817,7 @@
                 }
                 else {
                     this.set('showRing', false);
+                    this.set('ringTitle', "");
                 }
 
                 // fill in ring
@@ -771,22 +828,34 @@
                 // fill in first list
                 if (drillList1 && drillList1.length) {
                     this.set('showFirstList', true);
+                    this.set('firstListTitle', this.filterby.name +" "+ this.report.group_by[drillList1].length +" "+ drillList1);
+
                     this.set('costDrillList1', this.report.group_by[drillList1] ? this.report.group_by[drillList1].sort(function(a,b){ return a.cost < b.cost}) : [])
                 }
                 else {
                     this.set('showFirstList', false);
+                    this.set('firstListTitle', "");
                 }
 
                 // fill in second list if needed
                 if (drillList2 && drillList2.length){
                     this.set('showSecondList', true);
+                    this.set('secondtListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2);
+
                     this.set('costDrillList2', this.report.group_by[drillList2] ? this.report.group_by[drillList2].sort(function(a,b){ return a.cost < b.cost}) : [])
                 }
                 else {
                     this.set('showSecondList', false);
+                    this.set('secondtListTitle', "");
                 }
 
                 this.$.drillcostgraph.updateChart();
+            },
+            sortByMachines: function(array){
+                if (array) {
+                    var ret = array.slice(0);
+                    return ret.sort(function(a,b){ return a.machine_count < b.machine_count})
+                }
             },
             updateChartWidth: function(e) {
                 var parentWidth = this.$.graphRow.offsetWidth;
