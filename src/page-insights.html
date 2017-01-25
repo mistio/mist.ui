@@ -146,6 +146,15 @@
             padding: 0;
             list-style: none;
         }
+        .inline {
+            display: inline;
+        }
+        .baseline {
+            vertical-align: baseline;
+        }
+        paper-button[disabled] {
+            background-color: transparent !important;
+        }
     </style>
     <app-route route="{{route}}"></app-route>
     <iron-media-query query="(min-width: 1180px)" query-matches="{{largescreen}}"></iron-media-query>
@@ -186,9 +195,13 @@
                             <template is="dom-repeat" items="{{filterbyItems}}">
                                 <paper-item value="[[item.name]][[item.title]]">[[item.name]][[item.title]]</paper-item>
                             </template>
-                            <paper-item disabled hidden$="{{!filterbyDisable}}">no {{filterby.type}}s</paper-item>
+                            <paper-item disabled hidden$="{{!filterbyDisable}}">
+                                <span hidden$="{{!filterby.type}}">no {{filterby.type}}s</span>
+                                <span hidden$="{{filterby.type.length}}">Select type</span>
+                            </paper-item>
                         </paper-menu>
                     </paper-dropdown-menu>
+                    <paper-button class="inline baseline smaller" on-tap="clearFilter" disabled$="{{!filterby.name.length}}">clear</paper-button>
                 </div>
             </div>
         </paper-material>
@@ -832,6 +845,12 @@
                             });
                 }
                 return count;
+            },
+            clearFilter: function(e){
+                this.set('filterby', {
+                    type: '',
+                    name: ''
+                })
             }
         });
 
