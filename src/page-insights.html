@@ -988,8 +988,8 @@
                     else {
                         m = this.model.machinesArray.filter(function(m){
                             //TODO filter by stack
-                            return m.cloud.id == filterby
-                        })
+                            return this.isInStack(m, filterby);
+                        }, this)
                     }
                 }
                 this.set('machines', m)
@@ -1003,6 +1003,16 @@
                     return t.key+postfix;
                 });
                 return mtags.indexOf(tag) > -1;
+            },
+            isInStack: function(machine, stack) {
+                var stackmachines = []; 
+
+                if (this.model.stacksArray > 0){
+                    stackmachines = this.model.stacks[stack].machines.map(function(m){
+                                    return m.uuid;
+                                });
+                }
+                return stackmachines.indexOf(machine.uuid) > -1;
             }
         });
 
