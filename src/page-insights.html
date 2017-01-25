@@ -87,7 +87,7 @@
             display: inline-block;
         }
         chart-doughnut {
-            width: 220px;
+            width: 300px;
             vertical-align: top;
             display: inline-block;
         }
@@ -191,9 +191,9 @@
                         </paper-menu>
                     </paper-dropdown-menu>
                     <paper-dropdown-menu class="uppercase" no-label-float>
-                        <paper-menu id="filterbyName" class="dropdown-content" attr-for-selected="value" selected="{{filterby.name}}">
+                        <paper-menu id="filterbyName" class="dropdown-content" attr-for-selected="value" selected="{{filterby.id}}">
                             <template is="dom-repeat" items="{{filterbyItems}}">
-                                <paper-item value="[[item.name]][[item.title]]">[[item.name]][[item.title]]</paper-item>
+                                <paper-item value="[[item.id]]">[[item.name]][[item.title]]</paper-item>
                             </template>
                             <paper-item disabled hidden$="{{!filterbyDisable}}">
                                 <span hidden$="{{!filterby.type}}">no {{filterby.type}}s</span>
@@ -476,7 +476,7 @@
             loading="{{loadingData}}"
             on-response="handleResponse"
             on-error="handleError"
-            params="{{timeParams}}" auto></iron-ajax>
+            params="{{params}}" auto></iron-ajax>
     </template>
     <script>
         Polymer({
@@ -511,7 +511,8 @@
                     type: Object,
                     value: {
                         type: '',
-                        name: ''
+                        name: '',
+                        id: ''
                     }
                 },
                 pastItems: Array,
@@ -861,11 +862,11 @@
                 var parentWidth = this.$.graphRow.offsetWidth;
                 if (parentWidth > 800){
                     this.set('graphWidth', (parentWidth-50)/2);
-                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 220));
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 300));
                 }
                 else {
                     this.set('graphWidth', parentWidth-50);
-                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 220));
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 300));
                 }
                 this.resizeGraphs();
                 var that = this;
@@ -880,14 +881,23 @@
                 this.$.drillcostgraph.resize()
             },
             combineParams: function(time, filter) {
-                console.log(time, filter)
-                if (this.timeParams.window && this.timeParams.past)
-                    return {
+                var p = {
                         window: this.timeParams.window,
-                        past: this.timeParams.past,
-                        // type: this.filterBy.type,
-                        // name: this.filterBy.name
-                    }
+                        past: this.timeParams.past
+                    };
+                    
+                if (this.filterby.type != '' && this.filterby.id != ''){
+                    p[this.filterby.type] = this.filterby.id || this.filterby.name;
+                }
+
+                // dont update params if user changes window, type, or has not specified filter by id
+                if (filter.path == 'filterby.type' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "")) {
+                    return;
+                }
+                else {
+                    console.log('p send ', p);
+                    return p;
+                }
             }, 
             handleResponse: function(e) {
                 console.log('handleResponse', e);
