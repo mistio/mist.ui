@@ -200,10 +200,10 @@
                     <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
                 </div>
                 <div class="block flex">
-                    <div class="row">
-                        <div class="smaller">[[filterby.type]] [[filterby.name]] on [[costDrillList.length]]</div>
+                    <div class="row" hidden$="[[!showRing]]">
+                        <div class="smaller">[[ringTitle]]</div>
                     </div>
-                    <div class="row flex-horizontal">
+                    <div class="row flex-horizontal" hidden$="[[!showRing]]">
                         <chart-doughnut id="drillcostgraph" data="[[costDrillData]]" type="doughnut" style$="width: [[doughnutWidth]]px"></chart-doughnut>
                         <div id="drillcostlist" class="flex">
                             <div class="list">
@@ -224,10 +224,31 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="smaller">[[filterby.name]] tags</div>
+                    <div class="row" hidden$="[[!showFirstList]]">
+                        <div class="smaller">[[firstListTitle]]</div>
                         <div class="list">
-                            <template is="dom-repeat" items="{{report.group_by.tag}}">
+                            <template is="dom-repeat" items="{{costDrillList1}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]]. 
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">others</span> 
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.machine_count]] machines 
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showSecondList]]">
+                        <div class="smaller">[[secondListTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{costDrillList2}}">
                                 <div class="flex-horizontal">
                                         <span class="name-col">
                                             [[_index(index)]]. 
@@ -273,7 +294,7 @@
                     <chart-bar id="machinesgraph" data="[[machinesData]]" type="bar" style$="width: [[graphWidth]]px"></chart-bar>
                 </div>
                 <div class="block flex">
-                    <div class="row">
+                    <!-- <div class="row">
                         <div class="smaller">Added vms</div>
                         <div class="list">
                             <template is="dom-repeat" items="{{addedVms}}">
@@ -320,7 +341,7 @@
                                 </div>
                             </template>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="row">
                         <div class="smaller">[[filterby.name]] tags</div>
                         <div class="list">
@@ -385,7 +406,7 @@
                 filterby: {
                     type: Object,
                     value: {
-                        type: 'cloud',
+                        type: '',
                         name: ''
                     }
                 },
@@ -401,13 +422,13 @@
                         labels: [],
                         datasets: [{
                             label: "cost",
-                            backgroundColor: "rgba(220,220,220,0.2)",
-                            borderColor: "rgba(220,220,220,1)",
+                            backgroundColor: "rgba(120,120,120,0.2)",
+                            borderColor: "rgba(120,120,120,1)",
                             borderWidth: 1,
-                            pointBackgroundColor: "rgba(220,220,220,1)",
+                            pointBackgroundColor: "rgba(120,120,120,1)",
                             pointBorderColor: "#fff",
                             pointHoverBackgroundColor: "#fff",
-                            pointHoverBorderColor: "rgba(220,220,220,1)",
+                            pointHoverBorderColor: "rgba(120,120,120,1)",
                             data: []
                         }]
                     }
@@ -418,17 +439,23 @@
                         labels: [],
                         datasets: [{
                             label: "machines",
-                            backgroundColor: "rgba(220,220,220,0.2)",
-                            borderColor: "rgba(220,220,220,1)",
+                            backgroundColor: "rgba(120,120,120,0.2)",
+                            borderColor: "rgba(120,120,120,1)",
                             borderWidth: 1,
-                            pointBackgroundColor: "rgba(220,220,220,1)",
+                            pointBackgroundColor: "rgba(120,120,120,1)",
                             pointBorderColor: "#fff",
                             pointHoverBackgroundColor: "#fff",
-                            pointHoverBorderColor: "rgba(220,220,220,1)",
+                            pointHoverBorderColor: "rgba(120,120,120,1)",
                             data: []
                         }]
                     }
                 },
+                showRing: Boolean,
+                showSecondList: Boolean,
+                showFirstList: Boolean,
+                ringTitle: String,
+                firstListTitle: String,
+                secondListTitle: String,
                 costDrillData: {
                     type: Object,
                     value: {
@@ -449,6 +476,8 @@
                     }
                 },
                 costDrillList: Array,
+                costDrillList1: Array,
+                costDrillList2: Array,
                 graphWidth: {
                     type: String,
                     value: 600
@@ -608,35 +637,70 @@
             updateCostDrillData: function(groupby, filterby) {
                 var drillData = [],
                     drillLabels = [],
-                    drill;
+                    drill,
+                    drillList1,
+                    drillList2;
 
-                console.log('updateCostDrillData', groupby);
+                // show all categories when no filterby set : clouds in ring / stacks list / tags list
+                // show stacks in ring + tags list if filterby cloud
+                // show clouds in ring + tags list if filterby stack
+                // show clouds in ring + stacks in list if filterby tag
 
-                if (this.filterby.type == 'cloud') {
-                    drill = !groupby.stack ? 'tag' : 'stack' ;
+                var dataMap = Object.keys(this.report.group_by),
+                    key;
+                if (this.filterby.type == '' || (this.filterby.type == "tag" && this.report.group_by['tag'])) {
+                    drill = groupby['cloud'] || groupby['stack'] || groupby['tag'];
+
+                    if (groupby['cloud'])       { key = 'cloud' }
+                    else if (groupby['stack'])  { key = 'stack' }
+                    else if (groupby['tag'])    { key = 'tag' }
+
+                    dataMap.splice(dataMap.indexOf(key), 1);
+                    
+                    if (dataMap.length > 0 ) 
+                        drillList1 = dataMap[0];
+                    
+                    if (dataMap.length > 1 )
+                        drillList2 = dataMap[1];
                 }
-                else if (this.filterby.type == 'stack' || this.filterby.type == 'tag') {
-                    drill = 'cloud';
+                else if (this.filterby.type == 'stack' || this.filterby.type == "cloud") {
+                    drill = this.filterby.type == 'stack' ? groupby['cloud'] : groupby['stack'];
+                    key =  this.filterby.type == 'stack' ? 'cloud' : 'stack';
+
+                    dataMap.splice(dataMap.indexOf(key), 1);
+
+                    if (dataMap.length)
+                        drillList1 = dataMap[0];
                 }
+                
+                console.log("dataMap", this.filterby.type, dataMap, drillList1, drillList2);
 
-                if (drill == 'cloud')
-                    this.set('costDrillList', this.report.group_by.cloud ? this.report.group_by.cloud.sort(function(a,b){ return a.cost < b.cost}) : [])
-                else if (drill == 'stack')
-                    this.set('costDrillList', this.report.group_by.stack ? this.report.group_by.stack.sort(function(a,b){ return a.cost < b.cost}) : [])
-                else if (drill == 'tag')
-                    this.set('costDrillList', this.report.group_by.tag ? this.report.group_by.tag.sort(function(a,b){ return a.cost < b.cost}) : [])
-
-                if (groupby[drill]){
-                    drillData = groupby[drill].map(function(point){
+                if (drill){
+                    this.set('showRing', true);
+                    drillData = drill.map(function(point){
                         return this._toFixed(point.cost);
                     }, this);
-                    drillLabels = groupby[drill].map(function(point){
-                        return point.name.length ? point.name : 'others';
+                    drillLabels = drill.map(function(point){
+                        return point.name.length ? point.name : 'untagged';
                     });
                 }
 
+                // fill in ring
                 this.set('costDrillData.datasets.0.data', drillData);
                 this.set('costDrillData.labels', drillLabels);
+                this.set('costDrillList', drill ? drill.sort(function(a,b){ return a.cost < b.cost}) : []);
+
+                // fill in first list
+                if (drillList1 && drillList1.length) {
+                    this.set('showFirstList', true);
+                    this.set('costDrillList1', this.report.group_by[drillList1] ? this.report.group_by[drillList1].sort(function(a,b){ return a.cost < b.cost}) : [])
+                }
+
+                // fill in second list if needed
+                if (drillList2 && drillList2.length){
+                    this.set('showSecondList', true);
+                    this.set('costDrillList2', this.report.group_by[drillList2] ? this.report.group_by[drillList2].sort(function(a,b){ return a.cost < b.cost}) : [])
+                }
                 
                 this.$.drillcostgraph.updateChart();
             },
