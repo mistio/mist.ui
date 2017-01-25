@@ -143,6 +143,8 @@
                     <div class="smaller">Time</div>
                     <paper-dropdown-menu class="uppercase" no-label-float>
                         <paper-menu id="window" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.window}}">
+                            <paper-item value="hour">hourly</paper-item>
+                            <paper-item value="day">daily</paper-item>
                             <paper-item value="week">weekly</paper-item>
                             <paper-item value="month">monthly</paper-item>
                             <paper-item value="quarter">quarterly</paper-item>
@@ -214,7 +216,7 @@
                                             <span hidden$="[[item.name.length]]">others</span>
                                         </span>
                                         <div class="flexchild machines">
-                                            [[item.machine_count]] machines 
+                                            [[item.machine_count]] machines
                                         </div>
                                         <span>
                                             $[[_toFixed(item.cost)]]
@@ -251,12 +253,12 @@
                             <template is="dom-repeat" items="{{costDrillList2}}">
                                 <div class="flex-horizontal">
                                         <span class="name-col">
-                                            [[_index(index)]]. 
+                                            [[_index(index)]].
                                             <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">others</span> 
+                                            <span hidden$="[[item.name.length]]">others</span>
                                         </span>
                                         <div class="flexchild machines">
-                                            [[item.machine_count]] machines 
+                                            [[item.machine_count]] machines
                                         </div>
                                         <span>
                                             $[[_toFixed(item.cost)]]
@@ -300,9 +302,9 @@
                             <template is="dom-repeat" items="{{addedVms}}">
                                 <div class="flex-horizontal">
                                         <span class="name-col">
-                                            [[_index(index)]]. 
+                                            [[_index(index)]].
                                             <span class="name" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">others</span> 
+                                            <span hidden$="[[item.name.length]]">others</span>
                                         </span>
                                         <div class="flexchild machines">
                                             [[item.date]]
@@ -324,9 +326,9 @@
                             <template is="dom-repeat" items="{{addedVms}}">
                                 <div class="flex-horizontal">
                                         <span class="name-col">
-                                            [[_index(index)]]. 
+                                            [[_index(index)]].
                                             <span class="name" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">others</span> 
+                                            <span hidden$="[[item.name.length]]">others</span>
                                         </span>
                                         <div class="flexchild machines">
                                             [[item.date]]
@@ -348,12 +350,12 @@
                             <template is="dom-repeat" items="{{report.group_by.tag}}">
                                 <div class="flex-horizontal">
                                         <span class="name-col">
-                                            [[_index(index)]]. 
+                                            [[_index(index)]].
                                             <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">others</span> 
+                                            <span hidden$="[[item.name.length]]">others</span>
                                         </span>
                                         <div class="flexchild machines">
-                                            [[item.machine_count]] machines 
+                                            [[item.machine_count]] machines
                                         </div>
                                         <span>
                                             $[[_toFixed(item.cost)]]
@@ -369,13 +371,13 @@
 
     </div>
 
-    <iron-ajax id="getReport" 
+    <iron-ajax id="getReport"
             method="GET"
             url="/api/v1/report"
             handle-as="json"
             loading="{{loadingData}}"
             on-response="handleResponse"
-            on-error="handleError" 
+            on-error="handleError"
             params="{{timeParams}}" auto></iron-ajax>
     </template>
     <script>
@@ -399,7 +401,7 @@
                 timeParams: {
                     type: Object,
                     value: {
-                        window: "month",
+                        window: "hour",
                         past: "0"
                     }
                 },
@@ -460,7 +462,7 @@
                     type: Object,
                     value: {
                         labels: [],
-                        datasets: [{   
+                        datasets: [{
                             data: [],
                             backgroundColor: [
                                 "#888888",
@@ -506,7 +508,21 @@
             computePastItems: function (timeParamsChangeRecord) {
                 console.log("loadingData", this.loadingData);
                 var items = [];
-                if (this.timeParams.window == "week") {
+                if (this.timeParams.window == "hour") {
+                    items.push({value: 0, text: "this hour"});
+                    items.push({value: 1, text: "last hour"});
+                    for (var i=2; i<11; i++) {
+                        items.push({value: i, text: i + " hours ago"});
+                    }
+                }
+                else if (this.timeParams.window == "day") {
+                    items.push({value: 0, text: "today"});
+                    items.push({value: 1, text: "yesterday"});
+                    for (var i=2; i<11; i++) {
+                        items.push({value: i, text: i + " days ago"});
+                    }
+                }
+                else if (this.timeParams.window == "week") {
                     items = [{
                         value: '0',
                         text: 'this week'
@@ -523,18 +539,17 @@
                 }
                 else if (this.timeParams.window == "month") {
                     for (var i=0; i<12; i++){
-                        
                         var t = '';
                         if (i==0)
                             t = 'this month';
                         else if (i==1)
                             t = 'last month';
-                        else 
+                        else
                             t = i+' months ago';
 
                         items.push({
                             value: i,
-                            text: t  
+                            text: t
                         })
                     }
                 }
@@ -710,7 +725,7 @@
                 else {
                     this.set('showSecondList', false);
                 }
-                
+
                 this.$.drillcostgraph.updateChart();
             },
             computeLastDrill: function(){
