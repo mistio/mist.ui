@@ -76,6 +76,7 @@
         }
         .cost-section {
             text-align: right;
+            padding-left: 36px;
         }
         .cost {
             font-size: 2.4em;
@@ -255,9 +256,9 @@
                 </div>
                 <div class="flexchild">
                     <div class="smaller">Machine Count</div>
-                    <h2 class="cost"><span class="sup"></span>[[machinesCount]]</h2>
+                    <h2 class="cost"><span class="sup"></span>[[report.machine_count.unique]]</h2>
                     <!-- <div class="smaller">X more this [[timeParams.window]]</div> -->
-                    <div class="smaller" hidden$="[[!report.comparative_machine_count.unique]]">
+                    <div class="smaller" hidden$="[[!isNotNull(report.comparative_machine_count.unique)]]">
                         <span class$="[[diffText(report.comparative_machine_count.unique)]]">
                             <span hidden$="[[!report.comparative_machine_count.unique]]">[[abs(report.comparative_machine_count.unique)]]%</span> [[diffText(report.comparative_machine_count.unique)]]
                         </span> 
@@ -396,8 +397,16 @@
                     <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
                 </div>
                 <div class="cost-section">
-                    <div class="smaller">Count</div>
-                    <h2 class="cost">[[machinesCount]]</h2>
+                    <div class="smaller">Maximum</div>
+                    <h2 class="cost">[[report.machine_count.max]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Average</div>
+                    <h2 class="cost">[[report.machine_count.mean]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Unique</div>
+                    <h2 class="cost">[[report.machine_count.unique]]</h2>
                 </div>
             </div>
         </paper-material>
@@ -682,10 +691,6 @@
                 doughnutWidth:{
                     type: String,
                     value: 300
-                },
-                machinesCount: {
-                    type: Number,
-                    computed: "computeMachinesCount(report)"
                 }
             },
             listeners: {
@@ -1025,17 +1030,6 @@
             _index: function(ind) {
                 return ind+1;
             },
-            computeMachinesCount: function(report) {
-                var count = 0;
-                if (report && report.group_by && report.group_by.cloud) {
-                    count = this.report.group_by.cloud.map(function(c){
-                                return c.machine_count.unique;
-                            }).reduce(function(a,b){
-                                return a+b;
-                            });
-                }
-                return count;
-            },
             clearFilter: function(e){
                 this.set('filterby', {
                     type: '',
@@ -1117,6 +1111,9 @@
             },
             lastValue: function(history, val){
                 return history[history.length-1][val];
+            },
+            isNotNull: function(value) {
+                return value != null;
             }
         });
 
