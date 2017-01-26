@@ -532,8 +532,7 @@
                     value: true
                 },
                 params: {
-                    type: Object,
-                    computed: 'combineParams(timeParams.*, filterby.*)'
+                    type: Object
                 },
                 timeParams: {
                     type: Object,
@@ -655,7 +654,8 @@
                 'computeFilterbyItems(filterby.*, model.*)',
                 'updateData(report.history)',
                 'updateCostDrillData(report.group_by, filterby.id)',
-                'updateMachines(model.machinesArray, filterby.id)'
+                'updateMachines(model.machinesArray, filterby.id)',
+                'combineParams(timeParams.*, filterby.*)'
             ],
             attached: function (e) {
                 this.updateChartWidth(e);
@@ -932,23 +932,25 @@
                 this.$.drillcostgraph.resize()
             },
             combineParams: function(time, filter) {
-                var p = {
+                console.log('p send ', filter);
+                
+                // dont update params so dont request, if user changes window, type, name or has not specified filter by id
+                // also dont request for past = -1
+                if (filter.path == 'filterby.type' || filter.path == 'filterby.name' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
+                    console.log('dont send ', this.params);
+                }
+                else {
+                    var p = {
                         window: this.timeParams.window,
                         past: this.timeParams.past
                     };
 
-                if (this.filterby.type != '' && this.filterby.id != ''){
-                    p[this.filterby.type] = this.filterby.id || this.filterby.name;
-                }
-
-                // dont update params so dont request, if user changes window, type, name or has not specified filter by id
-                // also dont request for past = -1
-                if (filter.path == 'filterby.type' || filter.path == 'filterby.name' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
-                    return;
-                }
-                else {
-                    // console.log('p send ', p);
-                    return p;
+                    if (this.filterby.type != '' && this.filterby.id != ''){
+                        p[this.filterby.type] = this.filterby.id;
+                    }
+                    
+                    console.log('p send ', p, this.params);
+                    this.set('params', p);
                 }
             }, 
             handleResponse: function(e) {
