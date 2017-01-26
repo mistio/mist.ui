@@ -172,6 +172,9 @@
         .baseline {
             vertical-align: baseline;
         }
+        .comparison > * {
+            padding-right: 16px;
+        }
         paper-button[disabled] {
             background-color: transparent !important;
         }
@@ -293,6 +296,20 @@
             <div class="loading-data" hidden="{{!loadingData}}">
                 <paper-spinner active="{{loadingData}}"></paper-spinner>
             </div>
+            <div class="comparison">
+                <div class="smaller inline" hidden$="[[!isToCurrent]]">
+                    <span>$
+                        <span hidden$="[[!report.history.length]]">[[lastValue(report.history, 'cost_per_month')]]</span>
+                        Current run rate
+                    </span>
+                </div>
+                <div class="smaller inline" hidden$="[[!report.comparative_cost]]">
+                    <span class$="[[diffText(report.comparative_cost)]]">
+                        <span hidden$="[[!report.comparative_cost]]">[[abs(report.comparative_cost)]]%</span> [[diffText(report.comparative_cost)]]
+                    </span> 
+                    previous [[timeParams.window]]
+                </div>
+            </div>
             <div id="graphRow" class="row" largescreen$="{{largescreen}}">
                 <div class="block flex">
                     <div class="row">
@@ -387,6 +404,14 @@
         <paper-material id="machinesCount">
             <div class="loading-data" hidden="{{!loadingData}}">
                 <paper-spinner active="{{loadingData}}"></paper-spinner>
+            </div>
+            <div class="comparison">
+                <div class="smaller inline" hidden$="[[!report.comparative_machine_count.unique]]">
+                    <span class$="[[diffText(report.comparative_machine_count.unique)]]">
+                        <span hidden$="[[!report.comparative_machine_count.unique]]">[[abs(report.comparative_machine_count.unique)]]%</span> [[diffText(report.comparative_machine_count.unique)]]
+                    </span> 
+                    previous [[timeParams.window]]
+                </div>
             </div>
             <div id="graphRow" class="row" largescreen$="{{largescreen}}">
                 <div class="block flex">
@@ -1089,6 +1114,9 @@
                 else {
                     return '';
                 }
+            },
+            lastValue: function(history, val){
+                return history[history.length-1][val];
             }
         });
 
