@@ -131,12 +131,12 @@
                     },
                     list_machines: function(data) {
                         that.debounce(that._updateMachines(data), function() {
-                            //console.debug('list_machines', data);
+                            // console.debug('list_machines', data);
                         }, 250);
                     },
                     list_images: function(data) {
                         that.debounce(that._updateImages(data), function() {
-                            // console.debug('list_images', data);
+                            // console.log('list_images', data);
                         }, 250);
                     },
                     list_sizes: function(data) {
@@ -367,7 +367,7 @@
                         break;
                     }
                     // If some field changed the model needs to be updated
-                    if (data[i][dataKeys[k]] && JSON.stringify(data[i][dataKeys[k]])
+                    if (data[i][dataKeys[k]] != undefined && JSON.stringify(data[i][dataKeys[k]])
                         .localeCompare(JSON.stringify(item[dataKeys[k]]))) {
                         // console.debug('localeCompare',JSON.stringify(data[i][dataKeys[k]]).localeCompare(JSON.stringify(item[dataKeys[k]])));
                         console.debug('property ', dataKeys[k], ' changed in ', item);
@@ -412,6 +412,17 @@
             }
             var ret = this._updateModel('clouds', data);
             this.set('onboarding.isLoadingClouds', false);
+
+            if (this.model != undefined && data) {
+                data.forEach(function(c){
+                    if (!c.enabled){
+                        this.cleanUpResources(c.id);
+                    }
+                }, this)
+            }
+            if (!data || this.model.cloudsArray.length == 0) {
+                this.cleanUpResources();
+            }
 
             // the case when clouds have loaded but handlers list_machines/list_images/list_networks
             // have never been triggered (ex. all clouds are disabled, list_machines never gets data)
@@ -523,7 +534,7 @@
         },
 
         _updateImages: function(data) {
-            // console.log('_updateImages');
+            console.log('_updateImages');
             this.set('onboarding.isLoadingImages', false);
             var changed = this._updateModel('clouds.' + data.cloud_id + '.images', data.images);
             if (!changed)
@@ -745,6 +756,35 @@
                 }
                 return rules;
             }
+        },
+        cleanUpResources: function(id){
+            var newMachinesArray = [],
+                newImagesArray = [],
+                newNetworksArray = [];
+            if (id) {
+                // machines
+                newMachinesArray = this.model.machinesArray.filter(function(m){
+                    return m.cloud.id != id;
+                });
+
+                // images
+                newImagesArray = this.model.imagesArray.filter(function(im){
+                    return im.cloud.id != id;
+                });
+
+                // networks
+                newNetworksArray = this.model.networksArray.filter(function(n){
+                    return n.cloud_id != id;
+                });
+            }
+            this.set('model.machinesArray', newMachinesArray);
+            this.set('model.machines', _generateMap(newMachinesArray, 'uuid'));
+
+            this.set('model.imagesArray', newImagesArray);
+            this.set('model.images', _generateMap(newImagesArray));
+
+            this.set('model.networksArray', newNetworksArray);
+            this.set('model.networks', _generateMap(newNetworksArray));
         }
     });
 

@@ -8,6 +8,7 @@
 <link rel="import" href="../item-list/item-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../logs/log-list.html">
 <link rel="import" href="../mist-monitoring.html">
 
 <link rel="import" href="machine-edit.html">
@@ -444,6 +445,8 @@
                     machine-keys="[[machineKeys]]"></mist-monitoring>
                 <mist-rules
                     id="monitoringRules"
+                    machine="[[machine.id]]" 
+                    cloud="[[machine.cloud.id]]" 
                     builtin-metrics="[[model.monitoring.builtin_metrics]]"
                     custom-metrics="[[model.monitoring.custom_metrics]]"
                     incidents="[[model.incidentsArray]]"
@@ -504,6 +507,7 @@
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
+            <log-list></log-list>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -839,8 +843,8 @@ Polymer({
         toast.show();
     },
     isState: function(machine) {
-        if (machine)
-            return machine.state == machine.extra.status;
+        if (machine && machine.state && machine.extra.status)
+            return machine.state.toLowerCase() == machine.extra.status.toLowerCase();
     },
     _computeIsloading: function(machine) {
         return !this.machine ? true : false;
@@ -986,7 +990,7 @@ Polymer({
         // field could be in the 'extra' section, but should not be an object
         if (item) {
             var ret = item['size'];
-            
+
             if (ret && typeof(ret) != 'object')
                 return ret;
             if (!ret && item.extra && item.extra['size'] && typeof(item.extra['size']) != 'object')
@@ -1011,8 +1015,8 @@ Polymer({
     },
     _probeMachine: function(e){
         var mhost = this.machine.public_ips && this.machine.public_ips[0] ? this.machine.public_ips[0] : '';
-        var payload = { 
-            'host': mhost, 
+        var payload = {
+            'host': mhost,
             'key': this.machineKeys[0].id
         };
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;

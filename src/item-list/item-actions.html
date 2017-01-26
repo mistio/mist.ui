@@ -27,6 +27,7 @@
             #select-multi-action-dropdown,
             #select-action {
                 width: 200px;
+                position: fixed;
             }
             #select-multi-action-dropdown paper-listbox,
             #select-action paper-listbox {
@@ -743,22 +744,35 @@ Polymer({
             var xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
+                    var message = '';
                     if (xhr.status == 200) {
                         console.log(action, 'success');
+                        message = 'Successfully '+ this.inPast(action.name) +' '+ this.section.id.slice(0,this.section.id.length-1) +'. Updating...'; //
                     } else {
                         console.error(action, 'failed');
+                        console.log(xhr);
+                        message = action.name.toUpperCase() +' failed.';
+                        this.fire('action-finished');
                     }
+                    this.fire('toast', {msg: message, duration: 5000});
                     if (items.length) {
                         run(el);
                     }
+                    else {
+                        this.fire('action-finished');
+                    }
                 }
-            };
+            }.bind(this);
 
             xhr.open(method, uri);
             xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
             xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
             xhr.send(JSON.stringify(payload));
-      }
+
+            var thisid = item.uuid || item.id;
+            var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][thisid].name;
+            this.fire('performing-action', {log: logMessage});
+      }.bind(this);
 
       run(this);
     },
@@ -800,5 +814,53 @@ Polymer({
             this.fire('toast',{msg:e.detail.errormsg,duration:3000});
         }
     },
+    inPast: function(action){
+        if (action == 'shell')
+            return 'opened shell'
+        else if (action == 'tag')
+            return 'tagged'
+        else if (action == 'associate key')
+            return 'associated key'
+        else if (action == 'run-script')
+            return 'run script'
+        else if (action == 'reboot')
+            return 'rebooted'
+        else if (action == 'start')
+            return 'started'
+        else if (action == 'stop')
+            return 'stopped'
+        else if (action == 'suspend')
+            return 'suspended'
+        else if (action == 'rename')
+            return 'renamed'
+        else if (action == 'resume')
+            return 'resumed'
+        else if (action == 'undefine')
+            return 'undefined'
+        else if (action == 'suspend')
+            return 'suspended'
+        else if (action == 'destroy')
+            return 'destroyed'
+        else if (action == 'star')
+            return 'starred'
+        else if (action == 'unstar')
+            return 'unstarred'
+        else if (action == 'destroy')
+            return 'destroyed'
+        else if (action == 'make default')
+            return 'made default'
+        else if (action == 'run')
+            return 'run'
+        else if (action == 'enable')
+            return 'enabled'
+        else if (action == 'disable')
+            return 'disabled'
+        else if (action == 'disable')
+            return 'disabled'
+        else if (action == 'delete')
+            return 'deleted'
+        else 
+            return ''
+    }
 });
 </script>
