@@ -206,10 +206,10 @@
                             <paper-item value="tag">Tag</paper-item>
                         </paper-menu>
                     </paper-dropdown-menu>
-                    <paper-dropdown-menu class="uppercase" no-label-float>
+                    <paper-dropdown-menu id="filterbyNameDd" class="uppercase" no-label-float>
                         <paper-menu id="filterbyName" class="dropdown-content" attr-for-selected="value" selected="{{filterby.id}}">
                             <template is="dom-repeat" items="{{filterbyItems}}">
-                                <paper-item value="[[item.id]]">[[item.name]][[item.title]]</paper-item>
+                                <paper-item value="[[item.id]]" data-name$="[[item.name]][[item.title]]">[[item.name]][[item.title]]</paper-item>
                             </template>
                             <paper-item disabled hidden$="{{!filterbyDisable}}">
                                 <span hidden$="{{!filterby.type}}">no {{filterby.type}}s</span>
@@ -263,7 +263,7 @@
             <div class="container flex-horizontal">
                 <div class="flexchild">
                     <h2 class="title">Cost Overview</h2>
-                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.id.length]]">select [[filterby.type]]</span></div>
                     <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
                 </div>
                 <div class="cost-section">
@@ -358,7 +358,7 @@
             <div class="container flex-horizontal">
                 <div class="flexchild">
                     <h2 class="title">Machines Overview</h2>
-                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.name.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.id.length]]">select [[filterby.type]]</span></div>
                     <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
                 </div>
                 <div class="cost-section">
@@ -654,7 +654,7 @@
                 'computePastItems(timeParams.*)',
                 'computeFilterbyItems(filterby.*, model.*)',
                 'updateData(report.history)',
-                'updateCostDrillData(report.group_by, filterby.name)',
+                'updateCostDrillData(report.group_by, filterby.id)',
                 'updateMachines(model.machinesArray, filterby.id)'
             ],
             attached: function (e) {
@@ -786,6 +786,10 @@
                         this.$.filterbyName.selected = '';
                     }, 100, this)
                 }
+                // if filterby id changed update name
+                if (filterby.path == 'filterby.id'){
+                    this.set('filterby.name', this.computeName(filterby.value));
+                }
             },
             updateData: function (history) {
                 var costData = [],
@@ -850,7 +854,7 @@
                         drillList1 = dataMap[0];
                 }
                 
-                console.log("dataMap", this.filterby.type, dataMap, drillList1, drillList2);
+                // console.log("dataMap", this.filterby.type, dataMap, drillList1, drillList2);
 
                 if (drill){
                     this.set('showRing', true);
@@ -937,13 +941,13 @@
                     p[this.filterby.type] = this.filterby.id || this.filterby.name;
                 }
 
-                // dont update params so dont request, if user changes window, type, or has not specified filter by id
+                // dont update params so dont request, if user changes window, type, name or has not specified filter by id
                 // also dont request for past = -1
-                if (filter.path == 'filterby.type' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
+                if (filter.path == 'filterby.type' || filter.path == 'filterby.name' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
                     return;
                 }
                 else {
-                    console.log('p send ', p);
+                    // console.log('p send ', p);
                     return p;
                 }
             }, 
@@ -1036,6 +1040,22 @@
                 else
                     return perc > 0 ? 'above' : 'below'
             },
+            computeName: function(id){
+                if (id){
+                    if (this.filterby.type == 'tag') {
+                        return id;
+                    }
+                    else if (this.filterby.type == 'cloud') {
+                        return this.model.clouds[id].title;
+                    }
+                    else if (this.filterby.type == 'stack') {
+                        return this.model.stacks[id].name;
+                    }
+                }
+                else {
+                    return '';
+                }
+            }
         });
 
         (function() {
