@@ -797,8 +797,11 @@
                     labels = [];
                 if (history){
                     labels = history.map(function(datapoint){
-                        return moment(datapoint.date).format('YYYY-MM-DD').toString();
-                    });
+                        if (['day', 'hour'].indexOf(this.timeParams.window) != -1)
+                            return moment(datapoint.date).format('MM-DD HH:mm').toString();
+                        else 
+                            return moment(datapoint.date).format('YYYY-MM-DD').toString();
+                    }, this);
                     costData = history.map(function(datapoint){
                         return datapoint.cost_per_month;
                     });
@@ -955,12 +958,24 @@
             }, 
             handleResponse: function(e) {
                 console.log('handleResponse', e);
-                // this.$.getReport.removeAttribute('auto');
                 if (e.detail.xhr.response)
                     this.set('report', e.detail.xhr.response)
             },
             handleError: function(e){
                 console.log('handleError', e);
+                var empty = {
+                    comparative_cost: null,
+                    comparative_machine_count:{},
+                    cost: 0,
+                    group_by: {},
+                    history: [],
+                    machine_count: {}
+                }
+                this.set('report', empty);
+                var extra = '';
+                if (e.detail.error.code == 400)
+                    extra= ': No data'
+                this.fire('toast',{msg:e.detail.error.message+extra , duration:5000});
             },
             _toFixed: function(inp) {
                 return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
