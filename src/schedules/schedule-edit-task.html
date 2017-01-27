@@ -147,12 +147,11 @@
                         <paper-radio-button name="days" tabindex="1">days</paper-radio-button>
                         <paper-radio-button name="minutes" tabindex="1">mins</paper-radio-button>
                         <paper-radio-button name="seconds" tabindex="1">secs</paper-radio-button>
-                        <paper-radio-button name="microseconds" tabindex="1">ms</paper-radio-button>
                     </paper-radio-group>
                     <div class="smaller">eg. every 10 minutes</div>
                 </div>
                 <div class="background" hidden$="{{!_computeIsCrontab(newSchedule.schedule_type)}}">
-                    <paper-input id="crontab" value="{{_stringifyCrontab(newSchedule.schedule_entry)}}" tabindex="1"></paper-input>
+                    <paper-input id="crontab" value="{{crontabEntry}}" tabindex="1"></paper-input>
                     <span class="smaller">eg */10 * * * * .Space separated values for <br/> Minute, Hour, Day of week, Day of month, Month of year.</span>
                 </div>
                 <div class="background" hidden$="{{!_computeIsOneOff(newSchedule.schedule_type)}}">
@@ -163,7 +162,7 @@
                 </div>
                 <div class="clearfix btn-group">
                     <paper-button class="blue-link" dialog-dismiss tabindex="1">Cancel</paper-button>
-                    <paper-button class="blue" on-tap="_submitForm" tabindex="1">Save</paper-button> <!-- disabled$="[[!formReady]]" -->
+                    <paper-button class="blue" on-tap="_submitForm" tabindex="1" disabled$="[[!formReady]]">Save</paper-button> <!-- -->
                 </div>
             </paper-dialog-scrollable>
         </paper-dialog>
@@ -242,13 +241,17 @@
                         'confirm': true,
                         'multi': true
                       }]
-                    }
+                    },
+                    crontabEntry: String
                 },
                 observers: [
-                    '_computeNewSchedule(schedule.*)'
+                    '_computeNewSchedule(schedule.*)',
+                    '_crontabEntryChanged(crontabEntry)'
                 ],
                 listeners: {
-                    'iron-overlay-closed': '_modalClosed'
+                    'iron-overlay-closed': '_modalClosed',
+                    'iron-select': '_updatePayload',
+                    'input': '_updatePayload',
                 },
                 _computeNewSchedule: function(schedule) {
                     if (schedule){
@@ -266,7 +269,8 @@
                         }
 
                         else if (newSchedule.schedule_type == "crontab"){
-                            this.set('newSchedule.schedule_entry', this._stringifyCrontab(this.schedule.schedule_entry));
+                            this.set('crontabEntry', this._stringifyCrontab(this.schedule.schedule_entry))
+                            this.set('newSchedule.schedule_entry', this.schedule.schedule_entry);
                         }
 
                         else if (newSchedule.schedule_type == "one_off"){
@@ -302,17 +306,6 @@
                         return task.replace('Run script: ', '')
                     }
                 },
-                _computeType: function(type){
-                    if (type && (type.startsWith('Interval') || type.startsWith('{every'))){
-                        return "interval";
-                    }
-                    else if (type && (type.startsWith('Crontab') || type.startsWith('{minute')) ){
-                        return "crontab";
-                    }
-                    else if (type && type.startsWith('One')){
-                        return "one_off";
-                    }
-                },
                 _stringifyCrontab: function(entry){
                     var scheduleEntry = "";
                     if (this.newSchedule.schedule_type == "crontab" && entry && typeof(entry) == "object") {
@@ -331,20 +324,17 @@
                 },
                 _closeEditScheduleModal: function(e) {
                     this.$.editScheduleModal.close();
-                },
-                _modalClosed: function() {
-                    // this._formReset();
+                    this._formReset();
                 },
                 _submitForm: function(e) {
-                    this._updatePayload(e);
-
                     this.$.editSchedule.body = this.payload;
                     this.$.editSchedule.headers["Content-Type"] = 'application/json';
                     this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.editSchedule.generateRequest();
                 },
                 _formReset: function() {
-                    // this._computeNewSchedule(this.schedule);
+                    this._computeNewSchedule(this.schedule);
+                    this.set('payload', {});
                 },
                 _handleScheduleEditResponse: function(e) {
                     this._closeEditScheduleModal();
@@ -357,8 +347,9 @@
                     this.fire('toast', { msg: message, duration: 5000 });
                 },
                 _updatePayload: function(e) {
-                    var pl ={};
+                    var pl = {};
                     if (this.schedule) {
+                        console.log(this.taskType)
                         // check if task changed
                         if (this.taskType == 'action' && this._computeAction(this.schedule.task_type) != this.newSchedule.action) {
                             pl.action = this.newSchedule.action;
@@ -380,7 +371,7 @@
                 _computePayloadEntry: function(entry) {
                     if (this.newSchedule.schedule_type == 'interval') {
                         return {
-                            every: this.$.interval.value,
+                            every: parseInt(this.$.interval.value),
                             period:  this.$.period.selected
                         }
                     }
@@ -405,24 +396,28 @@
                     return construct;
                 },
                 _updateformReady: function(sendingData) {
-                    // not sending data && payload has atleast one property
-                    if (!this.sendingData && (this.payload.hasOwnProperty('action') || this.payload.hasOwnProperty('script_id') || this.payload.hasOwnProperty('schedule_type') || this.payload.hasOwnProperty('schedule_entry')))
-                        if (this.taskType == "action" && !this.newSchedule.action)
+                    // not sending data && payload has at least one property
+                    if (!this.sendingData && JSON.stringify(this.payload) != '{}') {
+                        // check valid values if needed
+                        if (((this.newSchedule.schedule_type == 'interval' || this.payload.schedule_type == 'interval') && this.payload.schedule_entry && !this._isValidInterval(this.payload.schedule_entry))
+                            || ((this.newSchedule.schedule_type == 'crontab' || this.payload.schedule_type == 'crontab')&& this.payload.schedule_entry && !this._isValidCrontab(this.payload.schedule_entry)))
                             this.set("formReady", false);
-                        else if (this.taskType == "script" && !this.newSchedule.script_id)
-                            this.set("formReady", false);
-                        else if (this.newSchedule.schedule_type == "interval" && this.newSchedule.schedule_entry)
-                            this.set("formReady", false);
-                        else if (this.newSchedule.schedule_type == "crontab" && this.newSchedule.schedule_entry)
-                            this.set("formReady", false);
-                        else if (this.newSchedule.schedule_type == "one_off" && !moment(this.newSchedule.schedule_entry).isValid())
-                            this.set("formReady", false);
-                        else {
+                        else
                             this.set("formReady", true);
-                        }
+                    }
                     else {
                         this.set("formReady", false);
                     }
+                },
+                _isValidInterval: function(entry) {
+                    return entry && parseInt(entry.every);
+                },
+                _isValidCrontab: function(entry) {
+                    console.log(entry);
+                    var string = "";
+                        string = entry.minute +""+ entry.hour +""+ entry.day_of_week +""+ entry.day_of_month +""+ entry.month_of_year;
+                    console.log(string);
+                    return entry && string.trim() != "" && string.trim() != '*****' && string.indexOf('undefined') == -1;
                 },
                 _selectDate: function(e) {
                     if (this.newSchedule.schedule_type == "one_off" && moment(this.newSchedule.schedule_entry.entry).isValid()) {
@@ -448,6 +443,11 @@
                         return "never";
                     else {
                         return moment(date).utc().fromNow()+': '+moment(date).format('YYYY-MM-DD HH:mm:ss').toString();
+                    }
+                },
+                _crontabEntryChanged: function(crontab) {
+                    if (this.schedule && this._computeIsCrontab(this.newSchedule.schedule_type) && crontab.value){
+                        this.set('newSchedule.schedule_entry', _processCrotab(crontab.value));
                     }
                 }
             });
