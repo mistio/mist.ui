@@ -229,6 +229,9 @@
                     </div>
                 </div>
                 <div class="item-actions">
+                    <paper-button on-tap="_runOnceDialog" class="simple">run now
+                        <iron-icon icon="edit"></iron-icon>
+                    </paper-button>
                     <paper-button on-tap="_editSchedule" class="simple">edit
                         <iron-icon icon="edit"></iron-icon>
                     </paper-button>
@@ -277,7 +280,7 @@
                 <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
             </paper-material>
         </div>
-        <dialog-element id="deleteScheduleModal"></dialog-element>
+        <dialog-element id="scheduleModal"></dialog-element>
         <paper-dialog id="dateTimePickers" with-backdrop>
             <div class="pickers">
                 <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
@@ -397,14 +400,15 @@
                 neverExpire: Boolean,
                 expError: Boolean,
                 machines: Array,
-                tags: Array
+                tags: Array,
+                lastrequestedaction: String
             },
             observers: [
                 '_scheduleChanged(schedule)',
                 '_computeMachines(schedule.*, model.machinesArray)'
             ],
             listeners: {
-                'confirmation': '_deleteConfirmed',
+                'confirmation': '_actionConfirmed',
             },
             attached: function() {
                 this.isLoading = false;
@@ -462,7 +466,7 @@
                     reason: "schedule.delete"
                 });
             },
-            _deleteConfirmed: function(e) {
+            _actionConfirmed: function(e) {
                 var reason = e.detail.reason,
                     response = e.detail.response;
 
@@ -470,6 +474,14 @@
                     this.$.deleteSchedule.headers["Content-Type"] = 'application/json';
                     this.$.deleteSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.deleteSchedule.generateRequest();
+                }
+
+                if (response.confirmed && reason == "schedule.run") {
+                    this.$.editToggleSchedule.body = {'run_immediately': true}
+                    this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.editToggleSchedule.generateRequest();
+                    this.lastrequestedaction = 'run';
                 }
             },
             _handleScheduleDeleteResponse: function(e) {
@@ -483,7 +495,7 @@
                 this.fire('toast', { msg: message, duration: 5000 });
             },
             _showDialog: function(info) {
-                var dialog = this.querySelector('dialog-element#deleteScheduleModal');
+                var dialog = this.querySelector('dialog-element#scheduleModal');
                 for (var i in info) {
                     dialog[i] = info[i];
                 }
@@ -545,14 +557,21 @@
                 return exists;
             },
             toggleEnable: function(){
+                this.lastrequestedaction = 'run';
                 this.$.editToggleSchedule.body = {enabled: !this.schedule.enabled};
                 this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
                 this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.editToggleSchedule.generateRequest();
             },
             _handleScheduleEditToggleResponse: function() {
-                var message = !this.schedule.enabled ? 'Enabling schedule..' : 'Disabling schedule..'
-                this.fire('toast', { msg: message, duration: 5000 });
+                var message;
+                if (this.lastrequestedaction == "enable") {
+                    message = !this.schedule.enabled ? 'Enabling schedule..' : 'Disabling schedule..'
+                }
+                else if (this.lastrequestedaction == "run") {
+                    message = 'Run request sent successfully.';   
+                }
+                this.fire('toast', { msg: message, duration: 3000 });
             },
             _handleScheduleEditToggleError: function(e) {
                 console.log('_handleScheduleEditToggleError',e);
@@ -618,6 +637,15 @@
             },
             _editTask: function() {
                 this.$.editScheduleTask._openEditScheduleModal();
+            },
+            _runOnceDialog: function() {
+                this._showDialog({
+                    title: 'Run once now?',
+                    body: "The schedule will execute once and then continue as planned." ,
+                    danger: false,
+                    reason: "schedule.run",
+                    action: 'run'
+                });
             }
         });
     </script>
