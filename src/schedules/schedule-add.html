@@ -363,6 +363,16 @@ SCHEDULEACTIONS = {
                         required: false,
                         disabled: false
                     }, {
+                        name: "max_run_count",
+                        label: "Maximum Run Count",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        helptext: "",
+                        show: true,
+                        required: false,
+                        helptext: "Optional. Define a maximum run count."
+                    },{
                         name: "run_immediately",
                         label: "Run once immediately",
                         type: "toggle",
@@ -509,6 +519,12 @@ SCHEDULEACTIONS = {
                         var expiresInd = this._fieldIndexByName("expires");
                         var include = changeRecord.value != "" ? false : true;
                         this.set('fields.'+ expiresInd +'.excludeFromPayload', include);
+                    }
+
+                    if (this.get(changeRecord.path.replace('.value','')).name == "max_run_count"){
+                        var maxcountInd = this._fieldIndexByName("max_run_count");
+                        if (typeof(this.get('fields.'+ maxcountInd +'.value')) != 'number')
+                            this.set('fields.'+ maxcountInd +'.value', parseInt(changeRecord.value));
                     }
                 }
             },
