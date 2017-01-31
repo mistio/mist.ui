@@ -259,7 +259,7 @@
                     <paper-button id="editExpiration" on-tap="_selectDate" class="simple-button blue-link smaller" noink>change</paper-button>
                 </div>
                 <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
-                <div><span class="m-info-head" hidden$="[[!schedule.max_run_count]]">Max Runs:</span> [[schedule.max_run_count]]</div>
+                <div hidden$="[[schedule.max_run_count]]"><span class="m-info-head">Max Runs:</span> [[schedule.max_run_count]]</div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
                     <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] 
@@ -272,9 +272,8 @@
                 <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machines_uuids.length]] selected machines. </span>
                 <span hidden$="[[!isMachinesWithTags]]" class="smaller">
                     Machines with tags
-                    <template is="dom-repeat" items="[[schedule.machines_tags]]">
-                        <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=[[item.value]]</span>
-                        </span>
+                    <template is="dom-repeat" items="[[tagsArray]]">
+                        <span class="tag">[[item]]</span>
                     </template>
                     &nbsp; [[filteredItems.length]] machines affected. </span>
                 <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink>change</paper-button>
@@ -393,6 +392,10 @@
                     type: Boolean,
                     value: false
                 },
+                tagsArray: {
+                    type: Array,
+                    computed: '_computeTagsArray(schedule, isMachinesWithTags)'
+                },
                 neverExpire: Boolean,
                 expError: Boolean,
                 machines: Array,
@@ -449,7 +452,7 @@
             },
             _computeIsMachinesWithTags: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.machines_tags && this.schedule.machines_tags.length > 0 ? true : false;
+                    return this.schedule.machines_tags && JSON.stringify(this.schedule.machines_tags).length > 2 ? true : false;
             },
             _editSchedule: function(e) {
                 this.$.editScheduleDialog._openEditScheduleModal();
@@ -642,6 +645,19 @@
                     reason: "schedule.run",
                     action: 'run'
                 });
+            },
+            _computeTagsArray: function(schdule, isMachinesWithTags ){
+                if (this.isMachinesWithTags && this.schedule.machines_tags) {
+                    var tags = this.schedule.machines_tags;
+                    var arrTags = Object.keys(tags); 
+                    for (var i=0; i < arrTags.length; i++) {
+                        var t = arrTags[i];
+                        if (tags[t] != null) {
+                            arrTags[i] = arrTags[i]+'='+tags[t];
+                        }
+                    }
+                    return arrTags;
+                }
             }
         });
     </script>
