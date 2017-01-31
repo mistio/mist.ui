@@ -866,7 +866,10 @@
                     drillLabels = [],
                     drill, //Array
                     drillList1, //String
-                    drillList2; //String
+                    drillList2, //String
+                    plural = "",
+                    plural1 = "",
+                    plural2 = "";
 
                 // show all categories when no filterby set : clouds in ring / stacks list / tags list
                 // show stacks in ring + tags list if filterby cloud
@@ -903,8 +906,11 @@
                 // console.log("dataMap", this.filterby.type, dataMap, drillList1, drillList2);
 
                 if (drill){
+                    if (drill.length > 1)
+                        plural = "s";
+
                     this.set('showRing', true);
-                    this.set('ringTitle', this.filterby.name +" "+ drill.length +" "+ key);
+                    this.set('ringTitle', this.filterby.name +" "+ drill.length +" "+ key+plural);
                     
                     drillData = drill.map(function(point){
                         return this._toFixed(point.cost);
@@ -924,9 +930,12 @@
                 this.set('costDrillList', drill ? drill.sort(function(a,b){ return a.cost < b.cost}) : []);
 
                 // fill in first list
-                if (drillList1 && drillList1.length) {
+                if (this.report.group_by[drillList1] && drillList1 && drillList1.length) {
+                    if (this.report.group_by[drillList1].length > 1)
+                        plural1 = "s";
+
                     this.set('showFirstList', true);
-                    this.set('firstListTitle', this.filterby.name +" "+ this.report.group_by[drillList1].length +" "+ drillList1);
+                    this.set('firstListTitle', this.filterby.name +" "+ this.report.group_by[drillList1].length +" "+ drillList1+plural1);
 
                     this.set('costDrillList1', this.report.group_by[drillList1] ? this.report.group_by[drillList1].sort(function(a,b){ return a.cost < b.cost}) : [])
                 }
@@ -936,9 +945,12 @@
                 }
 
                 // fill in second list if needed
-                if (drillList2 && drillList2.length){
+                if (this.report.group_by[drillList2] && drillList2 && drillList2.length){
+                    if (this.report.group_by[drillList2].length > 1)
+                        plural2 = "s";
+
                     this.set('showSecondList', true);
-                    this.set('secondtListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2);
+                    this.set('secondtListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2+plural2);
 
                     this.set('costDrillList2', this.report.group_by[drillList2] ? this.report.group_by[drillList2].sort(function(a,b){ return a.cost < b.cost}) : [])
                 }
