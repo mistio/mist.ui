@@ -368,10 +368,10 @@ SCHEDULEACTIONS = {
                         type: "text",
                         value: "",
                         defaultValue: "",
-                        helptext: "",
+                        excludeFromPayload: true,
                         show: true,
                         required: false,
-                        helptext: "Optional. Define a maximum run count."
+                        helptext: "Optional. Integers only. Define a maximum run count."
                     },{
                         name: "run_immediately",
                         label: "Run once immediately",
@@ -523,8 +523,16 @@ SCHEDULEACTIONS = {
 
                     if (this.get(changeRecord.path.replace('.value','')).name == "max_run_count"){
                         var maxcountInd = this._fieldIndexByName("max_run_count");
-                        if (typeof(this.get('fields.'+ maxcountInd +'.value')) != 'number')
-                            this.set('fields.'+ maxcountInd +'.value', parseInt(changeRecord.value));
+                        if (typeof(this.get('fields.'+ maxcountInd +'.value')) != 'number'){
+                                if (parseInt(changeRecord.value) == NaN){
+                                    this.set('fields.'+ maxcountInd +'.excludeFromPayload', true);
+                                    this.set('fields.'+ maxcountInd +'.value', "");
+                                }
+                                else {
+                                    this.set('fields.'+ maxcountInd +'.excludeFromPayload', false);
+                                    this.set('fields.'+ maxcountInd +'.value', parseInt(changeRecord.value));
+                                }
+                        }
                     }
                 }
             },
