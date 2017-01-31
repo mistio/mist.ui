@@ -447,6 +447,9 @@
                 observers: [
                     '_fieldsChanged(fields.*, sendingData)'
                 ],
+                listeners: {
+                    'change': '_updateCheckboxesField' 
+                },
                 ready: function(){
                     this.fields = [];
                 },
@@ -550,6 +553,9 @@
                                 else if (el.name == "machines_tags") {
                                     var textToArray = el.value.split(',');
                                     this.set('form.' + el.name, this._constructTagsValue(textToArray));
+                                }
+                                else if (el.type == "checkboxes") {
+                                    this.set('form.' + el.name, this._constructCheckboxValue(el.name));
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
@@ -809,6 +815,22 @@
                         return uuid;
                     else
                         return id;
+                },
+                _updateCheckboxesField: function(e) {
+                    if (e.target.tagName == "PAPER-CHECKBOX"){
+                        console.log(e, e.target, e.target.tagName == "PAPER-CHECKBOX");
+                        var name = e.target.name;
+                        var fieldIndex;
+                        var el = this.fields.find(function(f, index){
+                            fieldIndex = index;
+                            return f.name == name;
+                        });
+                        if (fieldIndex){
+                            var arr = this.querySelectorAll('paper-checkbox[name='+name+'][checked]');
+                            var arrvalue = Array.prototype.map.call(arr, function(c){return c.dataValue});
+                            this.set('fields.' + fieldIndex + '.value', arrvalue);
+                        }
+                    }
                 }
             });
         })();
