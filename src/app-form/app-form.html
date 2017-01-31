@@ -528,9 +528,13 @@
                                 this.set('fields.' + index + '.show', show);
 
                                 // update form values regardless of el.show
-                                if (el.type == "ip_textarea" || ["machines_tags"].indexOf(el.name) > -1) {
+                                if (el.type == "ip_textarea") {
                                     var textToArray = el.value.split('\n');
                                     this.set('form.' + el.name, textToArray);
+                                }
+                                else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    this.set('form.' + el.name, this._constructTagsValue(textToArray));
                                 }
                                 else if (el.type == "checkboxes") {
                                     this.set('form.' + el.name, this._constructCheckboxValue(el.name));
@@ -539,9 +543,12 @@
                                     this.set('form.' + el.name, el.value);
                                 }
                             } else {
-                                if (el.type == "ip_textarea" || ["machines_tags"].indexOf(el.name) > -1) {
+                                if (el.type == "ip_textarea") {
                                     var textToArray = el.value.split('\n');
                                     this.set('form.' + el.name, textToArray);
+                                }
+                                else if (el.name == "machines_tags") {
+                                    this.set('form.' + el.name, this._constructTagsValue(textToArray));
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
@@ -777,6 +784,19 @@
                         if (c.checked)
                             arr.push(c.dataValue);
                     })
+                    return arr;
+                },
+                _constructTagsValue: function(tagStringsArray) {
+                    var arr = [];
+                    tagStringsArray.forEach(function(string){
+                        var chunks = string.split("=");
+                        if (chunks.length > 0) {
+                            var tag = {key: chunks[0].trim()}
+                            if (chunks.length > 1)
+                                tag.value = chunks[1].trim();
+                            arr.push(tag)
+                        }
+                    });
                     return arr;
                 },
                 _computeID: function(id, uuid, fieldname) {
