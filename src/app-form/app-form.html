@@ -582,7 +582,7 @@
                             }
                             else if (el.type == "machines_tags") {
                                 var textToArray = el.value.split(',');
-                                return el.show && el.required ? this._constructTagsValue(textToArray).length : true;
+                                return el.show && el.required ? JSON.stringify(this._constructTagsValue(textToArray)).length > 2 : true;
                             }
                             else if (el.type == "date") {
                                 return el.show && el.required ? moment(el.value).isValid()  : true;
@@ -792,14 +792,14 @@
                     return arr;
                 },
                 _constructTagsValue: function(tagStringsArray) {
-                    var arr = [];
+                    var arr = {};
                     tagStringsArray.forEach(function(string){
                         var chunks = string.split("=");
                         if (chunks.length > 0) {
-                            var tag = {key: chunks[0].trim()}
+                            var key = chunks[0].trim();
+                            arr[key] = "";
                             if (chunks.length > 1)
-                                tag.value = chunks[1].trim();
-                            arr.push(tag)
+                                arr[key] = chunks[1].trim();
                         }
                     });
                     return arr;
@@ -809,7 +809,7 @@
                         return uuid;
                     else
                         return id;
-                }
+                },
             });
         })();
     </script>
