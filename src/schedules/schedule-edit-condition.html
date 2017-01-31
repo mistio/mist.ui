@@ -79,7 +79,7 @@
                     </template>
                 </div>
                 <div hidden$="{{!isTags}}" class="background">
-                    <paper-textarea value="{{newSchedule.machines_tags}}"></paper-textarea>
+                    <paper-textarea value="{{tagsString}}"></paper-textarea>
                 </div>
                 <div class="progress">
                     <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
@@ -136,11 +136,16 @@
                     payload: {
                         type: Object,
                         value: {}
-                    }
+                    },
+                    tagsString: {
+                        type: Array,
+                        // computed: '_computeTagsString(schedule, isTags)'
+                    },
                 },
                 observers: [
                     '_computeNewSchedule(schedule.*)',
-                    '_isUuidsOrTagsChanged(isUuidsOrTags)'
+                    '_isUuidsOrTagsChanged(isUuidsOrTags)',
+                    '_computeTagsString(schedule)'
                 ],
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
@@ -151,9 +156,10 @@
                     if (this.schedule){
                         var newSchedule = {
                             machines_uuid: this.schedule.machines_uuid || [],
-                            machines_tags: this._dictToText(this.schedule.machines_tags)
+                            machines_tags: this.schedule.machines_tags || {}
                         };
                         this.set('newSchedule', newSchedule);
+                        // this.set('tagsString', this._computeTagsString(this.schedule, this.isTags));
                         this._computeIsUuidsOrTags(schedule);
                     }
                 },
@@ -221,8 +227,8 @@
                         valid = this._constructCheckboxValue().length; 
                     }
                     else if (this.isTags) {
-                        pl["machines_tags"] = this._constructTagsValue(this.textToArray(this.newSchedule["machines_tags"]));
-                        valid = this._constructTagsValue(this.textToArray(this.newSchedule["machines_tags"])).length;
+                        pl["machines_tags"] = this._constructTagsValue(this.textToArray(this.tagsString));
+                        valid = this.textToArray(this.tagsString).length;
                     }
                     this.set('payload', pl);
                     this.set('formReady', valid);
@@ -253,32 +259,30 @@
                     return arr;
                 },
                 _constructTagsValue: function(tagStringsArray) {
-                    var arr = [];
-                    if (tagStringsArray) {
-                        tagStringsArray.forEach(function(string){
-                            var chunks = string.split("=");
-                            if (chunks.length > 0) {
-                                var tag = {key: chunks[0].trim()}
-                                if (chunks.length > 1)
-                                    tag.value = chunks[1].trim();
-                                arr.push(tag)
-                            }
-                        });
-                    }
+                    var arr = {};
+                    tagStringsArray.forEach(function(string){
+                        var chunks = string.split("=");
+                        if (chunks.length > 0) {
+                            var key = chunks[0].trim();
+                            arr[key] = "";
+                            if (chunks.length > 1)
+                                arr[key] = chunks[1].trim();
+                        }
+                    });
                     return arr;
                 },
-                _dictToText: function(tags){
-                    var str = '';
-                    if (tags && tags.length){
-                        tags.forEach(function(t){
-                            if (t.key)
-                                str += t.key;
-                            if (t.value)
-                                str += '='+t.value;
-                            str += ', ';
-                        })
+                _computeTagsString: function(schedule){
+                    if (this.schedule.machines_tags) {
+                        var tags = this.schedule.machines_tags;
+                        var arrTags = Object.keys(tags); 
+                        for (var i=0; i < arrTags.length; i++) {
+                            var t = arrTags[i];
+                            if (tags[t] != null && tags[t].trim() != "") {
+                                arrTags[i] = arrTags[i]+'='+tags[t];
+                            }
+                        }
+                        this.set('tagsString', arrTags.toString());
                     }
-                    return str;
                 }
             });
         })();
