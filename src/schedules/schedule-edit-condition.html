@@ -151,7 +151,7 @@
                     if (this.schedule){
                         var newSchedule = {
                             machines_uuid: this.schedule.machines_uuid || [],
-                            machines_tags: this.schedule.machines_tags || []
+                            machines_tags: this._dictToText(this.schedule.machines_tags)
                         };
                         this.set('newSchedule', newSchedule);
                         this._computeIsUuidsOrTags(schedule);
@@ -219,7 +219,7 @@
                         pl["machines_uuids"] = this._constructCheckboxValue();
                     }
                     else if (this.isTags) {
-                        pl["machines_tags"] = this.textToArray(this.newSchedule["machines_tags"]);
+                        pl["machines_tags"] = this._constructTagsValue(this.textToArray(this.newSchedule["machines_tags"]));
                     }
                     this.set('payload', pl);
                     this.set('formReady', true);
@@ -248,6 +248,32 @@
                         arr.push(checked[i].dataValue);
                     }
                     return arr;
+                },
+                _constructTagsValue: function(tagStringsArray) {
+                    var arr = [];
+                    if (tagStringsArray) {
+                        tagStringsArray.forEach(function(string){
+                            var chunks = string.split("=");
+                            if (chunks.length > 0) {
+                                var tag = {key: chunks[0].trim()}
+                                if (chunks.length > 1)
+                                    tag.value = chunks[1].trim();
+                                arr.push(tag)
+                            }
+                        });
+                    }
+                    return arr;
+                },
+                _dictToText: function(tags){
+                    var str = '';
+                    tags.forEach(function(t){
+                        if (t.key)
+                            str += t.key;
+                        if (t.value)
+                            str += '='+t.value;
+                        str += ', ';
+                    })
+                    return str;
                 }
             });
         })();
