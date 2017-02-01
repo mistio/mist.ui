@@ -224,11 +224,20 @@
                 width: 28%;
             }
         }
+        #content.content404 {
+            text-align: center;
+            min-height: 80vh;
+        }
     </style>
     <app-route route="{{route}}"></app-route>
     <iron-media-query query="(min-width: 1180px)" query-matches="{{largescreen}}"></iron-media-query>
 
-    <div id="content">
+    <div id="content" class="content404" hidden$="[[insightsEnabled]]">
+        <h1>404</h1>
+        <p>Insights is not enabled for this organisation account.<br/>
+        Contact <a href="mailto:info@mist.io">info@mist.io</a> for more information.</p>
+    </div>
+    <div id="content" hidden="[[!insightsEnabled]]">
         <div class="export opaque">Export this report to <span class="blue">CSV</span> | <span class="blue">PDF</span> | <span class="blue">DOC</span></div>
         <paper-material class="margin-botttom">
             <div class="container flex-horizontal">
@@ -607,6 +616,10 @@
             properties: {
                 model: Object,
                 sections: Array,
+                insightsEnabled: {
+                    type: Boolean,
+                    computed: "_computeInsightsEnabled(model)"
+                },
                 onboarding: Object,
                 largescreen: Boolean,
                 machines: Array,
@@ -748,11 +761,12 @@
                 'combineParams(timeParams.*, filterby.*)'
             ],
             ready: function(){
-                var chart = this.$.chart;
-                console.log(chart)
             },
             attached: function (e) {
                 this.updateChartWidth(e);
+            },
+            _computeInsightsEnabled: function(model){
+                return this.model.org.insights_enabled || false;
             },
             computePastItems: function (timeParamsChangeRecord) {
                 console.log("loadingData", this.loadingData);
@@ -1081,7 +1095,9 @@
                 var extra = '';
                 if (e.detail.error.code == 400)
                     extra= ': No data'
-                this.fire('toast',{msg:e.detail.error.message+extra , duration:5000});
+                
+                if (this.insightsEnabled)
+                    this.fire('toast',{msg:e.detail.error.message+extra , duration:5000});
             },
             _toFixed: function(inp) {
                 return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
