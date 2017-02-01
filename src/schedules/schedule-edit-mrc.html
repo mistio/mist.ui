@@ -30,6 +30,7 @@
                 <p>
                     <paper-input id="mrc" label="Maximum Run Count" value="{{newMaxRunCount}}"></paper-input>
                 </p>
+                <p>Leave blank and save to dismiss max run count constrain.</p>
                 <div class="clearfix btn-group">
                     <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
                     <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
@@ -77,7 +78,7 @@
                     this._formReset();
                 },
                 _submitForm: function(e) {
-                    this.$.editSchedule.body = {max_run_count: parseInt(this.newMaxRunCount)};
+                    this.$.editSchedule.body = {max_run_count: this.newMaxRunCount};
                     this.$.editSchedule.headers["Content-Type"] = 'application/json';
                     this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.editSchedule.generateRequest();
@@ -102,7 +103,7 @@
                         this.set('formReady', false);
                     }
                     else {
-                        this.set('formReady', parseInt(this.newMaxRunCount) >= 0 && this.newMaxRunCount != this.schedule.max_run_count);
+                        this.set('formReady', (parseInt(this.newMaxRunCount) >= 0 || this.newMaxRunCount == "") && this.newMaxRunCount != this.schedule.max_run_count);
                     }
                 }
             });
