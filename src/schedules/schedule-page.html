@@ -5,11 +5,14 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
 <link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
 <link rel="import" href="../item-list/item-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 
 <link rel="import" href="schedule-edit.html">
+<link rel="import" href="schedule-edit-mrc.html">
 <link rel="import" href="schedule-edit-condition.html">
 <link rel="import" href="schedule-edit-task.html">
 
@@ -135,6 +138,9 @@
                 vertical-align: middle;
                 padding: 2px 0.5em !important;
             }
+            paper-button.blue-link[disabled] {
+                color: rgba(0,0,0,0.32) !important;
+            }
             paper-button.blue-link {
                 background-color: transparent !important;
                 font-weight: 400 !important;
@@ -211,6 +217,10 @@
                 color: var(--red-color);
                 margin: 8px;
             }
+            .note {
+                color: rgba(0,0,0,0.32);
+                font-size: 0.9em;
+            }
         </style>
         <div id="content" class="does-not-exist" hidden$="[[exists]]">
             <h1>404</h1>
@@ -259,7 +269,11 @@
                     <paper-button id="editExpiration" on-tap="_selectDate" class="simple-button blue-link smaller" noink>change</paper-button>
                 </div>
                 <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
-                <div hidden$="[[!schedule.max_run_count]]"><span class="m-info-head">Max Runs:</span> [[schedule.max_run_count]]</div>
+                <div>
+                    <span class="m-info-head">Max Runs:</span> [[schedule.max_run_count]]
+                    <paper-button on-tap="_editMaxRunCount" class="simple-button blue-link smaller" noink disabled$="[[isOneOff]]" hidden$="[[isOneOff]]">change</paper-button>
+                    <span hidden$="[[!isOneOff]]" class="note">Can't edit. One off schedules run once and expire.</span>
+                </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
                     <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] 
@@ -280,8 +294,8 @@
                 <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
             </paper-material>
         </div>
-        <dialog-element id="scheduleModal"></dialog-element>
-        <paper-dialog id="dateTimePickers" with-backdrop>
+        <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
+        <paper-dialog id="dateTimePickers" exit-animation="fade-out-animation" with-backdrop>
             <div class="pickers">
                 <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
                 <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
@@ -301,6 +315,7 @@
         </paper-dialog>
 
         <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
+        <schedule-edit-mrc id="editMaxRunCount" schedule="[[schedule]]"></schedule-edit-mrc>
         <schedule-edit-task id="editScheduleTask" schedule="[[schedule]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
         <schedule-edit-condition id="editScheduleCondition" schedule="[[schedule]]" model="[[model]]"></schedule-edit-condition>
 
@@ -658,6 +673,9 @@
                     }
                     return arrTags;
                 }
+            },
+            _editMaxRunCount: function(e){
+                this.$.editMaxRunCount._openEditScheduleModal();
             }
         });
     </script>
