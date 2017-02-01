@@ -237,7 +237,7 @@
                                 f.options = this.model.clouds[cloudId].networksArray;
                             }
 
-                            if (f.options && f.options.length == 1){
+                            if (f.required && f.options && f.options.length == 1){
                                 if (f.type == "dropdown")
                                    this.set('machineFields.'+index+'.value', f.options[0].val);
                                 else
@@ -395,15 +395,17 @@
                     this.set('machineFields.'+ pathInd +'.value', this.model.clouds[this.selectedCloud].images_location +"/"+ machinename.trim() +".img");
                 },
                 _updateEc2Sizes: function(imageid) {
-                    var virtualization_type = this.model.images[imageid].extra.virtualization_type;
+                    if (this.model.images[imageid] && this.model.images[imageid].extra && this.model.images[imageid].extra.virtualization_type){
+                        var virtualization_type = this.model.images[imageid].extra.virtualization_type;
 
-                    var sizeInd = this._fieldIndexByName('size');
-                    var sizesOptions = this.model.clouds[this.selectedCloud].sizesArray.filter(function(s){
-                        return s.extra.virtualizationTypes.indexOf(virtualization_type) > -1
-                    });
-                    this.set('machineFields.' + sizeInd + '.options', sizesOptions);
+                        var sizeInd = this._fieldIndexByName('size');
+                        var sizesOptions = this.model.clouds[this.selectedCloud].sizesArray.filter(function(s){
+                            return s.extra.virtualizationTypes.indexOf(virtualization_type) > -1
+                        });
+                        this.set('machineFields.' + sizeInd + '.options', sizesOptions);
+                        // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
+                    }
 
-                    console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
                 },
                 _toggleScriptFields: function(scripttype){
                     var inlineInd = this._fieldIndexByName('script');
