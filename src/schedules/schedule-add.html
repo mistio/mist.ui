@@ -370,7 +370,7 @@ SCHEDULEACTIONS = {
                         excludeFromPayload: true,
                         show: true,
                         required: false,
-                        helptext: "Optional. Integers only. Define a maximum run count."
+                        helptext: "Optional. Integers only. Define a maximum run count, unless it's an one_of schedule."
                     },{
                         name: "run_immediately",
                         label: "Run once immediately",
@@ -480,18 +480,25 @@ SCHEDULEACTIONS = {
                         var entryInd = this._fieldIndexByName("schedule_entry"),
                             expInd = this._fieldIndexByName("expires"),
                             entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab"),
+                            maxcountInd = this._fieldIndexByName("max_run_count"),
                             entry;
                         if (changeRecord.value == "interval") {
                             entry = this._processInterval();
                             this.set('fields.'+ expInd +'.disabled', false);
+                            this.set('fields.'+ maxcountInd +'.disabled', false);
+                            this.set('fields.'+ maxcountInd +'.value', "");
                         }
                         else if (changeRecord.value == "crontab") {
                             entry = this._processCrotab(this.get('fields.'+entryCronTabInd+'.value'));
                             this.set('fields.'+ expInd +'.disabled', false);
+                            this.set('fields.'+ maxcountInd +'.disabled', false);
+                            this.set('fields.'+ maxcountInd +'.value', "");
                         }
                         else if (changeRecord.value == "one_off") {
                             entry = "";
                             this.set('fields.'+ expInd +'.disabled', true);
+                            this.set('fields.'+ maxcountInd +'.value', 1);
+                            this.set('fields.'+ maxcountInd +'.disabled', true);
                         }
                         this.set('fields.'+ entryInd +'.value', entry);
                     }
@@ -511,7 +518,7 @@ SCHEDULEACTIONS = {
                     // interval changes in schedule entry
                     if (this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_interval_")) {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        this.set('fields.'+ entryInd +'.value', this._processInterval());
+                        this.set('fields.'+ entryInd +'.value', this._processInterval());                        
                     }
 
                     if (this.get(changeRecord.path.replace('.value','')).name == "expires"){
