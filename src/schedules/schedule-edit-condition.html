@@ -228,7 +228,7 @@
                     }
                     else if (this.isTags) {
                         pl["machines_tags"] = this._constructTagsValue(this.textToArray(this.tagsString));
-                        valid = this.textToArray(this.tagsString).length;
+                        valid = this.textToArray(this.tagsString) ? this.textToArray(this.tagsString).length : false;
                     }
                     this.set('payload', pl);
                     this.set('formReady', valid);
@@ -260,15 +260,17 @@
                 },
                 _constructTagsValue: function(tagStringsArray) {
                     var arr = {};
-                    tagStringsArray.forEach(function(string){
-                        var chunks = string.split("=");
-                        if (chunks.length > 0 && chunks[0].trim().length > 0) {
-                            var key = chunks[0].trim();
-                            arr[key] = null;
-                            if (chunks.length > 1)
-                                arr[key] = chunks[1].trim();
-                        }
-                    });
+                    if (tagStringsArray){
+                        tagStringsArray.forEach(function(string){
+                            var chunks = string.split("=");
+                            if (chunks.length > 0 && chunks[0].trim().length > 0) {
+                                var key = chunks[0].trim();
+                                arr[key] = null;
+                                if (chunks.length > 1)
+                                    arr[key] = chunks[1].trim();
+                            }
+                        });
+                    }
                     return arr;
                 },
                 _computeTagsString: function(schedule){
