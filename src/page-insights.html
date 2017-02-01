@@ -45,6 +45,16 @@
         .error {
             color: var(--red-color);
         }
+        .blue {
+            color: var(--mist-blue);   
+        }
+        .export  {
+            text-align: right;
+            padding: 0 0 24px 0;
+        }
+        .export .blue {
+            cursor: pointer;
+        }
         .smaller {
             text-transform: uppercase;
             font-size: 0.9em;
@@ -219,6 +229,7 @@
     <iron-media-query query="(min-width: 1180px)" query-matches="{{largescreen}}"></iron-media-query>
 
     <div id="content">
+        <div class="export opaque">Export this report to <span class="blue">CSV</span> | <span class="blue">PDF</span> | <span class="blue">DOC</span></div>
         <paper-material class="margin-botttom">
             <div class="container flex-horizontal">
                 <div class="flexchild">
@@ -271,7 +282,7 @@
                 <div class="flexchild">
                     <div class="smaller">Cost</div>
                     <h2 class="cost"><span class="sup">$</span>[[_toFixed(report.cost)]]</h2>
-                    <div class="smaller" hidden$="[[!report.comparative_cost]]">
+                    <div class="smaller" hidden$="[[!isNotNull(report.comparative_cost)]]">
                         <span class$="[[diffText(report.comparative_cost)]]">
                             <span hidden$="[[!report.comparative_cost]]">[[abs(report.comparative_cost)]]%</span> [[diffText(report.comparative_cost)]]
                         </span> 
@@ -328,7 +339,7 @@
                         Current run rate
                     </span>
                 </div>
-                <div class="smaller inline" hidden$="[[!report.comparative_cost]]">
+                <div class="smaller inline" hidden$="[[!isNotNull(report.comparative_cost)]]">
                     <span class$="[[diffText(report.comparative_cost)]]">
                         <span hidden$="[[!report.comparative_cost]]">[[abs(report.comparative_cost)]]%</span> [[diffText(report.comparative_cost)]]
                     </span> 
@@ -613,8 +624,8 @@
                 timeParams: {
                     type: Object,
                     value: {
-                        window: "month",
-                        past: "1"
+                        window: "hour",
+                        past: "0"
                     }
                 },
                 filterby: {
