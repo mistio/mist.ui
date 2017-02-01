@@ -195,8 +195,9 @@
                 _closeEditScheduleModal: function(e) {
                     this.$.editScheduleModal.close();
                 },
-                _modalClosed: function() {
-                    this._formReset();
+                _modalClosed: function(e){
+                    if (e.target == this.$.editScheduleModal)
+                        this._formReset();
                 },
                 _submitForm: function(e) {
                     this.$.editSchedule.body = this.payload;
@@ -205,6 +206,10 @@
                     this.$.editSchedule.generateRequest();
                 },
                 _formReset: function() {
+                    var checkboxes = this.querySelectorAll('paper-checkbox');
+                    Array.prototype.forEach.call(checkboxes, function(c){
+                        c.checked = this._computeIfChecked(this.schedule, c.dataValue);
+                    }.bind(this));
                     this._computeNewSchedule();
                 },
                 _handleResponse: function(e) {

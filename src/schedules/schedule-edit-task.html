@@ -333,8 +333,18 @@
                     this.$.editSchedule.generateRequest();
                 },
                 _formReset: function() {
-                    this._computeNewSchedule(this.schedule);
+                    //reset form dropdown menus
+                    var menus = this.querySelectorAll('paper-menu');
+                    Array.prototype.forEach.call(menus, function(m){
+                        m.selected = -1;
+                    });
+
                     this.set('payload', {});
+                    this._computeNewSchedule(this.schedule);
+                },
+                _modalClosed: function(e){
+                    if (e.target == this.$.editScheduleModal)
+                        this._formReset();
                 },
                 _handleScheduleEditResponse: function(e) {
                     this._closeEditScheduleModal();
@@ -348,8 +358,7 @@
                 },
                 _updatePayload: function(e) {
                     var pl = {};
-                    if (this.schedule) {
-                        console.log(this.taskType)
+                    if (this.schedule && this.newSchedule) {
                         // check if task changed
                         if (this.taskType == 'action' && this._computeAction(this.schedule.task_type) != this.newSchedule.action) {
                             pl.action = this.newSchedule.action;
@@ -361,7 +370,7 @@
                         if (this.schedule.schedule_type != this.newSchedule.schedule_type) {
                             pl.schedule_type = this.newSchedule.schedule_type;
                         }
-                        if (JSON.stringify(this.schedule.schedule_entry) != JSON.stringify(this._computePayloadEntry(this.newSchedule.schedule_entry)))  {
+                        if (this.schedule.schedule_entry && this.newSchedule.schedule_entry && this.newSchedule.schedule_type && JSON.stringify(this.schedule.schedule_entry) != JSON.stringify(this._computePayloadEntry(this.newSchedule.schedule_entry)))  {
                             pl.schedule_entry = this.newSchedule.schedule_type != 'one_off' ? this._computePayloadEntry(this.newSchedule.schedule_entry) : moment(this.newSchedule.schedule_entry.entry).utc().format('YYYY-MM-DD HH:mm:ss').toString();
                         }
                         this.set('payload', pl);
@@ -377,6 +386,9 @@
                     }
                     else if (this.newSchedule.schedule_type == 'crontab') {
                         return this._processCrotab(this.$.crontab.value);
+                    }
+                    else if (this.newSchedule.schedule_type == 'one_off') {
+                        return this.newSchedule.schedule_entry.entry;
                     }
                 },
                 _processCrotab: function(entry) {
