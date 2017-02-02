@@ -1,0 +1,679 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
+<link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+
+<link rel="import" href="../item-list/item-list.html">
+<link rel="import" href="../helpers/dialog-element.html">
+
+<link rel="import" href="schedule-edit.html">
+<link rel="import" href="schedule-edit-mrc.html">
+<link rel="import" href="schedule-edit-condition.html">
+<link rel="import" href="schedule-edit-task.html">
+
+<dom-module id="schedule-page">
+    <template>
+        <style is="custom-style" include="single-page"></style>
+        <style is="custom-style" include="tags-and-labels"></style>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            paper-material {
+                display: block;
+                padding: 20px;
+            }
+
+            paper-menu-button paper-button {
+                display: block;
+            }
+
+            .flex-horizontal-with-ratios {
+                @apply(--layout-horizontal);
+            }
+
+            .flexchild {
+                @apply(--layout-flex);
+            }
+
+            .command-container {
+                background-color: #444;
+                color: #fff;
+                font-family: monospace;
+                padding: 10px;
+            }
+
+            a {
+                color: black;
+                text-decoration: none;
+            }
+
+            .paper-header [paper-drawer-toggle] {
+                margin-left: 10px;
+            }
+
+            .paper-header {
+                @apply(--layout-horizontal);
+            }
+
+            .paper-header {
+                height: 60px;
+                font-size: 24px;
+                line-height: 60px;
+                padding: 0 10px;
+                color: white;
+                transition: height 0.2s;
+                transition: font-size 0.2s;
+            }
+
+            .paper-header.tall {
+                height: 320px;
+                font-size: 16px;
+            }
+
+            .paper-header h2 {
+                margin-left: 20px;
+                @apply(--layout-flex);
+                text-transform: capitalize;
+            }
+
+            .paper-header .toggleViewButton {
+                --paper-icon-button-ink-color: transparent;
+            }
+
+            .paper-header .cartButton {
+                margin-right: 10px;
+            }
+
+            #content {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            paper-icon-button {
+                transition: all 200ms;
+            }
+
+            paper-icon-button.active-sort {
+                transform: rotate(180deg);
+            }
+
+            paper-icon-button.active-sort::content iron-icon {
+                color: #D48900 !important;
+            }
+
+            h4.id {
+                display: inline-block;
+                text-transform: uppercase;
+                font-size: 0.9rem;
+                font-weight: 700;
+                margin-right: 16px;
+            }
+
+            paper-icon-bottom.bottom {
+                padding-right: 8px;
+            }
+            .m-info-head {
+                text-transform: uppercase;
+                font-weight: bold;
+                font-size: 0.8em;
+                display: inline-block;
+                width: 80px;
+                opacity: 0.54;
+            }
+            .does-not-exist {
+                text-align: center;
+                min-height: 500px;
+            }
+            .smaller {
+                font-size: 0.9em
+            }
+            .smaller .tag {
+                display: inline;
+                vertical-align: middle;
+                padding: 2px 0.5em !important;
+            }
+            paper-button.blue-link[disabled] {
+                color: rgba(0,0,0,0.32) !important;
+            }
+            paper-button.blue-link {
+                background-color: transparent !important;
+                font-weight: 400 !important;
+                color: var(--mist-blue) !important;
+                margin: 0;
+                padding: 0;
+            }
+            :host paper-toggle-button {
+                display: inline-block;
+                vertical-align: top;
+                --paper-toggle-button-checked-bar-color:  var(--green-color);
+                --paper-toggle-button-checked-button-color:  var(--green-color);
+                --paper-toggle-button-checked-ink-color: var(--green-color);
+                --paper-toggle-button-unchecked-bar-color:  var(--red-color);
+                --paper-toggle-button-unchecked-button-color:  var(--red-color);
+                --paper-toggle-button-unchecked-ink-color: var(--red-color);
+            }
+            #dateTimePickers .bottom-actions {
+                display: flex;
+                justify-content: flex-end;
+                padding: 16px 24px !important;
+                background-color: #424242;
+                color: rgba(255,255,255,0.54);
+                border-top: 1px solid #555;
+            }
+            paper-date-picker::content #heading,
+            paper-time-picker::content #heading {
+                background-color: #424242;
+            }
+            paper-date-picker ::content .day-item.selected.paper-calendar {
+                background: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .line.paper-clock-selector {
+                stroke: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .disc-large.paper-clock-selector {
+                fill: var(--mist-blue) !important;
+            }
+            paper-dialog > * {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .never-expire {
+                background-color: #424242;
+                padding: 16px;
+            }
+            .never-expire paper-checkbox {
+                color: #fff;
+                font-weight: 500;
+                font-size: 16px;
+                text-transform: uppercase;
+            }
+            paper-checkbox {
+                --paper-checkbox-unchecked-color: #fff !important;
+                --paper-checkbox-unchecked-ink-color: #fff !important;
+                --paper-checkbox-label-color: #fff !important;
+                --paper-checkbox-checked-color: var(--mist-blue) !important;
+                --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+            }
+            .progress {
+                background-color: #424242;
+                overflow: hidden;
+            }
+            paper-progress {
+                width: 100%;
+            }
+            paper-progress#progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: rgba(255,255,255,0.54);
+            }
+            .errormsg-container iron-icon {
+                color: var(--red-color);
+                margin: 8px;
+            }
+            .note {
+                color: rgba(0,0,0,0.32);
+                font-size: 0.9em;
+            }
+        </style>
+        <div id="content" class="does-not-exist" hidden$="[[exists]]">
+            <h1>404</h1>
+            <p>Schedule can not be found.</p>
+        </div>
+        <div id="content" hidden$="[[!exists]]">
+            <div class="is-loading" hidden$="[[!isLoading]]">
+                <paper-spinner active="[[isLoading]]"></paper-spinner>
+            </div>
+            <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
+                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <div class="title flex">
+                    <h2>[[schedule.name]]</h2>
+                    <div class="subtitle">
+                        [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]]
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <paper-button on-tap="_runOnceDialog" class="simple">run now
+                        <iron-icon icon="edit"></iron-icon>
+                    </paper-button>
+                    <paper-button on-tap="_editSchedule" class="simple">edit
+                        <iron-icon icon="edit"></iron-icon>
+                    </paper-button>
+                    <paper-button on-tap="_deleteSchedule" class="simple">delete
+                        <iron-icon icon="delete"></iron-icon>
+                    </paper-button>
+                </div>
+            </paper-material>
+            <paper-material>
+                <h4 class="id">
+                    <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
+                    <span hidden$="[[hasExpired]]">
+                        <span hidden$="[[!schedule.task_enabled]]">Enabled</span>
+                        <span hidden$="[[schedule.task_enabled]]">Disabled</span>
+                    </span>                    
+                    <span hidden$="[[!hasExpired]]">Scheduler has expired.</span>
+                </h4>
+            </paper-material>
+            <paper-material>
+                <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.:</span> [[schedule.description]]</div>
+                <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
+                <div><span class="m-info-head">Expires:</span> 
+                    <span hidden$="[[schedule.expires.length]]">never</span>
+                    <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
+                    <paper-button id="editExpiration" on-tap="_selectDate" class="simple-button blue-link smaller" noink>change</paper-button>
+                </div>
+                <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
+                <div>
+                    <span class="m-info-head">Max Runs:</span> [[schedule.max_run_count]]
+                    <paper-button on-tap="_editMaxRunCount" class="simple-button blue-link smaller" noink disabled$="[[isOneOff]]" hidden$="[[isOneOff]]">change</paper-button>
+                    <span hidden$="[[!isOneOff]]" class="note">Can't edit. One off schedules run once and expire.</span>
+                </div>
+                <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
+                <div>
+                    <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] 
+                    <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
+                    <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink>change</paper-button>
+                </div>
+            </paper-material>
+            <paper-material>
+                <h4 class="id">Machines</h4>
+                <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[schedule.machines_uuids.length]] selected machines. </span>
+                <span hidden$="[[!isMachinesWithTags]]" class="smaller">
+                    Machines with tags
+                    <template is="dom-repeat" items="[[tagsArray]]">
+                        <span class="tag">[[item]]</span>
+                    </template>
+                    &nbsp; [[filteredItems.length]] machines affected. </span>
+                <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink>change</paper-button>
+                <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
+            </paper-material>
+        </div>
+        <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
+        <paper-dialog id="dateTimePickers" exit-animation="fade-out-animation" with-backdrop>
+            <div class="pickers">
+                <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
+                <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
+                <div class="never-expire">
+                    <paper-checkbox checked="{{neverExpire}}">Never expire</paper-checkbox>
+                </div>
+            </div>
+            <div class="progress">
+                <paper-progress id="progress" indeterminate active="{{expLoading}}" hidden$="[[!expLoading]]"></paper-progress>
+                <paper-progress id="progresserror" value="100" hidden$="[[!expError]]"></paper-progress>
+                <p class="errormsg-container" hidden$="[[!expError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+            </div>
+            <div class="bottom-actions">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="blue" on-tap="_applyDateTime">Apply</paper-button>
+            </div>
+        </paper-dialog>
+
+        <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
+        <schedule-edit-mrc id="editMaxRunCount" schedule="[[schedule]]"></schedule-edit-mrc>
+        <schedule-edit-task id="editScheduleTask" schedule="[[schedule]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
+        <schedule-edit-condition id="editScheduleCondition" schedule="[[schedule]]" model="[[model]]"></schedule-edit-condition>
+
+        <iron-ajax  id="deleteSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="DELETE"
+                    on-response="_handleScheduleDeleteResponse"
+                    on-error="_handleScheduleDeleteError"></iron-ajax>
+
+        <iron-ajax  id="editToggleSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="PATCH"
+                    loading="{{toogleLoading}}"
+                    handle-as="xml"
+                    on-response="_handleScheduleEditToggleResponse"
+                    on-error="_handleScheduleEditToggleError"></iron-ajax>
+
+        <iron-ajax  id="editExpirationSchedule"
+                    url="/api/v1/schedules/[[schedule.id]]"
+                    method="PATCH"
+                    loading="{{expLoading}}"
+                    handle-as="xml"
+                    on-response="_handleScheduleEditExpirationResponse"
+                    on-error="_handleScheduleEditExpirationError"></iron-ajax>
+
+    </template>
+    <script>
+        Polymer({
+            is: 'schedule-page',
+
+            properties: {
+                model: Object,
+                sections: Array,
+                section: Object,
+                schedule: Object,
+                toogleLoading: Boolean,
+                isLoading: {
+                    type: Boolean,
+                    value: true
+                },
+                exists: {
+                    type: Boolean,
+                    value: false
+                },
+                filteredItems: {
+                    type: Array
+                },
+                sortBy: {
+                    type: String,
+                    value: "name"
+                },
+                sortOrder: {
+                    type: Number,
+                    value: 1
+                },
+                hasExpired: {
+                    type: Boolean,
+                    computed: "_computeHasExpired(schedule)"
+                },
+                isSpecificMachines: {
+                    type: Boolean,
+                    computed: "_computeIsSpecificMachines(schedule)"
+                },
+                isMachinesWithTags: {
+                    type: Boolean,
+                    computed: "_computeIsMachinesWithTags(schedule)"
+                },
+                isInterval:  {
+                    type: Boolean,
+                    computed: "_computeIsInterval(schedule)"
+                },
+                isCrontab:  {
+                    type: Boolean,
+                    computed: "_computeIsCrontab(schedule)"
+                },
+                isOneOff:  {
+                    type: Boolean,
+                    computed: "_computeIsOneOff(schedule)"
+                },
+                isAction:  {
+                    type: Boolean,
+                    computed: "_computeIsAction(schedule)"
+                },
+                isRunScript:  {
+                    type: Boolean,
+                    computed: "_computeIsRunScript(schedule)"
+                },
+                expLoading: {
+                    type: Boolean,
+                    value: false
+                },
+                tagsArray: {
+                    type: Array,
+                    computed: '_computeTagsArray(schedule, isMachinesWithTags)'
+                },
+                neverExpire: Boolean,
+                expError: Boolean,
+                machines: Array,
+                tags: Array,
+                lastrequestedaction: String
+            },
+            observers: [
+                '_scheduleChanged(schedule)',
+                '_computeMachines(schedule.*, model.machinesArray)'
+            ],
+            listeners: {
+                'confirmation': '_actionConfirmed',
+            },
+            attached: function() {
+                this.isLoading = false;
+            },
+            _scheduleChanged: function(schedule) {
+                if (this.schedule && this.schedule.id) {
+                    this.exists = true;
+                }
+                else {
+                    this.exists = false;
+                }
+            },
+            _computeHasExpired: function(schedule) {
+                if (this.schedule && this.schedule.expires && this.schedule.expires.length && moment().diff(moment(this.schedule.expires).local()) > 0)
+                    return true
+                else
+                    return false
+            },
+            _computeIsInterval: function(schedule) {
+                if (this.schedule)
+                    return this.schedule.schedule_type == "nterval";
+            },
+            _computeIsCrontab: function(schedule) {
+                if (this.schedule)
+                    return this.schedule.schedule_type == "crontab";
+            },
+            _computeIsOneOff: function(schedule) {
+                if (this.schedule)
+                    return this.schedule.schedule_type == "one_off";
+            },
+            _computeIsAction: function(schedule) {
+                if (this.schedule)
+                    return this.schedule.task_type.startsWith("Action:");
+            },
+            _computeIsRunScript: function(schedule) {
+                if (this.schedule)
+                    return this.schedule.task_type.startsWith("Run script:");
+            },
+            _computeIsSpecificMachines: function(schedule) {
+                if (this.schedule)
+                    return this.schedule.machines_uuids && this.schedule.machines_uuids.length > 0 ? true : false;
+            },
+            _computeIsMachinesWithTags: function(schedule) {
+                if (this.schedule)
+                    return this.schedule.machines_tags && JSON.stringify(this.schedule.machines_tags).length > 2 ? true : false;
+            },
+            _editSchedule: function(e) {
+                this.$.editScheduleDialog._openEditScheduleModal();
+            },
+            _deleteSchedule: function(e) {
+                this._showDialog({
+                    title: 'Delete Schedule?',
+                    body: "Deleting schedules cannot be undone." ,
+                    danger: true,
+                    reason: "schedule.delete"
+                });
+            },
+            _actionConfirmed: function(e) {
+                var reason = e.detail.reason,
+                    response = e.detail.response;
+
+                if (response.confirmed && reason == "schedule.delete") {
+                    this.$.deleteSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.deleteSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.deleteSchedule.generateRequest();
+                }
+
+                if (response.confirmed && reason == "schedule.run") {
+                    this.$.editToggleSchedule.body = {'run_immediately': true}
+                    this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.editToggleSchedule.generateRequest();
+                    this.lastrequestedaction = 'run';
+                }
+            },
+            _handleScheduleDeleteResponse: function(e) {
+                document.querySelector('app-location').path = '/schedules';
+            },
+            _handleScheduleDeleteError: function(e) {
+                var message = e.detail.error;
+                if (e.detail.request.statusText)
+                    message += " "+e.detail.request.statusText;
+
+                this.fire('toast', { msg: message, duration: 5000 });
+            },
+            _showDialog: function(info) {
+                var dialog = this.querySelector('dialog-element#scheduleModal');
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
+                dialog._openDialog();
+            },
+            _makeCleanerTask: function(str) {
+                if (str) {
+                    var ret = str.replace(" script:", "").replace("Action:", "");
+
+                    if (this.isAction) {
+                        ret = ret.toUpperCase();
+                        ret += " machines";
+                    }
+                    else if (this.isRunScript) {
+                        var script = str.split(": ")[1],
+                            scriptName = this.model.scripts[script] ? this.model.scripts[script].name : "Missing Script";
+
+                        ret = ret.replace(script, "");
+                        ret += scriptName;
+                    }
+                    return ret;
+                }
+            },
+            _computeScriptLink: function(schedule) {
+                if (this.schedule && this.schedule.task_type.startsWith("Run script:")) {
+                    return '/scripts/'+this.schedule.task_type.split(": ")[1]
+                }
+            },
+            _computeMachines: function(schedule, machines) {
+                var filteredMachines = [];
+                filteredMachines = this.model.machinesArray.filter(function(m){
+                    return this.condition(m);
+                }, this)
+                this.set('filteredItems', filteredMachines);
+            },
+            condition: function(m) {
+                if (this.isSpecificMachines) {
+                    return this.isSelectedMachine(m.uuid);
+                }
+                else if (this.isMachinesWithTags) {
+                    return this.machineHasTag(m);
+                }
+                return false;
+            },
+            isSelectedMachine: function(machineId) {
+                return this.schedule.machines_uuids.indexOf(machineId) > -1;
+            },
+            machineHasTag: function(m) {
+                var exists = false;
+                for (var i = 0; i < m.tags.length; i++){
+                    if (this.schedule.machines_tags[m.tags[i].key] && this.schedule.machines_tags[m.tags[i].key] == m.tags[i].value ){
+                        exists = true;
+                        break;
+                    }
+                }
+                return exists;
+            },
+            toggleEnable: function(){
+                this.lastrequestedaction = 'run';
+                this.$.editToggleSchedule.body = {task_enabled: !this.schedule.task_enabled};
+                this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
+                this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.editToggleSchedule.generateRequest();
+            },
+            _handleScheduleEditToggleResponse: function() {
+                var message;
+                if (this.lastrequestedaction == "enable") {
+                    message = !this.schedule.task_enabled ? 'Enabling schedule..' : 'Disabling schedule..'
+                }
+                else if (this.lastrequestedaction == "run") {
+                    message = 'Run request sent successfully.';   
+                }
+                this.fire('toast', { msg: message, duration: 3000 });
+            },
+            _handleScheduleEditToggleError: function(e) {
+                console.log('_handleScheduleEditToggleError',e);
+                var message = e.detail.request.xhr.response;
+                this.fire('toast', { msg: message, duration: 5000 });
+                this.$.scheduleEnabled.setAttribute('checked', this.schedule.task_enabled);
+            },
+            _computeDateFromNow: function(time) {
+                return moment.utc(time).local().fromNow();
+            },
+            _computeAbsoluteDateText: function(time) {
+                return moment.utc(time).local().format("MMMM D YYYY HH:mm:ss");
+            },
+            _selectDate: function(e) {
+                if (moment(this.schedule.expires).isValid()){
+                    this.$.pickDate.date = moment(this.schedule.expires).toDate();
+                    this.$.pickTime.time = moment.utc(this.schedule.expires).local().format('hh:mm a').toString();
+                }
+                else {
+                    this.$.pickDate.date = new Date();
+                    this.$.pickTime.time = moment().format('hh:mm a').toString(); 
+                }
+                this.$.pickDate.minDate = new Date();
+                this.neverExpire = false;
+                this.expError = false;
+                this.$.dateTimePickers.open();
+            },
+            _applyDateTime: function(e) {
+                var payload;
+                if (!this.neverExpire){
+                    var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
+                    var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+                    payload = { expires: moment(combinedDate).utc().format('YYYY-MM-DD HH:mm:ss').toString()}
+                }
+                else {
+                    payload = { expires: ""};
+                }
+                this.$.editExpirationSchedule.body = payload;
+                this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
+                this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.editExpirationSchedule.generateRequest();
+
+                this.expError = false;
+            },
+            _handleScheduleEditExpirationResponse: function() {
+                var message = 'Updating expiration date...';
+                this.fire('toast', { msg: message, duration: 3000 });
+
+                this.$.dateTimePickers.close();
+                this.expError = false;
+                this.neverExpire = false;
+            },
+            _handleScheduleEditExpirationError: function(e) {
+                console.log('_handleScheduleEditToggleError',e);
+                var message = e.detail.request.xhr.response;
+                this.fire('toast', { msg: message, duration: 5000 });
+                this.expError = true;
+
+                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+            },
+            _changeCondition: function() {
+                this.$.editScheduleCondition._openEditScheduleModal();
+            },
+            _editTask: function() {
+                this.$.editScheduleTask._openEditScheduleModal();
+            },
+            _runOnceDialog: function() {
+                this._showDialog({
+                    title: 'Run once now?',
+                    body: "The schedule will execute once and then continue as planned." ,
+                    danger: false,
+                    reason: "schedule.run",
+                    action: 'run'
+                });
+            },
+            _computeTagsArray: function(schedule, isMachinesWithTags ){
+                if (this.isMachinesWithTags && this.schedule.machines_tags) {
+                    var tags = this.schedule.machines_tags;
+                    var arrTags = Object.keys(tags); 
+                    for (var i=0; i < arrTags.length; i++) {
+                        var t = arrTags[i];
+                        if (tags[t] != null) {
+                            arrTags[i] = arrTags[i]+'='+tags[t];
+                        }
+                    }
+                    return arrTags;
+                }
+            },
+            _editMaxRunCount: function(e){
+                this.$.editMaxRunCount._openEditScheduleModal();
+            }
+        });
+    </script>
+</dom-module>

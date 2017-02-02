@@ -201,10 +201,22 @@
         a.section:focus {
             outline: 0;
         }
+        .sidebar-sep {
+            opacity: 0.32;
+        }
         </style>
         <div class="content">
             <div id="section-list">
                 <nav>
+                    <a id="stacks" class="section" is="pushstate-anchor" href="/stacks" active$="[[_isEqual(current, 'stacks')]]" tabindex="1" style$="[[style(sections.stacks.color)]]" hidden$="[[!hasStacks]]">
+                        <div class="layout horizontal center">
+                            <section-symbol aria-hidden="true" icon="[[sections.stacks.icon]]" color="[[sections.stacks.color]]"></section-symbol>
+                            <span class="title flex">
+                                <span>stacks</span>
+                            <span class="count">[[model.stacksArray.length]]</span>
+                            </span>
+                        </div>
+                    </a>
                     <a id="machines" class="section" is="pushstate-anchor" href="/machines" active$="[[_isEqual(current, 'machines')]]" tabindex="1" style$="[[style(sections.machines.color)]]">
                         <div class="layout horizontal center">
                             <section-symbol aria-hidden="true" icon="[[sections.machines.icon]]"></section-symbol>
@@ -220,6 +232,15 @@
                             <span class="title flex">
                                 <span>images</span>
                             <span class="count">[[model.imagesArray.length]]</span>
+                            </span>
+                        </div>
+                    </a>
+                    <a id="stacks" class="section" is="pushstate-anchor" href="/stacks" active$="[[_isEqual(current, 'stacks')]]" tabindex="1" style$="[[style(sections.stacks.color)]]" hidden$="[[hasStacks]]">
+                        <div class="layout horizontal center">
+                            <section-symbol aria-hidden="true" icon="[[sections.stacks.icon]]" color="[[sections.stacks.color]]"></section-symbol>
+                            <span class="title flex">
+                                <span>stacks</span>
+                            <span class="count">[[model.stacksArray.length]]</span>
                             </span>
                         </div>
                     </a>
@@ -250,15 +271,6 @@
                             </span>
                         </div>
                     </a>
-                    <a id="scripts" class="section" is="pushstate-anchor" href="/scripts" active$="[[_isEqual(current, 'scripts')]]" tabindex="1" style$="[[style(sections.scripts.color)]]">
-                        <div class="layout horizontal center">
-                            <section-symbol aria-hidden="true" icon="[[sections.scripts.icon]]" color="[[sections.scripts.color]]"></section-symbol>
-                            <span class="title flex">
-                                <span>scripts</span>
-                            <span class="count">[[model.scriptsArray.length]]</span>
-                            </span>
-                        </div>
-                    </a>
                     <a id="templates" class="section" is="pushstate-anchor" href="/templates" active$="[[_isEqual(current, 'templates')]]" tabindex="1" style$="[[style(sections.templates.color)]]">
                         <div class="layout horizontal center">
                             <section-symbol aria-hidden="true" icon="[[sections.templates.icon]]" color="[[sections.templates.color]]"></section-symbol>
@@ -268,12 +280,22 @@
                             </span>
                         </div>
                     </a>
-                    <a id="stacks" class="section" is="pushstate-anchor" href="/stacks" active$="[[_isEqual(current, 'stacks')]]" tabindex="1" style$="[[style(sections.stacks.color)]]">
+                    <a id="scripts" class="section" is="pushstate-anchor" href="/scripts" active$="[[_isEqual(current, 'scripts')]]" tabindex="1" style$="[[style(sections.scripts.color)]]">
                         <div class="layout horizontal center">
-                            <section-symbol aria-hidden="true" icon="[[sections.stacks.icon]]" color="[[sections.stacks.color]]"></section-symbol>
+                            <section-symbol aria-hidden="true" icon="[[sections.scripts.icon]]" color="[[sections.scripts.color]]"></section-symbol>
                             <span class="title flex">
-                                <span>stacks</span>
-                            <span class="count">[[model.stacksArray.length]]</span>
+                                <span>scripts</span>
+                            <span class="count">[[model.scriptsArray.length]]</span>
+                            </span>
+                        </div>
+                    </a>
+                    <hr class="sidebar-sep"/>
+                    <a id="schedules" class="section" is="pushstate-anchor" href="/schedules" active$="[[_isEqual(current, 'schedules')]]" tabindex="1" style$="[[style(sections.schedules.color)]]">
+                        <div class="layout horizontal center">
+                            <section-symbol aria-hidden="true" icon="[[sections.schedules.icon]]" color="[[sections.schedules.color]]"></section-symbol>
+                            <span class="title flex">
+                                <span>schedules</span>
+                            <span class="count">[[model.schedulesArray.length]]</span>
                             </span>
                         </div>
                     </a>
@@ -318,6 +340,10 @@ Polymer({
         isclosed: {
             type: Boolean,
             reflectToAttribute: true
+        },
+        hasStacks: {
+            type: Boolean,
+            computed: "_computeHasStacks(model.stacksArray)"
         }
     },
     style: function(color) {
@@ -379,6 +405,9 @@ Polymer({
     },
     _isEqual: function(a, b) {
         return a === b;
+    },
+    _computeHasStacks: function(stacksArray) {
+        return stacksArray.length > 0;
     }
 });
 
