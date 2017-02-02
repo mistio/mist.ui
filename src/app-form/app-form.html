@@ -235,7 +235,7 @@
                             <span class="checkboxes-label" hidden$="[[field.label]]">[[field.name]]:</span>
                             <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                             <template is="dom-repeat" items="[[field.options]]" as="option">
-                                <paper-checkbox name$="[[field.name]]" data-value="[[_computeID(option.id, option.uuid, field.name)]]">[[option.name]]</paper-checkbox>
+                                <paper-checkbox name$="[[field.name]]" data-value="[[_computeID(option, field.name)]]">[[option.name]]</paper-checkbox>
                             </template>
                         </div>
                     </template>
@@ -629,11 +629,12 @@
                             inputs: inps
                         }
                     } else {
-                        payload = {};
+                        payload = this.form;
                         // clean up form for payload
                         this.fields.forEach(function(el) {
-                            if (!el.excludeFromPayload) {
-                                payload[el.name] = this.form[el.name];
+                            // console.log(el.name, el.excludeFromPayload);
+                            if (el.excludeFromPayload) {
+                                delete payload[el.name];
                             }
                         }, this);
 
@@ -810,11 +811,11 @@
                     });
                     return arr;
                 },
-                _computeID: function(id, uuid, fieldname) {
+                _computeID: function(option, fieldname) {
                     if (fieldname == "machines_uuids")
-                        return uuid;
+                        return option.uuid;
                     else
-                        return id;
+                        return option.id;
                 },
                 _updateCheckboxesField: function(e) {
                     if (e.target.tagName == "PAPER-CHECKBOX"){

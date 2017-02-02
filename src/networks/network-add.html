@@ -93,7 +93,8 @@
                         placeholder: "",
                         errorMessage: "Please enter network's name",
                         show: true,
-                        required: true
+                        required: true,
+                        excludeFromPayload: true
                     }, {
                         name: "cloud",
                         label: "Cloud *",
@@ -115,6 +116,7 @@
                         placeholder: "",
                         show: true,
                         required: true,
+                        excludeFromPayload: true,
                         options: [{
                             title: "Up",
                             val: true
@@ -292,7 +294,7 @@
                     }
                 }
 
-                this.updatePayoad();            
+                this.updatePayload();            
             },
             updateUrl: function(e){
                 //update url when cloud is selected
@@ -302,48 +304,52 @@
                     }, this);
                     this.set('cloud',this.fields[cloud].value)
                 }
-                this.updatePayoad();
+                this.updatePayload();
             },
-            updatePayoad: function(){
-                // update payload
-                var payload = {};
-                payload = {
-                    network: {
-                        name: this.fields[0].value, 
-                        admin_state_up: this.fields[2].value
+            updatePayload: function(){
+                if (this.fields.length){
+                    // update payload
+                    var payload = {};
+                    payload = {
+                        network: {
+                            name: this.fields[0].value, 
+                            admin_state_up: this.fields[2].value
+                        }
                     }
+                    //create subnet
+                    if (this.fields[3].value == true) { 
+                        //parse allocation pools
+                        var allocationPools = [];
+                        if (this.fields[10].value){
+                            var lines = this.fields[10].value.split('\n');
+                            lines.forEach(function(l){
+                                if (l) 
+                                allocationPools.push({
+                                    start: l.replace(',','').split('-')[0].trim(),
+                                    end: l.replace(',','').split('-')[1].trim()
+                                })
+                            })
+                            payload.subnet = {
+                                name: this.fields[4].value,
+                                ip_version:  parseInt(this.fields[6].value),
+                                cidr:  this.fields[5].value,                        
+                                enable_dhcp: this.fields[8].value,
+                                allocation_pools: allocationPools
+                            };
+                        }
+                        // if subnet disable Gateway delete property
+                        var subnet_disableGateway = this.fields.findIndex(function(f){
+                            return f.name == "subnet_disableGateway"
+                        });
+                        if (this.fields[subnet_disableGateway].value == false){
+                            payload.subnet.gateway_ip = this.fields[7].value;
+                        }
+                        else {
+                            delete payload.subnet['gateway_ip'];
+                        }
+                    }
+                    this.set('network', payload);
                 }
-                //create subnet
-                if (this.fields[3].value == true) { 
-                    //parse allocation pools
-                    var allocationPools = [];
-                    var lines = this.fields[10].value.split('\n');
-                    lines.forEach(function(l){
-                        if (l) 
-                        allocationPools.push({
-                            start: l.replace(',','').split('-')[0].trim(),
-                            end: l.replace(',','').split('-')[1].trim()
-                        })
-                    })
-                    payload.subnet = {
-                        name: this.fields[4].value,
-                        ip_version:  parseInt(this.fields[6].value),
-                        cidr:  this.fields[5].value,                        
-                        enable_dhcp: this.fields[8].value,
-                        allocation_pools: allocationPools
-                    };
-                    // if subnet disable Gateway delete property
-                    var subnet_disableGateway = this.fields.findIndex(function(f){
-                        return f.name == "subnet_disableGateway"
-                    });
-                    if (this.fields[subnet_disableGateway].value == false){
-                        payload.subnet.gateway_ip = this.fields[7].value;
-                    }
-                    else {
-                        delete payload.subnet['gateway_ip'];
-                    }
-                }
-                this.set('network', payload);
             },
             _handleAddNetworkResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);
