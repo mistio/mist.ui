@@ -5,6 +5,8 @@
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
+<link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
 <!-- needed for the forms' inputs -->
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
@@ -61,6 +63,15 @@
                 color: color: rgba(0, 0, 0, 0.54);
             }
 
+            paper-button.simple-button {
+                vertical-align: middle;
+                padding: 4px 4px 4px 0 !important;
+            }
+
+            paper-button.simple-button > iron-icon {
+                margin-right: 8px;
+            }
+
             *:not(paper-button)[disabled] {
                 /*display: none;*/
             }
@@ -95,6 +106,50 @@
             paper-dropdown-menu ::content .dropdown-content {
                 max-height: 300px !important;
             }
+            .radio-highight .iron-selected {
+                background-color: #eee;
+            }
+            .bind-top {
+                margin-top: 0 !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 24px !important;
+            }
+            .bind-bottom {
+                margin-bottom: 0 !important;
+                margin-top: 24px !important;
+            }
+            .bind-both {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+            }
+            .date.bind-top {
+                padding-top: 24px !important;
+            }
+            .background {
+                background-color: #eee;
+            }
+            paper-radio-group.background {
+                padding-left: 0;
+                padding-right: 0;
+            }
+            .field-helptext.background {
+                background-color: transparent;
+            }
+            #dateTimePickers .pickers {
+                
+            }
+            #dateTimePickers .bottom-actions {
+                display: flex;
+                justify-content: flex-end;
+                padding: 16px 24px !important;
+                background-color: #424242;
+                color: rgba(255,255,255,0.54);
+                border-top: 1px solid #555;
+            }
+            paper-date-picker::content #heading,
+            paper-time-picker::content #heading {
+                background-color: #424242;
+            }
             paper-toggle-button {
                 margin-top: 16px;
                 margin-bottom: 16px;
@@ -102,40 +157,90 @@
             paper-checkbox {
                 display: block;
             }
+            .checkboxes-label {
+                margin: 16px 0 8px 0;
+                display: block;
+            }
+            .checkboxes {
+                max-height: 400px;
+                overflow: scroll;
+            }
+            paper-date-picker ::content .day-item.selected.paper-calendar {
+                background: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .line.paper-clock-selector {
+                stroke: var(--mist-blue) !important;
+            }
+            paper-time-picker ::content .disc-large.paper-clock-selector {
+                fill: var(--mist-blue) !important;
+            }
+            paper-dialog > * {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            paper-dialog > .never-date {
+                background-color: #424242;
+                padding: 16px !important;
+            }
+            paper-checkbox {
+                --paper-checkbox-checked-color: var(--mist-blue) !important;
+                --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+            }
+            .never-date paper-checkbox {
+                color: #fff;
+                font-weight: 500;
+                font-size: 16px;
+                text-transform: uppercase;
+                --paper-checkbox-unchecked-color: #fff !important;
+                --paper-checkbox-unchecked-ink-color: #fff !important;
+                --paper-checkbox-label-color: #fff !important;
+            }
+            @media (max-width: 991px) {
+                .field-helptext.background,
+                .field-helptext.bind-bottom {
+                    background-color: #eee;
+                    margin: 0 !important;
+                    padding: 24px 16px 0;
+                }
+                .bind-top {
+                    margin-bottom: 0 !important;
+                }
+            }
         </style>
 
         <div class="grid-row">
             <template is="dom-repeat" items="{{fields}}" as="field">
                 <template is="dom-if" if="[[field.show]]">
                     <template is="dom-if" if="[[_computeFieldType(field, 'text', field.show)]]">
-                        <paper-input class="xs12 m6" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-input>
+                        <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-input>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'password', field.show)]]">
-                        <paper-input  class="xs12 m6" id="[[field.name]]" type="password" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]"></paper-input>
+                        <paper-input  class$="xs12 m6 [[field.class]]" id="[[field.name]]" type="password" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]"></paper-input>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'textarea', field.show)]]">
-                        <paper-textarea class="xs12 m6" id="[[field.name]]" label="[[field.label]]" rows="2" max-rows="10" value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-textarea>
+                        <paper-textarea class$="xs12 m6 [[field.class]]" id="[[field.name]]" label="[[field.label]]" rows="2" max-rows="10" value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-textarea>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'ip_textarea', field.show)]]">
-                        <paper-textarea class="xs12 m6" id="[[field.name]]" label="[[field.label]]" rows="2" max-rows="15" value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"></paper-textarea>
+                        <paper-textarea class$="xs12 m6 [[field.class]]" id="[[field.name]]" label="[[field.label]]" rows="2" max-rows="15" value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"></paper-textarea>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'radio', field.show)]]">
-                        <paper-radio-group selected="{{field.value}}" class="xs12 m6" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
+                        <paper-radio-group selected="{{field.value}}" class$="xs12 m6 [[field.class]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <template is="dom-repeat" items="[[field.options]]" as="option">
                                 <paper-radio-button name="[[option.val]]">[[option.title]]</paper-radio-button>
                             </template>
                         </paper-radio-group>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'checkboxes', field.show)]]">
-                        <div id="[[field.name]]" class="dropdown-block xs12 m6" horizontal-align="left" hidden="[[field.hidden]]"> 
-                            [[field.name]]:
+                        <div id="[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" horizontal-align="left" hidden="[[field.hidden]]"> 
+                            <span class="checkboxes-label" hidden$="[[field.label]]">[[field.name]]:</span>
+                            <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                             <template is="dom-repeat" items="[[field.options]]" as="option">
-                                <paper-checkbox name$="[[field.name]]" data-value="[[option.id]]">[[option.name]]</paper-checkbox>
+                                <paper-checkbox name$="[[field.name]]" data-value="[[_computeID(option, field.name)]]">[[option.name]]</paper-checkbox>
                             </template>
                         </div>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'dropdown', field.show)]]">
-                        <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
+                        <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
                                     <paper-item value="[[option.val]]">[[option.title]]</paper-item>
@@ -144,7 +249,7 @@
                         </paper-dropdown-menu>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'mist_dropdown', field.show)]]">
-                        <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
+                        <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
                                 <template is="dom-repeat" items="{{field.options}}" as="option">
                                     <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
@@ -176,9 +281,18 @@
                             </paper-toggle-button>
                         </div>
                     </template>
-                    <div class="field-helptext xs12 m6" hidden="[[field.hidden]]">[[field.helptext]]
+                    <template is="dom-if" if="[[_computeFieldType(field, 'date', field.show)]]">
+                        <div class$="xs12 m6 date [[field.class]]">
+                            <span>[[field.label]]</span>
+                            <paper-button id="[[field.name]]" on-tap="_selectDate" disabled="[[field.disabled]]" hidden="[[field.hidden]]" class="simple-button">
+                                <iron-icon icon="[[field.icon]]" hidden$="[[!field.icon]]"></iron-icon>
+                                [[_displayDate(field.value)]]
+                            </paper-button>
+                        </div>
+                    </template>
+                    <div class$="field-helptext xs12 m6 [[field.class]]" hidden="[[field.hidden]]">[[field.helptext]]
                         <a hidden$="[[!field.helpHref]]" href$="[[field.helpHref]]" target="new" class="helpHref">
-                            <paper-icon-button suffix icon="icons:help" alt="open docs" title="open docs" class="docs">
+                            <paper-icon-button icon="icons:help" alt="open docs" title="open docs" class="docs">
                             </paper-icon-button>
                         </a>
                         <p hidden$="[[!field.warning]]">
@@ -212,6 +326,20 @@
                 <paper-button class="submit-btn pull-right" on-tap="_resetForm"><iron-icon icon="icons:refresh"></iron-icon>Reset Form</paper-button>
             </div>
         </div>
+
+        <paper-dialog id="dateTimePickers" with-backdrop>
+            <div class="pickers">
+                <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
+                <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
+            </div>
+            <div class="never-date">
+                <paper-checkbox id="neverDate" checked="{{neverDate}}" on-value-change="">Never</paper-checkbox>
+            </div>
+            <div class="bottom-actions">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="blue" on-tap="_applyDateTime">Apply</paper-button>
+            </div>
+        </paper-dialog>
 
         <iron-ajax id="formAjax" url="[[url]]" contentType="application/json" handle-as="{{handleas}}" method="[[method]]" on-request="_handleRequest" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
     </template>
@@ -309,13 +437,18 @@
                     },
                     referral:  {
                         type: String
-                    }
+                    },
+                    dateTriggerField: {
+                        type: Object,
+                        value: {}
+                    },
+                    neverDaye: Boolean
                 },
                 observers: [
-                    '_fieldsChanged(fields.*, sendingData)',
+                    '_fieldsChanged(fields.*, sendingData)'
                 ],
                 listeners: {
-                    'change': '_checkedEvent'
+                    'change': '_updateCheckboxesField' 
                 },
                 ready: function(){
                     this.fields = [];
@@ -399,19 +532,30 @@
 
                                 // update form values regardless of el.show
                                 if (el.type == "ip_textarea") {
-                                    var cidrsArray = el.value.split('\n');
-                                    this.set('form.' + el.name, cidrsArray);
+                                    var textToArray = el.value.split('\n');
+                                    this.set('form.' + el.name, textToArray);
+                                }
+                                else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    this.set('form.' + el.name, this._constructTagsValue(textToArray));
                                 }
                                 else if (el.type == "checkboxes") {
-                                    this.set('form' + el.name, this._constructCheckboxValue(el.name))
+                                    this.set('form.' + el.name, this._constructCheckboxValue(el.name));
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
                                 }
                             } else {
-                                if(el.type == "ip_textarea") {
-                                    var cidrsArray = el.value.split('\n');
-                                    this.set('form.' + el.name, cidrsArray);
+                                if (el.type == "ip_textarea") {
+                                    var textToArray = el.value.split('\n');
+                                    this.set('form.' + el.name, textToArray);
+                                }
+                                else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    this.set('form.' + el.name, this._constructTagsValue(textToArray));
+                                }
+                                else if (el.type == "checkboxes") {
+                                    this.set('form.' + el.name, this._constructCheckboxValue(el.name));
                                 }
                                 else {
                                     this.set('form.' + el.name, el.value);
@@ -429,10 +573,6 @@
                                 }
                             }, this);
 
-                            if (el.excludeFromPayload && this.get('form.' + el.name)) {
-                                delete this.form[el.name]
-                            }
-
                             if (el.placeholderIf) {
                                 dependency = form[el.placeholderIf.fieldName];
                                 this.set('fields.' + index + '.placeholder', el.placeholderIf.fieldOptions[dependency]);
@@ -442,6 +582,16 @@
                         var valid = fields.base.every(function(el, index) {
                             if (el.type == "ip_textarea") {
                                 return el.show && el.required ? this.validatecidr(el.value, index) : true;
+                            }
+                            else if (el.type == "checkboxes") {
+                                return el.show && el.required ? this._constructCheckboxValue(el.name).length : true;
+                            }
+                            else if (el.type == "machines_tags") {
+                                var textToArray = el.value.split(',');
+                                return el.show && el.required ? JSON.stringify(this._constructTagsValue(textToArray)).length > 2 : true;
+                            }
+                            else if (el.type == "date") {
+                                return el.show && el.required ? moment(el.value).isValid()  : true;
                             }
                             else if (el.name == "admin_state_up") {
                                 return true;
@@ -457,12 +607,6 @@
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
-
-                    //console
-                    // for (var p in this.form){
-                    //     console.log('f ', p, this.form[p]);
-                    // }
-                    // console.log(this.form.stackinputs);
                 },
                 _submitForm: function(e) {
                     var payload;
@@ -486,8 +630,17 @@
                         }
                     } else {
                         payload = this.form;
+                        // clean up form for payload
+                        this.fields.forEach(function(el) {
+                            // console.log(el.name, el.excludeFromPayload);
+                            if (el.excludeFromPayload) {
+                                delete payload[el.name];
+                            }
+                        }, this);
+
                     }
-                    // console.log('Payload',payload);
+
+                    console.log('Payload', payload, this.form);
 
                     this.$.formAjax.headers["Content-Type"] = 'application/json';
                     this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -585,32 +738,106 @@
                 _addInput: function(e) {
                     this.fire('add-input', {event: e});
                 },
-                _replaceAsterisk: function(str){
-                    return str.replace("*", "");
+                _replaceAsterisk: function(str){;
+                    return str.replace(/_/g, " ").replace("*", "");
+                },
+                _selectDate: function(e) {
+                    var event = Polymer.dom(e);
+                    // save the triggering field
+                    this.set('dateTriggerField', event.rootTarget.id);
+                    if (moment(this.form[event.rootTarget.id]).isValid())
+                        this.$.pickDate.date = moment(this.form[event.rootTarget.id]).toDate();
+
+                    this.$.pickDate.minDate = new Date();
+                    this.$.pickTime.time = moment().format('hh:mm a');
+                    this.neverDate = false;
+                    this.$.dateTimePickers.open();
+                },
+                _applyDateTime: function(e) {
+                    var ind;
+                    var datefield = this.fields.find(function(f, index){
+                        ind = index;
+                        return f.name == this.dateTriggerField
+                    }, this);
+
+                    // apply date to the trigger fields
+                    if (ind){
+                        if (!this.neverDate) {
+                            var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
+                            var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+
+                            console.log('combinedDate', combinedDate);
+
+                            this.set('fields.'+ ind +'.value', moment(combinedDate).utc().format().toString().replace('T',' ').replace('Z',''));
+                        }
+                        else {
+                            this.set('fields.'+ ind +'.value', "");   
+                        }
+                    }
+                    
+                    this.$.dateTimePickers.close();
+                },
+                _displayDate: function(date){
+                    if (!moment(date).isValid() || date.trim() == "")
+                        return "never";
+                    else {
+                        return moment(date).utc().fromNow()+': '+moment(date).utc().format().toString().replace('T',' ').replace('Z','');
+                    }
                 },
                 _constructCheckboxValue: function(fieldname) {
                     var checkboxes = this.querySelectorAll('paper-checkbox[name='+fieldname+']'); // get checkboxes
                     var arr = [];
-                    checkboxes.forEach(function(c){
-                        console.log('in loop',c)
-                        if (c.checked)
-                            arr.push(c.dataValue);
-                    })
                     var index = -1;
                     var field = this.fields.find(function(f, ind){
                         index = ind;
                         return f.name == fieldname;
                     })
-                    if (field && arr.length > 0)
-                        this.set('fields.'+index+'.value', arr);
-                    else if (field && arr.length == 0)
-                        this.set('fields.'+index+'.value', '');
+                    checkboxes.forEach(function(c){
+                        if (c.checked)
+                            arr.push(c.dataValue);
+                    })
+                    return arr;
+                },
+                _constructTagsValue: function(tagStringsArray) {
+                    var arr = {};
+                    tagStringsArray.forEach(function(string){
+                        var chunks = string.split("=");
+                        if (chunks.length > 0 && chunks[0].trim().length > 0) {
+                            var key = chunks[0].trim();
+                            arr[key] = null;
+                            if (chunks.length > 1)
+                                arr[key] = chunks[1].trim();
+                        }
+                    });
+                    return arr;
                 },
                 _checkedEvent: function(e) {
                     // console.log('_checkedEvent', e, e.target, this.querySelector('div#'+e.target.name), e.target.tagName == 'PAPER-CHECKBOX');
                     if (e.target.tagName == 'PAPER-CHECKBOX'){
                         this.querySelector('div#'+e.target.name);
                         this._constructCheckboxValue(e.target.name);
+                    }
+                },
+                _computeID: function(option, fieldname) {
+                    if (fieldname == "machines_uuids")
+                        return option.uuid;
+                    else
+                        return option.id;
+                },
+                _updateCheckboxesField: function(e) {
+                    if (e.target.tagName == "PAPER-CHECKBOX"){
+                        console.log(e, e.target, e.target.tagName == "PAPER-CHECKBOX");
+                        var name = e.target.name;
+                        var fieldIndex;
+                        var el = this.fields.find(function(f, index){
+                            fieldIndex = index;
+                            return f.name == name;
+                        });
+                        if (fieldIndex){
+                            var arr = this.querySelectorAll('paper-checkbox[name='+name+'][checked]');
+                            var arrvalue = Array.prototype.map.call(arr, function(c){return c.dataValue});
+                            this.set('fields.' + fieldIndex + '.value', arrvalue);
+                        }
                     }
                 }
             });

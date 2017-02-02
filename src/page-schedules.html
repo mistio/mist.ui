@@ -1,0 +1,49 @@
+<link rel="import" href="../bower_components/app-route/app-route.html">
+
+<link rel="import" href="schedules/schedule-add.html">
+<link rel="import" href="schedules/schedule-page.html">
+
+<link rel="import" href="page-items.html">
+
+<dom-module id="page-schedules">
+    <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <app-route route="{{route}}"
+                pattern="/:schedule"
+                data="{{data}}"></app-route>
+    <page-items name="schedules" class="schedules" model="[[model]]" items="[[model.schedulesArray]]" sections="[[sections]]" section="[[sections.schedules]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <schedule-add model="[[model]]" sections="[[sections]]" section="[[sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]]></schedule-add>
+    <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules)]]" sections="[[sections]]" section="[[sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]]></schedule-page>
+
+    </template>
+    <script>
+        Polymer({
+
+            is: 'page-schedules',
+
+            properties: {
+                model: Object,
+                onboarding: Object,
+                sections: Array
+            },
+            _isAddPageActive: function(path) {
+              return path == '/+add';
+            },
+            _isDetailsPageActive: function(path) {
+              return path && path != '/+add';
+            },
+            _isListActive: function(path) {
+              return !path;
+            },
+            _getSchedule: function(id) {
+              if (this.model.schedules)
+                  return this.model.schedules[id];
+            }
+
+        });
+    </script>
+</dom-module>
