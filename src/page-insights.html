@@ -1,0 +1,1220 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<script src="../bower_components/moment/moment.js"></script>
+
+<link rel="import" href="../bower_components/chart-elements/chart-elements.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+
+<link rel="import" href="item-list/item-list.html">
+
+
+<dom-module id="page-insights">
+    <template>
+    <style is="custom-style" include="tags-and-labels"></style>
+    <style is="custom-style" include="forms"></style>
+    <style is="custom-style" include="single-page"></style>
+    <style is="custom-style">
+        :host {
+            display: block;
+        }
+        paper-material {
+            padding: 24px;
+            position: relative;
+        }
+        paper-material.no-pad {
+            padding: 0 !important;
+        }
+        paper-material.margin-botttom {
+            margin-bottom: 16px;
+        }
+        paper-spinner {
+            margin: 10% calc(50% - 40px);
+            width: 80px !important;
+            height: 80px !important;
+        }
+        .error iron-icon {
+            opacity: 0.32;
+            cursor: pointer;
+        }
+        .error {
+            color: var(--red-color);
+        }
+        .blue {
+            color: var(--mist-blue);   
+        }
+        .export  {
+            text-align: right;
+            padding: 0 0 24px 0;
+        }
+        .export .blue {
+            cursor: pointer;
+        }
+        .smaller {
+            text-transform: uppercase;
+            font-size: 0.9em;
+            color: rgba(0,0,0,0.54)
+        }
+        .flex-horizontal {
+            @apply(--layout-horizontal);
+        }
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        .quick-overview .flexchild {
+            padding-right: 8px;
+        }
+        .quick-overview .flexchild:last-child {
+            padding-right: 0;
+        }
+        .uppercase,
+        paper-dropdown-menu.uppercase paper-item,
+        paper-dropdown-menu.uppercase ::content #input {
+            text-transform: uppercase;
+        }
+        .uppercase.tag {
+            text-transform: none;
+        }
+        h2.title {
+            font-size: 1.6em;
+            margin: 0 !important;
+        }
+        .cost-section {
+            text-align: right;
+            padding-left: 36px;
+        }
+        .cost {
+            font-size: 2.4em;
+            margin: 0;
+        }
+        .sup {
+            vertical-align: super;
+            font-size: 0.55em;
+            opacity: 0.34;
+        }
+        .filterby {
+            display: inline-block;
+        }
+        .highlight {
+            background-color: #ffff8d;
+            padding: 2px;
+        }
+        chart-line {
+            width: 600px;
+            display: inline-block;
+        }
+        chart-doughnut {
+            width: 300px;
+            vertical-align: top;
+            display: inline-block;
+        }
+        #graphRow[largescreen]  {
+            display: flex;
+        }
+        .padding {
+            padding: 16px;
+        }
+        #graphRow[largescreen] .block + .block {
+            padding-left: 48px;
+        }
+        .row {
+            line-height: 1.8em;
+            margin-top: 16px;
+        }
+        .list {
+            margin-top: 16px;
+            margin-bottom: : 16px;
+        }
+        .name-col {
+            width: 40%;
+        }
+        .machines-column {
+            opacity: 0.54;
+            padding-right: 16px;
+            text-align: right;
+        }
+        .cost-column {
+            width: 28%;
+            text-align: right;
+        }
+        #doughnut .cost-column {
+            width: 70px;
+        }
+        .tag {
+            vertical-align: middle;
+            line-height: 1.6em;
+        }
+        .loading-data {
+            position: absolute;
+            background-color: rgba(255,255,255,0.9);
+            width: 100%;
+            height: 100%;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 2;
+        }
+        .red, .above {
+            color: var(--red-color);
+        }
+        .green, .below {
+            color: var(--green-color);
+        }
+        .opaque {
+            opacity: 0.34
+        }
+        .recommendation-list {
+            font-size: 0.9em;
+            margin-bottom: 0;
+        }
+        .recommendation-list iron-icon.red.icon {
+            width: 18px;
+            height: 18px;
+            padding-right: 4px;
+        }
+        ul {
+            padding: 0;
+            list-style: none;
+        }
+        .inline {
+            display: inline;
+        }
+        .baseline {
+            vertical-align: baseline;
+        }
+        .comparison > * {
+            padding-right: 16px;
+        }
+        paper-button[disabled] {
+            background-color: transparent !important;
+        }
+        #machinesCount {
+            padding-bottom: 48px;
+        }
+        items-list ::content .header.item-list {
+            border-left: 0 none !important;
+            border-right: 0 none !important;
+        }
+        items-list ::content .header.item-list {
+            border-left: 0 none !important;
+            border-right: 0 none !important;
+        }
+        .show-small, .show-medium {
+            display: none;
+        }
+        @media screen and (max-width: 1700px) {
+            .show-wide {
+                display: none;
+            }
+            .show-medium {
+                display: block-inline;
+            }
+        }
+        @media screen and (max-width: 1650px) and (min-width: 1180px) {
+            #doughnut.flex-horizontal {
+                @apply(--layout-vertical);
+            }
+            #doughnut .cost-column {
+                width: 28%;
+            }
+        }
+        #content.content404 {
+            text-align: center;
+            min-height: 80vh;
+        }
+    </style>
+    <app-route route="{{route}}"></app-route>
+    <iron-media-query query="(min-width: 1180px)" query-matches="{{largescreen}}"></iron-media-query>
+
+    <div id="content" class="content404" hidden$="[[insightsEnabled]]">
+        <h1>404</h1>
+        <p>Insights is not enabled for this organisation account.<br/>
+        Contact <a href="mailto:info@mist.io">info@mist.io</a> for more information.</p>
+    </div>
+    <div id="content" hidden="[[!insightsEnabled]]">
+        <div class="export opaque">Export this report to <span class="blue">CSV</span> | <span class="blue">PDF</span> | <span class="blue">DOC</span></div>
+        <paper-material class="margin-botttom">
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <div class="smaller">Time</div>
+                    <paper-dropdown-menu class="uppercase" no-label-float>
+                        <paper-menu id="window" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.window}}">
+                            <paper-item value="hour">hourly</paper-item>
+                            <paper-item value="day">daily</paper-item>
+                            <paper-item value="week">weekly</paper-item>
+                            <paper-item value="month">monthly</paper-item>
+                            <paper-item value="quarter">quarterly</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <paper-dropdown-menu class="uppercase" no-label-float>
+                        <paper-menu id="past" class="dropdown-content" attr-for-selected="value" selected="{{timeParams.past}}">
+                            <template is="dom-repeat" items="{{pastItems}}" as="past">
+                                <paper-item value="[[past.value]]">[[past.text]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+                <div class="flexchild">
+                    <div class="smaller">Filter by</div>
+                    <paper-dropdown-menu class="uppercase" no-label-float>
+                        <paper-menu id="filterbyType" class="dropdown-content" attr-for-selected="value" selected="{{filterby.type}}">
+                            <paper-item value="stack">Stack</paper-item>
+                            <paper-item value="cloud">Cloud</paper-item>
+                            <paper-item value="tag">Tag</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <paper-dropdown-menu id="filterbyNameDd" class="uppercase" no-label-float>
+                        <paper-menu id="filterbyName" class="dropdown-content" attr-for-selected="value" selected="{{filterby.id}}">
+                            <template is="dom-repeat" items="{{filterbyItems}}">
+                                <paper-item value="[[item.id]]" data-name$="[[item.name]][[item.title]]">[[item.name]][[item.title]]</paper-item>
+                            </template>
+                            <paper-item disabled hidden$="{{!filterbyDisable}}">
+                                <span hidden$="{{!filterby.type}}">no {{filterby.type}}s</span>
+                                <span hidden$="{{filterby.type.length}}">Select type</span>
+                            </paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <paper-button class="inline baseline smaller" on-tap="clearFilter" disabled$="{{!filterby.id.length}}">clear</paper-button>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material class="margin-botttom">
+            <div class="loading-data" hidden="{{!loadingData}}">
+            </div>
+            <div class="quick-overview container flex-horizontal">
+                <div class="flexchild">
+                    <div class="smaller">Cost</div>
+                    <h2 class="cost"><span class="sup">$</span>[[_toFixed(report.cost)]]</h2>
+                    <div class="smaller" hidden$="[[!isNotNull(report.comparative_cost)]]">
+                        <span class$="[[diffText(report.comparative_cost)]]">
+                            <span hidden$="[[!report.comparative_cost]]">[[abs(report.comparative_cost)]]%</span> [[diffText(report.comparative_cost)]]
+                        </span> 
+                        previous [[timeParams.window]]
+                    </div>
+                </div>
+                <div class="flexchild">
+                    <div class="smaller">Machine Count</div>
+                    <h2 class="cost"><span class="sup"></span>[[report.machine_count.unique]]</h2>
+                    <!-- <div class="smaller">X more this [[timeParams.window]]</div> -->
+                    <div class="smaller" hidden$="[[!isNotNull(report.comparative_machine_count.unique)]]">
+                        <span class$="[[diffText(report.comparative_machine_count.unique)]]">
+                            <span hidden$="[[!report.comparative_machine_count.unique]]">[[abs(report.comparative_machine_count.unique)]]%</span> [[diffText(report.comparative_machine_count.unique)]]
+                        </span> 
+                        previous [[timeParams.window]]
+                    </div>
+                </div>
+                <div class="flexchild opaque">
+                    <div class="smaller">Average load</div>
+                    <h2 class="cost"><span class="sup"></span>XX%</h2>
+                    <div class="smaller">X% below previous [[timeParams.window]]</div>
+                </div>
+                <div class="flexchild opaque">
+                    <div class="smaller">Recommendations</div>
+                    <ul class="recommendation-list">
+                        <li><iron-icon class="red icon" icon="icons:warning"></iron-icon><span>Scale down VM A to save $100/mo </span></li>
+                        <li><iron-icon class="red icon" icon="icons:warning"></iron-icon><span>Add more storage to VM C</span></li>
+                        <li><iron-icon class="red icon" icon="icons:warning"></iron-icon><span>Update kernel of VM B, it's vulnerable to Dirty COW</span></li>
+                    </ul>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material>
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <h2 class="title">Cost Overview</h2>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.id.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Cost</div>
+                    <h2 class="cost"><span class="sup">$</span>[[_toFixed(report.cost)]]</h2>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material class="margin-botttom">
+            <div class="loading-data" hidden="{{!loadingData}}">
+                <paper-spinner active="{{loadingData}}"></paper-spinner>
+            </div>
+            <div class="comparison">
+                <div class="smaller inline" hidden$="[[!isToCurrent]]">
+                    <span>$/mo
+                        <span hidden$="[[!report.history.length]]">[[lastValue(report.history, 'cost_per_month')]]</span>
+                        Current run rate
+                    </span>
+                </div>
+                <div class="smaller inline" hidden$="[[!isNotNull(report.comparative_cost)]]">
+                    <span class$="[[diffText(report.comparative_cost)]]">
+                        <span hidden$="[[!report.comparative_cost]]">[[abs(report.comparative_cost)]]%</span> [[diffText(report.comparative_cost)]]
+                    </span> 
+                    previous [[timeParams.window]]
+                </div>
+            </div>
+            <div id="graphRow" class="row" largescreen$="{{largescreen}}">
+                <div class="block flex">
+                    <div class="row">
+                        <div class="smaller">Run Rate ($/mo)</div>
+                    </div>
+                    <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+                </div>
+                <div class="block flex">
+                    <div class="row" hidden$="[[!showRing]]">
+                        <div class="smaller">[[ringTitle]]</div>
+                    </div>
+                    <div id="doughnut" class="row flex-horizontal" hidden$="[[!showRing]]">
+                        <chart-doughnut id="drillcostgraph" data="[[costDrillData]]" type="doughnut" options="[[chartOptions]]" style$="width: [[doughnutWidth]]px; height: [[doughnutWidth]]px"></chart-doughnut>
+                        <div id="drillcostlist" class="flex">
+                            <div class="list">
+                                <template is="dom-repeat" items="{{costDrillList}}">
+                                    <div class="flex-horizontal">
+                                        <span class="flexchild name-col">
+                                            [[_index(index)]].  [[item.name]]
+                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                        </span>
+                                        <div class="machines-column" title="machines">
+                                            [[item.machine_count.unique]] 
+                                            machines
+                                        </div>
+                                        <span class="cost-column">
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showFirstList]]">
+                        <div class="smaller">[[firstListTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{costDrillList1}}">
+                                <div class="flex-horizontal">
+                                        <span class="flexchild name-col">
+                                            [[_index(index)]]. 
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">untagged</span> 
+                                        </span>
+                                        <div class="machines-column">
+                                            [[item.machine_count.unique]] machines 
+                                        </div>
+                                        <span class="cost-column">
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showSecondList]]">
+                        <div class="smaller">[[secondListTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{costDrillList2}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col flexchild">
+                                            [[_index(index)]].
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                        </span>
+                                        <div class="machines-column">
+                                            [[item.machine_count.unique]] machines
+                                        </div>
+                                        <span class="cost-column">
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </paper-material>
+
+        <paper-material>
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <h2 class="title">Machines Overview</h2>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.id.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Maximum</div>
+                    <h2 class="cost">[[report.machine_count.max]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Average</div>
+                    <h2 class="cost">[[report.machine_count.mean]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Unique</div>
+                    <h2 class="cost">[[report.machine_count.unique]]</h2>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material id="machinesCount">
+            <div class="loading-data" hidden="{{!loadingData}}">
+                <paper-spinner active="{{loadingData}}"></paper-spinner>
+            </div>
+            <div class="comparison">
+                <div class="smaller inline" hidden$="[[!report.comparative_machine_count.unique]]">
+                    <span class$="[[diffText(report.comparative_machine_count.unique)]]">
+                        <span hidden$="[[!report.comparative_machine_count.unique]]">[[abs(report.comparative_machine_count.unique)]]%</span> [[diffText(report.comparative_machine_count.unique)]]
+                    </span> 
+                    previous [[timeParams.window]]
+                </div>
+            </div>
+            <div id="graphRow" class="row" largescreen$="{{largescreen}}">
+                <div class="block flex">
+                    <div class="row">
+                        <div class="smaller">Machines count</div>
+                    </div>
+                    <chart-bar id="machinesgraph" data="[[machinesData]]" type="bar" style$="width: [[graphWidth]]px"></chart-bar>
+                </div>
+                <div class="block flex">
+                    <!-- <div class="row">
+                        <div class="smaller">Added vms</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{addedVms}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]].
+                                            <span class="name" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">others</span>
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.date]]
+                                        </div>
+                                        <div class="flexchild machines">
+                                            [[item.provider]]
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="smaller">deleted vms</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{addedVms}}">
+                                <div class="flex-horizontal">
+                                        <span class="name-col">
+                                            [[_index(index)]].
+                                            <span class="name" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">others</span>
+                                        </span>
+                                        <div class="flexchild machines">
+                                            [[item.date]]
+                                        </div>
+                                        <div class="flexchild machines">
+                                            [[item.provider]]
+                                        </div>
+                                        <span>
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div> -->
+                    <div class="row" hidden$="[[!showRing]]">
+                        <div class="smaller">[[ringTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{machinesDrillList}}">
+                                <div class="flex-horizontal">
+                                        <span class="flexchild name-col">
+                                            [[_index(index)]].
+                                            <span hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                        </span>
+                                        <div class="machines-column">
+                                            [[item.machine_count.unique]] machines
+                                        </div>
+                                        <span class="cost-column">
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showFirstList]]">
+                        <div class="smaller">[[firstListTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{machinesDrillList1}}">
+                                <div class="flex-horizontal">
+                                        <span class="flexchild name-col">
+                                            [[_index(index)]].
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                        </span>
+                                        <div class="machines-column">
+                                            [[item.machine_count.unique]] machines
+                                        </div>
+                                        <span class="cost-column">
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showSecondList]]">
+                        <div class="smaller">[[secondListTitle]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{machinesDrillList2}}">
+                                <div class="flex-horizontal">
+                                        <span class="flexchild name-col">
+                                            [[_index(index)]].
+                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                        </span>
+                                        <div class="machines-column">
+                                            [[item.machine_count.unique]] machines
+                                        </div>
+                                        <span class="cost-column">
+                                            $[[_toFixed(item.cost)]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material class="no-pad" hidden$="[[!isToCurrent]]">
+            <div class="loading-data" hidden="{{!loadingData}}">
+            </div>
+            <div class="machines-list">
+                <item-list section="[[sections.machines]]" items="[[machines]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
+            </div>
+        </paper-material>
+
+    </div>
+
+    <iron-ajax id="getReport"
+            method="GET"
+            url="/api/v1/report"
+            handle-as="json"
+            loading="{{loadingData}}"
+            on-response="handleResponse"
+            on-error="handleError"
+            params="{{params}}" auto></iron-ajax>
+    </template>
+    <script>
+        Polymer({
+
+            is: 'page-insights',
+
+            properties: {
+                model: Object,
+                sections: Array,
+                insightsEnabled: {
+                    type: Boolean,
+                    computed: "_computeInsightsEnabled(model)"
+                },
+                onboarding: Object,
+                largescreen: Boolean,
+                machines: Array,
+                report: {
+                    type: Object,
+                    value: {}
+                },
+                loadingData: {
+                    type: Boolean,
+                    value: true
+                },
+                params: {
+                    type: Object
+                },
+                timeParams: {
+                    type: Object,
+                    value: {
+                        window: "hour",
+                        past: "0"
+                    }
+                },
+                filterby: {
+                    type: Object,
+                    value: {
+                        type: '',
+                        name: '',
+                        id: ''
+                    }
+                },
+                pastItems: Array,
+                isToCurrent: {
+                    type: Boolean,
+                    computed: 'computeIsToCurrent(timeParams.past)'
+                },
+                filterbyItems: Array,
+                filterbyDisable: {
+                    type: Boolean,
+                    value: false
+                },
+                costData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{
+                            label: "cost",
+                            backgroundColor: "rgba(0,155,155,0.2)",
+                            borderColor: "rgba(0,155,155,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(0,155,155,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(0,155,155,1)",
+                            data: []
+                        }]
+                    }
+                },
+                machinesData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{
+                            label: "machines",
+                            backgroundColor: "rgba(0,155,155,0.2)",
+                            borderColor: "rgba(0,155,155,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(0,155,155,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(0,155,155,1)",
+                            data: []
+                        }]
+                    }
+                },
+                showRing: Boolean,
+                showSecondList: Boolean,
+                showFirstList: Boolean,
+                ringTitle: String,
+                firstListTitle: String,
+                secondListTitle: String,
+                costDrillData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: ["rgba(0,155,155,0.3)", "rgba(153,255,51,0.3)", "rgba(255,153,0,0.3)", "rgba(155,0,155,0.3)", "rgba(155,0,0,0.3)", "rgba(0,155,0,0.3)", "rgba(0,0,0,0.3)", "rgba(0,0,200,0.3)", "rgba(200,0,200,0.3)", "rgba(255,255,0,0.3)"
+                                ],
+                            hoverBackgroundColor: ["rgba(0,155,155,0.3)", "rgba(153,255,51,0.3)", "rgba(255,153,0,0.3)", "rgba(155,0,155,0.3)", "rgba(155,0,0,0.3)", "rgba(0,155,0,0.3)", "rgba(0,0,0,0.3)", "rgba(0,0,200,0.3)", "rgba(200,0,200,0.3)", "rgba(255,255,0,0.3)"
+                                ],
+                        }]
+                    }
+                },
+                costDrillList: Array,
+                costDrillList1: Array,
+                costDrillList2: Array,
+                machinesDrillList: {
+                    type: Array,
+                    computed: 'sortByMachines(costDrillList)'
+                },
+                machinesDrillList1: {
+                    type: Array,
+                    computed: 'sortByMachines(costDrillList1)'
+                },
+                machinesDrillList2: {
+                    type: Array,
+                    computed: 'sortByMachines(costDrillList2)'
+                },
+                graphWidth: {
+                    type: String,
+                    value: 600
+                },
+                doughnutWidth:{
+                    type: String,
+                    value: 300
+                },
+                chartOptions: {
+                    type: Object,
+                    value: {
+                        "cutoutPercentage": 70,
+                        "legend": {
+                            display: true, 
+                            labels: {
+                                boxWidth: 10,
+                                fontFamily: "Roboto"
+                            }
+                        }
+                    }
+                },
+            },
+            listeners: {
+                'resize' : 'updateChartWidth'
+            },
+            observers: [
+                'computePastItems(timeParams.*)',
+                'computeFilterbyItems(filterby.*, model.*)',
+                'updateData(report.history)',
+                'updateCostDrillData(report.group_by, filterby.id)',
+                'updateMachines(model.machinesArray, filterby.id)',
+                'combineParams(timeParams.*, filterby.*)'
+            ],
+            ready: function(){
+            },
+            attached: function (e) {
+                this.updateChartWidth(e);
+            },
+            _computeInsightsEnabled: function(model){
+                return this.model.org.insights_enabled || false;
+            },
+            computePastItems: function (timeParamsChangeRecord) {
+                console.log("loadingData", this.loadingData);
+                var items = [];
+                if (this.timeParams.window == "hour") {
+                    items.push({value: 0, text: "this hour"});
+                    items.push({value: 1, text: "last hour"});
+                    for (var i=2; i<11; i++) {
+                        items.push({value: i, text: i + " hours ago"});
+                    }
+                }
+                else if (this.timeParams.window == "day") {
+                    items.push({value: 0, text: "today"});
+                    items.push({value: 1, text: "yesterday"});
+                    for (var i=2; i<11; i++) {
+                        items.push({value: i, text: i + " days ago"});
+                    }
+                }
+                else if (this.timeParams.window == "week") {
+                    items = [{
+                        value: '0',
+                        text: 'this week'
+                    },{
+                        value: '1',
+                        text: 'last week'
+                    },{
+                        value: '2',
+                        text: 'two weeks ago'
+                    },{
+                        value: '3',
+                        text: 'three weeks ago'
+                    }]
+                }
+                else if (this.timeParams.window == "month") {
+                    for (var i=0; i<12; i++){
+                        var t = '';
+                        if (i==0)
+                            t = 'this month';
+                        else if (i==1)
+                            t = 'last month';
+                        else
+                            t = i+' months ago';
+
+                        items.push({
+                            value: i,
+                            text: t
+                        })
+                    }
+                }
+                else if (this.timeParams.window == "quarter") {
+                    items = [{
+                        value: '0',
+                        text: 'current quarter'
+                    },{
+                        value: '1',
+                        text: 'previous quarter'
+                    },{
+                        value: '2',
+                        text: '2 quarters ago'
+                    },{
+                        value: '3',
+                        text: '3 quarters ago'
+                    }]
+                }
+
+                this.set('pastItems',items);
+
+                // if window changed reset selected past
+                if (timeParamsChangeRecord.path == 'timeParams.window'){
+                    this.set('timeParams.past', '0');
+                    this.async(function(){
+                        this.$.past.selected = -1;
+                        this.$.past.selected = 0;
+                    }, 100, this)
+                }
+            },
+            computeIsToCurrent: function(past){
+                return past == 0;
+            },
+            computeFilterbyItems: function(filterby, model){
+                var items = [];
+                if (this.filterby.type == 'stack')
+                    items = this.model.stacksArray;
+                else if (this.filterby.type == 'cloud')
+                    items = this.model.cloudsArray;
+                else if (this.filterby.type == 'tag'){
+                    var tags = this.model.machinesArray.filter(function(m){
+                            return m.tags.length > 0
+                        }).map(function(m){
+                            for (var i=0; i < m.tags.length; i++){
+                                var postfix = '';
+                                if (m.tags[i].value != ''){
+                                    postfix = '='+m.tags[i].value;
+                                }
+                                return {
+                                    'name': m.tags[i].key+postfix,
+                                    'id': m.tags[i].key+postfix,
+                                    'val': m.tags[i].val
+                                };
+                            }
+                        });
+                    var names = tags.map(function(t){
+                        return t.name;
+                    })
+                    items = tags.filter(function(t, ind){
+                        return names.indexOf(t.name) == ind;
+                    });
+                }
+                else
+                    items = [];
+
+                if (!items.length){
+                    this.set('filterbyDisable', true);
+                }
+                else {
+                    this.set('filterbyDisable', false);
+                }
+
+                this.set('filterbyItems',items);
+
+                // if filterby changed reset selected item
+                if (filterby.path == 'filterby.type'){
+                    this.set('filterby.name', '');
+                    this.async(function(){
+                        this.$.filterbyName.selected = '';
+                    }, 100, this)
+                }
+                // if filterby id changed update name
+                if (filterby.path == 'filterby.id'){
+                    this.set('filterby.name', this.computeName(filterby.value));
+                }
+            },
+            updateData: function (history) {
+                var costData = [],
+                    machinesData = [],
+                    labels = [];
+                if (history){
+                    labels = history.map(function(datapoint){
+                        if (['day', 'hour'].indexOf(this.timeParams.window) != -1)
+                            return moment(datapoint.date).format('HH:mm').toString();
+                        else 
+                            return moment(datapoint.date).format('YYYY-MM-DD').toString();
+                    }, this);
+                    costData = history.map(function(datapoint){
+                        return datapoint.cost_per_month;
+                    });
+                    machinesData = history.map(function(datapoint){
+                        return datapoint.machine_count;
+                    });
+                }
+
+                this.set('costData.datasets.0.data', costData);
+                this.set('costData.labels', labels);
+                this.set('machinesData.datasets.0.data', machinesData);
+                this.set('machinesData.labels', labels);
+
+                this.$.costgraph.updateChart();
+                this.$.machinesgraph.updateChart();
+            },
+            updateCostDrillData: function(groupby, filterbyname) {
+                var drillData = [],
+                    drillLabels = [],
+                    drill, //Array
+                    drillList1, //String
+                    drillList2, //String
+                    plural = "",
+                    plural1 = "",
+                    plural2 = "";
+
+                // show all categories when no filterby set : clouds in ring / stacks list / tags list
+                // show stacks in ring + tags list if filterby cloud
+                // show clouds in ring + tags list if filterby stack
+                // show clouds in ring + stacks in list if filterby tag
+
+                var dataMap = Object.keys(this.report.group_by),
+                    key;
+                if (this.filterby.type == '' || (this.filterby.type == "tag" && this.report.group_by['tag'])) {
+                    drill = groupby['cloud'] || groupby['stack'] || groupby['tag'];
+
+                    if (groupby['cloud'])       { key = 'cloud' }
+                    else if (groupby['stack'])  { key = 'stack' }
+                    else if (groupby['tag'])    { key = 'tag' }
+
+                    dataMap.splice(dataMap.indexOf(key), 1);
+                    
+                    if (dataMap.length > 0 ) 
+                        drillList1 = dataMap[0];
+                    
+                    if (dataMap.length > 1 )
+                        drillList2 = dataMap[1];
+                }
+                else if (this.filterby.type == 'stack' || this.filterby.type == "cloud") {
+                    drill = this.filterby.type == 'stack' ? groupby['cloud'] : groupby['stack'];
+                    key =  this.filterby.type == 'stack' ? 'cloud' : 'stack';
+
+                    dataMap.splice(dataMap.indexOf(key), 1);
+
+                    if (dataMap.length)
+                        drillList1 = dataMap[0];
+                }
+                
+                // console.log("dataMap", this.filterby.type, dataMap, drillList1, drillList2);
+
+                if (drill){
+                    if (drill.length > 1)
+                        plural = "s";
+
+                    this.set('showRing', true);
+                    this.set('ringTitle', this.filterby.name +" "+ drill.length +" "+ key+plural);
+                    
+                    drillData = drill.map(function(point){
+                        return this._toFixed(point.cost);
+                    }, this);
+                    drillLabels = drill.map(function(point){
+                        return point.name.length ? point.name : 'untagged';
+                    });
+                }
+                else {
+                    this.set('showRing', false);
+                    this.set('ringTitle', "");
+                }
+
+                // fill in ring
+                this.set('costDrillData.datasets.0.data', drillData);
+                this.set('costDrillData.labels', drillLabels);
+                this.set('costDrillList', drill ? drill.sort(function(a,b){ return a.cost < b.cost}) : []);
+
+                // fill in first list
+                if (this.report.group_by[drillList1] && drillList1 && drillList1.length) {
+                    if (this.report.group_by[drillList1].length > 1)
+                        plural1 = "s";
+
+                    this.set('showFirstList', true);
+                    this.set('firstListTitle', this.filterby.name +" "+ this.report.group_by[drillList1].length +" "+ drillList1+plural1);
+
+                    this.set('costDrillList1', this.report.group_by[drillList1] ? this.report.group_by[drillList1].sort(function(a,b){ return a.cost < b.cost}) : [])
+                }
+                else {
+                    this.set('showFirstList', false);
+                    this.set('firstListTitle', "");
+                }
+
+                // fill in second list if needed
+                if (this.report.group_by[drillList2] && drillList2 && drillList2.length){
+                    if (this.report.group_by[drillList2].length > 1)
+                        plural2 = "s";
+
+                    this.set('showSecondList', true);
+                    this.set('secondtListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2+plural2);
+
+                    this.set('costDrillList2', this.report.group_by[drillList2] ? this.report.group_by[drillList2].sort(function(a,b){ return a.cost < b.cost}) : [])
+                }
+                else {
+                    this.set('showSecondList', false);
+                    this.set('secondtListTitle', "");
+                }
+
+                this.$.drillcostgraph.updateChart();
+            },
+            sortByMachines: function(array){
+                if (array) {
+                    var ret = array.slice(0);
+                    return ret.sort(function(a,b){ return a.machine_count.unique < b.machine_count.unique})
+                }
+            },
+            updateChartWidth: function(e) {
+                var parentWidth = this.$.graphRow.offsetWidth;
+                if (parentWidth > 800){
+                    this.set('graphWidth', (parentWidth-50)/2);
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 300));
+                }
+                else {
+                    this.set('graphWidth', parentWidth-50);
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/2, 300));
+                }
+                this.resizeGraphs();
+                var that = this;
+                this.debounce('resizer', function(){
+                    console.log('resized chart');
+                    that.resizeGraphs();
+                }, 500)
+            },
+            resizeGraphs: function(){
+                console.log('resizeGraphs');
+                this.$.costgraph.resize();
+                this.$.drillcostgraph.resize()
+            },
+            combineParams: function(time, filter) {
+                console.log('p send ', filter);
+                
+                // dont update params so dont request, if user changes window, type, name or has not specified filter by id
+                // also dont request for past = -1
+                if (filter.path == 'filterby.type' || filter.path == 'filterby.name' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
+                    console.log('dont send ', this.params);
+                }
+                else {
+                    var p = {
+                        window: this.timeParams.window,
+                        past: this.timeParams.past
+                    };
+
+                    if (this.filterby.type != '' && this.filterby.id != ''){
+                        p[this.filterby.type] = this.filterby.id;
+                    }
+                    
+                    console.log('p send ', p, this.params);
+                    this.set('params', p);
+                }
+            }, 
+            handleResponse: function(e) {
+                console.log('handleResponse', e);
+                if (e.detail.xhr.response)
+                    this.set('report', e.detail.xhr.response)
+            },
+            handleError: function(e){
+                console.log('handleError', e);
+                var empty = {
+                    comparative_cost: null,
+                    comparative_machine_count:{},
+                    cost: 0,
+                    group_by: {},
+                    history: [],
+                    machine_count: {}
+                }
+                this.set('report', empty);
+                var extra = '';
+                if (e.detail.error.code == 400)
+                    extra= ': No data'
+                
+                if (this.insightsEnabled)
+                    this.fire('toast',{msg:e.detail.error.message+extra , duration:5000});
+            },
+            _toFixed: function(inp) {
+                return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
+            },
+            _index: function(ind) {
+                return ind+1;
+            },
+            clearFilter: function(e){
+                this.set('filterby', {
+                    type: '',
+                    name: '',
+                    id: ''
+                })
+            },
+            updateMachines: function(machines, filterby){
+                var m = [];
+                if (!filterby) {
+                    m = this.model.machinesArray;
+                }
+                else {
+                    if (this.filterby.type == 'tag'){
+                        m = this.model.machinesArray.filter(function(m){
+                            return this.hasTheTag(m, filterby);
+                        }, this)
+                    }
+                    else if (this.filterby.type == 'cloud') {
+                        m = this.model.machinesArray.filter(function(m){
+                            return m.cloud.id == filterby
+                        })
+                    }
+                    else {
+                        m = this.model.machinesArray.filter(function(m){
+                            //TODO filter by stack
+                            return this.isInStack(m, filterby);
+                        }, this)
+                    }
+                }
+                this.set('machines', m)
+            },
+            hasTheTag: function(machine, tag) {
+                var mtags = machine.tags.map(function(t){
+                    var postfix = '';
+                    if (t.value != ''){
+                        postfix = '='+t.value;
+                    }
+                    return t.key+postfix;
+                });
+                return mtags.indexOf(tag) > -1;
+            },
+            isInStack: function(machine, stack) {
+                var stackmachines = []; 
+
+                if (this.model.stacksArray > 0){
+                    stackmachines = this.model.stacks[stack].machines.map(function(m){
+                                    return m.uuid;
+                                });
+                }
+                return stackmachines.indexOf(machine.uuid) > -1;
+            },
+            abs: function(perc) {
+                return Math.abs(perc)
+            },
+            diffText: function(perc) {
+                if (perc == null)
+                    return ''
+                else if (perc == 0)
+                    return 'equal to'
+                else
+                    return perc > 0 ? 'above' : 'below'
+            },
+            computeName: function(id){
+                if (id){
+                    if (this.filterby.type == 'tag') {
+                        return id;
+                    }
+                    else if (this.filterby.type == 'cloud') {
+                        return this.model.clouds[id].title;
+                    }
+                    else if (this.filterby.type == 'stack') {
+                        return this.model.stacks[id].name;
+                    }
+                }
+                else {
+                    return '';
+                }
+            },
+            lastValue: function(history, val){
+                return history.length > 1 ? history[history.length-1][val] : '';
+            },
+            isNotNull: function(value) {
+                return value != null;
+            }
+        });
+
+        (function() {
+            var throttle = function(type, name, obj) {
+                obj = obj || window;
+                var running = false;
+                var func = function() {
+                    if (running) { return; }
+                    running = true;
+                     requestAnimationFrame(function() {
+                        obj.dispatchEvent(new CustomEvent(name));
+                        running = false;
+                    });
+                };
+                obj.addEventListener(type, func);
+            };
+
+            /* init - you can init any event */
+            // throttle("resize", "optimizedResize");
+        })();
+
+        // handle event
+        window.addEventListener("optimizedResize", function() {
+            document.querySelector('page-insights').fire('resize')
+        });
+
+    </script>
+</dom-module>
