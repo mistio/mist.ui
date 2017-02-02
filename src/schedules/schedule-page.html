@@ -252,10 +252,10 @@
             </paper-material>
             <paper-material>
                 <h4 class="id">
-                    <paper-toggle-button id="scheduleEnabled" checked="[[schedule.enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
+                    <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
                     <span hidden$="[[hasExpired]]">
-                        <span hidden$="[[!schedule.enabled]]">Enabled</span>
-                        <span hidden$="[[schedule.enabled]]">Disabled</span>
+                        <span hidden$="[[!schedule.task_enabled]]">Enabled</span>
+                        <span hidden$="[[schedule.task_enabled]]">Disabled</span>
                     </span>                    
                     <span hidden$="[[!hasExpired]]">Scheduler has expired.</span>
                 </h4>
@@ -572,7 +572,7 @@
             },
             toggleEnable: function(){
                 this.lastrequestedaction = 'run';
-                this.$.editToggleSchedule.body = {enabled: !this.schedule.enabled};
+                this.$.editToggleSchedule.body = {task_enabled: !this.schedule.task_enabled};
                 this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
                 this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.editToggleSchedule.generateRequest();
@@ -580,7 +580,7 @@
             _handleScheduleEditToggleResponse: function() {
                 var message;
                 if (this.lastrequestedaction == "enable") {
-                    message = !this.schedule.enabled ? 'Enabling schedule..' : 'Disabling schedule..'
+                    message = !this.schedule.task_enabled ? 'Enabling schedule..' : 'Disabling schedule..'
                 }
                 else if (this.lastrequestedaction == "run") {
                     message = 'Run request sent successfully.';   
@@ -591,7 +591,7 @@
                 console.log('_handleScheduleEditToggleError',e);
                 var message = e.detail.request.xhr.response;
                 this.fire('toast', { msg: message, duration: 5000 });
-                this.$.scheduleEnabled.setAttribute('checked', this.schedule.enabled);
+                this.$.scheduleEnabled.setAttribute('checked', this.schedule.task_enabled);
             },
             _computeDateFromNow: function(time) {
                 return moment.utc(time).local().fromNow();
