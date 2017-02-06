@@ -315,6 +315,9 @@
                     &nbsp; [[filteredItems.length]] machines affected. </span>
                 <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink>change</paper-button>
                 <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
+                <template is="dom-repeat" items="[[missingMachines]]">
+                    <div class="machine">Missing machine with uuid [[item]]</div>
+                </template>
             </paper-material>
         </div>
         <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
@@ -384,6 +387,9 @@
                     value: false
                 },
                 filteredItems: {
+                    type: Array
+                },
+                missingMachines: {
                     type: Array
                 },
                 sortBy: {
@@ -562,11 +568,23 @@
                 }
             },
             _computeMachines: function(schedule, machines) {
-                var filteredMachines = [];
+                var filteredMachines = [],
+                    missingMachines = [];
                 filteredMachines = this.model.machinesArray.filter(function(m){
                     return this.condition(m);
-                }, this)
+                }, this);
+
+                if (this.schedule.machines_uuids) {
+                    for (var i = 0; i < this.schedule.machines_uuids.length; i++) {
+                        var machine = this.schedule.machines_uuids[i];
+                        if (!this.model.machines[machine]){
+                            missingMachines.push(machine);
+                        }
+                    }
+                }
+
                 this.set('filteredItems', filteredMachines);
+                this.set('missingMachines', missingMachines);
             },
             condition: function(m) {
                 if (this.isSpecificMachines) {
