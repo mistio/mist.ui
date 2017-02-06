@@ -156,6 +156,7 @@ SCHEDULEACTIONS = {
                         type: "mist_dropdown",
                         value: "",
                         defaultValue: "",
+                        add: true,
                         show: false,
                         required: false,
                         helptext: "Schedule an existing script to run.",
@@ -384,6 +385,7 @@ SCHEDULEACTIONS = {
                 '_updateFields(fields, model.*)'
             ],
             listeners: {
+                'add-input': 'addInput'
             },
             _computeActions: function(machinesArray) {
                 var ret = ['start', 'stop', 'suspend', 'reboot', 'resume', 'destroy', 'run-script'];
@@ -590,7 +592,26 @@ SCHEDULEACTIONS = {
             },
             _goBack: function() {
                 history.back();
-            }
+            },
+            updateScripts: function(e){
+                console.log('updateScripts', e)
+                var scriptInd = this._fieldIndexByName("script_id");
+                this.async(function(){
+                    this.set('fields.'+ scriptInd +'.options', this.model.scriptsArray);
+                    this.set('fields.'+ scriptInd +'.value', e.detail.script);
+                }.bind(this), 1000);
+            },
+            addInput: function(e){
+                if (e.detail.fieldname == 'script_id'){
+                    //set attribute origin
+                    var origin = window.location.pathname;
+                    var qParams = {
+                        'origin': origin
+                    }
+                    document.querySelector('app-location').set('path', '/scripts/+add');
+                    document.querySelector('app-location').set('queryParams', qParams);
+                }
+            },
         });
     </script>
 </dom-module>

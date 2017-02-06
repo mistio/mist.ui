@@ -403,6 +403,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: false,
         required: false,
         excludeFromPayload: true,
+        add: true,
         helptext: "Schedule an existing script to run.",
         options: [],
         showIf: {

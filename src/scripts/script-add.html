@@ -220,9 +220,15 @@
                     }],
                     notify: true
                 },
+                origin: {
+                    type: String
+                },
             },
             listeners: {
                 'iron-select': 'showAppropriatePlaceholder'
+            },
+            ready: function(){
+                this.set('origin', document.querySelector('app-location').queryParams.origin)
             },
             showAppropriatePlaceholder: function(e){
                 if (e.target.id == "exec_type"){
@@ -259,10 +265,14 @@
             _addScriptAjaxRequest: function() {
             },
             _addScriptAjaxResponse: function(e) {
-                //
-                // console.log('XHR', e.detail);
                 var response = YAML.parse(e.detail.xhr.response);
-                document.querySelector('app-location').set('path', '/scripts/' + response.id);
+                if (!this.origin) {
+                    document.querySelector('app-location').path = '/scripts/' + response.id;
+                }
+                else {
+                    this.fire('update-scripts', {script: response.id});
+                    history.back();
+                }
             },
         });
     })();
