@@ -329,6 +329,16 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
 
     //add common post provision fields
     p.fields.push({
+        name: "post_provision_script",
+        label: "Run Script",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        excludeFromPayload: true,
+        helptext: "Enable to run a script immediately after provisioning",
+        show: true,
+        required: false
+    },{
         name: "radio",
         label: "Script Inline or Select",
         type: "radio",
@@ -343,7 +353,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         }, {
             title: "Select Existing",
             val: "select"
-        }]
+        }],
+        showIf: {
+            fieldName: "post_provision_script",
+            fieldValues: ["true", true]
+        }
     },{
         name: "script",
         label: "Inline Script",
@@ -384,6 +398,16 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldValues: ["select"]
         }
     },{
+        name: "post_provision_scheduler",
+        label: "Schedule a task",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        excludeFromPayload: true,
+        helptext: "Enable to apply a scheduled action on this machine",
+        show: true,
+        required: false
+    },{
         name: "action",
         label: "Schedule Task",
         type: "dropdown",
@@ -394,6 +418,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         required: false,
         helptext: "Choose one from the available tasks to schedule.",
         options: [],
+        showIf: {
+            fieldName: "post_provision_scheduler",
+            fieldValues: ["true", true]
+        }
     }, {
         name: "schedule_script_id",
         label: "Script",
@@ -428,10 +456,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         label: "Schedule Type",
         type: "radio",
         value: "one_off",
-        defaultValue: "interval",
+        defaultValue: "one_off",
         helptext: "The scheduler type. Visit the docs",
         helpHref: "http://docs.mist.io/article/118-running-scheduled-tasks-cronjobs-with-mist-io",
-        show: true,
+        show: false,
         required: true,
         class: "bind-bottom radio-highight",
         options: [{
@@ -443,7 +471,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         }, {
             title: "Crontab",
             val: "crontab"
-        }]
+        }],
+        showIf: {
+            fieldName: "post_provision_scheduler",
+            fieldValues: ["true", true]
+        }
     }, {
         name: "schedule_entry",
         label: "Schedule time",
@@ -461,7 +493,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "",
         excludeFromPayload: true,
         class: "bind-both background",
-        show: true,
+        show: false,
         required: true,
         helptext: "Example, every 10 minutes",
         showIf: {
@@ -475,7 +507,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "minutes",
         excludeFromPayload: true,
         class: "bind-top background",
-        show: true,
+        show: false,
         required: false,
         showIf: {
             fieldName: "schedule_type",
@@ -503,7 +535,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         helptext: "",
         excludeFromPayload: true,
         class: "bind-top background",
-        show: true,
+        show: false,
         required: false,
         helptext: "Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: minute hour day_of_week day_of_month month_of_year.",
         helpHref: "http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules",
@@ -520,7 +552,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         class: "bind-top background",
         icon: "schedule",
         excludeFromPayload: true,
-        show: true,
+        show: false,
         required: false,
         showIf: {
             fieldName: "schedule_type",
@@ -536,7 +568,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "",
         helptext: "",
         icon: "schedule",
-        show: true,
+        show: false,
         required: false,
         showIf: {
             fieldName: "schedule_type",
@@ -549,9 +581,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         value: "",
         defaultValue: "",
         excludeFromPayload: false,
-        show: true,
+        show: false,
         required: false,
-        helptext: "Optional. Integers only. Define a maximum run count, unless it's an one_of schedule.",
+        helptext: "Optional. Integers only. Define a maximum run count.",
         showIf: {
             fieldName: "schedule_type",
             fieldValues: ["interval", "crontab"]
