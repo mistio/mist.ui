@@ -384,6 +384,176 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldValues: ["select"]
         }
     },{
+        name: "action",
+        label: "Schedule Task",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: "Choose one from the available tasks to schedule.",
+        options: [],
+    }, {
+        name: "schedule_script_id",
+        label: "Script",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        helptext: "Schedule an existing script to run.",
+        options: [],
+        showIf: {
+            fieldName: "action",
+            fieldValues: ["run script"]
+        }
+    }, {
+        name: "params",
+        label: "Parameters",
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        helptext: "",
+        show: false,
+        required: false,
+        showIf: {
+            fieldName: "action",
+            fieldValues: ["run script"]
+        }
+    }, {
+        name: "schedule_type",
+        label: "Schedule Type",
+        type: "radio",
+        value: "one_off",
+        defaultValue: "interval",
+        helptext: "The scheduler type. Visit the docs",
+        helpHref: "http://docs.mist.io/article/118-running-scheduled-tasks-cronjobs-with-mist-io",
+        show: true,
+        required: true,
+        class: "bind-bottom radio-highight",
+        options: [{
+            title: "Once",
+            val: "one_off"
+        },{
+            title: "Repeat",
+            val: "interval"
+        }, {
+            title: "Crontab",
+            val: "crontab"
+        }]
+    }, {
+        name: "schedule_entry",
+        label: "Schedule time",
+        type: "text",
+        value: {every: 10, period: "minutes"},
+        defaultValue: "",
+        helptext: "",
+        show: false,
+        required: true
+    }, {
+        name: "schedule_entry_interval_every",
+        label: "Interval",
+        type: "text",
+        value: "10",
+        defaultValue: "",
+        excludeFromPayload: true,
+        class: "bind-both background",
+        show: true,
+        required: true,
+        helptext: "Example, every 10 minutes",
+        showIf: {
+            fieldName: "schedule_type",
+            fieldValues: ["interval"]
+        }
+    }, {
+        name: "schedule_entry_interval_period",
+        type: "radio",
+        value: "minutes",
+        defaultValue: "minutes",
+        excludeFromPayload: true,
+        class: "bind-top background",
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: "schedule_type",
+            fieldValues: ["interval"]
+        },
+        options: [{ //days, hours, minutes, seconds, microseconds
+            title: "days",
+            val: "days"
+        },{
+            title: "hours",
+            val: "hours"
+        },{
+            title: "mins",
+            val: "minutes"
+        },{
+            title: "secs",
+            val: "seconds"
+        }]
+    }, {
+        name: "schedule_entry_crontab",
+        label: "Crontab",
+        type: "text",
+        value: "*/10 * * * *",
+        defaultValue: "",
+        helptext: "",
+        excludeFromPayload: true,
+        class: "bind-top background",
+        show: true,
+        required: false,
+        helptext: "Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: minute hour day_of_week day_of_month month_of_year.",
+        helpHref: "http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules",
+        showIf: {
+            fieldName: "schedule_type",
+            fieldValues: ["crontab"]
+        }
+    }, {
+        name: "schedule_entry_one_off",
+        label: "",
+        type: "date",
+        value: "",
+        defaultValue: "",
+        class: "bind-top background",
+        icon: "schedule",
+        excludeFromPayload: true,
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: "schedule_type",
+            fieldValues: ["one_off"]
+        }
+    }, {
+        name: "expires",
+        label: "Expires",
+        type: "date",
+        value: "",
+        placeholder: "never",
+        excludeFromPayload: true,
+        defaultValue: "",
+        helptext: "",
+        icon: "schedule",
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: "schedule_type",
+            fieldValues: ["interval", "crontab"]
+        }
+    }, {
+        name: "max_run_count",
+        label: "Maximum Run Count",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        excludeFromPayload: true,
+        show: true,
+        required: false,
+        helptext: "Optional. Integers only. Define a maximum run count, unless it's an one_of schedule.",
+        showIf: {
+            fieldName: "schedule_type",
+            fieldValues: ["interval", "crontab"]
+        }
+    },{
         name: "monitoring",
         label: "Enable monitoring",
         type: "toggle",
