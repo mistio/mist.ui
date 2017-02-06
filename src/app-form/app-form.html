@@ -65,7 +65,7 @@
 
             paper-button.simple-button {
                 vertical-align: middle;
-                padding: 4px 4px 4px 0 !important;
+                padding: 4px 8px 4px 2px !important;
             }
 
             paper-button.simple-button > iron-icon {
@@ -165,6 +165,10 @@
                 max-height: 400px;
                 overflow: scroll;
             }
+            .date {
+                @apply(--layout-horizontal);
+                align-items: center;
+            }
             paper-date-picker ::content .day-item.selected.paper-calendar {
                 background: var(--mist-blue) !important;
             }
@@ -185,15 +189,6 @@
             paper-checkbox {
                 --paper-checkbox-checked-color: var(--mist-blue) !important;
                 --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
-            }
-            .never-date paper-checkbox {
-                color: #fff;
-                font-weight: 500;
-                font-size: 16px;
-                text-transform: uppercase;
-                --paper-checkbox-unchecked-color: #fff !important;
-                --paper-checkbox-unchecked-ink-color: #fff !important;
-                --paper-checkbox-label-color: #fff !important;
             }
             @media (max-width: 991px) {
                 .field-helptext.background,
@@ -287,8 +282,9 @@
                             <span>[[field.label]]</span>
                             <paper-button id="[[field.name]]" on-tap="_selectDate" disabled="[[field.disabled]]" hidden="[[field.hidden]]" class="simple-button">
                                 <iron-icon icon="[[field.icon]]" hidden$="[[!field.icon]]"></iron-icon>
-                                [[_displayDate(field.value)]]
+                                [[_displayDate(field, field.value)]]
                             </paper-button>
+                            <paper-icon-button icon="icons:close" on-tap="_clearDate" data-value="[[field.name]]" hidden$="{{!field.value.length}}"></paper-icon-button>
                         </div>
                     </template>
                     <div class$="field-helptext xs12 m6 [[field.class]]" hidden="[[field.hidden]]">[[field.helptext]]
@@ -332,9 +328,6 @@
             <div class="pickers">
                 <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
                 <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
-            </div>
-            <div class="never-date">
-                <paper-checkbox id="neverDate" checked="{{neverDate}}" on-value-change="">Never</paper-checkbox>
             </div>
             <div class="bottom-actions">
                 <paper-button dialog-dismiss>Cancel</paper-button>
@@ -442,8 +435,7 @@
                     dateTriggerField: {
                         type: Object,
                         value: {}
-                    },
-                    neverDaye: Boolean
+                    }
                 },
                 observers: [
                     '_fieldsChanged(fields.*, sendingData)'
@@ -453,6 +445,9 @@
                 },
                 ready: function(){
                     this.fields = [];
+                },
+                attached: function(){
+                    this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
                 },
                 showOption: function(option){
                     if (option.title)
@@ -705,7 +700,7 @@
                     return true;
                 },
                 validatecidr: function(value, index) {
-                    console.log('value', value);
+                    // console.log('value', value);
 
                     if(value == '' || value == undefined)
                         return false;
@@ -752,9 +747,7 @@
                     if (moment(this.form[event.rootTarget.id]).isValid())
                         this.$.pickDate.date = moment(this.form[event.rootTarget.id]).toDate();
 
-                    this.$.pickDate.minDate = new Date();
                     this.$.pickTime.time = moment().format('hh:mm a');
-                    this.neverDate = false;
                     this.$.dateTimePickers.open();
                 },
                 _applyDateTime: function(e) {
@@ -766,26 +759,37 @@
 
                     // apply date to the trigger fields
                     if (ind){
-                        if (!this.neverDate) {
-                            var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
-                            var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+                        var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
+                        var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
 
-                            console.log('combinedDate', combinedDate);
-
-                            this.set('fields.'+ ind +'.value', moment(combinedDate).utc().format().toString().replace('T',' ').replace('Z',''));
-                        }
-                        else {
-                            this.set('fields.'+ ind +'.value', "");   
-                        }
+                        this.set('fields.'+ ind +'.value', moment(combinedDate).utc().format().toString().replace('T',' ').replace('Z',''));
                     }
                     
                     this.$.dateTimePickers.close();
                 },
-                _displayDate: function(date){
-                    if (!moment(date).isValid() || date.trim() == "")
-                        return "never";
+                _displayDate: function(field, value){
+                    if (!moment(field.value).isValid() || field.value.trim() == "")
+                        return field.placeholder ? field.placeholder : "select date";
                     else {
-                        return moment(date).utc().fromNow()+': '+moment(date).utc().format().toString().replace('T',' ').replace('Z','');
+                        return moment.utc(field.value).local().fromNow()+': '+moment.utc(field.value).local().format('YYYY-MM-DD hh:mm').toString().replace('T',' ').replace('Z','');
+                    }
+                },
+                _clearDate: function(e){
+                    var fieldIndex,
+                        fieldname;
+
+                    if (e.target.tagName == "IRON-ICON") {
+                        fieldname = e.target.parentNode.dataValue;
+                    }
+                    else if (e.target.tagName == "PAPER-ICON-BUTTON") {
+                        fieldname = e.target.dataValue;
+                    }
+                    var el = this.fields.find(function(f, index){
+                        fieldIndex = index;
+                        return f.name ==  fieldname;
+                    });
+                    if (fieldIndex) {
+                        this.set('fields.'+ fieldIndex +'.value', "");
                     }
                 },
                 _constructCheckboxValue: function(fieldname) {
@@ -830,7 +834,7 @@
                 },
                 _updateCheckboxesField: function(e) {
                     if (e.target.tagName == "PAPER-CHECKBOX"){
-                        console.log(e, e.target, e.target.tagName == "PAPER-CHECKBOX");
+                        // console.log(e, e.target, e.target.tagName == "PAPER-CHECKBOX");
                         var name = e.target.name;
                         var fieldIndex;
                         var el = this.fields.find(function(f, index){

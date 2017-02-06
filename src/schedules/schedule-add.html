@@ -31,7 +31,7 @@
             right: 0;
         }
         app-form::content #schedule_entry_interval_period {
-            width: 100px;
+            width: 70px;
         }
         </style>
         <div id="content">
@@ -93,6 +93,12 @@ SCHEDULEACTIONS = {
     'icon': 'delete',
     'confirm': true,
     'multi': true
+  },
+  'run-script': {
+    'name': 'run script',
+    'icon': 'image:movie-creation',
+    'confirm': true,
+    'multi': false
   }
 };
         Polymer({
@@ -135,23 +141,15 @@ SCHEDULEACTIONS = {
                         required: false,
                         helptext: "You can save your schedule and enable it later."
                     }, {
-                        name: "script_or_action",
-                        label: "Scheduler task",
-                        type: "radio",
-                        value: "script",
-                        defaultValue: "script",
-                        helptext: "The scheduler can either perform an action or run a script",
+                        name: "action",
+                        label: "Task",
+                        type: "dropdown",
+                        value: "",
+                        defaultValue: "",
                         show: true,
-                        required: true,
-                        excludeFromPayload: true,
-                        class: "bind-bottom radio-highight",
-                        options: [{
-                            title: "Perform an action",
-                            val: "action"
-                        },{
-                            title: "Run a script",
-                            val: "script"
-                        }]
+                        required: false,
+                        helptext: "Choose one from the available tasks to schedule.",
+                        options: [],
                     }, {
                         name: "script_id",
                         label: "Script",
@@ -162,10 +160,9 @@ SCHEDULEACTIONS = {
                         required: false,
                         helptext: "Schedule an existing script to run.",
                         options: [],
-                        class: "bind-both background",
                         showIf: {
-                            fieldName: "script_or_action",
-                            fieldValues: ["script"]
+                            fieldName: "action",
+                            fieldValues: ["run script"]
                         }
                     }, {
                         name: "params",
@@ -176,26 +173,10 @@ SCHEDULEACTIONS = {
                         helptext: "",
                         show: false,
                         required: false,
-                        class: "bind-top background",
                         showIf: {
-                            fieldName: "script_or_action",
-                            fieldValues: ["script"]
-                        }
-                    }, {
-                        name: "action",
-                        label: "Action",
-                        type: "dropdown",
-                        value: "",
-                        defaultValue: "",
-                        show: false,
-                        required: false,
-                        helptext: "Schedule a machine action to be performed.",
-                        options: [],
-                        class: "bind-top background",
-                        showIf: {
-                            fieldName: "script_or_action",
-                            fieldValues: ["action"]
-                        }
+                            fieldName: "action",
+                            fieldValues: ["run script"]
+                        }                    
                     }, {
                         name: "ids_or_tags",
                         label: "Specific machines or machines with tags",
@@ -250,22 +231,22 @@ SCHEDULEACTIONS = {
                         name: "schedule_type",
                         label: "Schedule Type",
                         type: "radio",
-                        value: "interval",
+                        value: "one_off",
                         defaultValue: "interval",
-                        helptext: "Choose the scheduler type. Read more on the docs ",
+                        helptext: "The scheduler type. Visit the docs ",
                         helpHref: "http://docs.mist.io/article/118-running-scheduled-tasks-cronjobs-with-mist-io",
                         show: true,
                         required: true,
                         class: "bind-bottom radio-highight",
                         options: [{
-                            title: "Interval",
+                            title: "Once",
+                            val: "one_off"
+                        },{
+                            title: "Repeat",
                             val: "interval"
                         }, {
                             title: "Crontab",
                             val: "crontab"
-                        }, {
-                            title: "One off",
-                            val: "one_off"
                         }]
                     }, {
                         name: "schedule_entry",
@@ -336,9 +317,9 @@ SCHEDULEACTIONS = {
                         }
                     }, {
                         name: "schedule_entry_one_off",
-                        label: "Date",
+                        label: "",
                         type: "date",
-                        value: "Select",
+                        value: "",
                         defaultValue: "",
                         class: "bind-top background",
                         icon: "schedule",
@@ -354,13 +335,18 @@ SCHEDULEACTIONS = {
                         label: "Expires",
                         type: "date",
                         value: "",
+                        placeholder: "never",
                         excludeFromPayload: true,
-                        defaultValue: "",
+                        defaultValue: "",                        
                         helptext: "",
                         icon: "schedule",
                         show: true,
                         required: false,
-                        disabled: false
+                        disabled: true,
+                        showIf: {
+                            fieldName: "schedule_type",
+                            fieldValues: ["interval", "crontab"]
+                        }
                     }, {
                         name: "max_run_count",
                         label: "Maximum Run Count",
@@ -368,9 +354,14 @@ SCHEDULEACTIONS = {
                         value: "",
                         defaultValue: "",
                         excludeFromPayload: true,
+                        disabled: true,
                         show: true,
                         required: false,
-                        helptext: "Optional. Integers only. Define a maximum run count, unless it's an one_of schedule."
+                        helptext: "Optional. Integers only. Define a maximum run count, unless it's an one_of schedule.",
+                        showIf: {
+                            fieldName: "schedule_type",
+                            fieldValues: ["interval", "crontab"]
+                        }
                     },{
                         name: "run_immediately",
                         label: "Run once immediately",
@@ -395,7 +386,7 @@ SCHEDULEACTIONS = {
             listeners: {
             },
             _computeActions: function(machinesArray) {
-                var ret = ['start', 'stop', 'suspend', 'reboot', 'resume', 'destroy'];
+                var ret = ['start', 'stop', 'suspend', 'reboot', 'resume', 'destroy', 'run-script'];
                 
                 var actions = [];
                 for (var i = 0; i < ret.length; i++) {
@@ -438,18 +429,29 @@ SCHEDULEACTIONS = {
                     // selecting action or script
                     if (this.get(changeRecord.path.replace('.value','')).name == "script_or_action"){
                         
-                        var actionInd = this._fieldIndexByName("action");
-                        var scriptInd = this._fieldIndexByName("script_id");
+                        // var actionInd = this._fieldIndexByName("action");
+                        // var scriptInd = this._fieldIndexByName("script_id");
 
-                        if (changeRecord.value == "action") {
-                            this.set('fields.'+ scriptInd +'.excludeFromPayload', true);
-                            this.set('fields.'+ actionInd +'.excludeFromPayload', false);
-                        }
-                        else if (changeRecord.value == "script") {
-                            this.set('fields.'+ actionInd +'.excludeFromPayload', true);
-                            this.set('fields.'+ scriptInd +'.excludeFromPayload', false);
-                        }
+                        // if (changeRecord.value == "action") {
+                        //     this.set('fields.'+ scriptInd +'.excludeFromPayload', true);
+                        //     this.set('fields.'+ actionInd +'.excludeFromPayload', false);
+                        // }
+                        // else if (changeRecord.value == "script") {
+                        //     this.set('fields.'+ actionInd +'.excludeFromPayload', true);
+                        //     this.set('fields.'+ scriptInd +'.excludeFromPayload', false);
+                        // }
                         // console.log("SCRIPT:", !this.get('fields.'+ scriptInd +'.excludeFromPayload'), " ACTION:", !this.get('fields.'+ tagstInd +'.excludeFromPayload'))
+                    }
+
+                    // selecting action
+                    if (this.get(changeRecord.path.replace('.value','')).name == "action" ){
+                        var actionInd = this._fieldIndexByName("action");
+                        if (changeRecord.path == "run script"){
+                            this.set('fields.'+ actionInd +'.excludeFromPayload', true);
+                        }
+                        if (changeRecord.path != "run script"){
+                            this.set('fields.'+ actionInd +'.excludeFromPayload', true);
+                        }
                     }
 
                     // selecting uuids or tags

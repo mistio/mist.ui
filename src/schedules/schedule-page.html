@@ -221,6 +221,29 @@
                 color: rgba(0,0,0,0.32);
                 font-size: 0.9em;
             }
+            .counts {
+                padding: 0 8px;
+                text-align: center;
+            }
+            .counts h2 {
+                font-size: 26px;
+                margin: 0;
+                padding: 0;
+            }
+            .counts .m-info-head {
+                width: 120px;
+            }
+            .missing-machines {
+                margin-bottom: 16px;
+            }
+            .machine {
+                line-height: 2em;
+            }
+            .machine code {
+                background-color: #eee;
+                padding: 2px 4px;
+                border-radius: 4px;
+            }
         </style>
         <div id="content" class="does-not-exist" hidden$="[[exists]]">
             <h1>404</h1>
@@ -251,28 +274,38 @@
                 </div>
             </paper-material>
             <paper-material>
-                <h4 class="id">
-                    <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
-                    <span hidden$="[[hasExpired]]">
-                        <span hidden$="[[!schedule.task_enabled]]">Enabled</span>
-                        <span hidden$="[[schedule.task_enabled]]">Disabled</span>
-                    </span>                    
-                    <span hidden$="[[!hasExpired]]">Scheduler has expired.</span>
-                </h4>
+                <div class="layout horizontal">
+                    <h4 class="id flex">
+                        <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
+                        <span hidden$="[[hasExpired]]">
+                            <span hidden$="[[!schedule.task_enabled]]">Enabled</span>
+                            <span hidden$="[[schedule.task_enabled]]">Disabled</span>
+                        </span>
+                        <span hidden$="[[!hasExpired]]">Scheduler has expired.</span>
+                    </h4>
+                    <div class="counts">
+                        <h2>[[schedule.total_run_count]]</h2>
+                        <div class="m-info-head">Run Count</div>
+                    </div>
+                    <div class="counts">
+                        <h2>[[schedule.max_run_count]]
+                            <paper-icon-button on-tap="_editMaxRunCount" icon="image:edit" disabled$="[[isOneOff]]" hidden$="[[isOneOff]]"></paper-icon-button>
+                        </h2>
+                        <div class="m-info-head">
+                            <div class="layout horizontal">
+                                <span>Maximum Runs</span>
+                            </div>
+                        </div> 
+                    </div>
+                </div>
             </paper-material>
             <paper-material>
                 <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.:</span> [[schedule.description]]</div>
                 <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
                 <div><span class="m-info-head">Expires:</span> 
-                    <span hidden$="[[schedule.expires.length]]">never</span>
+                    <span hidden$="[[schedule.expires.length]]">Never</span>
                     <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
                     <paper-button id="editExpiration" on-tap="_selectDate" class="simple-button blue-link smaller" noink>change</paper-button>
-                </div>
-                <div><span class="m-info-head">Run Count:</span> [[schedule.total_run_count]]</div>
-                <div>
-                    <span class="m-info-head">Max Runs:</span> [[schedule.max_run_count]]
-                    <paper-button on-tap="_editMaxRunCount" class="simple-button blue-link smaller" noink disabled$="[[isOneOff]]" hidden$="[[isOneOff]]">change</paper-button>
-                    <span hidden$="[[!isOneOff]]" class="note">Can't edit. One off schedules run once and expire.</span>
                 </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
@@ -291,6 +324,11 @@
                     </template>
                     &nbsp; [[filteredItems.length]] machines affected. </span>
                 <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink>change</paper-button>
+                <div class='missing-machines' hidden$="[[!missingMachines.length]]">
+                    <template is="dom-repeat" items="[[missingMachines]]">
+                        <div class="machine">1 Missing machine with uuid <code>[[item]]</code></div>
+                    </template>
+                </div>
                 <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
             </paper-material>
         </div>
@@ -361,6 +399,9 @@
                     value: false
                 },
                 filteredItems: {
+                    type: Array
+                },
+                missingMachines: {
                     type: Array
                 },
                 sortBy: {
@@ -539,11 +580,23 @@
                 }
             },
             _computeMachines: function(schedule, machines) {
-                var filteredMachines = [];
+                var filteredMachines = [],
+                    missingMachines = [];
                 filteredMachines = this.model.machinesArray.filter(function(m){
                     return this.condition(m);
-                }, this)
+                }, this);
+
+                if (this.schedule.machines_uuids) {
+                    for (var i = 0; i < this.schedule.machines_uuids.length; i++) {
+                        var machine = this.schedule.machines_uuids[i];
+                        if (!this.model.machines[machine]){
+                            missingMachines.push(machine);
+                        }
+                    }
+                }
+
                 this.set('filteredItems', filteredMachines);
+                this.set('missingMachines', missingMachines);
             },
             condition: function(m) {
                 if (this.isSpecificMachines) {
