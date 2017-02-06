@@ -610,7 +610,7 @@
                     });
                 },
                 _submitForm: function(e) {
-                    var payload;
+                    var payload = {};
 
                     if (this.workflow) {
                         var inps = YAML.parse(this.form.stackinputs);
@@ -630,17 +630,20 @@
                             inputs: inps
                         }
                     } else {
-                        payload = this.form;
+                        // payload = this.form;
+                        for (var p in this.form) {
+                            payload[p] = this.form[p]
+                        }
+
                         // clean up form for payload
-                        this.fields.forEach(function(el) {
-                            // console.log(el.name, el.excludeFromPayload);
-                            if (el.excludeFromPayload) {
-                                delete payload[el.name];
-                            }
-                        }, this);
+                        var excludeFields = this.fields.filter(function(el) {
+                            return el.excludeFromPayload == true;
+                        });
 
+                        for (var i = 0; i < excludeFields.length; i++){
+                            delete payload[excludeFields[i].name];
+                        }
                     }
-
                     console.log('Payload', payload, this.form);
 
                     this.$.formAjax.headers["Content-Type"] = 'application/json';
