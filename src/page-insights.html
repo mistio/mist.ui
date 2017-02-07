@@ -23,6 +23,9 @@
         :host {
             display: block;
         }
+        item-list::content span#sortarrow {
+            display: none !important;
+        }
         paper-material {
             padding: 24px;
             position: relative;
@@ -228,6 +231,13 @@
             text-align: center;
             min-height: 80vh;
         }
+        .lowercase {
+            text-transform: lowercase; 
+        }
+        .smaller.inline + .smaller.inline {
+            border-left: 1px solid #ddd; 
+            padding-left: 16px;
+        }
     </style>
     <app-route route="{{route}}"></app-route>
     <iron-media-query query="(min-width: 1180px)" query-matches="{{largescreen}}"></iron-media-query>
@@ -343,9 +353,8 @@
             </div>
             <div class="comparison">
                 <div class="smaller inline" hidden$="[[!isToCurrent]]">
-                    <span>$/mo
-                        <span hidden$="[[!report.history.length]]">[[lastValue(report.history, 'cost_per_month')]]</span>
-                        Current run rate
+                    <span>
+                        <strong>$<span hidden$="[[!report.history.length]]">[[lastValue(report.history, 'cost_per_month')]]</span></strong>/<span class="lowercase">month</span> Current run rate
                     </span>
                 </div>
                 <div class="smaller inline" hidden$="[[!isNotNull(report.comparative_cost)]]">
@@ -358,7 +367,7 @@
             <div id="graphRow" class="row" largescreen$="{{largescreen}}">
                 <div class="block flex">
                     <div class="row">
-                        <div class="smaller">Run Rate ($/mo)</div>
+                        <div class="smaller">Run Rate ($/<span class="lowercase">month</span>)</div>
                     </div>
                     <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
                 </div>
@@ -593,7 +602,7 @@
             <div class="loading-data" hidden="{{!loadingData}}">
             </div>
             <div class="machines-list">
-                <item-list section="[[sections.machines]]" items="[[machines]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
+                <item-list section="[[sections.machines]]" items="[[machines]]" sort-by="cost" sort-order="1" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
             </div>
         </paper-material>
 
@@ -664,7 +673,7 @@
                     value: {
                         labels: [],
                         datasets: [{
-                            label: "cost",
+                            label: "cost per month",
                             backgroundColor: "rgba(0,155,155,0.2)",
                             borderColor: "rgba(0,155,155,1)",
                             borderWidth: 1,
@@ -747,7 +756,7 @@
                             }
                         }
                     }
-                },
+                }
             },
             listeners: {
                 'resize' : 'updateChartWidth'
