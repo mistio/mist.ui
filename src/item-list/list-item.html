@@ -471,13 +471,28 @@ Polymer({
         }
 
         if (field == 'on_machines'){
-            if (item.machines_uuids)
+            if (item.machines_uuids){
                 return item.machines_uuids.length +' machines.'
-            if (item.machines_tags)
-                return 'with tags: '+ JSON.stringify(item.machines_tags);
+            }
+            else if (item.machines_tags) {
+                var filteredMachines = document.querySelector('mist-app').model.machinesArray.filter(function(m){
+                    return this._machineHasTag(m);
+                }, this);
+                return filteredMachines.length + ' tagged machines';
+            }
         }
 
         return ret;
+    },
+    _machineHasTag: function(m) {
+        var exists = false;
+        for (var i = 0; i < m.tags.length; i++){
+            if (this.item.machines_tags[m.tags[i].key] && this.item.machines_tags[m.tags[i].key] == m.tags[i].value ){
+                exists = true;
+                break;
+            }
+        }
+        return exists;
     },
     _probesChanged: function(probes, item, section){
         if (this.probes != {} && this.section.id == "machines" && this.item.uuid && this.probes[item.uuid] && this.probes[item.uuid].dirty_cow == true) {
