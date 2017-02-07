@@ -204,7 +204,7 @@ SCHEDULEACTIONS = {
                 listeners: {
                     // 'change': '_updatePayload',
                     // 'iron-select': '_updateFields',
-                    'add-input': 'openNewImageDialog'
+                    'add-input': 'addInput'
                 },
                 _computeActions: function(machinesArray) {
                     var ret = ['start', 'stop', 'suspend', 'reboot', 'resume', 'destroy', 'run-script'];
@@ -370,7 +370,6 @@ SCHEDULEACTIONS = {
                         if (changeRecord.path.endsWith('.value')) {
                             // selecting action or script
                             if (this.get(changeRecord.path.replace('.value','')).name == "action"){
-                                console.log('action', changeRecord);
                                 var actionInd = this._fieldIndexByName("action");
                                 var scriptInd = this._fieldIndexByName("schedule_script_id");
 
@@ -406,7 +405,7 @@ SCHEDULEACTIONS = {
                                     this.set('machineFields.'+ maxcountInd +'.value', "");
                                 }
                                 else if (changeRecord.value == "one_off") {
-                                    entry = "";
+                                    entry = document.getElementById("schedule_entry_one_off").textContent.split(',')[1] ? document.getElementById("schedule_entry_one_off").textContent.split(',')[1].trim()+":00" : "";
                                     this.set('machineFields.'+ expInd +'.disabled', true);
                                     this.set('machineFields.'+ maxcountInd +'.value', 1);
                                     this.set('machineFields.'+ maxcountInd +'.disabled', true);
@@ -608,8 +607,18 @@ SCHEDULEACTIONS = {
                         return  ["bare_metal", "vsphere", "indonesian_vcloud", "azure_arm"].indexOf(c.provider) == -1;
                     });
                 },
-                openNewImageDialog: function(e){
-                    this.querySelector("paper-dialog#addKvmImage").open();
+                addInput: function(e){
+                    if (e.detail.fieldname == 'schedule_script_id' || e.detail.fieldname == 'script_id'){
+                        //set attribute origin
+                        var origin = window.location.pathname;
+                        var qParams = {
+                            'origin': origin
+                        }
+                        document.querySelector('app-location').set('path', '/scripts/+add');
+                        document.querySelector('app-location').set('queryParams', qParams);
+                    }
+                    else if (e.detail.fieldname == 'image')
+                        this.querySelector("paper-dialog#addKvmImage").open();
                 },
                 saveNewImage: function(e){
                     var imaInd = this._fieldIndexByName('image');
@@ -639,7 +648,7 @@ SCHEDULEACTIONS = {
                 _processCrotab: function(entry) {
                     var chunchs = entry.split(" ");
                     // "minute" : "30", "hour" : "2", "day_of_week" : "*", "day_of_month" : "*", "month_of_year" : "*"
-                    // fill in missing
+                    // fill in missin
                     for (var i = 0; i < 5; i++) {
                         if (!chunchs[i])
                             chunchs[i] = "*"
@@ -653,6 +662,13 @@ SCHEDULEACTIONS = {
                         };
                     return construct;
                 },
+                updateScripts: function(e){
+                    var scheduleScriptInd = this._fieldIndexByName("schedule_script_id");
+                    this.async(function(){
+                        this.set('machineFields.'+ scheduleScriptInd +'.options', this.model.scriptsArray);
+                        this.set('machineFields.'+ scheduleScriptInd +'.value', e.detail.script);
+                    }.bind(this), 1000);
+                }
             });
         })();
     </script>
