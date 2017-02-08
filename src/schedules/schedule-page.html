@@ -263,10 +263,10 @@
                     </div>
                 </div>
                 <div class="item-actions">
-                    <paper-button on-tap="_runOnceDialog" class="simple">run now
+                    <paper-button on-tap="_runOnceDialog" class="simple" hidden$="[[hasExpired]]">run now
                         <iron-icon icon="edit"></iron-icon>
                     </paper-button>
-                    <paper-button on-tap="_editSchedule" class="simple">edit
+                    <paper-button on-tap="_editSchedule" class="simple" hidden$="[[hasExpired]]">edit
                         <iron-icon icon="edit"></iron-icon>
                     </paper-button>
                     <paper-button on-tap="_deleteSchedule" class="simple">delete
@@ -290,7 +290,7 @@
                     </div>
                     <div class="counts">
                         <h2>[[schedule.max_run_count]]
-                            <paper-icon-button on-tap="_editMaxRunCount" icon="image:edit" disabled$="[[isOneOff]]" hidden$="[[isOneOff]]"></paper-icon-button>
+                            <paper-icon-button on-tap="_editMaxRunCount" icon="image:edit" disabled$="[[isOneOff]]" hidden$="[[isOneOff]]" disabled$="[[hasExpired]]"></paper-icon-button>
                         </h2>
                         <div class="m-info-head">
                             <div class="layout horizontal">
@@ -306,7 +306,8 @@
                 <div>
                     <span class="m-info-head">Starts:</span>
                     <span hidden$="[[!schedule.start_after]]">[[_computeAbsoluteDateText(schedule.start_after)]]</span>
-                    <paper-button id="editStart" on-tap="_selectDate" data-field="start_after" class="simple-button blue-link smaller" noink>change</paper-button>
+                    <span hidden$="[[!schedule.start_after.length]]">-</span>
+                    <paper-button id="editStart" on-tap="_selectDate" data-field="start_after" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 </div>
                 <div><span class="m-info-head">Expires:</span>
                     <span hidden$="[[schedule.expires.length]]">Never</span>
@@ -317,7 +318,7 @@
                 <div>
                     <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] 
                     <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
-                    <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink>change</paper-button>
+                    <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 </div>
             </paper-material>
             <paper-material>
@@ -329,7 +330,7 @@
                         <span class="tag">[[item]]</span>
                     </template>
                     &nbsp; [[filteredItems.length]] machines affected. </span>
-                <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink>change</paper-button>
+                <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 <div class='missing-machines' hidden$="[[!missingMachines.length]]">
                     <template is="dom-repeat" items="[[missingMachines]]">
                         <div class="machine">1 Missing machine with uuid <code>[[item]]</code></div>
@@ -671,8 +672,14 @@
                         this.$.pickTime.time = moment.utc(this.schedule[field]).local().format('hh:mm a').toString();
                     }
                     else {
-                        this.$.pickDate.date = new Date();
-                        this.$.pickTime.time = moment().format('hh:mm a').toString(); 
+                        if (field == "expires" && moment(this.schedule.start_after).isValid()) {
+                            this.$.pickDate.date = moment(this.schedule.start_after).toDate();
+                            this.$.pickTime.time = moment.utc(this.schedule.start_after).local().format('hh:mm a').toString();
+                        }
+                        else {
+                            this.$.pickDate.date = new Date();
+                            this.$.pickTime.time = moment().format('hh:mm a').toString();
+                        }
                     }
                     this.$.pickDate.minDate = new Date();
                     this.expError = false;
