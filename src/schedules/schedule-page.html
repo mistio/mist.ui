@@ -276,16 +276,20 @@
             </paper-material>
             <paper-material>
                 <div class="layout horizontal">
-                    <h4 class="id flex">
-                        <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
+                    <div class="flex">
+                        <h4 class="id">
+                            <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
+                            <span hidden$="[[hasExpired]]">
+                                <span hidden$="[[!schedule.task_enabled]]">Enabled</span>
+                                <span hidden$="[[schedule.task_enabled]]">Disabled</span>
+                            </span>
+                            <span hidden$="[[!hasExpired]]">Scheduler has expired.</span>
+                        </h4>
                         <span hidden$="[[hasExpired]]">
-                            <span hidden$="[[!schedule.task_enabled]]">Enabled</span>
-                            <span hidden$="[[schedule.task_enabled]]">Disabled</span>
+                            <span class="note" hidden$="[[!schedule.active]]">Currently active.</span>
+                            <span class="note" hidden$="[[schedule.active]]">Currently not active.</span>
                         </span>
-                        <span hidden$="[[!hasExpired]]">Scheduler has expired.</span>
-                        <span hidden$="[[!schedule.active]]">Scheduler is active.</span>
-                        <span hidden$="[[schedule.active]]">Scheduler is not active.</span>
-                    </h4>
+                    </div>
                     <div class="counts">
                         <h2>[[schedule.total_run_count]]</h2>
                         <div class="m-info-head">Run Count</div>
@@ -476,6 +480,7 @@
             },
             attached: function() {
                 this.isLoading = false;
+                this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
             },
             _scheduleChanged: function(schedule) {
                 if (this.schedule && this.schedule.id) {
@@ -670,14 +675,13 @@
 
                 if (field) {
                     if (moment(this.schedule[field]).isValid()){
-                        this.$.pickDate.date = moment(this.schedule[field]).toDate();
+                        this.$.pickDate.date = moment.utc(this.schedule[field]).local().toDate();
                         this.$.pickTime.time = moment.utc(this.schedule[field]).local().format('hh:mm a').toString();
                     }
                     else {
                         this.$.pickDate.date = new Date();
                         this.$.pickTime.time = moment().format('hh:mm a').toString();
                     }
-                    this.$.pickDate.minDate = new Date();
                     this.expError = false;
                     this.$.dateTimePickersApplyButton.setAttribute('data-field', field);
                     this.$.dateTimePickers.open();
