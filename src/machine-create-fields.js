@@ -335,7 +335,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         value: false,
         defaultValue: false,
         excludeFromPayload: true,
-        helptext: "Enable to run a script immediately after provisioning",
+        helptext: "Open options to run a script immediately after provisioning",
         show: true,
         required: false
     },{
@@ -405,7 +405,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          value: false,
          defaultValue: false,
          excludeFromPayload: true,
-         helptext: "Enable to apply a scheduled action on this machine",
+         helptext: "Open options to apply a scheduled action on this machine",
          show: true,
          required: false
      },{
