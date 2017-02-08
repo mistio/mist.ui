@@ -692,6 +692,15 @@
                     else {
                         payload[field] = "";
                     }
+                    // we need to reset start if hasExpired and expires if start has passed
+                    if (this.hasExpired) {
+                        if (field == "start_after") {
+                            payload.expires = "";
+                        }
+                        else if (field == "expires" && moment().diff(moment(this.schedule.start_after).local()) > 0 ) {
+                            payload.start_after = "";
+                        }
+                    }
                     this.$.editExpirationSchedule.body = payload;
                     this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
                     this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
