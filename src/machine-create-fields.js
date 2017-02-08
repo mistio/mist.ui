@@ -523,9 +523,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          },{
              title: "mins",
              val: "minutes"
-         },{
-             title: "secs",
-             val: "seconds"
          }]
      }, {
          name: "schedule_entry_crontab",
