@@ -303,15 +303,15 @@
             <paper-material>
                 <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.:</span> [[schedule.description]]</div>
                 <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
-                <div><span class="m-info-head">Expires:</span> 
-                    <span hidden$="[[schedule.expires.length]]">Never</span>
-                    <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
-                    <paper-button id="editExpiration" on-tap="_selectDate" data-field="expires" class="simple-button blue-link smaller" noink>change</paper-button>
-                </div>
                 <div>
                     <span class="m-info-head">Starts:</span>
                     <span hidden$="[[!schedule.start_after]]">[[_computeAbsoluteDateText(schedule.start_after)]]</span>
                     <paper-button id="editStart" on-tap="_selectDate" data-field="start_after" class="simple-button blue-link smaller" noink>change</paper-button>
+                </div>
+                <div><span class="m-info-head">Expires:</span>
+                    <span hidden$="[[schedule.expires.length]]">Never</span>
+                    <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
+                    <paper-button id="editExpiration" on-tap="_selectDate" data-field="expires" class="simple-button blue-link smaller" noink>change</paper-button>
                 </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
@@ -659,7 +659,7 @@
                 return moment.utc(time).local().fromNow();
             },
             _computeAbsoluteDateText: function(time) {
-                return moment.utc(time).local().format("MMMM D YYYY HH:mm:ss");
+                return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
             },
             _selectDate: function(e) {
                 var field = e.target.dataset.field;
