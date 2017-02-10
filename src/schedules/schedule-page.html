@@ -259,7 +259,7 @@
                 <div class="title flex">
                     <h2>[[schedule.name]]</h2>
                     <div class="subtitle">
-                        [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]]
+                        [[_makeCleanerTask(schedule.task_type)]], [[_parseToLocalTime(schedule.schedule)]]
                     </div>
                 </div>
                 <div class="item-actions">
@@ -322,7 +322,7 @@
                 </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
-                    <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[schedule.schedule]] 
+                    <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[_parseToLocalTime(schedule.schedule)]]
                     <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
                     <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 </div>
@@ -588,6 +588,16 @@
                     return ret;
                 }
             },
+            _parseToLocalTime: function(string) {
+                if (!this.isOneOff)
+                    return string;
+                else {
+                    if (string){
+                        var newString = "once on " + moment.utc(this.schedule.schedule_entry.entry).local().format('YYYY-MM-DD HH:mm').toString();
+                    }
+                    return newString;
+                }
+            },
             _computeScriptLink: function(schedule) {
                 if (this.schedule && this.schedule.task_type.startsWith("Run script:")) {
                     return '/scripts/'+this.schedule.task_type.split(": ")[1]
@@ -603,7 +613,7 @@
                 if (this.schedule.machines_uuids) {
                     for (var i = 0; i < this.schedule.machines_uuids.length; i++) {
                         var machine = this.schedule.machines_uuids[i];
-                        if (!this.model.machines[machine]){
+                        if (this.model.machines && !this.model.machines[machine]){
                             missingMachines.push(machine);
                         }
                     }
