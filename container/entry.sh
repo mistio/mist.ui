@@ -11,5 +11,5 @@ if ! git diff --quiet --exit-code staging bower.json; then
     echo "Running bower install"
     bower install --config.interactive=false --allow-root 
 fi
-
+cp /ui/container/nginx.conf /etc/nginx/nginx.conf
 nginx
