@@ -6,6 +6,8 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <dom-module id="details-page">
     <template>
@@ -127,6 +129,21 @@
 
                 <p class="xs12 l12">* In your organisation's alert email, you can specify the email you want your incidents' alerts to be sent to. This can be overriden when you add rules in your monitored machines.</p>
 
+                <div class="xs12 head">
+                    <paper-toggle-button active="{{customLogo}}">Custom logo</paper-toggle-button>
+                    <div hidden$="[[!customLogo]]">
+                        <p class="xs12 l12">Upload an image that will override the default mist.io logo</p>
+                        <vaadin-upload id="orgAvatar" max-files="1" accept="image/png" max-file-size="262144" 
+                            headers="[[_computeUploadHeaders()]]" 
+                            target="/api/v1/avatars">
+                            <div class="drop-label">
+                                <iron-icon icon="file-upload"></iron-icon>
+                                Drop file here - PNG up to 256kb
+                            </div>
+                        </vaadin-upload>
+                    </div>
+                </div>
+
                 <div class="progress">
                     <paper-progress id="orgProgress" indeterminate hidden$="[[!loadingOrg]]"></paper-progress>
                     <paper-progress id="orgprogresserror" class="progresserror" value="100" hidden$="[[!orgError]]"></paper-progress>
@@ -220,6 +237,10 @@
                 _orgUpdated: function(org) {
                     this.orgName = org.name;
                     this.orgAlertEmails = org.alerts_email.join('\n')
+                },
+
+                _computeUploadHeaders: function() {
+                    return {'Csrf-Token': CSRF_TOKEN};
                 },
 
                 _computeUserFormReady: function(firstName, lastName, loading, user) {
