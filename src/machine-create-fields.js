@@ -122,12 +122,6 @@ MACHINE_CREATE_FIELDS.push({
     fields: []
 });
 
-// INDONESIAN CLOUD
-MACHINE_CREATE_FIELDS.push({
-    provider: 'indonesian_vcloud',
-    fields: []
-});
-
 // KVM
 MACHINE_CREATE_FIELDS.push({
     provider: 'libvirt',
