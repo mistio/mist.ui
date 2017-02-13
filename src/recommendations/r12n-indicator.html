@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../iron-iconset-svg/iron-iconset-svg.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
@@ -11,14 +12,52 @@
             :host {
                 display: inline-block;
             }
+
+            paper-icon-button ::content iron-icon {
+                color: inherit;
+            }
+
+            :host::content iron-dropdown {
+                width: 300px !important;
+            }
+
+            .grid-row {
+                padding: 0;
+                margin: 0;
+                max-width: 270px;
+                color: #000;
+            }
+
+            .grid-row h4 {
+                color: #000;
+            }
+
         </style>
 
         <!-- local DOM goes here -->
         <paper-menu-button horizontal-align="right">
-          
-            
-            <img class="logo" src="../../assets/logos/logo.svg" width="80" alt="Mist.io Logo" tabindex="0" on-tap="_goToDashboard">
-
+            <paper-icon-button icon="image:wb-incandescent" class="r12n-icon dropdown-trigger"></paper-icon-button>
+                <div class="dropdown-content">
+                    <div class="grid-row">
+                        <h4>Recommendations</h4>
+                    </div>
+                    <paper-menu>
+                        <template is="dom-repeat" items="[[r12nList]]" as="r12n">
+                            <paper-item class="context">
+                                <a href="[[r12n.href]]" on-tap="_goToOrg" id="[[r12n.id]]" class="grid-row">
+                                    <iron-icon class="user-menu-icon" icon$="[[_computeR12nIcon(organization)]]"></iron-icon>
+                                    <div class="r12n-name">[[r12n.message]]</div>
+                                </a>
+                            </paper-item>
+                        </template>
+                        <hr/>
+                        <!--<paper-item>
+                            <a href="javascript:void(0)" on-tap="_logout" class="flex">
+                                <iron-icon icon="power-settings-new"></iron-icon> Logout
+                            </a>
+                        </paper-item>-->
+                    </paper-menu>
+                </div>
         </paper-menu-button>
     </template>
 
@@ -26,6 +65,7 @@
         Polymer({
             /* this is the element's prototype */
             is: 'r12n-indicator',
+            properties: {},
         });
     </script>
 </dom-module>
