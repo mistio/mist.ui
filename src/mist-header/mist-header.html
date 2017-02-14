@@ -2,6 +2,8 @@
 <link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../../bower_components/pushstate-anchor/pushstate-anchor.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+
 <link rel="import" href="../app-user-menu/app-user-menu.html">
 <!--link rel="import" href="../notifications-element/notifications-element.html"-->
 <link rel="import" href="../recommendations/r12n-indicator.html">
@@ -58,8 +60,10 @@
         }
 
         a#logo-link {
-            line-height: 36px;
+            line-height: 56px;
             display: flex;
+            width: 80px;
+            margin-right: 20px;
         }
 
         .logo {
@@ -80,6 +84,7 @@
             white-space: nowrap;
             width: 100px;
             text-transform: capitalize;
+            margin: auto;
         }
 
         .container {
@@ -91,11 +96,17 @@
             --paper-badge-margin-left: -40px;
             --paper-badge-margin-bottom: -16px;
         }
+        iron-image.logo {
+             width: 80px;
+             height: 36px;
+        }
         </style>
         <paper-toolbar id="header" class="dark">
             <paper-icon-button icon="menu" paper-drawer-toggle on-tap="toggleSidebar" tabindex="0"></paper-icon-button>
             <div class="logo-and-title layout horizontal">
-                <a id="logo-link" class="regular" href="/" is="pushstate-anchor"><img class="logo" src="../../assets/logos/logo.svg" width="80" alt="Mist.io Logo" tabindex="0" on-tap="_goToDashboard"></a>
+                <a id="logo-link" class="regular" href="/" is="pushstate-anchor">
+                    <iron-image class="logo" src$="[[_computeLogo(model.org)]]" sizing="contain" fade alt="Mist.io Logo" tabindex="0" on-tap="_goToDashboard"></iron-image>
+                </a>
                 <span class="page-title">[[titleText]]</span>
             </div>
             <span class="title layout horizontal">
@@ -139,6 +150,13 @@
                 return true;
 
             });
+        },
+        _computeLogo: function(org) {
+            if (!org)
+                return '/ui/assets/logos/logo.svg';
+            if (!org.avatar)
+                return '/ui/assets/logos/logo.svg';
+            return '/api/v1/avatars/' + org.avatar;
         }
     });
     </script>
