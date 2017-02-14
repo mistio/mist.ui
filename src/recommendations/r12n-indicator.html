@@ -42,10 +42,10 @@
                         <h4>Recommendations</h4>
                     </div>
                     <paper-menu>
-                        <template is="dom-repeat" items="[[r12nList]]" as="r12n">
+                        <template is="dom-repeat" items="[[r12ns]]" as="r12n">
                             <paper-item class="context">
-                                <a href="[[r12n.href]]" on-tap="_goToOrg" id="[[r12n.id]]" class="grid-row">
-                                    <iron-icon class="user-menu-icon" icon$="[[_computeR12nIcon(organization)]]"></iron-icon>
+                                <a href="" on-tap="_goToOrg" class="grid-row">
+                                    <iron-icon class="user-menu-icon" icon$="[[_computeR12nIcon(r12n)]]"></iron-icon>
                                     <div class="r12n-name">[[r12n.message]]</div>
                                 </a>
                             </paper-item>
@@ -61,11 +61,40 @@
         </paper-menu-button>
     </template>
 
+    <iron-ajax auto id="r12nRequest" method="POST" 
+    params='[[ajaxParams]]'
+    url="/api/v1/recommendations" handle-as="json" 
+    on-response="handleResponse"></iron-ajax>
+
     <script>
         Polymer({
             /* this is the element's prototype */
             is: 'r12n-indicator',
-            properties: {},
+            properties: {
+                user: {
+                    type: Object
+                },
+                r12ns: {
+                    type: Array
+                },
+                ajaxParams: {
+                    type: String
+                }
+            },
+            ready: function () {
+                // Do we need this?
+                this.ajaxParams = {"user" : user};
+                this.$.r12nRequest.generateRequest();
+            },
+            handleResponse: function (data) {
+                this.r12ns = data.detail.response;
+            },
+            _computeIndicatorIcon: function() {
+                // Todo: Calculate which icon and color should be shown
+            },
+            _computeR12nIcon: function(r12n) {
+
+            }
         });
     </script>
 </dom-module>
