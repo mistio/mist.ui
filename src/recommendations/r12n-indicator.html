@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 
 <dom-module id="r12n-indicator">
@@ -10,6 +11,8 @@
             /* local styles go here */
             :host {
                 display: inline-block;
+                --paper-badge-margin-left: -25px;
+                --paper-badge-margin-bottom: -25px;
             }
 
             paper-icon-button ::content iron-icon {
@@ -47,7 +50,7 @@
                 width: 16px;
                 height: 16px;
                 margin-right: 0;
-                margin-left: 16px;
+                margin-left: 12px;
             }
 
             hr {
@@ -59,11 +62,11 @@
                 display: none !important;
             }
 
-            .thumbs-up {
+            .thumbs-up iron-icon {
                 color: #69b46c;
             }
 
-            .thumbs-down {
+            .thumbs-down iron-icon {
                 color: #b4696c;
             }
 
@@ -85,8 +88,12 @@
                                     <span>[[r12n.message]]</span>
                                 </a>
                                 <span style="flex: 1;"></span>
-                                <iron-icon class$="{{getTUClasses(r12n)}}" icon="icons:thumb-up"></iron-icon>
-                                <iron-icon class$="{{getTDClasses(r12n)}}" icon="icons:thumb-down"></iron-icon>
+                                <a href="" class$="{{getTUClasses(r12n)}}" on-tap="wasHelpful">
+                                    <iron-icon class="right r12n-icon" icon="icons:thumb-up"></iron-icon>
+                                </a>
+                                <a href="" class$="{{getTDClasses(r12n)}}" on-tap="wasNotHelpful">
+                                    <iron-icon class="right r12n-icon" icon="icons:thumb-down"></iron-icon>
+                                </a>
                             </paper-item>
                         </template>
                         <!--<paper-item>
@@ -97,7 +104,7 @@
                     </paper-menu>
                 </div>
         </paper-menu-button>
-
+        <paper-badge class="{{_getBadgeClasses(r12ns)}}" label="[[_computeBadgeCaption(r12ns)]]"></paper-badge>
         <iron-ajax id="r12nRequest" method="POST" on-response="handleResponse"></iron-ajax>
 
     </template>
@@ -116,9 +123,9 @@
             ready: function () {
                 // TODO: Skotos - refactor this to run as soon as
                 // we have CSRF
+                this.r12ns = [];
                 var $this = this.$;
                 setTimeout(function(){
-                console.log(CSRF_TOKEN);
                     $this.r12nRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     $this.r12nRequest.url = "/api/v1/recommendations";
                     $this.r12nRequest.params = {"user" : this.user};
@@ -126,19 +133,39 @@
                 }, 5000);
             },
             handleResponse: function (data) {
-                console.log("GOT RESPONSE");
                 this.r12ns = data.detail.response;
             },
             _computeTitle: function(r12ns) {
-                // Todo: Calculate title
-                return "Notifications";
+                var type = this.getItemsType(r12ns);
+                if (type == 1)
+                {
+                    return "Notifications";
+                }
+                else if (type == 2)
+                {
+                    return "Notifications";
+                }
+                return "Notifications & Recommendations";
             },
             _computeIndicatorIcon: function(r12ns) {
-                // Todo: Calculate which icon should be shown
+                var type = this.getItemsType(r12ns);
+                if (type == 1)
+                {
+                    return "social:notifications";
+                }
+                else if (type == 2)
+                {
+                    return "image:wb_incandescent";
+                }
+                // Todo: return dual icon
                 return "social:notifications";
             },
             _computeIndicatorColor: function(r12ns) {
-                // Todo: Calculate which color (class) should be shown
+                if (r12ns.length > 0)
+                {
+                    return "white"
+                }
+                return "grey"
             },
             _computeR12nIcon: function(r12n) {
                 if (r12n.type == "recommendation")
@@ -150,15 +177,51 @@
                     return "social:notifications";
                 }
             },
+            _getBadgeClasses: function(r12ns) {
+                if (r12ns.length > 0)
+                {
+
+                    return "";
+                }
+                console.log("!!!" + r12ns.length);
+                return "hide";
+            },
+            _computeBadgeCaption: function(r12ns) {
+                return r12ns.length;
+            },
+            getItemsType: function(r12ns) {
+                // 0= none, 1=notifications, 2=recommendations, 3=both
+                var notifications = false;
+                var recommendations = false;
+                for (i=0; i<r12ns.length; ++i) 
+                {
+                    var item = r12ns[i];
+                    if (item.type == "recommendation")
+                    {
+                        recommendations = true;
+                    }
+                    else if (item.type == "notification")
+                    {
+                        notifications = true;
+                    }
+                }
+                return notifications + recommendations*2;
+            },
             getTUClasses: function(r12n) {
-                var classes = 'r12n-icon right thumbs-up'
+                var classes = 'thumbs-up'
                 if(r12n.type != "recommendation") classes += ' hide';
                 return classes;
             },
             getTDClasses: function(r12n) {
-                var classes = 'r12n-icon right thumbs-down'
+                var classes = 'thumbs-down'
                 if(r12n.type != "recommendation") classes += ' hide';
                 return classes;
+            },
+            wasHelpful: function() {
+
+            },
+            wasNotHelpful: function() {
+                
             }
         });
     </script>
