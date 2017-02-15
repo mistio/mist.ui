@@ -1,5 +1,4 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../../iron-iconset-svg/iron-iconset-svg.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
@@ -18,39 +17,78 @@
             }
 
             :host::content iron-dropdown {
-                width: 300px !important;
+                width: 400px !important;
+            }
+
+            .grid-row h4 {
+                color: #424242;
+            }
+
+            h4 {
+                margin-left: 16px
             }
 
             .grid-row {
                 padding: 0;
                 margin: 0;
                 max-width: 270px;
-                color: #000;
             }
 
-            .grid-row h4 {
-                color: #000;
+            paper-item:not(.context) {
+                padding: 8px 16px 8px 24px;
+            }
+
+            :host iron-icon {
+                box-sizing: border-box;
+                margin-right: 22px;
+            }
+
+            :host iron-icon.right {
+                width: 16px;
+                height: 16px;
+                margin-right: 0;
+                margin-left: 16px;
+            }
+
+            hr {
+                margin: 0 !important;
+                border: 1px solid #ddd !important;
+            }
+
+            .hide {
+                display: none !important;
+            }
+
+            .thumbs-up {
+                color: #69b46c;
+            }
+
+            .thumbs-down {
+                color: #b4696c;
             }
 
         </style>
 
         <!-- local DOM goes here -->
         <paper-menu-button horizontal-align="right">
-            <paper-icon-button icon="image:wb-incandescent" class="r12n-icon dropdown-trigger"></paper-icon-button>
+            <paper-icon-button icon="[[_computeIndicatorIcon(r12ns)]]" class="r12n-icon dropdown-trigger"></paper-icon-button>
                 <div class="dropdown-content">
                     <div class="grid-row">
-                        <h4>Recommendations</h4>
+                        <h4>[[_computeTitle(r12ns)]]</h4>
                     </div>
+                    <hr/>
                     <paper-menu>
                         <template is="dom-repeat" items="[[r12ns]]" as="r12n">
                             <paper-item class="context">
                                 <a href="" on-tap="_goToOrg" class="grid-row">
-                                    <iron-icon class="user-menu-icon" icon$="[[_computeR12nIcon(r12n)]]"></iron-icon>
-                                    <div class="r12n-name">[[r12n.message]]</div>
+                                    <iron-icon class="r12n-icon" icon$="[[_computeR12nIcon(r12n)]]"></iron-icon>
+                                    <span>[[r12n.message]]</span>
                                 </a>
+                                <span style="flex: 1;"></span>
+                                <iron-icon class$="{{getTUClasses(r12n)}}" icon="icons:thumb-up"></iron-icon>
+                                <iron-icon class$="{{getTDClasses(r12n)}}" icon="icons:thumb-down"></iron-icon>
                             </paper-item>
                         </template>
-                        <hr/>
                         <!--<paper-item>
                             <a href="javascript:void(0)" on-tap="_logout" class="flex">
                                 <iron-icon icon="power-settings-new"></iron-icon> Logout
@@ -59,13 +97,10 @@
                     </paper-menu>
                 </div>
         </paper-menu-button>
+
+        <iron-ajax id="r12nRequest" method="POST" on-response="handleResponse"></iron-ajax>
+
     </template>
-
-    <iron-ajax auto id="r12nRequest" method="POST" 
-    params='[[ajaxParams]]'
-    url="/api/v1/recommendations" handle-as="json" 
-    on-response="handleResponse"></iron-ajax>
-
     <script>
         Polymer({
             /* this is the element's prototype */
@@ -76,24 +111,54 @@
                 },
                 r12ns: {
                     type: Array
-                },
-                ajaxParams: {
-                    type: String
                 }
             },
             ready: function () {
-                // Do we need this?
-                this.ajaxParams = {"user" : user};
-                this.$.r12nRequest.generateRequest();
+                // TODO: Skotos - refactor this to run as soon as
+                // we have CSRF
+                var $this = this.$;
+                setTimeout(function(){
+                console.log(CSRF_TOKEN);
+                    $this.r12nRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    $this.r12nRequest.url = "/api/v1/recommendations";
+                    $this.r12nRequest.params = {"user" : this.user};
+                    $this.r12nRequest.generateRequest();
+                }, 5000);
             },
             handleResponse: function (data) {
+                console.log("GOT RESPONSE");
                 this.r12ns = data.detail.response;
             },
-            _computeIndicatorIcon: function() {
-                // Todo: Calculate which icon and color should be shown
+            _computeTitle: function(r12ns) {
+                // Todo: Calculate title
+                return "Notifications";
+            },
+            _computeIndicatorIcon: function(r12ns) {
+                // Todo: Calculate which icon should be shown
+                return "social:notifications";
+            },
+            _computeIndicatorColor: function(r12ns) {
+                // Todo: Calculate which color (class) should be shown
             },
             _computeR12nIcon: function(r12n) {
-
+                if (r12n.type == "recommendation")
+                {
+                    return "image:wb-incandescent";
+                }
+                else
+                {
+                    return "social:notifications";
+                }
+            },
+            getTUClasses: function(r12n) {
+                var classes = 'r12n-icon right thumbs-up'
+                if(r12n.type != "recommendation") classes += ' hide';
+                return classes;
+            },
+            getTDClasses: function(r12n) {
+                var classes = 'r12n-icon right thumbs-down'
+                if(r12n.type != "recommendation") classes += ' hide';
+                return classes;
             }
         });
     </script>
