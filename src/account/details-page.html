@@ -6,6 +6,9 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
 
 <dom-module id="details-page">
     <template>
@@ -80,12 +83,49 @@
             .errormsg-container iron-icon {
                 color: inherit;
             }
+
+            paper-icon-button.white {
+                --paper-icon-button-ink-color: var(--paper-orange-500);
+            }
+
+            paper-icon-button.delete-avatar-icon {
+                top: -12px;
+            }
+
+            iron-image.avatar-preview {
+                width: 80px;
+                height: 36px;
+                margin: 2px 6px;
+            }
+
+            div.existing-org-logo {
+                display: inline-block;
+                vertical-align: middle;
+                text-align: center;
+            }
+
+            div.org-logo-container {
+                background-color: #2F2F3E;
+                margin: 6px;
+                display: inline-block
+            }
+
+            div.org-logo-field-title {
+                color: var(--paper-light-blue-600);
+                text-transform: uppercase;
+                font-weight: 400;
+                font-size: 12px;
+                margin-left: -17px;
+            }
+
+            paper-toggle-button {
+                margin: auto;
+            }
         </style>
         <paper-material>
             <div class="grid-row">
                 <div class="xs12 head">
                     <h2 class="title">User Profile</h2>
-                    <p>Enter your name and email.</p>
                 </div>
                 <paper-input class="xs12 l6" id="firstName" label="First Name" required error-message="Please enter your first name" value="{{firstName}}" auto-validate></paper-input>
 
@@ -126,6 +166,37 @@
                 <paper-textarea class="xs12 l6" id="org-email" label="Organisation Alert Email *" error-message="Please enter your email" value="{{orgAlertEmails}}" auto-validate></paper-textarea>
 
                 <p class="xs12 l12">* In your organisation's alert email, you can specify the email you want your incidents' alerts to be sent to. This can be overriden when you add rules in your monitored machines.</p>
+
+                <div class="xs12 head">
+                    <div hidden$="[[!org.avatar]]" class="existing-org-logo">
+                        <div class="org-logo-field-title">Organisation logo</div>
+                        <div>
+                            <div class="org-logo-container">
+                                <iron-image src$="[[_computeAvatarURL(org.avatar)]]" fades sizing="contain" class="avatar-preview"></iron-image>
+                            </div>
+                            <paper-icon-button icon="close" on-tap="_deleteAvatar" class="delete-avatar-icon"></paper-icon-button>
+                        </div>
+                    </div>
+                    <div hidden$="[[org.avatar.length]]">
+                        <paper-toggle-button checked="{{customLogo}}">
+                            Custom logo
+                        </paper-toggle-button>
+                        <div hidden$="[[!customLogo]]">
+                            <p class="xs12 l12">Upload an image that will override the default mist.io logo</p>
+                            <vaadin-upload id="orgAvatarUpload" max-files="1" accept="image/png" max-file-size="262144"
+                                headers="[[_computeUploadHeaders()]]"
+                                target="/api/v1/avatars">
+                                <div class="drop-label">
+                                    <iron-icon icon="file-upload"></iron-icon>
+                                    Drop file here - PNG up to 256kb
+                                </div>
+                                <div class="org-logo-container">
+                                    <iron-image src$="[[_computeAvatarURL(orgAvatar)]]" fades hidden$="[[!orgAvatar]]" sizing="contain" class="avatar-preview"></iron-image>
+                                </div>
+                            </vaadin-upload>
+                        </div
+                    </div>
+                </div>
 
                 <div class="progress">
                     <paper-progress id="orgProgress" indeterminate hidden$="[[!loadingOrg]]"></paper-progress>
@@ -187,7 +258,7 @@
                     },
                     orgFormReady: {
                         type: Boolean,
-                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, loadingOrg, org)'
+                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, loadingOrg, org)'
                     },
                     loadingUser: {
                         type: Boolean,
@@ -204,13 +275,30 @@
                     orgError: {
                         type: Boolean,
                         value: false
-                    }
+                    },
+                    orgAvatar: {
+                        type: String,
+                        value: ''
+                    },
+                    customLogo: false
 
                 },
                 observers: [
                     '_userUpdated(user)',
                     '_orgUpdated(org)'
                 ],
+
+                attached: function() {
+                    var that = this;
+                    this.$.orgAvatarUpload.addEventListener('upload-response', function(e) {
+                        if (e.detail.xhr.status == 200) {
+                            that.orgAvatar = JSON.parse(e.detail.xhr.response).id;
+                        }
+                    });
+                    this.$.orgAvatarUpload.addEventListener('file-remove', function(e) {
+                        that.orgAvatar = '';
+                    });
+                },
 
                 _userUpdated: function(user) {
                     this.firstName = user.first_name;
@@ -220,6 +308,20 @@
                 _orgUpdated: function(org) {
                     this.orgName = org.name;
                     this.orgAlertEmails = org.alerts_email.join('\n')
+                    this.customLogo = org.avatar ? true : false
+                },
+
+                _computeUploadHeaders: function() {
+                    return {'Csrf-Token': CSRF_TOKEN, 'Accept': 'application/json'};
+                },
+
+                _deleteAvatar: function(event) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("DELETE", "/api/v1/avatars/" + this.org.avatar);
+                    xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
+                    xhr.send();
+                    this.orgAvatar = '';
+                    this.$.orgAvatarUpload.files = [];
                 },
 
                 _computeUserFormReady: function(firstName, lastName, loading, user) {
@@ -235,14 +337,21 @@
                     return false;
                 },
 
-                _computeOrgFormReady: function(orgName, orgAlertEmails, loading, org){
-                    if (orgName && orgName.trim() != "" && org.is_owner && !loading && (orgName != org.name || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n'))))
+                _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, loading, org){
+                    if (orgName && orgName.trim() != "" && org.is_owner && !loading &&
+                        (orgName != org.name || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
+                         (orgAvatar && orgAvatar != org.avatar)))
                         return true;
                     return false;
                 },
 
                 _computeShowProgress: function(sendingData) {
                     return sendingData;
+                },
+
+                _computeAvatarURL: function(orgAvatar) {
+                    if (orgAvatar.length)
+                        return '/api/v1/avatars/' + orgAvatar;
                 },
 
                 _submitUserForm: function(e, user) {
@@ -264,6 +373,9 @@
                         new_name: this.orgName,
                         alerts_email: this.orgAlertEmails
                     };
+
+                    if (this.orgAvatar)
+                        payload['avatar'] = this.orgAvatar;
 
                     this.$.orgAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.orgAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;

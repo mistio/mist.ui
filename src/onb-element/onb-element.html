@@ -137,7 +137,7 @@
                     Choose an organisation name. *
                 </p>
                 <div class="onboarding-form-inputs">
-                    <paper-input id="orginput" value$='[[model.user.email]] Org' placeholder$='[[model.user.email]] Org' tabindex='1'></paper-input>
+                    <paper-input id="orginput" value$='[[proposedOrgName]]' placeholder$='[[proposedOrgName]]' tabindex='0' autofocus on-keyup="_orgInputKeyUp"></paper-input>
                     <div class="spacer"></div>
                     <paper-button class="wide blue" on-tap="saveOrg"> Save organisation </paper-button>
                 </div>
@@ -152,7 +152,7 @@
                     <h1>You are ready to go!</h1>
                     <p>No clouds to manage in <strong>[[model.org.name]]</strong>. Yet.</p>
                     <div class="onboarding-form-inputs">
-                        <paper-button class="wide blue" on-tap="goToAddCloud"> Add your clouds </paper-button>
+                        <paper-button class="wide blue" on-tap="goToAddCloud" id="addFirstCloudBtn"> Add your clouds </paper-button>
                     </div>
                     <p>
                         or <paper-button on-tap="showInviteForm" class="blue-link" noink>invite people </paper-button> to join you and add clouds.
@@ -198,7 +198,7 @@
         </div>
 
         <team-add referral="onb" organization="[[model.org]]"></team-add>
-        <iron-ajax id="saveOrgRequest" method="PUT" url="/api/v1/org/[[model.org.id]]"></iron-ajax>
+        <iron-ajax id="saveOrgRequest" method="PUT" url="/api/v1/org/[[model.org.id]]" onResponse="saveOrgResponse"></iron-ajax>
         <iron-ajax id="invitePeopleRequest" method="POST" on-response="invitePeopleResponse" on-error="invitePeopleError" url$="api/v1/org/[[model.org.id]]/teams/[[selectedTeamId]]/members"></iron-ajax>
 
     </template>
@@ -231,12 +231,19 @@
                 showProgress: {
                     type: Boolean,
                     value: false
+                },
+                proposedOrgName: {
+                    type: String,
+                    computed: '_computeProposedOrgName(model.user)'
                 }
             },
             listeners: {
                 'new-team-added': 'updateToNewTeam',
                 'iron-select': 'updateSelectTeamId',
                 'input': 'resetError'
+            },
+            attached: function(){
+
             },
             _computeHasOrg: function (name) {
                 // console.log(name, name.base);
@@ -248,15 +255,28 @@
                     return true;
                 }
             },
+            _computeProposedOrgName: function() {
+                if (this.model.org && this.model.org.name)
+                    return this.model.org.name;
+                if (this.model.user && this.model.user.name)
+                    return this.model.user.name + "'s org";
+                if (this.model.user && this.model.user.email)
+                    return this.model.user.email.split('@')[0] + "'s org";
+            },
+            _orgInputKeyUp: function(event) {
+                console.warn('keyup', event);
+                if (event.keyIdentifier == "Enter")
+                    this.saveOrg();
+            },
             saveOrg: function(){
                 var new_name = this.querySelector("#orginput").value;
                 this.$.saveOrgRequest.headers["Content-Type"] = 'application/json';
                 this.$.saveOrgRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.saveOrgRequest.body = { 'new_name': new_name };
-                // this.$.saveOrgRequest.params['new_name'] =  new_name;
-
-                // console.log('SAVE ORG', new_name, this.$.saveOrgRequest)
                 this.$.saveOrgRequest.generateRequest();
+            },
+            saveOrgResponse: function(event) {
+                this.$.addFirstCloudBtn.focus();
             },
             goToAddTeam: function(){
                 document.querySelector('app-location').set('path', '/team/+add');
