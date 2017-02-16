@@ -11,7 +11,7 @@
             /* local styles go here */
             :host {
                 display: inline-block;
-                --paper-badge-margin-left: -25px;
+                --paper-badge-margin-left: -24px;
                 --paper-badge-margin-bottom: -25px;
             }
 
@@ -73,7 +73,7 @@
         </style>
 
         <!-- local DOM goes here -->
-        <paper-menu-button horizontal-align="right">
+        <paper-menu-button hidden="{{_getIndicatorHidden(r12ns)}}" horizontal-align="right">
             <paper-icon-button icon="[[_computeIndicatorIcon(r12ns)]]" class="r12n-icon dropdown-trigger"></paper-icon-button>
                 <div class="dropdown-content">
                     <div class="grid-row">
@@ -104,7 +104,7 @@
                     </paper-menu>
                 </div>
         </paper-menu-button>
-        <paper-badge class="{{_getBadgeClasses(r12ns)}}" label="[[_computeBadgeCaption(r12ns)]]"></paper-badge>
+        <paper-badge hidden="{{_getIndicatorHidden(r12ns)}}" id="indicatorBadge" label="[[_computeBadgeCaption(r12ns)]]"></paper-badge>
         <iron-ajax id="r12nRequest" method="POST" on-response="handleResponse"></iron-ajax>
 
     </template>
@@ -124,12 +124,13 @@
                 // TODO: Skotos - refactor this to run as soon as
                 // we have CSRF
                 this.r12ns = [];
-                var $this = this.$;
+                var self = this;
+                var $self = this.$;
                 setTimeout(function(){
-                    $this.r12nRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    $this.r12nRequest.url = "/api/v1/recommendations";
-                    $this.r12nRequest.params = {"user" : this.user};
-                    $this.r12nRequest.generateRequest();
+                    $self.r12nRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    $self.r12nRequest.url = "/api/v1/recommendations";
+                    $self.r12nRequest.params = {"user" : self.user};
+                    $self.r12nRequest.generateRequest();
                 }, 5000);
             },
             handleResponse: function (data) {
@@ -177,17 +178,11 @@
                     return "social:notifications";
                 }
             },
-            _getBadgeClasses: function(r12ns) {
-                if (r12ns.length > 0)
-                {
-
-                    return "";
-                }
-                console.log("!!!" + r12ns.length);
-                return "hide";
-            },
             _computeBadgeCaption: function(r12ns) {
                 return r12ns.length;
+            },
+            _getIndicatorHidden: function(r12ns) {
+                return r12ns.length == 0;
             },
             getItemsType: function(r12ns) {
                 // 0= none, 1=notifications, 2=recommendations, 3=both
@@ -209,12 +204,12 @@
             },
             getTUClasses: function(r12n) {
                 var classes = 'thumbs-up'
-                if(r12n.type != "recommendation") classes += ' hide';
+                if(r12n.type != "recommendation" || r12n.rated == true) classes += ' hide';
                 return classes;
             },
             getTDClasses: function(r12n) {
                 var classes = 'thumbs-down'
-                if(r12n.type != "recommendation") classes += ' hide';
+                if(r12n.type != "recommendation" || r12n.rated == true) classes += ' hide';
                 return classes;
             },
             wasHelpful: function() {
