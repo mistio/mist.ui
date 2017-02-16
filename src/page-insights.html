@@ -319,10 +319,15 @@
                         previous [[timeParams.window]]
                     </div>
                 </div>
-                <div class="flexchild opaque">
+                <div class="flexchild">
                     <div class="smaller">Average load</div>
-                    <h2 class="cost"><span class="sup"></span>XX%</h2>
-                    <div class="smaller">X% below previous [[timeParams.window]]</div>
+                    <h2 class="cost"><span class="sup"></span>[[reportLoad.load.mean]]</h2>
+                    <div class="smaller" hidden$="[[!isNotNull(reportLoad.comparative_load.mean)]]">
+                        <span class$="[[diffText(reportLoad.comparative_load.mean)]]">
+                            <span hidden$="[[!reportLoad.comparative_load.mean]]">[[abs(reportLoad.comparative_load.mean)]] </span> [[diffText(reportLoad.comparative_load.mean)]]
+                        </span>
+                        previous [[timeParams.window]]
+                    </div>
                 </div>
                 <div class="flexchild opaque">
                     <div class="smaller">Recommendations</div>
@@ -402,18 +407,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{costDrillList1}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]]. 
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span> 
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines 
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]]. 
+                                        <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span> 
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines 
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -423,22 +427,75 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{costDrillList2}}">
                                 <div class="flex-horizontal">
-                                        <span class="name-col flexchild">
-                                            [[_index(index)]].
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="name-col flexchild">
+                                        [[_index(index)]].
+                                        <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
                     </div>
+                </div>
+            </div>
+        </paper-material>
+
+        <paper-material>
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <h2 class="title">Utilisation Overview</h2>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.id.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Maximum</div>
+                    <h2 class="cost">[[reportLoad.load.max]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Minimum</div>
+                    <h2 class="cost">[[reportLoad.load.min]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Average Load</div>
+                    <h2 class="cost">[[reportLoad.load.mean]]</h2>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material class="margin-botttom">
+            <div class="loading-data" hidden="{{!loadingDataLoad}}">
+                <paper-spinner active="{{loadingDataLoad}}"></paper-spinner>
+            </div>
+            <div class="comparison">
+                <div class="smaller inline" hidden$="[[!isToCurrent]]">
+                    <span>
+                        <strong><span hidden$="[[!reportLoad.history.length]]">[[lastValue(reportLoad.history, 'load')]]</span></strong> Current load
+                    </span>
+                </div>
+                <div class="smaller inline" hidden$="[[!isNotNull(reportLoad.comparative_load.mean)]]">
+                    <span class$="[[diffText(reportLoad.comparative_load.mean)]]">
+                        <span hidden$="[[!reportLoad.comparative_load.mean]]">[[abs(reportLoad.comparative_load.mean)]]</span> [[diffText(reportLoad.comparative_load.mean)]]
+                    </span> 
+                    previous [[timeParams.window]]
+                </div>
+            </div>
+            <div id="graphRow" class="row" largescreen$="{{largescreen}}">
+                <div class="block flex">
+                    <div class="row">
+                        <div class="smaller">Load</div>
+                    </div>
+                    <chart-line id="loadgraph" data="[[loadData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+                </div>
+                <div class="block flex">
+                    <div class="row" hidden$="[[!showRing]]">
+                        <div class="smaller">[[ringTitle]]</div>
+                    </div>
+                    
                 </div>
             </div>
         </paper-material>
@@ -537,18 +594,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{machinesDrillList}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]].
-                                            <span hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]].
+                                        <span hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -558,18 +614,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{machinesDrillList1}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]].
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]].
+                                        <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -579,18 +634,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{machinesDrillList2}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]].
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]].
+                                        <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -616,6 +670,16 @@
             on-response="handleResponse"
             on-error="handleError"
             params="{{params}}" auto></iron-ajax>
+    
+    <iron-ajax id="getReportLoad"
+            method="GET"
+            url="/api/v1/report?type=load"
+            handle-as="json"
+            loading="{{loadingDataLoad}}"
+            on-response="handleResponseLoad"
+            on-error="handleError"
+            params="{{params}}" auto></iron-ajax>
+
     </template>
     <script>
         Polymer({
@@ -636,7 +700,15 @@
                     type: Object,
                     value: {}
                 },
+                reportLoad: {
+                    type: Object,
+                    value: {}  
+                },
                 loadingData: {
+                    type: Boolean,
+                    value: true
+                },
+                loadingDataLoad: {
                     type: Boolean,
                     value: true
                 },
@@ -685,6 +757,36 @@
                         }]
                     }
                 },
+                loadData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{
+                            label: "load",
+                            backgroundColor: "rgba(250,128,114,0.2)",
+                            borderColor: "rgba(250,128,114,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(250,128,114,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(250,128,114,1)",
+                            data: []
+                        }, {
+                            label: "cores",
+                            backgroundColor: "rgba(0,155,155,0.2)",
+                            borderColor: "rgba(0,155,155,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(0,155,155,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(0,155,155,1)",
+                            data: []
+                        }]
+                    }
+                },
+                loadDrillList: Array,
+                loadDrillList1: Array,
+                loadDrillList2: Array,
                 machinesData: {
                     type: Object,
                     value: {
@@ -765,6 +867,7 @@
                 'computePastItems(timeParams.*)',
                 'computeFilterbyItems(filterby.*, model.*)',
                 'updateData(report.history)',
+                'updateDataLoad(reportLoad.history)',
                 'updateCostDrillData(report.group_by, filterby.id)',
                 'updateMachines(model.machinesArray, filterby.id)',
                 'combineParams(timeParams.*, filterby.*)'
@@ -935,6 +1038,31 @@
                 this.$.costgraph.updateChart();
                 this.$.machinesgraph.updateChart();
             },
+            updateDataLoad: function (history) {
+                var loadData = [],
+                    coresData = [],
+                    labels = [];
+                if (history){
+                    labels = history.map(function(datapoint){
+                        if (['day', 'hour'].indexOf(this.timeParams.window) != -1)
+                            return moment(datapoint.date).format('HH:mm').toString();
+                        else 
+                            return moment(datapoint.date).format('YYYY-MM-DD').toString();
+                    }, this);
+                    loadData = history.map(function(datapoint){
+                        return datapoint.load;
+                    });
+                    coresData = history.map(function(datapoint){
+                        return datapoint.cores;
+                    });
+                }
+
+                this.set('loadData.datasets.0.data', loadData);
+                this.set('loadData.datasets.1.data', coresData);
+                this.set('loadData.labels', labels);
+
+                this.$.loadgraph.updateChart();
+            },
             updateCostDrillData: function(groupby, filterbyname) {
                 var drillData = [],
                     drillLabels = [],
@@ -1089,6 +1217,11 @@
                 console.log('handleResponse', e);
                 if (e.detail.xhr.response)
                     this.set('report', e.detail.xhr.response)
+            },
+            handleResponseLoad: function(e) {
+                console.log('handleResponseLoad', e);
+                if (e.detail.xhr.response)
+                    this.set('reportLoad', e.detail.xhr.response)
             },
             handleError: function(e){
                 console.log('handleError', e);
