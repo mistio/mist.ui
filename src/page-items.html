@@ -263,7 +263,11 @@
                 type: Boolean,
                 computed: 'computeIsTeams(section)'
             },
-            itemOfRecommendation: Object
+            itemOfRecommendation: Object,
+            parentBatches: {
+                type: Array,
+                value: ['parent']
+            }
         },
 
         observers: [
@@ -572,8 +576,9 @@
                 machineHasMonitor = this._machineHasMonitoring(machine, model.monitoring),
                 machineHasrecommendations = this._machineHasrecommendations(machine, model.probes),
                 machineHasProbe = this._machineHasProbe(machine, model.probes);
-                machineState = this._machineState(machine);
-            weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations + machineHasProbe + machineState;
+                machineState = this._machineState(machine),
+                machineContainerHierarchy = this._machineContainerHierarchy(machine, model);
+            weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations + machineHasProbe + machineState + machineContainerHierarchy;
             return weight;
         },
 
@@ -581,7 +586,7 @@
             var machineIncidents = incidents.filter(function(inc){
                 return inc.machine_id == machine.id
             });
-            return machineIncidents ? machineIncidents.length * 1000 : 0;
+            return machineIncidents ? machineIncidents.length * 10000 : 0;
         },
 
         _machineHasMonitoring: function(machine, monitoring){
@@ -605,6 +610,20 @@
                 return 1;
             if (machine.state == 'unknown')
                 return 0;
+        },
+
+        _machineContainerHierarchy: function(machine, model) {
+            var weight = 0;
+            if (machine.parent_id != "" && machine.parent_id != undefined && model && model.machines && model.machines[machine.parent_id]) {
+                weight = this._getMachineWeight(model.machines[machine.parent_id], model) - 10;
+            }
+            else if (machine.parent_id == "" && machine.machine_type == "container-host") {
+                if (this.parentBatches.indexOf(machine.uuid) == -1) {
+                    this.push('parentBatches', machine.uuid);
+                }
+                weight = 1000 * this.parentBatches.indexOf(machine.uuid);
+            }
+            return weight;
         },
 
         _sectionLink: function(name) {
