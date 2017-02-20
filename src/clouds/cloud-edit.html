@@ -36,18 +36,21 @@
                     return fields.val == this.cloud.provider;
             }, this);
             // don't allow title and region in the fields
-            var fields = providerFields[0].options.filter(function(f){
-                return f.name != 'title' && f.name != 'region'
-            });
+            var fields = [];
+            if (providerFields[0] && providerFields[0].options) {
+                fields = providerFields[0].options.filter(function(f){
+                    return f.name != 'title' && f.name != 'region'
+                });
 
-            for (var i=0; i<fields.length; i++) {
-                var name = fields[i].name;
-                if(this.cloud[name]){
-                    fields[i].value = this.cloud[name]
-                }
-                //if docker_host search for clouds host
-                if(name == 'docker_host' && this.cloud['host']){
-                    fields[i].value = this.cloud['host']
+                for (var i=0; i<fields.length; i++) {
+                    var name = fields[i].name;
+                    if(this.cloud[name]){
+                        fields[i].value = this.cloud[name]
+                    }
+                    //if docker_host search for clouds host
+                    if(name == 'docker_host' && this.cloud['host']){
+                        fields[i].value = this.cloud['host']
+                    }
                 }
             }
             return fields;
