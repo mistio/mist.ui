@@ -192,7 +192,7 @@
                 </div>
                 <div class="item-actions">
                     <paper-button on-tap="_editTeam" class="simple">Edit Team</paper-button>
-                    <paper-menu-button horizontal-align="right">
+                    <paper-menu-button horizontal-align="right" hidden$="[[teamIsOwners]]">
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="machine_actions" class="dropdown-content">
                             <paper-button on-tap="_deleteTeam" class="simple"> Delete Team</paper-button>
@@ -329,6 +329,10 @@
                         type: Boolean,
                         computed: '_computeIsloading(team)',
                         value: true
+                    },
+                    teamIsOwners: {
+                        type: Boolean,
+                        computed: '_computeIsOwners(team)',
                     }
                 },
                 listeners: {
@@ -451,6 +455,10 @@
                 },
                 _computeIsloading: function(team) {
                     return !this.team ? true : false;
+                },
+                _computeIsOwners: function(team) {
+                    if (this.team)
+                        return this.team.name == "Owners";
                 }
             });
         })();
