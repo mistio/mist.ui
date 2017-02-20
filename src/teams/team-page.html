@@ -269,8 +269,8 @@
         </div>
 
         <team-edit team="[[team]]" org="[[model.org]]"></team-edit>
-        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleTeamDeleteAjaxError"></iron-ajax>
-        <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_deleteMemberError"></iron-ajax>
+        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleDeleteAjaxError" ></iron-ajax>
+        <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
 
         <dialog-element></dialog-element>
     </template>
@@ -419,7 +419,6 @@
                         this.$.teamDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
                         this.$.teamDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                         this.$.teamDeleteAjaxRequest.generateRequest();
-                        document.querySelector('app-location').set('path', '/teams');
                     }
                     if (response.confirmed && reason == "member.delete") {
                         this.$.deleteMember.body = {};
@@ -430,6 +429,9 @@
                 },
                 _handleTeamDeleteAjaxResponse: function(e) {
                     document.querySelector('app-location').set('path', '/teams');
+                },
+                _handleDeleteAjaxError: function(e) {
+                    this.fire('toast',{msg:e.detail.error.message ,duration:3000});
                 },
                 _deleteMemberFromTeam: function(e){
                     var membId = e.target.attributes.memberid.value,
