@@ -91,7 +91,7 @@
                     <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
                         <paper-menu attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[providers]]" as="provider">
-                                <paper-item value="[[provider.id]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px" disabled$="{{!_isOnline(provider.id, model.clouds)}}">[[provider.title]]</paper-item>
+                                <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
@@ -226,8 +226,8 @@ SCHEDULEACTIONS = {
                     var identifier = className.split('_')[0];
                     return 'assets/providers/provider-' + identifier + '.png';
                 },
-                _isOnline: function(cloud, clouds){
-                    return this.model.clouds[cloud].state == 'running';
+                _isOnline: function(cloud, state, clouds){
+                    return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
                 },
                 _computeFieldType: function(field, value, show) {
                     if (!(field.showIf && !field.show)) {
