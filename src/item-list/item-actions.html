@@ -748,6 +748,10 @@ Polymer({
                     if (xhr.status == 200) {
                         console.log(action, 'success');
                         message = 'Successfully '+ this.inPast(action.name) +' '+ this.section.id.slice(0,this.section.id.length-1) +'. Updating...'; //
+                        // for machines destroy only and only if in machine page
+                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1]){
+                            document.querySelector('app-location').set('path', '/machines');
+                        }
                     } else {
                         console.error(action, 'failed');
                         console.log(xhr);
@@ -816,9 +820,9 @@ Polymer({
         }
     },
     _computeName: function(item) {
-        if (item.name)
+        if (item && item.name)
             return item.name;
-        else
+        else (item && item.id)
             return item.id;
     },
     inPast: function(action){
