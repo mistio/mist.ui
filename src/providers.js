@@ -218,7 +218,9 @@ PROVIDERS.push({
         defaultValue: "Docker",
         show: true,
         required: true,
-        errorMessage: "Please enter title"
+        errorMessage: "Please enter title",
+        helptext: "If you need help, read the docs on adding a Docker cloud",
+        helpHref: "http://docs.mist.io/article/20-adding-docker"
     }, {
         name: "docker_host",
         label: "Host",
@@ -599,7 +601,9 @@ PROVIDERS.push({
         defaultValue: "NephoScale",
         show: true,
         required: true,
-        errorMessage: "Please enter title"
+        errorMessage: "Please enter title",
+        helptext: "If you need help, read the docs on adding a NephoScale cloud",
+        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
     }, {
         name: "username",
         label: "Username *",
@@ -609,7 +613,8 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter username",
-        helptext: 'The username you use to connect to the NephoScale portal'
+        helptext: 'The username you use to connect to the NephoScale portal',
+        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
     }, {
         name: "password",
         label: "Password *",
@@ -619,7 +624,8 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password",
-        helptext: 'The password you use to connect to the NephoScale portal'
+        helptext: 'The password you use to connect to the NephoScale portal',
+        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
     }]
 });
 
