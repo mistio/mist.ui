@@ -128,6 +128,10 @@
         .row {
             line-height: 1.8em;
             margin-top: 16px;
+            margin-bottom: 40px;
+        }
+        .row.row-title {
+            margin-bottom: 0;   
         }
         .list {
             margin-top: 16px;
@@ -141,6 +145,11 @@
             padding-right: 16px;
             text-align: right;
         }
+        .secondary {
+            opacity: 0.54;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
         .cost-column {
             width: 28%;
             text-align: right;
@@ -148,7 +157,23 @@
         #doughnut .cost-column {
             width: 70px;
         }
-        .tag {
+        span.tags {
+            display: inline-block;
+            background-color: #888;
+            color: #fff;
+            font-size: 14px;
+            padding: 0 0.5em;
+            margin: 0 1px;
+            border-radius: 2px;
+            letter-spacing: .4px;
+            font-weight: 500 !important;
+            word-break: break-all;
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tag, span.tags {
             vertical-align: middle;
             line-height: 1.6em;
         }
@@ -319,10 +344,15 @@
                         previous [[timeParams.window]]
                     </div>
                 </div>
-                <div class="flexchild opaque">
+                <div class="flexchild">
                     <div class="smaller">Average load</div>
-                    <h2 class="cost"><span class="sup"></span>XX%</h2>
-                    <div class="smaller">X% below previous [[timeParams.window]]</div>
+                    <h2 class="cost"><span class="sup"></span>[[reportLoad.load.mean]]</h2>
+                    <div class="smaller" hidden$="[[!isNotNull(reportLoad.comparative_load.mean)]]">
+                        <span class$="[[diffText(reportLoad.comparative_load.mean)]]">
+                            <span hidden$="[[!reportLoad.comparative_load.mean]]">[[abs(reportLoad.comparative_load.mean)]] </span> [[diffText(reportLoad.comparative_load.mean)]]
+                        </span>
+                        previous [[timeParams.window]]
+                    </div>
                 </div>
                 <div class="flexchild opaque">
                     <div class="smaller">Recommendations</div>
@@ -366,13 +396,13 @@
             </div>
             <div id="graphRow" class="row" largescreen$="{{largescreen}}">
                 <div class="block flex">
-                    <div class="row">
+                    <div class="row row-title">
                         <div class="smaller">Run Rate ($/<span class="lowercase">month</span>)</div>
                     </div>
                     <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
                 </div>
                 <div class="block flex">
-                    <div class="row" hidden$="[[!showRing]]">
+                    <div class="row row-title" hidden$="[[!showRing]]">
                         <div class="smaller">[[ringTitle]]</div>
                     </div>
                     <div id="doughnut" class="row flex-horizontal" hidden$="[[!showRing]]">
@@ -402,18 +432,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{costDrillList1}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]]. 
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span> 
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines 
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]]. 
+                                        <span hidden$="[[!item.name.length]]" class$="[[firstListTitle]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span> 
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines 
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -423,18 +452,136 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{costDrillList2}}">
                                 <div class="flex-horizontal">
-                                        <span class="name-col flexchild">
-                                            [[_index(index)]].
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="name-col flexchild">
+                                        [[_index(index)]].
+                                        <span hidden$="[[!item.name.length]]" class$="[[secondListTitle]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </paper-material>
+
+        <paper-material>
+            <div class="container flex-horizontal">
+                <div class="flexchild">
+                    <h2 class="title">Utilisation Overview <span class="secondary">* for monitored machines only</span></h2>
+                    <div class="filterby highlight" hidden$="[[!filterby.type.length]]"><span class="uppercase">for [[filterby.type]]:</span><span class="uppercase [[filterby.type]]"> [[filterby.name]] <span hidden$="[[filterby.id.length]]">select [[filterby.type]]</span></div>
+                    <div class="filterby highlight" hidden$="[[filterby.type.length]]">All infrastructure</div>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Maximum</div>
+                    <h2 class="cost">[[reportLoad.load.max]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Minimum</div>
+                    <h2 class="cost">[[reportLoad.load.min]]</h2>
+                </div>
+                <div class="cost-section">
+                    <div class="smaller">Average Load</div>
+                    <h2 class="cost">[[reportLoad.load.mean]]</h2>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material class="margin-botttom">
+            <div class="loading-data" hidden="{{!loadingDataLoad}}">
+                <paper-spinner active="{{loadingDataLoad}}"></paper-spinner>
+            </div>
+            <div class="comparison">
+                <div class="smaller inline" hidden$="[[!isToCurrent]]">
+                    <span>
+                        <strong>[[reportLoad.load.mean]]</strong> average load on <strong>[[reportLoad.cores.mean]]</strong> cores
+                    </span>
+                </div>
+                <div class="smaller inline" hidden$="[[!isNotNull(reportLoad.comparative_load.mean)]]">
+                    <span class$="[[diffText(reportLoad.comparative_load.mean)]]">
+                        <span hidden$="[[!reportLoad.comparative_load.mean]]">[[abs(reportLoad.comparative_load.mean)]]</span> [[diffText(reportLoad.comparative_load.mean)]]
+                    </span> 
+                    previous [[timeParams.window]]
+                </div>
+            </div>
+            <div id="graphRow" class="row" largescreen$="{{largescreen}}">
+                <div class="block flex">
+                    <div class="row row-title">
+                        <div class="smaller">Load</div>
+                    </div>
+                    <chart-line id="loadgraph" data="[[loadData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+                </div>
+                <div class="block flex">
+                    <div class="row" hidden$="[[!showListLoad0]]">
+                        <div class="smaller">[[listTitleLoad0]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{loadDrillList0}}">
+                                <div class="flex-horizontal">
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]]. 
+                                        <span hidden$="[[!item.name.length]]" class$="[[listTitleLoad0]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
+                                    </div>
+                                    <div class="machines-column">
+                                        [[item.cores.mean]] cores
+                                    </div>
+                                    <span class="cost-column">
+                                        [[item.load.mean]] load
+                                    </span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showListLoad1]]">
+                        <div class="smaller">[[listTitleLoad1]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{loadDrillList1}}">
+                                <div class="flex-horizontal">
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]]. 
+                                        <span hidden$="[[!item.name.length]]" class$="[[listTitleLoad1]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
+                                    </div>
+                                    <div class="machines-column">
+                                        [[item.cores.mean]] cores
+                                    </div>
+                                    <span class="cost-column">
+                                        [[item.load.mean]] load
+                                    </span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!showListLoad2]]">
+                        <div class="smaller">[[listTitleLoad2]]</div>
+                        <div class="list">
+                            <template is="dom-repeat" items="{{loadDrillList2}}">
+                                <div class="flex-horizontal">
+                                    <span class="name-col flexchild">
+                                        [[_index(index)]]. 
+                                        <span hidden$="[[!item.name.length]]" class$="[[listTitleLoad2]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
+                                    </div>
+                                    <div class="machines-column">
+                                        [[item.cores.mean]] cores
+                                    </div>
+                                    <span class="cost-column">
+                                        [[item.load.mean]] load
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -537,18 +684,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{machinesDrillList}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]].
-                                            <span hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]].
+                                        <span hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -558,18 +704,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{machinesDrillList1}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]].
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]].
+                                        <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -579,18 +724,17 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{machinesDrillList2}}">
                                 <div class="flex-horizontal">
-                                        <span class="flexchild name-col">
-                                            [[_index(index)]].
-                                            <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                            <span hidden$="[[item.name.length]]">untagged</span>
-                                        </span>
-                                        <div class="machines-column">
-                                            [[item.machine_count.unique]] machines
-                                        </div>
-                                        <span class="cost-column">
-                                            $[[_toFixed(item.cost)]]
-                                        </span>
+                                    <span class="flexchild name-col">
+                                        [[_index(index)]].
+                                        <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                    </span>
+                                    <div class="machines-column">
+                                        [[item.machine_count.unique]] machines
                                     </div>
+                                    <span class="cost-column">
+                                        $[[_toFixed(item.cost)]]
+                                    </span>
                                 </div>
                             </template>
                         </div>
@@ -616,6 +760,16 @@
             on-response="handleResponse"
             on-error="handleError"
             params="{{params}}" auto></iron-ajax>
+    
+    <iron-ajax id="getReportLoad"
+            method="GET"
+            url="/api/v1/report?type=load"
+            handle-as="json"
+            loading="{{loadingDataLoad}}"
+            on-response="handleResponseLoad"
+            on-error="handleError"
+            params="{{params}}" auto></iron-ajax>
+
     </template>
     <script>
         Polymer({
@@ -636,7 +790,15 @@
                     type: Object,
                     value: {}
                 },
+                reportLoad: {
+                    type: Object,
+                    value: {}  
+                },
                 loadingData: {
+                    type: Boolean,
+                    value: true
+                },
+                loadingDataLoad: {
                     type: Boolean,
                     value: true
                 },
@@ -673,7 +835,7 @@
                     value: {
                         labels: [],
                         datasets: [{
-                            label: "cost per month",
+                            label: "cost",
                             backgroundColor: "rgba(0,155,155,0.2)",
                             borderColor: "rgba(0,155,155,1)",
                             borderWidth: 1,
@@ -685,6 +847,39 @@
                         }]
                     }
                 },
+                loadData: {
+                    type: Object,
+                    value: {
+                        labels: [],
+                        datasets: [{
+                            label: "load",
+                            backgroundColor: "rgba(250,128,114,0.2)",
+                            borderColor: "rgba(250,128,114,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(250,128,114,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(250,128,114,1)",
+                            data: []
+                        }, {
+                            label: "cores",
+                            backgroundColor: "rgba(0,155,155,0.2)",
+                            borderColor: "rgba(0,155,155,1)",
+                            borderWidth: 1,
+                            pointBackgroundColor: "rgba(0,155,155,1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(0,155,155,1)",
+                            data: []
+                        }]
+                    }
+                },
+                showListLoad0: Boolean,
+                showListLoad1: Boolean,
+                showListLoad2: Boolean,
+                loadDrillList0: Array,
+                loadDrillList1: Array,
+                loadDrillList2: Array,
                 machinesData: {
                     type: Object,
                     value: {
@@ -765,7 +960,9 @@
                 'computePastItems(timeParams.*)',
                 'computeFilterbyItems(filterby.*, model.*)',
                 'updateData(report.history)',
+                'updateDataLoad(reportLoad.history)',
                 'updateCostDrillData(report.group_by, filterby.id)',
+                'updateLoadDrillData(reportLoad.group_by, filterby.id)',
                 'updateMachines(model.machinesArray, filterby.id)',
                 'combineParams(timeParams.*, filterby.*)'
             ],
@@ -775,10 +972,11 @@
                 this.updateChartWidth(e);
             },
             _computeInsightsEnabled: function(model){
-                return this.model.org.insights_enabled || false;
+                console.log('_computeInsightsEnabled', this.model && this.model.org ? this.model.org.insights_enabled : false)
+                return this.model && this.model.org ? this.model.org.insights_enabled : false;
             },
             computePastItems: function (timeParamsChangeRecord) {
-                console.log("loadingData", this.loadingData);
+                // console.log("loadingData", this.loadingData);
                 var items = [];
                 if (this.timeParams.window == "hour") {
                     items.push({value: 0, text: "this hour"});
@@ -935,6 +1133,31 @@
                 this.$.costgraph.updateChart();
                 this.$.machinesgraph.updateChart();
             },
+            updateDataLoad: function (history) {
+                var loadData = [],
+                    coresData = [],
+                    labels = [];
+                if (history){
+                    labels = history.map(function(datapoint){
+                        if (['day', 'hour'].indexOf(this.timeParams.window) != -1)
+                            return moment(datapoint.date).format('HH:mm').toString();
+                        else 
+                            return moment(datapoint.date).format('YYYY-MM-DD').toString();
+                    }, this);
+                    loadData = history.map(function(datapoint){
+                        return datapoint.load;
+                    });
+                    coresData = history.map(function(datapoint){
+                        return datapoint.cores;
+                    });
+                }
+
+                this.set('loadData.datasets.0.data', loadData);
+                this.set('loadData.datasets.1.data', coresData);
+                this.set('loadData.labels', labels);
+
+                this.$.loadgraph.updateChart();
+            },
             updateCostDrillData: function(groupby, filterbyname) {
                 var drillData = [],
                     drillLabels = [],
@@ -1035,6 +1258,26 @@
 
                 this.$.drillcostgraph.updateChart();
             },
+            updateLoadDrillData: function(groupby, filterbyname) {
+                var plural = "",
+                    dataMap = Object.keys(this.reportLoad.group_by);
+
+                // console.log('dataMap',dataMap);
+
+                //fill in lists
+                for (var i = 0; i < dataMap.length; i++) {
+                    if (this.reportLoad.group_by[dataMap[i]] && dataMap[i] && dataMap[i].length) {
+                        if (this.reportLoad.group_by[dataMap[i]].length > 1)
+                            plural = "s";
+
+                        this.set('showListLoad'+i, true);
+                        this.set('listTitleLoad'+i, this.filterby.name +" "+ this.reportLoad.group_by[dataMap[i]].length +" "+ dataMap[i]+plural);
+                        this.set('loadDrillList'+i, this.reportLoad.group_by[dataMap[i]].sort(function(a,b){ return a.load < b.load}))
+
+                    }
+                }
+
+            },
             sortByMachines: function(array){
                 if (array) {
                     var ret = array.slice(0);
@@ -1061,15 +1304,16 @@
             resizeGraphs: function(){
                 console.log('resizeGraphs');
                 this.$.costgraph.resize();
-                this.$.drillcostgraph.resize()
+                this.$.drillcostgraph.resize();
+                this.$.loadgraph.resize();
             },
             combineParams: function(time, filter) {
-                console.log('p send ', filter);
+                // console.log('p send ', filter);
                 
                 // dont update params so dont request, if user changes window, type, name or has not specified filter by id
                 // also dont request for past = -1
                 if (filter.path == 'filterby.type' || filter.path == 'filterby.name' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
-                    console.log('dont send ', this.params);
+                    // console.log('dont send ', this.params);
                 }
                 else {
                     var p = {
@@ -1081,17 +1325,22 @@
                         p[this.filterby.type] = this.filterby.id;
                     }
                     
-                    console.log('p send ', p, this.params);
+                    // console.log('p send ', p, this.params);
                     this.set('params', p);
                 }
             }, 
             handleResponse: function(e) {
-                console.log('handleResponse', e);
+                // console.log('handleResponse', e);
                 if (e.detail.xhr.response)
                     this.set('report', e.detail.xhr.response)
             },
+            handleResponseLoad: function(e) {
+                // console.log('handleResponseLoad', e);
+                if (e.detail.xhr.response)
+                    this.set('reportLoad', e.detail.xhr.response)
+            },
             handleError: function(e){
-                console.log('handleError', e);
+                // console.log('handleError', e);
                 var empty = {
                     comparative_cost: null,
                     comparative_machine_count:{},
@@ -1119,7 +1368,7 @@
                     type: '',
                     name: '',
                     id: ''
-                })
+                });
             },
             updateMachines: function(machines, filterby){
                 var m = [];
