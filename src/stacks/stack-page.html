@@ -780,6 +780,11 @@
                         computed: '_listNetworks(stack.node_instances.*, model.networksArray.*)',
                         notify: true
                     },
+                    zones: {
+                        type: Array,
+                        computed: '_listZones(stack.node_instances.*, model.zonesArray.*)',
+                        notify: true
+                    },
                     keys: {
                         type: Array,
                         computed: '_listKeys(stack.node_instances.*, model.keys.*)',
@@ -800,7 +805,7 @@
                     },
                     resourcelist: {
                         type: Boolean,
-                        computed: '_resourcelist(keys, networks, machines)',
+                        computed: '_resourcelist(keys, networks, zones, machines)',
                         notify: true
                     },
                     start_creation: {
@@ -835,7 +840,7 @@
                     intervalID: String,
                     hasResources: {
                         type: Boolean,
-                        computed: '_computeHasResources(listMachines.*, networks.*, keys.*, stack.node_instances.*)'
+                        computed: '_computeHasResources(listMachines.*, networks.*, zones.*, keys.*, stack.node_instances.*)'
                     },
                     isLoading: {
                         type: Boolean,
@@ -995,12 +1000,14 @@
                     // could not do the request
                     this.hasErrors = true;
                 },
-                _resourcelist: function(keys, networks, machines) {
+                _resourcelist: function(keys, networks, zones, machines) {
                     var sum = 0;
                     if (keys)
                         sum += keys.length;
                     if (networks)
                         sum += networks.length;
+                    if (zones)
+                        sum += zones.length;
                     if (machines)
                         sum += machines.length;
 
