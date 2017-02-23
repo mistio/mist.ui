@@ -459,7 +459,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          value: "one_off",
          defaultValue: "one_off",
          helptext: "The scheduler type. Visit the docs",
-         helpHref: "http://docs.mist.io/article/118-running-scheduled-tasks-cronjobs-with-mist-io",
+         helpHref: "http://docs.mist.io/article/151-scheduler",
          show: false,
          required: true,
          class: "bind-bottom radio-highight",
