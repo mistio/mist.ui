@@ -963,10 +963,11 @@
                 this.updateChartWidth(e);
             },
             _computeInsightsEnabled: function(model){
+                console.log('_computeInsightsEnabled', this.model && this.model.org ? this.model.org.insights_enabled : false)
                 return this.model && this.model.org ? this.model.org.insights_enabled : false;
             },
             computePastItems: function (timeParamsChangeRecord) {
-                console.log("loadingData", this.loadingData);
+                // console.log("loadingData", this.loadingData);
                 var items = [];
                 if (this.timeParams.window == "hour") {
                     items.push({value: 0, text: "this hour"});
@@ -1252,7 +1253,7 @@
                 var plural = "",
                     dataMap = Object.keys(this.reportLoad.group_by);
 
-                console.log('dataMap',dataMap);
+                // console.log('dataMap',dataMap);
 
                 //fill in lists
                 for (var i = 0; i < dataMap.length; i++) {
@@ -1294,15 +1295,16 @@
             resizeGraphs: function(){
                 console.log('resizeGraphs');
                 this.$.costgraph.resize();
-                this.$.drillcostgraph.resize()
+                this.$.drillcostgraph.resize();
+                this.$.loadgraph.resize();
             },
             combineParams: function(time, filter) {
-                console.log('p send ', filter);
+                // console.log('p send ', filter);
                 
                 // dont update params so dont request, if user changes window, type, name or has not specified filter by id
                 // also dont request for past = -1
                 if (filter.path == 'filterby.type' || filter.path == 'filterby.name' || time.path == 'timeParams.window' || (filter.path == 'filterby.id' && filter.value == "") || time.value == "-1") {
-                    console.log('dont send ', this.params);
+                    // console.log('dont send ', this.params);
                 }
                 else {
                     var p = {
@@ -1314,22 +1316,22 @@
                         p[this.filterby.type] = this.filterby.id;
                     }
                     
-                    console.log('p send ', p, this.params);
+                    // console.log('p send ', p, this.params);
                     this.set('params', p);
                 }
             }, 
             handleResponse: function(e) {
-                console.log('handleResponse', e);
+                // console.log('handleResponse', e);
                 if (e.detail.xhr.response)
                     this.set('report', e.detail.xhr.response)
             },
             handleResponseLoad: function(e) {
-                console.log('handleResponseLoad', e);
+                // console.log('handleResponseLoad', e);
                 if (e.detail.xhr.response)
                     this.set('reportLoad', e.detail.xhr.response)
             },
             handleError: function(e){
-                console.log('handleError', e);
+                // console.log('handleError', e);
                 var empty = {
                     comparative_cost: null,
                     comparative_machine_count:{},
