@@ -122,11 +122,11 @@
                         [[zoneCloud]]
                     </div>
                 </div>
-                <div class="item-actions">                    
+                <!--<div class="item-actions">                    
                     <paper-button on-tap="_deleteZone" class="simple">delete
                         <iron-icon icon="delete"></iron-icon>
                     </paper-button>
-                </div>
+                </div>-->
             </paper-material>
             <paper-material>
                 <h4 class="id">Zone ID:</h4><span class="id">[[zone.id]]</span>
@@ -149,7 +149,7 @@
                         </div>
                         <div class="info-item flex-horizontal-with-ratios">
                             <div class="flexchild">Type</div>
-                            <div class="flexchild">[[zone.type]]</div>
+                            <div class="flexchild">[[zone.zone_type]]</div>
                         </div>
                         <div class="info-item flex-horizontal-with-ratios">
                             <div class="flexchild">TTL</div>
@@ -184,6 +184,21 @@
         <dialog-element></dialog-element>
     </template>
     <script>
+        ZONEACTIONS = {
+            'tag': {
+                'name': 'tag',
+                'icon': 'label',
+                'confirm': true,
+                'multi': true
+            },
+            'destroy': {
+                'name': 'destroy',
+                'icon': 'delete',
+                'confirm': true,
+                'multi': true
+            },
+        };
+
         (function() {
             'use strict';
 
@@ -200,6 +215,10 @@
                     },
                     zone: {
                         type: Object
+                    },
+                    actions: {
+                        type: Array,
+                        computed: '_computeActions(zone)'
                     },
                     hasRecords: {
                         type: Boolean,
@@ -223,11 +242,21 @@
                 },
                 _computeZoneCloud: function(zone, clouds){
                     if (zone)
-                        console.warn('cloudidzone: '+this.zone.cloud_id)
-                        var a = this.model.clouds[this.zone.cloud_id].title;
-                        console.warn('computeZone' + a);
-                        return a
+                        return this.model.clouds[this.zone.cloud_id].title
                 },
+                _computeActions: function(item) {
+                    var ret = [];
+                    ret.push('tag');
+                    ret.push('destroy');
+
+                    var actions = [];
+                    for (var i = 0; i < ret.length; i++) {
+                        actions.push(ZONEACTIONS[ret[i]]);
+                    }
+
+                    return actions;
+                },
+
                 _editZone: function(e) {
                     console.log(e);
                 },
