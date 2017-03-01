@@ -91,7 +91,7 @@
                     <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
                         <paper-menu attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[providers]]" as="provider">
-                                <paper-item value="[[provider.id]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px" disabled$="{{!_isOnline(provider.id, model.clouds)}}">[[provider.title]]</paper-item>
+                                <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
@@ -224,10 +224,10 @@ SCHEDULEACTIONS = {
                 },
                 _computeProviderLogo: function(className) {
                     var identifier = className.split('_')[0];
-                    return '../assets/providers/provider-' + identifier + '.png';
+                    return 'assets/providers/provider-' + identifier + '.png';
                 },
-                _isOnline: function(cloud, clouds){
-                    return this.model.clouds[cloud].state == 'running';
+                _isOnline: function(cloud, state, clouds){
+                    return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
                 },
                 _computeFieldType: function(field, value, show) {
                     if (!(field.showIf && !field.show)) {
@@ -405,7 +405,7 @@ SCHEDULEACTIONS = {
                                     this.set('machineFields.'+ maxcountInd +'.value', "");
                                 }
                                 else if (changeRecord.value == "one_off") {
-                                    entry = document.getElementById("schedule_entry_one_off").textContent.split(',')[1] ? document.getElementById("schedule_entry_one_off").textContent.split(',')[1].trim()+":00" : "";
+                                    entry = document.getElementById("schedule_entry_one_off") && document.getElementById("schedule_entry_one_off").textContent && document.getElementById("schedule_entry_one_off").textContent.split(',')[1] ? document.getElementById("schedule_entry_one_off").textContent.split(',')[1].trim()+":00" : "";
                                     this.set('machineFields.'+ expInd +'.disabled', true);
                                     this.set('machineFields.'+ maxcountInd +'.value', 1);
                                     this.set('machineFields.'+ maxcountInd +'.disabled', true);
