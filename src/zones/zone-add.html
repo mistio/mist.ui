@@ -53,7 +53,7 @@
                 <p>To add a zone you need to have an enabled Google or Amazon cloud in your account.<br/>
                 Add and enable an Amazon or Google cloud using the <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
             </paper-material>
-            <paper-material>
+            <paper-material hidden$="[[!hasdnsClouds]]">
                 <app-form fields="[[fields]]" form="[[zone]]" url="/api/v1/clouds/[[cloud]]/dns/zones" on-response="_handleAddZoneResponse" on-error="_handleError"></app-form>
             </paper-material>
         </div>
@@ -80,7 +80,11 @@
                     zone: {
                         type: Object,
                         value: function() {
-                            return {}
+                            return {
+                                domain: '',
+                                type: '',
+                                ttl: 0
+                            }
                         },
                         notify: true
                     },
@@ -183,18 +187,16 @@
                     // update payload
                     var payload = {};
                     payload = {
-                        zone: {
-                            domain: this.fields[0].value, 
-                            type: this.fields[1].value, 
-                            ttl: this.fields[2].value, 
-                        }
+                        domain: this.fields[0].value, 
+                        type: this.fields[1].value, 
+                        ttl: this.fields[2].value, 
                     }
                     this.set('zone', payload);
                 }
             },
             _handleAddZoneResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);
-                document.querySelector('app-location').set('path', '/zones/' + response.id);
+                document.querySelector('app-location').set('path', '/zones');
             },
             _handleError: function(e) {
                 console.log(e);
