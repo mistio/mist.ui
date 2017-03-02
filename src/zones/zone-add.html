@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../app-form/app-form.html">
 
 <link rel="import" href="record-item.html">
 
@@ -54,8 +55,11 @@
                 Add and enable an Amazon or Google cloud using the <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
             </paper-material>
             <paper-material hidden$="[[!hasdnsClouds]]">
-                <app-form fields="[[fields]]" form="[[zone]]" url="/api/v1/clouds/[[cloud]]/dns/zones" on-response="_handleAddZoneResponse" on-error="_handleError"></app-form>
+                <p>Adding a DNS zone in a supported cloud is under development and will be enabled shortly.</p>
             </paper-material>
+            <!--<paper-material hidden$="[[!hasdnsClouds]]">
+                <app-form fields="[[fields]]" form="[[zone]]" url="/api/v1/clouds/[[cloud]]/dns/zones" on-response="_handleAddZoneResponse" on-error="_handleError"></app-form>
+            </paper-material>-->
         </div>
     </template>
     <script>
@@ -196,7 +200,8 @@
             },
             _handleAddZoneResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);
-                document.querySelector('app-location').set('path', '/zones');
+                this.fire('toast',{msg:'Zone was created successfully.',duration:3000});
+                document.querySelector('app-location').set('path', '/zones/' + response.id);
             },
             _handleError: function(e) {
                 console.log(e);

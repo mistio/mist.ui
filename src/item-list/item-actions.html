@@ -138,7 +138,7 @@
               <paper-dialog-scrollable>
                 <template is="dom-if" if="[[!multi]]">
                     <p>
-                        You are about to [[selectedAction.name]] [[selectedItem.type]]: [[selectedItem.name]]
+                        You are about to [[selectedAction.name]] [[selectedItem.type]]: [[_computeName(selectedItem)]]
                     </p>
                 </template>
 
@@ -550,6 +550,8 @@ Polymer({
             ret.push('delete');
         } else if (item.type == 'network') {
             ret.push('delete');
+        } else if (item.type == 'zone') {
+            ret.push('delete');
         } else if (item.type == 'tunnel') {
             // if(item.active)
             //     ret.push('disable');
@@ -725,6 +727,10 @@ Polymer({
             } else if (action.name == 'delete' && item.type == 'network') {
                 uri = '/api/v1/clouds/'+ item.cloud_id +'/networks/' + item.id;
                 method = 'DELETE';
+            //zones
+            } else if (action.name == 'delete' && item.type == 'zone') {
+                uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.id;
+                method = 'DELETE';
             //tunnels
             } else if (action.name == 'delete' && item.type == 'tunnel') {
                 uri = '/api/v1/tunnels/' + item.id;
@@ -826,6 +832,8 @@ Polymer({
     _computeName: function(item) {
         if (item && item.name)
             return item.name;
+        else if (item && item.domain)
+            return item.domain;
         else if (item && item.id)
             return item.id;
     },
