@@ -1,0 +1,303 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
+
+<link rel="import" href="record-item.html">
+<link rel="import" href="record-add.html">
+
+<dom-module id="zone-page">
+    <template>
+        <style is="custom-style" include="single-page"></style>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            paper-material {
+                display: block;
+                padding: 20px;
+            }
+
+            paper-menu-button paper-button {
+                display: block;
+            }
+
+            .flex-horizontal-with-ratios {
+                @apply(--layout-horizontal);
+            }
+
+            .flexchild {
+                @apply(--layout-flex);
+            }
+
+            .command-container {
+                background-color: #444;
+                color: #fff;
+                font-family: monospace;
+                padding: 10px;
+            }
+
+            a {
+                color: black;
+                text-decoration: none;
+            }
+
+            .paper-header [paper-drawer-toggle] {
+                margin-left: 10px;
+            }
+
+            .paper-header {
+                @apply(--layout-horizontal);
+            }
+
+            .paper-header {
+                height: 60px;
+                font-size: 24px;
+                line-height: 60px;
+                padding: 0 10px;
+                color: white;
+                transition: height 0.2s;
+                transition: font-size 0.2s;
+            }
+
+            .paper-header.tall {
+                height: 320px;
+                font-size: 16px;
+            }
+
+            .paper-header h2 {
+                margin-left: 20px;
+                @apply(--layout-flex);
+                text-transform: capitalize;
+            }
+
+            .paper-header .toggleViewButton {
+                --paper-icon-button-ink-color: transparent;
+            }
+
+            .paper-header .cartButton {
+                margin-right: 10px;
+            }
+
+            #content {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            paper-icon-button {
+                transition: all 200ms;
+            }
+
+            paper-icon-button.active-sort {
+                transform: rotate(180deg);
+            }
+
+            paper-icon-button.active-sort::content iron-icon {
+                color: #D48900 !important;
+            }
+
+            h4.id {
+                display: inline-block;
+                text-transform: uppercase;
+                font-size: 0.9rem;
+                font-weight: 700;
+                margin-right: 16px;
+            }
+
+            paper-icon-bottom.bottom {
+                padding-right: 8px;
+            }
+        </style>
+
+        <div id="content">
+            <div class="is-loading" hidden$="[[!isLoading]]">
+                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
+            </div>
+            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <div class="title flex">
+                    <h2>[[zone.domain]]</h2>
+                    <div class="subtitle">
+                        [[zoneCloud]]
+                    </div>
+                </div>
+                <!--Hiding this until the delete functionality has been created-->
+                <div class="item-actions">
+                    <paper-button on-tap="_deleteZone" class="simple">delete
+                        <iron-icon icon="delete"></iron-icon>
+                    </paper-button>
+                </div>
+            </paper-material>
+            <paper-material>
+                <h4 class="id">Zone ID:</h4><span class="id">[[zone.id]]</span>
+            </paper-material>
+            <paper-material>
+                <h4 class="id">Zone Info</h4>
+                <div class="info-table">
+                    <div class="info-body info-group">
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Domain</div>
+                            <div class="flexchild">[[zone.domain]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">ID</div>
+                            <div class="flexchild">[[zone.id]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Provider</div>
+                            <div class="flexchild">[[zone.provider]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Type</div>
+                            <div class="flexchild">[[zone.zone_type]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">TTL</div>
+                            <div class="flexchild">[[zone.ttl]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Records</div>
+                            <div class="flexchild">
+                                <template is="dom-if" if="[[!hasRecords]]">
+                                    0
+                                </template>
+                                <template is="dom-if" if="[[hasRecords]]">
+                                    [[zone.records.length]]
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </paper-material>
+            <paper-material hidden$="[[!hasRecords]]">
+                <h4 class="id">Records</h4>
+                <div class="info-table">
+                    <div class="info-body">
+                        <template is="dom-repeat" items="[[zone.records]]" as="record">
+                            <record-item record="[[record]]" itemindex="{{index}}"></record-item>
+                        </template>
+                    </div>
+                </div>
+            </paper-material>
+        </div>
+        <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
+        <dialog-element></dialog-element>
+        <record-add model="[[model]]" section="[[sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></record-add>
+    </template>
+    <script>
+        ZONEACTIONS = {
+            'tag': {
+                'name': 'tag',
+                'icon': 'label',
+                'confirm': true,
+                'multi': true
+            },
+            'destroy': {
+                'name': 'destroy',
+                'icon': 'delete',
+                'confirm': true,
+                'multi': true
+            },
+        };
+
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'zone-page',
+
+                properties: {
+                    model: {
+                        type: Object,
+                        notify: true
+                    },
+                    section: {
+                        type: Object
+                    },
+                    zone: {
+                        type: Object
+                    },
+                    actions: {
+                        type: Array,
+                        computed: '_computeActions(zone)'
+                    },
+                    hasRecords: {
+                        type: Boolean,
+                        computed: '_computeHasRecords(zone.records)'
+                    },
+                    isLoading: {
+                        type: Boolean,
+                        computed: '_computeIsloading(zone)',
+                        value: true
+                    },
+                    zoneCloud: {
+                        type: String,
+                        computed: '_computeZoneCloud(zone, model.clouds)' 
+                    }
+                },
+                listeners: {
+                    'confirmation': '_deleteZoneEventResponse'
+                },
+                _computeHasRecords: function(records) {
+                    return records && records.length;
+                },
+                _computeZoneCloud: function(zone, clouds){
+                    if (zone)
+                        return this.model.clouds[this.zone.cloud_id].title
+                },
+                _computeActions: function(item) {
+                    var ret = [];
+                    ret.push('tag');
+                    ret.push('destroy');
+
+                    var actions = [];
+                    for (var i = 0; i < ret.length; i++) {
+                        actions.push(ZONEACTIONS[ret[i]]);
+                    }
+
+                    return actions;
+                },
+
+                _editZone: function(e) {
+                    console.log(e);
+                },
+                _deleteZone: function(e) {
+                    this._showDialog({
+                        title: 'Delete Zone?',
+                        body: "Deleting zones cannot be undone. You are about to delete zone: '" + this.zone.domain + "'.",
+                        danger: true,
+                        reason: "zone.delete"
+                    });
+                },
+                _deleteZoneEventResponse: function(e) {
+                    var reason = e.detail.reason,
+                        response = e.detail.response;
+
+                    if (response.confirmed && reason == "zone.delete") {
+                        this.$.zoneDeleteAjaxRequest.body = {};
+                        this.$.zoneDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+                        this.$.zoneDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.zoneDeleteAjaxRequest.generateRequest();
+                    }
+                },
+                _handleZoneDeleteAjaxResponse: function(e) {
+                    this.fire('toast',{msg:'Delete was successful.',duration:3000});
+                    document.querySelector('app-location').path = '/zones';
+                },
+                _showDialog: function(info) {
+                    var dialog = this.querySelector('dialog-element');
+                    for (var i in info) {
+                        dialog[i] = info[i];
+                    }
+                    dialog._openDialog();
+                },
+                _computeIsloading: function(zone) {
+                    return !this.zone ? true : false;
+                },
+
+            });
+        })();
+    </script>
+</dom-module>
