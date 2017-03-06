@@ -246,12 +246,9 @@
 
             },
             _computeHasOrg: function (name) {
-                // console.log(name, name.base);
-
                 if (name.value == '') {
                     return false;
-                }
-                else {
+                } else {
                     return true;
                 }
             },
@@ -270,6 +267,7 @@
             },
             saveOrg: function(){
                 var new_name = this.querySelector("#orginput").value;
+                this.fire('user-action', 'Save org ' + new_name);
                 this.$.saveOrgRequest.headers["Content-Type"] = 'application/json';
                 this.$.saveOrgRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.saveOrgRequest.body = { 'new_name': new_name };
@@ -278,13 +276,12 @@
             saveOrgResponse: function(event) {
                 this.$.addFirstCloudBtn.focus();
             },
-            goToAddTeam: function(){
-                document.querySelector('app-location').set('path', '/team/+add');
-            },
             goToAddCloud: function(){
+                this.fire('user-action', 'add cloud click');
                 document.querySelector('app-location').set('path', '/clouds/+add');
             },
             showInviteForm: function(){
+                this.fire('user-action', 'invite people click');
                 var addform = document.querySelector("#cloud-or-invite-form"),
                     inviteform = document.querySelector("#invite-form"),
                     container = document.querySelector("#onboarding-area");
@@ -293,6 +290,7 @@
                 container.setAttribute('higher', true);
             },
             hideInviteForm: function(){
+                this.fire('user-action', 'cancel click');
                 var addform = document.querySelector("#cloud-or-invite-form"),
                     inviteform = document.querySelector("#invite-form"),
                     container = document.querySelector("#onboarding-area");
@@ -302,15 +300,13 @@
             },
             invitePeople: function(){
                 this.showProgress = true;
-
                 var emails = document.querySelector('#membersemails').value;
                 if (emails){
                     this.$.invitePeopleRequest.headers["Content-Type"] = 'application/json';
                     this.$.invitePeopleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.invitePeopleRequest.body = { 'emails': emails };
                     this.$.invitePeopleRequest.generateRequest();
-                }
-                else {
+                } else {
                     this.invitePeopleError();
                 }
             },
@@ -322,12 +318,11 @@
                 },100, this)
             },
             invitePeopleError: function(e){
-                    this.set('showProgress', false);
-                    this.set('hasError', true);
+                this.set('showProgress', false);
+                this.set('hasError', true);
                 if (e) {
                     this.$.errormsg.textContent = e.detail.error.message;
-                }
-                else {
+                } else {
                     this.$.errormsg.textContent = "You have not provided any emails";
                 }
             },
@@ -346,6 +341,7 @@
                 }
             },
             _addTeam: function(e) {
+                this.fire('user-action', 'add team click');
                 var dialog = this.querySelector('team-add');
                 dialog.openDialog();
             },
