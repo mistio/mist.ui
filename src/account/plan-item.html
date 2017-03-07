@@ -83,7 +83,7 @@
             <p hidden$="[[!plan.promo]]">[[plan.promo.description]]</p>
 
             <template is="dom-if" if="[[!plan.expiration]]">
-                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPlan" hidden$="[[!plan.price]]">[[buttonText]]</paper-button>
+                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPlan" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
             </template>
 
             <!-- plan is canceled -->
@@ -127,6 +127,10 @@
                         type: Number,
                         value: 0
                     },
+                    isFreePlan: {
+                        type: Boolean,
+                        computed: "_computeIsFreePlan(plan.title)"
+                    },
                     isCurrent: {
                         type: Boolean,
                         computed: '_computeIsCurrent(plan,org)',
@@ -166,6 +170,9 @@
                 },
                 _computeIsCurrent: function(plan,org){
                     return plan.title == this.org.current_plan.title;
+                },
+                _computeIsFreePlan: function(planTitle){
+                    return planTitle == "Free";
                 },
                 _computeDescriptionText: function(plan) {
                     console.log('_computeDescriptionText', plan.description, plan)

@@ -104,10 +104,7 @@
                 <p class="desc">Subscription of $[[plan.price]]/mo. <br/> up to [[plan.machine_limit]] machines, monitoring for [[plan.monitor_limit]] of them.</p>
             </div>
             <paper-dialog-scrollable>
-                <!-- <div class="form-inputs" hidden$="[[!hasCard]]">
-
-                </div> -->
-                <div class="form-inputs" hidden$="[[hasCard]]">
+                <div class="form-inputs" hidden$="[[hideCardFields]]">
                     <div class="form-row">
                         <label>
                         <span>Card Number</span>
@@ -194,6 +191,11 @@
                 type: Boolean,
                 value: false
             },
+            hideCardFields: {
+                type: Boolean,
+                computed: '_computeHideCardFields(plan.price, hasCard)',
+                value: false
+            },
             buttonText: {
                 type: String,
                 computed: '_computeButtonText(plan,org)'
@@ -206,12 +208,7 @@
             'input': 'validateForm',
             'iron-overlay-closed' : 'reset'
         },
-        attached: function(){
-            if (document.querySelector('mist-app').model.org.card){
-                this.set('hasCard', true);
-                this.set('formReady', true);
-            }
-        },
+        attached: function(){},
         updateHasCard: function(card){
             if (card)
                 this.set('hasCard', true)
@@ -219,8 +216,14 @@
         open: function(e){
             this.querySelector("#form").open();
         },
+        _computeHideCardFields (price, hasCard) {
+            if (price == 0 || hasCard)
+                this.set('formReady', true);
+
+            return price == 0 || hasCard;
+        },
         submit: function(){
-            if (!this.hasCard) {
+            if (!this.hideCardFields) {
 
                 //extra stripe validation
                 var isValid = Stripe.card.validateCardNumber(this.payload.number) &&
