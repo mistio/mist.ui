@@ -7,6 +7,8 @@
 <link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
 
 <link rel="import" href="../item-list/item-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -264,10 +266,10 @@
                 </div>
                 <div class="item-actions">
                     <paper-button on-tap="_runOnceDialog" class="simple" hidden$="[[hasExpired]]">run now
-                        <iron-icon icon="edit"></iron-icon>
+                        <iron-icon icon="av:play-arrow"></iron-icon>
                     </paper-button>
                     <paper-button on-tap="_editSchedule" class="simple" hidden$="[[hasExpired]]">edit
-                        <iron-icon icon="edit"></iron-icon>
+                        <iron-icon icon="editor:mode-edit"></iron-icon>
                     </paper-button>
                     <paper-button on-tap="_deleteSchedule" class="simple">delete
                         <iron-icon icon="delete"></iron-icon>
@@ -296,7 +298,7 @@
                     </div>
                     <div class="counts">
                         <h2>[[schedule.max_run_count]]
-                            <paper-icon-button on-tap="_editMaxRunCount" icon="image:edit" disabled$="[[isOneOff]]" hidden$="[[isOneOff]]" disabled$="[[hasExpired]]"></paper-icon-button>
+                            <paper-icon-button on-tap="_editMaxRunCount" icon="editor:mode-edit" disabled$="[[isOneOff]]" hidden$="[[isOneOff]]" disabled$="[[hasExpired]]"></paper-icon-button>
                         </h2>
                         <div class="m-info-head">
                             <div class="layout horizontal">
@@ -439,15 +441,15 @@
                 },
                 isInterval:  {
                     type: Boolean,
-                    computed: "_computeIsInterval(schedule)"
+                    computed: "_computeIsInterval(schedule.type)"
                 },
                 isCrontab:  {
                     type: Boolean,
-                    computed: "_computeIsCrontab(schedule)"
+                    computed: "_computeIsCrontab(schedule.type)"
                 },
                 isOneOff:  {
                     type: Boolean,
-                    computed: "_computeIsOneOff(schedule)"
+                    computed: "_computeIsOneOff(schedule.type)"
                 },
                 isAction:  {
                     type: Boolean,
@@ -498,13 +500,14 @@
             },
             _computeIsInterval: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.schedule_type == "nterval";
+                    return this.schedule.schedule_type == "interval";
             },
             _computeIsCrontab: function(schedule) {
                 if (this.schedule)
                     return this.schedule.schedule_type == "crontab";
             },
             _computeIsOneOff: function(schedule) {
+                console.log('_computeIsOneOff');
                 if (this.schedule)
                     return this.schedule.schedule_type == "one_off";
             },
