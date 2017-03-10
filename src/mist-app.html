@@ -106,7 +106,7 @@
 
     <paper-header-panel mode="standard" class="fit">
         <app-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" sections="[[sections]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></app-sidebar>
-        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
           <paper-spinner active></paper-spinner>
         </div>
@@ -194,6 +194,11 @@
         routeData: Object,
 
         subroute: Object,
+
+        viewingList: {
+          type: Boolean,
+          computed: '_computeViewingList(subroute)'
+        },
 
         fingerprint: {
           type: String,
@@ -558,6 +563,11 @@
         }
         return browser;
       },
+
+      _computeViewingList: function(subroute) {
+        console.log('viewingList',["/", "my-account", "insights"].indexOf(subroute.prefix), subroute);
+        return ["/", "/my-account", "/insights"].indexOf(subroute.prefix) == -1  && subroute.path == "";
+      }
 
     });
 
