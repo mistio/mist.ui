@@ -688,7 +688,20 @@ PROVIDERS.push({
         value: "",
         defaultValue: "",
         show: true,
-        required: false
+        required: false,
+        helptext: 'Specify only if you have changed the default region',
+        helpHref: 'http://docs.mist.io/article/27-adding-openstack'
+
+    }, {
+        name: "compute_endpoint",
+        label: "Compute Endpoint",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: 'In most cases you will not have to specify this',
+        helpHref: 'http://docs.mist.io/article/27-adding-openstack'
     }]
 });
 
@@ -870,6 +883,14 @@ PROVIDERS.push({
         errorMessage: "Please enter hostname",
         helptext: 'The URL or IP vCloud listens to',
         helpHref: 'http://docs.mist.io/article/31-adding-vmware-vcloud'
+    }, {
+        name: "port",
+        label: "Host port",
+        type: "text",
+        value: 443,
+        defaultValue: 443,
+        show: true,
+        required: false
     }]
 });
 
