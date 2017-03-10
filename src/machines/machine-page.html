@@ -512,7 +512,7 @@
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <log-list></log-list>
+            <log-list resource-filter="[[machineLogFilter]]"></log-list>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -718,6 +718,10 @@ Polymer({
         hidden: {
             type: Boolean,
             value: false
+        },
+        machineLogFilter: {
+            type: Object,
+            computed: "_computeMachineLogFilter(machine)"
         }
     },
     observers: [
@@ -1028,6 +1032,14 @@ Polymer({
     },
     _probeError: function(e){
         this.fire('toast', { msg:'Error probing machine '+ detail.request.xhr.responseText, duration: 3000 });
+    },
+    _computeMachineLogFilter: function(machine) {
+        if (machine)
+            return {
+                "cloud_id": machine.cloud.id,
+                "machine_id": machine.id,
+                "machine_uuid": machine.uuid
+            }
     }
 });
 </script>
