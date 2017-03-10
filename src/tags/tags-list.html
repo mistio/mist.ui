@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 
 <link rel="import" href="tag-item.html">
 
@@ -56,9 +57,15 @@
                 margin-top: 0;
                 border-bottom: 1px solid #ddd;
             }
-            #errormsg {
+            .errorarea {
+                padding: 16px 0;
                 color: var(--red-color) !important;
-                padding: 16px 24px;
+            }
+            .errorarea iron-icon {
+                padding-right: 8px;
+            }
+            iron-icon {
+                color: inherit !important;
             }
             #progress paper-progress {
                 width: calc(100% + 48px);
@@ -85,7 +92,9 @@
             <div id="progress">
                 <paper-progress indeterminate hidden$="[[!showProgress]]"></paper-progress>
                 <paper-progress error hidden$="[[!hasError]]"></paper-progress>
-                <div id="errormsg" hidden$="[[!hasError]]"></div>
+                <div class="errorarea" hidden$="[[!hasError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg" hidden$="[[!hasError]]"></span>
+                </div>
             </div>
 
             <div class="clearfix bottom-actions xs12">
@@ -95,7 +104,7 @@
                 <paper-button class="pull-right blue-link" dialog-dismiss>Cancel</paper-button>
             </div>
         </paper-dialog>
-        <iron-ajax id="tagsAjaxRequest" url="/api/v1/tags" method="POST" on-response="_handleTagsAjaxResponse" on-error="_handleTagsAjaxError"></iron-ajax>
+        <iron-ajax id="tagsAjaxRequest" url="/api/v1/tags" method="POST" handle-as="xml" on-response="_handleTagsAjaxResponse" on-error="_handleTagsAjaxError"></iron-ajax>
     </template>
 
     <script>
@@ -323,10 +332,10 @@
                     this.fire('toast',{msg:'Tags were updated!',duration:3000});
                 },
                 _handleTagsAjaxError: function(e){
-                    console.log(e.detail.error.message);
+                    console.log('Tags Error',e, e.detail.request.xhr.responseText);
                     this.set('showProgress', false);
                     this.set('hasError', true);
-                    this.$.errormsg.textContent = e.detail.error.message;
+                    this.$.errormsg.textContent = e.detail.request.xhr.responseText;
                 },
             });
         })();
