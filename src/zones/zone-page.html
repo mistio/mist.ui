@@ -7,6 +7,7 @@
 
 <link rel="import" href="record-item.html">
 <link rel="import" href="record-add.html">
+<link rel="import" href="../page-records.html">
 
 <dom-module id="zone-page">
     <template>
@@ -173,18 +174,12 @@
             </paper-material>
             <paper-material hidden$="[[!hasRecords]]">
                 <h4 class="id">Records</h4>
-                <div class="info-table">
-                    <div class="info-body">
-                        <template is="dom-repeat" items="[[zone.records]]" as="record">
-                            <record-item record="[[record]]" itemindex="{{index}}"></record-item>
-                        </template>
-                    </div>
-                </div>
+                <page-records model="[[model]]" items="[[zone.records]]" section="[[recordsSections]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-records>
             </paper-material>
         </div>
         <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
         <dialog-element></dialog-element>
-        <record-add model="[[model]]" section="[[sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></record-add>
+        <!--<record-add model="[[model]]" section="[[sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></record-add>-->
     </template>
     <script>
         ZONEACTIONS = {
@@ -218,6 +213,17 @@
                     },
                     zone: {
                         type: Object
+                    },
+                    recordsSections: {
+                        type: Object,
+                        value: function() {
+                            return {
+                                id: 'records',
+                                color: '#3F51B5',
+                                add: '/records/+add',
+                                q: '',
+                            }
+                        },
                     },
                     actions: {
                         type: Array,
@@ -259,7 +265,6 @@
 
                     return actions;
                 },
-
                 _editZone: function(e) {
                     console.log(e);
                 },
