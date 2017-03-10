@@ -6,8 +6,9 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
-<link rel="import" href="rule-identifier.html">
+
+<link rel="import" href="rule-item.html">
+
 <dom-module id="team-policy">
 	<template>
 		<style is="custom-style" include="tags-and-labels"></style>
@@ -217,45 +218,7 @@
                 <span></span>
             </div>
 	        <template is="dom-repeat" items="[[rules]]" as="rule" id="rulesrepeat">
-	            <div id="[[index]]" class$="rule ruleitem-[[index]]">
-	            	<span class="index">
-	            		[[index]].
-	            	</span>
-	            	<span class="operator">
-                        <paper-toggle-button id$="index-[[index]]" class="operator layout horizontal" checked$="[[_computeToggle(rule.operator)]]" on-tap="_changeOperator" data-attr="[[index]]">[[rule.operator]]</paper-toggle-button>
-                    </span>
-                    <span class="resource">
-                        <span class="narrow-hide">
-                            on
-                        </span>
-                        <span class="uppercase">
-                            <paper-dropdown-menu no-animations data-attr="[[index]]">
-                              <paper-listbox class="dropdown-content" selected="[[_computeSelectedType(index, rule.rtype)]]" data-attr="[[index]]">
-                                <template is="dom-repeat" items="[[resources]]">
-                                    <paper-item value="[[item]]" class="rtype">[[item]]</paper-item>
-                                </template>
-                              </paper-listbox>
-                            </paper-dropdown-menu>
-                        </span>
-                    </span>
-	                <span class="action">
-                        <span class="uppercase">
-                            <paper-dropdown-menu no-animations data-attr="[[index]]">
-                              <paper-listbox class="dropdown-content" selected="[[_computeSelectedAction(index, rule.rtype, rule.action)]]" data-attr="[[index]]">
-                                <template is="dom-repeat" items="[[_computeActions(index, rule.rtype)]]">
-                                    <paper-item value="[[item]]" class="raction">[[pretify(item)]]</paper-item>
-                                </template>
-                              </paper-listbox>
-                            </paper-dropdown-menu>
-		                </span>
-	                </span>
-	                <span class="identifier">
-                        <rule-identifier model="[[model]]" rule="[[rule]]" index="[[index]]"></rule-identifier>
-                    </span>
-                    <span class="delete">
-                        <iron-icon id$="delete-[[index]]" icon="close" on-tap="_deleteRule" data-attr="[[index]]"></iron-icon>
-                    </span>
-	            </div>
+                <rule-item rule="[[rule]]" index="[[index]]" model="[[model]]"></rule-item>
 	        </template>
         </sortable-js>
         <div class="rules">
@@ -279,7 +242,6 @@
                 Change ALLOW to DENY in rule 5.<br/>
             </p>
         </div>
-
         <div class="progress">
             <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
             <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
@@ -354,8 +316,8 @@
                 'iron-select': '_updateRule',
                 'delete-rtag': '_deleteRtag',
                 'update-rtags': '_updateRtags',
-                'update-rid': '_updateRid'
-
+                'update-rid': '_updateRid',
+                'delete-rule': '_deleteRule'
             },
             _getResources: function(){
                 var ret=[];
@@ -522,25 +484,24 @@
                 this.ruleHasChanges();
             },
             _deleteRule: function(e) {
-                var index = e.target.dataAttr;
-                this.splice('rules',index,1);
+                var index = e.detail.index,
+                    rule = e.detail.rule;
+                this.splice('rules', index, 1);
                 this.splice('newOrder', index, 1)
 
                 this.ruleHasChanges();
             },
-            _changeOperator: function(event) {
-                var e = Polymer.dom(event);
-                var path = e.path;
-                var index = e.localTarget.getAttribute('id').split('-')[1];
-                var newOp = e.localTarget.attributes.checked ? 'ALLOW' : "DENY";
+            _changeOperator: function(e) {
+                var index = e.model.index;
+                var newOp = e.model.rule.operator == "DENY" ? 'ALLOW' : "DENY";
+                console.log('_changeOperator', e, index, this.rules.indexOf(e.model.rule), e.model.rule, this.get('rules.#'+index+'.operator'), newOp);
                 if (index) {
-                    this.set('rules.#'+index+'.operator', newOp);
+                    this.set('rules.#'+this.rules.indexOf(e.model.rule)+'.operator', newOp);
                 }
                 else {
                     this.set('defaultOperator', newOp);
                 }
                 this.ruleHasChanges();
-                console.log('_changeOperator',e);
             },
             _resetForm: function() {
                 var newArr = [];
