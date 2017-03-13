@@ -175,7 +175,7 @@
             </span>
             <span class="uppercase">
                 <paper-dropdown-menu no-animations>
-                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedType(index, rule.rtype, rule.action, resources)}}">
+                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedType(rule.rtype)}}">
                     <template is="dom-repeat" items="[[resources]]" as="item">
                         <paper-item value="[[item]]" class="rtype">[[item]]</paper-item>
                     </template>
@@ -186,7 +186,7 @@
         <span class="action">
             <span class="uppercase">
                 <paper-dropdown-menu no-animations>
-                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedAction(index, rule.rtype, rule.action, commonPermissions)]]">
+                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedAction(rule.action)]]">
                     <template is="dom-repeat" items="[[actions]]">
                         <paper-item value="[[item]]" class="raction">[[pretify(item)]]</paper-item>
                     </template>
@@ -232,7 +232,9 @@
             observers: [
                 '_computeActions(index, rule.rtype, model.permissions)'
             ],
-            listeners: {},
+            listeners: {
+                'iron-select': '_selectionHappened'
+            },
             _computeToggle: function(operator) {
                 return operator == 'ALLOW'? true : false;
             },
@@ -249,8 +251,8 @@
                 this.set('rule.operator', newOp)
                 this.ruleHasChanges();
             },
-            _computeSelectedType: function(index, type, action, resources) {
-                console.log('_computeSelectedType', type.toLowerCase() || 'all')
+            _computeSelectedType: function(type) {
+                // console.log('_computeSelectedType', type.toLowerCase() || 'all')
                 return type.toUpperCase() || 'ALL';
             },
             _computeActions: function(index, rtype, modelpermissions) {
@@ -272,8 +274,9 @@
                 });
                 return commonPermissions;
             },
-            _computeSelectedAction: function(index, rtype, raction, commonPermissions) {
-                return raction.toLowerCase() || 'all';
+            _computeSelectedAction: function(raction) {
+                // console.log('Selected Action', raction)
+                return raction.toLowerCase() || 'ALL';
             },
             pretify: function(item) {
                 if (item)
@@ -288,6 +291,10 @@
             },
             _deleteRule: function(e){
                 this.fire('delete-rule', {index: this.index, rule: this.rule})
+            },
+            _selectionHappened: function(e) {
+                console.log('_selectionHappened', e);
+                console.log(this.rule);
             }
 
         });
