@@ -252,13 +252,21 @@
                 return type.toUpperCase() || 'ALL';
             },
             _computeActions: function(index, rtype, modelpermissions) {
-                var type = rtype.toLowerCase();
+                var type = rtype.toLowerCase(),
+                    perm = [];
 
                 if (type != '' && type != 'all' && type != 'ALL'){
-                    this.set('actions', ['ALL'].concat(this.model.permissions[type.toLowerCase()]) );
+                    perm = ['ALL'].concat(this.model.permissions[type]);
                 }
                 else {
-                    this.set('actions', ['ALL'].concat(this.commonPermissions) );
+                    perm = ['ALL'].concat(this.commonPermissions);
+                }
+                this.set('actions', perm);
+                this._checkIfActionValid(perm);
+            },
+            _checkIfActionValid: function(perm){
+                if (this.rule && this.rule.action && this.rule.action.length && perm.indexOf(this.rule.action) == -1){
+                    this.set('rule.action', '');
                 }
             },
             _computeSelectedAction: function(raction) {
@@ -279,7 +287,6 @@
                 if (this.rule.rtype != t && this.rule.rid != ''){
                     this.set('rule.rid','')
                 }
-
                 this.fire('update-rtype', {index: this.index, type: t != 'all' ? t : ''});
                 console.log('select type',this.rule);
             },
