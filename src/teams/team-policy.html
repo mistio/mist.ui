@@ -217,7 +217,7 @@
                 </span>
                 <span></span>
             </div>
-	        <template is="dom-repeat" items="[[rules]]" as="rule" id="rulesrepeat">
+	        <template is="dom-repeat" items="{{rules}}" as="rule" id="rulesrepeat">
                 <rule-item rule="[[rule]]" index="[[index]]" model="[[model]]"></rule-item>
 	        </template>
         </sortable-js>
@@ -313,11 +313,13 @@
             ],
             listeners: {
                 'end': '_orderChanged',
-                'iron-select': '_updateRule',
+                // 'iron-select': '_updateRule',
                 'delete-rtag': '_deleteRtag',
                 'update-rtags': '_updateRtags',
                 'update-rid': '_updateRid',
-                'delete-rule': '_deleteRule'
+                'delete-rule': '_deleteRule',
+                'update-rtype': '_updateRtype',
+                'update-raction': '_updateRaction',
             },
             _getResources: function(){
                 var ret=[];
@@ -403,10 +405,11 @@
             _rulesChanged(rules, defaultOperator, newOrder) {
                 if (this.team) {
                     if (JSON.stringify(this.team.policy.rules) != JSON.stringify(this.newOrder) || this.defaultOperator != this.team.policy.operator) {
-                        this.set('formReady', true)
+                        //console.log(JSON.stringify(this.team.policy.rules) != JSON.stringify(this.newOrder), this.defaultOperator != this.team.policy.operator)
+                        this.set('formReady', true);
                     }
                     else {
-                        this.set('formReady', false)
+                        this.set('formReady', false);
                     }
                 }
             },
@@ -417,24 +420,24 @@
                 return team.name == 'Owners'? 'disabled' : '';
             },
             _updateRule: function(e) {
-                //get rule index
-                var ind = e.target.dataAttr;
-                //case of editing rtype
-                if (e.detail.item.attributes.class.nodeValue.indexOf('rtype') > -1){
-                    var rtype = e.detail.item.textContent.trim();
-                    if (rtype == 'ALL') {
-                        rtype = '';
-                    }
-                    this.set('rules.#'+ind+'.rtype', rtype.toLowerCase());
-                }
-                //case of editing rule action
-                else if (e.detail.item.attributes.class.nodeValue.indexOf('raction') > -1){
-                    var raction = e.detail.item.textContent.trim().replace(' ','_').toLowerCase();
-                    if (raction == 'all') {
-                        raction = '';
-                    }
-                    this.set('rules.#'+ind+'.action', raction);
-                }
+                // //get rule index
+                // var ind = e.target.dataAttr;
+                // //case of editing rtype
+                // if (e.detail.item.attributes.class.nodeValue.indexOf('rtype') > -1){
+                //     var rtype = e.detail.item.textContent.trim();
+                //     if (rtype == 'ALL') {
+                //         rtype = '';
+                //     }
+                //     this.set('rules.'+ind+'.rtype', rtype.toLowerCase());
+                // }
+                // //case of editing rule action
+                // else if (e.detail.item.attributes.class.nodeValue.indexOf('raction') > -1){
+                //     var raction = e.detail.item.textContent.trim().replace(' ','_').toLowerCase();
+                //     if (raction == 'all') {
+                //         raction = '';
+                //     }
+                //     this.set('rules.#'+ind+'.action', raction);
+                // }
 
                 this.ruleHasChanges();
             },
@@ -459,15 +462,15 @@
             _updateRtags: function(e) {
                 var ind = e.detail.index,
                     rtags = e.detail.rtags;
-                this.set('rules.#'+ind+'.rid', '');
-                this.set('rules.#'+ind+'.rtags', rtags);
+                this.set('rules.'+ind+'.rid', '');
+                this.set('rules.'+ind+'.rtags', rtags);
                 this.ruleHasChanges();
             },
             _updateRid: function(e) {
                 var ind = e.detail.index,
                     rid = e.detail.rid;
-                this.set('rules.#'+ind+'.rid', rid);
-                this.set('rules.#'+ind+'.rtags', {});
+                this.set('rules.'+ind+'.rid', rid);
+                this.set('rules.'+ind+'.rtags', {});
                 this.ruleHasChanges();
             },
             _addRule: function(e) {
@@ -494,9 +497,9 @@
             _changeOperator: function(e) {
                 var index = e.model.index;
                 var newOp = e.model.rule.operator == "DENY" ? 'ALLOW' : "DENY";
-                console.log('_changeOperator', e, index, this.rules.indexOf(e.model.rule), e.model.rule, this.get('rules.#'+index+'.operator'), newOp);
+                console.log('_changeOperator', e, index, this.rules.indexOf(e.model.rule), e.model.rule, this.get('rules.'+index+'.operator'), newOp);
                 if (index) {
-                    this.set('rules.#'+this.rules.indexOf(e.model.rule)+'.operator', newOp);
+                    this.set('rules.'+this.rules.indexOf(e.model.rule)+'.operator', newOp);
                 }
                 else {
                     this.set('defaultOperator', newOp);
@@ -534,7 +537,7 @@
                 this.set("rules", cleanCopyRules);
 
                 for (var i = 0; i < newArr.length; i++) {
-                    this.set('rules.#'+i+'.operator', newArr[i].operator);
+                    this.set('rules.'+i+'.operator', newArr[i].operator);
                 }
 
                 var initialOp = this.team.policy.operator;
@@ -597,6 +600,12 @@
                 if(this.formError){
                     this.set('formError', false);
                 }
+            },
+            _updateRtype: function(e) {
+                this.set('rules.'+e.detail.index+'.rtype', e.detail.type);
+            },
+            _updateRaction: function(e) {
+                this.set('rules.'+e.detail.index+'.raction', e.detail.action);
             }
 
         });

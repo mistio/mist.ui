@@ -175,7 +175,7 @@
             </span>
             <span class="uppercase">
                 <paper-dropdown-menu no-animations>
-                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedType(rule.rtype)}}">
+                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedType(rule.rtype)}}" on-iron-activate="selectType">
                     <template is="dom-repeat" items="[[resources]]" as="item">
                         <paper-item value="[[item]]" class="rtype">[[item]]</paper-item>
                     </template>
@@ -186,8 +186,8 @@
         <span class="action">
             <span class="uppercase">
                 <paper-dropdown-menu no-animations>
-                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedAction(rule.action)]]">
-                    <template is="dom-repeat" items="[[actions]]">
+                  <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_computeSelectedAction(rule.action)]]" on-iron-activate="selectAction">
+                    <template is="dom-repeat" items="{{actions}}">
                         <paper-item value="[[item]]" class="raction">[[pretify(item)]]</paper-item>
                     </template>
                   </paper-menu>
@@ -233,7 +233,6 @@
                 '_computeActions(index, rule.rtype, model.permissions)'
             ],
             listeners: {
-                'iron-select': '_selectionHappened'
             },
             _computeToggle: function(operator) {
                 return operator == 'ALLOW'? true : false;
@@ -258,8 +257,8 @@
             _computeActions: function(index, rtype, modelpermissions) {
                 var type = rtype.toLowerCase();
 
-                if (type != '' && type != 'ALL'){
-                    this.set('actions', ['ALL'].concat(this.model.permissions[type]) );
+                if (type != '' && type != 'all' && type != 'ALL'){
+                    this.set('actions', ['ALL'].concat(this.model.permissions[type.toLowerCase()]) );
                 }
                 else {
                     this.set('actions', ['ALL'].concat(this.commonPermissions) );
@@ -276,7 +275,7 @@
             },
             _computeSelectedAction: function(raction) {
                 // console.log('Selected Action', raction)
-                return raction.toLowerCase() || 'ALL';
+                return raction.replace(' ','_').toLowerCase() || 'ALL';
             },
             pretify: function(item) {
                 if (item)
@@ -292,9 +291,17 @@
             _deleteRule: function(e){
                 this.fire('delete-rule', {index: this.index, rule: this.rule})
             },
-            _selectionHappened: function(e) {
-                console.log('_selectionHappened', e);
-                console.log(this.rule);
+            selectType: function(e) {
+                var t = e.detail.item.value.toLowerCase();
+                this.fire('update-rtype', {index: this.index, type: t != 'all' ? t : ''});
+                //this.set('rule.rtype', t != 'all' ? t : '');
+                console.log('select type',this.rule);
+            },
+            selectAction: function(e) {
+                var a = e.detail.item.value.toLowerCase();
+                this.fire('update-raction', {index: this.index, action: a != 'all' ? a : ''});
+                // this.set('rule.raction', a != 'all' ? a : '');
+                console.log('select action',this.rule);
             }
 
         });
