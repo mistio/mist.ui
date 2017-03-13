@@ -216,10 +216,7 @@
                     notify: true
                 },
                 index: Number,
-                commonPermissions: {
-                    type: Array,
-                    computed: '_computeCommonPermissions(model.permisions)'
-                },
+                commonPermissions: Array,
                 resources: {
                     type: Array,
                     computed: "_getResources(model)"
@@ -264,22 +261,13 @@
                     this.set('actions', ['ALL'].concat(this.commonPermissions) );
                 }
             },
-            _computeCommonPermissions: function(modelpermissions) {
-                var commonPermissions = this.model.permissions['cloud'],
-                    that = this;
-                Object.keys(this.model.permissions).forEach(function(t){
-                    var s = new swiftSet.Set(commonPermissions);
-                    commonPermissions = s.intersection(that.model.permissions[t]);
-                });
-                return commonPermissions;
-            },
             _computeSelectedAction: function(raction) {
                 // console.log('Selected Action', raction)
-                return raction.replace(' ','_').toLowerCase() || 'ALL';
+                return raction.replace(/ /g,'_').toLowerCase() || 'ALL';
             },
             pretify: function(item) {
                 if (item)
-                    return item.replace('_',' ').toUpperCase();
+                    return item.replace(/_/g,' ').toUpperCase();
                 else
                     return item;
             },
@@ -289,13 +277,11 @@
             selectType: function(e) {
                 var t = e.detail.item.value.toLowerCase();
                 this.fire('update-rtype', {index: this.index, type: t != 'all' ? t : ''});
-                //this.set('rule.rtype', t != 'all' ? t : '');
                 console.log('select type',this.rule);
             },
             selectAction: function(e) {
                 var a = e.detail.item.value.toLowerCase();
                 this.fire('update-raction', {index: this.index, action: a != 'all' ? a : ''});
-                // this.set('rule.raction', a != 'all' ? a : '');
                 console.log('select action',this.rule);
             }
 
