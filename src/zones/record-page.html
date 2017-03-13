@@ -1,0 +1,241 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
+
+<dom-module id="record-page">
+    <template>
+        <style is="custom-style" include="single-page"></style>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+
+            paper-material {
+                display: block;
+                padding: 20px;
+            }
+
+            paper-menu-button paper-button {
+                display: block;
+            }
+
+            .flex-horizontal-with-ratios {
+                @apply(--layout-horizontal);
+            }
+
+            .flexchild {
+                @apply(--layout-flex);
+            }
+
+            .command-container {
+                background-color: #444;
+                color: #fff;
+                font-family: monospace;
+                padding: 10px;
+            }
+
+            a {
+                color: black;
+                text-decoration: none;
+            }
+
+            .paper-header [paper-drawer-toggle] {
+                margin-left: 10px;
+            }
+
+            .paper-header {
+                @apply(--layout-horizontal);
+            }
+
+            .paper-header {
+                height: 60px;
+                font-size: 24px;
+                line-height: 60px;
+                padding: 0 10px;
+                color: white;
+                transition: height 0.2s;
+                transition: font-size 0.2s;
+            }
+
+            .paper-header.tall {
+                height: 320px;
+                font-size: 16px;
+            }
+
+            .paper-header h2 {
+                margin-left: 20px;
+                @apply(--layout-flex);
+                text-transform: capitalize;
+            }
+
+            .paper-header .toggleViewButton {
+                --paper-icon-button-ink-color: transparent;
+            }
+
+            .paper-header .cartButton {
+                margin-right: 10px;
+            }
+
+            #content {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            paper-icon-button {
+                transition: all 200ms;
+            }
+
+            paper-icon-button.active-sort {
+                transform: rotate(180deg);
+            }
+
+            paper-icon-button.active-sort::content iron-icon {
+                color: #D48900 !important;
+            }
+
+            h4.id {
+                display: inline-block;
+                text-transform: uppercase;
+                font-size: 0.9rem;
+                font-weight: 700;
+                margin-right: 16px;
+            }
+
+            paper-icon-bottom.bottom {
+                padding-right: 8px;
+            }
+        </style>
+
+        <div id="content">
+            <div class="is-loading" hidden$="[[!isLoading]]">
+                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
+            </div>
+            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <div class="title flex">
+                    <h2>[[zone.domain]]</h2>
+                    <div class="subtitle">
+                        [[zoneCloud]]
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <paper-button on-tap="_deleteRecord" class="simple">delete
+                        <iron-icon icon="delete"></iron-icon>
+                    </paper-button>
+                </div>
+            </paper-material>
+            <paper-material>
+                <h4 class="id">Record ID:</h4><span class="id">[[record.id]]</span>
+            </paper-material>
+            <paper-material>
+                <h4 class="id">Record Info</h4>
+                <div class="info-table">
+                    <div class="info-body info-group">
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Name</div>
+                            <div class="flexchild">[[record.name]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">ID</div>
+                            <div class="flexchild">[[record.id]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Type</div>
+                            <div class="flexchild">[[record.type]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Data</div>
+                            <div class="flexchild">[[record.rdata]]</div>
+                        </div>
+                        <div class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">TTL</div>
+                            <div class="flexchild">[[record.ttl]]</div>
+                        </div>
+                    </div>
+                </div>
+            </paper-material>
+        </div>
+        <iron-ajax id="recordDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]/records/[[record.id]]" method="DELETE" on-response="_handleRecordDeleteAjaxResponse" on-error="_handleRecordDeleteAjaxError"></iron-ajax>
+        <dialog-element></dialog-element>
+    </template>
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'record-page',
+
+                properties: {
+                    model: {
+                        type: Object,
+                        notify: true
+                    },
+                    section: {
+                        type: Object
+                    },
+                    zone: {
+                        type: Object
+                    },
+                    record: {
+                        type: Object
+                    },
+                    isLoading: {
+                        type: Boolean,
+                        computed: '_computeIsloading(zone)',
+                        value: true
+                    },
+                    zoneCloud: {
+                        type: String,
+                        computed: '_computeZoneCloud(zone, model.clouds)' 
+                    }
+                },
+                listeners: {
+                    'confirmation': '_deleteRecordEventResponse'
+                },
+                _computeZoneCloud: function(zone, clouds){
+                    if (zone)
+                        return this.model.clouds[this.zone.cloud_id].title
+                },
+                _editZone: function(e) {
+                    console.log(e);
+                },
+                _deleteRecord: function(e) {
+                    this._showDialog({
+                        title: 'Delete Record?',
+                        body: "Deleting record cannot be undone. You are about to record zone: '" + this.record.name + "'.",
+                        danger: true,
+                        reason: "record.delete"
+                    });
+                },
+                _deleteRecordEventResponse: function(e) {
+                    var reason = e.detail.reason,
+                        response = e.detail.response;
+
+                    if (response.confirmed && reason == "record.delete") {
+                        this.$.RecordDeleteAjaxRequest.body = {};
+                        this.$.RecordDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+                        this.$.RecordDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.RecordDeleteAjaxRequest.generateRequest();
+                    }
+                },
+                _handleRecordDeleteAjaxResponse: function(e) {
+                    this.fire('toast',{msg:'Delete was successful.',duration:3000});
+                    document.querySelector('app-location').path = '/zones/' + zone.id;
+                },
+                _showDialog: function(info) {
+                    var dialog = this.querySelector('dialog-element');
+                    for (var i in info) {
+                        dialog[i] = info[i];
+                    }
+                    dialog._openDialog();
+                },
+                _computeIsloading: function(zone) {
+                    return !this.zone ? true : false;
+                },
+
+            });
+        })();
+    </script>
+</dom-module>
