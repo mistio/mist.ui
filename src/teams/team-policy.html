@@ -1,5 +1,4 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
-<!-- <link rel="import" href="../../bower_components/Sortable/Sortable.html"> -->
 <link rel="import" href="../../bower_components/polymer-sortablejs/polymer-sortablejs.html" />
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
@@ -52,6 +51,7 @@
         	display: table-cell;
             border-left: 1px solid #eee;
         	padding: 8px;
+            vertical-align: middle;
         }
         .rule .tag {
         	display: inline-block;
@@ -68,6 +68,7 @@
         .default-rule {
             padding: 8px 8px 8px 16px;
             font-size: 16px;
+            border-top: 1px solid #eee;
             border-bottom: 1px solid #eee;
         }
         .default-rule > paper-toggle-button {
@@ -76,9 +77,11 @@
         .index {
             text-align: center;
         }
-        .add {
-            border-bottom: 1px solid #eee;
-            width: 100%;
+        .rule > span.add {
+            border: 0 none;
+            margin: 0 auto;
+            width: 200px;
+            text-align: center;
             display: block;
             cursor: pointer;
         }
@@ -89,14 +92,21 @@
             display: flex;
         }
         paper-toggle-button.operator {
-            display: inline-block;
-            vertical-align: middle;
+            display: flex;
             --paper-toggle-button-checked-bar-color:  var(--green-color);
             --paper-toggle-button-checked-button-color:  var(--green-color);
             --paper-toggle-button-checked-ink-color: var(--green-color);
             --paper-toggle-button-unchecked-bar-color:  var(--red-color);
             --paper-toggle-button-unchecked-button-color:  var(--red-color);
             --paper-toggle-button-unchecked-ink-color: var(--red-color);
+        }
+        paper-toggle-button.operator::content .toggle-container {
+            display: inline-block;
+            vertical-align: text-bottom;
+        }
+        paper-toggle-button.operator::content .toggle-label {
+            display: inline;
+            vertical-align: text-bottom;
         }
         #changeRecord {
             padding: 8px 24px;
@@ -180,7 +190,7 @@
         }
         @media (max-width: 1380px) {
             .rule > span {
-                vertical-align: bottom;
+                vertical-align: middle;
                 display: table-cell;
             }
             .rule > span.index,
@@ -189,9 +199,6 @@
             }
             .rule span.narrow-hide {
                 display: none;
-            }
-            paper-toggle-button {
-                display: block !important;
             }
         }
         </style>
@@ -215,8 +222,7 @@
 	            		[[index]].
 	            	</span>
 	            	<span class="operator">
-                        <paper-toggle-button id$="index-[[index]]" class="operator" checked$="[[_computeToggle(rule.operator)]]" on-tap="_changeOperator" data-attr="[[index]]"></paper-toggle-button>
-	                	<span id$="index-[[index]]" class="operator-text">[[rule.operator]] </span>
+                        <paper-toggle-button id$="index-[[index]]" class="operator layout horizontal" checked$="[[_computeToggle(rule.operator)]]" on-tap="_changeOperator" data-attr="[[index]]">[[rule.operator]]</paper-toggle-button>
                     </span>
                     <span class="resource">
                         <span class="narrow-hide">
@@ -244,7 +250,7 @@
 		                </span>
 	                </span>
 	                <span class="identifier">
-                        <rule-identifier model="[[model]]" rule="[[rule]]" rtype="[[rule.rtype]]" rtags="[[rule.rtags]]" index="[[index]]" rid="[[rule.rid]]"></rule-identifier>
+                        <rule-identifier model="[[model]]" rule="[[rule]]" index="[[index]]"></rule-identifier>
                     </span>
                     <span class="delete">
                         <iron-icon id$="delete-[[index]]" icon="close" on-tap="_deleteRule" data-attr="[[index]]"></iron-icon>
@@ -255,12 +261,11 @@
         <div class="rules">
             <div class="rule add">
                 <span class="index">
-                    <iron-icon icon="icons:add-circle" on-tap="_addRule"></iron-icon> <span on-tap="_addRule">Add a new rule</span>
+                    <paper-button on-tap="_addRule" class="simple"><iron-icon icon="icons:add"></iron-icon> Add a new rule</paper-icon-button>
                 </span>
             </div>
             <div class="default-rule">
-                <paper-toggle-button id="defaultoperator" class="operator" checked$="[[_computeToggle(defaultOperator)]]" [[_computeDisabled(team)]] on-tap="_changeOperator"></paper-toggle-button>
-                <span id="defaultoperator" class="operator-text">[[defaultOperator]] </span>
+                <paper-toggle-button id="defaultoperator" class="operator" checked$="[[_computeToggle(defaultOperator)]]" [[_computeDisabled(team)]] on-tap="_changeOperator">[[defaultOperator]]</paper-toggle-button>
                 every other action ON any other resource
                 <span class="notice" hidden$="[[!_computeToggle(defaultOperator)]]">
                     <iron-icon icon="icons:warning"></iron-icon> This option will allow EVERY action on any resource not specified in the policy above.
@@ -285,7 +290,7 @@
             <paper-button id="appformsubmit" class="submit-btn pull-left blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">Save policy</paper-button>
             <paper-button class="submit-btn pull-right" on-tap="_resetForm" disabled$="[[!formReady]]"><iron-icon icon="icons:refresh"></iron-icon>Reset Policy</paper-button>
         </div>
-        <iron-ajax id="postPolicy" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/policy" contentType="application/json" handle-as="xml" method="PUT" on-request="_handlePostPolicy" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
+        <iron-ajax id="postPolicy" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/policy" loading="{{sendingData}}" contentType="application/json" handle-as="xml" method="PUT" on-request="_handlePostPolicy" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
 
     </template>
 </dom-module>
@@ -341,7 +346,8 @@
             },
             observers: [
                 // removed model.teamsArray from dep, due to reseting rules on connection changes
-                '_teamChanged(team, team.policy.rules)'
+                '_teamChanged(team, team.policy.rules)',
+                '_rulesChanged(rules.*, defaultOperator, newOrder.*)'
             ],
             listeners: {
                 'end': '_orderChanged',
@@ -432,6 +438,16 @@
                      this.push('newOrder', this.rules[i])
                 }
             },
+            _rulesChanged(rules, defaultOperator, newOrder) {
+                if (this.team) {
+                    if (JSON.stringify(this.team.policy.rules) != JSON.stringify(this.newOrder) || this.defaultOperator != this.team.policy.operator) {
+                        this.set('formReady', true)
+                    }
+                    else {
+                        this.set('formReady', false)
+                    }
+                }
+            },
             _computeToggle: function(operator) {
                 return operator == 'ALLOW'? true : false;
             },
@@ -501,7 +517,6 @@
                     rtype: ''
                 };
                 this.push('rules', emptyRuleObj);
-                this.set('formReady', true);
                 this.push('newOrder', emptyRuleObj)
 
                 this.ruleHasChanges();
@@ -509,7 +524,6 @@
             _deleteRule: function(e) {
                 var index = e.target.dataAttr;
                 this.splice('rules',index,1);
-                this.set('formReady', true);
                 this.splice('newOrder', index, 1)
 
                 this.ruleHasChanges();
@@ -566,7 +580,6 @@
                 var newString = initialOp.slice(0);
                 this.set("defaultOperator", newString);
 
-                this.set('formReady', false);
             },
             _submitForm: function() {
                 var policy = {};
@@ -578,19 +591,14 @@
                 this.$.postPolicy.body = {'policy': policy};
                 this.$.postPolicy.generateRequest();
 
-                this.set('sendingData', true);
-                this.set('formReady', false);
             },
             _handleResponse: function(e) {
                 this.fire('toast',{msg:'Team policy updated successfully.',duration:3000});
-                this.set('sendingData', false);
                 this.set('formReady', false);
             },
             _handleError: function(e,d) {
-                this.set('sendingData', false);
                 this.set('formError', true);
                 this.$.errormsg.textContent = e.detail.request.xhr.responseText;
-                this.set('formReady', true);
             },
             _computeSelectedType: function(index,type) {
                 //index of type in resources list
@@ -628,8 +636,6 @@
                 if(this.formError){
                     this.set('formError', false);
                 }
-                this.set('formReady', true);
-
             }
 
         });

@@ -4,7 +4,6 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
-<link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../item-list/item-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
@@ -512,7 +511,7 @@
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <log-list></log-list>
+            <log-list resource-filter="[[machineLogFilter]]"></log-list>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -537,7 +536,6 @@
                     handle-as="xml"></iron-ajax>
 
         <machine-edit machine="[[machine]]"></machine-edit>
-        <tags-list model="[[model]]"></tags-list>
         <paper-toast></paper-toast>
     </template>
 </dom-module>
@@ -718,6 +716,10 @@ Polymer({
         hidden: {
             type: Boolean,
             value: false
+        },
+        machineLogFilter: {
+            type: Object,
+            computed: "_computeMachineLogFilter(machine)"
         }
     },
     observers: [
@@ -1028,6 +1030,14 @@ Polymer({
     },
     _probeError: function(e){
         this.fire('toast', { msg:'Error probing machine '+ detail.request.xhr.responseText, duration: 3000 });
+    },
+    _computeMachineLogFilter: function(machine) {
+        if (machine)
+            return {
+                "cloud_id": machine.cloud.id,
+                "machine_id": machine.id,
+                "machine_uuid": machine.uuid
+            }
     }
 });
 </script>
