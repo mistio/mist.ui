@@ -405,7 +405,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          value: false,
          defaultValue: false,
          excludeFromPayload: true,
-         helptext: "Open options to apply a scheduled action on this machine",
+         helptext: "Enable a scheduled action on this machine",
          show: true,
          required: false
      },{
@@ -414,7 +414,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          type: "dropdown",
          value: "",
          defaultValue: "",
-         excludeFromPayload: false,
+         excludeFromPayload: true,
          show: true,
          required: false,
          helptext: "Choose one from the available tasks to schedule.",
@@ -462,6 +462,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          helpHref: "http://docs.mist.io/article/151-scheduler",
          show: false,
          required: true,
+         excludeFromPayload: true,
          class: "bind-bottom radio-highight",
          options: [{
              title: "Once",
@@ -481,11 +482,13 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          name: "schedule_entry",
          label: "Schedule time",
          type: "text",
-         value: {every: 10, period: "minutes"},
+         value: "",
          defaultValue: "",
          helptext: "",
-         show: false,
-         required: true
+         show: true,
+         hidden: true,
+         excludeFromPayload: true,
+         required: false
      }, {
          name: "schedule_entry_interval_every",
          label: "Interval",
@@ -567,6 +570,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          show: false,
          required: false,
          disabled: false,
+         excludeFromPayload: true,
          showIf: {
              fieldName: "schedule_type",
              fieldValues: ["interval", "crontab"]
@@ -577,7 +581,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          type: "date",
          value: "",
          placeholder: "never",
-         excludeFromPayload: false,
+         excludeFromPayload: true,
          defaultValue: "",
          helptext: "",
          icon: "schedule",
@@ -593,7 +597,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
          type: "text",
          value: "",
          defaultValue: "",
-         excludeFromPayload: false,
+         excludeFromPayload: true,
          show: false,
          required: false,
          helptext: "Optional. Integers only. Define a maximum run count.",
