@@ -246,7 +246,9 @@
                 commonPermissions: {
                     type: Array,
                     computed: '_computeCommonPermissions(model)'
-                }
+                },
+                sortable: Object,
+                cache: String
             },
             observers: [
                 // removed model.teamsArray from dep, due to reseting rules on connection changes
@@ -268,6 +270,7 @@
                 var sortable = Sortable.create(el, {
                     filter: '.head'
                 });
+                this.set('sortable', sortable);
             },
             _computeCommonPermissions: function(model) {
                 var commonPermissions = this.model.permissions['cloud'],
@@ -330,11 +333,19 @@
                 for (var i=0; i<this.team.policy.rules.length; i++){
                      this.push('newOrder', this.rules[i]);
                 }
+                // cache initial order 
+                this.async(function(){
+                    this.cache = this.sortable.el.innerHTML;
+                    if(this.sortable && this.cache && this.sortable.el.innerHTML != this.cache) {
+                        this.sortable.el.innerHTML = this.cache;
+                    }
+                }.bind(this), 500)
             },
             _rulesChanged(rules, defaultOperator, newOrder) {
                 if (this.team) {
+                    // if (this.rules && this.newOrder && this.defaultOperator)
+                    //     console.log('_rulesChanged',JSON.stringify(this.team.policy.rules) == JSON.stringify(this.newOrder), JSON.stringify(this.team.policy.rules) == JSON.stringify(this.rules), this.defaultOperator == this.team.policy.operator)
                     if (JSON.stringify(this.team.policy.rules) != JSON.stringify(this.newOrder) || this.defaultOperator != this.team.policy.operator) {
-                        //console.log(JSON.stringify(this.team.policy.rules) != JSON.stringify(this.newOrder), this.defaultOperator != this.team.policy.operator)
                         this.set('formReady', true);
                     }
                     else {
@@ -443,6 +454,10 @@
                 var initialOp = this.team.policy.operator;
                 var newString = initialOp.slice(0);
                 this.set("defaultOperator", newString);
+
+                if(this.cache) {
+                    this.sortable.el.innerHTML = this.cache;
+                }
 
             },
             _submitForm: function() {
