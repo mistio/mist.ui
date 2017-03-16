@@ -82,13 +82,13 @@
             <!-- regular plans -->
             <p hidden$="[[!plan.promo]]">[[plan.promo.description]]</p>
 
-            <template is="dom-if" if="[[!plan.expiration]]">
-                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPlan" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
-            </template>
-
             <!-- plan is canceled -->
             <template is="dom-if" if="[[plan.expiration]]">
-                Your plan will expire on [[_computeReadableDate(plan.expiration)]]
+                Your plan will expire on [[_computeReadableDate(plan.expiration)]]. <br/>
+            </template>
+
+            <template is="dom-if" if="[[showPurchase(plan, isCurrent)]]">
+                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPlan" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
             </template>
 
             <!-- is current plan, not cancelled-->
@@ -250,6 +250,9 @@
                 },
                 showCancel: function(plan, org){
                     return this.plan.title && this.org.current_plan.title == plan.title && !this.org.current_plan.expiration;
+                },
+                showPurchase: function(planexpiration, isCurrent) {
+                    return !this.isCurrent || (this.isCurrent && this.plan.expiration); 
                 }
             });
     </script>
