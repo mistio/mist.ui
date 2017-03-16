@@ -829,6 +829,55 @@ PROVIDERS.push({
     }]
 });
 
+// ONAPP
+PROVIDERS.push({
+    title: 'OnApp',
+    val: 'onapp',
+    className: 'provider-onapp',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "OnApp",
+        defaultValue: "OnApp",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "username",
+        label: "Username *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter username",
+        helptext: 'The username you use to connect to the OnApp portal'
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter password",
+        helptext: 'The password you use to connect to the OnApp portal'
+        helpHref: 'http://docs.mist.io'
+    }, {
+        name: "host",
+        label: "Host *",
+        type: "text",
+        value: "",
+        defaultValue: "onapp.com",
+        show: true,
+        required: true,
+        errorMessage: "Please enter onapp host",
+        helptext: 'The URL of onapp host',
+        helpHref: 'http://docs.mist.io'
+    }]
+});
+
 // VCLOUD
 PROVIDERS.push({
     title: 'VMWare vCloud',
