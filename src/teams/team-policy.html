@@ -19,9 +19,6 @@
         .rule span {
         	padding-right: 8px;
         }
-        .uppercase {
-        	text-transform: uppercase;
-        }
         #rules {
         	display: table;
             width: 100%;
@@ -284,15 +281,10 @@
             _orderChanged: function(e) {
                 var reorderElements = this.$.rules.children;
                 this.newOrder = [];
-                [].forEach.call(reorderElements, function(el){
-                    el.classList.forEach(function(c){
-                        if(c.indexOf('ruleitem') > -1){
-                            var ind = parseInt(c.split('-')[1]);
-                            this.push('newOrder',this.rules[ind]);
-                        }
-                    },this)
+                [].forEach.call(reorderElements, function(el, index){
+                    if (el.index != undefined)
+                        this.push('newOrder',this.rules[el.index]);
                 }, this);
-
                 this.ruleHasChanges();
             },
             _teamChanged: function(team, rules, teams) {
@@ -336,7 +328,7 @@
                 //initialize new order
                 this.set('newOrder',[])
                 for (var i=0; i<this.team.policy.rules.length; i++){
-                     this.push('newOrder', this.rules[i])
+                     this.push('newOrder', this.rules[i]);
                 }
             },
             _rulesChanged(rules, defaultOperator, newOrder) {
