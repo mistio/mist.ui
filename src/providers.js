@@ -852,17 +852,17 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter username",
-        helptext: 'The username you use to connect to the OnApp portal'
+        helptext: 'The username you use to connect to OnApp portal'
     }, {
         name: "apikey",
-        label: "API Key *",
+        label: "Password *",
         type: "password",
         value: "",
         defaultValue: "",
         show: true,
         required: true,
         errorMessage: "Please enter password",
-        helptext: 'The password you use to connect to the OnApp portal'
+        helptext: 'The password you use to connect to OnApp portal',
         helpHref: 'http://docs.mist.io'
     }, {
         name: "host",
