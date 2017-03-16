@@ -368,6 +368,27 @@ SCHEDULEACTIONS = {
 
                         // update scheduler fields
                         if (changeRecord.path.endsWith('.value')) {
+                            var scheduleFields = ['action','schedule_script_id','params','schedule_type','schedule_entry','start_after','expires','max_run_count'];
+                            var scheduleFieldFalse = ['action','params', 'schedule_type','schedule_entry','start_after','expires','max_run_count']
+                            // toggling scehduler
+                            if (this.get(changeRecord.path.replace('.value','')).name == "post_provision_scheduler"){
+                                //console.log('schedule changed', changeRecord.value);
+                                if (changeRecord.value == true){
+                                    for (var i = 0; i < scheduleFieldFalse.length; i ++){
+                                        var index = this._fieldIndexByName(scheduleFieldFalse[i]);
+                                        this.set('machineFields.'+ index +'.excludeFromPayload', false);
+                                        //console.log('FALSE', scheduleFieldFalse[i])
+                                    }
+                                }
+                                else {
+                                    for (var i = 0; i < scheduleFields.length; i ++){
+                                        var index = this._fieldIndexByName(scheduleFields[i]);
+                                        this.set('machineFields.'+ index +'.excludeFromPayload', true);
+                                        //console.log('TRUE', scheduleFields[i])
+                                    }
+                                }
+                            }
+
                             // selecting action or script
                             if (this.get(changeRecord.path.replace('.value','')).name == "action"){
                                 var actionInd = this._fieldIndexByName("action");
