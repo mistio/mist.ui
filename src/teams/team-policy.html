@@ -148,25 +148,44 @@
         .notice iron-icon {
             opacity: 0.6;
         }
+        #ruleslist {
+            position: relative;
+            height: auto;
+        }
+        .loading-data {
+            position: absolute;
+            background-color: rgba(255,255,255,0.8);
+            width: 100%;
+            height: 100%;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 2;
+        }
         </style>
-        <sortable-js id="rules">
-            <div class="rule head">
-                <span class="index">ord.</span>
-                <span>operator</span>
-                <span>resource</span>
-                <span>action</span>
-                <span>condition <iron-icon id="condition" icon="icons:help"></iron-icon>
-                   <paper-tooltip for="condition" position="top">
-                        A conditional rule will apply to either a specified resource, <br/>
-                        or resources that have ALL specified tags. <br/>
-                        Tags must be comma separated. </paper-tooltip>
-                </span>
-                <span></span>
+        <div id="ruleslist">
+            <div class="loading-data" hidden="{{!sendingData}}">
             </div>
-	        <template is="dom-repeat" items="{{rules}}" as="rule" id="rulesrepeat">
-                <rule-item rule="[[rule]]" index="[[index]]" model="[[model]]" commonPermissions="[[commonPermissions]]"></rule-item>
-	        </template>
-        </sortable-js>
+            <sortable-js id="rules">
+                <div class="rule head">
+                    <span class="index">ord.</span>
+                    <span>operator</span>
+                    <span>resource</span>
+                    <span>action</span>
+                    <span>condition <iron-icon id="condition" icon="icons:help"></iron-icon>
+                       <paper-tooltip for="condition" position="top">
+                            A conditional rule will apply to either a specified resource, <br/>
+                            or resources that have ALL specified tags. <br/>
+                            Tags must be comma separated. </paper-tooltip>
+                    </span>
+                    <span></span>
+                </div>
+                <template is="dom-repeat" items="{{rules}}" as="rule" id="rulesrepeat">
+                    <rule-item rule="[[rule]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rule-item>
+                </template>
+            </sortable-js>
+        </div>
         <div class="rules">
             <div class="rule add">
                 <span class="index">
@@ -253,7 +272,8 @@
             observers: [
                 // removed model.teamsArray from dep, due to reseting rules on connection changes
                 '_teamChanged(team, team.policy.rules)',
-                '_rulesChanged(rules.*, defaultOperator, newOrder.*)'
+                '_rulesChanged(rules.*, defaultOperator, newOrder.*)',
+                '_sendingDataChanged(sendingData)'
             ],
             listeners: {
                 'end': '_orderChanged',
@@ -333,13 +353,14 @@
                 for (var i=0; i<this.team.policy.rules.length; i++){
                      this.push('newOrder', this.rules[i]);
                 }
-                // cache initial order 
+
+                this.set('sendingData', true);
+                this.$.rulesrepeat.items = [];
+
                 this.async(function(){
-                    this.cache = this.sortable.el.innerHTML;
-                    if(this.sortable && this.cache && this.sortable.el.innerHTML != this.cache) {
-                        this.sortable.el.innerHTML = this.cache;
-                    }
-                }.bind(this), 500)
+                    this.$.rulesrepeat.items = this.rules;
+                    this.set('sendingData', false);
+                }.bind(this), 10)
             },
             _rulesChanged(rules, defaultOperator, newOrder) {
                 if (this.team) {
@@ -455,10 +476,13 @@
                 var newString = initialOp.slice(0);
                 this.set("defaultOperator", newString);
 
-                if(this.cache) {
-                    this.sortable.el.innerHTML = this.cache;
-                }
+                this.set('sendingData', true);
+                this.$.rulesrepeat.items = [];
 
+                this.async(function(){
+                    this.$.rulesrepeat.items = this.rules;
+                    this.set('sendingData', false);
+                }.bind(this), 10);
             },
             _submitForm: function() {
                 var policy = {};
@@ -497,8 +521,17 @@
             },
             _updateOperator: function(e) {
                 this.set('rules.'+e.detail.index+'.operator', e.detail.operator);
+            },
+            _sendingDataChanged: function(sendingData) {
+                // keep element height fixed while repeater updates
+                if (sendingData) {
+                    var height = this.$.ruleslist.offsetHeight;
+                    this.$.ruleslist.style.height = height+'px';
+                }
+                else {
+                    this.$.ruleslist.style.height = 'auto';
+                }
             }
-
         });
     })();
 </script>
