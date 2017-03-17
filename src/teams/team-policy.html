@@ -364,8 +364,12 @@
             },
             _rulesChanged(rules, defaultOperator, newOrder) {
                 if (this.team) {
-                    // if (this.rules && this.newOrder && this.defaultOperator)
-                    //     console.log('_rulesChanged',JSON.stringify(this.team.policy.rules) == JSON.stringify(this.newOrder), JSON.stringify(this.team.policy.rules) == JSON.stringify(this.rules), this.defaultOperator == this.team.policy.operator)
+                    // if (this.rules && this.newOrder && this.defaultOperator){
+                    //     console.log('Rules Changed', 
+                    //         JSON.stringify(this.team.policy.rules) == JSON.stringify(this.newOrder), 
+                    //         JSON.stringify(this.team.policy.rules) == JSON.stringify(this.rules), 
+                    //         this.defaultOperator == this.team.policy.operator)
+                    // }
                     if (JSON.stringify(this.team.policy.rules) != JSON.stringify(this.newOrder) || this.defaultOperator != this.team.policy.operator) {
                         this.set('formReady', true);
                     }
@@ -429,8 +433,7 @@
                 var index = e.detail.index,
                     rule = e.detail.rule;
                 this.splice('rules', index, 1);
-                this.splice('newOrder', index, 1)
-
+                this.splice('newOrder', this.newOrder.indexOf(rule), 1)
                 this.ruleHasChanges();
             },
             _changeDefaultOperator: function(e) {
@@ -483,6 +486,8 @@
                     this.$.rulesrepeat.items = this.rules;
                     this.set('sendingData', false);
                 }.bind(this), 10);
+
+                this._rulesChanged();
             },
             _submitForm: function() {
                 var policy = {};
@@ -496,7 +501,7 @@
 
             },
             _handleResponse: function(e) {
-                this.fire('toast',{msg:'Team policy updated successfully.',duration:3000});
+                this.fire('toast',{msg:'Team policy updated successfully.', duration:3000});
                 this.set('formReady', false);
             },
             _handleError: function(e,d) {
