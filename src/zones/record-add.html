@@ -4,11 +4,74 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
-
-<!--<link rel="import" href="record-item.html">-->
+<link rel="import" href="../app-form/app-form.html">
 
 <dom-module id="record-add">
     <template>
+        <style is="custom-style" include="forms"></style>
+        <style is="custom-style" include="single-page"></style>
+        <style include="shared-styles">
+        :host {
+            display: block;
+        }
+        
+        #content {
+            max-width: 900px;
+        }
+        
+        paper-material {
+            display: block;
+            padding: 24px;
+        }
+        
+        paper-progress {
+            position: absolute;
+            bottom: 85px;
+            width: 100%;
+            left: 0;
+            right: 0;
+        }
+        
+        :host >::content paper-input-container {
+            padding-top: 16px;
+            padding-bottom: 16px;
+        }
+        </style>
+        <app-location route="{{route}}"></app-location>
+        <div id="content">
+            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <div class="title flex">
+                    <h2>
+                        Add Record
+                    </h2>
+                    <div class="subtitle">
+                    </div>
+                </div>
+            </paper-material>
+            <paper-material>
+                <div class="grid-row">
+                    <paper-dropdown-menu class="dropdown-block l6 xs12" label="Choose Record Type" horizontal-align="left">
+                        <paper-menu attr-for-selected="value" selected="{{selectedRecordType}}" class="dropdown-content">
+                            <template is="dom-repeat" items="[[recordTypes]]" as="recordType">
+                                <paper-item value="[[recordType]]">[[recordType]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+            </paper-material>
+            <paper-material class$="selected-[[!selectedRecordType]]">
+                <div hidden$=[[selectedRecordType]]>
+                    <p>Depending on the record type there maybe needed parameters. Choose a record type to continue.</p>
+                </div>
+                <div hidden$=[[!selectedRecordType]]>
+                    <app-form fields="[[fields]]" form="[[record]]" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]/records" on-response="_handleAddRecordResponse" on-error="_handleError"></app-form>
+                </div>
+            </paper-material>
+
+            <paper-material>
+            </paper-material>
+        </div>
     </template>
     <script>
         (function() {
@@ -18,24 +81,354 @@
                 is: 'record-add',
 
                 properties: {
-                    model: Object,
-                    onboarding: Object
+                    section: {
+                        type: Object
+                    },
+                    model: {
+                        type: Object
+                    },
+                    zone: {
+                        type: Object
+                    },
+                    recordTypes: {
+                        type: Array,
+                        value: ["A", "AAAA","CNAME","MX","NS","SOA","TXT"],
+                    },
+                    selectedRecordType: {
+                        type: String,
+                        value: false
+                    },
+                    record: {
+                        type: Object,
+                        value: function() {
+                            return {
+                                name: '',
+                                type: '',
+                                rdata: '',
+                                ttl: 3600
+                            }
+                        },
+                        notify: true
+                    },
+                    fields: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+                    fieldsA: {
+                        type:Array,
+                        value: [{
+                            name: "name",
+                            label: "Name *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The subdomain for this A record is required",
+                            helptext: "Please provide the subdomain for the record",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "rdata",
+                            label: "Rdata *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The rdata are required for this record",
+                            helptext: "Please provide an IPv4 for this record",
+                            show: true,
+                            required: true
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 3600,
+                            defaultValue: 3600,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }]
+                    },
+                fieldsAAAA: {
+                        type:Array,
+                        value: [{
+                            name: "name",
+                            label: "Name *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The subdomain for this AAAA record is required",
+                            helptext: "Please provide the subdomain for the record",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "rdata",
+                            label: "Rdata *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The rdata are required for this record",
+                            helptext: "Please provide an IPv6 for this record",
+                            show: true,
+                            required: true
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 3600,
+                            defaultValue: 3600,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }]
                 },
+                fieldsCNAME: {
+                        type:Array,
+                        value: [{
+                            name: "name",
+                            label: "Name *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The subdomain for this CNAME record is required",
+                            helptext: "Please provide the subdomain for the record",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "rdata",
+                            label: "Rdata *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The rdata are required for this record",
+                            helptext: "Please provide a hostname for this record",
+                            show: true,
+                            required: true
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 3600,
+                            defaultValue: 3600,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }]
+                },
+                fieldsMX: {
+                        type:Array,
+                        value: [{
+                            name: "name",
+                            label: "Name *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The name for this MX record is required",
+                            helptext: "Please provide the name for the MX record",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "rdata",
+                            label: "Rdata *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The rdata are required for this MX record",
+                            helptext: "Please provide the required rdata for this MX record",
+                            show: true,
+                            required: true
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 3600,
+                            defaultValue: 3600,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }]
+                },
+                fieldsNS: {
+                        type:Array,
+                        value: [{
+                            name: "name",
+                            label: "Name *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The name for this NS record is required",
+                            helptext: "Please provide the NS record name",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "rdata",
+                            label: "Rdata *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The rdata are required for this record",
+                            helptext: "Please provide the nameserver rdata for this NS record",
+                            show: true,
+                            required: true
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 3600,
+                            defaultValue: 3600,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }]
+                },
+                fieldsSOA: {
+                        type:Array,
+                        value: [{
+                            name: "name",
+                            label: "Name *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The name for this SOA record is required",
+                            helptext: "Please provide the name for this SOA record",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "rdata",
+                            label: "Rdata *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The rdata are required for this record",
+                            helptext: "Please provide a hostname for this record",
+                            show: true,
+                            required: true
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 3600,
+                            defaultValue: 3600,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }]
+                },
+                fieldsTXT: {
+                        type:Array,
+                        value: [{
+                            name: "name",
+                            label: "Name *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The subdomain for this TXT record is required",
+                            helptext: "Please provide the name for this TXT record",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "rdata",
+                            label: "Rdata *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "The rdata are required for this record",
+                            helptext: "Please provide the relevant TXT rdata for this TXT record",
+                            show: true,
+                            required: true
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 3600,
+                            defaultValue: 3600,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }]
+                },
+            },
+            observers: [
+                '_typeChanged(selectedRecordType, fields)',
+            ],
+            listeners: {
+                'change': 'updateFields'
+            },
 
-                attached: function() {
-
-                },
-
-                _isAddPageActive: function(path) {
-                    return path == '/+add';
-                },
-                _isDetailsPageActive: function(path) {
-                    return path && path != '/+add';
-                },
-                _isListActive: function(path) {
-                    return !path;
+            updateFields: function(e){
+                this.set('formError', false);
+                this.updatePayload();            
+            },
+            updatePayload: function(){
+                if (this.fields.length){
+                    // update payload
+                    var payload = {};
+                    payload = {
+                        type: this.selectedRecordType, 
+                        name: this.fields[0].value, 
+                        data: this.fields[1].value, 
+                        ttl: this.fields[2].value,
+                    }
+                    this.set('record', payload);
+                    console.warn('Update Payload:' + payload)
                 }
-
+            },
+            _typeChanged: function(selectedRecordType, fields) {
+                if (this.selectedRecordType == "A") {
+                    this.set('fields', this.fieldsA);
+                } else if (this.selectedRecordType == "AAAA") {
+                    this.set('fields', this.fieldsAAAA);
+                } else if (this.selectedRecordType == "CNAME") {
+                    this.set('fields', this.fieldsCNAME);
+                } else if (this.selectedRecordType == "MX") {
+                    this.set('fields', this.fieldsMX);
+                } else if (this.selectedRecordType == "NS") {
+                    this.set('fields', this.fieldsNS);
+                } else if (this.selectedRecordType == "SOA") {
+                    this.set('fields', this.fieldsSOA);
+                } else if (this.selectedRecordType == "TXT") {
+                    this.set('fields', this.fieldsTXT);
+                }
+                this.updateFields();
+            },
+            _handleAddRecordResponse: function(e){
+                var response = YAML.parse(e.detail.xhr.response);
+                this.fire('toast',{msg:'Record was created successfully.',duration:3000});
+                var url = document.querySelector('app-location').path;
+                console.debug("URL initial");
+                console.debug(url);
+                console.debug("URL substring");
+                console.debug(url.substring( 0, url.indexOf("/+add" )));
+                document.querySelector('app-location').set('path', url.substring(0, url.indexOf("/+add" )));
+            },
+            _handleError: function(e) {
+                console.log(e);
+                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+                this.set('formError', true);
+            },
+            _goBack: function() {
+                history.back();
+            }
             });
         })();
     </script>

@@ -2,10 +2,10 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 
-<link rel="import" href="record-page.html">
 <link rel="import" href="record-add.html">
 <link rel="import" href="list-records.html">
 
@@ -15,6 +15,10 @@
         <style include="shared-styles">
             :host {
                 display: block;
+            }
+
+            [hidden] {
+            display: none !important;
             }
 
             paper-material {
@@ -111,15 +115,12 @@
                 padding-right: 8px;
             }
         </style>
-
+        <app-location route="{{route}}"></app-location>
         <div id="content">
-            <app-route route="{{route}}"
-                pattern="/:record"
-                data="{{data}}"></app-route>
             <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div>
-            <div hidden$=[[isRecordPageActive]]>
+            <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
                 <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                     <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                     <div class="title flex">
@@ -179,9 +180,11 @@
                     <h4 class="id">Records</h4>
                     <list-records model="[[model]]" items="[[zone.records]]" section="[[recordsSections]]" onboarding="[[onboarding]]"></list-records>
                 </paper-material>
+                <div class="absolute-bottom-right">
+                    <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
+                </div>
             </div>
-            <record-page model="[[model]]" zone="[[zone]]" record="[[_getRecord(data.record, zone.records)]]" section="[[recordsSections]]" hidden$=[[!isRecordPageActive]]></record-page>
-            <record-add model="[[model]]" section="[[recordsSections]]" hidden$=[[!_isAddPageActive(route.path)]]></record-add>
+            <record-add model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-add>
         </div>
         <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
         <dialog-element></dialog-element>
@@ -225,7 +228,6 @@
                             return {
                                 id: 'records',
                                 color: '#3F51B5',
-                                add: '/records/+add',
                                 q: '',
                             }
                         },
@@ -234,19 +236,14 @@
                         type: Array,
                         computed: '_computeActions(zone)'
                     },
+
                     hasRecords: {
                         type: Boolean,
                         computed: '_computeHasRecords(zone.records)'
                     },
                     isLoading: {
                         type: Boolean,
-                        computed: '_computeIsloading(zone)',
-                        value: true
-                    },
-                    isRecordPageActive: {
-                        type: Boolean,
-                        computed: '_isRecordPageActive(route.path)',
-                        value: false
+                        computed: '_computeIsloading(zone)'
                     },
                     zoneCloud: {
                         type: String,
@@ -290,6 +287,10 @@
                         reason: "zone.delete"
                     });
                 },
+                _fabAction: function(e) {
+                    console.debug('fabAction', e, this.section.add);
+                    document.querySelector('app-location').set('path', 'zones/' + this.zone.id + '/+add')
+                },
                 _deleteZoneEventResponse: function(e) {
                     var reason = e.detail.reason,
                         response = e.detail.response;
@@ -315,8 +316,8 @@
                 _computeIsloading: function(zone) {
                     return !this.zone ? true : false;
                 },
-                _isRecordPageActive: function(path) {
-                    return path && path.includes('/records/') && path != '/+add';
+                _computeAddRecordPageActive: function(path) {
+                    return path.endsWith('/+add');
                 },
             });
         })();
