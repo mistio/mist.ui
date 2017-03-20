@@ -292,7 +292,56 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "",
         show: true,
         required: true,
-        options: []
+        options: [],
+        custom: true
+    },{
+        name: "size_ram",
+        label: "RAM GB",
+        type: "slider",
+        value: "",
+        defaultValue: "",
+        min: 2,
+        max: 16,
+        step: 1,
+        show: true,
+        required: false,
+        helptext: "Custom ram size",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
+    },{
+        name: "size_cpu",
+        label: "CPU cores",
+        type: "slider",
+        value: "",
+        defaultValue: "",
+        min: 2,
+        max: 16,
+        step: 1,
+        show: true,
+        required: false,
+        helptext: "Custom cpu cores",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
+    },{
+        name: "size_disk",
+        label: "Disk GB",
+        type: "slider",
+        value: "",
+        defaultValue: "",
+        min: 2,
+        max: 16,
+        step: 1,
+        show: true,
+        required: false,
+        helptext: "Custom disk size",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
     },{
         name: "location",
         label: "Location *",
