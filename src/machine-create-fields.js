@@ -302,16 +302,16 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         custom: true
     },{
         name: "size_ram",
-        label: "RAM GB",
+        label: "RAM MB",
         type: "slider",
         value: "",
         defaultValue: "",
-        min: 2,
-        max: 16,
-        step: 1,
+        min: 256,
+        max: 6223,
+        step: 256,
         show: true,
         required: false,
-        helptext: "Custom ram size",
+        helptext: "Custom RAM size in MB.",
         showIf: {
             fieldName: "size",
             fieldValues: ["custom"]
@@ -322,12 +322,12 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         type: "slider",
         value: "",
         defaultValue: "",
-        min: 2,
+        min: 1,
         max: 16,
         step: 1,
         show: true,
         required: false,
-        helptext: "Custom cpu cores",
+        helptext: "Custom CPU cores.",
         showIf: {
             fieldName: "size",
             fieldValues: ["custom"]
@@ -338,12 +338,12 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         type: "slider",
         value: "",
         defaultValue: "",
-        min: 2,
+        min: 5,
         max: 16,
         step: 1,
         show: true,
         required: false,
-        helptext: "Custom disk size",
+        helptext: "Custom disk size in GB.",
         showIf: {
             fieldName: "size",
             fieldValues: ["custom"]
