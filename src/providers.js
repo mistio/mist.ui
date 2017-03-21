@@ -863,7 +863,7 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter password",
         helptext: 'The password you use to connect to OnApp portal',
-        helpHref: 'http://docs.mist.io'
+        helpHref: 'http://docs.mist.io/article/155-onapp'
     }, {
         name: "host",
         label: "Host *",
@@ -874,7 +874,7 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter onapp host",
         helptext: 'The URL of onapp host',
-        helpHref: 'http://docs.mist.io'
+        helpHref: 'http://docs.mist.io/article/155-onapp'
     }]
 });
 
