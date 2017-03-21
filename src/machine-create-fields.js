@@ -308,7 +308,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "",
         min: 256,
         max: 6223,
-        step: 256,
+        step: 1,
         show: true,
         required: false,
         helptext: "Custom RAM size in MB.",
