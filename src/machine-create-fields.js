@@ -263,6 +263,12 @@ MACHINE_CREATE_FIELDS.push({
     fields: []
 });
 
+// ONAPP
+MACHINE_CREATE_FIELDS.push({
+    provider: 'onapp',
+    fields: []
+});
+
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p){
     //add common machine properties fields
@@ -314,7 +320,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
     });
 
     //add cloud init field only to providers that accept and we support
-    if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt'].indexOf(p.provider) != -1) {
+    if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'onapp'].indexOf(p.provider) != -1) {
         p.fields.push({
             name: "cloud_init",
             label: "Cloud Init",
