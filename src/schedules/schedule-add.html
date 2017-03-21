@@ -384,7 +384,11 @@ SCHEDULEACTIONS = {
                         defaultValue: false,
                         show: true,
                         required: false,
-                        helptext: "Set to true to run the scheduled task once upon creation and then as scheduled."
+                        helptext: "Set to true to run the scheduled task once upon creation and then as scheduled.",
+                        showIf: {
+                            fieldName: "schedule_type",
+                            fieldValues: ["interval", "crontab"]
+                        }
                     }],
                     notify: true
                 },
@@ -485,6 +489,7 @@ SCHEDULEACTIONS = {
                             expInd = this._fieldIndexByName("expires"),
                             entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab"),
                             maxcountInd = this._fieldIndexByName("max_run_count"),
+                            runImmediatelyInd = this._fieldIndexByName("run_immediately"),
                             entry;
                         if (changeRecord.value == "interval") {
                             entry = this._processInterval();
@@ -504,6 +509,7 @@ SCHEDULEACTIONS = {
                             this.set('fields.'+ expInd +'.disabled', true);
                             this.set('fields.'+ maxcountInd +'.value', 1);
                             this.set('fields.'+ maxcountInd +'.disabled', true);
+                            this.set('fields.'+ runImmediatelyInd +'.value', false);
                         }
                         this.set('fields.'+ entryInd +'.value', entry);
                     }
