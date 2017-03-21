@@ -1,0 +1,21 @@
+stages:
+  - build
+
+#################### BUILD STAGE ####################
+.docker_build_template: &docker_build_template
+  stage: build
+  before_script:
+    - git submodule update --init --recursive
+    # Loging with gcr.io
+    - docker login --username "$DOCKER_USERNAME" -u _json_key -p "$KEYFILE_JSON" https://gcr.io
+  tags:
+    - builder
+  dependencies: []
+
+build_ui_image:
+  <<: *docker_build_template
+  script:
+    - docker build --rm --build-arg build_tag=$CI_BUILD_REF -t gcr.io/mist-ops/ui:$CI_BUILD_REF .
+    - docker tag gcr.io/mist-ops/ui:$CI_BUILD_REF gcr.io/mist-ops/ui:$CI_BUILD_REF_SLUG
+    - docker push gcr.io/mist-ops/ui:$CI_BUILD_REF
+    - docker push gcr.io/mist-ops/ui:$CI_BUILD_REF_SLUG
