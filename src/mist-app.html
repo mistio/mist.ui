@@ -108,7 +108,7 @@
         <app-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" sections="[[sections]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></app-sidebar>
         <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]" query="{{q}}"></mist-header>
         <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
-          <paper-spinner active></paper-spinner>
+          <paper-spinner active="[[loading]]"></paper-spinner>
         </div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" smallscreen$="{{smallscreen}}" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]" is-over-using="[[model.isOverUsing]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]"></page-dashboard>
@@ -204,6 +204,11 @@
         fingerprint: {
           type: String,
           value: ''
+        },
+
+        loading: {
+          type: Boolean,
+          value: true
         }
 
       },
@@ -275,13 +280,18 @@
 
       },
       _pageChanged: function(page) {
+        this.set('loading', true);
         this.syncSearchQuery(page);
         // Load page import on demand. Show 404 page if fails
         var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
-        this.importHref(resolvedPageUrl, null, this._showPage404, true);
+        this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
         if (this.querySelector('iron-media-query').queryMatches){
             document.querySelector('app-sidebar').closeSidebar();
         }
+      },
+
+      _hideLoader: function() {
+        this.set('loading', false);
       },
 
       _showPage404: function() {
