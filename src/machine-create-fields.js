@@ -290,6 +290,16 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: true,
         options: []
+
+    },{
+        name: "location",
+        label: "Location *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: []
     },{
         name: "size",
         label: "Size *",
@@ -348,15 +358,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "size",
             fieldValues: ["custom"]
         }
-    },{
-        name: "location",
-        label: "Location *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        options: []
     },{
         name: "key",
         label: "Key *",
