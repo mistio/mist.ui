@@ -266,7 +266,16 @@ MACHINE_CREATE_FIELDS.push({
 // ONAPP
 MACHINE_CREATE_FIELDS.push({
     provider: 'onapp',
-    fields: []
+    fields: [{
+        name: "networks",
+        label: "Networks *",
+        type: "checkboxes",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: []
+    }]
 });
 
 // add common fields
@@ -343,8 +352,24 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldValues: ["custom"]
         }
     },{
-        name: "size_disk",
-        label: "Disk GB",
+        name: "size_disk_primary",
+        label: "Primary Disk GB",
+        type: "slider",
+        value: "",
+        defaultValue: "",
+        min: 5,
+        max: 16,
+        step: 1,
+        show: true,
+        required: false,
+        helptext: "Custom disk size in GB.",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
+    },{
+        name: "size_disk_swap",
+        label: "Swap Disk GB",
         type: "slider",
         value: "",
         defaultValue: "",
