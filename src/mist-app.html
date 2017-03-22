@@ -106,7 +106,7 @@
 
     <paper-header-panel mode="standard" class="fit">
         <app-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" sections="[[sections]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></app-sidebar>
-        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]" query="{{q}}"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
           <paper-spinner active="[[loading]]"></paper-spinner>
         </div>
@@ -167,7 +167,6 @@
         sections: {
             type: Object
         },
-
 
         sectionsArray: {
             type: Array,
@@ -281,7 +280,6 @@
       },
       _pageChanged: function(page) {
         this.set('loading', true);
-        this.syncSearchQuery(page);
         // Load page import on demand. Show 404 page if fails
         var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
         this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
@@ -305,12 +303,7 @@
 
       updateSearchQuery: function(e){
           this.set('q', e.detail);
-          this.set('sections.'+this.page+'.q', e.detail || '');
-      },
-
-      syncSearchQuery: function(page){
-        if (page)
-          this.set('q', this.get('sections.'+page+'.q'));
+          this.set('sections.'+this.page+'.q',e.detail || '');
       },
 
       ready: function() {
