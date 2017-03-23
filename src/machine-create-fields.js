@@ -290,6 +290,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: true,
         helptext: "Fill in the machine's name"
+    },{ 
+        name: "location",
+        label: "Location *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: []
     },{
         name: "image",
         label: "Image *",
@@ -300,15 +309,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         required: true,
         options: []
 
-    },{
-        name: "location",
-        label: "Location *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        options: []
     },{
         name: "size",
         label: "Size *",
