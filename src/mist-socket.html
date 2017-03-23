@@ -681,6 +681,13 @@
                             zone['provider'] = 'Google'
                         } else if (this.model.clouds[data.cloud_id].provider == 'ec2'){
                             zone['provider'] = 'Route53'
+                            zone.records.forEach(function(record) {
+                                if (record['name'].length == 0) {
+                                    record['name'] = zone.domain;
+                                } else {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
                         } else {
                             zone['provider'] = this.model.clouds[data.cloud_id].provider
                         }
@@ -700,17 +707,22 @@
 
             //update all zones array
             var allZones = [];
+            var allRecords = [];
             if (this.model != undefined) {
                 this.model.cloudsArray.forEach(function(cloud) {
                     if (cloud.zonesArray != undefined && cloud.enabled) {
-                        cloud.zonesArray.forEach(function(net) {
-                            allZones.push(net);
+                        cloud.zonesArray.forEach(function(zone) {
+                            allZones.push(zone);
+                            zone.records.forEach(function(record){
+                                allRecords.push(record);
+                            }) 
                         })
                     }
                 });
             }
             this.set('model.zonesArray', allZones);
             this.set('model.zones', _generateMap(allZones));
+            this.set('model.records', _generateMap(allRecords));
         },
         _updateTunnels: function(data) {
             this.set('onboarding.isLoadingTunnels', false);

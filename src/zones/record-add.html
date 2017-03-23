@@ -124,6 +124,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            suffix: "",
                             errorMessage: "The subdomain for this A record is required",
                             helptext: "Please provide the subdomain for the record",
                             show: true,
@@ -136,6 +137,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            excludeFromPayload: true,
                             errorMessage: "The rdata are required for this record",
                             helptext: "Please provide an IPv4 for this record",
                             show: true,
@@ -160,6 +162,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            suffix: "",
                             errorMessage: "The subdomain for this AAAA record is required",
                             helptext: "Please provide the subdomain for the record",
                             show: true,
@@ -172,6 +175,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            excludeFromPayload: true,
                             errorMessage: "The rdata are required for this record",
                             helptext: "Please provide an IPv6 for this record",
                             show: true,
@@ -196,6 +200,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            suffix: "",
                             errorMessage: "The subdomain for this CNAME record is required",
                             helptext: "Please provide the subdomain for the record",
                             show: true,
@@ -208,6 +213,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            excludeFromPayload: true,
                             errorMessage: "The rdata are required for this record",
                             helptext: "Please provide a hostname for this record",
                             show: true,
@@ -232,6 +238,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            suffix: "",
                             errorMessage: "The name for this MX record is required",
                             helptext: "Please provide the name for the MX record",
                             show: true,
@@ -244,6 +251,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            excludeFromPayload: true,
                             errorMessage: "The rdata are required for this MX record",
                             helptext: "Please provide the required rdata for this MX record",
                             show: true,
@@ -268,6 +276,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            suffix: "",
                             errorMessage: "The name for this NS record is required",
                             helptext: "Please provide the NS record name",
                             show: true,
@@ -280,6 +289,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            excludeFromPayload: true,
                             errorMessage: "The rdata are required for this record",
                             helptext: "Please provide the nameserver rdata for this NS record",
                             show: true,
@@ -304,6 +314,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            suffix: "",
                             errorMessage: "The name for this SOA record is required",
                             helptext: "Please provide the name for this SOA record",
                             show: true,
@@ -316,6 +327,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            excludeFromPayload: true,
                             errorMessage: "The rdata are required for this record",
                             helptext: "Please provide a hostname for this record",
                             show: true,
@@ -340,6 +352,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            suffix: "",
                             errorMessage: "The subdomain for this TXT record is required",
                             helptext: "Please provide the name for this TXT record",
                             show: true,
@@ -352,6 +365,7 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
+                            excludeFromPayload: true,
                             errorMessage: "The rdata are required for this record",
                             helptext: "Please provide the relevant TXT rdata for this TXT record",
                             show: true,
@@ -370,6 +384,7 @@
             },
             observers: [
                 '_typeChanged(selectedRecordType, fields)',
+                '_zoneChanged(zone)',
             ],
             listeners: {
                 'change': 'updateFields'
@@ -385,7 +400,7 @@
                     var payload = {};
                     payload = {
                         type: this.selectedRecordType, 
-                        name: this.fields[0].value, 
+                        name: this.fields[0].value + '.' + this.zone.domain, 
                         data: this.fields[1].value, 
                         ttl: this.fields[2].value,
                     }
@@ -393,20 +408,33 @@
                     console.warn('Update Payload:' + payload)
                 }
             },
+            _zoneChanged: function(zone) {
+                console.error('_zoneChanged');
+                this.selectedRecordType = false;
+                this.set('fields', []);
+                this.updateFields();
+            },
             _typeChanged: function(selectedRecordType, fields) {
                 if (this.selectedRecordType == "A") {
+                    this.fieldsA[0].suffix = '.' + this.zone.domain.slice(0, -1);
                     this.set('fields', this.fieldsA);
                 } else if (this.selectedRecordType == "AAAA") {
+                    this.fieldsAAAA[0].suffix = '.' + this.zone.domain.slice(0, -1);
                     this.set('fields', this.fieldsAAAA);
                 } else if (this.selectedRecordType == "CNAME") {
+                    this.fieldsCNAME[0].suffix = '.' + this.zone.domain.slice(0, -1);
                     this.set('fields', this.fieldsCNAME);
                 } else if (this.selectedRecordType == "MX") {
+                    this.fieldsMX[0].suffix = '.' + this.zone.domain.slice(0, -1);
                     this.set('fields', this.fieldsMX);
                 } else if (this.selectedRecordType == "NS") {
+                    this.fieldsNS[0].suffix = '.' + this.zone.domain.slice(0, -1);
                     this.set('fields', this.fieldsNS);
                 } else if (this.selectedRecordType == "SOA") {
+                    this.fieldsSOA[0].suffix = '.' + this.zone.domain.slice(0, -1);
                     this.set('fields', this.fieldsSOA);
                 } else if (this.selectedRecordType == "TXT") {
+                    this.fieldsTXT[0].suffix = '.' + this.zone.domain.slice(0, -1);
                     this.set('fields', this.fieldsTXT);
                 }
                 this.updateFields();
@@ -415,10 +443,6 @@
                 var response = YAML.parse(e.detail.xhr.response);
                 this.fire('toast',{msg:'Record was created successfully.',duration:3000});
                 var url = document.querySelector('app-location').path;
-                console.debug("URL initial");
-                console.debug(url);
-                console.debug("URL substring");
-                console.debug(url.substring( 0, url.indexOf("/+add" )));
                 document.querySelector('app-location').set('path', url.substring(0, url.indexOf("/+add" )));
             },
             _handleError: function(e) {
