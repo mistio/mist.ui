@@ -15,6 +15,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-behavior.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-addon-behavior.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
@@ -82,6 +83,12 @@
                 opacity: 0.54;
                 width: 36px;
                 height: 36px;
+            }
+            paper-item.button-true {
+                background-color: #2196F3 !important;
+                font-weight: 500 !important;
+                color: #fff !important;
+                text-transform: uppercase;
             }
             .pull-right {
                 float: right;
@@ -190,6 +197,12 @@
                 --paper-checkbox-checked-color: var(--mist-blue) !important;
                 --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
             }
+            paper-slider {
+                /*background-color: #eee;*/
+            }
+            paper-slider::content .slider-input {
+                width: 80px !important;
+            }
             @media (max-width: 991px) {
                 .field-helptext.background,
                 .field-helptext.bind-bottom {
@@ -226,7 +239,7 @@
                         </paper-radio-group>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'checkboxes', field.show)]]">
-                        <div id="[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" horizontal-align="left" hidden="[[field.hidden]]"> 
+                        <div id="[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" horizontal-align="left" hidden="[[field.hidden]]">
                             <span class="checkboxes-label" hidden$="[[field.label]]">[[field.name]]:</span>
                             <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                             <template is="dom-repeat" items="[[field.options]]" as="option">
@@ -237,6 +250,9 @@
                     <template is="dom-if" if="[[_computeFieldType(field, 'dropdown', field.show)]]">
                         <paper-dropdown-menu id="[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
+                                <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
+                                    <paper-item disabled>No [[_replaceAsterisk(field.name)]]s found</paper-item>
+                                </template>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
                                     <paper-item value="[[option.val]]">[[option.title]]</paper-item>
                                 </template>
@@ -247,8 +263,11 @@
                     <template is="dom-if" if="[[_computeFieldType(field, 'mist_dropdown', field.show)]]">
                         <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
-                                <template is="dom-repeat" items="{{field.options}}" as="option">
-                                    <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                                <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
+                                    <paper-item disabled>No [[_replaceAsterisk(field.name)]]s found</paper-item>
+                                </template>
+                                <template is="dom-repeat" items="[[field.options]]" as="option">
+                                    <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
                                         <template is="dom-if" if="[[option.icon]]">
                                             <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
                                         </template>
@@ -258,6 +277,12 @@
                                 <paper-button on-tap="_addInput" data-add="[[field.name]]" class="blue" hidden$="[[!field.add]]">Add [[_replaceAsterisk(field.name)]]</paper-button>
                             </paper-menu>
                         </paper-dropdown-menu>
+                    </template>
+                    <template is="dom-if" if="[[_computeFieldType(field, 'slider', field.show)]]">
+                        <div class="xs12 m12 l12">[[field.label]] 
+                            <span hidden$="[[!field.min]]" class="field-helptext">min [[field.min]]</span><span hidden$="[[!field.max]]" class="field-helptext">, max [[field.max]]</span>
+                        </div>
+                        <paper-slider class$="xs12 m6 [[field.class]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" min="[[field.min]]" max="[[field.max]]" value="{{field.value}}" markers="[[field.markers]]" step="[[field.step]]" pin snaps editable></paper-slider>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'ssh_key', field.show)]]">
                         <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left">
@@ -738,7 +763,7 @@
                     this.fire('add-input', {event: e, fieldname: e.target.dataAdd});
                 },
                 _replaceAsterisk: function(str){
-                    return str.replace(/_/g, " ").replace("*", "").replace("id", "");
+                    return str.replace(/_/g, " ").replace("*", "").replace("id", "").trim();
                 },
                 _selectDate: function(e) {
                     var event = Polymer.dom(e);
@@ -852,6 +877,9 @@
                 },
                 _helpTap: function(e){
                     this.fire('user-action', 'open help ' + e.model.field.helpHref);
+                },
+                _noOptions: function(options, length) {
+                    return !options || options.length == 0;
                 }
             });
         })();
