@@ -290,15 +290,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: true,
         helptext: "Fill in the machine's name"
-    },{ 
-        name: "location",
-        label: "Location *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        options: []
     },{
         name: "image",
         label: "Image *",
@@ -309,6 +300,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         required: true,
         options: []
 
+    },{
+        name: "location",
+        label: "Location *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: []
     },{
         name: "size",
         label: "Size *",
@@ -383,7 +383,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "size",
             fieldValues: ["custom"]
         }
-    },{
+    },{ 
         name: "key",
         label: "Key *",
         type: "ssh_key",
@@ -734,4 +734,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         required: false,
         helptext: ""
     });
+
+    if (p.provider == "onapp") {
+        var locationField = p.fields.find(function(f){return f.name == 'location'}),
+            index = p.fields.indexOf(locationField);
+        p.fields.splice(1, 0, p.fields.splice(index, 1)[0]);
+    }
 });
