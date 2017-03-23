@@ -4,10 +4,10 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
-<link rel="import" href="rule-identifier.html">
+
+<link rel="import" href="rule-item.html">
+
 <dom-module id="team-policy">
 	<template>
 		<style is="custom-style" include="tags-and-labels"></style>
@@ -19,11 +19,7 @@
         .rule span {
         	padding-right: 8px;
         }
-        .uppercase {
-        	text-transform: uppercase;
-        }
-        #rules,
-        .rules {
+        #rules {
         	display: table;
             width: 100%;
             border-collapse: collapse;
@@ -34,11 +30,8 @@
             border-bottom: 1px solid #eee;
             border-right: 1px solid #eee;
         }
-        #rules .rule:nth-of-type(2n+1) {
+        #rules rule-item:nth-of-type(2n+1) {
             background-color: #f6f6f6;
-        }
-        #rules .rule .index {
-            cursor: move;
         }
         .rule.head {
             font-size: 0.9em;
@@ -116,10 +109,6 @@
             font-size: 0.8em;
             color: rgba(0,0,0,0.54);
         }
-        .delete {
-            opacity: 0.54;
-            cursor: pointer;
-        }
         .progress {
             margin: 0;
             width: 100%;
@@ -150,32 +139,6 @@
         .pull-right {
             float: right;
         }
-        paper-dropdown-menu {
-            max-width: 150px;
-            --paper-dropdown-menu-input: {
-                text-transform: uppercase;
-            }
-            --paper-input-container-underline: {
-                /*display: none;*/
-                opacity: 0.32;
-            };
-        }
-        paper-dropdown-menu ::content div.floated-label-placeholder {
-            margin-top: -12px;
-        }
-        paper-dropdown-menu.short {
-            /*width: 80px;*/
-            margin-right: 16px;
-        }
-        paper-input ::content div.floated-label-placeholder{
-            display: none;
-        }
-        paper-input {
-            vertical-align: baseline;
-        }
-        paper-input ::content paper-input-container {
-            padding: 0;
-        }
         .notice {
             font-size: 0.9em;
             opacity: 0.54;
@@ -185,79 +148,44 @@
         .notice iron-icon {
             opacity: 0.6;
         }
-        paper-listbox > paper-item {
-            z-index: 200 !important;
+        #ruleslist {
+            position: relative;
+            height: auto;
         }
-        @media (max-width: 1380px) {
-            .rule > span {
-                vertical-align: middle;
-                display: table-cell;
-            }
-            .rule > span.index,
-            .rule > span.delete {
-                vertical-align: middle;
-            }
-            .rule span.narrow-hide {
-                display: none;
-            }
+        .loading-data {
+            position: absolute;
+            background-color: rgba(255,255,255,0.8);
+            width: 100%;
+            height: 100%;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 2;
         }
         </style>
-        <sortable-js id="rules">
-            <div class="rule head">
-                <span class="index">ord.</span>
-                <span>operator</span>
-                <span>resource</span>
-                <span>action</span>
-                <span>condition <iron-icon id="condition" icon="icons:help"></iron-icon>
-                   <paper-tooltip for="condition" position="top">
-                        A conditional rule will apply to either a specified resource, <br/>
-                        or resources that have ALL specified tags. <br/>
-                        Tags must be comma separated. </paper-tooltip>
-                </span>
-                <span></span>
+        <div id="ruleslist">
+            <div class="loading-data" hidden="{{!sendingData}}">
             </div>
-	        <template is="dom-repeat" items="[[rules]]" as="rule" id="rulesrepeat">
-	            <div id="[[index]]" class$="rule ruleitem-[[index]]">
-	            	<span class="index">
-	            		[[index]].
-	            	</span>
-	            	<span class="operator">
-                        <paper-toggle-button id$="index-[[index]]" class="operator layout horizontal" checked$="[[_computeToggle(rule.operator)]]" on-tap="_changeOperator" data-attr="[[index]]">[[rule.operator]]</paper-toggle-button>
+            <sortable-js id="rules">
+                <div class="rule head">
+                    <span class="index">ord.</span>
+                    <span>operator</span>
+                    <span>resource</span>
+                    <span>action</span>
+                    <span>condition <iron-icon id="condition" icon="icons:help"></iron-icon>
+                       <paper-tooltip for="condition" position="top">
+                            A conditional rule will apply to either a specified resource, <br/>
+                            or resources that have ALL specified tags. <br/>
+                            Tags must be comma separated. </paper-tooltip>
                     </span>
-                    <span class="resource">
-                        <span class="narrow-hide">
-                            on
-                        </span>
-                        <span class="uppercase">
-                            <paper-dropdown-menu no-animations data-attr="[[index]]">
-                              <paper-listbox class="dropdown-content" selected="[[_computeSelectedType(index, rule.rtype)]]" data-attr="[[index]]">
-                                <template is="dom-repeat" items="[[resources]]">
-                                    <paper-item value="[[item]]" class="rtype">[[item]]</paper-item>
-                                </template>
-                              </paper-listbox>
-                            </paper-dropdown-menu>
-                        </span>
-                    </span>
-	                <span class="action">
-                        <span class="uppercase">
-                            <paper-dropdown-menu no-animations data-attr="[[index]]">
-                              <paper-listbox class="dropdown-content" selected="[[_computeSelectedAction(index, rule.rtype, rule.action)]]" data-attr="[[index]]">
-                                <template is="dom-repeat" items="[[_computeActions(index, rule.rtype)]]">
-                                    <paper-item value="[[item]]" class="raction">[[pretify(item)]]</paper-item>
-                                </template>
-                              </paper-listbox>
-                            </paper-dropdown-menu>
-		                </span>
-	                </span>
-	                <span class="identifier">
-                        <rule-identifier model="[[model]]" rule="[[rule]]" index="[[index]]"></rule-identifier>
-                    </span>
-                    <span class="delete">
-                        <iron-icon id$="delete-[[index]]" icon="close" on-tap="_deleteRule" data-attr="[[index]]"></iron-icon>
-                    </span>
-	            </div>
-	        </template>
-        </sortable-js>
+                    <span></span>
+                </div>
+                <template is="dom-repeat" items="{{rules}}" as="rule" id="rulesrepeat">
+                    <rule-item rule="[[rule]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rule-item>
+                </template>
+            </sortable-js>
+        </div>
         <div class="rules">
             <div class="rule add">
                 <span class="index">
@@ -265,7 +193,7 @@
                 </span>
             </div>
             <div class="default-rule">
-                <paper-toggle-button id="defaultoperator" class="operator" checked$="[[_computeToggle(defaultOperator)]]" [[_computeDisabled(team)]] on-tap="_changeOperator">[[defaultOperator]]</paper-toggle-button>
+                <paper-toggle-button id="defaultoperator" class="operator" checked$="[[_computeToggle(defaultOperator)]]" disabled$="[[_computeDisabled(team.name)]]" on-tap="_changeDefaultOperator">[[defaultOperator]]</paper-toggle-button>
                 every other action ON any other resource
                 <span class="notice" hidden$="[[!_computeToggle(defaultOperator)]]">
                     <iron-icon icon="icons:warning"></iron-icon> This option will allow EVERY action on any resource not specified in the policy above.
@@ -279,7 +207,6 @@
                 Change ALLOW to DENY in rule 5.<br/>
             </p>
         </div>
-
         <div class="progress">
             <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
             <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
@@ -335,41 +262,35 @@
                     type: Array,
                     value: []
                 },
-                resources: {
-                    type: Array,
-                    computed: "_getResources(model)"
-                },
                 commonPermissions: {
                     type: Array,
                     computed: '_computeCommonPermissions(model)'
-                }
+                },
+                sortable: Object,
+                cache: String
             },
             observers: [
                 // removed model.teamsArray from dep, due to reseting rules on connection changes
                 '_teamChanged(team, team.policy.rules)',
-                '_rulesChanged(rules.*, defaultOperator, newOrder.*)'
+                '_rulesChanged(rules.*, defaultOperator, newOrder.*)',
+                '_sendingDataChanged(sendingData)'
             ],
             listeners: {
                 'end': '_orderChanged',
-                'iron-select': '_updateRule',
                 'delete-rtag': '_deleteRtag',
                 'update-rtags': '_updateRtags',
-                'update-rid': '_updateRid'
-
-            },
-            _getResources: function(){
-                var ret=[];
-                ret.push("ALL");
-                for (var perm in this.model.permissions) {
-                    ret.push(perm.toUpperCase());
-                }
-                return ret;
+                'update-rid': '_updateRid',
+                'delete-rule': '_deleteRule',
+                'update-rtype': '_updateRtype',
+                'update-raction': '_updateRaction',
+                'update-operator': '_updateOperator',
             },
             attached: function() {
                 var el = document.getElementById('rules');
                 var sortable = Sortable.create(el, {
                     filter: '.head'
                 });
+                this.set('sortable', sortable);
             },
             _computeCommonPermissions: function(model) {
                 var commonPermissions = this.model.permissions['cloud'],
@@ -383,15 +304,10 @@
             _orderChanged: function(e) {
                 var reorderElements = this.$.rules.children;
                 this.newOrder = [];
-                [].forEach.call(reorderElements, function(el){
-                    el.classList.forEach(function(c){
-                        if(c.indexOf('ruleitem') > -1){
-                            var ind = parseInt(c.split('-')[1]);
-                            this.push('newOrder',this.rules[ind]);
-                        }
-                    },this)
+                [].forEach.call(reorderElements, function(el, index){
+                    if (el.index != undefined)
+                        this.push('newOrder',this.rules[el.index]);
                 }, this);
-
                 this.ruleHasChanges();
             },
             _teamChanged: function(team, rules, teams) {
@@ -435,46 +351,38 @@
                 //initialize new order
                 this.set('newOrder',[])
                 for (var i=0; i<this.team.policy.rules.length; i++){
-                     this.push('newOrder', this.rules[i])
+                     this.push('newOrder', this.rules[i]);
                 }
+
+                this.set('sendingData', true);
+                this.$.rulesrepeat.items = [];
+
+                this.async(function(){
+                    this.$.rulesrepeat.items = this.rules;
+                    this.set('sendingData', false);
+                }.bind(this), 10)
             },
             _rulesChanged(rules, defaultOperator, newOrder) {
                 if (this.team) {
+                    // if (this.rules && this.newOrder && this.defaultOperator){
+                    //     console.log('Rules Changed', 
+                    //         JSON.stringify(this.team.policy.rules) == JSON.stringify(this.newOrder), 
+                    //         JSON.stringify(this.team.policy.rules) == JSON.stringify(this.rules), 
+                    //         this.defaultOperator == this.team.policy.operator)
+                    // }
                     if (JSON.stringify(this.team.policy.rules) != JSON.stringify(this.newOrder) || this.defaultOperator != this.team.policy.operator) {
-                        this.set('formReady', true)
+                        this.set('formReady', true);
                     }
                     else {
-                        this.set('formReady', false)
+                        this.set('formReady', false);
                     }
                 }
             },
             _computeToggle: function(operator) {
                 return operator == 'ALLOW'? true : false;
             },
-            _computeDisabled: function(team) {
-                return team.name == 'Owners'? 'disabled' : '';
-            },
-            _updateRule: function(e) {
-                //get rule index
-                var ind = e.target.dataAttr;
-                //case of editing rtype
-                if (e.detail.item.attributes.class.nodeValue.indexOf('rtype') > -1){
-                    var rtype = e.detail.item.textContent.trim();
-                    if (rtype == 'ALL') {
-                        rtype = '';
-                    }
-                    this.set('rules.#'+ind+'.rtype', rtype.toLowerCase());
-                }
-                //case of editing rule action
-                else if (e.detail.item.attributes.class.nodeValue.indexOf('raction') > -1){
-                    var raction = e.detail.item.textContent.trim().replace(' ','_').toLowerCase();
-                    if (raction == 'all') {
-                        raction = '';
-                    }
-                    this.set('rules.#'+ind+'.action', raction);
-                }
-
-                this.ruleHasChanges();
+            _computeDisabled: function(name) {
+                return name == 'Owners' ? true : false;
             },
             _deleteRtag: function(e) {
                 var ind = e.detail.index,
@@ -490,22 +398,22 @@
                     rtags[p] = copy;
                 }
                 delete rtags[tag];
-                this.set('rules.#'+ind+'.rtags', rtags);
+                this.set('rules.'+ind+'.rtags', rtags);
 
                 this.ruleHasChanges();
             },
             _updateRtags: function(e) {
                 var ind = e.detail.index,
                     rtags = e.detail.rtags;
-                this.set('rules.#'+ind+'.rid', '');
-                this.set('rules.#'+ind+'.rtags', rtags);
+                this.set('rules.'+ind+'.rid', '');
+                this.set('rules.'+ind+'.rtags', rtags);
                 this.ruleHasChanges();
             },
             _updateRid: function(e) {
                 var ind = e.detail.index,
                     rid = e.detail.rid;
-                this.set('rules.#'+ind+'.rid', rid);
-                this.set('rules.#'+ind+'.rtags', {});
+                this.set('rules.'+ind+'.rid', rid);
+                this.set('rules.'+ind+'.rtags', {});
                 this.ruleHasChanges();
             },
             _addRule: function(e) {
@@ -522,25 +430,16 @@
                 this.ruleHasChanges();
             },
             _deleteRule: function(e) {
-                var index = e.target.dataAttr;
-                this.splice('rules',index,1);
-                this.splice('newOrder', index, 1)
-
+                var index = e.detail.index,
+                    rule = e.detail.rule;
+                this.splice('rules', index, 1);
+                this.splice('newOrder', this.newOrder.indexOf(rule), 1)
                 this.ruleHasChanges();
             },
-            _changeOperator: function(event) {
-                var e = Polymer.dom(event);
-                var path = e.path;
-                var index = e.localTarget.getAttribute('id').split('-')[1];
-                var newOp = e.localTarget.attributes.checked ? 'ALLOW' : "DENY";
-                if (index) {
-                    this.set('rules.#'+index+'.operator', newOp);
-                }
-                else {
-                    this.set('defaultOperator', newOp);
-                }
+            _changeDefaultOperator: function(e) {
+                var newOp = this.defaultOperator == "DENY" ? 'ALLOW' : "DENY";
+                this.set('defaultOperator', newOp);
                 this.ruleHasChanges();
-                console.log('_changeOperator',e);
             },
             _resetForm: function() {
                 var newArr = [];
@@ -573,13 +472,22 @@
                 this.set("rules", cleanCopyRules);
 
                 for (var i = 0; i < newArr.length; i++) {
-                    this.set('rules.#'+i+'.operator', newArr[i].operator);
+                    this.set('rules.'+i+'.operator', newArr[i].operator);
                 }
 
                 var initialOp = this.team.policy.operator;
                 var newString = initialOp.slice(0);
                 this.set("defaultOperator", newString);
 
+                this.set('sendingData', true);
+                this.$.rulesrepeat.items = [];
+
+                this.async(function(){
+                    this.$.rulesrepeat.items = this.rules;
+                    this.set('sendingData', false);
+                }.bind(this), 10);
+
+                this._rulesChanged();
             },
             _submitForm: function() {
                 var policy = {};
@@ -593,7 +501,7 @@
 
             },
             _handleResponse: function(e) {
-                this.fire('toast',{msg:'Team policy updated successfully.',duration:3000});
+                this.fire('toast',{msg:'Team policy updated successfully.', duration:3000});
                 this.set('formReady', false);
             },
             _handleError: function(e,d) {
@@ -605,39 +513,30 @@
                 var typeIndex = this.resources.indexOf(type.toUpperCase());
                 return typeIndex > -1 ? typeIndex : 0;
             },
-            _computeActions: function(index, rtype) {
-                var type = rtype.toLowerCase();
-
-                if (type != ''){
-                    return ['all'].concat(this.model.permissions[type]);
-                }
-                else {
-                    return ['all'].concat(this.commonPermissions);
-                }
-            },
-            _computeSelectedAction: function(index, rtype, raction) {
-                var actionIndex = 0;
-                var type = rtype.toLowerCase();
-                var action = raction.toLowerCase();
-
-                if (type && action != ''){
-                    actionIndex = this.model.permissions[type.toLowerCase()].indexOf(action);
-                }
-                else {
-                    actionIndex = this.commonPermissions.indexOf(action);
-                }
-                // add one to include concatenated 'all' action
-                return actionIndex > -1 ? actionIndex+1 : 0;
-            },
-            pretify: function(item) {
-                return item.replace('_',' ').toUpperCase();
-            },
             ruleHasChanges: function() {
                 if(this.formError){
                     this.set('formError', false);
                 }
+            },
+            _updateRtype: function(e) {
+                this.set('rules.'+e.detail.index+'.rtype', e.detail.type);
+            },
+            _updateRaction: function(e) {
+                this.set('rules.'+e.detail.index+'.action', e.detail.action);
+            },
+            _updateOperator: function(e) {
+                this.set('rules.'+e.detail.index+'.operator', e.detail.operator);
+            },
+            _sendingDataChanged: function(sendingData) {
+                // keep element height fixed while repeater updates
+                if (sendingData) {
+                    var height = this.$.ruleslist.offsetHeight;
+                    this.$.ruleslist.style.height = height+'px';
+                }
+                else {
+                    this.$.ruleslist.style.height = 'auto';
+                }
             }
-
         });
     })();
 </script>
