@@ -293,13 +293,13 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
     },{
         name: "image",
         label: "Image *",
-        type: "mist_dropdown",
+        type: "mist_dropdown_searchable",
         value: "",
         defaultValue: "",
         show: true,
         required: true,
-        options: []
-
+        options: [],
+        search: ""
     },{
         name: "location",
         label: "Location *",

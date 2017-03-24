@@ -203,6 +203,10 @@
             paper-slider::content .slider-input {
                 width: 80px !important;
             }
+            paper-input.search {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
             @media (max-width: 991px) {
                 .field-helptext.background,
                 .field-helptext.bind-bottom {
@@ -276,6 +280,27 @@
                                 </template>
                                 <paper-button on-tap="_addInput" data-add="[[field.name]]" class="blue" hidden$="[[!field.add]]">Add [[_replaceAsterisk(field.name)]]</paper-button>
                             </paper-menu>
+                        </paper-dropdown-menu>
+                    </template>
+                    <template is="dom-if" if="[[_computeFieldType(field, 'mist_dropdown_searchable', field.show)]]">
+                        <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
+                            <div class="dropdown-content">
+                                <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
+                                <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
+                                    <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
+                                        <paper-item disabled>No [[_replaceAsterisk(field.name)]]s found</paper-item>
+                                    </template>
+                                    <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
+                                        <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
+                                            <template is="dom-if" if="[[option.icon]]">
+                                                <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
+                                            </template>
+                                            <span class="flex">[[showOption(option)]]</span>
+                                        </paper-item>
+                                    </template>
+                                    <paper-button on-tap="_addInput" data-add="[[field.name]]" class="blue" hidden$="[[!field.add]]">Add [[_replaceAsterisk(field.name)]]</paper-button>
+                                </paper-menu>
+                            </div>
                         </paper-dropdown-menu>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'slider', field.show)]]">
@@ -880,6 +905,11 @@
                 },
                 _noOptions: function(options, length) {
                     return !options || options.length == 0;
+                },
+                _filter: function(options, search){
+                    return options.filter(function(op){
+                        return op.name.toLowerCase().indexOf(search.toLowerCase()) > -1;
+                    });
                 }
             });
         })();
