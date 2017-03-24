@@ -287,7 +287,7 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         unit: "Mbps",
-        helptext: "Port speed in Mbps.",
+        helptext: "Port speed in Mbps. 0 value will enable unlimited speed.",
     }]
 });
 
