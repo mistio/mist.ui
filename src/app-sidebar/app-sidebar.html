@@ -145,7 +145,7 @@
             text-transform: capitalize;
             cursor: pointer;
             border-width: 1px 0 1px 4px;
-            border-left: 4px solid transparent;
+            border-left: var(--app-sidebar-section-border-left, 4px solid transparent);
         }
 
         #section-list .section[active] {
@@ -154,8 +154,12 @@
             background-color: var(--app-sidebar-section-active-background-color, rgba(0,0,0,0.03));
         }
 
+        #section-list .section ::content iron-icon {
+            color: var(--app-sidebar-section-color, rgba(0, 0, 0, 0.54));
+        }
+
         #section-list .section[active] ::content iron-icon {
-            color: inherit;
+            color: var(--app-sidebar-section-color, inherit);
         }
 
         #section-list .section .all-symbol {
@@ -168,11 +172,11 @@
         }
 
         #section-list a:not([active]) span {
-            color: rgba(0, 0, 0, .87);
+            color: var(--app-sidebar-section-active-color, rgba(0, 0, 0, .87));
         }
 
         #section-list a:not([active]) ::content iron-icon {
-            opacity: 0.32;
+            opacity: var(--app-sidebar-section-icon-opacity,.32);
         }
 
         #section-list span.count {
@@ -210,14 +214,20 @@
         .tags tag-link:last-of-type + span {
             display: none;
         }
-        a {
+        a.section {
             font-size: var(--app-sidebar-font-size, 14px);
+            color: var(--app-sidebar-section-color, #424242);
         }
+
         a.section:focus {
             outline: 0;
         }
         .sidebar-sep {
             opacity: 0.32;
+            background-color: var(--sidebar-separator-background-color, transparent);
+            border-color: var(--sidebar-separator-border-color, auto);
+            border-width: var(--sidebar-separator-border-width, 1px);
+            height: var(--sidebar-separator-height, auto);
         }
         </style>
         <div class="content">
@@ -372,7 +382,8 @@ Polymer({
         }
     },
     style: function(color) {
-        return "color: " + color + ";"
+        if (document.querySelector('mist-app').themed == false)
+            return "color: " + color + ";"
     },
     observers: [],
     listeners: {
