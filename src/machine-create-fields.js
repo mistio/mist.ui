@@ -263,6 +263,21 @@ MACHINE_CREATE_FIELDS.push({
     fields: []
 });
 
+// ONAPP
+MACHINE_CREATE_FIELDS.push({
+    provider: 'onapp',
+    fields: [{
+        name: "networks",
+        label: "Networks *",
+        type: "checkboxes",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: []
+    }]
+});
+
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p){
     //add common machine properties fields
@@ -275,6 +290,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: true,
         helptext: "Fill in the machine's name"
+    },{ 
+        name: "location",
+        label: "Location *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: []
     },{
         name: "image",
         label: "Image *",
@@ -284,6 +308,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: true,
         options: []
+
     },{
         name: "size",
         label: "Size *",
@@ -292,16 +317,72 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "",
         show: true,
         required: true,
-        options: []
+        options: [],
+        custom: true
     },{
-        name: "location",
-        label: "Location *",
-        type: "mist_dropdown",
+        name: "size_ram",
+        label: "RAM MB",
+        type: "slider",
         value: "",
         defaultValue: "",
+        min: 256,
+        max: 6223,
+        step: 1,
         show: true,
-        required: true,
-        options: []
+        required: false,
+        helptext: "Custom RAM size in MB.",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
+    },{
+        name: "size_cpu",
+        label: "CPU cores",
+        type: "slider",
+        value: "",
+        defaultValue: "",
+        min: 1,
+        max: 16,
+        step: 1,
+        show: true,
+        required: false,
+        helptext: "Custom CPU cores.",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
+    },{
+        name: "size_disk_primary",
+        label: "Primary Disk GB",
+        type: "slider",
+        value: "",
+        defaultValue: "",
+        min: 5,
+        max: 16,
+        step: 1,
+        show: true,
+        required: false,
+        helptext: "Custom disk size in GB.",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
+    },{
+        name: "size_disk_swap",
+        label: "Swap Disk GB",
+        type: "slider",
+        value: "",
+        defaultValue: "",
+        min: 5,
+        max: 16,
+        step: 1,
+        show: true,
+        required: false,
+        helptext: "Custom disk size in GB.",
+        showIf: {
+            fieldName: "size",
+            fieldValues: ["custom"]
+        }
     },{
         name: "key",
         label: "Key *",
@@ -605,30 +686,36 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
              fieldName: "schedule_type",
              fieldValues: ["interval", "crontab"]
          }
-     }, {
-        name: "create_hostname_machine",
-        label: "Create Hostname",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        excludeFromPayload: true,
-        helptext: "Open options to create an A record for this machine.",
-        show: true,
-        required: false
-    },{
-        name: "hostname",
-        label: "Hostname",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
-        helptext: "Provide the desired hostname you want to assign to the machine. Example: machine1.mist.io. There needs to be a DNS zone for this domain already created. Currently under heavy development, might not be fully functional.",
-        show: true,
-        required: false,
-        showIf: {
-            fieldName: "create_hostname_machine",
-            fieldValues: ["true", true]
-        }
-    }, {
+     });
+
+    if (['onapp'].indexOf(p.provider) == -1) {
+        p.fields.push({
+            name: "create_hostname_machine",
+            label: "Create Hostname",
+            type: "toggle",
+            value: false,
+            defaultValue: false,
+            excludeFromPayload: true,
+            helptext: "Open options to create an A record for this machine.",
+            show: true,
+            required: false
+        },{
+            name: "hostname",
+            label: "Hostname",
+            type: "textarea",
+            value: "",
+            defaultValue: "",
+            helptext: "Provide the desired hostname you want to assign to the machine. Example: machine1.mist.io. There needs to be a DNS zone for this domain already created. Currently under heavy development, might not be fully functional.",
+            show: true,
+            required: false,
+            showIf: {
+                fieldName: "create_hostname_machine",
+                fieldValues: ["true", true]
+            }
+        });
+    }
+
+    p.fields.push({
         name: "monitoring",
         label: "Enable monitoring",
         type: "toggle",
