@@ -275,19 +275,6 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         options: []
-    },{
-        name: "port_speed",
-        label: "Port Speed",
-        type: "slider",
-        value: "",
-        defaultValue: 0,
-        min: 0,
-        max: 1000,
-        step: 1,
-        show: true,
-        required: false,
-        unit: "Mbps",
-        helptext: "Port speed in Mbps. 0 value will enable unlimited speed.",
     }]
 });
 
@@ -404,6 +391,33 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
 
     if (['onapp'].indexOf(p.provider) != -1) {
         p.fields.push({
+            name: "onapp_advanced_options",
+            label: "Advanced Options",
+            type: "toggle",
+            value: false,
+            defaultValue: false,
+            excludeFromPayload: true,
+            helptext: "",
+            show: true,
+            required: false
+        },{
+            name: "port_speed",
+            label: "Port Speed",
+            type: "slider",
+            value: "",
+            defaultValue: 0,
+            min: 0,
+            max: 1000,
+            step: 1,
+            show: true,
+            required: false,
+            unit: "Mbps",
+            helptext: "Port speed in Mbps. Value 0 will enable unlimited speed.",
+            showIf: {
+                fieldName: "onapp_advanced_options",
+                fieldValues: [true]
+            }
+        },{
             name: "cpu_priority",
             label: "CPU Priority",
             type: "slider",
@@ -417,8 +431,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             unit: "%",
             helptext: "CPU priority percentage.",
             showIf: {
-                fieldName: "size",
-                fieldValues: ["custom"]
+                fieldName: "onapp_advanced_options",
+                fieldValues: [true]
             }
         },{
             name: "cpu_threads",
@@ -434,8 +448,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             unit: "",
             helptext: "Custom CPU Threads",
             showIf: {
-                fieldName: "size",
-                fieldValues: ["custom"]
+                fieldName: "onapp_advanced_options",
+                fieldValues: [true]
             }
         },{
             name: "cpu_sockets",
@@ -451,8 +465,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             unit: "",
             helptext: "Custom CPU Sockets",
             showIf: {
-                fieldName: "size",
-                fieldValues: ["custom"]
+                fieldName: "onapp_advanced_options",
+                fieldValues: [true]
             }
         });
     }
