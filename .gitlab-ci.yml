@@ -2,14 +2,10 @@ stages:
   - build
 
 #################### BUILD STAGE ####################
-.docker_build_template: &docker_build_template
-  stage: build
-  tags:
-    - builder
-  dependencies: []
-
 build_ui_image:
-  <<: *docker_build_template
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   script:
     - docker build --rm --build-arg build_tag=$CI_COMMIT_SHA -t gcr.io/mist-ops/ui:$CI_COMMIT_SHA .
     - docker tag gcr.io/mist-ops/ui:$CI_COMMIT_SHA gcr.io/mist-ops/ui:$CI_COMMIT_REF_SLUG
@@ -19,3 +15,6 @@ build_ui_image:
     - docker push gcr.io/mist-ops/ui:$CI_COMMIT_REF_SLUG
     - docker push mist/ui:$CI_COMMIT_SHA
     - docker push mist/ui:$CI_COMMIT_REF_SLUG
+  tags:
+    - builder
+  dependencies: []

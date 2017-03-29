@@ -5,13 +5,17 @@ RUN apk add --update --no-cache git nginx
 
 RUN npm install -g polymer-cli bower
 
+ENV bower_allow_root=true \
+    bower_interactive= \
+    GIT_DIR=
+
 COPY mist_components/ /ui/bower_components
 
 WORKDIR /ui
 
 COPY bower.json /ui/bower.json
 
-RUN bower install --config.interactive=false --allow-root
+RUN bower install
 
 COPY . /ui
 
