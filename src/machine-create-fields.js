@@ -308,7 +308,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "",
         show: true,
         required: true,
-        options: []    
+        options: []
     },{
         name: "size",
         label: "Size *",
@@ -323,9 +323,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         name: "size_ram",
         label: "RAM MB",
         type: "slider",
-        value: 384,
+        value: 256,
         defaultValue: "",
-        min: 384,
+        min: 256,
         max: 6223,
         step: 1,
         show: true,
