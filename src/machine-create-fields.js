@@ -268,7 +268,7 @@ MACHINE_CREATE_FIELDS.push({
     provider: 'onapp',
     fields: [{
         name: "networks",
-        label: "Networks *",
+        label: "Network",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",

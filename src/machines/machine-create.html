@@ -587,6 +587,7 @@ SCHEDULEACTIONS = {
                         diskInd = this._fieldIndexByName('size_disk_primary'),
                         hgiInd = this._fieldIndexByName('hypervisor_group_id');
 
+                    // update mins maxs
                     this.set('machineFields.'+cpuInd+'.max', location.extra.max_cpu);
                     this.set('machineFields.'+ramInd+'.max', location.extra.max_memory);
                     this.set('machineFields.'+hgiInd+'.value', location.extra.hypervisor_group_id);
@@ -596,18 +597,13 @@ SCHEDULEACTIONS = {
                     else
                         this.set('machineFields.'+diskInd+'.max', 16);
 
-                    console.log('maxs', location.extra.max_cpu, location.extra.max_memory);
-
                     var imagesInd = this._fieldIndexByName('image'),
                         networksInd = this._fieldIndexByName('networks');
 
-                    console.log('networks for onapp',location.extra.networks);
-                    if (location.extra.networks.length > 1)
-                        this.set('machineFields.'+networksInd+'.options', location.extra.networks);
-                    else
-                        this.set('machineFields.'+networksInd+'.options', []);
+                    // update networks
+                    this.set('machineFields.'+networksInd+'.options', location.extra.networks);
 
-
+                    // filter images
                     if (location.extra.federated == true)
                         this.set('machineFields.'+imagesInd+'.options', this._filterImagesByLoc(location.extra.hypervisor_group_id));
                     else
