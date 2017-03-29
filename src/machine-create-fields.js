@@ -310,6 +310,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         required: true,
         options: []
     },{
+        name: "hypervisor_group_id",
+        label: "hypervisor_group_id",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        hidden: true,
+        required: true
+    },{
         name: "size",
         label: "Size *",
         type: "mist_dropdown",
