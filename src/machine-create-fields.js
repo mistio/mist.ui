@@ -308,16 +308,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         defaultValue: "",
         show: true,
         required: true,
-        options: []
-    },{
-        name: "hypervisor_group_id",
-        label: "hypervisor_group_id",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        hidden: true,
-        required: true
+        options: []    
     },{
         name: "size",
         label: "Size *",
@@ -400,6 +391,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
 
     if (['onapp'].indexOf(p.provider) != -1) {
         p.fields.push({
+            name: "hypervisor_group_id",
+            label: "hypervisor_group_id",
+            type: "text",
+            value: "",
+            defaultValue: "",
+            show: true,
+            hidden: true,
+            required: false
+        },{
             name: "onapp_advanced_options",
             label: "Advanced Options",
             type: "toggle",
