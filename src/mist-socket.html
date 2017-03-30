@@ -678,9 +678,9 @@
                         )
                         delete zone['type'];
                         if (this.model.clouds[data.cloud_id].provider == 'gce'){
-                            zone['provider'] = 'Google'
+                            zone['provider'] = 'Google';
                         } else if (this.model.clouds[data.cloud_id].provider == 'ec2'){
-                            zone['provider'] = 'Route53'
+                            zone['provider'] = 'Route53';
                             zone.records.forEach(function(record) {
                                 if (record['name'].length == 0) {
                                     record['name'] = zone.domain;
@@ -688,8 +688,16 @@
                                     record['name'] += '.' + zone.domain;
                                 }
                             })
+                        } else if (this.model.clouds[data.cloud_id].provider == 'digitalocean'){
+                            zone['provider'] = 'Digital Ocean';
+                            zone.records.forEach(function(record) {
+                                if (record['name'] != '@') {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
+
                         } else {
-                            zone['provider'] = this.model.clouds[data.cloud_id].provider
+                            zone['provider'] = this.model.clouds[data.cloud_id].provider;
                         }
                         cloudZones.push(zone);
                     }
