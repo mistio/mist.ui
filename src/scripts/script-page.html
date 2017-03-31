@@ -95,6 +95,12 @@
         .info-table {
             border-top: 1px solid #ddd;
         }
+        a.inherit {
+            color: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            padding: inherit;
+        }
         </style>
 
         <div id="content">
@@ -115,6 +121,7 @@
                 </div>
                 <div class="item-actions">
                     <paper-button on-tap="_editTags" class="simple">tags</paper-button>
+                    <paper-button class="simple" hidden$="[[!isInline]]"><a class="inherit" href$="data:application/octet-stream,[[_encode(script.script)]]" download$="script-[[script.name]].sh.txt">Download</a></paper-button>
                     <paper-menu-button horizontal-align="right">
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="machine_actions" class="dropdown-content">
@@ -215,7 +222,7 @@
                 }
             },
             listeners: {
-                'confirmation': '_deleteScriptEventResponse',
+                'confirmation': '_actions',
             },
             _getHeaderStyle: function(section) {
                 return 'background-color: ' + section.color + '; color: #fff;';
@@ -248,7 +255,7 @@
                     reason: "script.delete"
                 });
             },
-            _deleteScriptEventResponse: function(e) {
+            _actions: function(e) {
                 var reason = e.detail.reason,
                     response = e.detail.response;
 
@@ -261,6 +268,9 @@
             },
             _handleScriptDeleteAjaxResponse: function(e) {
                 document.querySelector('app-location').path = '/scripts';
+            },
+            _encode: function(script) {
+                return encodeURIComponent(script);
             },
             _showDialog: function(info) {
                 var dialog = this.querySelector('dialog-element');
