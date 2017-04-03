@@ -53,7 +53,23 @@
                 Add and enable an Amazon or Google cloud using the <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
             </paper-material>
             <paper-material hidden$="[[!hasdnsClouds]]">
-                <app-form fields="[[fields]]" form="[[zone]]" url="/api/v1/clouds/[[cloud]]/dns/zones" on-response="_handleAddZoneResponse" on-error="_handleError"></app-form>
+                <div class="grid-row">
+                    <paper-dropdown-menu class="dropdown-block l6 xs12" label="Choose Cloud" horizontal-align="left">
+                        <paper-menu attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
+                            <template is="dom-repeat" items="[[dnsCloudsArray]]" as="dnsCloud">
+                                <paper-item value="[[dnsCloud]]">[[dnsCloud.title]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+                <div class$="selected-[[!selectedCloud]]">
+                    <div hidden$=[[selectedCloud]]>
+                        <p>Depending on the cloud provider there maybe different needed parameters. Choose a DNS supported Cloud type to continue.</p>
+                    </div>
+                    <div hidden$=[[!selectedCloud]]>
+                        <app-form fields="[[fields]]" form="[[zone]]" url="/api/v1/clouds/[[cloud.id]]/dns/zones" on-response="_handleAddZoneResponse" on-error="_handleError"></app-form>
+                    </div>
+                </div>
             </paper-material>
         </div>
     </template>
@@ -76,6 +92,14 @@
                         value: '',
                         notify: true
                     },
+                    selectedCloud: {
+                        type: Object,
+                        value: false
+                    },
+                    dnsCloudsArray: {
+                        type: Array,
+                        value: []
+                    },
                     zone: {
                         type: Object,
                         value: function() {
@@ -89,58 +113,311 @@
                     },
                     fields: {
                         type: Array,
-                        value: [{
-                            name: "domain",
-                            label: "Domain *",
-                            type: "text",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            errorMessage: "Please enter zone's domain",
-                            helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
-                            show: true,
-                            required: true,
-                        }, {
-                            name: "cloud",
-                            label: "Cloud *",
-                            type: "mist_dropdown",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            errorMessage: "Please select a cloud",
-                            helptext: "At the moment you can only add DNS zones in Amazon and Google clouds",
-                            excludeFromPayload: true,
-                            show: true,
-                            required: true,
-                            options: []
-                        }, {
-                            name: "type",
-                            label: "Type",
-                            type: "dropdown",
-                            value: "master",
-                            defaultValue: "master",
-                            placeholder: "",
-                            helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
-                            show: true,
-                            required: false,
-                            options: [{
-                                title: "master",
-                                val: "master"
+                        value: []
+                    },
+                    cloudSpecificFields: {
+                        type: Object,
+                        value: {
+                            "Route53": [
+                            {
+                                name: "domain",
+                                label: "Domain *",
+                                type: "text",
+                                value: "",
+                                defaultValue: "",
+                                placeholder: "",
+                                errorMessage: "Please enter zone's domain",
+                                helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                show: true,
+                                required: true,
                             }, {
-                                title: "slave",
-                                val: "slave"
-                            }]
-                        }, {
-                            name: "ttl",
-                            label: "TTL",
-                            type: "text",
-                            value: 0,
-                            defaultValue: 0,
-                            placeholder: "",
-                            helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
-                            show: true,
-                            required: false
-                        }],
+                                name: "type",
+                                label: "Type",
+                                type: "dropdown",
+                                value: "master",
+                                defaultValue: "master",
+                                placeholder: "",
+                                helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                show: true,
+                                required: false,
+                                options: [{
+                                    title: "master",
+                                    val: "master"
+                                }, {
+                                    title: "slave",
+                                    val: "slave"
+                                }]
+                            }, {
+                                name: "ttl",
+                                label: "TTL",
+                                type: "text",
+                                value: 0,
+                                defaultValue: 0,
+                                placeholder: "",
+                                helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
+                                show: true,
+                                required: false
+                            }],
+                        "Google": [
+                             {
+                                name: "domain",
+                                label: "Domain *",
+                                type: "text",
+                                value: "",
+                                defaultValue: "",
+                                placeholder: "",
+                                errorMessage: "Please enter zone's domain",
+                                helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                show: true,
+                                required: true,
+                            }, {
+                                name: "type",
+                                label: "Type",
+                                type: "dropdown",
+                                value: "master",
+                                defaultValue: "master",
+                                placeholder: "",
+                                helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                show: true,
+                                required: false,
+                                options: [{
+                                    title: "master",
+                                    val: "master"
+                                }, {
+                                    title: "slave",
+                                    val: "slave"
+                                }]
+                            }, {
+                                name: "ttl",
+                                label: "TTL",
+                                type: "text",
+                                value: 0,
+                                defaultValue: 0,
+                                placeholder: "",
+                                helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
+                                show: true,
+                                required: false
+                            }],
+                        "DigitalOcean":[
+                                                             {
+                                name: "domain",
+                                label: "Domain *",
+                                type: "text",
+                                value: "",
+                                defaultValue: "",
+                                placeholder: "",
+                                errorMessage: "Please enter zone's domain",
+                                helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                show: true,
+                                required: true,
+                            }, {
+                                name: "type",
+                                label: "Type",
+                                type: "dropdown",
+                                value: "master",
+                                defaultValue: "master",
+                                placeholder: "",
+                                helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                show: true,
+                                required: false,
+                                options: [{
+                                    title: "master",
+                                    val: "master"
+                                }, {
+                                    title: "slave",
+                                    val: "slave"
+                                }]
+                            }],
+                        "Linode": [
+                                {
+                                    name: "domain",
+                                    label: "Domain *",
+                                    type: "text",
+                                    value: "",
+                                    defaultValue: "",
+                                    placeholder: "",
+                                    errorMessage: "Please enter zone's domain",
+                                    helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                    show: true,
+                                    required: true,
+                                }, {
+                                    name: "type",
+                                    label: "Type",
+                                    type: "dropdown",
+                                    value: "master",
+                                    defaultValue: "master",
+                                    placeholder: "",
+                                    helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                    show: true,
+                                    required: false,
+                                    options: [{
+                                        title: "master",
+                                        val: "master"
+                                    }, {
+                                        title: "slave",
+                                        val: "slave"
+                                    }]
+                                },
+                                {
+                                    name: "SOA_email",
+                                    label: "SOA email",
+                                    type: "text",
+                                    value: "",
+                                    defaultValue: "",
+                                    placeholder: "",
+                                    helptext: "Linode requires a Start of Authority (SOA) email when creating a master DNS zone.",
+                                    required: true,
+                                    showIf: {
+                                        fieldName: "type",
+                                        fieldValues: ["master"]
+                                    }
+                                },
+                                {
+                                    name: "Primary_ip",
+                                    label: "DNS Master Node IP",
+                                    type: "text",
+                                    value: "",
+                                    defaultValue: "",
+                                    placeholder: "",
+                                    helptext: "Linode requires the DNS master node IP address when creating a slave DNS zone.",
+                                    required: true,
+                                    showIf: {
+                                        fieldName: "type",
+                                        fieldValues: ["slave"]
+                                    }
+                                },
+                                {
+                                    name: "ttl",
+                                    label: "TTL",
+                                    type: "text",
+                                    value: 0,
+                                    defaultValue: 0,
+                                    placeholder: "",
+                                    helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
+                                    show: true,
+                                    required: false
+                                }],
+                        "RackSpace": [
+                                {
+                                    name: "domain",
+                                    label: "Domain *",
+                                    type: "text",
+                                    value: "",
+                                    defaultValue: "",
+                                    placeholder: "",
+                                    errorMessage: "Please enter zone's domain",
+                                    helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                    show: true,
+                                    required: true,
+                                }, {
+                                    name: "type",
+                                    label: "Type",
+                                    type: "dropdown",
+                                    value: "master",
+                                    defaultValue: "master",
+                                    placeholder: "",
+                                    helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                    show: true,
+                                    required: false,
+                                    options: [{
+                                        title: "master",
+                                        val: "master"
+                                    }, {
+                                        title: "slave",
+                                        val: "slave"
+                                    }]
+                                }, {
+                                    name: "ttl",
+                                    label: "TTL",
+                                    type: "text",
+                                    value: 0,
+                                    defaultValue: 0,
+                                    placeholder: "",
+                                    helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
+                                    show: true,
+                                    required: false
+                                }],
+                        "SoftLayer": [
+                                {
+                                    name: "domain",
+                                    label: "Domain *",
+                                    type: "text",
+                                    value: "",
+                                    defaultValue: "",
+                                    placeholder: "",
+                                    errorMessage: "Please enter zone's domain",
+                                    helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                    show: true,
+                                    required: true,
+                                }, {
+                                    name: "type",
+                                    label: "Type",
+                                    type: "dropdown",
+                                    value: "master",
+                                    defaultValue: "master",
+                                    placeholder: "",
+                                    helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                    show: true,
+                                    required: false,
+                                    options: [{
+                                        title: "master",
+                                        val: "master"
+                                    }, {
+                                        title: "slave",
+                                        val: "slave"
+                                    }]
+                                }, {
+                                    name: "ttl",
+                                    label: "TTL",
+                                    type: "text",
+                                    value: 0,
+                                    defaultValue: 0,
+                                    placeholder: "",
+                                    helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
+                                    show: true,
+                                    required: false
+                                }],
+                        "Vultr":[
+                                                                {
+                                    name: "domain",
+                                    label: "Domain *",
+                                    type: "text",
+                                    value: "",
+                                    defaultValue: "",
+                                    placeholder: "",
+                                    errorMessage: "Please enter zone's domain",
+                                    helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                    show: true,
+                                    required: true,
+                                }, {
+                                    name: "type",
+                                    label: "Type",
+                                    type: "dropdown",
+                                    value: "master",
+                                    defaultValue: "master",
+                                    placeholder: "",
+                                    helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                    show: true,
+                                    required: false,
+                                    options: [{
+                                        title: "master",
+                                        val: "master"
+                                    }, {
+                                        title: "slave",
+                                        val: "slave"
+                                    }]
+                                }, {
+                                    name: "ttl",
+                                    label: "TTL",
+                                    type: "text",
+                                    value: 0,
+                                    defaultValue: 0,
+                                    placeholder: "",
+                                    helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
+                                    show: true,
+                                    required: false
+                                }]
+                        },
                     notify: true
                 },
                 hasdnsClouds: {
@@ -149,7 +426,8 @@
                 }
             },
             observers: [
-                '_cloudsChanged(model.clouds.*)'
+                '_cloudsChanged(model.clouds.*)',
+                '_cloudSelected(selectedCloud)'
             ],
             listeners: {
                 'change': 'updateFields',
@@ -161,16 +439,55 @@
                 });
                 if (dnsClouds.length > 0) {
                     this.set('hasdnsClouds', true);
-                    var index = this.fields.findIndex(function(field) {
-                        return field.name == "cloud";
-                    }, this);
-                    this.set('fields.' + index + '.options', dnsClouds);
+                    var dnsCloudsArray = [];
+                    dnsClouds.forEach(function(dnsCloud){
+                        dnsCloudsArray.push(dnsCloud);
+                    })
+                    this.set('dnsCloudsArray', dnsCloudsArray);
                 }
                 else {
                     this.set('hasdnsClouds', false);
                 }
             },
-
+            _cloudSelected: function(selectedCloud){
+                if (selectedCloud.provider == "gce"){
+                    this.set('fields', this.cloudSpecificFields["Google"]);
+                    this.cloud = this.model.cloudsArray.filter(function(clouda){
+                        return (clouda.id == selectedCloud.id)
+                    })[0];
+                } else if (selectedCloud.provider == "ec2"){
+                    this.set('fields', this.cloudSpecificFields["Route53"]);
+                    this.cloud = this.model.cloudsArray.filter(function(clouda){
+                        return (clouda.id == selectedCloud.id)
+                    })[0];
+                } else if (selectedCloud.provider == "digitalocean"){
+                    this.set('fields', this.cloudSpecificFields["DigitalOcean"]);
+                    this.cloud = this.model.cloudsArray.filter(function(clouda){
+                        return (clouda.id == selectedCloud.id)
+                    })[0];
+                } else if (selectedCloud.provider == "linode"){
+                    this.set('fields', this.cloudSpecificFields["Linode"]);
+                    this.cloud = this.model.cloudsArray.filter(function(clouda){
+                        return (clouda.id == selectedCloud.id)
+                    })[0];
+                } else if (selectedCloud.provider == "rackspace"){
+                    this.set('fields', this.cloudSpecificFields["RackSpace"]);
+                    this.cloud = this.model.cloudsArray.filter(function(clouda){
+                        return (clouda.id == selectedCloud.id)
+                    })[0];
+                } else if (selectedCloud.provider == "softlayer"){
+                    this.set('fields', this.cloudSpecificFields["SoftLayer"]);
+                    this.cloud = this.model.cloudsArray.filter(function(clouda){
+                        return (clouda.id == selectedCloud.id)
+                    })[0];
+                } else if (selectedCloud.provider == "vultr"){
+                    this.set('fields', this.cloudSpecificFields["Vultr"]);
+                    this.cloud = this.model.cloudsArray.filter(function(clouda){
+                        return (clouda.id == selectedCloud.id)
+                    })[0];
+                }
+                // this.updatePayload();
+            },
             updateFields: function(e){
                 this.set('formError', false);
                 this.updatePayload();            
