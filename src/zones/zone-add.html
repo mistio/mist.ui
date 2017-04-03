@@ -378,7 +378,7 @@
                                     required: false
                                 }],
                         "Vultr":[
-                                                                {
+                                {
                                     name: "domain",
                                     label: "Domain *",
                                     type: "text",
@@ -416,7 +416,17 @@
                                     helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
                                     show: true,
                                     required: false
-                                }]
+                                }, {
+                                    name: "ip",
+                                    label: "IP",
+                                    type: "text",
+                                    value: "",
+                                    defaultValue: "",
+                                    placeholder: "",
+                                    helptext: "Vultr optionally allows the assignment of this domain to a specific cloud server IP address.",
+                                    show: true,
+                                    required: false,
+                                },]
                         },
                     notify: true
                 },
@@ -506,11 +516,42 @@
                 if (this.fields.length){
                     // update payload
                     var payload = {};
-                    payload = {
-                        domain: this.fields[0].value, 
-                        type: this.fields[1].value, 
-                        ttl: this.fields[2].value,
+
+                    var domain = this.fields.findIndex(function(field) {
+                        return field.name == "domain";
+                    }, this);
+                    payload['domain'] = this.fields[domain].value;
+                    if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" || this.selectedCloud.provider == "digitalocean" || this.selectedCloud.provider == "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider == "vultr") {
+                        var type = this.fields.findIndex(function(field) {
+                            return field.name == "type";
+                        }, this);
+                        payload['type'] = this.fields[type].value;
                     }
+                    if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" || this.selectedCloud.provider == "digitalocean" || this.selectedCloud.provider == "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider == "vultr") {
+                        var type = this.fields.findIndex(function(field) {
+                            return field.name == "type";
+                        }, this);
+                        payload['type'] = this.fields[type].value;
+                    }
+                    if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" || this.selectedCloud.provider == "linode" || this.selectedCloud.provider == "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider == "vultr") {
+                        var ttl = this.fields.findIndex(function(field) {
+                            return field.name == "ttl";
+                        }, this);
+                        payload['ttl'] = this.fields[ttl].value;
+                    }
+                    if (this.selectedCloud.provider == "linode") {
+                        var soa = this.fields.findIndex(function(field) {
+                            return field.name == "SOA_email";
+                        }, this);
+                        payload['SOA_email'] = this.fields[soa].value;
+                    }
+                    if (this.selectedCloud.provider == "vultr") {
+                        var ip = this.fields.findIndex(function(field) {
+                            return field.name == "ip";
+                        }, this);
+                        payload['ip'] = this.fields[ip].value;
+                    }
+
                     this.set('zone', payload);
                     console.warn('Update Payload:' + payload)
                 }
