@@ -591,20 +591,22 @@
     });
 
     function itemUid(item, section) {
-        // Returns a universal resource id of the form
-        //      resourceType:[cloudId]:itemId
-        // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
-        //      key::MnhLdx9u22YjVJ
-        //
-        // TODO replace with mist uuids
+    // Returns a universal resource id of the form
+    //      resourceType:[cloudId]:itemId
+    // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
+    //      key::MnhLdx9u22YjVJ
+    //
+    // TODO replace with mist uuids
 
-        // if item type is not defined derive it fro the current section id
-        var item_type = item.type ? item.type : (section &&
-                                                 section.id.slice(0,-1));
-        var cloudId = item.cloud ? item.cloud.id : '';
-
-        return item_type + ':' + cloudId + ':' + item.id;
-    }
+    // if item type is not defined derive it fro the current section id
+    var item_type = item && item.type ? item.type : (section &&
+                                             section.id.slice(0,-1));
+    var cloudId = item && item.cloud && item.cloud.id ? item.cloud.id : '';
+    var itemId = item && item.id ? item.id : '';
+    if (item_type == 'incident')
+        itemId = item.incident_id
+    return item_type + ':' + cloudId + ':' + itemId;
+}
 
   </script>
 
