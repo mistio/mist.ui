@@ -385,8 +385,10 @@
             <div class="columns">
                 <paper-material id="leftcolumn" class="left">
                     <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span>
+                        <iron-icon src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
                         [[machine.cloud.title]]</span>
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
+                        <iron-icon src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
                         [[_computeMachineSize(machine)]]</span>
@@ -1043,6 +1045,64 @@ Polymer({
         if (extra)
             return extra.image || extra.image_id;
         return false;
+    },
+    _computeCloudIcon: function(cloud) {
+        if (!cloud){
+            return '';
+        }
+        else {
+            return './assets/providers/provider-' + cloud + '.png';
+        }
+    },
+    _computeImageIcon: function(machine) {
+        if (!machine){
+            return false;
+        }
+        else {
+            var image =  machine.extra.image_id || machine.operating_system || machine.operating_system_distro || machine.imageId || machine.os_type,
+                imageIcon = "";
+                image = image.toLowerCase();
+
+            if (image.indexOf('ubuntu') != -1)
+                imageIcon = "ubuntu";
+            else if (image.indexOf('netbsd') != -1)
+                imageIcon = "netbsd";
+            else if (image.indexOf('freebsd') != -1)
+                imageIcon = "freebsd";
+            else if (image.indexOf('openbsd') != -1)
+                imageIcon = "openbsd";
+            else if (image.indexOf('alpine') != -1)
+                imageIcon = "alpine";
+            else if (image.indexOf('red hat') != -1)
+                imageIcon = "red-hat";
+            else if (image.indexOf('gentoo') != -1)
+                imageIcon = "gentoo";
+            else if (image.indexOf('arch') != -1)
+                imageIcon = "arch";
+            else if (image.indexOf('coreos') != -1)
+                imageIcon = "coreos";
+            else if (image.indexOf('mongo') != -1)
+                imageIcon = "mongo";
+            else if (image.indexOf('ami-') != -1)
+                imageIcon = "aws";
+            else if (image.indexOf('centos') != -1)
+                imageIcon = "centos";
+            else if (image.indexOf('debian') != -1)
+                imageIcon = "debian";
+            else if (image.indexOf('fedora') != -1)
+                imageIcon = "fedora";
+            else if (image.indexOf('suse') != -1)
+                imageIcon = "suse";
+            else if (image.indexOf('linux') != -1)
+                imageIcon = "linux";
+            else if (image.indexOf('windows') != -1)
+                imageIcon = "windows";
+            
+            if (imageIcon.length)
+                return './assets/image-icons/' + imageIcon + '.svg';
+            else
+                return false;
+        }
     }
 });
 </script>
