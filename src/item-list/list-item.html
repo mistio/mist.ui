@@ -212,7 +212,7 @@
         <iron-media-query query="(min-width: 641px) and (max-width: 1300px)" query-matches="{{mediumViewport}}"></iron-media-query>
         <content></content>
         <template is="dom-repeat" items="{{fields}}" as="field">        
-          <a href$="[[_computeUri(uri, field, item, probes)]]" is="pushstate-anchor" ondragstart="return false" ondrop="return false" class$="field-link-[[index]]-[[field]]" title$="[[itemField(item, field, index)]]">            
+          <a href$="[[_computeUri(uri, field, item, probes)]]" is="pushstate-anchor" ondragstart="return false" ondrop="return false" class$="field-link-[[index]]-[[field]]" title$="[[itemField(item, field, index)]]">
             <div class$="[[field]] field field[[index]] [[itemField(item, field, index)]]  [[itemProbeClasses(item, field, index, probes)]]"><span class$="field-icon [[field]]"></span>[[itemField(item, field, index)]]</div>
           </a>
         </template>
@@ -509,7 +509,7 @@ Polymer({
         return exists;
     },
     _probesChanged: function(probes, item, section){
-        if (this.probes != {} && this.section.id == "machines" && this.item.uuid && this.probes[item.uuid] && this.probes[item.uuid].dirty_cow == true) {
+        if (JSON.stringify(this.probes) != '{}' && this.section.id == "machines" && this.item.uuid && this.probes[item.uuid] && this.probes[item.uuid].dirty_cow == true) {
                 //hardcoded index = 1 which is the state column
                 console.log('PROBES CHANGED TRUE', item.uuid)
                 this._appendIconOnRecommendations(1, 'icons:report-problem');
@@ -517,8 +517,8 @@ Polymer({
     },
 
     _computeUri: function(uri,field, item, probes){
-        if ( field == 'state' && this.probes != {} && this.section.id == "machines" && this.item.uuid && this.probes[item.uuid] && this.probes[item.uuid].dirty_cow == true) {
-            return '#';
+        if (field == 'state' && this.probes != {} && this.section.id == "machines" && this.item.uuid && this.probes[item.uuid] && this.probes[item.uuid].dirty_cow == true) {
+            return '/machines';
         }
         else
             return this.uri;
