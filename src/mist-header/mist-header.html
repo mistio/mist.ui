@@ -2,6 +2,8 @@
 <link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../../bower_components/pushstate-anchor/pushstate-anchor.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+
 <link rel="import" href="../app-user-menu/app-user-menu.html">
 <!--link rel="import" href="../notifications-element/notifications-element.html"-->
 <link rel="import" href="top-search.html">
@@ -57,8 +59,10 @@
         }
 
         a#logo-link {
-            line-height: 36px;
+            line-height: 56px;
             display: flex;
+            width: 80px;
+            margin-right: 20px;
         }
 
         .logo {
@@ -79,6 +83,7 @@
             white-space: nowrap;
             width: 100px;
             text-transform: capitalize;
+            margin: auto;
         }
 
         .container {
@@ -90,15 +95,27 @@
             --paper-badge-margin-left: -40px;
             --paper-badge-margin-bottom: -16px;
         }
+        iron-image.logo {
+             width: 80px;
+             height: 36px;
+        }
+        /* iphone 6 plus*/
+        @media screen and (max-width: 450px) {
+            .title.search {
+                display: none;
+            }
+        }
         </style>
         <paper-toolbar id="header" class="dark">
             <paper-icon-button icon="menu" paper-drawer-toggle on-tap="toggleSidebar" tabindex="0"></paper-icon-button>
             <div class="logo-and-title layout horizontal">
-                <a id="logo-link" class="regular" href="/" is="pushstate-anchor"><img class="logo" src="../../assets/logos/logo.svg" width="80" alt="Mist.io Logo" tabindex="0" on-tap="_goToDashboard"></a>
+                <a id="logo-link" class="regular" href="/" is="pushstate-anchor">
+                    <iron-image class="logo" src$="[[_computeLogo(model.org)]]" sizing="contain" fade alt="Mist.io Logo" tabindex="0"></iron-image>
+                </a>
                 <span class="page-title">[[titleText]]</span>
             </div>
-            <span class="title layout horizontal">
-                <top-search model="[[model]]" tabindex="3"></top-search>
+            <span class="title search layout horizontal">
+                <top-search model="[[model]]" tabindex="3" viewing-list=[[viewingList]]></top-search>
             </span>
             <div class="container" tabindex="4">
                 <!--notifications-element></notifications-element-->
@@ -112,6 +129,7 @@
         properties: {
             title: String,
             model: Object,
+            viewingList: Boolean,
             titleText: {
                 type: String,
                 computed: '_titleText(title)'
@@ -123,11 +141,6 @@
         toggleSidebar: function() {
             document.querySelector('app-sidebar').toggleSidebar(); // update classes
         },
-        _goToDashboard: function(e) {
-            var main = document.querySelector('app-main');
-            if (main)
-                main.updateCurrent('show-dashboard');
-        },
         _computeUserTeams: function(user, teams){
             if (!teams.length)
                 return [];
@@ -137,6 +150,13 @@
                 return true;
 
             });
+        },
+        _computeLogo: function(org) {
+            if (!org)
+                return '/ui/assets/logos/logo.svg';
+            if (!org.avatar)
+                return '/ui/assets/logos/logo.svg';
+            return '/api/v1/avatars/' + org.avatar;
         }
     });
     </script>

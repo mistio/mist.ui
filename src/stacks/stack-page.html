@@ -466,9 +466,9 @@
         }
         </style>
         <div id="content">
-            <div class="is-loading" hidden$="[[!isLoading]]">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div>
+            </div> -->
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -715,7 +715,7 @@
         <iron-ajax id="getJobLog" method="GET" auto url="/api/v1/jobs/[[stack.job_id]]" handle-as="json" on-response="handleGetJobLog" on-error=""></iron-ajax>
     </template>
 
-    <script type="text/javascript" src="../../bower_components/anchorme/src/anchorme.min.js"></script>
+    <script type="text/javascript" src="../../bower_components/anchorme.js/dist-browser/anchorme.min.js"></script>
 
     <script>
         (function() {
@@ -780,6 +780,11 @@
                         computed: '_listNetworks(stack.node_instances.*, model.networksArray.*)',
                         notify: true
                     },
+                    zones: {
+                        type: Array,
+                        computed: '_listZones(stack.node_instances.*, model.zonesArray.*)',
+                        notify: true
+                    },
                     keys: {
                         type: Array,
                         computed: '_listKeys(stack.node_instances.*, model.keys.*)',
@@ -800,7 +805,7 @@
                     },
                     resourcelist: {
                         type: Boolean,
-                        computed: '_resourcelist(keys, networks, machines)',
+                        computed: '_resourcelist(keys, networks, zones, machines)',
                         notify: true
                     },
                     start_creation: {
@@ -835,7 +840,7 @@
                     intervalID: String,
                     hasResources: {
                         type: Boolean,
-                        computed: '_computeHasResources(listMachines.*, networks.*, keys.*, stack.node_instances.*)'
+                        computed: '_computeHasResources(listMachines.*, networks.*, zones.*, keys.*, stack.node_instances.*)'
                     },
                     isLoading: {
                         type: Boolean,
@@ -995,12 +1000,14 @@
                     // could not do the request
                     this.hasErrors = true;
                 },
-                _resourcelist: function(keys, networks, machines) {
+                _resourcelist: function(keys, networks, zones, machines) {
                     var sum = 0;
                     if (keys)
                         sum += keys.length;
                     if (networks)
                         sum += networks.length;
+                    if (zones)
+                        sum += zones.length;
                     if (machines)
                         sum += machines.length;
 
@@ -1059,6 +1066,36 @@
                     }
                     return networks;
                 },
+                _listZones: function(nis) {
+                    var zones = [];
+                    if (nis) {
+                        nis.base.forEach(function(rtpy) {
+                            if (rtpy.runtime_properties.mist_type == 'zone') {
+                                var zone = this.model.zonesArray.find(function(zone) {
+                                    return zone.id == rtpy.runtime_properties.info.id
+                                }, this);
+                                if (zone)
+                                    zones.push(zone);
+                            }
+                        }, this);
+                    }
+                    return zones;
+                },
+                // _listRecords: function(nis) {
+                //     var records = [];
+                //     if (nis) {
+                //         nis.base.forEach(function(rtpy) {
+                //             if (rtpy.runtime_properties.mist_type == 'record') {
+                //                 var record = this.model.recordsArray.find(function(record) {
+                //                     return record.id == rtpy.runtime_properties.info.id
+                //                 }, this);
+                //                 if (record)
+                //                     records.push(record);
+                //             }
+                //         }, this);
+                //     }
+                //     return records;
+                // },
                 _listKeys: function(nis) {
                     var keys = [];
 

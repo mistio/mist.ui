@@ -64,7 +64,8 @@
         }
 
         #content {
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             padding: 0px;
         }
@@ -193,9 +194,9 @@
                     <item-list section="[[section]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
                 <!--/template-->
             </div>
-            <div class="is-loading" hidden$="[[!isLoading]]">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active></paper-spinner>
-            </div>
+            </div> -->
         </div>
         <template is="dom-if" if="[[!isTeams]]">
             <div class="absolute-bottom-right">
@@ -294,6 +295,8 @@
                 this.set('sortBy', 'name');
             else if (this.section.id == 'stacks')
                 this.set('sortBy', 'name');
+            else if (this.section.id == 'zones')
+                this.set('sortBy', 'domain');
             else if (this.section.id == 'incidents')
                 this.set('sortBy', 'started_at');
             else if (this.section.id == 'schedules')
@@ -353,15 +356,13 @@
 
         sortingObserver: function(items, sortBy, sortOrder, q) {
             var that = this;
-            this.debounce('sortItems', function () {
-                console.debug('sortItems');
-                that.set('sortedItems', items.base.sort(that._computeSort(this.sortBy, this.sortOrder)));
-                if (that.sortedItems.length != that.items.length)
-                    that.set('sortedItems', that.items);
-                var scrollY = that.querySelector('iron-list').scrollTop;
-                that.set('filteredItems', that.filterItems());
-                that.querySelector('iron-list').scroll(0, scrollY);
-            }, 300);
+            console.debug('sortItems');
+            that.set('sortedItems', items.base.sort(that._computeSort(this.sortBy, this.sortOrder)));
+            if (that.sortedItems.length != that.items.length)
+                that.set('sortedItems', that.items);
+            var scrollY = that.querySelector('iron-list').scrollTop;
+            that.set('filteredItems', that.filterItems());
+            that.querySelector('iron-list').scroll(0, scrollY);
         },
 
         computeIsTeams: function(section){

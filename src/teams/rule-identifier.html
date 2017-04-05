@@ -7,7 +7,8 @@
 		<style is="custom-style" include="tags-and-labels"></style>
         <style is="custom-style" include="shared-styles">
         :host {
-        	display: inline-block;
+            display: flex;
+            align-items: center;
         }
         paper-dropdown-menu {
             width: 150px;
@@ -39,7 +40,6 @@
             display: inline-flex;
         }
         .tag {
-        	display: inline-block;
         	vertical-align: middle;
         }
         paper-input {
@@ -62,11 +62,11 @@
         iron-icon
         </style>
         <paper-dropdown-menu class="short" no-animations>
-        	<paper-listbox id="indettypeSelector" class="dropdown-content" selected="[[selectedIndetifierType]]">
+            <paper-menu id="indettypeSelector" class="dropdown-content" selected="[[selectedIndetifierType]]">
         		<paper-item class="indettype" value="always">ALWAYS</paper-item>
-                <paper-item class="indettype" value="id" hidden$="[[!rtype.length]]">WHERE ID</paper-item>
+                <paper-item class="indettype" value="id" hidden$="[[!rule.rtype.length]]">WHERE ID</paper-item>
                 <paper-item class="indettype" value="tags">WHERE TAGS</paper-item>
-          	</paper-listbox>
+            </paper-menu>
         </paper-dropdown-menu>
 
         <span hidden$="[[!showTags]]">
@@ -76,11 +76,11 @@
         </span>
         <span hidden$="[[!showDropDown]]">
             <paper-dropdown-menu no-animations hidden$="[[showTags]]">>
-                <paper-listbox class="dropdown-content" selected="[[selectedResource]]" >
+                <paper-menu class="dropdown-content" attr-for-selected="value" selected="[[rule.rid]]" >
                     <template is="dom-repeat" items="[[resourceDropDown]]" as="resource">
-                        <paper-item class="rid" value="[[resource.id]]">[[resource.title]] [[resource.name]]</paper-item>
+                        <paper-item class="rid" value="[[_computeId(resource)]]">[[resource.title]] [[resource.name]]</paper-item>
                     </template>
-                </paper-listbox>
+                </paper-menu>
             </paper-dropdown-menu>
         </span>
         <span hidden$="[[!showTags]]">
@@ -98,24 +98,17 @@
             properties: {
             	model: Object,
             	rule: {
-            		type: Object,
-            		notify: true
+                    type: Object,
+                    notify: true
             	},
             	index: Number,
-            	rtype: String,
-            	rtags: Object,
-            	rid: String,
             	selectedIndetifierType: {
             		type: Number,
-            		computed: "_computeSelectedIdentifierType(rule, rtags, rid)"
+                    computed: "_computeSelectedIdentifierType(rule, rule.rtags, rule.rid)"
             	},
             	resourceDropDown: {
             		type: Array,
-            		computed: "_computeRuleDD(rule, rtype, model)"
-            	},
-            	selectedResource: {
-            		type: Number,
-            		computed: "_computeSelectedRuleDD(rule, model, rid)"
+                    computed: "_computeRuleDD(rule, rule.rtype, model.*)"
             	},
             	showDropDown: {
             		type: Boolean,
@@ -128,7 +121,7 @@
             	ruleHasTags: {
             		type: Boolean,
             		value: false,
-            		computed: "_ruleHasTags(rule, rtags)"
+                    computed: "_ruleHasTags(rule, rule.rtags)"
             	},
             	showEdit: {
             		type: Boolean,
@@ -140,7 +133,7 @@
             	},
             	tags: {
             		type: Array,
-            		computed: '_computeRTags(rule.rtags, rtags)'
+                    computed: '_computeRTags(rule.rtags)'
             	}
             },
             listeners: {
@@ -181,13 +174,6 @@
                 // case of choοsing rid                 
                 if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1){
                     var rid = e.detail.item.value;
-                    // only in case of machines we need uuid instead
-                    if (this.rtype == 'machine'){
-                    	var mach = this.model.machinesArray.find(function(m){
-                    		return m.id == rid;
-                    	})
-                    	rid = mach.uuid;
-                    }
                     this.fire('update-rid', {'index': this.index, 'rid': rid});
                 }
             },
@@ -199,7 +185,7 @@
             _ruleHasId: function(rule){
                 return rule.rid.length > 0 ? true : false;
             },
-            _computeRTags: function(tags, rtags){
+            _computeRTags: function(tags){
             	if (tags) {
 	            	var arrTags = Object.keys(tags); 
 	                for (var i=0; i < arrTags.length; i++) {
@@ -213,6 +199,14 @@
             	else {
             		return []
             	}
+            },
+            _computeId: function(resource){
+                if (resource.machine_type){
+                    return resource.uuid;
+                }
+                else {
+                    return resource.id;
+                }
             },
             _computeLink: function(type, id){
             	if (type && id && type != "cloud") {
@@ -232,7 +226,7 @@
                 }
             },
             _computeSelectedIdentifierType: function(rule, rtags, rid){
-                if (rule.rid.length > 0) {
+                if (this.rule.rid.length > 0) {
                     return 1;
                 }
                 else {
@@ -245,24 +239,6 @@
                 }
                 else {
                     return [{name:'no '+rtype+'s found'}];
-                }
-            },           
-            _computeSelectedRuleDD: function(rule, model, rid){
-                if (rule.rid && rule.rid.length > 0){
-                    var i;
-                    var obj = this.model[rule.rtype+'sArray'].find(function(r, index){
-                        i = index;
-                        if (rule.rtype != 'machine'){
-                        	return r.id == rule.rid;
-                        }
-                        else{
-                        	return r.uuid == rule.rid;
-                        }
-                    });
-                    return i;
-                }
-                else {
-                    return null;
                 }
             },
             _toggleShowEdit: function(){
@@ -288,7 +264,7 @@
             },
             hotkeys: function(e){
             	// if 'enter'
-            	if (e.keyCode === 13 ) {
+                if (e.keyCode === 13) {
             		this.$.inputField.blur();   		
             		this._updateTags();
             	}

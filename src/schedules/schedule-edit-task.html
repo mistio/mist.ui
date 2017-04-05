@@ -369,6 +369,11 @@
                         //check if entry changed
                         if (this.schedule.schedule_type != this.newSchedule.schedule_type) {
                             pl.schedule_type = this.newSchedule.schedule_type;
+                            // clear max run count when editing form one_off to other type
+                            if (pl.schedule_type != 'one_off' && this.schedule.schedule_type == 'one_off')
+                                pl.max_run_count = '';
+                            else 
+                                delete pl.max_run_count;
                         }
                         if (this.schedule.schedule_entry && this.newSchedule.schedule_entry && this.newSchedule.schedule_type && JSON.stringify(this.schedule.schedule_entry) != JSON.stringify(this._computePayloadEntry(this.newSchedule.schedule_entry)))  {
                             pl.schedule_entry = this.newSchedule.schedule_type != 'one_off' ? this._computePayloadEntry(this.newSchedule.schedule_entry) : moment(this.newSchedule.schedule_entry.entry).utc().format('YYYY-MM-DD HH:mm:ss').toString();
@@ -442,8 +447,9 @@
                 _applyDateTime: function(e) {
                     var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
                     var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
+
                     this.set('newSchedule.schedule_entry', {entry: ''});
-                    this.set('newSchedule.schedule_entry.entry', moment(combinedDate).format('YYYY-MM-DD HH:mm:ss').toString());
+                    this.set('newSchedule.schedule_entry.entry',  moment(combinedDate).utc().toString());
                     this._updatePayload(e);
                     this.$.dateTimePickers.close();
                 },

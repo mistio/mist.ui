@@ -31,7 +31,7 @@
         }
 
         /* name id provider state tags */
-        .field.name {
+        .field.name, .field.domain {
             width: 250px;
             font-weight: 500;
             text-overflow: ellipsis;
@@ -186,6 +186,10 @@
         .field.default:not(.name),
         .field.id:not(.name) {
             width: 100px;
+        }
+
+        .field.machines.tagged {
+            width: 150px;
         }
 
         .id {
@@ -347,6 +351,10 @@ Polymer({
         if (field == 'subnets')
             return ret ? ret.length : '';
 
+        // zones
+        if (field == 'records')
+            return ret ? ret.length : '';
+
         if (field == 'status' && !ret)
             return '';
 
@@ -470,11 +478,15 @@ Polymer({
             //     return num+" members: "+document.querySelector('mist-app').model.teams[item.id].members[0].email+', '+document.querySelector('mist-app').model.teams[item.id].members[1].email+', ...';
         }
 
+        if (field == 'task_type' && ret.startsWith('Run') && document.querySelector('mist-app').model.scripts){
+            return 'Run '+ document.querySelector('mist-app').model.scripts[ret.replace('Run script: ','')].name;
+        }
+
         if (field == 'on_machines'){
             if (item.machines_uuids){
                 return item.machines_uuids.length +' machines.'
             }
-            else if (item.machines_tags) {
+            else if (item.machines_tags && document.querySelector('mist-app').model.machinesArray) {
                 var filteredMachines = document.querySelector('mist-app').model.machinesArray.filter(function(m){
                     return this._machineHasTag(m);
                 }, this);
@@ -487,9 +499,11 @@ Polymer({
     _machineHasTag: function(m) {
         var exists = false;
         for (var i = 0; i < m.tags.length; i++){
-            if (this.item.machines_tags[m.tags[i].key] && this.item.machines_tags[m.tags[i].key] == m.tags[i].value ){
-                exists = true;
-                break;
+            if (this.item.machines_tags.hasOwnProperty(m.tags[i].key)){
+                if (this.item.machines_tags[m.tags[i].key] == m.tags[i].value || (this.item.machines_tags[m.tags[i].key] == null && m.tags[i].value == "")){
+                    exists = true;
+                    break;
+                }
             }
         }
         return exists;

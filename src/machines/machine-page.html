@@ -4,7 +4,6 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
-<link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../item-list/item-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
@@ -358,12 +357,17 @@
                     display: block;
                 }
             }
+            @media screen and (max-width: 450px) {
+                paper-menu-button[vertical-align="top"] ::content .dropdown-content.paper-menu-button {
+                    max-height: 200px !important;
+                }
+            }
         </style>
 
         <div id="content">
-            <div class="is-loading" hidden$="[[!isLoading]]">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div>
+            </div> -->
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
                 <span class="icon"><iron-icon class$=" machine-state-icon [[machine.state]]" icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -381,8 +385,10 @@
             <div class="columns">
                 <paper-material id="leftcolumn" class="left">
                     <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span>
+                        <iron-icon src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
                         [[machine.cloud.title]]</span>
-                    <span hidden$="[[!machine.extra.image]]" class="break"><span class="m-info-head">Image:</span>
+                    <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
+                        <iron-icon src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
                         [[_computeMachineSize(machine)]]</span>
@@ -445,8 +451,8 @@
                     machine-keys="[[machineKeys]]"></mist-monitoring>
                 <mist-rules
                     id="monitoringRules"
-                    machine="[[machine.id]]" 
-                    cloud="[[machine.cloud.id]]" 
+                    machine="[[machine.id]]"
+                    cloud="[[machine.cloud.id]]"
                     builtin-metrics="[[model.monitoring.builtin_metrics]]"
                     custom-metrics="[[model.monitoring.custom_metrics]]"
                     incidents="[[model.incidentsArray]]"
@@ -507,7 +513,7 @@
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <log-list></log-list>
+            <log-list resource-filter="[[machineLogFilter]]"></log-list>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -532,7 +538,6 @@
                     handle-as="xml"></iron-ajax>
 
         <machine-edit machine="[[machine]]"></machine-edit>
-        <tags-list model="[[model]]"></tags-list>
         <paper-toast></paper-toast>
     </template>
 </dom-module>
@@ -713,6 +718,10 @@ Polymer({
         hidden: {
             type: Boolean,
             value: false
+        },
+        machineLogFilter: {
+            type: Object,
+            computed: "_computeMachineLogFilter(machine)"
         }
     },
     observers: [
@@ -731,7 +740,7 @@ Polymer({
     },
     _computeActions: function(item) {
         var ret = [];
-        if (item && item.state == 'running') {
+        if (item && ['running', 'unknown'].indexOf(item.state) > -1) {
             // if key then add shell / run script
             // if not monitoring then enable monitoring
             ret.push('shell');
@@ -1014,9 +1023,7 @@ Polymer({
         }
     },
     _probeMachine: function(e){
-        var mhost = this.machine.public_ips && this.machine.public_ips[0] ? this.machine.public_ips[0] : '';
         var payload = {
-            'host': mhost,
             'key': this.machineKeys[0].id
         };
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -1025,6 +1032,77 @@ Polymer({
     },
     _probeError: function(e){
         this.fire('toast', { msg:'Error probing machine '+ detail.request.xhr.responseText, duration: 3000 });
+    },
+    _computeMachineLogFilter: function(machine) {
+        if (machine)
+            return {
+                "cloud_id": machine.cloud.id,
+                "machine_id": machine.id,
+                "machine_uuid": machine.uuid
+            }
+    },
+    _existsImage: function(extra) {
+        if (extra)
+            return extra.image || extra.image_id;
+        return false;
+    },
+    _computeCloudIcon: function(cloud) {
+        if (!cloud){
+            return '';
+        }
+        else {
+            return './assets/providers/provider-' + cloud + '.png';
+        }
+    },
+    _computeImageIcon: function(machine) {
+        if (!machine){
+            return false;
+        }
+        else {
+            var image =  machine.extra.image_id || machine.operating_system || machine.operating_system_distro || machine.imageId || machine.os_type,
+                imageIcon = "";
+                image = image.toLowerCase();
+
+            if (image.indexOf('ubuntu') != -1)
+                imageIcon = "ubuntu";
+            else if (image.indexOf('netbsd') != -1)
+                imageIcon = "netbsd";
+            else if (image.indexOf('freebsd') != -1)
+                imageIcon = "freebsd";
+            else if (image.indexOf('openbsd') != -1)
+                imageIcon = "openbsd";
+            else if (image.indexOf('alpine') != -1)
+                imageIcon = "alpine";
+            else if (image.indexOf('red hat') != -1)
+                imageIcon = "red-hat";
+            else if (image.indexOf('gentoo') != -1)
+                imageIcon = "gentoo";
+            else if (image.indexOf('arch') != -1)
+                imageIcon = "arch";
+            else if (image.indexOf('coreos') != -1)
+                imageIcon = "coreos";
+            else if (image.indexOf('mongo') != -1)
+                imageIcon = "mongo";
+            else if (image.indexOf('ami-') != -1)
+                imageIcon = "aws";
+            else if (image.indexOf('centos') != -1)
+                imageIcon = "centos";
+            else if (image.indexOf('debian') != -1)
+                imageIcon = "debian";
+            else if (image.indexOf('fedora') != -1)
+                imageIcon = "fedora";
+            else if (image.indexOf('suse') != -1)
+                imageIcon = "suse";
+            else if (image.indexOf('linux') != -1)
+                imageIcon = "linux";
+            else if (image.indexOf('windows') != -1)
+                imageIcon = "windows";
+            
+            if (imageIcon.length)
+                return './assets/image-icons/' + imageIcon + '.svg';
+            else
+                return false;
+        }
     }
 });
 </script>
