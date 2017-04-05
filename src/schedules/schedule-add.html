@@ -616,8 +616,16 @@ SCHEDULEACTIONS = {
             },
 
             _updateConditions: function(index, key, value) {
-                this.set('fields.'+ index +'.value', [{'type': 'age'}]);
-                this.fields[index].value[0][key] = value;
+                var minutes;
+                if (key == 'minutes')
+                    minutes = value;
+                else if (key == 'hours')
+                    minutes = value * 60;
+                else if (key == 'days')
+                    minutes = value * 60 * 24;
+
+                if (minutes)
+                    this.set('fields.'+ index +'.value', [{'type': 'age', 'minutes': minutes}]);
             },
 
             _processInterval: function() {
