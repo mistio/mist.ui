@@ -371,7 +371,10 @@
         <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
         <schedule-edit-mrc id="editMaxRunCount" schedule="[[schedule]]"></schedule-edit-mrc>
         <schedule-edit-task id="editScheduleTask" schedule="[[schedule]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
-        <schedule-edit-condition id="editScheduleCondition" schedule="[[schedule]]" model="[[model]]"></schedule-edit-condition>
+        <schedule-edit-condition id="editScheduleCondition" 
+            schedule="[[schedule]]" 
+            model="[[model]]" 
+            machines-age="[[machineAge]]"></schedule-edit-condition>
 
         <iron-ajax  id="deleteSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -534,11 +537,12 @@
                     return this.schedule.machines_tags && JSON.stringify(this.schedule.machines_tags).length > 2 ? true : false;
             },
             _computeMachineAge: function(conditions){
-                var ageEntry = conditions.find(function(c){
-                    return c.type == 'age';
-                });
-                return ageEntry ? ageEntry.minutes || false : false;
-                // return ageEntry ? '1440' || false : false;
+                if (conditions){
+                    var ageEntry = conditions.find(function(c){
+                        return c.type == 'age';
+                    });
+                    return ageEntry ? ageEntry.minutes || false : false;
+                }
             },
             _computeAgeText: function(age){
                 var duration = 'minutes';
