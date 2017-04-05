@@ -337,7 +337,8 @@
                     <template is="dom-repeat" items="[[tagsArray]]">
                         <span class="tag">[[item]]</span>
                     </template>
-                    &nbsp; [[filteredItems.length]] machines affected. </span>
+                    &nbsp; [[filteredItems.length]] machines affected </span>
+                <span class="smaller" hidden$="[[!machineAge]]">if older than [[_computeAgeText(machineAge)]]</span>
                 <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 <div class='missing-machines' hidden$="[[!missingMachines.length]]">
                     <template is="dom-repeat" items="[[missingMachines]]">
@@ -471,7 +472,12 @@
                 expError: Boolean,
                 machines: Array,
                 tags: Array,
-                lastrequestedaction: String
+                lastrequestedaction: String,
+                machineAge: {
+                    type: Number,
+                    value: false,
+                    computed: '_computeMachineAge(schedule.conditions)'
+                }
             },
             observers: [
                 '_scheduleChanged(schedule)',
@@ -526,6 +532,30 @@
             _computeIsMachinesWithTags: function(schedule) {
                 if (this.schedule)
                     return this.schedule.machines_tags && JSON.stringify(this.schedule.machines_tags).length > 2 ? true : false;
+            },
+            _computeMachineAge: function(conditions){
+                var ageEntry = conditions.find(function(c){
+                    return c.type == 'age';
+                });
+                return ageEntry ? ageEntry.minutes || false : false;
+                // return ageEntry ? '1440' || false : false;
+            },
+            _computeAgeText: function(age){
+                var duration = 'minutes';
+                var machineAge = parseInt(age);
+                if (age >= 60 && age%(60) == 0) {
+                    machineAge = age/60;
+                    duration = 'hours';
+                    if (machineAge == 1)
+                        duration = 'hour';
+                }
+                if (age >= (60*24) && age%(60*24) == 0 ){
+                    machineAge = age/(60*24);
+                    duration = 'days';
+                    if (machineAge == 1)
+                        duration = 'day';
+                }
+                return machineAge +" "+ duration;
             },
             _editSchedule: function(e) {
                 this.$.editScheduleDialog._openEditScheduleModal();
