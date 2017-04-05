@@ -208,7 +208,7 @@ SCHEDULEACTIONS = {
                         excludeFromPayload: true,
                         helptext: "Select specific machines to be included in scheduler.",
                         options: [],
-                        class: "bind-top background",
+                        class: "bind-both background",
                         showIf: {
                             fieldName: "ids_or_tags",
                             fieldValues: ["ids"]
@@ -223,11 +223,52 @@ SCHEDULEACTIONS = {
                         required: true,
                         excludeFromPayload: false,
                         helptext: "Scheduler will include all machines with the specified tags. Tag's keys can only be defined. Alphanumerical only.",
-                        class: "bind-top background",
+                        class: "bind-both background",
                         showIf: {
                             fieldName: "ids_or_tags",
                             fieldValues: ["tags"]
                         }
+                    }, {
+                        name: "machines_conditions_age_more_value",
+                        label: "which are older than",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        show: true,
+                        required: false,
+                        excludeFromPayload: true,
+                        helptext: "Apply an extra filter to apply the schedule to machines having been created longer than a time period ago",
+                        class: "bind-both background",
+                    },{
+                        name: "machines_conditions_age_more_unit",
+                        label: "",
+                        type: "radio",
+                        value: "days",
+                        defaultValue: "days",
+                        show: true,
+                        required: false,
+                        excludeFromPayload: true,
+                        helptext: "",
+                        options: [{
+                            val: 'minutes',
+                            title: 'minutes'
+                        },{
+                            val: 'hours',
+                            title: 'hours'
+                        },{
+                            val: 'days',
+                            title: 'days'
+                        }],
+                        class: "bind-top background",
+                    },{
+                        name: "machines_conditions",
+                        label: "machines conditions",
+                        type: "text",
+                        value: [],
+                        defaultValue: [],
+                        show: false,
+                        required: true,
+                        excludeFromPayload: true
                     }, {
                         name: "schedule_type",
                         label: "Schedule Type",
@@ -483,6 +524,26 @@ SCHEDULEACTIONS = {
                         }
                     }
 
+                    // changing conditions
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_conditions_age_more_")){
+                        var condsInd = this._fieldIndexByName("machines_conditions"),
+                            perInd = this._fieldIndexByName("machines_conditions_age_more_unit"),
+                            numInd = this._fieldIndexByName("machines_conditions_age_more_value"),
+                            key = this.get('fields.'+ perInd +'.value'),
+                            num = parseInt(this.get('fields.'+ numInd +'.value')),
+                            value;
+
+                        if (!changeRecord.value.length || !key.length || !parseInt(num)){
+                            //clear conditions
+                            this.set('fields.'+ condsInd +'.value', []);
+                            this.set('fields.'+ condsInd +'.excludeFromPayload', true);
+                        }
+                        else {
+                            this._updateConditions(condsInd, key, num);
+                            this.set('fields.'+ condsInd +'.excludeFromPayload', false);
+                        }
+                    }
+
                     // initial values in shedule entry
                     if (this.get(changeRecord.path.replace('.value','')).name == "schedule_type"){
                         var entryInd = this._fieldIndexByName("schedule_entry"),
@@ -553,6 +614,12 @@ SCHEDULEACTIONS = {
                     }
                 }
             },
+
+            _updateConditions: function(index, key, value) {
+                this.set('fields.'+ index +'.value', [{'type': 'age'}]);
+                this.fields[index].value[0][key] = value;
+            },
+
             _processInterval: function() {
                 var everyInd = this._fieldIndexByName("schedule_entry_interval_every");
                 var periodInd = this._fieldIndexByName("schedule_entry_interval_period");
