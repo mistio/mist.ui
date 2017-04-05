@@ -265,6 +265,7 @@
                                     value: "",
                                     defaultValue: "",
                                     placeholder: "",
+                                    excludeFromPayload: true,
                                     helptext: "Linode requires a Start of Authority (SOA) email when creating a master DNS zone.",
                                     required: true,
                                     showIf: {
@@ -273,12 +274,13 @@
                                     }
                                 },
                                 {
-                                    name: "Primary_ip",
+                                    name: "Master_IP",
                                     label: "DNS Master Node IP",
                                     type: "text",
                                     value: "",
                                     defaultValue: "",
                                     placeholder: "",
+                                    excludeFromPayload: true,
                                     helptext: "Linode requires the DNS master node IP address when creating a slave DNS zone.",
                                     required: true,
                                     showIf: {
@@ -423,6 +425,7 @@
                                     value: "",
                                     defaultValue: "",
                                     placeholder: "",
+                                    excludeFromPayload: true,
                                     helptext: "Vultr optionally allows the assignment of this domain to a specific cloud server IP address.",
                                     show: true,
                                     required: false,
@@ -527,7 +530,7 @@
                         }, this);
                         payload['type'] = this.fields[type].value;
                     }
-                    if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" || this.selectedCloud.provider == "digitalocean" || this.selectedCloud.provider == "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider == "vultr") {
+                    if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" || this.selectedCloud.provider == "linode" || this.selectedCloud.provider == "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider == "vultr") {
                         var type = this.fields.findIndex(function(field) {
                             return field.name == "type";
                         }, this);
@@ -543,13 +546,19 @@
                         var soa = this.fields.findIndex(function(field) {
                             return field.name == "SOA_email";
                         }, this);
-                        payload['SOA_email'] = this.fields[soa].value;
+                        payload['SOA_Email'] = this.fields[soa].value;
+                        var master_ip = this.fields.findIndex(function(field) {
+                            return field.name == "Master_IP";
+                        }, this);
+                        payload['Master_IP'] = this.fields[master_ip].value;
                     }
                     if (this.selectedCloud.provider == "vultr") {
                         var ip = this.fields.findIndex(function(field) {
                             return field.name == "ip";
                         }, this);
-                        payload['ip'] = this.fields[ip].value;
+                        if (this.fields[ip].value != "") {
+                            payload['ip'] = this.fields[ip].value;
+                        }
                     }
 
                     this.set('zone', payload);

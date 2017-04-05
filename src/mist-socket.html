@@ -696,6 +696,24 @@
                                 }
                             })
 
+                        } else if (this.model.clouds[data.cloud_id].provider == 'softlayer'){
+                            zone['provider'] = 'SoftLayer';
+                            zone.records.forEach(function(record) {
+                                if (record['name'] != '@') {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
+
+                        } else if (this.model.clouds[data.cloud_id].provider == 'vultr'){
+                            zone['provider'] = 'Vultr';
+                            zone.records.forEach(function(record) {
+                                if (record['name'].length == 0) {
+                                    record['name'] = zone.domain;
+                                } else {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
+
                         } else {
                             zone['provider'] = this.model.clouds[data.cloud_id].provider;
                         }
@@ -720,7 +738,15 @@
                 this.model.cloudsArray.forEach(function(cloud) {
                     if (cloud.zonesArray != undefined && cloud.enabled) {
                         cloud.zonesArray.forEach(function(zone) {
-                            allZones.push(zone);
+                            var found = false;
+                            allZones.forEach(function(z){
+                                if (zone.id == z.id){
+                                    found = true;
+                                }
+                            })
+                            if (!found) {
+                                allZones.push(zone);
+                            }
                             zone.records.forEach(function(record){
                                 allRecords.push(record);
                             }) 
