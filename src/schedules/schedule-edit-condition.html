@@ -81,6 +81,14 @@
                 <div hidden$="{{!isTags}}" class="background">
                     <paper-textarea value="{{tagsString}}"></paper-textarea>
                 </div>
+                <div class="background">
+                    <paper-input value="{{machinesAgeDisplayNumber::input}}" label="If older than"></paper-input>
+                    <paper-radio-group selected="{{machinesAgeUnit::iron-select}}">
+                        <paper-radio-button name="minutes">minutes</paper-radio-button>
+                        <paper-radio-button name="hours">hours</paper-radio-button>
+                        <paper-radio-button name="days">days</paper-radio-button>
+                    </paper-radio-group>
+                </div>
                 <div class="progress">
                     <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
                     <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
@@ -141,16 +149,28 @@
                         type: Array,
                         // computed: '_computeTagsString(schedule, isTags)'
                     },
+                    machinesAge: {
+                        type: Number,
+                        value: false
+                    },
+                    machinesAgeDisplayNumber: {
+                        type: Number
+                    },
+                    machinesAgeUnit: {
+                        type: String
+                    }
                 },
                 observers: [
                     '_computeNewSchedule(schedule.*)',
                     '_isUuidsOrTagsChanged(isUuidsOrTags)',
-                    '_computeTagsString(schedule)'
+                    '_computeTagsString(schedule)',
+                    '_computeAgeParts(machinesAge)'
                 ],
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
                     'input': '_updatePayload',
-                    'change': '_updatePayload'
+                    'change': '_updatePayload',
+                    'iron-select': '_updatePayload'
                 },
                 _computeNewSchedule: function(schedule) {
                     if (this.schedule){
@@ -168,6 +188,24 @@
                         this.set('isUuidsOrTags', 'uuids')
                     else 
                         this.set('isUuidsOrTags', 'tags')
+                },
+                _computeAgeParts: function(age){
+                    var machineAge = parseInt(age),
+                        duration;
+
+                    if (age)
+                        duration = 'minutes';
+                    if (age >= 60 && age%(60) == 0) {
+                        duration = 'hours';
+                        machineAge = age/60;
+                    }
+                    if (age >= (60*24) && age%(60*24) == 0 ){
+                        machineAge = age/(60*24);
+                        duration = 'days';
+                    }
+
+                    this.set('machinesAgeDisplayNumber', machineAge);
+                    this.set('machinesAgeUnit', duration);
                 },
                 _computeIsUuids: function(schedule) {
                     if (this.schedule && this.schedule.machines)
@@ -200,6 +238,7 @@
                         this._formReset();
                 },
                 _submitForm: function(e) {
+                    // console.log("payload", this.payload);
                     this.$.editSchedule.body = this.payload;
                     this.$.editSchedule.headers["Content-Type"] = 'application/json';
                     this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -235,6 +274,23 @@
                         pl["machines_tags"] = this._constructTagsValue(this.textToArray(this.tagsString));
                         valid = this.textToArray(this.tagsString) ? this.textToArray(this.tagsString).length : false;
                     }
+
+
+                    if (parseInt(this.machinesAgeDisplayNumber) && this.machinesAgeUnit) {
+                        var minutes = parseInt(this.machinesAgeDisplayNumber);
+                        if (this.machinesAgeUnit == 'hours'){
+                            minutes = this.machinesAgeDisplayNumber * 60;
+                        }
+                        else if (this.machinesAgeUnit == 'days'){
+                            minutes = this.machinesAgeDisplayNumber * 60 * 24;
+                        }
+                        pl["conditions"] = [{type: 'age', minutes: minutes}]
+                    }
+                    else if (!parseInt(this.machinesAgeDisplayNumber)){
+                        pl["conditions"] = []
+                    }
+
+                    console.log('console', this.machinesAgeDisplayNumber, this.machinesAgeUnit)
                     this.set('payload', pl);
                     this.set('formReady', valid);
                 },
