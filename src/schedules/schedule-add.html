@@ -260,6 +260,20 @@ SCHEDULEACTIONS = {
                             val: 'days',
                             title: 'days'
                         }],
+                        class: "bind-both background",
+                    },{
+                        name: "machines_conditions_cost",
+                        label: "and cost more than",
+                        type: "text",
+                        value: null,
+                        defaultValue: "",
+                        show: true,
+                        required: false,
+                        suffix: '$/month',
+                        pattern: "[0-9]*",
+                        errorMessage: "Please enter numbers only!",
+                        excludeFromPayload: true,
+                        helptext: "Apply an extra filter of costing more than a certain ammount of $ per month",
                         class: "bind-top background",
                     },{
                         name: "conditions",
@@ -488,7 +502,7 @@ SCHEDULEACTIONS = {
             },
             _fieldsChanged: function(changeRecord){
                 // console.log('changeRecord', changeRecord);
-                if (changeRecord.path.endsWith('.value')) {
+                if (changeRecord.path.endsWith('.value') && changeRecord.path.split('.value').length < 3) {
 
                     // selecting action
                     if (this.get(changeRecord.path.replace('.value','')).name == "action" ){
@@ -527,7 +541,7 @@ SCHEDULEACTIONS = {
                         }
                     }
 
-                    // changing conditions
+                    // changing age conditions
                     if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_conditions_age_more_")){
                         var condsInd = this._fieldIndexByName("conditions"),
                             perInd = this._fieldIndexByName("machines_conditions_age_more_unit"),
@@ -538,11 +552,28 @@ SCHEDULEACTIONS = {
 
                         if (!changeRecord.value.length || !key.length || !parseInt(num)){
                             //clear conditions
-                            this.set('fields.'+ condsInd +'.value', []);
+                            // this.set('fields.'+ condsInd +'.value', []);
+                            this._removeObjectFromConditions('age')
                             this.set('fields.'+ condsInd +'.excludeFromPayload', true);
                         }
                         else {
-                            this._updateConditions(condsInd, key, num);
+                            this._updateAgeCondition(condsInd, key, num);
+                            this.set('fields.'+ condsInd +'.excludeFromPayload', false);
+                        }
+                    }
+
+                    // changing cost conditions
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_conditions_cost")){
+                        var condsInd = this._fieldIndexByName("conditions"),
+                            costInd = this._fieldIndexByName("machines_conditions_cost");
+
+                        if (!changeRecord.value.length || !parseInt(changeRecord.value)){
+                            //clear cost condition
+                            this._removeObjectFromConditions('cost__monthly')
+                            this.set('fields.'+ condsInd +'.excludeFromPayload', true);
+                        }
+                        else {
+                            this._updateObjectInConditions('cost__monthly', 'value', changeRecord.value, 'gt')
                             this.set('fields.'+ condsInd +'.excludeFromPayload', false);
                         }
                     }
@@ -619,7 +650,7 @@ SCHEDULEACTIONS = {
                 }
             },
 
-            _updateConditions: function(index, key, value) {
+            _updateAgeCondition: function(index, key, value) {
                 var minutes;
                 if (key == 'minutes')
                     minutes = value;
@@ -629,7 +660,55 @@ SCHEDULEACTIONS = {
                     minutes = value * 60 * 24;
 
                 if (minutes)
-                    this.set('fields.'+ index +'.value', [{'type': 'age', 'minutes': minutes}]);
+                    this._updateObjectInConditions('age', 'minutes', minutes);
+                    // this.set('fields.'+ index +'.value', [{'type': 'age', 'field': 'age', 'minutes': minutes}]);
+            },
+
+            _updateObjectInConditions: function(field, attr, value, operator){
+                var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
+                    conditionsField = conditions.find(function(con){
+                        return con.field == field;
+                    }),
+                    index = conditions.indexOf(conditionsField);
+
+                if (index > -1)
+                    this.set('fields.'+ this._fieldIndexByName("conditions") +'.value.' + index + '.' + attr, value);
+                else {
+                    this._addObjectInConditions(field, value, operator);
+                }
+
+            },
+
+            _addObjectInConditions: function(field, value, operator) {
+                var newCondition;
+                if (field == 'age'){
+                    newCondition = {
+                        type: 'age',
+                        field: 'age',
+                        minutes: value
+                    };
+                }
+                else {
+                    newCondition = {
+                        type: 'field',
+                        field: field,
+                        value: value
+                    };
+                    if (operator)
+                        newCondition['operator'] = operator;
+                }
+                this.push('fields.'+ this._fieldIndexByName("conditions") +'.value', newCondition);
+            },
+
+            _removeObjectFromConditions: function(field) {
+                var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
+                    field = conditions.find(function(con){
+                        return con.field == field;
+                    }),
+                    index = conditions.indexOf(field);
+
+                if (index > -1)
+                    this.splice('fields.'+ this._fieldIndexByName("conditions") +'.value', index, 1);
             },
 
             _processInterval: function() {
