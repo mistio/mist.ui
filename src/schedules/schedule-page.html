@@ -339,6 +339,7 @@
                     </template>
                     &nbsp; [[filteredItems.length]] machines affected </span>
                 <span class="smaller" hidden$="[[!machineAge]]">if older than [[_computeAgeText(machineAge)]]</span>
+                <span class="smaller" hidden$="[[!machineCost]]">and if costs more than $[[machineCost]]/month</span>
                 <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 <div class='missing-machines' hidden$="[[!missingMachines.length]]">
                     <template is="dom-repeat" items="[[missingMachines]]">
@@ -480,6 +481,11 @@
                     type: Number,
                     value: false,
                     computed: '_computeMachineAge(schedule.conditions)'
+                },
+                machineCost: {
+                    type: Number,
+                    value: false,
+                    computed: '_computeMachineCost(schedule.conditions)'
                 }
             },
             observers: [
@@ -542,6 +548,14 @@
                         return c.type == 'age';
                     });
                     return ageEntry ? ageEntry.minutes || false : false;
+                }
+            },
+            _computeMachineCost: function(conditions){
+                if (conditions){
+                    var costEntry = conditions.find(function(c){
+                        return c.type == 'field' && c.field == 'cost__monthly';
+                    });
+                    return costEntry ? costEntry.value || false : false;
                 }
             },
             _computeAgeText: function(age){
