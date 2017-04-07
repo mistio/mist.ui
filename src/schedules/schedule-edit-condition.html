@@ -82,7 +82,7 @@
                     <paper-textarea value="{{tagsString}}"></paper-textarea>
                 </div>
                 <div class="background">
-                    <paper-input value="{{machinesAgeDisplayNumber::input}}" label="If older than"></paper-input>
+                    <paper-input value="{{machinesAgeDisplayNumber::input}}" label="If older than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate></paper-input>
                     <paper-radio-group selected="{{machinesAgeUnit::iron-select}}">
                         <paper-radio-button name="minutes">minutes</paper-radio-button>
                         <paper-radio-button name="hours">hours</paper-radio-button>
@@ -90,7 +90,7 @@
                     </paper-radio-group>
                 </div>
                 <div class="background">
-                    <paper-input value="{{machinesCost::input}}" label="If costs more than">
+                    <paper-input value="{{costDisplay::input}}" label="If costs more than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate>
                         <div suffix>$/month</div>
                     </paper-input>
                 </div>
@@ -159,8 +159,10 @@
                         value: false
                     },
                     machinesCost: {
-                        type: Number,
-                        value: false
+                        type: Number
+                    },
+                    costDisplay: {
+                        type: String
                     },
                     machinesAgeDisplayNumber: {
                         type: Number
@@ -173,7 +175,8 @@
                     '_computeNewSchedule(schedule.*)',
                     '_isUuidsOrTagsChanged(isUuidsOrTags)',
                     '_computeTagsString(schedule)',
-                    '_computeAgeParts(machinesAge)'
+                    '_computeAgeParts(machinesAge)',
+                    '_computeCostDisplay(machinesCost)',
                 ],
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
@@ -215,6 +218,9 @@
 
                     this.set('machinesAgeDisplayNumber', machineAge);
                     this.set('machinesAgeUnit', duration);
+                },
+                _computeCostDisplay: function(cost){
+                    this.set('costDisplay', !cost ? "" : cost)
                 },
                 _computeIsUuids: function(schedule) {
                     if (this.schedule && this.schedule.machines)
@@ -296,11 +302,9 @@
                         }
                         pl["conditions"].push({type: 'age', minutes: minutes});
                     }
-                    if (parseInt(this.machinesCost)) {
-                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseInt(this.machinesCost), operator:'gt'})
+                    if (parseInt(this.costDisplay)) {
+                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseInt(this.costDisplay), operator:'gt'})
                     }
-
-                    console.log('console', this.machinesAgeDisplayNumber, this.machinesAgeUnit)
                     this.set('payload', pl);
                     this.set('formReady', valid);
                 },
