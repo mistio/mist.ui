@@ -573,7 +573,7 @@ SCHEDULEACTIONS = {
                             this.set('fields.'+ condsInd +'.excludeFromPayload', true);
                         }
                         else {
-                            this._updateObjectInConditions('cost__monthly', 'value', changeRecord.value, 'gt')
+                            this._updateObjectInConditions('cost__monthly', 'value', parseInt(changeRecord.value), 'gt')
                             this.set('fields.'+ condsInd +'.excludeFromPayload', false);
                         }
                     }
@@ -667,7 +667,7 @@ SCHEDULEACTIONS = {
             _updateObjectInConditions: function(field, attr, value, operator){
                 var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
                     conditionsField = conditions.find(function(con){
-                        return con.field == field;
+                        return field != 'age'? con.field == field : con.type == 'age';
                     }),
                     index = conditions.indexOf(conditionsField);
 
@@ -684,7 +684,6 @@ SCHEDULEACTIONS = {
                 if (field == 'age'){
                     newCondition = {
                         type: 'age',
-                        field: 'age',
                         minutes: value
                     };
                 }
