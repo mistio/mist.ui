@@ -65,7 +65,7 @@
         </style>
 
         <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Schedule Machines </h2>
+            <h2>Edit Schedule Conditions </h2>
             <paper-dialog-scrollable>
                 <div>
                     <paper-radio-group selected="{{isUuidsOrTags}}">
@@ -88,6 +88,11 @@
                         <paper-radio-button name="hours">hours</paper-radio-button>
                         <paper-radio-button name="days">days</paper-radio-button>
                     </paper-radio-group>
+                </div>
+                <div class="background">
+                    <paper-input value="{{machinesCost::input}}" label="If costs more than">
+                        <div suffix>$/month</div>
+                    </paper-input>
                 </div>
                 <div class="progress">
                     <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
@@ -150,6 +155,10 @@
                         // computed: '_computeTagsString(schedule, isTags)'
                     },
                     machinesAge: {
+                        type: Number,
+                        value: false
+                    },
+                    machinesCost: {
                         type: Number,
                         value: false
                     },
@@ -275,6 +284,7 @@
                         valid = this.textToArray(this.tagsString) ? this.textToArray(this.tagsString).length : false;
                     }
 
+                    pl["conditions"] = [];
 
                     if (parseInt(this.machinesAgeDisplayNumber) && this.machinesAgeUnit) {
                         var minutes = parseInt(this.machinesAgeDisplayNumber);
@@ -284,10 +294,10 @@
                         else if (this.machinesAgeUnit == 'days'){
                             minutes = this.machinesAgeDisplayNumber * 60 * 24;
                         }
-                        pl["conditions"] = [{type: 'age', minutes: minutes}]
+                        pl["conditions"].push({type: 'age', minutes: minutes});
                     }
-                    else if (!parseInt(this.machinesAgeDisplayNumber)){
-                        pl["conditions"] = []
+                    if (parseInt(this.machinesCost)) {
+                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseInt(this.machinesCost)})
                     }
 
                     console.log('console', this.machinesAgeDisplayNumber, this.machinesAgeUnit)
