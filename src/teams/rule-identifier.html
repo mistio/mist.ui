@@ -62,10 +62,10 @@
         iron-icon
         </style>
         <paper-dropdown-menu class="short" no-animations>
-            <paper-menu id="indettypeSelector" class="dropdown-content" selected="[[selectedIndetifierType]]">
-                <paper-item class="indettype" data-value="always">ALWAYS</paper-item>
-                <paper-item class="indettype" data-value="id" hidden$="[[!rule.rtype.length]]">WHERE ID</paper-item>
-                <paper-item class="indettype" data-value="tags">WHERE TAGS</paper-item>
+            <paper-menu id="identifierSelector" class="dropdown-content" selected="[[selectedIndetifierType]]">
+                <paper-item class="identifier-type" data-value="always">ALWAYS</paper-item>
+                <paper-item class="identifier-type" data-value="id" hidden$="[[!rule.rtype.length]]">WHERE ID</paper-item>
+                <paper-item class="identifier-type" data-value="tags">WHERE TAGS</paper-item>
             </paper-menu>
         </paper-dropdown-menu>
 
@@ -147,11 +147,10 @@
             	return this._computeRTags(rtags).join(', ');
             },
             _updateIdentifier: function(e){
-                // case of changing indettype 
-                if (e.detail.item.attributes.class.nodeValue.indexOf('indettype') > -1){
-                    console.log('_updateIdentifier',e.detail.item.dataset.value);
-                    var indettype = e.detail.item.dataset.value.toLowerCase();
-                    if (indettype == 'tags') {
+                // case of changing identifier-type 
+                if (e.detail.item.attributes.class.nodeValue.indexOf('identifier-type') > -1){
+                    var identifierType = e.detail.item.dataset.value.toLowerCase();
+                    if (identifierType == 'tags') {
                         this.set('showDropDown', false);
                         this.set('showTags', true);
                         if (this.tags.length == 0){
@@ -159,7 +158,7 @@
                     	// this.fire('update-rid', {'index': this.index, 'rid': ''});
                         }
                     }
-                    else if (indettype == 'id'){
+                    else if (identifierType == 'id'){
                      	this.set('showDropDown', true); 
                      	this.set('showTags', false);
                         // this.fire('update-rtags', {'index': this.index, 'rtags': {}});
@@ -174,7 +173,6 @@
                 }
                 // case of choοsing rid                 
                 else if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1){
-                    console.log('_updateIdentifier',e.detail.item.id);
                     var rid = e.detail.item.id;
                     this.fire('update-rid', {'index': this.index, 'rid': rid});
                 }
