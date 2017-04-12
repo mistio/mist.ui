@@ -283,7 +283,7 @@ SCHEDULEACTIONS = {
                         defaultValue: [],
                         show: false,
                         required: true,
-                        excludeFromPayload: true
+                        excludeFromPayload: false
                     }, {
                         name: "schedule_type",
                         label: "Schedule Type",
@@ -543,12 +543,14 @@ SCHEDULEACTIONS = {
                     if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_uuids")){
                         console.log('changeRecord.value',changeRecord.value);
                         this._updateObjectInConditions('machines', 'ids', changeRecord.value);
+                        this._removeObjectFromConditions('tags');
                     }
 
                     // changing tags
                     if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_tags")){
                         var textToArray = changeRecord.value.split(',');
                         this._updateObjectInConditions('tags', 'tags', this._constructTagsValue(textToArray));
+                        this._removeObjectFromConditions('machines');
                     }
 
                     // changing age conditions
@@ -563,11 +565,9 @@ SCHEDULEACTIONS = {
                         if (!changeRecord.value.length || !key.length || !parseInt(num)){
                             //clear conditions
                             this._removeObjectFromConditions('age');
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', true);
                         }
                         else {
                             this._updateAgeCondition(condsInd, key, num);
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', false);
                         }
                     }
 
@@ -579,11 +579,9 @@ SCHEDULEACTIONS = {
                         if (!changeRecord.value.length || !parseInt(changeRecord.value)){
                             //clear cost condition
                             this._removeObjectFromConditions('cost__monthly')
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', true);
                         }
                         else {
                             this._updateObjectInConditions('cost__monthly', 'value', parseInt(changeRecord.value), 'gt')
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', false);
                         }
                     }
 
@@ -679,9 +677,10 @@ SCHEDULEACTIONS = {
                         return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
                     }),
                     index = conditions.indexOf(conditionsField);
-
-                if (index > -1)
+                console.log('index', index);
+                if (index > -1){
                     this.set('fields.'+ this._fieldIndexByName("conditions") +'.value.' + index + '.' + attr, value);
+                }
                 else {
                     this._addObjectInConditions(field, value, operator);
                 }
@@ -723,7 +722,7 @@ SCHEDULEACTIONS = {
             _removeObjectFromConditions: function(field) {
                 var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
                     field = conditions.find(function(con){
-                        return field != 'age'? con.field == field : con.type == field;
+                        return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
                     }),
                     index = conditions.indexOf(field);
 
