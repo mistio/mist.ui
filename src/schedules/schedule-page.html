@@ -337,7 +337,9 @@
                     <template is="dom-repeat" items="[[tagsArray]]">
                         <span class="tag">[[item]]</span>
                     </template>
-                    &nbsp; [[filteredItems.length]] machines affected. </span>
+                    &nbsp; [[filteredItems.length]] machines affected </span>
+                <span class="smaller" hidden$="[[!machineAge]]">if older than [[_computeAgeText(machineAge)]]</span>
+                <span class="smaller" hidden$="[[!machineCost]]">and if costs more than $[[machineCost]]/month</span>
                 <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 <div class='missing-machines' hidden$="[[!missingMachines.length]]">
                     <template is="dom-repeat" items="[[missingMachines]]">
@@ -370,7 +372,11 @@
         <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
         <schedule-edit-mrc id="editMaxRunCount" schedule="[[schedule]]"></schedule-edit-mrc>
         <schedule-edit-task id="editScheduleTask" schedule="[[schedule]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
-        <schedule-edit-condition id="editScheduleCondition" schedule="[[schedule]]" model="[[model]]"></schedule-edit-condition>
+        <schedule-edit-condition id="editScheduleCondition" 
+            schedule="[[schedule]]" 
+            model="[[model]]" 
+            machines-age="[[machineAge]]"
+            machines-cost="[[machineCost]]"></schedule-edit-condition>
 
         <iron-ajax  id="deleteSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -471,7 +477,17 @@
                 expError: Boolean,
                 machines: Array,
                 tags: Array,
-                lastrequestedaction: String
+                lastrequestedaction: String,
+                machineAge: {
+                    type: Number,
+                    value: false,
+                    computed: '_computeMachineAge(schedule.conditions)'
+                },
+                machineCost: {
+                    type: Number,
+                    value: false,
+                    computed: '_computeMachineCost(schedule.conditions)'
+                }
             },
             observers: [
                 '_scheduleChanged(schedule)',
@@ -526,6 +542,39 @@
             _computeIsMachinesWithTags: function(schedule) {
                 if (this.schedule)
                     return this.schedule.machines_tags && JSON.stringify(this.schedule.machines_tags).length > 2 ? true : false;
+            },
+            _computeMachineAge: function(conditions){
+                if (conditions){
+                    var ageEntry = conditions.find(function(c){
+                        return c.type == 'age';
+                    });
+                    return ageEntry ? ageEntry.minutes || false : false;
+                }
+            },
+            _computeMachineCost: function(conditions){
+                if (conditions){
+                    var costEntry = conditions.find(function(c){
+                        return c.type == 'field' && c.field == 'cost__monthly';
+                    });
+                    return costEntry ? costEntry.value || false : false;
+                }
+            },
+            _computeAgeText: function(age){
+                var duration = 'minutes';
+                var machineAge = parseInt(age);
+                if (age >= 60 && age%(60) == 0) {
+                    machineAge = age/60;
+                    duration = 'hours';
+                    if (machineAge == 1)
+                        duration = 'hour';
+                }
+                if (age >= (60*24) && age%(60*24) == 0 ){
+                    machineAge = age/(60*24);
+                    duration = 'days';
+                    if (machineAge == 1)
+                        duration = 'day';
+                }
+                return machineAge +" "+ duration;
             },
             _editSchedule: function(e) {
                 this.$.editScheduleDialog._openEditScheduleModal();
@@ -766,7 +815,7 @@
                     var arrTags = Object.keys(tags); 
                     for (var i=0; i < arrTags.length; i++) {
                         var t = arrTags[i];
-                        if (tags[t] != null) {
+                        if (tags[t] != null && tags[t].trim() != '') {
                             arrTags[i] = arrTags[i]+'='+tags[t];
                         }
                     }
