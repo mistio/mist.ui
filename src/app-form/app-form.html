@@ -224,7 +224,10 @@
             <template is="dom-repeat" items="{{fields}}" as="field">
                 <template is="dom-if" if="[[field.show]]">
                     <template is="dom-if" if="[[_computeFieldType(field, 'text', field.show)]]">
-                        <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-input>
+                        <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate auto-validate pattern="[[field.pattern]]" required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" placeholder=[[field.placeholder]]>
+                            <div suffix hidden$="[[!field.suffix]]">[[field.suffix]]</div>
+                            <div prefix hidden$="[[!field.prefix]]">[[field.prefix]]</div>
+                        </paper-input>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'password', field.show)]]">
                         <paper-input  class$="xs12 m6 [[field.class]]" id="[[field.name]]" type="password" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]"></paper-input>
@@ -647,11 +650,13 @@
                             else if (el.name == "cloud_init") {
                                 return el.value.startsWith("#!/bin/bash") || el.value.startsWith("#cloud-config") || el.value.trim() == "";
                             }
+                            else if (el.name == "schedule_entry") {
+                                return !el.excludeFromPayload ? el.value : true;
+                            }
                             else {
                                 return el.show && el.required ? el.value : true;
                             }
                         }, this);
-                        
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
