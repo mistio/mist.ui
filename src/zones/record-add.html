@@ -84,6 +84,10 @@
                     model: {
                         type: Object
                     },
+                    zone_id: {
+                        type: String,
+                        value: "",
+                    },
                     zone: {
                         type: Object
                     },
@@ -381,7 +385,7 @@
             },
             observers: [
                 '_typeChanged(selectedRecordType, fields)',
-                '_zoneChanged(zone)',
+                '_zoneChanged(zone.id)',
             ],
             listeners: {
                 'change': 'updateFields'
@@ -395,20 +399,36 @@
                 if (this.fields.length && this.zone){
                     // update payload
                     var payload = {};
-                    payload = {
-                        type: this.selectedRecordType, 
-                        name: this.fields[0].value + '.' + this.zone.domain, 
-                        data: this.fields[1].value, 
-                        ttl: this.fields[2].value,
-                    }
+                    
+                    payload['type'] = this.selectedRecordType;
+
+                    var name = this.fields.findIndex(function(field) {
+                        return field.name == "name";
+                    }, this);
+                    payload['name'] = this.fields[name].value + this.fields[name].suffix + '.';
+
+                    var rdata = this.fields.findIndex(function(field) {
+                        return field.name == "rdata";
+                    }, this);
+                    payload['data'] = this.fields[rdata].value;
+
+                    var ttl = this.fields.findIndex(function(field) {
+                        return field.name == "ttl";
+                    }, this);
+                    payload['ttl'] = this.fields[ttl].value;
+
                     this.set('record', payload);
                     console.warn('Update Payload:' + payload)
                 }
             },
-            _zoneChanged: function(zone) {
-                this.selectedRecordType = false;
-                this.set('fields', []);
-                this.updateFields();
+            _zoneChanged: function(zone_id) {
+                console.error("zone_id: " + zone_id);
+                if (this.zone_id != zone_id) {
+                    this.zone_id = zone_id;
+                    this.selectedRecordType = false;
+                    this.set('fields', []);
+                    this.updateFields();
+                }
             },
             _typeChanged: function(selectedRecordType, fields) {
                 if (this.selectedRecordType == "A") {
