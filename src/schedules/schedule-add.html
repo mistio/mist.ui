@@ -492,12 +492,27 @@ SCHEDULEACTIONS = {
 
                         if (f.name  == "machines_uuids") {
                             f.options = this.model.machinesArray || [];
+                            this._updateCheckboxes();
                         }
 
                         if (f.name.startsWith("action")) {
                             f.options = this.actions;
                         }
                     }, this);
+                }
+            },
+            _updateCheckboxes: function(){
+                //check if any checkboxes are selected
+                var checkedMachines = this.get('fields.' +this._fieldIndexByName("machines_uuids")+ '.value');
+                //if there are selected checkboxes, keep selection on update
+                if (checkedMachines && checkedMachines.length){
+                    var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
+                    [].forEach.call(checkboxes, function(el, index) {
+                        if (checkedMachines.indexOf(el.dataValue) > -1)
+                            el.checked = true;
+                        else
+                            el.checked = false;
+                    });
                 }
             },
             _fieldsChanged: function(changeRecord){
