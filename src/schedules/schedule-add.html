@@ -220,7 +220,7 @@ SCHEDULEACTIONS = {
                         defaultValue: "",
                         show: true,
                         required: true,
-                        excludeFromPayload: false,
+                        excludeFromPayload: true,
                         helptext: "Scheduler will include all machines with the specified tags. Alphanumerical only.",
                         class: "bind-both background",
                         showIf: {
@@ -283,7 +283,7 @@ SCHEDULEACTIONS = {
                         defaultValue: [],
                         show: false,
                         required: true,
-                        excludeFromPayload: true
+                        excludeFromPayload: false
                     }, {
                         name: "schedule_type",
                         label: "Schedule Type",
@@ -520,18 +520,16 @@ SCHEDULEACTIONS = {
 
                     // selecting uuids or tags
                     if (this.get(changeRecord.path.replace('.value','')).name == "ids_or_tags"){
-
-                        var uuidsInd = this._fieldIndexByName("machines_uuids");
-                        var tagstInd = this._fieldIndexByName("machines_tags");
+                        var condsInd = this._fieldIndexByName("conditions"),
+                            uuidsInd = this._fieldIndexByName("machines_uuids"),
+                            tagstInd = this._fieldIndexByName("machines_tags");
 
                         if (changeRecord.value == "ids") {
-                            this.set('fields.'+ uuidsInd +'.excludeFromPayload', false);
-                            this.set('fields.'+ tagstInd +'.excludeFromPayload', true);
+                            this._removeObjectFromConditions('tags');
                         }
                         else if (changeRecord.value == "tags") {
-                            this.set('fields.'+ uuidsInd +'.excludeFromPayload', true);
-                            this.set('fields.'+ tagstInd +'.excludeFromPayload', false);
-
+                            this._removeObjectFromConditions('machines');
+                            
                             // clear checkbox selection
                             this.set('fields.'+ uuidsInd +'.value', []);
                             var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
@@ -539,6 +537,20 @@ SCHEDULEACTIONS = {
                                 el.checked = false;
                             });
                         }
+                    }
+
+                    // changing uuids
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_uuids")){
+                        console.log('changeRecord.value',changeRecord.value);
+                        this._updateObjectInConditions('machines', 'ids', changeRecord.value);
+                        this._removeObjectFromConditions('tags');
+                    }
+
+                    // changing tags
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_tags")){
+                        var textToArray = changeRecord.value.split(',');
+                        this._updateObjectInConditions('tags', 'tags', this._constructTagsValue(textToArray));
+                        this._removeObjectFromConditions('machines');
                     }
 
                     // changing age conditions
@@ -552,13 +564,10 @@ SCHEDULEACTIONS = {
 
                         if (!changeRecord.value.length || !key.length || !parseInt(num)){
                             //clear conditions
-                            // this.set('fields.'+ condsInd +'.value', []);
-                            this._removeObjectFromConditions('age')
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', true);
+                            this._removeObjectFromConditions('age');
                         }
                         else {
                             this._updateAgeCondition(condsInd, key, num);
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', false);
                         }
                     }
 
@@ -570,11 +579,9 @@ SCHEDULEACTIONS = {
                         if (!changeRecord.value.length || !parseInt(changeRecord.value)){
                             //clear cost condition
                             this._removeObjectFromConditions('cost__monthly')
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', true);
                         }
                         else {
                             this._updateObjectInConditions('cost__monthly', 'value', parseInt(changeRecord.value), 'gt')
-                            this.set('fields.'+ condsInd +'.excludeFromPayload', false);
                         }
                     }
 
@@ -667,12 +674,13 @@ SCHEDULEACTIONS = {
             _updateObjectInConditions: function(field, attr, value, operator){
                 var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
                     conditionsField = conditions.find(function(con){
-                        return field != 'age'? con.field == field : con.type == field;
+                        return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
                     }),
                     index = conditions.indexOf(conditionsField);
-
-                if (index > -1)
+                console.log('index', index);
+                if (index > -1){
                     this.set('fields.'+ this._fieldIndexByName("conditions") +'.value.' + index + '.' + attr, value);
+                }
                 else {
                     this._addObjectInConditions(field, value, operator);
                 }
@@ -685,6 +693,18 @@ SCHEDULEACTIONS = {
                     newCondition = {
                         type: 'age',
                         minutes: value
+                    };
+                }
+                else if (field == 'machines'){
+                    newCondition = {
+                        type: 'machines',
+                        ids: value
+                    };
+                }
+                else if (field == 'tags'){
+                    newCondition = {
+                        type: 'tags',
+                        tags: value
                     };
                 }
                 else {
@@ -702,7 +722,7 @@ SCHEDULEACTIONS = {
             _removeObjectFromConditions: function(field) {
                 var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
                     field = conditions.find(function(con){
-                        return field != 'age'? con.field == field : con.type == field;
+                        return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
                     }),
                     index = conditions.indexOf(field);
 
@@ -734,6 +754,19 @@ SCHEDULEACTIONS = {
                         'month_of_year': chunchs[4]
                     };
                 return construct;
+            },
+            _constructTagsValue: function(tagStringsArray) {
+                var arr = {};
+                tagStringsArray.forEach(function(string){
+                    var chunks = string.split("=");
+                    if (chunks.length > 0 && chunks[0].trim().length > 0) {
+                        var key = chunks[0].trim();
+                        arr[key] = "";
+                        if (chunks.length > 1)
+                            arr[key] = chunks[1].trim();
+                    }
+                });
+                return arr;
             },
             _handleAddScheduleResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);
