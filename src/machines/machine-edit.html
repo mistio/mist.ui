@@ -31,7 +31,7 @@
             <paper-dialog-scrollable>
                 <p>
                     <template is="dom-repeat" items="[[itemsObj]]">
-                        <paper-input id="item[[item.uuid]]" label="[[_computeLabel(item.name)]]" required allowed-pattern="[A-Za-z0-9]" error-message="Please enter machines's new name" value="[[item.name]]"></paper-input>
+                        <paper-input id="item[[item.id]]" label="[[_computeLabel(item.name)]]" required allowed-pattern="[A-Za-z0-9]" error-message="Please enter machines's new name" value="[[item.name]]"></paper-input>
                     </template>
                 </p>
                 <div class="clearfix btn-group">
@@ -60,7 +60,7 @@
                     machine: {
                         type: Object,
                         value: {
-                            uuid: null
+                            id: null
                         },
                         notify: true
                     },
@@ -70,7 +70,7 @@
                     },
                     formReady: {
                         type: Boolean,
-                        computed: '_computeFormReady(machine.uuid, sendingData)'
+                        computed: '_computeFormReady(machine.id, sendingData)'
                     }
                 },
                 listeners: {
@@ -80,10 +80,11 @@
 
                 },
                 _computeItemsObj: function(items){
+                    console.log('items',items);
                     if (items)
                     return this.model.machinesArray.filter(function(m){
-                        var str = 'machine:'+m.cloud.id+':'+m.id;
-                        return str.indexOf(this.items)>-1;
+                        var str = 'machine::' + m.id;
+                        return this.items.indexOf(str) > -1;
                     }, this);
                 },
                 _computeFormReady: function(id, sendingData) {
@@ -118,10 +119,10 @@
                     var items = this.itemsObj.slice(0);
                     var run = function(el) {
                         var item = items.shift(),
-                            itemName = el.querySelector('#item'+item.uuid).value;
+                            itemName = el.querySelector('#item'+item.id).value;
 
                         request.body = {'action': 'rename', 'name': itemName};
-                        request.url = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id;
+                        request.url = '/api/v1/machines/' + item.id;
 
                         request.headers["Content-Type"] = 'application/json';
                         request.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -136,7 +137,7 @@
                     this._closeDialod();
                 },
                 _formReset: function() {
-                      this.set('machine.uuid', '');
+                      this.set('machine.id', '');
                 },
                 _editMachineAjax: function(e) {
                     
