@@ -52,7 +52,7 @@
             }
             .background {
                 padding: 16px;
-                max-height: 300px;
+                max-height: 310px;
                 overflow: scroll;
             }
             paper-checkbox {
@@ -73,9 +73,9 @@
                         <paper-radio-button name="tags">Machines with tags</paper-radio-button>
                     </paper-radio-group>
                 </div>
-                <div hidden$="{{!isUuids}}" class="background">
+                <div id="checkboxes" hidden$="{{!isUuids}}" class="background">
                     <template is="dom-repeat" items="[[model.machinesArray]]" as="machine">
-                        <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(schedule, machine.uuid)]]" data-value="[[machine.uuid]]">[[machine.name]]</paper-checkbox>
+                        <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machinesIds, machine.uuid)]]" data-value="[[machine.uuid]]">[[machine.name]]</paper-checkbox>
                     </template>
                 </div>
                 <div hidden$="{{!isTags}}" class="background">
@@ -146,13 +146,19 @@
                         type: Boolean,
                         value: false
                     },
+                    conditions: {
+                        type: Array
+                    },
+                    machinesIds: {
+                        type: Array,
+                        computed: "_computeMachinesIds(schedule.conditions)"
+                    },
                     payload: {
                         type: Object,
                         value: {}
                     },
                     tagsString: {
-                        type: Array,
-                        // computed: '_computeTagsString(schedule, isTags)'
+                        type: Array
                     },
                     machinesAge: {
                         type: Number,
@@ -174,7 +180,7 @@
                 observers: [
                     '_computeNewSchedule(schedule.*)',
                     '_isUuidsOrTagsChanged(isUuidsOrTags)',
-                    '_computeTagsString(schedule)',
+                    '_computeTagsString(conditions)',
                     '_computeAgeParts(machinesAge)',
                     '_computeCostDisplay(machinesCost)',
                 ],
@@ -187,16 +193,36 @@
                 _computeNewSchedule: function(schedule) {
                     if (this.schedule){
                         var newSchedule = {
-                            machines_uuid: this.schedule.machines_uuid || [],
-                            machines_tags: this.schedule.machines_tags || {}
+                            conditions: this.schedule.conditions
                         };
                         this.set('newSchedule', newSchedule);
-                        // this.set('tagsString', this._computeTagsString(this.schedule, this.isTags));
-                        this._computeIsUuidsOrTags(schedule);
+                        this.set('conditions', this.schedule.conditions);
+                        this._computeIsUuidsOrTags(schedule, this.machinesIds);
                     }
                 },
-                _computeIsUuidsOrTags: function(schedule) {
-                    if (this.schedule && this.schedule.machines_uuids)
+                _computeMachinesIds: function(conditions) {
+                    var uuids = [];
+                    if (!conditions || !conditions.length || !this._findCondition('machines')){
+                        return uuids;
+                    }
+                    else {
+                        uuids = conditions.find(function(c){return c.type == "machines"}).ids;
+                    }
+                    return uuids;
+                },
+                _findCondition: function(field) {
+                    if (this.schedule.conditions && this.schedule.conditions.length){
+                        var field = this.schedule.conditions.find(function(con){
+                            return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
+                        })
+                        if (field)
+                            return true;
+                        return false;
+                    }
+                    return false;
+                },
+                _computeIsUuidsOrTags: function(schedule, machinesIds) {
+                    if (this.schedule && this.machinesIds.length)
                         this.set('isUuidsOrTags', 'uuids')
                     else 
                         this.set('isUuidsOrTags', 'tags')
@@ -241,6 +267,7 @@
                         this.set('isUuids', false);
                         this.set('isTags', true);
                     }
+                    this.$.editScheduleModal.center();
                 },
                 _openEditScheduleModal: function(e) {
                     this.$.editScheduleModal.open();
@@ -262,7 +289,7 @@
                 _formReset: function() {
                     var checkboxes = this.querySelectorAll('paper-checkbox');
                     Array.prototype.forEach.call(checkboxes, function(c){
-                        c.checked = this._computeIfChecked(this.schedule, c.dataValue);
+                        c.checked = this._computeIfChecked(this.machinesIds, c.dataValue);
                     }.bind(this));
                     this._computeNewSchedule();
                 },
@@ -280,17 +307,19 @@
                     var pl = {},
                         plLength,
                         valid = false;
+
+                    pl["conditions"] = [];
                     
                     if (this.isUuids){
-                        pl["machines_uuids"] = this._constructCheckboxValue();
+                        var ids = this._constructCheckboxValue();
+                        pl["conditions"].push({type: 'machines', ids: ids});
                         valid = this._constructCheckboxValue().length; 
                     }
                     else if (this.isTags) {
-                        pl["machines_tags"] = this._constructTagsValue(this.textToArray(this.tagsString));
+                        var tags = this._constructTagsValue(this.textToArray(this.tagsString));
+                        pl["conditions"].push({type: 'tags', tags: tags});
                         valid = this.textToArray(this.tagsString) ? this.textToArray(this.tagsString).length : false;
                     }
-
-                    pl["conditions"] = [];
 
                     if (parseInt(this.machinesAgeDisplayNumber) && this.machinesAgeUnit) {
                         var minutes = parseInt(this.machinesAgeDisplayNumber);
@@ -308,9 +337,9 @@
                     this.set('payload', pl);
                     this.set('formReady', valid);
                 },
-                _computeIfChecked: function(schedule, machineId) {
-                    if (schedule && this.schedule.machines_uuids)
-                        return this.schedule.machines_uuids.indexOf(machineId) > -1;
+                _computeIfChecked: function(machinesIds, machineId) {
+                    if (this.schedule && this.machinesIds)
+                        return this.machinesIds.indexOf(machineId) > -1;
                     else
                         return false;
                 },
@@ -348,9 +377,9 @@
                     }
                     return arr;
                 },
-                _computeTagsString: function(schedule){
-                    if (this.schedule && this.schedule.machines_tags) {
-                        var tags = this.schedule.machines_tags;
+                _computeTagsString: function(conditions){
+                    if (this.conditions && this.schedule && this.conditions.length) {
+                        var tags = this.conditions.find(function(c){return c.type=="tags"}) ? this.conditions.find(function(c){return c.type=="tags"}).tags : {};
                         var arrTags = Object.keys(tags); 
                         for (var i=0; i < arrTags.length; i++) {
                             var t = arrTags[i];
