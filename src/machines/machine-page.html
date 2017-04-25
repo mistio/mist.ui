@@ -389,7 +389,7 @@
                         [[machine.cloud.title]]</span>
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
                         <iron-icon src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
-                        [[_computeMachineImage(machine)]]</span>
+                        [[machineImage]] [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
                         [[_computeMachineSize(machine)]]</span>
                     <span hidden$="[[!machine.extra.created]]"><span class="m-info-head">Created:</span>
@@ -467,12 +467,12 @@
                     <table class="info-table">
                         <template is="dom-if" if="[[machine.public_ips]]">
                             <tr>
-                                <td>Machine ID</td>
+                                <td>Machine ID (Mist.io unique id)</td>
                                 <td>[[machine.id]]</td>
                             </tr>
                             <tr>
-                                <td>UUID</td>
-                                <td>[[machine.uuid]]</td>
+                                <td>Machine ID given by the provider</td>
+                                <td>[[machine.machine_id]]</td>
                             </tr>
                             <tr><td>Public IPs</td>
                                 <td><template is="dom-repeat" items="[[machine.public_ips]]">
@@ -523,7 +523,7 @@
                     on-error="_handleMachineDeleteAjaxError"></iron-ajax>
 
         <iron-ajax  id="disassociateKeyRequest"
-                    url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/keys/[[disassociateKeyId]]"
+                    url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]"
                     method="DELETE"
                     on-response="_disassociateKeyResponse"
                     on-error="_disassociateKeyError"
@@ -531,13 +531,13 @@
                     handle-as="xml"></iron-ajax>
 
         <iron-ajax  id="probeMachine"
-                    url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/probe"
+                    url="/api/v1/machines/[[machine.id]]/probe"
                     method="POST"
                     loading="{{probeLoading}}"
                     on-error="_probeError"
                     handle-as="xml"></iron-ajax>
 
-        <machine-edit machine="[[machine]]"></machine-edit>
+        <!-- <machine-edit model="[[model]]" items="[[itemInArray]]"></machine-edit> -->
         <paper-toast></paper-toast>
     </template>
 </dom-module>
@@ -655,7 +655,7 @@ Polymer({
         },
         machineImage: {
             type: String,
-            computed: "_machineImage(machine.imageId)"
+            computed: "_machineImage(machine.image_id)"
         },
         dashboard: {
             type: Object
@@ -820,7 +820,7 @@ Polymer({
         // if (!this.machine || this.model.monitoring || !this.model.monitoring.monitored_machines || !this.model.monitoring.monitored_machines[machine.uuid] || !this.model.monitoring.monitored_machines[machine.uuid].installation_status.activated_at)
         //     return false;
         // else
-        if (this.model.monitoring.monitored_machines[machine.uuid])
+        if (this.model.monitoring.monitored_machines[machine.id])
             return this.model.monitoring.monitored_machines[machine.uuid].installation_status.activated_at;
     },
     _machineImage: function(id) {
@@ -923,11 +923,11 @@ Polymer({
     },
     _computeProbeData: function(machine, probes){
         if (this.model && this.model.probes && this.model.probes[machine.uuid] && this.model.probes[machine.uuid].loadavg.length)
-            return this.model.probes[machine.uuid].loadavg[0]+", "+this.model.probes[machine.uuid].loadavg[1]+", "+this.model.probes[machine.uuid].loadavg[2]+" - "+this.model.probes[machine.uuid].cores+" cores. Last probe: "+moment(this.model.probes[machine.uuid].timestamp*1000).fromNow();
+            return this.model.probes[machine.machine_id].loadavg[0]+", "+this.model.probes[machine.machine_id].loadavg[1]+", "+this.model.probes[machine.machine_id].loadavg[2]+" - "+this.model.probes[machine.machine_id].cores+" cores. Last probe: "+moment(this.model.probes[machine.machine_id].timestamp*1000).fromNow();
     },
     _computeDirtyCowAlert: function(machine, probes){
          var info = "";
-         if (this.model && this.model.probes && this.model.probes[machine.uuid]){
+         if (this.model && this.model.probes && this.model.probes[machine.machine_id]){
              if (this.model.probes[machine.uuid].dirty_cow != undefined)
                  info += "Dirty COW vulnerability found. Update kernel.";
          }
@@ -937,11 +937,11 @@ Polymer({
         if (!probes) {
             return false;
         } else {
-            if (!this.model || !this.model.probes || !this.model.probes[item.uuid] || !this.model.probes[item.uuid].loadavg) {
+            if (!this.model || !this.model.probes || !this.model.probes[item.machine_id] || !this.model.probes[item.machine_id].loadavg) {
                 return false;
             } else {
-                var probe = this.model.probes[item.uuid].loadavg;
-                var cores =  parseInt(this.model.probes[item.uuid].cores);
+                var probe = this.model.probes[item.machine_id].loadavg;
+                var cores =  parseInt(this.model.probes[item.machine_id].cores);
                 var classes = '';
                 var prefix = '';
 
@@ -958,8 +958,8 @@ Polymer({
         }
     },
     _computeProbeObj: function (machine, probes){
-        if (this.model && this.model.probes && this.model.probes[machine.uuid] && this.model.probes[machine.uuid])
-            return this.model.probes[machine.uuid];
+        if (this.model && this.model.probes && this.model.probes[machine.machine_id] && this.model.probes[machine.machine_id])
+            return this.model.probes[machine.machine_id];
         return false;
     },
     loadToColor: function(load, prefix){
