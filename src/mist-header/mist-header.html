@@ -100,17 +100,23 @@
              width: 80px;
              height: 36px;
         }
+        /* iphone 6 plus*/
+        @media screen and (max-width: 450px) {
+            .title.search {
+                display: none;
+            }
+        }
         </style>
         <paper-toolbar id="header" class="dark">
             <paper-icon-button icon="menu" paper-drawer-toggle on-tap="toggleSidebar" tabindex="0"></paper-icon-button>
             <div class="logo-and-title layout horizontal">
                 <a id="logo-link" class="regular" href="/" is="pushstate-anchor">
-                    <iron-image class="logo" src$="[[_computeLogo(model.org)]]" sizing="contain" fade alt="Mist.io Logo" tabindex="0" on-tap="_goToDashboard"></iron-image>
+                    <iron-image class="logo" src$="[[_computeLogo(model.org)]]" sizing="contain" fade alt="Mist.io Logo" tabindex="0"></iron-image>
                 </a>
                 <span class="page-title">[[titleText]]</span>
             </div>
-            <span class="title layout horizontal">
-                <top-search model="[[model]]" tabindex="3"></top-search>
+            <span class="title search layout horizontal">
+                <top-search model="[[model]]" tabindex="3" viewing-list=[[viewingList]]></top-search>
             </span>
             <div class="container" tabindex="4">
                 <!--notifications-element></notifications-element-->
@@ -125,6 +131,7 @@
         properties: {
             title: String,
             model: Object,
+            viewingList: Boolean,
             titleText: {
                 type: String,
                 computed: '_titleText(title)'
@@ -135,11 +142,6 @@
         },
         toggleSidebar: function() {
             document.querySelector('app-sidebar').toggleSidebar(); // update classes
-        },
-        _goToDashboard: function(e) {
-            var main = document.querySelector('app-main');
-            if (main)
-                main.updateCurrent('show-dashboard');
         },
         _computeUserTeams: function(user, teams){
             if (!teams.length)

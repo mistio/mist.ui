@@ -91,7 +91,7 @@
                     <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
                         <paper-menu attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[providers]]" as="provider">
-                                <paper-item value="[[provider.id]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px" disabled$="{{!_isOnline(provider.id, model.clouds)}}">[[provider.title]]</paper-item>
+                                <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
@@ -199,6 +199,7 @@ SCHEDULEACTIONS = {
                 },
                 observers: [
                     '_cloudChanged(selectedCloud, machinesFields)',
+                    '_modelChanged(model.*)',
                     '_machineFieldsChanged(model, selectedCloud, machineFields.*)'
                 ],
                 listeners: {
@@ -224,10 +225,10 @@ SCHEDULEACTIONS = {
                 },
                 _computeProviderLogo: function(className) {
                     var identifier = className.split('_')[0];
-                    return '../assets/providers/provider-' + identifier + '.png';
+                    return 'assets/providers/provider-' + identifier + '.png';
                 },
-                _isOnline: function(cloud, clouds){
-                    return this.model.clouds[cloud].state == 'running';
+                _isOnline: function(cloud, state, clouds){
+                    return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
                 },
                 _computeFieldType: function(field, value, show) {
                     if (!(field.showIf && !field.show)) {
@@ -272,16 +273,22 @@ SCHEDULEACTIONS = {
                     if (this.selectedCloud) {
                         var cloudId = this.selectedCloud;
                         console.log('cloudId', cloudId);
+
+                        // if is onapp change fields
+                        if (this.model.clouds[this.selectedCloud].provider == "onapp"){
+                            this._updateFieldsForOnapp();
+                        }
+
                         this.machineFields.forEach(function(f, index) {
                             if (f.name.endsWith("location")) {
-                                f.options = this.model.clouds[cloudId].locationsArray;
+                                f.options = this.model.clouds[cloudId].locationsArray || [];
                             }
                             if (f.name.endsWith("image")) {
-                                f.options = this.model.clouds[cloudId].imagesArray.sort(function(ima, imb){
+                                f.options = this.model.clouds[cloudId].imagesArray ? this.model.clouds[cloudId].imagesArray.sort(function(ima, imb){
                                     if (ima.star){
                                         return -1;
                                     }
-                                });
+                                }) : [];
                                 for (var i = 0; i < f.options.length; i++) {
                                     if (f.options[i].star){
                                         f.options[i].icon = 'icons:star';
@@ -290,25 +297,30 @@ SCHEDULEACTIONS = {
                                         break;
                                     }
                                 }
+                                // console.log('images', f.options);
                             }
                             if (f.name.endsWith("size")) {
-                                f.options = this.model.clouds[cloudId].sizesArray;
+                                f.options = this.model.clouds[cloudId].sizesArray || [];
+                                // allow custom size set
+                                if (this.model.clouds[this.selectedCloud].provider == "onapp") {
+                                    f.options = [{name:"Custom Size", id:"custom", button: true}].concat(f.options);
+                                }
                             }
                             if (f.name.endsWith("key")) {
-                                f.options = this.model.keysArray;
+                                f.options = this.model.keysArray || [];
                             }
 
                             if (f.name.startsWith("script") || f.name.startsWith("schedule_script")) {
-                                f.options = this.model.scriptsArray;
+                                f.options = this.model.scriptsArray || [];
                             }
 
                             if (f.name.startsWith("action")) {
-                               f.options = this.scheduleActions;
+                               f.options = this.scheduleActions || [];
                             }
 
                             // for openstack this sould be multi selection
                             if (f.name.endsWith("networks")) {
-                                f.options = this.model.clouds[cloudId].networksArray;
+                                f.options = this.model.clouds[cloudId].networksArray || [];
                             }
 
                             if (f.required && f.options && f.options.length == 1){
@@ -329,6 +341,7 @@ SCHEDULEACTIONS = {
                         if (this.model.clouds[this.selectedCloud].provider == "libvirt"){
                             this._updateFieldsForKvm();
                         }
+
                     }
                 },
                 _machineFieldsChanged: function(model, selectedCloud, changeRecord){
@@ -365,9 +378,44 @@ SCHEDULEACTIONS = {
                             this._toggleScriptFields(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
+                        if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path.endsWith('value')){
+                            // if is onapp controll options based on location
+                            if (this.get(changeRecord.path.replace('.value','')).name == 'location')
+                                this._updateFieldOptionsForOnapp(changeRecord.value);
+                            // if is onapp controll options based on image
+                            if (this.get(changeRecord.path.replace('.value','')).name == 'image')
+                                this._updateFieldMinsForOnapp(changeRecord.value);
+                            // if is onapp controll total size
+                            if (this.get(changeRecord.path.replace('.value','')).name == 'size_disk_primary')
+                                this._updateDiskMax('size_disk_swap', changeRecord.value);
+                            // if is onapp controll total size
+                            if (this.get(changeRecord.path.replace('.value','')).name == 'size_disk_swap')
+                                this._updateDiskMax('size_disk_primary', changeRecord.value);
+                        }
 
                         // update scheduler fields
                         if (changeRecord.path.endsWith('.value')) {
+                            var scheduleFields = ['action','schedule_script_id','params','schedule_type','schedule_entry','start_after','expires','max_run_count'];
+                            var scheduleFieldFalse = ['action','params', 'schedule_type','schedule_entry','start_after','expires','max_run_count']
+                            // toggling scehduler
+                            if (this.get(changeRecord.path.replace('.value','')).name == "post_provision_scheduler"){
+                                //console.log('schedule changed', changeRecord.value);
+                                if (changeRecord.value == true){
+                                    for (var i = 0; i < scheduleFieldFalse.length; i ++){
+                                        var index = this._fieldIndexByName(scheduleFieldFalse[i]);
+                                        this.set('machineFields.'+ index +'.excludeFromPayload', false);
+                                        //console.log('FALSE', scheduleFieldFalse[i])
+                                    }
+                                }
+                                else {
+                                    for (var i = 0; i < scheduleFields.length; i ++){
+                                        var index = this._fieldIndexByName(scheduleFields[i]);
+                                        this.set('machineFields.'+ index +'.excludeFromPayload', true);
+                                        //console.log('TRUE', scheduleFields[i])
+                                    }
+                                }
+                            }
+
                             // selecting action or script
                             if (this.get(changeRecord.path.replace('.value','')).name == "action"){
                                 var actionInd = this._fieldIndexByName("action");
@@ -405,7 +453,7 @@ SCHEDULEACTIONS = {
                                     this.set('machineFields.'+ maxcountInd +'.value', "");
                                 }
                                 else if (changeRecord.value == "one_off") {
-                                    entry = document.getElementById("schedule_entry_one_off").textContent.split(',')[1] ? document.getElementById("schedule_entry_one_off").textContent.split(',')[1].trim()+":00" : "";
+                                    entry = document.getElementById("schedule_entry_one_off") && document.getElementById("schedule_entry_one_off").textContent && document.getElementById("schedule_entry_one_off").textContent.split(',')[1] ? document.getElementById("schedule_entry_one_off").textContent.split(',')[1].trim()+":00" : "";
                                     this.set('machineFields.'+ expInd +'.disabled', true);
                                     this.set('machineFields.'+ maxcountInd +'.value', 1);
                                     this.set('machineFields.'+ maxcountInd +'.disabled', true);
@@ -461,8 +509,8 @@ SCHEDULEACTIONS = {
                     for (var i = 0; i < lines.length; i++) {
                         var ports = lines[i].split(':');
 
-                        var p1 = ports[0], 
-                            p2 = ports[1]; 
+                        var p1 = ports[0],
+                            p2 = ports[1];
 
                         //sanitize
                         if (p1)
@@ -498,7 +546,7 @@ SCHEDULEACTIONS = {
                     if (image) {
                         // save in fields
                         var indImEx = this._fieldIndexByName('image_extra');
-                        if (indImEx) 
+                        if (indImEx)
                             this.set('machineFields.'+indImEx+'.value', this.model.clouds[this.selectedCloud].images[image].extra);
                     }
                 },
@@ -506,9 +554,96 @@ SCHEDULEACTIONS = {
                     if (location) {
                         // save in fields
                         var indLocName = this._fieldIndexByName('location_name');
-                        if (indLocName) 
+                        if (indLocName)
                             this.set('machineFields.'+indLocName+'.value', this.model.clouds[this.selectedCloud].locations[location].name);
                     }
+                },
+                _updateDiskMax: function(name, value, total){
+                    var sizeInd = this._fieldIndexByName(name),
+                        location = this.model.clouds[this.selectedCloud].locations[this.get('machineFields.'+this._fieldIndexByName('location')+'.value')];
+
+                    if (!location)
+                        return;
+
+                    if (!total)
+                        var total = location.extra.max_disk_size;
+
+                    if (total && total-value > 0)
+                        this.set('machineFields.'+ sizeInd +'.max', total-value);
+                },
+                _updateFieldsForOnapp: function () {
+                    var keyInd = this._fieldIndexByName('key');
+                    this.set('machineFields.'+ keyInd +'.required', false);
+                    this.set('machineFields.'+ keyInd +'.label', "Key");
+                    this.set('machineFields.'+ keyInd +'.helptext', "Optional.");
+
+                    var monInd = this._fieldIndexByName('monitoring');
+                    this.set('machineFields.'+ monInd +'.value', false);
+                },
+                _updateFieldMinsForOnapp: function(image) {
+                    var image = this.model.clouds[this.selectedCloud].images[image];
+
+                    if (!image) {
+                        return;
+                    }
+
+                    var ramInd = this._fieldIndexByName('size_ram'),
+                        diskInd = this._fieldIndexByName('size_disk_primary');
+
+                    this.set('machineFields.'+ramInd+'.min', image.extra.min_memory_size);
+                    this.set('machineFields.'+diskInd+'.min', image.extra.min_disk_size);
+
+                    console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
+                },
+                _updateFieldOptionsForOnapp: function(loc) {
+                    var location = this.model.clouds[this.selectedCloud].locations[loc];
+
+                    if (!location) {
+                        return;
+                    }
+
+                    var cpuInd = this._fieldIndexByName('size_cpu'),
+                        ramInd = this._fieldIndexByName('size_ram'),
+                        hgiInd = this._fieldIndexByName('hypervisor_group_id'),
+                        diskInd = this._fieldIndexByName('size_disk_primary'),
+                        swapInd = this._fieldIndexByName('size_disk_swap');
+
+                    // update mins maxs
+                    this.set('machineFields.'+cpuInd+'.max', location.extra.max_cpu);
+                    this.set('machineFields.'+ramInd+'.max', location.extra.max_memory);
+                    this.set('machineFields.'+hgiInd+'.value', location.extra.hypervisor_group_id);
+
+                    if (location.extra.max_disk_size){
+                        this._updateDiskMax('size_disk_primary', this.get('machineFields.'+this._fieldIndexByName('size_disk_swap')+'.value'), location.extra.max_disk_size);
+                        this._updateDiskMax('size_disk_swap', this.get('machineFields.'+this._fieldIndexByName('size_disk_primary')+'.value'), location.extra.max_disk_size);
+                    }
+                    else {
+                        this.set('machineFields.'+diskInd+'.max', 16);
+                        this.set('machineFields.'+swapInd+'.max', 16);
+                    }
+
+                    var imagesInd = this._fieldIndexByName('image'),
+                        networksInd = this._fieldIndexByName('networks');
+
+                    // update networks
+                    this.set('machineFields.'+networksInd+'.options', location.extra.networks);
+
+                    // filter images
+                    if (location.extra.federated == true)
+                        this.set('machineFields.'+imagesInd+'.options', this._filterImagesByLoc(location.extra.hypervisor_group_id));
+                    else
+                        this.set('machineFields.'+imagesInd+'.options', this._filterImagesWithNoHyp());
+
+                },
+                _filterImagesByLoc: function (location) {
+                    return this.model.clouds[this.selectedCloud].imagesArray.filter(function(im){
+                        return im.extra.hypervisor_group_id == location;
+                    });
+                },
+                _filterImagesWithNoHyp: function (location) {
+                    return this.model.clouds[this.selectedCloud].imagesArray.filter(function(im){
+                        return !im.extra.hypervisor_group_id;
+                    });
                 },
                 _updateFieldsForDocker: function(){
                     var sizeInd = this._fieldIndexByName('size');
@@ -671,10 +806,15 @@ SCHEDULEACTIONS = {
                 updateScripts: function(e){
                     var scheduleScriptInd = this._fieldIndexByName("schedule_script_id");
                     this.async(function(){
-                        this.set('machineFields.'+ scheduleScriptInd +'.options', this.model.scriptsArray);
+                        this.set('machineFields.'+ scheduleScriptInd +'.options', this.model.scriptsArray || []);
                         this.set('machineFields.'+ scheduleScriptInd +'.value', e.detail.script);
                     }.bind(this), 1000);
-                }
+                },
+                _modelChanged: function(changeRecord){
+                    if (changeRecord.path.indexOf("Array") != -1 && changeRecord.path.indexOf("projectsArray") == -1){
+                        // this._updateFields();
+                    }
+                },
             });
         })();
     </script>

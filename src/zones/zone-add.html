@@ -1,0 +1,217 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../app-form/app-form.html">
+
+<link rel="import" href="record-item.html">
+
+<dom-module id="zone-add">
+    <template>
+        <style is="custom-style" include="forms"></style>
+        <style is="custom-style" include="single-page"></style>
+        <style include="shared-styles">
+        :host {
+            display: block;
+        }
+        
+        #content {
+            max-width: 900px;
+        }
+        
+        paper-material {
+            display: block;
+            padding: 24px;
+        }
+        
+        paper-progress {
+            position: absolute;
+            bottom: 85px;
+            width: 100%;
+            left: 0;
+            right: 0;
+        }
+        
+        :host >::content paper-input-container {
+            padding-top: 16px;
+            padding-bottom: 16px;
+        }
+        </style>
+        <div id="content">
+            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <div class="title flex">
+                    <h2>
+                        Add Zone
+                    </h2>
+                    <div class="subtitle">
+                    </div>
+                </div>
+            </paper-material>
+            <paper-material hidden$="[[hasdnsClouds]]">
+                <p>To add a zone you need to have an enabled Google or Amazon cloud in your account.<br/>
+                Add and enable an Amazon or Google cloud using the <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
+            </paper-material>
+            <paper-material hidden$="[[!hasdnsClouds]]">
+                <p>Adding a DNS zone in a supported cloud is under development and will be enabled shortly.</p>
+            </paper-material>
+            <!--<paper-material hidden$="[[!hasdnsClouds]]">
+                <app-form fields="[[fields]]" form="[[zone]]" url="/api/v1/clouds/[[cloud]]/dns/zones" on-response="_handleAddZoneResponse" on-error="_handleError"></app-form>
+            </paper-material>-->
+        </div>
+    </template>
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'zone-add',
+
+                properties: {
+                    section: {
+                        type: Object
+                    },
+                    model: {
+                        type: Object
+                    },
+                    cloud: {
+                        type: String,
+                        value: '',
+                        notify: true
+                    },
+                    zone: {
+                        type: Object,
+                        value: function() {
+                            return {
+                                domain: '',
+                                type: '',
+                                ttl: 0
+                            }
+                        },
+                        notify: true
+                    },
+                    fields: {
+                        type: Array,
+                        value: [{
+                            name: "domain",
+                            label: "Domain *",
+                            type: "text",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "Please enter zone's domain",
+                            show: true,
+                            required: true,
+                        }, {
+                            name: "cloud",
+                            label: "Cloud *",
+                            type: "mist_dropdown",
+                            value: "",
+                            defaultValue: "",
+                            placeholder: "",
+                            errorMessage: "Please select a cloud",
+                            helptext: "You can only add networks in Amazon and Google clouds",
+                            show: true,
+                            required: true,
+                            options: []
+                        }, {
+                            name: "type",
+                            label: "Type",
+                            type: "dropdown",
+                            value: "master",
+                            defaultValue: "master",
+                            placeholder: "",
+                            show: true,
+                            required: false,
+                            options: [{
+                                title: "master",
+                                val: "master"
+                            }, {
+                                title: "slave",
+                                val: "slave"
+                            }]
+                        }, {
+                            name: "ttl",
+                            label: "TTL",
+                            type: "text",
+                            value: 0,
+                            defaultValue: 0,
+                            placeholder: "",
+                            show: true,
+                            required: false
+                        }],
+                    notify: true
+                },
+                hasdnsClouds: {
+                    type: Boolean,
+                    value: true
+                }
+            },
+            observers: [
+                '_cloudsChanged(model.clouds.*)'
+            ],
+            listeners: {
+                'change': 'updateFields',
+                'iron-select': 'updateUrl'
+            },
+            _cloudsChanged: function(clouds) {
+                var dnsClouds = this.model.cloudsArray.filter(function(cloud) {
+                    return (cloud.provider == 'ec2' || cloud.provider == 'gce') && cloud.enabled;
+                });
+                if (dnsClouds.length > 0) {
+                    this.set('hasdnsClouds', true);
+                    var index = this.fields.findIndex(function(field) {
+                        return field.name == "cloud";
+                    }, this);
+                    this.set('fields.' + index + '.options', dnsClouds);
+                }
+                else {
+                    this.set('hasdnsClouds', false);
+                }
+            },
+
+            updateFields: function(e){
+                this.set('formError', false);
+                this.updatePayload();            
+            },
+            updateUrl: function(e){
+                //update url when cloud is selected
+                if(e.target.id == "cloud"){
+                    var cloud = this.fields.findIndex(function(field) {
+                        return field.name == "cloud";
+                    }, this);
+                    this.set('cloud',this.fields[cloud].value)
+                }
+                this.updatePayload();
+            },
+            updatePayload: function(){
+                if (this.fields.length){
+                    // update payload
+                    var payload = {};
+                    payload = {
+                        domain: this.fields[0].value, 
+                        type: this.fields[1].value, 
+                        ttl: this.fields[2].value, 
+                    }
+                    this.set('zone', payload);
+                }
+            },
+            _handleAddZoneResponse: function(e){
+                var response = YAML.parse(e.detail.xhr.response);
+                this.fire('toast',{msg:'Zone was created successfully.',duration:3000});
+                document.querySelector('app-location').set('path', '/zones/' + response.id);
+            },
+            _handleError: function(e) {
+                console.log(e);
+                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+                this.set('formError', true);
+            },
+            _goBack: function() {
+                history.back();
+            }
+            });
+        })();
+    </script>
+</dom-module>

@@ -138,7 +138,7 @@
               <paper-dialog-scrollable>
                 <template is="dom-if" if="[[!multi]]">
                     <p>
-                        You are about to [[selectedAction.name]] [[selectedItem.type]]: [[selectedItem.name]]
+                        You are about to [[selectedAction.name]] [[selectedItem.type]]: [[_computeName(selectedItem)]]
                     </p>
                 </template>
 
@@ -148,7 +148,7 @@
                     </p>
                     <ul>
                         <template is="dom-repeat" items="{{selectedItemsDetails(selectedItemsOfCurrentSection.length)}}">
-                          <li>[[item.name]]</li>
+                          <li>[[_computeName(item)]]</li>
                         </template>
                     </ul>
                 </template>
@@ -302,24 +302,6 @@ function actionDetails(actions) {
         ret.push(ACTIONS[actions[i]]);
     }
     return ret;
-}
-
-function itemUid(item, section) {
-    // Returns a universal resource id of the form
-    //      resourceType:[cloudId]:itemId
-    // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
-    //      key::MnhLdx9u22YjVJ
-    //
-    // TODO replace with mist uuids
-
-    // if item type is not defined derive it fro the current section id
-    var item_type = item && item.type ? item.type : (section &&
-                                             section.id.slice(0,-1));
-    var cloudId = item && item.cloud ? item.cloud.id : '';
-    var itemId = item && item.id ? item.id : '';
-    if (item_type == 'incident')
-        itemId = item.incident_id
-    return item_type + ':' + cloudId + ':' + itemId;
 }
 
 Polymer({
@@ -500,11 +482,11 @@ Polymer({
 
         item.type = item_type;
         var ret = [];
-        if (item.type != 'machine' && item.type != 'network') {
+        if (item.type != 'machine' && item.type != 'network' && item.type != 'zone') {
             ret.push('tag');
         }
         if (item.type == 'machine') {
-            if (item.state == 'running') {
+            if (['running', 'unknown'].indexOf(item.state) > -1) {
               // if key then add shell / run script
               // if not monitoring then enable monitoring
               ret.push('associate-key');
@@ -517,7 +499,6 @@ Polymer({
                 ret.push('tag');
             if (item.can_start)
                 ret.push('start');
-            if (item.can_stop)
             if (item.can_stop)
                 ret.push('stop');
             if (item.can_suspend)
@@ -549,6 +530,8 @@ Polymer({
             // ret.push('run');
             ret.push('delete');
         } else if (item.type == 'network') {
+            ret.push('delete');
+        } else if (item.type == 'zone') {
             ret.push('delete');
         } else if (item.type == 'tunnel') {
             // if(item.active)
@@ -725,6 +708,10 @@ Polymer({
             } else if (action.name == 'delete' && item.type == 'network') {
                 uri = '/api/v1/clouds/'+ item.cloud_id +'/networks/' + item.id;
                 method = 'DELETE';
+            //zones
+            } else if (action.name == 'delete' && item.type == 'zone') {
+                uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.id;
+                method = 'DELETE';
             //tunnels
             } else if (action.name == 'delete' && item.type == 'tunnel') {
                 uri = '/api/v1/tunnels/' + item.id;
@@ -748,10 +735,19 @@ Polymer({
                     if (xhr.status == 200) {
                         console.log(action, 'success');
                         message = 'Successfully '+ this.inPast(action.name) +' '+ this.section.id.slice(0,this.section.id.length-1) +'. Updating...'; //
+                        // for machines destroy only and only if in machine page
+                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.uuid){
+                            document.querySelector('app-location').set('path', '/machines');
+                        }
+                        // for other resources and only if in deleted item's single page
+                        if (action.name == "delete" && document.querySelector('app-location').path.split('/'+item.type+'s/')[1] == item.id){
+                            document.querySelector('app-location').set('path', '/'+item.type+'s');
+                        }
                     } else {
                         console.error(action, 'failed');
                         console.log(xhr);
-                        message = action.name.toUpperCase() +' failed.';
+                        var responsetext = xhr.responseText ? xhr.responseText : '';
+                        message = action.name.toUpperCase() +' failed.'+ responsetext;
                         this.fire('action-finished');
                     }
                     this.fire('toast', {msg: message, duration: 5000});
@@ -813,6 +809,14 @@ Polymer({
         if (e.detail.error) {
             this.fire('toast',{msg:e.detail.errormsg,duration:3000});
         }
+    },
+    _computeName: function(item) {
+        if (item && item.name)
+            return item.name;
+        else if (item && item.domain)
+            return item.domain;
+        else if (item && item.id)
+            return item.id;
     },
     inPast: function(action){
         if (action == 'shell')

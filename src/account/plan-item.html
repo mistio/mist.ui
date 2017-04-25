@@ -82,13 +82,13 @@
             <!-- regular plans -->
             <p hidden$="[[!plan.promo]]">[[plan.promo.description]]</p>
 
-            <template is="dom-if" if="[[!plan.expiration]]">
-                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPlan" hidden$="[[!plan.price]]">[[buttonText]]</paper-button>
-            </template>
-
             <!-- plan is canceled -->
             <template is="dom-if" if="[[plan.expiration]]">
-                Your plan will expire on [[_computeReadableDate(plan.expiration)]]
+                Your plan will expire on [[_computeReadableDate(plan.expiration)]]. <br/>
+            </template>
+
+            <template is="dom-if" if="[[showPurchase(plan, isCurrent)]]">
+                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPlan" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
             </template>
 
             <!-- is current plan, not cancelled-->
@@ -126,6 +126,10 @@
                     index: {
                         type: Number,
                         value: 0
+                    },
+                    isFreePlan: {
+                        type: Boolean,
+                        computed: "_computeIsFreePlan(plan.title)"
                     },
                     isCurrent: {
                         type: Boolean,
@@ -166,6 +170,9 @@
                 },
                 _computeIsCurrent: function(plan,org){
                     return plan.title == this.org.current_plan.title;
+                },
+                _computeIsFreePlan: function(planTitle){
+                    return planTitle == "Free";
                 },
                 _computeDescriptionText: function(plan) {
                     console.log('_computeDescriptionText', plan.description, plan)
@@ -243,6 +250,9 @@
                 },
                 showCancel: function(plan, org){
                     return this.plan.title && this.org.current_plan.title == plan.title && !this.org.current_plan.expiration;
+                },
+                showPurchase: function(planexpiration, isCurrent) {
+                    return (!this.isCurrent && this.plan.price != null) || (this.isCurrent && this.org.current_plan.expiration); 
                 }
             });
     </script>

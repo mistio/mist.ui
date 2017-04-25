@@ -138,7 +138,6 @@
         }
 
         .section {
-            padding-top: 16px;
         }
         .red {
             color: var(--red-color);
@@ -174,9 +173,9 @@
         </style>
 
         <div id="content">
-            <div class="is-loading" hidden$="[[!isLoading]]">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div>
+            </div> -->
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -192,7 +191,7 @@
                 </div>
                 <div class="item-actions">
                     <paper-button on-tap="_editTeam" class="simple">Edit Team</paper-button>
-                    <paper-menu-button horizontal-align="right">
+                    <paper-menu-button horizontal-align="right" hidden$="[[teamIsOwners]]">
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="machine_actions" class="dropdown-content">
                             <paper-button on-tap="_deleteTeam" class="simple"> Delete Team</paper-button>
@@ -245,11 +244,13 @@
                         </template>
 
                         <template is="dom-if" if="[[!hasMembers]]">
-                            <div class="text-center">
-                                <h3 class="smallcaps">Members</h3>
-                                <p>You have not yet added members in [[team.name]] team.</p>
-                                <paper-button class="blue pad-left2 pad-right2" on-tap="_addMember"> Add Member </paper-button>
-                            </div>
+                            <paper-material>
+                                <div class="text-center">
+                                    <h3 class="smallcaps">Members</h3>
+                                    <p>You have not yet added members in [[team.name]] team.</p>
+                                    <paper-button class="blue pad-left2 pad-right2" on-tap="_addMember"> Add Member </paper-button>
+                                </div>
+                            </paper-material>
                         </template>
                     </div>
                 </div>
@@ -265,12 +266,12 @@
         </div>
 
         <div class="absolute-bottom-right">
-            <paper-fab icon="add" on-tap="_addMember"></paper-fab>
+            <paper-fab icon="social:person-add" on-tap="_addMember"></paper-fab>
         </div>
 
         <team-edit team="[[team]]" org="[[model.org]]"></team-edit>
-        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleTeamDeleteAjaxError"></iron-ajax>
-        <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_deleteMemberError"></iron-ajax>
+        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleDeleteAjaxError" ></iron-ajax>
+        <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
 
         <dialog-element></dialog-element>
     </template>
@@ -329,6 +330,10 @@
                         type: Boolean,
                         computed: '_computeIsloading(team)',
                         value: true
+                    },
+                    teamIsOwners: {
+                        type: Boolean,
+                        computed: '_computeIsOwners(team)',
                     }
                 },
                 listeners: {
@@ -415,7 +420,6 @@
                         this.$.teamDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
                         this.$.teamDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                         this.$.teamDeleteAjaxRequest.generateRequest();
-                        document.querySelector('app-location').set('path', '/teams');
                     }
                     if (response.confirmed && reason == "member.delete") {
                         this.$.deleteMember.body = {};
@@ -427,13 +431,16 @@
                 _handleTeamDeleteAjaxResponse: function(e) {
                     document.querySelector('app-location').set('path', '/teams');
                 },
+                _handleDeleteAjaxError: function(e) {
+                    this.fire('toast',{msg:e.detail.error.message ,duration:3000});
+                },
                 _deleteMemberFromTeam: function(e){
                     var membId = e.target.attributes.memberid.value,
                         membname = e.target.attributes.membername.value;
                     this.set('memberToDelete', membId);
                     this._showDialog({
                         title: 'Delete member from team?',
-                        body: "Deleting member" + membname + " from team "+this.team.name +'. You can allways reinvite people by email.',
+                        body: "Deleting member " + membname + " from team "+this.team.name +'. You can allways reinvite people by email.',
                         danger: true,
                         reason: "member.delete"
                     });
@@ -451,6 +458,10 @@
                 },
                 _computeIsloading: function(team) {
                     return !this.team ? true : false;
+                },
+                _computeIsOwners: function(team) {
+                    if (this.team)
+                        return this.team.name == "Owners";
                 }
             });
         })();

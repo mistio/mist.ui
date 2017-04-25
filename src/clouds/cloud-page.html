@@ -17,6 +17,11 @@
             :host {
                 display: block;
                 padding-bottom: 80px;
+                --paper-toggle-button-checked-button-color: #69b46c;
+                --paper-toggle-button-checked-bar-color: #69b46c;
+                --paper-toggle-button-unchecked-button-color: #d96557;
+                --paper-toggle-button-unchecked-bar-color: #d96557;
+                --paper-toggle-button-label-color: #fff;
             }
             paper-material {
                 display: block;
@@ -176,23 +181,14 @@
             paper-toggle-button {
                 cursor: pointer;
             }
-            :host paper-toggle-button >::content .toggle-button {
-                background-color: #d96557 !important;
-            }
-            :host paper-toggle-button[checked]:not([disabled]) >::content .toggle-button {
-                background-color: #69b46c !important;
-            }
-            :host paper-toggle-button >::content .toggle-label {
-                color: #fff !important;
-            }
             .capitalize {
                 text-transform: capitalize;
             }
         </style>
         <div id="content">
-            <div class="is-loading" hidden$="[[!isLoading]]">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div>
+            </div> -->
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon">
                     <iron-icon src="[[_computeItemImage(cloud)]]">M</iron-icon>
@@ -316,7 +312,7 @@
                 _computeItemImage: function (item) {
                     if (item && item.provider) {
                         var provider = item.provider.split('_')[0];
-                        return '../../assets/providers/provider-' + provider + '.png';
+                        return 'assets/providers/provider-' + provider + '.png';
                     }
                 },
                 _showDialog: function(info) {
@@ -366,8 +362,8 @@
                     this.$.cloudStateAjaxRequest.generateRequest();
                 },
                 _handleCloudStateAjaxResponse: function(e) {
-                    var message= this.cloud.enabled ? 'Cloud ' + this.cloud.title + ' was enabled!':
-                    'Cloud ' + this.cloud.title + ' was disabled!' ;
+                    var message = !this.cloud.enabled ? 'Cloud ' + this.cloud.title + ' was disabled!':
+                    'Cloud ' + this.cloud.title + ' was enabled!' ;
                     this.fire('toast',{msg:message,duration:5000});
                 },
                 _handleCloudStateAjaxError:function(e){

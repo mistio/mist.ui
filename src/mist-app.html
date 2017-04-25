@@ -20,6 +20,8 @@
 <script type="text/javascript" src="../bower_components/moment/moment.js" inline></script>
 <script type="text/javascript" src="../bower_components/swiftSet/swiftSet.js" inline></script>
 
+<script src="../bower_components/fingerprintjs2/fingerprint2.js"></script>
+
 <link rel="import" href="styles/app-theme.html">
 <link rel="import" href="styles/shared-styles.html">
 
@@ -81,8 +83,14 @@
     paper-spinner {
         width: 80px;
         height: 80px;
-        margin: 10% auto;
+        margin: 20% auto;
         display: block;
+    }
+    /* iphone 6 plus*/
+    @media screen and (max-width: 450px) {
+        iron-pages {
+            padding: 0 0 1rem 0;
+        }
     }
     </style>
 
@@ -98,11 +106,11 @@
 
     <paper-header-panel mode="standard" class="fit">
         <app-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" sections="[[sections]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></app-sidebar>
-        <mist-header model="[[model]]" title$="[[page]]" class="paper-header" style$="[[style]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
-          <paper-spinner active></paper-spinner>
+          <paper-spinner active="[[loading]]"></paper-spinner>
         </div>
-        <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" smallscreen$="{{smallscreen}}">
+        <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" smallscreen$="{{smallscreen}}" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]" is-over-using="[[model.isOverUsing]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]"></page-dashboard>
           <page-clouds name="clouds" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-clouds>
           <page-machines name="machines" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-machines>
@@ -111,6 +119,7 @@
           <page-keys name="keys" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-keys>
 
           <page-networks name="networks" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-networks>
+          <page-zones name="zones" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-zones>
           <page-tunnels name="tunnels" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-tunnels>
           <page-scripts name="scripts" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-scripts>
           <page-schedules name="schedules" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-schedules>
@@ -124,6 +133,7 @@
           <page-insights name="insights" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-insights>
 
           <page-my-account name="my-account" is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machinesArray]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]"></page-my-account>
+          <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
         </iron-pages>
         <paper-toast id="mist-toast"></paper-toast>
     </paper-header-panel>
@@ -183,7 +193,22 @@
 
         routeData: Object,
 
-        subroute: Object
+        subroute: Object,
+
+        viewingList: {
+          type: Boolean,
+          computed: '_computeViewingList(subroute)'
+        },
+
+        fingerprint: {
+          type: String,
+          value: ''
+        },
+
+        loading: {
+          type: Boolean,
+          value: true
+        }
 
       },
 
@@ -195,7 +220,8 @@
           'search': 'updateSearchQuery',
           'open-and-select' : 'openAndSelect',
           'update-keys': 'updateKeys',
-          'update-scripts': 'updateScripts'
+          'update-scripts': 'updateScripts',
+          'user-action': '_onUserAction'
       },
 
       observers: [
@@ -205,10 +231,12 @@
       ready: function(){
 
       },
+
       showToast:function(e){
         var toast=this.querySelector('paper-toast#mist-toast')
         toast.show({text:e.detail.msg,duration:e.detail.duration});
       },
+
       openAndSelect: function(e){
         document.addEventListener('open-and-select', function(e) {
             this.querySelector('machine-page item-actions associate-key').openAndSelect(e);
@@ -232,9 +260,10 @@
       },
 
       _style: function(page, sections) {
-          if (page) {
+          if (page && sections[page]) {
               return "background-color: " + sections[page].color;
           }
+          return "background-color: " + sections['dashboard'].color;
       },
 
       _routePageChanged: function(page, subpath) {
@@ -242,25 +271,31 @@
             page = 'dashboard';
         this.page = page || 'dashboard';
         if (subpath == '') { // Update iron-list
-            var i = this.querySelector('iron-list');
+            var p = page != '' && page != undefined ? '#'+page : '',
+                i = this.querySelector('iron-list'+p);
             if (i) {
                 i.fire('iron-resize');
             }
         }
 
       },
-
       _pageChanged: function(page) {
-        // load page import on demand.
-        this.importHref(
-            this.resolveUrl('page-' + page + '.html'),
-            null,
-            null,
-            true
-        );
+        this.set('loading', true);
+        // Load page import on demand. Show 404 page if fails
+        var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
+        this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
         if (this.querySelector('iron-media-query').queryMatches){
             document.querySelector('app-sidebar').closeSidebar();
         }
+      },
+
+      _hideLoader: function() {
+        this.set('loading', false);
+      },
+
+      _showPage404: function() {
+        this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
+        this.page = 'not-found';
       },
 
       computeIsViewing: function(page){
@@ -279,6 +314,7 @@
             imagesArray: [],
             keysArray: [],
             networksArray: [],
+            zonesArray: [],
             tunnelsArray: [],
             scriptsArray: [],
             schedulesArray: [],
@@ -365,6 +401,15 @@
                 'read',
                 'edit_tags',
                 'read_logs',
+            ],
+            'schedule': [
+                'add',
+                'read',
+                'edit',
+                'run',
+                'remove',
+                'edit_tags',
+                'read_logs',
             ]
             // 'team': [
             //     'add',
@@ -414,6 +459,14 @@
             icon: 'hardware:device-hub',
             count: '0',
             add: '/networks/+add',
+            q: ''
+        }, {
+            id: 'zones',
+            color: '#3F51B5',
+            icon: 'icons:dns',
+            count: '0',
+            // hiding this until add functionality has been created
+            add: '/zones/+add',
             q: ''
         },{
             id: 'tunnels',
@@ -476,25 +529,85 @@
         ];
 
         this.sections = _generateMap(this.sectionsArray);
+      },
+
+      _onUserAction: function(event) {
+        console.warn('user-action', event);
+        var xhr = new XMLHttpRequest();
+        if (!this.fingerprint){
+          var that = this;
+          new Fingerprint2().get(function(result, components){
+            // this will use all available fingerprinting sources
+            that.fingerprint = result;
+            var componentMap = {};
+            components.forEach(function(e){componentMap[e.key] = e.value});
+            var payload = {'action': event.detail,
+                           'fingerprint': result,
+                           'resolution': componentMap.resolution,
+                           'platform': componentMap.navigator_platform,
+                           'browser': that._getBrowser(),
+                           'tz': componentMap.timezone_offset};
+            if (document.referrer)
+              payload['referrer'] = document.referrer;
+            xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+            xhr.send();
+            console.log('payload', payload);
+          });
+        } else {
+          var payload = {'action': event.detail,
+                         'fingerprint': this.fingerprint};
+          xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+          xhr.send();
+        }
+      },
+
+
+      _getBrowser: function() {
+        var userAgent = navigator.userAgent.toLowerCase();
+        var productSub = navigator.productSub;
+
+        //we extract the browser from the user agent (respect the order of the tests)
+        var browser;
+        if(userAgent.indexOf("firefox") >= 0){
+          browser = "Firefox";
+        } else if(userAgent.indexOf("opera") >= 0 || userAgent.indexOf("opr") >= 0){
+          browser = "Opera";
+        } else if(userAgent.indexOf("chrome") >= 0){
+          browser = "Chrome";
+        } else if(userAgent.indexOf("safari") >= 0){
+          browser = "Safari";
+        } else if(userAgent.indexOf("trident") >= 0){
+          browser = "Internet Explorer";
+        } else {
+          browser = "Other";
+        }
+        return browser;
+      },
+
+      _computeViewingList: function(subroute) {
+        // console.log('viewingList',["/", "my-account", "insights"].indexOf(subroute.prefix), subroute);
+        return ["/", "/my-account", "/insights"].indexOf(subroute.prefix) == -1  && subroute.path == "";
       }
 
     });
 
     function itemUid(item, section) {
-        // Returns a universal resource id of the form
-        //      resourceType:[cloudId]:itemId
-        // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
-        //      key::MnhLdx9u22YjVJ
-        //
-        // TODO replace with mist uuids
+    // Returns a universal resource id of the form
+    //      resourceType:[cloudId]:itemId
+    // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
+    //      key::MnhLdx9u22YjVJ
+    //
+    // TODO replace with mist uuids
 
-        // if item type is not defined derive it fro the current section id
-        var item_type = item.type ? item.type : (section &&
-                                                 section.id.slice(0,-1));
-        var cloudId = item.cloud ? item.cloud.id : '';
-
-        return item_type + ':' + cloudId + ':' + item.id;
-    }
+    // if item type is not defined derive it fro the current section id
+    var item_type = item && item.type ? item.type : (section &&
+                                             section.id.slice(0,-1));
+    var cloudId = item && item.cloud && item.cloud.id ? item.cloud.id : '';
+    var itemId = item && item.id ? item.id : '';
+    if (item_type == 'incident')
+        itemId = item.incident_id
+    return item_type + ':' + cloudId + ':' + itemId;
+}
 
   </script>
 

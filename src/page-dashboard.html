@@ -251,9 +251,20 @@
         .monitoring-on-missing-machines {
             padding-bottom: 16px;
         }
+        /* iphone 6 plus*/
+        @media screen and (max-width: 450px) {
+            a.main-section {
+                flex-basis: 50%;
+            }
+            .left,
+            .right,
+            .top {
+                min-width: 100px;
+            }
+        }
         </style>
         <div id="content" class$="flex-horizontal-wide onb-[[!showDashboard]]" main>
-            <plan-overusage is-over-using="[[model.isOverUsing]]"></plan-overusage>
+            <plan-overusage is-over-using="[[model.isOverUsing]]" plan="[[model.org.current_plan]]"></plan-overusage>
             <template is="dom-if" if="[[showDashboard]]">
                 <div class="clouds top flexchild-wide-top">
                     <div id="cloudslist" class="flex">
@@ -293,6 +304,9 @@
                             <a href="/networks" class="main-section flex" is="pushstate-anchor">
                                 <section-tile name="networks" color="[[sections.networks.color]]" icon="[[sections.networks.icon]]" count="[[model.networksArray.length]]"></section-tile>
                             </a>
+                            <!--<a href="/zones" class="main-section flex" is="pushstate-anchor">
+                                <section-tile name="zones" color="[[sections.zones.color]]" icon="[[sections.zones.icon]]" count="[[model.zonesArray.length]]"></section-tile>
+                            </a>-->
                             <a href="/scripts" class="main-section flex" is=" pushstate-anchor">
                                 <section-tile name="scripts" color="[[sections.scripts.color]]" icon="[[sections.scripts.icon]]" count="[[model.scriptsArray.length]]"></section-tile>
                             </a>
@@ -338,7 +352,7 @@
                 <onb-element model="[[model]]"></onb-element>
             </template>
             <div class="absolute-bottom-right">
-                <a href="/clouds/+add">
+                <a href="/clouds/+add" on-tap="_fabTap">
                     <paper-fab id="addBtn" icon="cloud"></paper-fab>
                 </a>
             </div>
@@ -601,6 +615,9 @@
             if (this.model && this.model.clouds && this.model.clouds[item])
                 return this.model.clouds[item].title;
             return item;
+        },
+        _fabTap: function() {
+            this.fire('user-action', 'add cloud fab click');
         }
     });
 </script>

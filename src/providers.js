@@ -218,7 +218,9 @@ PROVIDERS.push({
         defaultValue: "Docker",
         show: true,
         required: true,
-        errorMessage: "Please enter title"
+        errorMessage: "Please enter title",
+        helptext: "If you need help, read the docs on adding a Docker cloud",
+        helpHref: "http://docs.mist.io/article/20-adding-docker"
     }, {
         name: "docker_host",
         label: "Host",
@@ -599,7 +601,9 @@ PROVIDERS.push({
         defaultValue: "NephoScale",
         show: true,
         required: true,
-        errorMessage: "Please enter title"
+        errorMessage: "Please enter title",
+        helptext: "If you need help, read the docs on adding a NephoScale cloud",
+        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
     }, {
         name: "username",
         label: "Username *",
@@ -609,7 +613,8 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter username",
-        helptext: 'The username you use to connect to the NephoScale portal'
+        helptext: 'The username you use to connect to the NephoScale portal',
+        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
     }, {
         name: "password",
         label: "Password *",
@@ -619,7 +624,8 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password",
-        helptext: 'The password you use to connect to the NephoScale portal'
+        helptext: 'The password you use to connect to the NephoScale portal',
+        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
     }]
 });
 
@@ -682,7 +688,20 @@ PROVIDERS.push({
         value: "",
         defaultValue: "",
         show: true,
-        required: false
+        required: false,
+        helptext: 'Specify only if you have changed the default region',
+        helpHref: 'http://docs.mist.io/article/27-adding-openstack'
+
+    }, {
+        name: "compute_endpoint",
+        label: "Compute Endpoint",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: 'In most cases you will not have to specify this',
+        helpHref: 'http://docs.mist.io/article/27-adding-openstack'
     }]
 });
 
@@ -810,6 +829,55 @@ PROVIDERS.push({
     }]
 });
 
+// ONAPP
+PROVIDERS.push({
+    title: 'OnApp',
+    val: 'onapp',
+    className: 'provider-onapp',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "OnApp",
+        defaultValue: "OnApp",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "username",
+        label: "Username *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter username",
+        helptext: 'Username you use to connect to OnApp portal'
+    }, {
+        name: "apikey",
+        label: "Password *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter password",
+        helptext: 'Password you use to connect to OnApp portal',
+        helpHref: 'http://docs.mist.io/article/155-onapp'
+    }, {
+        name: "host",
+        label: "Host *",
+        type: "text",
+        value: "",
+        defaultValue: "onapp.com",
+        show: true,
+        required: true,
+        errorMessage: "Please enter onapp host",
+        helptext: 'URL of the OnApp host',
+        helpHref: 'http://docs.mist.io/article/155-onapp'
+    }]
+});
+
 // VCLOUD
 PROVIDERS.push({
     title: 'VMWare vCloud',
@@ -864,6 +932,14 @@ PROVIDERS.push({
         errorMessage: "Please enter hostname",
         helptext: 'The URL or IP vCloud listens to',
         helpHref: 'http://docs.mist.io/article/31-adding-vmware-vcloud'
+    }, {
+        name: "port",
+        label: "Host port",
+        type: "text",
+        value: 443,
+        defaultValue: 443,
+        show: true,
+        required: false
     }]
 });
 
