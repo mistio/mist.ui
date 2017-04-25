@@ -84,6 +84,10 @@
                     model: {
                         type: Object
                     },
+                    zone_id: {
+                        type: String,
+                        value: "",
+                    },
                     zone: {
                         type: Object
                     },
@@ -143,6 +147,8 @@
                             name: "ttl",
                             label: "TTL",
                             type: "text",
+                            pattern: "[0-9]*",
+                            errorMessage: "Please enter a numerical value.",
                             value: 3600,
                             defaultValue: 3600,
                             placeholder: "",
@@ -181,6 +187,8 @@
                             name: "ttl",
                             label: "TTL",
                             type: "text",
+                            pattern: "[0-9]*",
+                            errorMessage: "Please enter a numerical value.",
                             value: 3600,
                             defaultValue: 3600,
                             placeholder: "",
@@ -219,6 +227,8 @@
                             name: "ttl",
                             label: "TTL",
                             type: "text",
+                            pattern: "[0-9]*",
+                            errorMessage: "Please enter a numerical value.",
                             value: 3600,
                             defaultValue: 3600,
                             placeholder: "",
@@ -257,6 +267,8 @@
                             name: "ttl",
                             label: "TTL",
                             type: "text",
+                            pattern: "[0-9]*",
+                            errorMessage: "Please enter a numerical value.",
                             value: 3600,
                             defaultValue: 3600,
                             placeholder: "",
@@ -295,6 +307,8 @@
                             name: "ttl",
                             label: "TTL",
                             type: "text",
+                            pattern: "[0-9]*",
+                            errorMessage: "Please enter a numerical value.",
                             value: 3600,
                             defaultValue: 3600,
                             placeholder: "",
@@ -333,6 +347,8 @@
                             name: "ttl",
                             label: "TTL",
                             type: "text",
+                            pattern: "[0-9]*",
+                            errorMessage: "Please enter a numerical value.",
                             value: 3600,
                             defaultValue: 3600,
                             placeholder: "",
@@ -371,6 +387,8 @@
                             name: "ttl",
                             label: "TTL",
                             type: "text",
+                            pattern: "[0-9]*",
+                            errorMessage: "Please enter a numerical value.",
                             value: 3600,
                             defaultValue: 3600,
                             placeholder: "",
@@ -381,7 +399,7 @@
             },
             observers: [
                 '_typeChanged(selectedRecordType, fields)',
-                '_zoneChanged(zone)',
+                '_zoneChanged(zone.id)',
             ],
             listeners: {
                 'change': 'updateFields'
@@ -405,10 +423,14 @@
                     console.warn('Update Payload:' + payload)
                 }
             },
-            _zoneChanged: function(zone) {
-                this.selectedRecordType = false;
-                this.set('fields', []);
-                this.updateFields();
+            _zoneChanged: function(zone_id) {
+                console.error("zone_id: " + zone_id);
+                if (this.zone_id != zone_id) {
+                    this.zone_id = zone_id;
+                    this.selectedRecordType = false;
+                    this.set('fields', []);
+                    this.updateFields();
+                }
             },
             _typeChanged: function(selectedRecordType, fields) {
                 if (this.selectedRecordType == "A") {
