@@ -671,11 +671,11 @@ Polymer({
                 return;
             } else if ( ['reboot','start', 'stop', 'suspend', 'resume', 'undefine', 'destroy'].indexOf(action.name) > -1) {
                 // rename excluded
-                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id;
+                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.machine_id;
                 payload = {'action': action.name};
                 console.log(action.name);
             } else if (action.name == 'probe') {
-                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id+ '/probe';
+                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.machine_id+ '/probe';
                 payload = {'host': item.public_ips[0], 'key': item.keys[0]};
             //templates
             } else if (action.name == 'delete' && item.type == 'template') {
@@ -736,7 +736,7 @@ Polymer({
                         console.log(action, 'success');
                         message = 'Successfully '+ this.inPast(action.name) +' '+ this.section.id.slice(0,this.section.id.length-1) +'. Updating...'; //
                         // for machines destroy only and only if in machine page
-                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.uuid){
+                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.id){
                             document.querySelector('app-location').set('path', '/machines');
                         }
                         // for other resources and only if in deleted item's single page
@@ -765,8 +765,7 @@ Polymer({
             xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
             xhr.send(JSON.stringify(payload));
 
-            var thisid = item.uuid || item.id;
-            var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][thisid].name;
+            var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][item.id].name;
             this.fire('performing-action', {log: logMessage});
       }.bind(this);
 
