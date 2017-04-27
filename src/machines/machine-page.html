@@ -399,7 +399,7 @@
                         <span hidden$="[[!probeData]]"> [[probeData]] </span> <br/>
                         <span hidden$="[[!lastProbe]]"> [[lastProbe]] </span>
                     </div>
-                    <div class="probe-button" hidden$="[[!machineKeys.length]]" >
+                    <div class="probe-button" hidden$="[[!machine.machine_associations.length]]" >
                         <paper-button id="probeButton" on-tap="_probeMachine" disabled="{{probeLoading}}">probe now</paper-button>
                         <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
                     </div>
@@ -421,10 +421,10 @@
                     <div hidden$="[[!machineKeys.length]]">
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
-                            <template is="dom-repeat" items="{{machineKeys}}">
+                            <template is="dom-repeat" items="[[machineKeys]]" as="key">
                                 <div class="machine-key">
-                                    <a class="regular blue-link flexchild" href$="/keys/[[item.id]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[item.name]]</a>
-                                    <iron-icon data-keyid="[[item.id]]" data-keyname="[[item.name]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
+                                    <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
+                                    <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
                             <div class="machine-key" id="pendingKeyRequest">
@@ -684,7 +684,7 @@ Polymer({
         },
         machineKeys: {
             type: Array,
-            computed: '_computeAssociatedKeys(machine.*, machine.keys.*, machine.keys.length, model.keysArray.*)',
+            computed: '_computeAssociatedKeys(machine, machine.key_associations)',
             value: [],
             notify: true
         },
@@ -780,18 +780,18 @@ Polymer({
     _computeItemInArray: function() {
         return [this.machine];
     },
-
+    _computeKeyName: function(keyid){
+        return this.model.keys[keyid].name || 'not found';
+    },
     _computeThisItemUid: function(machine) {
         var itemUidInArray = [];
         itemUidInArray.push(itemUid(this.machine, this.sections['machines']));
         return itemUidInArray;
     },
-    _computeAssociatedKeys: function(machine, machinekeys, length, keys) {
-        var keys = this.model.keysArray.filter(function(k) {
-            return k.machines.find(function(m) {
-                return m[1] == this.machine.id && m[0] == this.machine.cloud.id;
-            }, this)
-        }, this);
+    _computeAssociatedKeys: function(machine) {
+        var keys;
+        if (machine)
+            keys = machine.key_associations;
         return keys || [];
     },
     computeMachineIp: function(machineips) {
