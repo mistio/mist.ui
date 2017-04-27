@@ -572,6 +572,7 @@
 
         _updateMachines: function(data) {
             var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines);
+            console.log('machines',data.machines);
             if (!changed)
                 return false;
 
@@ -586,8 +587,8 @@
                                     'title': cloud.title,
                                     'provider': cloud.provider
                                 };
-                                machine.keys = this._machineKeys(machine.id, machine.cloud.id) || [];
-                                machine.rules = this._machineRules(machine.id, machine.cloud.id);
+                                // machine.keys = this._machineKeys(machine.machine_id, machine.cloud.id) || [];
+                                machine.rules = this._machineRules(machine.machine_id, machine.cloud.id);
                             }, this);
 
                             return allMachines = allMachines.concat(cloud.machinesArray != undefined ? cloud.machinesArray : [])
@@ -750,12 +751,12 @@
         _probe: function(data) {
             if (!this.model.probes)
                 this.set('model.probes', {})
-
+            console.log('probe',data);
             try {
-                var uuid = this.model.clouds[data.cloud_id].machines[data.machine_id].uuid;
-                this.set('model.probes.' + uuid, data.result);
+                var id = this.model.clouds[data.cloud_id].machines[data.machine_id].id;
+                this.set('model.probes.' + id, data.result);
             } catch (e) {
-                console.warn('cannot find uuid for machine with cloud_id ', data.cloud_id, ' and machine_id', data.machine_id);
+                console.warn('cannot find id for machine with cloud_id ', data.cloud_id, ' and machine_id', data.machine_id);
             }
         },
 
