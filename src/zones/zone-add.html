@@ -199,7 +199,7 @@
                                 required: false
                             }],
                         "DigitalOcean":[
-                                                             {
+                            {
                                 name: "domain",
                                 label: "Domain *",
                                 type: "text",
@@ -229,76 +229,63 @@
                                 }]
                             }],
                         "Linode": [
-                                {
-                                    name: "domain",
-                                    label: "Domain *",
-                                    type: "text",
-                                    value: "",
-                                    defaultValue: "",
-                                    placeholder: "",
-                                    errorMessage: "Please enter zone's domain",
-                                    helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
-                                    show: true,
-                                    required: true,
+                            {
+                                name: "domain",
+                                label: "Domain *",
+                                type: "text",
+                                value: "",
+                                defaultValue: "",
+                                placeholder: "",
+                                errorMessage: "Please enter zone's domain",
+                                helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
+                                show: true,
+                                required: true,
+                            }, {
+                                name: "type",
+                                label: "Type",
+                                type: "dropdown",
+                                value: "master",
+                                defaultValue: "master",
+                                placeholder: "",
+                                helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
+                                show: true,
+                                required: false,
+                                options: [{
+                                    title: "master",
+                                    val: "master"
                                 }, {
-                                    name: "type",
-                                    label: "Type",
-                                    type: "dropdown",
-                                    value: "master",
-                                    defaultValue: "master",
-                                    placeholder: "",
-                                    helptext: "Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.",
-                                    show: true,
-                                    required: false,
-                                    options: [{
-                                        title: "master",
-                                        val: "master"
-                                    }, {
-                                        title: "slave",
-                                        val: "slave"
-                                    }]
-                                },
-                                {
-                                    name: "SOA_email",
-                                    label: "SOA email",
-                                    type: "text",
-                                    value: "",
-                                    defaultValue: "",
-                                    placeholder: "",
-                                    excludeFromPayload: true,
-                                    helptext: "Linode requires a Start of Authority (SOA) email when creating a master DNS zone.",
-                                    required: true,
-                                    showIf: {
-                                        fieldName: "type",
-                                        fieldValues: ["master"]
-                                    }
-                                },
-                                {
-                                    name: "Master_IP",
-                                    label: "DNS Master Node IP",
-                                    type: "text",
-                                    value: "",
-                                    defaultValue: "",
-                                    placeholder: "",
-                                    excludeFromPayload: true,
-                                    helptext: "Linode requires the DNS master node IP address when creating a slave DNS zone.",
-                                    required: true,
-                                    showIf: {
-                                        fieldName: "type",
-                                        fieldValues: ["slave"]
-                                    }
-                                },
-                                {
-                                    name: "ttl",
-                                    label: "TTL",
-                                    type: "text",
-                                    value: 0,
-                                    defaultValue: 0,
-                                    placeholder: "",
-                                    helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
-                                    show: true,
-                                    required: false
-                                }],
+                                    title: "slave",
+                                    val: "slave"
+                                }]
+                            }, {
+                                name: "SOA_email",
+                                label: "SOA email",
+                                type: "text",
+                                value: "",
+                                defaultValue: "",
+                                placeholder: "",
+                                excludeFromPayload: true,
+                                helptext: "Linode requires a Start of Authority (SOA) email when creating a master DNS zone.",
+                                required: true,
+                                showIf: {
+                                    fieldName: "type",
+                                    fieldValues: ["master"]
+                                }
+                            }, {
+                                name: "Master_IP",
+                                label: "DNS Master Node IP",
+                                type: "text",
+                                value: "",
+                                defaultValue: "",
+                                placeholder: "",
+                                excludeFromPayload: true,
+                                helptext: "Linode requires the DNS master node IP address when creating a slave DNS zone.",
+                                required: true,
+                                showIf: {
+                                    fieldName: "type",
+                                    fieldValues: ["slave"]
+                                }
+                            }],
                         "RackSpace": [
                                 {
                                     name: "domain",
@@ -329,15 +316,16 @@
                                         val: "slave"
                                     }]
                                 }, {
-                                    name: "ttl",
-                                    label: "TTL",
+                                    name: "email",
+                                    label: "email",
                                     type: "text",
-                                    value: 0,
-                                    defaultValue: 0,
+                                    value: "",
+                                    defaultValue: "",
                                     placeholder: "",
-                                    helptext: "Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.",
+                                    helptext: "Rackspace requires an email when creating a DNS zone.",
+                                    required: true,
                                     show: true,
-                                    required: false
+                                    required: true,
                                 }],
                         "SoftLayer": [
                                 {
@@ -536,21 +524,24 @@
                         }, this);
                         payload['type'] = this.fields[type].value;
                     }
-                    if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" || this.selectedCloud.provider == "linode" || this.selectedCloud.provider == "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider == "vultr") {
+                    if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider == "vultr") {
                         var ttl = this.fields.findIndex(function(field) {
                             return field.name == "ttl";
                         }, this);
                         payload['ttl'] = this.fields[ttl].value;
                     }
                     if (this.selectedCloud.provider == "linode") {
-                        var soa = this.fields.findIndex(function(field) {
-                            return field.name == "SOA_email";
-                        }, this);
-                        payload['SOA_Email'] = this.fields[soa].value;
-                        var master_ip = this.fields.findIndex(function(field) {
-                            return field.name == "Master_IP";
-                        }, this);
-                        payload['Master_IP'] = this.fields[master_ip].value;
+                        if (payload['type'] == "master") {
+                            var soa = this.fields.findIndex(function(field) {
+                                return field.name == "SOA_email";
+                            }, this);
+                            payload['SOA_Email'] = this.fields[soa].value;
+                        } else {
+                            var master_ip = this.fields.findIndex(function(field) {
+                                return field.name == "Master_IP";
+                            }, this);
+                            payload['Master_IP'] = this.fields[master_ip].value;
+                        }
                     }
                     if (this.selectedCloud.provider == "vultr") {
                         var ip = this.fields.findIndex(function(field) {
@@ -558,6 +549,14 @@
                         }, this);
                         if (this.fields[ip].value != "") {
                             payload['ip'] = this.fields[ip].value;
+                        }
+                    }
+                    if (this.selectedCloud.provider == "rackspace") {
+                        var email = this.fields.findIndex(function(field) {
+                            return field.name == "email";
+                        }, this);
+                        if (this.fields[email].value != "") {
+                            payload['email'] = this.fields[email].value;
                         }
                     }
 
