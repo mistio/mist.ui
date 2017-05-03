@@ -115,13 +115,13 @@
                     </h2>
                     <div class="subtitle">
                         <span hidden$="[[!isInline]]">Inline Script</span>
-                        <span hidden$="[[isInline]]">Script source <a class="regular" href$="[[script.script]]" target="_blank"> [[script.script]] <iron-icon icon="icons:link"></iron-icon></a>
+                        <span hidden$="[[isInline]]">Script source <a class="regular" href$="[[_computeLink(script.location)]]" target="_blank"> [[_computeLink(script.location)]] <iron-icon icon="icons:link"></iron-icon></a>
                         </span>
                     </div>
                 </div>
                 <div class="item-actions">
                     <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                    <paper-button class="simple" hidden$="[[!isInline]]"><a class="inherit" href$="data:application/octet-stream,[[_encode(script.script)]]" download$="script-[[script.name]].sh.txt">Download</a></paper-button>
+                    <paper-button class="simple" hidden$="[[!isInline]]"><a class="inherit" href$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download$="script-[[script.name]].sh.txt">Download</a></paper-button>
                     <paper-menu-button horizontal-align="right">
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="machine_actions" class="dropdown-content">
@@ -135,7 +135,7 @@
             <div class="columns">
                 <div id="leftcolumn" class="left command-container" hidden$="[[!isInline]]">
                     <div class="pad2">
-                        <pre><code>[[script.script]]</code></pre>
+                        <pre><code>[[script.location.source_code]]</code></pre>
                     </div>
                 </div>
                 <paper-material id="rightcolumn" class="right">
@@ -213,7 +213,7 @@
                 isInline: {
                     type: Boolean,
                     value: false,
-                    computed: '_computeIsInline(script.location_type)'
+                    computed: '_computeIsInline(script.location)'
                 },
                 isLoading: {
                     type: Boolean,
@@ -227,11 +227,9 @@
             _getHeaderStyle: function(section) {
                 return 'background-color: ' + section.color + '; color: #fff;';
             },
-            _computeIsInline: function(location_type) {
-                if (location_type)
-                    return location_type == 'inline';
-                else
-                    return true;
+            _computeIsInline: function(location) {
+                if (location)
+                    return location.source_code ? true : false;
             },
             _editTags: function() {
                 var el = this.querySelector('tags-list'),
@@ -278,6 +276,9 @@
                     dialog[i] = info[i];
                 }
                 dialog._openDialog();
+            },
+            _computeLink: function(location) {
+                return location.repo || location.url;
             },
             _computeIsloading: function(script) {
                 return !this.script ? true : false;
