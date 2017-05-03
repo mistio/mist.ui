@@ -51,7 +51,7 @@
             "_updateIsOverusing(model.user, model.org, model.machinesArray)"
         ],
 
-        ready: function() {
+        ready: function () {
             // Create the socket if it does not exist
             console.warn('ready');
             if (this.socket)
@@ -59,7 +59,7 @@
             this.connect();
         },
 
-        connect: function() {
+        connect: function () {
             console.warn('connecting at ', this.url);
             // Create the SockJS object
             this.socket = new SockJS(this.url, null, {
@@ -68,25 +68,25 @@
 
             // Connect the receiver
             var receiver = this.receive.bind(this);
-            this.socket.onmessage = function(e) {
+            this.socket.onmessage = function (e) {
                 receiver(e.data);
             };
 
             var that = this;
 
             // Handle error & close
-            this.socket.onerror = function() {
+            this.socket.onerror = function () {
                 console.warn('CONNECTION ERROR');
                 that.async(that.connect, 1000);
             };
-            this.socket.onclose = function() {
+            this.socket.onclose = function () {
                 console.warn('CONNECTION CLOSED');
                 that.async(that.connect, 1000);
             };
             this.socket.onheartbeat = this.heartbeat;
 
             // When socket connects prepare channels
-            this.socket.onopen = function() {
+            this.socket.onopen = function () {
                 console.log('CONNECTION ESTABLISHED');
                 that.send('sub', 'main');
                 that.send('msg', 'main', 'ready');
@@ -98,117 +98,117 @@
             // Initialize main handlers
             this.handlers = {
                 main: {
-                    list_clouds: function(data) {
-                        that.debounce(that._updateClouds(data), function() {
+                    list_clouds: function (data) {
+                        that.debounce(that._updateClouds(data), function () {
                             // console.debug('list_clouds', data);
                         }, 250);
                     },
-                    list_keys: function(data) {
-                        that.debounce(that._updateKeys(data), function() {
+                    list_keys: function (data) {
+                        that.debounce(that._updateKeys(data), function () {
                             // console.debug('list_keys', data);
                         }, 250);
                     },
-                    list_scripts: function(data) {
-                        that.debounce(that._updateScripts(data), function() {
+                    list_scripts: function (data) {
+                        that.debounce(that._updateScripts(data), function () {
                             // console.debug('list_scripts', data);
                         }, 250);
                     },
-                    list_schedules: function(data) {
-                        that.debounce(that._updateSchedules(data), function() {
+                    list_schedules: function (data) {
+                        that.debounce(that._updateSchedules(data), function () {
                             // console.debug('list_schedules', data);
                         }, 250);
                     },
-                    list_templates: function(data) {
+                    list_templates: function (data) {
                         console.warn('got templates', data);
-                        that.debounce(that._updateTemplates(data), function() {
+                        that.debounce(that._updateTemplates(data), function () {
                             // console.debug('list_templates', data);
                         }, 250);
                     },
-                    list_stacks: function(data) {
+                    list_stacks: function (data) {
                         console.warn('got stacks', data);
-                        that.debounce(that._updateStacks(data), function() {
+                        that.debounce(that._updateStacks(data), function () {
                             // console.debug('list_stacks', data);
                         }, 250);
                     },
-                    list_machines: function(data) {
-                        that.debounce(that._updateMachines(data), function() {
+                    list_machines: function (data) {
+                        that.debounce(that._updateMachines(data), function () {
                             // console.debug('list_machines', data);
                         }, 250);
                     },
-                    list_images: function(data) {
-                        that.debounce(that._updateImages(data), function() {
+                    list_images: function (data) {
+                        that.debounce(that._updateImages(data), function () {
                             // console.log('list_images', data);
                         }, 250);
                     },
-                    list_sizes: function(data) {
-                        that.debounce(that._updateSizes(data), function() {
+                    list_sizes: function (data) {
+                        that.debounce(that._updateSizes(data), function () {
                             // console.debug('list_sizes', data);
                         }, 250);
                     },
-                    list_locations: function(data) {
-                        that.debounce(that._updateLocations(data), function() {
+                    list_locations: function (data) {
+                        that.debounce(that._updateLocations(data), function () {
                             // console.debug('list_locations', data);
                         }, 250);
                     },
-                    list_networks: function(data) {
-                        that.debounce(that._updateNetworks(data), function() {
+                    list_networks: function (data) {
+                        that.debounce(that._updateNetworks(data), function () {
                             // console.debug('list_networks', data);
                         }, 250);
                     },
-                    list_zones: function(data) {
-                        that.debounce(that._updateZones(data), function() {
+                    list_zones: function (data) {
+                        that.debounce(that._updateZones(data), function () {
                             // console.debug('list_zones', data);
                         }, 250);
                     },
-                    list_tunnels: function(data) {
-                        that.debounce(that._updateTunnels(data), function() {
+                    list_tunnels: function (data) {
+                        that.debounce(that._updateTunnels(data), function () {
                             // console.debug('list_networks', data);
                         }, 250);
                     },
-                    list_projects: function(data) {
-                        that.debounce(that._updateProjects(data), function() {
+                    list_projects: function (data) {
+                        that.debounce(that._updateProjects(data), function () {
                             // console.debug('list_projects', data);
                         }, 250);
                     },
-                    list_tags: function(data) {
-                        that.debounce(that._updateTags(data), function() {
+                    list_tags: function (data) {
+                        that.debounce(that._updateTags(data), function () {
                             console.debug('list_tags', data);
                         }, 250);
                     },
-                    ping: function(data) {
+                    ping: function (data) {
                         // console.debug('ping', data);
                         that._ping(data);
                     },
-                    probe: function(data) {
+                    probe: function (data) {
                         // console.debug('probe', data);
                         that._probe(data);
                     },
-                    monitoring: function(data) {
-                        that.debounce(that._updateMonitoring(data), function() {
+                    monitoring: function (data) {
+                        that.debounce(that._updateMonitoring(data), function () {
                             // console.debug('monitoring', data);
                         }, 250);
                     },
-                    reload: function(data) {
-                        that.debounce(that._reloadPage(data), function() {
+                    reload: function (data) {
+                        that.debounce(that._reloadPage(data), function () {
                             console.debug('reloading page', data);
                         }, 250);
                     },
-                    user: function(data) {
-                        that.debounce(that._updateUser(data), function() {
+                    user: function (data) {
+                        that.debounce(that._updateUser(data), function () {
                             console.debug('Loaded user data');
                         }, 250);
                     },
-                    org: function(data) {
+                    org: function (data) {
                         console.warn('Loaded org data');
-                        that.debounce(that._updateOrg(data), function() {
+                        that.debounce(that._updateOrg(data), function () {
                             console.debug('Loaded org data');
                         }, 250);
                     },
-                    logout: function(data) {
+                    logout: function (data) {
                         document.location.pathname = '/';
                     },
-                    stats: function(data) {
-                      // console.log(that.openRequests)
+                    stats: function (data) {
+                        // console.log(that.openRequests)
                         if (!that.openRequests[data.request_id])
                             console.warn('cannot find open request', data.request_id)
                         else {
@@ -218,19 +218,21 @@
                     }
                 },
                 shell: {
-                    shell_data: function(data) {
+                    shell_data: function (data) {
                         if (that.term) {
                             that.term.write(data);
                         } else {
-                            console.warn('received shell data from socket but the terminal is not open', data);
+                            console.warn(
+                                'received shell data from socket but the terminal is not open',
+                                data);
                         }
                     }
                 },
                 logs: {
-                    logs: function(data) {
+                    logs: function (data) {
                         console.warn('received log entries from socket', data);
                     },
-                    event: function(data) {
+                    event: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('received log event', data);
                         var loglist = document.querySelector('log-list');
@@ -240,24 +242,24 @@
                             console.warn('No log-list found in DOM to consume log event');
                         }
                     },
-                    open_incidents: function(data) {
+                    open_incidents: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got incidents', data);
-                        that.debounce(that._updateIncidents(data), function() {
+                        that.debounce(that._updateIncidents(data), function () {
                             console.debug('Loaded incidents data');
                         }, 250);
                     },
-                    open_jobs: function(data) {
+                    open_jobs: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got jobs', data);
                         that.set('model.jobs', data);
                     },
-                    open_sessions: function(data) {
+                    open_sessions: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got sessions', data);
                         that.set('model.sessions', data);
                     },
-                    open_shells: function(data) {
+                    open_shells: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got shells', data);
                         that.set('model.shells', data);
@@ -266,29 +268,29 @@
             };
         },
 
-        heartbeat: function() {
+        heartbeat: function () {
             console.debug('got heartbeat');
             this.send('h'); // reply with empty frame
         },
 
-        getStats: function(data, callback) {
-            var reqId =this.generateGuid();// Math.floor(10000 * Math.random());
+        getStats: function (data, callback) {
+            var reqId = this.generateGuid(); // Math.floor(10000 * Math.random());
             data[5] = reqId;
             this.openRequests[reqId] = callback;
             this.send('msg', 'main', 'stats', data);
         },
 
-        generateGuid:function(){
-          function s4() {
-              return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
+        generateGuid: function () {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
             }
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-              s4() + '-' + s4() + s4() + s4();
+                s4() + '-' + s4() + s4() + s4();
         },
 
-        send: function(type, namespace, body, params) {
+        send: function (type, namespace, body, params) {
             if (namespace == undefined)
                 namespace = 'main';
 
@@ -305,7 +307,7 @@
                 console.debug('SENT: ' + payload);
         },
 
-        receive: function(message) {
+        receive: function (message) {
             if (DEBUG_SOCKET)
                 console.debug('RECEIVED: ' + message);
 
@@ -322,12 +324,12 @@
                 endpoint(body[Object.keys(body)[0]]);
         },
 
-        _reloadPage: function(data) {
+        _reloadPage: function (data) {
             console.warn('reloading', data);
             document.location.reload();
         },
 
-        _updateModel: function(section, data) {
+        _updateModel: function (section, data) {
             var changed = false, // we wont update the model if it hasn't changed
                 pending = this.get('model.pending.' + section);
 
@@ -406,7 +408,7 @@
             return changed;
         },
 
-        _updateClouds: function(data) {
+        _updateClouds: function (data) {
             // console.log('_updateClouds');
             if (data.length && this.get('onboarding.hasCloud') != true)
                 this.set('onboarding.hasCloud', true);
@@ -420,8 +422,8 @@
             this.set('onboarding.isLoadingClouds', false);
 
             if (this.model != undefined && data) {
-                data.forEach(function(c){
-                    if (!c.enabled){
+                data.forEach(function (c) {
+                    if (!c.enabled) {
                         this.cleanUpResources(c.id);
                     }
                 }, this)
@@ -434,12 +436,12 @@
             // have never been triggered (ex. all clouds are disabled, list_machines never gets data)
             var cloudsResources = !(!this.model.machines && !this.model.networks && !this.model.images);
             if (data.length && !cloudsResources && ret)
-                cloudsResources = data.map(function(d){
-                    return d.machines || d.images || d.networks ? true : false ;
-                }).reduce(function(b1, b2){
-                    return b1 || b2 ;
+                cloudsResources = data.map(function (d) {
+                    return d.machines || d.images || d.networks ? true : false;
+                }).reduce(function (b1, b2) {
+                    return b1 || b2;
                 });
-            if (!cloudsResources){
+            if (!cloudsResources) {
                 this.set('onboarding.isLoadingMachines', false);
                 this.set('onboarding.isLoadingImages', false);
                 this.set('onboarding.isLoadingNetworks', false);
@@ -447,7 +449,7 @@
             return ret;
         },
 
-        _updateMonitoring: function(data) {
+        _updateMonitoring: function (data) {
             console.warn('got monitoring', data);
             if (data.length && this.get('onboarding.hasMonitoring') != true)
                 this.set('onboarding.hasMonitoring', true);
@@ -457,20 +459,22 @@
             // inform machines that have rules
             if (data.rules) {
                 for (var rule in data.rules) {
-                    if (this.model.clouds[rule.cloud] && this.model.clouds[rule.cloud].machines[rule.machine]){
-                        if (!this.get('model.clouds.'+rule.cloud+'.machines.'+rule.machine+'.rules')){
-                            this.set('model.clouds.'+rule.cloud+'.machines.'+rule.machine+'.rules', [rule])
+                    if (this.model.clouds[rule.cloud] && this.model.clouds[rule.cloud].machines[rule.machine]) {
+                        if (!this.get('model.clouds.' + rule.cloud + '.machines.' + rule.machine + '.rules')) {
+                            this.set('model.clouds.' + rule.cloud + '.machines.' + rule.machine + '.rules', [
+                                rule
+                            ])
                             // console.log('// inform machines that have rules ', rule.cloud, rule.machine, this.model.clouds[rule.cloud].machines[rule.machine].rules);
-                        }
-                        else
-                            this.push('model.clouds.'+rule.cloud+'.machines.'+rule.machine+'.rules',rule)
+                        } else
+                            this.push('model.clouds.' + rule.cloud + '.machines.' + rule.machine + '.rules',
+                                rule)
                     }
                 }
             }
             return this.set('model.monitoring', data);
         },
 
-        _updateUser: function(data) {
+        _updateUser: function (data) {
             this.set('model.user', data);
             if (data) {
                 CSRF_TOKEN = data.csrf_token;
@@ -478,7 +482,7 @@
             }
         },
 
-        _updateOrg: function(data) {
+        _updateOrg: function (data) {
             this.set('onboarding.isLoadingTeams', false);
             this._updateModel('teams', data.teams);
             this._updateModel('members', data.members);
@@ -486,26 +490,33 @@
             this.set('model.org', data);
         },
 
-        _updateKeys: function(data) {
+        _updateKeys: function (data) {
             this.set('onboarding.isLoadingKeys', false);
             if (data) {
                 for (var i = 0; i < data.length; i++) {
                     var key = data[i];
                     if (this.model.clouds && key.machines)
-                        key.machines.forEach(function(m, index) {
+                        key.machines.forEach(function (m, index) {
                             var cloud = m[0],
                                 machine = m[1];
-                            if (this.model.clouds && this.model.clouds[cloud] && this.model.clouds[cloud].machines && this.model.clouds[cloud].machines[machine] && this.model.clouds[cloud].machines[machine].keys) {
+                            if (this.model.clouds && this.model.clouds[cloud] && this.model.clouds[
+                                    cloud].machines && this.model.clouds[cloud].machines[machine] &&
+                                this.model.clouds[cloud].machines[machine].keys) {
                                 // check if machine has this key, if not add
-                                var keyexists = this.model.clouds[cloud].machines[machine].keys.find(function(k) {
-                                    return k.name == key.name;
-                                });
+                                var keyexists = this.model.clouds[cloud].machines[machine].keys.find(
+                                    function (k) {
+                                        return k.name == key.name;
+                                    });
                             }
                             if (!keyexists) {
-                                if (!this.get('model.clouds.' + cloud + '.machines.' + machine + '.keys'))
-                                    this.set('model.clouds.' + cloud + '.machines.' + machine + '.keys', [key])
+                                if (!this.get('model.clouds.' + cloud + '.machines.' + machine +
+                                        '.keys'))
+                                    this.set('model.clouds.' + cloud + '.machines.' + machine + '.keys', [
+                                        key
+                                    ])
                                 else
-                                    this.push('model.clouds.' + cloud + '.machines.' + machine + '.keys', key)
+                                    this.push('model.clouds.' + cloud + '.machines.' + machine +
+                                        '.keys', key)
                             }
                         }, this)
                 }
@@ -513,35 +524,35 @@
             return this._updateModel('keys', data);
         },
 
-        _updateScripts: function(data) {
+        _updateScripts: function (data) {
             this.set('onboarding.isLoadingScripts', false);
             return this._updateModel('scripts', data);
         },
 
-        _updateSchedules: function(data) {
+        _updateSchedules: function (data) {
             this.set('onboarding.isLoadingSchedules', false);
             return this._updateModel('schedules', data);
         },
 
-        _updateTemplates: function(data) {
+        _updateTemplates: function (data) {
             this.set('onboarding.isLoadingTemplates', false);
             return this._updateModel('templates', data);
         },
 
-        _updateStacks: function(data) {
+        _updateStacks: function (data) {
             this.set('onboarding.isLoadingStacks', false);
             return this._updateModel('stacks', data);
         },
 
-        _updateSizes: function(data) {
+        _updateSizes: function (data) {
             return this._updateModel('clouds.' + data.cloud_id + '.sizes', data.sizes);
         },
 
-        _updateLocations: function(data) {
+        _updateLocations: function (data) {
             return this._updateModel('clouds.' + data.cloud_id + '.locations', data.locations);
         },
 
-        _updateImages: function(data) {
+        _updateImages: function (data) {
             // console.log('_updateImages');
             this.set('onboarding.isLoadingImages', false);
             var changed = this._updateModel('clouds.' + data.cloud_id + '.images', data.images);
@@ -552,9 +563,9 @@
             var allImages = [];
             if (this.model != undefined) {
                 this.model.cloudsArray.forEach(
-                    function(cloud) {
+                    function (cloud) {
                         if (cloud.imagesArray != undefined && cloud.enabled) {
-                            cloud.imagesArray.forEach(function(image, index, arr) {
+                            cloud.imagesArray.forEach(function (image, index, arr) {
                                 arr[index].icons = self._generateIcon(image);
                                 arr[index].cloud = {
                                     'id': cloud.id,
@@ -564,7 +575,8 @@
                                 self.model.imagesArray.push(arr[index])
                             });
                         }
-                        return allImages = allImages.concat(cloud.imagesArray != undefined ? cloud.imagesArray : [])
+                        return allImages = allImages.concat(cloud.imagesArray != undefined ? cloud.imagesArray :
+                            [])
                     });
             }
 
@@ -572,27 +584,29 @@
             this.set('model.images', _generateMap(allImages));
         },
 
-        _updateMachines: function(data) {
+        _updateMachines: function (data) {
             var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines);
             if (!changed)
                 return false;
 
             var allMachines = [];
-            if (this.model != undefined && this.model.cloudsArray.length>0) {
+            if (this.model != undefined && this.model.cloudsArray.length > 0) {
                 this.model.cloudsArray.forEach(
-                    function(cloud) {
+                    function (cloud) {
                         if (cloud.machinesArray != undefined && cloud.enabled) {
-                            cloud.machinesArray.forEach(function(machine) {
+                            cloud.machinesArray.forEach(function (machine) {
                                 machine.cloud = {
                                     'id': cloud.id,
                                     'title': cloud.title,
                                     'provider': cloud.provider
                                 };
-                                machine.keys = this._machineKeys(machine.id, machine.cloud.id) || [];
+                                machine.keys = this._machineKeys(machine.id, machine.cloud.id) ||
+                                    [];
                                 machine.rules = this._machineRules(machine.id, machine.cloud.id);
                             }, this);
 
-                            return allMachines = allMachines.concat(cloud.machinesArray != undefined ? cloud.machinesArray : [])
+                            return allMachines = allMachines.concat(cloud.machinesArray != undefined ?
+                                cloud.machinesArray : [])
                         }
                     }, this);
             }
@@ -605,13 +619,13 @@
             this.set('model.machines', _generateMap(allMachines, 'uuid'));
         },
 
-        _updateNetworks: function(data) {
+        _updateNetworks: function (data) {
             this.set('onboarding.isLoadingNetworks', false);
 
             //update cloud's networks
             var cloudNetworks = [];
             if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider) {
-                data.networks.private.forEach(function(net) {
+                data.networks.private.forEach(function (net) {
                     if (net.id) {
                         net["network_type"] = "private";
                         net["provider"] = this.model.clouds[data.cloud_id].provider;
@@ -619,7 +633,7 @@
                         cloudNetworks.push(net);
                     }
                 }, this);
-                data.networks.public.forEach(function(net) {
+                data.networks.public.forEach(function (net) {
                     if (net.id) {
                         net["network_type"] = "public";
                         net["provider"] = this.model.clouds[data.cloud_id].provider;
@@ -650,9 +664,9 @@
             //update all networks array
             var allNetworks = [];
             if (this.model != undefined) {
-                this.model.cloudsArray.forEach(function(cloud) {
+                this.model.cloudsArray.forEach(function (cloud) {
                     if (cloud.networksArray != undefined && cloud.enabled) {
-                        cloud.networksArray.forEach(function(net) {
+                        cloud.networksArray.forEach(function (net) {
                             allNetworks.push(net);
                         })
                     }
@@ -661,20 +675,20 @@
             this.set('model.networksArray', allNetworks);
             this.set('model.networks', _generateMap(allNetworks));
         },
-        _updateZones: function(data) {
+        _updateZones: function (data) {
             this.set('onboarding.isLoadingZones', false);
 
             //update cloud's Zones
             var cloudZones = [];
             if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider) {
-                data.zones.forEach(function(zone) {
+                data.zones.forEach(function (zone) {
                     if (zone.id) {
                         zone['cloud_id'] = data.cloud_id;
                         zone['zone_type'] = zone['type'];
                         delete zone['type'];
-                        if (this.model.clouds[data.cloud_id].provider == 'gce'){
+                        if (this.model.clouds[data.cloud_id].provider == 'gce') {
                             zone['provider'] = 'Google'
-                        } else if (this.model.clouds[data.cloud_id].provider == 'ec2'){
+                        } else if (this.model.clouds[data.cloud_id].provider == 'ec2') {
                             zone['provider'] = 'Route53'
                         } else {
                             zone['provider'] = this.model.clouds[data.cloud_id].provider
@@ -696,9 +710,9 @@
             //update all zones array
             var allZones = [];
             if (this.model != undefined) {
-                this.model.cloudsArray.forEach(function(cloud) {
+                this.model.cloudsArray.forEach(function (cloud) {
                     if (cloud.zonesArray != undefined && cloud.enabled) {
-                        cloud.zonesArray.forEach(function(net) {
+                        cloud.zonesArray.forEach(function (net) {
                             allZones.push(net);
                         })
                     }
@@ -707,12 +721,12 @@
             this.set('model.zonesArray', allZones);
             this.set('model.zones', _generateMap(allZones));
         },
-        _updateTunnels: function(data) {
+        _updateTunnels: function (data) {
             this.set('onboarding.isLoadingTunnels', false);
             return this._updateModel('tunnels', data);
         },
 
-        _updateIncidents: function(data) {
+        _updateIncidents: function (data) {
             this.set('onboarding.isLoadingIncidents', false);
             if (data) {
                 for (var i = 0; i < data.length; i++) {
@@ -723,33 +737,33 @@
             return this._updateModel('incidents', data);
         },
 
-        _updateProjects: function(data) {
+        _updateProjects: function (data) {
             this.set('model.clouds.' + data.cloud_id + '.projects', _generateMap(data.projects));
             this.set('model.clouds.' + data.cloud_id + '.projectsArray', data.projects);
         },
 
-        _updateTags: function(data) {
+        _updateTags: function (data) {
             console.warn('_updateTags not implemented. Got data', data);
         },
 
-        _updateIsOverusing: function(user, org, machines){
+        _updateIsOverusing: function (user, org, machines) {
             // console.log('_updateIsOverusing', user, machines);
-            if (user && machines){
-               var isOverUsing = false;
-               // user has free plan and more than 5 machines
-               if ((!org.current_plan || !org.current_plan.title) && machines.length > 5)
-                   isOverUsing = true;
-               // user has a paid plan and more than allowed machines
-               else if (org.current_plan && org.current_plan.title && machines.length > org.current_plan.machine_limit)
-                   isOverUsing = true;
-               else
-                   isOverUsing = false;
+            if (user && machines) {
+                var isOverUsing = false;
+                // user has free plan and more than 5 machines
+                if ((!org.current_plan || !org.current_plan.title) && machines.length > 5)
+                    isOverUsing = true;
+                // user has a paid plan and more than allowed machines
+                else if (org.current_plan && org.current_plan.title && machines.length > org.current_plan.machine_limit)
+                    isOverUsing = true;
+                else
+                    isOverUsing = false;
 
-               this.set('model.isOverUsing', isOverUsing);
-           }
+                this.set('model.isOverUsing', isOverUsing);
+            }
         },
 
-        _probe: function(data) {
+        _probe: function (data) {
             if (!this.model.probes)
                 this.set('model.probes', {})
 
@@ -757,15 +771,16 @@
                 var uuid = this.model.clouds[data.cloud_id].machines[data.machine_id].uuid;
                 this.set('model.probes.' + uuid, data.result);
             } catch (e) {
-                console.warn('cannot find uuid for machine with cloud_id ', data.cloud_id, ' and machine_id', data.machine_id);
+                console.warn('cannot find uuid for machine with cloud_id ', data.cloud_id,
+                    ' and machine_id', data.machine_id);
             }
         },
 
-        _ping: function(data) {
+        _ping: function (data) {
             // TODO
         },
 
-        _generateIcon: function(data) {
+        _generateIcon: function (data) {
             var lexicon = ["ubuntu", "mongo", "aws", "suse", "fedora", "linux"];
             var keywords = [];
             for (var i = 0; i < lexicon.length; i++) {
@@ -776,32 +791,35 @@
             return keywords;
         },
 
-        _machineKeys: function(machineID, cloudID) {
+        _machineKeys: function (machineID, cloudID) {
             // console.log('Update _machineKeys',cloudID,machineID);
             if (machineID && cloudID) {
-                var keys = this.model.keysArray.filter(function(k) {
-                    return k.machines.find(function(m) {
+                var keys = this.model.keysArray.filter(function (k) {
+                    return k.machines.find(function (m) {
                         return m[1] == machineID && m[0] == cloudID;
                     })
                 });
                 return keys || [];
             }
         },
-        _machineRules: function(machineID, cloudID){
+        _machineRules: function (machineID, cloudID) {
             // if something has not initiaised
-            if (!machineID || !cloudID || !this.model || !this.model.monitoring || !this.model.monitoring.rules || !this.model.clouds || !this.model.clouds[cloudID] || !this.model.clouds[cloudID].machines || !this.model.clouds[cloudID].machines[machineID]){
+            if (!machineID || !cloudID || !this.model || !this.model.monitoring || !this.model.monitoring.rules ||
+                !this.model.clouds || !this.model.clouds[cloudID] || !this.model.clouds[cloudID].machines ||
+                !this.model.clouds[cloudID].machines[machineID]) {
                 return [];
-            }
-            else {
+            } else {
                 var rules = [];
                 for (var rule in this.model.monitoring.rules) {
-                    if (this.model.monitoring.rules[rule].machine == machineID && this.model.monitoring.rules[rule].cloud == cloudID){
+                    if (this.model.monitoring.rules[rule].machine == machineID && this.model.monitoring.rules[
+                            rule].cloud == cloudID) {
                         //add rule only if it's not already added in the machine
                         var ruleExists = false;
-                        if(this.model.clouds[cloudID].machines[machineID].rules) {
-                            var ruleExists = this.model.clouds[cloudID].machines[machineID].rules.find(function(r){
-                                return r.id == this.model.monitoring.rules[rule].id
-                            }, this);
+                        if (this.model.clouds[cloudID].machines[machineID].rules) {
+                            var ruleExists = this.model.clouds[cloudID].machines[machineID].rules.find(
+                                function (r) {
+                                    return r.id == this.model.monitoring.rules[rule].id
+                                }, this);
                         }
                         if (!ruleExists) {
                             rules.push(this.model.monitoring.rules[rule]);
@@ -811,23 +829,23 @@
                 return rules;
             }
         },
-        cleanUpResources: function(id){
+        cleanUpResources: function (id) {
             var newMachinesArray = [],
                 newImagesArray = [],
                 newNetworksArray = [];
             if (id) {
                 // machines
-                newMachinesArray = this.model.machinesArray.filter(function(m){
+                newMachinesArray = this.model.machinesArray.filter(function (m) {
                     return m.cloud.id != id;
                 });
 
                 // images
-                newImagesArray = this.model.imagesArray.filter(function(im){
+                newImagesArray = this.model.imagesArray.filter(function (im) {
                     return im.cloud.id != id;
                 });
 
                 // networks
-                newNetworksArray = this.model.networksArray.filter(function(n){
+                newNetworksArray = this.model.networksArray.filter(function (n) {
                     return n.cloud_id != id;
                 });
             }
@@ -842,7 +860,7 @@
         }
     });
 
-    var _generateMap = function(list, field) {
+    var _generateMap = function (list, field) {
         var out = {};
         if (field == undefined)
             field = 'id';

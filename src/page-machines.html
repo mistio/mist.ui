@@ -10,78 +10,81 @@
 
 <dom-module id="page-machines">
     <template>
-    <style>
-      :host {
-        display: block;
-      }
-      #recommendationsDialog {
-          width: 400px;
-      }
-      #recommendationsDialog a.blue-link {
-          color: var(--blue-color) !important;
-      }
-      #recommendationsDialog iron-icon.orange {
-          color: #F57F17;
-      }
-      .logs {
-        max-width: 1450px;
-        margin: 8px auto;
-        line-height: 28px;
-      }
-      paper-spinner {
-        margin: 4px;
-      }
-      .logs > * {
-        vertical-align: middle;
-        display: inline-block;
-      }
-      .error iron-icon {
-        opacity: 0.32;
-        cursor: pointer;
-      }
-      .error {
-          color: var(--red-color);
+        <style>
+             :host {
+                display: block;
+            }
 
-      }
-    </style>
-    <app-route route="{{route}}"
-                pattern="/:machine"
-                data="{{data}}"></app-route>
-    <div class="logs" hidden$="[[!jobId]]">
-        <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner> 
-        <p> Creating machine: {{removeUnderscore(logItem.action)}} 
-            <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]] <iron-icon icon="close" on-tap="clearLog"></iron-icon></span>
-        </p>
-    </div>
+            #recommendationsDialog {
+                width: 400px;
+            }
 
-    <div class="logs" hidden$="[[!performingAction]]">
-        <paper-spinner active></paper-spinner>
-        <p id="actionLogs"></p>
-    </div>
+            #recommendationsDialog a.blue-link {
+                color: var(--blue-color) !important;
+            }
 
-    <page-items name="machines" class="keys" model="[[model]]" items="[[model.machinesArray]]" sections="[[sections]]" section="[[sections.machines]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
-    <machine-create model="[[model]]" machines-fields="[[machinesFields]]" sections="[[sections]]" section="[[sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]]></machine-create>
-    <machine-page model="[[model]]" machine="[[_getMachine(data.machine, model.machines)]]" sections="[[sections]]" section="[[sections.machines]]" hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
-    <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
-        <h2>Recommendation</h2>
-        <p>
-            <iron-icon icon="icons:report-problem" class="orange"></iron-icon>
-            Your machine is vulnerable to Dirty COW. <br/><a href="https://dirtycow.ninja/" target="new" class="regular blue-link">Learn more.</a>
-        </p>
-        <p class="recommendation-text"></p>
-        <p>We recommend you follow the <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">guide</a> and update your server kernel. You can use mist.io shell to do it now.</p>
-        <div class="buttons">
-            <paper-button dialog-dismiss>Cancel</paper-button>
-            <paper-button class="blue" dialog-confirm on-tap="_shell">open machine shell</paper-button>
+            #recommendationsDialog iron-icon.orange {
+                color: #F57F17;
+            }
+
+            .logs {
+                max-width: 1450px;
+                margin: 8px auto;
+                line-height: 28px;
+            }
+
+            paper-spinner {
+                margin: 4px;
+            }
+
+            .logs>* {
+                vertical-align: middle;
+                display: inline-block;
+            }
+
+            .error iron-icon {
+                opacity: 0.32;
+                cursor: pointer;
+            }
+
+            .error {
+                color: var(--red-color);
+            }
+        </style>
+        <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
+        <div class="logs" hidden$="[[!jobId]]">
+            <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner>
+            <p> Creating machine: {{removeUnderscore(logItem.action)}}
+                <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]] <iron-icon icon="close" on-tap="clearLog"></iron-icon></span>
+            </p>
         </div>
-    </paper-dialog>
 
-    <iron-ajax
-            id="getJobLog" method="GET"
-            url="/api/v1/jobs/[[jobId]]"
-            handle-as="json"
-            on-response="handleGetJobLog"
-            on-error="handleGetJobLogError"></iron-ajax>
+        <div class="logs" hidden$="[[!performingAction]]">
+            <paper-spinner active></paper-spinner>
+            <p id="actionLogs"></p>
+        </div>
+
+        <page-items name="machines" class="keys" model="[[model]]" items="[[model.machinesArray]]" sections="[[sections]]" section="[[sections.machines]]"
+            onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+        <machine-create model="[[model]]" machines-fields="[[machinesFields]]" sections="[[sections]]" section="[[sections.machines]]"
+            hidden$=[[!_isAddPageActive(route.path)]]></machine-create>
+        <machine-page model="[[model]]" machine="[[_getMachine(data.machine, model.machines)]]" sections="[[sections]]" section="[[sections.machines]]"
+            hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
+        <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
+            <h2>Recommendation</h2>
+            <p>
+                <iron-icon icon="icons:report-problem" class="orange"></iron-icon>
+                Your machine is vulnerable to Dirty COW. <br/><a href="https://dirtycow.ninja/" target="new" class="regular blue-link">Learn more.</a>
+            </p>
+            <p class="recommendation-text"></p>
+            <p>We recommend you follow the <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">guide</a>                and update your server kernel. You can use mist.io shell to do it now.</p>
+            <div class="buttons">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="blue" dialog-confirm on-tap="_shell">open machine shell</paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
     <script>
         Polymer({
@@ -125,25 +128,25 @@
                 'stopPolling(logItem)'
             ],
 
-            _isAddPageActive: function(path) {
+            _isAddPageActive: function (path) {
                 return path == '/+create';
             },
-            _isDetailsPageActive: function(path) {
+            _isDetailsPageActive: function (path) {
                 if (path && path != '/+create')
                     return true;
                 else
                     return false;
             },
-            _isListActive: function(path) {
+            _isListActive: function (path) {
                 if (path)
                     this.stopPolling();
                 return !path;
             },
-            _getMachine: function(id) {
+            _getMachine: function (id) {
                 if (id && this.model && this.model.machines && this.model.machines[id])
                     return this.model.machines[id];
             },
-            openRecommendationsDialog: function(e) {
+            openRecommendationsDialog: function (e) {
                 var probe;
                 if (e.detail['item-type'] != "machines")
                     probe = this.model.probes[e.detail.item.id];
@@ -155,7 +158,7 @@
                 this.caller = e.detail.caller;
                 this.set('itemOfRecommendation', e.detail.item);
             },
-            _shell: function(event) {
+            _shell: function (event) {
                 var e = Polymer.dom(event);
                 var action = {
                     'name': 'shell',
@@ -168,7 +171,7 @@
                     itemtoquery += '#actions_machine';
                 this.querySelector(itemtoquery)._performAction(action, [this.itemOfRecommendation]);
             },
-            _jobIdChanged: function(jobid) {
+            _jobIdChanged: function (jobid) {
                 if (!jobid) {
                     this.resetPolling();
                 } else {
@@ -176,23 +179,23 @@
                     document.querySelector('paper-header-panel').scroller.scrollTop = 0; // Scroll to topscroll(0, 0);
                 }
             },
-            startPolling: function(jobid) {
-                this.intervalID = setInterval(function() {
+            startPolling: function (jobid) {
+                this.intervalID = setInterval(function () {
                     this.$.getJobLog.generateRequest();
                 }.bind(this), 1000);
 
                 console.log('startpolling');
             },
-            stopPolling: function(logItems) {
+            stopPolling: function (logItems) {
                 if (this.logItem && this.logItem.action.endsWith('finished')) {
                     //let log finished show
                     if (!this.logItem.error)
-                        this.async(function() {
+                        this.async(function () {
                             this.resetPolling(this.logItem.error);
                         }.bind(this), 1000);
                 }
             },
-            resetPolling: function(error) {
+            resetPolling: function (error) {
                 if (!error) {
                     this.set('logItem', '');
                 }
@@ -200,24 +203,24 @@
                 window.clearInterval(this.intervalID);
                 this.set('intervalID', false);
             },
-            handleGetJobLog: function(e) {
+            handleGetJobLog: function (e) {
                 console.log('handleGetJobLog', e);
                 //save last log in logItem
                 this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
             },
-            removeUnderscore: function(action) {
+            removeUnderscore: function (action) {
                 if (action)
                     return action.replace(/_/g, " ");
             },
-            clearLog: function(e) {
+            clearLog: function (e) {
                 this.resetPolling();
                 this.set('logItem', '');
             },
-            updateActionLogs: function(e) {
+            updateActionLogs: function (e) {
                 this.set('performingAction', true);
                 this.$.actionLogs.textContent = e.detail.log;
             },
-            stopActionLogs: function(e) {
+            stopActionLogs: function (e) {
                 this.$.actionLogs.textContent = '';
                 this.set('performingAction', false);
             },

@@ -17,12 +17,15 @@
             .monitoringArea {
                 padding: 24px;
             }
+
             h2 {
                 margin: 4px;
             }
-            #monitorindialog ::content paper-dialog h2{
+
+            #monitorindialog ::content paper-dialog h2 {
                 padding: 0 24px !important;
             }
+
             .console {
                 background-color: #444;
                 color: #fff;
@@ -30,61 +33,79 @@
                 margin-top: 24px;
                 margin-bottom: 24px;
             }
+
             #errormsgArea p {
                 margin-top: 0;
             }
+
             .errormsg-container {
                 color: var(--red-color);
             }
+
             .errormsg-container iron-icon {
                 color: inherit;
             }
+
             polyana-dashboard {
                 overflow: hidden;
             }
-            paper-button.blue, paper-button.red {
+
+            paper-button.blue,
+            paper-button.red {
                 margin: 24px 0 0 0;
             }
+
             paper-button.red {
                 background-color: #d96557 !important;
             }
+
             .head {
                 margin-top: 0;
             }
+
             .tip {
                 opacity: 0.54;
                 font-size: 0.9em;
             }
+
             div#errormsgArea {
                 display: block;
                 clear: both;
             }
+
             .monitoring-menu {
                 align-self: center;
                 margin-right: 8px;
             }
+
             paper-icon-button ::content iron-icon {
                 color: inherit;
             }
+
             paper-menu-button#monitoring-menu-wrapper ::content .dropdown-menu {
                 margin-top: 0 !important;
             }
+
             #monitoring-actions {
                 padding: 4px;
             }
+
             #disable {
                 margin-top: 0;
                 width: 200px;
             }
+
             .error {
                 color: var(--red-color);
             }
+
             .logs {
                 background-color: #f1f1f1;
                 padding: 4px 16px;
                 border-radius: 3px;
                 margin-bottom: 24px;
             }
+
             paper-spinner {
                 margin-top: 16px;
             }
@@ -95,13 +116,13 @@
             </template>
         </template>
         <template is="dom-if" if="[[resource.id]]" restamp>
-            <div class="monitoring-head horizontal layout" style$="color:#fff;background-color: [[section.color]];" >
+            <div class="monitoring-head horizontal layout" style$="color:#fff;background-color: [[section.color]];">
                 <h2 class="flex">Monitoring</h2>
                 <div class="monitoring-menu" hidden$="[[!isActivated]]">
                     <paper-menu-button id="monitoring-menu-wrapper" horizontal-align="right" vertical-align="top">
                         <paper-icon-button icon="icons:more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="monitoring-actions" class="dropdown-content">
-                            <paper-button id="disable" on-tap="_showDisableDialog" class="simple">Disable  Monitoring </paper-button>
+                            <paper-button id="disable" on-tap="_showDisableDialog" class="simple">Disable Monitoring </paper-button>
                         </paper-menu>
                     </paper-menu-button>
                 </div>
@@ -135,13 +156,11 @@
                             </p>
                             <div hidden$="[[jobId]]">
                                 <p hidden$="[[failed]]">
-                                    Agent installation status: [[monitoringState(resource, monitoring)]] <br/>
-                                    [[monitoring.installation_status.error_msg]]
+                                    Agent installation status: [[monitoringState(resource, monitoring)]] <br/> [[monitoring.installation_status.error_msg]]
                                 </p>
                                 <!-- installation failed-->
                                 <p class="error" hidden$="[[!failed]]">
-                                    Installation of the monitoring agent failed.
-                                    [[monitoring.installation_status.error_msg]]
+                                    Installation of the monitoring agent failed. [[monitoring.installation_status.error_msg]]
                                 </p>
                             </div>
                             <div hidden$="[[!waitingData]]">
@@ -164,7 +183,8 @@
                                         [[script]]
                                     </code>
                                 </div>
-                                <h4 class="tip"><strong>Tip:</strong> Alternatively you can disable monitoring, associate a key, and enable monitoring again, so Mist.io will automativally connect and install the monitoring agent.</h4>
+                                <h4 class="tip"><strong>Tip:</strong> Alternatively you can disable monitoring, associate a key, and enable
+                                    monitoring again, so Mist.io will automativally connect and install the monitoring agent.</h4>
                             </div>
                         </div>
                         <!-- monitoring is activated. we expect to have data -->
@@ -176,7 +196,8 @@
                     </div>
 
                     <div id="errormsgArea">
-                        <p class="errormsg-container" hidden$="[[!monitoringError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                        <p class="errormsg-container" hidden$="[[!monitoringError]]">
+                            <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
                     </div>
 
                     <!-- we can request monitoring button -->
@@ -200,47 +221,32 @@
         </template>
         <dialog-element id="monitorindialog"></dialog-element>
 
-        <iron-ajax id="monitoringRequest" url="/api/v1/clouds/[[resource.cloud.id]]/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="monitoringRequest" url="/api/v1/clouds/[[resource.cloud.id]]/machines/[[resource.id]]/monitoring" method="POST"
+            on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
 
         <!-- http://localhost/api/v1/clouds/0c4aeed5107e47179da1a4ad1e2f652e/machines/e36ce02992b1cd109e14696e05542b0315602ae361678e57d94a9c402c84d642/stats -->
-        <iron-ajax
-            id="getStats"
-            url= "/api/v1/clouds/[[resource.cloud.id]]/machines/[[resource.id]]/stats"
-            handle-as="xml"
-            method="GET"
-            contentType="application/json"
-            loading="{{loadingStats}}"
-            on-response="_handleStatsResponse"
-            on-error="_handleStatsError">
+        <iron-ajax id="getStats" url="/api/v1/clouds/[[resource.cloud.id]]/machines/[[resource.id]]/stats" handle-as="xml" method="GET"
+            contentType="application/json" loading="{{loadingStats}}" on-response="_handleStatsResponse" on-error="_handleStatsError">
         </iron-ajax>
 
-        <iron-ajax
-            id="disassociateMetric"
-            handle-as="xml"
-            method="DELETE"
-            contentType="application/json"
-            loading="{{loadingMetrics}}"
-            on-response="_handleAssociateResponse"
-            on-error="_handleAssociateError">
+        <iron-ajax id="disassociateMetric" handle-as="xml" method="DELETE" contentType="application/json" loading="{{loadingMetrics}}"
+            on-response="_handleAssociateResponse" on-error="_handleAssociateError">
         </iron-ajax>
 
-        <iron-ajax
-            id="getJobLog" method="GET"
-            url="/api/v1/jobs/[[jobId]]"
-            handle-as="json"
-            on-response="handleGetJobLog"
-            on-error="handleGetJobLogError"></iron-ajax>
+        <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
 
-     </template>
+    </template>
 </dom-module>
 <script>
-  Polymer({
+    Polymer({
         is: 'mist-monitoring',
 
         properties: {
             resource: {
                 type: Object, //currently machines only, later other resources too
-                value: {id: false}
+                value: {
+                    id: false
+                }
             },
             monitoring: Object,
             section: Object,
@@ -300,9 +306,9 @@
                 type: Boolean,
                 value: false
             },
-            machineKeys:{
-              type:Array,
-              value:[]
+            machineKeys: {
+                type: Array,
+                value: []
             },
             jobId: {
                 type: String,
@@ -345,55 +351,58 @@
             'clearJobID(resource.uuid)'
         ],
         listeners: {
-            'update-dashboard' : '_forwardEvent',
+            'update-dashboard': '_forwardEvent',
             'confirmation': '_monitoringDisableConfirmation',
             'delete-panel': '_disassociateMetric'
         },
-        ready: function(){
+        ready: function () {
 
         },
-        attached: function(){
+        attached: function () {
 
         },
-        detached: function () {
-        },
-        _forwardEvent: function(e){
+        detached: function () {},
+        _forwardEvent: function (e) {
             this.querySelector('polyana-dashboard')._updateDashboard(e);
         },
-        _computeDashboardUri: function(resource) {
+        _computeDashboardUri: function (resource) {
             if (resource && resource.cloud)
                 return '/api/v1/clouds/' + resource.cloud.id + '/machines/' + resource.id + '/dashboard';
         },
-        _computeIsMonitored: function(resource, monitoring){
+        _computeIsMonitored: function (resource, monitoring) {
             if (this.resource && this.monitoring && this.monitoring.monitored_machines[this.resource.uuid])
                 return true;
             else
                 return false;
         },
-        _computeIsRunning: function(resource) {
-            return this.resource && this.resource.state && (this.resource.state == "running" || this.resource.state == "unknown") ? true : false ;
+        _computeIsRunning: function (resource) {
+            return this.resource && this.resource.state && (this.resource.state == "running" || this.resource
+                .state == "unknown") ? true : false;
         },
-        _computeWaitingData: function(resource, monitoring){
-            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid] || !this.monitoring.monitored_machines[resource.uuid].installation_status){
+        _computeWaitingData: function (resource, monitoring) {
+            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
+                .monitored_machines[resource.uuid] || !this.monitoring.monitored_machines[resource.uuid].installation_status
+            ) {
                 return false;
-            }
-            else if (this.monitoring.monitored_machines[resource.uuid].installation_status.state == 'succeeded' && (!this.monitoring.monitored_machines[resource.uuid].installation_status.activated_at > 0 || !this.monitoring.monitored_machines[resource.uuid].installation_status.finished_at > 0)){
+            } else if (this.monitoring.monitored_machines[resource.uuid].installation_status.state ==
+                'succeeded' && (!this.monitoring.monitored_machines[resource.uuid].installation_status.activated_at >
+                    0 || !this.monitoring.monitored_machines[resource.uuid].installation_status.finished_at >
+                    0)) {
                 return true;
-            }
-            else
+            } else
                 return false;
         },
-        monitoringState: function(resource, monitoring){
-            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid]){
+        monitoringState: function (resource, monitoring) {
+            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[
+                    resource.uuid]) {
                 return "";
-            }
-            else {
+            } else {
                 if (this.monitoring.monitored_machines[resource.uuid].installation_status.state == "failed")
                     this.set("failed", true);
                 return this.monitoring.monitored_machines[resource.uuid].installation_status.state;
             }
         },
-        toggleMonitoring: function(e, action){
+        toggleMonitoring: function (e, action) {
             var payload = {};
             console.log('toggleMonitoring', action)
             if (action != 'disable')
@@ -401,29 +410,29 @@
             else
                 payload.action = action;
 
-                payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
-                payload.name = this.resource.name ? this.resource.name : this.resource.uuid;
-                payload.dns_name = this.resource.extra.dns_name ? this.resource.extra.dns_name : "n/a";
-                payload.no_ssh = !this.resource.keys || this.resource.keys.length == 0 ? "true" : "";
-            console.log("toggleMonitoring",payload);
+            payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
+            payload.name = this.resource.name ? this.resource.name : this.resource.uuid;
+            payload.dns_name = this.resource.extra.dns_name ? this.resource.extra.dns_name : "n/a";
+            payload.no_ssh = !this.resource.keys || this.resource.keys.length == 0 ? "true" : "";
+            console.log("toggleMonitoring", payload);
             this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.monitoringRequest.params = payload;
             this.$.monitoringRequest.generateRequest();
             this.set("failed", false);
         },
-        _monitoringDisableConfirmation: function(e){
-            console.log('mist-monitoring',e)
+        _monitoringDisableConfirmation: function (e) {
+            console.log('mist-monitoring', e)
             if (e.detail.reason == "monitoring.disable" && e.detail.response.confirmed)
                 this.toggleMonitoring(e, 'disable');
         },
-        _monitoringRequest: function(e){
+        _monitoringRequest: function (e) {
             this.set("failed", false);
         },
-        _monitoringResponse: function(e){
+        _monitoringResponse: function (e) {
             //in case of enabling we get the script response
             var script = YAML.parse(e.detail.xhr.response);
             if (this.resource.os_type)
-                script = script[this.resource.os_type+"_command"];
+                script = script[this.resource.os_type + "_command"];
             else
                 script = script.command;
 
@@ -438,43 +447,42 @@
                 this.set('jobId', response["job_id"]);
             }
         },
-        handleGetJobLog: function(e){
-            console.log('handleGetJobLog',e);
+        handleGetJobLog: function (e) {
+            console.log('handleGetJobLog', e);
             this.set('logItems', e.detail.response.logs)
         },
-        handleGetJobLogError: function(e){
+        handleGetJobLogError: function (e) {
 
         },
-        _jobIdChanged: function(jobid){
+        _jobIdChanged: function (jobid) {
             if (!jobid) {
                 this.resetPolling();
-            }
-            else {
+            } else {
                 this.startPolling(jobid);
             }
         },
-        startPolling: function(jobid){
-            this.intervalID = setInterval(function() {
+        startPolling: function (jobid) {
+            this.intervalID = setInterval(function () {
                 this.$.getJobLog.generateRequest();
             }.bind(this), 1000);
 
             console.log('startpolling');
         },
-        stopPolling: function(logItems){
-            if (this.logItems && this.logItems.length > 0 ){
-                if (this.logItems[this.logItems.length-1].action.endsWith('deploy_collectd_finished')){
+        stopPolling: function (logItems) {
+            if (this.logItems && this.logItems.length > 0) {
+                if (this.logItems[this.logItems.length - 1].action.endsWith('deploy_collectd_finished')) {
                     this.resetPolling();
                 }
             }
         },
-        computeShowLogs: function(jobId, isMonitored, isActivated){
+        computeShowLogs: function (jobId, isMonitored, isActivated) {
             console.log("computeShowLogs", this.resource.id)
             return (this.isMonitored && !this.isActivated) || this.jobId;
         },
-        removeUnderscore: function(action){
+        removeUnderscore: function (action) {
             return action.replace(/_/g, " ");
         },
-        resetPolling: function(error){
+        resetPolling: function (error) {
             if (!error) {
                 this.set('logItems', []);
             }
@@ -482,56 +490,61 @@
             window.clearInterval(this.intervalID);
             this.set('intervalID', false);
         },
-        _monitoringError: function(e){
-            console.log("_monitoringError",e.detail.request.xhr.responseText);
+        _monitoringError: function (e) {
+            console.log("_monitoringError", e.detail.request.xhr.responseText);
             this.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
             this.set("monitoringError", true);
         },
-        _reset: function(resource){
+        _reset: function (resource) {
             this.set("monitoringError", false);
             this.set("showScript", false);
             this.set("failed", false);
         },
-        _computeScript: function(resource, monitoring){
-          if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid]){
+        _computeScript: function (resource, monitoring) {
+            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[
+                    resource.uuid]) {
+                return "";
+            } else if (this.monitoring.monitored_machines[resource.uuid].commands) {
+                return this.monitoring.monitored_machines[resource.uuid].commands[this.resource.os_type] ||
+                    this.monitoring.monitored_machines[resource.uuid].commands["unix"];
+            } else {
                 return "";
             }
-            else if (this.monitoring.monitored_machines[resource.uuid].commands){
-                return this.monitoring.monitored_machines[resource.uuid].commands[this.resource.os_type] || this.monitoring.monitored_machines[resource.uuid].commands["unix"];
-            }
-            else {
-              return "";
-            }
         },
-        _computeIsActivated(resource, monitoring, hidden){
+        _computeIsActivated(resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
-            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid] || (!this.monitoring.monitored_machines[resource.uuid].installation_status.activated_at && !this.waitingData))
+            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines ||
+                !this.monitoring.monitored_machines[resource.uuid] || (!this.monitoring.monitored_machines[
+                    resource.uuid].installation_status.activated_at && !this.waitingData))
                 return false;
             else
                 return true;
 
         },
-        _computeResourceMonitoringInfo: function(resource, monitoring){
-            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid])
+        _computeResourceMonitoringInfo: function (resource, monitoring) {
+            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
+                .monitored_machines[resource.uuid])
                 return false;
             else
                 return this.monitoring.monitored_machines[resource.uuid];
         },
-        _computeHasKeys: function(keys){
+        _computeHasKeys: function (keys) {
             if (this.resource.keys)
                 return this.resource.keys.length > 0;
             else
                 return false;
         },
-        _computeIsManual: function(isMonitored, resource, monitoring){
+        _computeIsManual: function (isMonitored, resource, monitoring) {
             console.log(this.resource);
-            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[this.resource.uuid] || !this.monitoring.monitored_machines[this.resource.uuid].installation_status.manual)
+            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
+                .monitored_machines[this.resource.uuid] || !this.monitoring.monitored_machines[this.resource
+                    .uuid].installation_status.manual)
                 return false;
             else
                 return true;
         },
-        _showDisableDialog: function() {
+        _showDisableDialog: function () {
             this._showDialog({
                 title: 'Disable Machine Monitoring',
                 body: "Disabling machine monitoring will cause graph data gaps in case you enable your monitoring again.",
@@ -540,68 +553,71 @@
                 action: 'disable monitoring'
             });
         },
-        _showDialog: function(info) {
+        _showDialog: function (info) {
             var dialog = this.querySelector('#monitorindialog');
             for (var i in info) {
                 dialog[i] = info[i];
             }
             dialog._openDialog();
         },
-        _disassociateMetric: function(e){
+        _disassociateMetric: function (e) {
             console.log(e);
             var targets = e.detail.panel.panel.targets;
 
-            targets.forEach(function(target){
-                if (target.target.startsWith("mist.python")){
-                    this.$.disassociateMetric.url = "/api/v1/clouds/"+this.resource.cloud.id+"/machines/"+this.resource.id+"/plugins/" + target.target;
+            targets.forEach(function (target) {
+                if (target.target.startsWith("mist.python")) {
+                    this.$.disassociateMetric.url = "/api/v1/clouds/" + this.resource.cloud.id +
+                        "/machines/" + this.resource.id + "/plugins/" + target.target;
                     this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.disassociateMetric.params = {plugin_type: "python"};
+                    this.$.disassociateMetric.params = {
+                        plugin_type: "python"
+                    };
                     this.$.disassociateMetric.generateRequest();
                 };
 
                 var payload = {
-                  metric_id: target.target
+                    metric_id: target.target
                 };
-                this.$.disassociateMetric.url = "/api/v1/clouds/"+this.resource.cloud.id+"/machines/"+this.resource.id+"/metrics";
+                this.$.disassociateMetric.url = "/api/v1/clouds/" + this.resource.cloud.id +
+                    "/machines/" + this.resource.id + "/metrics";
                 this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.disassociateMetric.params = payload;
                 this.$.disassociateMetric.generateRequest();
             }, this);
         },
-        _handleAssociateResponse: function(target){
+        _handleAssociateResponse: function (target) {
             this.querySelector('polyana-dashboard')._updateDashboard();
         },
-        clearJobID: function(resource){
+        clearJobID: function (resource) {
             // clear job when navigating away
             this.set('jobId', false);
         },
-        getStats: function(isMonitored, isManual, waitingData, isActivated) {
+        getStats: function (isMonitored, isManual, waitingData, isActivated) {
             if (this.isMonitored && this.isManual && !this.isActivated) {
                 if (!this.intervalMonitoringID)
                     this.monitoringPolling();
-            }
-            else {
+            } else {
                 console.log('stopGetStats');
                 this.stopGetStats();
             }
         },
-        monitoringPolling: function(){
+        monitoringPolling: function () {
             console.log('started monitoringPolling')
-            this.intervalMonitoringID = window.setInterval(function() {
+            this.intervalMonitoringID = window.setInterval(function () {
                 this.$.getStats.generateRequest();
                 console.log('monitoringPolling');
             }.bind(this), 5000);
 
             console.log('interval id', this.intervalMonitoringID);
         },
-        stopGetStats: function(){
+        stopGetStats: function () {
             window.clearInterval(this.get('intervalMonitoringID'));
             this.set('intervalMonitoringID', false);
             console.log('clearInterval');
         },
-        _computeShowHomeDashboard: function(monitoring, hidden){
+        _computeShowHomeDashboard: function (monitoring, hidden) {
             if (hidden || !monitoring.machines || !monitoring.machines.length)
-              return false;
+                return false;
             return true;
         }
     });
