@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 
+<link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 
 <link rel="import" href="record-add.html">
@@ -12,6 +13,7 @@
 <dom-module id="zone-page">
     <template>
         <style is="custom-style" include="single-page"></style>
+        <style is="custom-style" include="tags-and-labels"></style>
         <style include="shared-styles">
             :host {
                 display: block;
@@ -110,6 +112,21 @@
                 font-weight: 700;
                 margin-right: 16px;
             }
+            
+            h4.id.tags {
+                padding-left: 36px;
+            }
+
+            .tag {
+                padding: 0.5em;
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+            .notify {
+                text-align: center;
+                margin: auto;
+            }
 
             paper-icon-bottom.bottom {
                 padding-right: 8px;
@@ -119,6 +136,7 @@
         <div id="content">
             <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
+                <div class="notify" hidden$="[[!isLoading]]"> Retrieving details from the provider...</div>
             </div>
             <div class="is-loading-2" hidden$="[[isLoading]]">
                 <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
@@ -131,6 +149,7 @@
                             </div>
                         </div>
                         <div class="item-actions">
+                            <paper-button on-tap="_editTags" class="simple">tags</paper-button>
                             <paper-button on-tap="_deleteZone" class="simple">delete
                                 <iron-icon icon="delete"></iron-icon>
                             </paper-button>
@@ -138,6 +157,12 @@
                     </paper-material>
                     <paper-material>
                         <h4 class="id">Zone ID:</h4><span class="id">[[zone.id]]</span>
+                        <template is="dom-if" if="[[tagsExist]]">
+                            <h4 class="id tags">Tags </h4>
+                            <template is="dom-repeat" items="[[zone.tags]]">
+                                <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
+                            </template>
+                        </template>
                     </paper-material>
                     <paper-material>
                         <h4 class="id">Zone Info</h4>
@@ -190,6 +215,7 @@
         </div>
         <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
         <dialog-element class='zone-dialog'></dialog-element>
+        <tags-list model="[[model]]"></tags-list>
     </template>
     <script>
         (function() {
@@ -230,7 +256,17 @@
                     zoneCloud: {
                         type: String,
                         computed: '_computeZoneCloud(zone, model.clouds)' 
+                    },
+                    tagsExist: {
+                        type: Boolean,
+                        computed: '_computeTagsExist(zone, zone.tags.*)',
+                        value: false
+                    },
+                    itemsfortags: {
+                        type: Array,
+                        computed: 'computeTagItems(zone)'
                     }
+
                 },
                 listeners: {
                     'confirmation': '_deleteZoneEventResponse'
@@ -249,13 +285,28 @@
                 _editZone: function(e) {
                     console.log(e);
                 },
+                _editTags: function() {
+                    var el = this.querySelector('tags-list'),
+                    items = [];
+                    items.push(itemUid(this.zone, this.section));
+                    el.items = items;
+                    el._openDialog();
+                },
                 _deleteZone: function(e) {
-                    this._showDialog({
-                        title: 'Delete Zone?',
-                        body: "Deleting zones cannot be undone. You are about to delete zone: '" + this.zone.domain + "'.",
-                        danger: true,
-                        reason: "zone.delete"
-                    });
+                    if (this.zone.records.length > 2) {
+                        this._showDialog({
+                            title: 'Zone can not be deleted.',
+                            body: "This zone cannot be deleted because it contains non-required (A, AAAA, CNAME, MX, TXT) records. Please delete these records in order to proceed.",
+                            type: 'not',
+                        })
+                    } else {
+                        this._showDialog({
+                            title: 'Delete Zone?',
+                            body: "Deleting zones cannot be undone. You are about to delete zone: '" + this.zone.domain + "'.",
+                            danger: true,
+                            reason: "zone.delete"
+                        });
+                    }
                 },
                 _fabAction: function(e) {
                     console.debug('fabAction', e, this.section.add);
@@ -275,6 +326,25 @@
                 _handleZoneDeleteAjaxResponse: function(e) {
                     this.fire('toast',{msg:'Delete was successful.',duration:3000});
                     document.querySelector('app-location').path = '/zones';
+                },
+                _handleZoneDeleteAjaxError: function(e) {
+                    this.fire('toast',{msg:e.detail.response, duration:3000});
+                },
+                _computeTagsExist: function(zone, tags){
+                    if (this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0]['key'] && this.zone.tags[0]['key'] != "") {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                },
+                computeTagItems: function(zone){
+                    if (zone) {
+                        var arr = [];
+                        var item = itemUid(zone, this.section);
+                        arr.push(item);
+                        return arr;
+                    }
                 },
                 _showDialog: function(info) {
                     var dialog = this.querySelector('.zone-dialog');
