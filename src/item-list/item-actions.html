@@ -482,7 +482,7 @@ Polymer({
 
         item.type = item_type;
         var ret = [];
-        if (item.type != 'machine' && item.type != 'network' && item.type != 'zone') {
+        if (item.type != 'machine' && item.type != 'network' && item.type != 'zone' && item.type != 'record') {
             ret.push('tag');
         }
         if (item.type == 'machine') {
@@ -532,6 +532,10 @@ Polymer({
         } else if (item.type == 'network') {
             ret.push('delete');
         } else if (item.type == 'zone') {
+            ret.push('tag');
+            ret.push('delete');
+        } else if (item.type == 'record') {
+            ret.push('tag');
             ret.push('delete');
         } else if (item.type == 'tunnel') {
             // if(item.active)
@@ -711,6 +715,10 @@ Polymer({
             //zones
             } else if (action.name == 'delete' && item.type == 'zone') {
                 uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.id;
+                method = 'DELETE';
+            //records
+            } else if (action.name == 'delete' && item.type == 'record') {
+                uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.zone_id + '/records/' + item.id;
                 method = 'DELETE';
             //tunnels
             } else if (action.name == 'delete' && item.type == 'tunnel') {
