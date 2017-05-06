@@ -13,11 +13,11 @@ WORKDIR /ui
 
 COPY bower.json /ui/bower.json
 
-RUN bower install
+RUN bower install && cd bower_components/Chart.js && npm install && gulp build && cd -
 
 COPY . /ui
 
-RUN cd bower_components/Chart.js && npm install && gulp build && node --max_old_space_size=4096 /usr/local/bin/polymer build
+RUN node --max_old_space_size=4096 /usr/local/bin/polymer build
 
 COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
