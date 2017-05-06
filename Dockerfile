@@ -11,9 +11,11 @@ ENV bower_allow_root=true \
 
 WORKDIR /ui
 
-COPY . /ui
+COPY bower.json /ui/bower.json
 
 RUN bower install
+
+COPY . /ui
 
 RUN cd bower_components/Chart.js && npm install && gulp build && node --max_old_space_size=4096 /usr/local/bin/polymer build
 
