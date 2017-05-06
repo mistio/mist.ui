@@ -11,8 +11,6 @@ ENV bower_allow_root=true \
 
 WORKDIR /ui
 
-COPY bower.json /ui/bower.json
-
 RUN bower install
 
 COPY . /ui
