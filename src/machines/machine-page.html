@@ -2,12 +2,12 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../item-list/item-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
-<link rel="import" href="../logs/log-list.html">
 <link rel="import" href="../mist-monitoring.html">
 
 <link rel="import" href="machine-edit.html">
@@ -305,6 +305,11 @@
             .shorteco.longeco {
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
             }
+
+            #machineLogs {
+                font-size: 12px;
+            }
+
             @media (max-width: 1024px) {
                 .machine-key {
                     display: block;
@@ -511,7 +516,16 @@
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <log-list resource-filter="[[machineLogFilter]]"></log-list>
+            <template is="dom-if" if=[[machine.id]] restamp>
+            <mist-list timeseries expands id="machineLogs"
+                apiurl="/api/v1/logs"
+                name="logs"
+                frozen=[[_getFrozenLogColumn()]]
+                visible=[[_getVisibleUserColumns()]]
+                renderers=[[_getUserRenderers(model.members)]]
+                primary-field-name="time"
+                base-filter="machine_id:[[machine.id]]"></mist-list>
+            </template>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -1102,6 +1116,37 @@ Polymer({
             else
                 return false;
         }
-    }
+    },
+
+    _getVisibleUserColumns: function() {
+        return ['type', 'action', 'user_id']
+    },
+
+    _getFrozenLogColumn: function() {
+        return ['time']
+    },
+
+    _getUserRenderers: function() {
+        var _this = this;
+        return {
+            'time': {
+                'body': function(item) {
+                    return '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>'
+                }
+            },
+            'user_id': {
+                'title': function(){ return 'user';},
+                'body': function(item) {
+                    if (_this.model && _this.model.members && item in _this.model.members &&
+                        _this.model.members[item] && _this.model.members[item].name &&
+                        _this.model.members[item].name != undefined){
+                        var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name + '</a>';
+                        return ret;
+                    } else console.log(item);
+                    return item || '';
+                }
+            }
+        };
+    },
 });
 </script>
