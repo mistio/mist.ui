@@ -574,6 +574,7 @@
 
         _updateMachines: function(data) {
             var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines);
+            // console.log('machines',data.machines);
             if (!changed)
                 return false;
 
@@ -588,8 +589,8 @@
                                     'title': cloud.title,
                                     'provider': cloud.provider
                                 };
-                                machine.keys = this._machineKeys(machine.id, machine.cloud.id) || [];
-                                machine.rules = this._machineRules(machine.id, machine.cloud.id);
+                                // machine.keys = this._machineKeys(machine.machine_id, machine.cloud.id) || [];
+                                machine.rules = this._machineRules(machine.machine_id, machine.cloud.id);
                             }, this);
 
                             return allMachines = allMachines.concat(cloud.machinesArray != undefined ? cloud.machinesArray : [])
@@ -602,7 +603,7 @@
 
             this.set('onboarding.isLoadingMachines', false);
             this.set('model.machinesArray', allMachines);
-            this.set('model.machines', _generateMap(allMachines, 'uuid'));
+            this.set('model.machines', _generateMap(allMachines));
         },
 
         _updateNetworks: function(data) {
@@ -777,14 +778,14 @@
         },
 
         _probe: function(data) {
+            console.log('probe',data);
             if (!this.model.probes)
                 this.set('model.probes', {})
-
             try {
-                var uuid = this.model.clouds[data.cloud_id].machines[data.machine_id].uuid;
-                this.set('model.probes.' + uuid, data.result);
+                var machine = this.model.machines[data.machine_uuid];
+                this.set('model.probes.' + machine.id, data.result);
             } catch (e) {
-                console.warn('cannot find uuid for machine with cloud_id ', data.cloud_id, ' and machine_id', data.machine_id);
+                console.log('cannot find id for machine with cloud_id ', data.cloud_id, ' and machine_id', data.machine_id);
             }
         },
 
@@ -859,7 +860,7 @@
                 });
             }
             this.set('model.machinesArray', newMachinesArray);
-            this.set('model.machines', _generateMap(newMachinesArray, 'uuid'));
+            this.set('model.machines', _generateMap(newMachinesArray));
 
             this.set('model.imagesArray', newImagesArray);
             this.set('model.images', _generateMap(newImagesArray));

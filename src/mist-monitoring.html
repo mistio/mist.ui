@@ -136,12 +136,12 @@
                             <div hidden$="[[jobId]]">
                                 <p hidden$="[[failed]]">
                                     Agent installation status: [[monitoringState(resource, monitoring)]] <br/>
-                                    [[monitoring.installation_status.error_msg]]
+                                    [[resourceMonitoringInfo.installation_status.error_msg]]
                                 </p>
                                 <!-- installation failed-->
                                 <p class="error" hidden$="[[!failed]]">
                                     Installation of the monitoring agent failed.
-                                    [[monitoring.installation_status.error_msg]]
+                                    [[resourceMonitoringInfo.installation_status.error_msg]]
                                 </p>
                             </div>
                             <div hidden$="[[!waitingData]]">
@@ -170,9 +170,8 @@
                         <!-- monitoring is activated. we expect to have data -->
                         <template is="dom-if" if="[[isActivated]]" restamp>
                             <polyana-dashboard uri$="[[_computeDashboardUri(resource)]]" datasources="[[datasources]]"></polyana-dashboard>
-                            <add-graph machine="[[resource]]" cloud-id="[[resource.cloud.id]]" dashboard="[[dashboard]]" machine-keys="[[machineKeys]]"></add-graph>
+                            <add-graph machine="[[resource]]" dashboard="[[dashboard]]" machine-keys="[[machineKeys]]"></add-graph>
                         </template>
-
                     </div>
 
                     <div id="errormsgArea">
@@ -200,12 +199,11 @@
         </template>
         <dialog-element id="monitorindialog"></dialog-element>
 
-        <iron-ajax id="monitoringRequest" url="/api/v1/clouds/[[resource.cloud.id]]/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="monitoringRequest" url="/api/v1/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
 
-        <!-- http://localhost/api/v1/clouds/0c4aeed5107e47179da1a4ad1e2f652e/machines/e36ce02992b1cd109e14696e05542b0315602ae361678e57d94a9c402c84d642/stats -->
         <iron-ajax
             id="getStats"
-            url= "/api/v1/clouds/[[resource.cloud.id]]/machines/[[resource.id]]/stats"
+            url= "/api/v1/machines/[[resource.id]]/stats"
             handle-as="xml"
             method="GET"
             contentType="application/json"
@@ -254,7 +252,8 @@
             },
             isMonitored: {
                 type: Boolean,
-                computed: '_computeIsMonitored(resource, monitoring.monitored_machines.*)'
+                computed: '_computeIsMonitored(resource, monitoring.monitored_machines.*)',
+                value: false
             },
             waitingData: {
                 type: Boolean,
@@ -305,8 +304,7 @@
               value:[]
             },
             jobId: {
-                type: String,
-
+                type: String
             },
             logItems: {
                 type: Array
@@ -342,7 +340,7 @@
             '_jobIdChanged(jobId)',
             'stopPolling(logItems)',
             'getStats(isMonitored, isManual, waitingData, isActivated)',
-            'clearJobID(resource.uuid)'
+            'clearJobID(resource.id)'
         ],
         listeners: {
             'update-dashboard' : '_forwardEvent',
@@ -361,11 +359,11 @@
             this.querySelector('polyana-dashboard')._updateDashboard(e);
         },
         _computeDashboardUri: function(resource) {
-            if (resource && resource.cloud)
-                return '/api/v1/clouds/' + resource.cloud.id + '/machines/' + resource.id + '/dashboard';
+            if (resource)
+                return '/api/v1/machines/' + resource.id + '/dashboard';
         },
         _computeIsMonitored: function(resource, monitoring){
-            if (this.resource && this.monitoring && this.monitoring.monitored_machines[this.resource.uuid])
+            if (this.resource && this.monitoring && this.monitoring.monitored_machines[this.resource.id])
                 return true;
             else
                 return false;
@@ -374,23 +372,23 @@
             return this.resource && this.resource.state && (this.resource.state == "running" || this.resource.state == "unknown") ? true : false ;
         },
         _computeWaitingData: function(resource, monitoring){
-            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid] || !this.monitoring.monitored_machines[resource.uuid].installation_status){
+            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || !this.monitoring.monitored_machines[resource.id].installation_status){
                 return false;
             }
-            else if (this.monitoring.monitored_machines[resource.uuid].installation_status.state == 'succeeded' && (!this.monitoring.monitored_machines[resource.uuid].installation_status.activated_at > 0 || !this.monitoring.monitored_machines[resource.uuid].installation_status.finished_at > 0)){
+            else if (this.monitoring.monitored_machines[resource.id].installation_status.state == 'succeeded' && (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at > 0 || !this.monitoring.monitored_machines[resource.id].installation_status.finished_at > 0)){
                 return true;
             }
             else
                 return false;
         },
         monitoringState: function(resource, monitoring){
-            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid]){
+            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id]){
                 return "";
             }
             else {
-                if (this.monitoring.monitored_machines[resource.uuid].installation_status.state == "failed")
+                if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed")
                     this.set("failed", true);
-                return this.monitoring.monitored_machines[resource.uuid].installation_status.state;
+                return this.monitoring.monitored_machines[resource.id].installation_status.state;
             }
         },
         toggleMonitoring: function(e, action){
@@ -402,9 +400,9 @@
                 payload.action = action;
 
                 payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
-                payload.name = this.resource.name ? this.resource.name : this.resource.uuid;
+                payload.name = this.resource.name ? this.resource.name : this.resource.id;
                 payload.dns_name = this.resource.extra.dns_name ? this.resource.extra.dns_name : "n/a";
-                payload.no_ssh = !this.resource.keys || this.resource.keys.length == 0 ? "true" : "";
+                payload.no_ssh = !this.resource.key_associations || this.resource.key_associations.length == 0 ? "true" : "";
             console.log("toggleMonitoring",payload);
             this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.monitoringRequest.params = payload;
@@ -468,7 +466,7 @@
             }
         },
         computeShowLogs: function(jobId, isMonitored, isActivated){
-            console.log("computeShowLogs", this.resource.id)
+            // console.log("computeShowLogs", this.resource.id)
             return (this.isMonitored && !this.isActivated) || this.jobId;
         },
         removeUnderscore: function(action){
@@ -493,11 +491,11 @@
             this.set("failed", false);
         },
         _computeScript: function(resource, monitoring){
-          if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid]){
+          if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id]){
                 return "";
             }
-            else if (this.monitoring.monitored_machines[resource.uuid].commands){
-                return this.monitoring.monitored_machines[resource.uuid].commands[this.resource.os_type] || this.monitoring.monitored_machines[resource.uuid].commands["unix"];
+            else if (this.monitoring.monitored_machines[resource.id].commands){
+                return this.monitoring.monitored_machines[resource.id].commands[this.resource.os_type] || this.monitoring.monitored_machines[resource.id].commands["unix"];
             }
             else {
               return "";
@@ -506,17 +504,17 @@
         _computeIsActivated(resource, monitoring, hidden){
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
-            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid] || (!this.monitoring.monitored_machines[resource.uuid].installation_status.activated_at && !this.waitingData))
+            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at && !this.waitingData))
                 return false;
             else
                 return true;
 
         },
         _computeResourceMonitoringInfo: function(resource, monitoring){
-            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.uuid])
+            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id])
                 return false;
             else
-                return this.monitoring.monitored_machines[resource.uuid];
+                return this.monitoring.monitored_machines[resource.id];
         },
         _computeHasKeys: function(keys){
             if (this.resource.keys)
@@ -526,7 +524,7 @@
         },
         _computeIsManual: function(isMonitored, resource, monitoring){
             console.log(this.resource);
-            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[this.resource.uuid] || !this.monitoring.monitored_machines[this.resource.uuid].installation_status.manual)
+            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[this.resource.id] || !this.monitoring.monitored_machines[this.resource.id].installation_status.manual)
                 return false;
             else
                 return true;
@@ -553,7 +551,7 @@
 
             targets.forEach(function(target){
                 if (target.target.startsWith("mist.python")){
-                    this.$.disassociateMetric.url = "/api/v1/clouds/"+this.resource.cloud.id+"/machines/"+this.resource.id+"/plugins/" + target.target;
+                    this.$.disassociateMetric.url = "/api/v1/machines/"+this.resource.id+"/plugins/" + target.target;
                     this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.disassociateMetric.params = {plugin_type: "python"};
                     this.$.disassociateMetric.generateRequest();
@@ -562,7 +560,7 @@
                 var payload = {
                   metric_id: target.target
                 };
-                this.$.disassociateMetric.url = "/api/v1/clouds/"+this.resource.cloud.id+"/machines/"+this.resource.id+"/metrics";
+                this.$.disassociateMetric.url = "/api/v1/machines/"+this.resource.id+"/metrics";
                 this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.disassociateMetric.params = payload;
                 this.$.disassociateMetric.generateRequest();

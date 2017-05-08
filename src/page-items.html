@@ -585,15 +585,15 @@
         },
 
         _machineHasMonitoring: function(machine, monitoring){
-            return monitoring && monitoring.monitored_machines && monitoring.monitored_machines[machine.uuid] ? 100 : 0;
+            return monitoring && monitoring.monitored_machines && monitoring.monitored_machines[machine.id] ? 100 : 0;
         },
 
         _machineHasrecommendations: function(machine, probes){
-            return probes && probes[machine.uuid] && probes[machine.uuid].dirty_cow ? 10 : 0;
+            return probes && probes[machine.id] && probes[machine.id].dirty_cow ? 10 : 0;
         },
 
         _machineHasProbe: function(machine, probes){
-            return probes && probes[machine.uuid] && probes[machine.uuid].loadloadavg ? probes[machine.uuid].loadloadavg[0]+probes[machine.uuid].loadloadavg[1]+probes[machine.uuid].loadloadavg[2] : 1;
+            return probes && probes[machine.id] && probes[machine.id].loadloadavg ? probes[machine.id].loadloadavg[0]+probes[machine.sid].loadloadavg[1]+probes[machine.id].loadloadavg[2] : 1;
         },
 
         _machineState: function(machine){
@@ -651,11 +651,7 @@
             document.querySelector('top-search').query = "";
         },
         openRecommendationsDialog: function(e){
-            var probe;
-            if (e.detail['item-type'] != "machines")
-                probe  = this.model.probes[e.detail.item.id];
-            else
-                probe  = this.model.probes[e.detail.item.uuid];
+            var probe = this.model.probes[e.detail.item.id];
             var text = 'Kernel '+probe.kernel + ' OS '+ probe.os +' '+ probe.os_version;
             this.querySelector('.recommendation-text').textContent = text;
             this.$.recommendationsDialog.open();
