@@ -521,8 +521,8 @@
                 apiurl="/api/v1/logs"
                 name="logs"
                 frozen=[[_getFrozenLogColumn()]]
-                visible=[[_getVisibleUserColumns()]]
-                renderers=[[_getUserRenderers(model.members)]]
+                visible=[[_getVisibleColumns()]]
+                renderers=[[_getRenderers(model.members)]]
                 primary-field-name="time"
                 base-filter="machine_id:[[machine.id]]"></mist-list>
             </template>
@@ -1118,7 +1118,7 @@ Polymer({
         }
     },
 
-    _getVisibleUserColumns: function() {
+    _getVisibleColumns: function() {
         return ['type', 'action', 'user_id']
     },
 
@@ -1126,12 +1126,15 @@ Polymer({
         return ['time']
     },
 
-    _getUserRenderers: function() {
+    _getRenderers: function() {
         var _this = this;
         return {
             'time': {
-                'body': function(item) {
-                    return '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>'
+                'body': function(item, row) {
+                    var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
+                    if (row.error)
+                        ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                    return ret;
                 }
             },
             'user_id': {
