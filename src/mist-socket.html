@@ -329,7 +329,7 @@
             document.location.reload();
         },
 
-        _updateModel: function (section, data) {
+        _updateModel: function (section, data, primaryField) {
             var changed = false, // we wont update the model if it hasn't changed
                 pending = this.get('model.pending.' + section);
 
@@ -394,7 +394,7 @@
 
             if (changed) {
                 console.debug('updating', section);
-                this.set('model.' + section, _generateMap(data));
+                this.set('model.' + section, _generateMap(data, primaryField));
                 this.set('model.' + section + 'Array', data);
             } else {
                 if (DEBUG_SOCKET)
@@ -585,7 +585,7 @@
         },
 
         _updateMachines: function (data) {
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines);
+            var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines, 'machine_id');
             // console.log('machines',data.machines);
             if (!changed)
                 return false;
