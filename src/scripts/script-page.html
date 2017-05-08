@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../tags/tags-list.html">
@@ -101,6 +102,10 @@
             line-height: inherit;
             padding: inherit;
         }
+
+        #scriptLogs {
+            font-size: 12px;
+        }
         </style>
 
         <div id="content">
@@ -179,6 +184,10 @@
                 </div>
             </paper-material>
             </div>
+            <template is="dom-if" if=[[script.id]] restamp>
+                <mist-list timeseries expands id="scriptLogs" apiurl="/api/v1/logs" name="logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers()]] primary-field-name="time" base-filter="script_id:[[script.id]]"></mist-list>
+            </template>
             <div class="absolute-bottom-right">
                 <paper-fab icon="av:play-arrow" on-tap="_runScript" id="runScriptFab"></paper-fab>
                 <paper-tooltip for="runScriptFab" position="top">Run Script</paper-tooltip>
@@ -281,6 +290,53 @@
             },
             _computeIsloading: function(script) {
                 return !this.script ? true : false;
+            },
+
+            _getVisibleColumns: function () {
+                return ['type', 'action', 'machine_id', 'user_id']
+            },
+
+            _getFrozenLogColumn: function () {
+                return ['time']
+            },
+
+            _getRenderers: function () {
+                var _this = this;
+                return {
+                    'time': {
+                        'body': function(item, row) {
+                            var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
+                            if (row.error)
+                                ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                            return ret;
+                        }
+                    },
+                    'user_id': {
+                        'title': function(){ return 'user';},
+                        'body': function(item) {
+                            if (_this.model && _this.model.members && item in _this.model.members &&
+                                _this.model.members[item] && _this.model.members[item].name &&
+                                _this.model.members[item].name != undefined){
+                                var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name + '</a>';
+                                return ret;
+                            } else console.log(item);
+                            return item || '';
+                        }
+                    },
+                    'machine_id': {
+                        'title': 'machine',
+                        'body': function(item, row) {
+                            if (_this.model && _this.model.clouds && row['cloud_id'] &&
+                                _this.model.clouds[row['cloud_id']] &&
+                                _this.model.clouds[row['cloud_id']].machines &&
+                                item in _this.model.clouds[row['cloud_id']].machines){
+                                var ret = '<a href="/machines/' + _this.model.clouds[row['cloud_id']].machines[item].uuid + '">' + _this.model.clouds[row['cloud_id']].machines[item].name + '</a>';
+                                return ret;
+                            } else console.log(item);
+                            return item || '';
+                        }
+                    }
+                };
             }
         });
     })();
