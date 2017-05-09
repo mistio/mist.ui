@@ -812,6 +812,14 @@ PROVIDERS.push({
         errorMessage: "Please enter onapp host",
         helptext: 'URL of the OnApp host',
         helpHref: 'http://docs.mist.io/article/155-onapp'
+    }, {
+        name: "verify",
+        label: "Verify SSL certificate",
+        type: "toggle",
+        value: true,
+        defaultValue: true,
+        show: true,
+        required: false
     }]
 });
 
