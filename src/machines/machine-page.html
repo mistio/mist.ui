@@ -399,7 +399,7 @@
                         <span hidden$="[[!probeData]]"> [[probeData]] </span> <br/>
                         <span hidden$="[[!lastProbe]]"> [[lastProbe]] </span>
                     </div>
-                    <div class="probe-button" hidden$="[[!machineKeys.length]]" >
+                    <div class="probe-button" hidden$="[[!machine.key_associations.length]]" >
                         <paper-button id="probeButton" on-tap="_probeMachine" disabled="{{probeLoading}}">probe now</paper-button>
                         <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
                     </div>
@@ -421,10 +421,10 @@
                     <div hidden$="[[!machineKeys.length]]">
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
-                            <template is="dom-repeat" items="{{machineKeys}}">
+                            <template is="dom-repeat" items="[[machineKeys]]" as="key">
                                 <div class="machine-key">
-                                    <a class="regular blue-link flexchild" href$="/keys/[[item.id]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[item.name]]</a>
-                                    <iron-icon data-keyid="[[item.id]]" data-keyname="[[item.name]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
+                                    <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
+                                    <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
                             <div class="machine-key" id="pendingKeyRequest">
@@ -451,7 +451,7 @@
                     machine-keys="[[machineKeys]]"></mist-monitoring>
                 <mist-rules
                     id="monitoringRules"
-                    machine="[[machine.id]]"
+                    machine="[[machine.machine_id]]"
                     cloud="[[machine.cloud.id]]"
                     builtin-metrics="[[model.monitoring.builtin_metrics]]"
                     custom-metrics="[[model.monitoring.custom_metrics]]"
@@ -459,7 +459,7 @@
                     rules="[[model.monitoring.rules]]"
                     resource="[[machine]]"
                     user-email="[[model.user.email]]"
-                    hidden$="{{!isActivated}}"></mist-rules>
+                    hidden$="[[!isActivated]]"></mist-rules>
             </paper-material>
             <paper-material class="info-card">
                 <h2 style$="color:#fff;background-color: [[section.color]];">Basic Info</h2>
@@ -467,12 +467,12 @@
                     <table class="info-table">
                         <template is="dom-if" if="[[machine.public_ips]]">
                             <tr>
-                                <td>Machine ID</td>
+                                <td>Machine ID (Mist.io unique id)</td>
                                 <td>[[machine.id]]</td>
                             </tr>
                             <tr>
-                                <td>UUID</td>
-                                <td>[[machine.uuid]]</td>
+                                <td>Machine ID given by the provider</td>
+                                <td>[[machine.machine_id]]</td>
                             </tr>
                             <tr><td>Public IPs</td>
                                 <td><template is="dom-repeat" items="[[machine.public_ips]]">
@@ -523,7 +523,7 @@
                     on-error="_handleMachineDeleteAjaxError"></iron-ajax>
 
         <iron-ajax  id="disassociateKeyRequest"
-                    url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/keys/[[disassociateKeyId]]"
+                    url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]"
                     method="DELETE"
                     on-response="_disassociateKeyResponse"
                     on-error="_disassociateKeyError"
@@ -531,13 +531,13 @@
                     handle-as="xml"></iron-ajax>
 
         <iron-ajax  id="probeMachine"
-                    url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/probe"
+                    url="/api/v1/machines/[[machine.id]]/probe"
                     method="POST"
                     loading="{{probeLoading}}"
                     on-error="_probeError"
                     handle-as="xml"></iron-ajax>
 
-        <machine-edit machine="[[machine]]"></machine-edit>
+        <!-- <machine-edit model="[[model]]" items="[[itemInArray]]"></machine-edit> -->
         <paper-toast></paper-toast>
     </template>
 </dom-module>
@@ -655,7 +655,7 @@ Polymer({
         },
         machineImage: {
             type: String,
-            computed: "_machineImage(machine.imageId)"
+            computed: "_machineImage(machine.image_id)"
         },
         dashboard: {
             type: Object
@@ -684,7 +684,7 @@ Polymer({
         },
         machineKeys: {
             type: Array,
-            computed: '_computeAssociatedKeys(machine.*, machine.keys.*, machine.keys.length, model.keysArray.*)',
+            computed: '_computeAssociatedKeys(machine, machine.key_associations)',
             value: [],
             notify: true
         },
@@ -748,24 +748,26 @@ Polymer({
             if(this.hideAssociatedKeys)
                 ret.push('run-script');
         }
-        if (item && item.can_tag)
-            ret.push('tag');
-        if (item && item.can_start)
-            ret.push('start');
-        if (item && item.can_stop)
-            ret.push('stop');
-        if (item && item.can_suspend)
-            ret.push('suspend');
-        if (item && item.can_reboot)
-            ret.push('reboot');
-        if (item && item.can_resume)
-            ret.push('resume');
-        if (item && item.can_rename)
-            ret.push('rename');
-        if (item && item.can_destroy)
-            ret.push('destroy');
-        if (item && item.can_undefine)
-            ret.push('undefine');
+        if (item) {
+            if (item.actions.tag)
+                ret.push('tag');
+            if (item.actions.start)
+                ret.push('start');
+            if (item.actions.stop)
+                ret.push('stop');
+            if (item.actions.suspend)
+                ret.push('suspend');
+            if (item.actions.reboot)
+                ret.push('reboot');
+            if (item.actions.resume)
+                ret.push('resume');
+            if (item.actions.rename)
+                ret.push('rename');
+            if (item.actions.destroy)
+                ret.push('destroy');
+            if (item.actions.undefine)
+                ret.push('undefine');
+        }
 
         var actions = [];
         for (var i = 0; i < ret.length; i++) {
@@ -778,18 +780,18 @@ Polymer({
     _computeItemInArray: function() {
         return [this.machine];
     },
-
+    _computeKeyName: function(keyid){
+        return this.model.keys[keyid].name || 'not found';
+    },
     _computeThisItemUid: function(machine) {
         var itemUidInArray = [];
         itemUidInArray.push(itemUid(this.machine, this.sections['machines']));
         return itemUidInArray;
     },
-    _computeAssociatedKeys: function(machine, machinekeys, length, keys) {
-        var keys = this.model.keysArray.filter(function(k) {
-            return k.machines.find(function(m) {
-                return m[1] == this.machine.id && m[0] == this.machine.cloud.id;
-            }, this)
-        }, this);
+    _computeAssociatedKeys: function(machine) {
+        var keys;
+        if (machine)
+            keys = machine.key_associations;
         return keys || [];
     },
     computeMachineIp: function(machineips) {
@@ -814,12 +816,14 @@ Polymer({
             this.set('isMonitored', false);
         }
     },
-    _computeIsActivated: function(machine, monitoring, isInPage){
-        // if (!this.machine || this.model.monitoring || !this.model.monitoring.monitored_machines || !this.model.monitoring.monitored_machines[machine.uuid] || !this.model.monitoring.monitored_machines[machine.uuid].installation_status.activated_at)
-        //     return false;
-        // else
-        if (this.model.monitoring.monitored_machines[machine.uuid])
-            return this.model.monitoring.monitored_machines[machine.uuid].installation_status.activated_at;
+    _computeIsActivated: function(machine, monitoring){
+        // console.log('_computeIsActivated', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
+        if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !this.model.monitoring.monitored_machines[machine.id] || !this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at){
+            return false;
+        }
+        else if (this.model && this.model.monitoring && this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[machine.id] && this.model.monitoring.monitored_machines[machine.id].installation_status){
+            return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
+        }
     },
     _machineImage: function(id) {
         var image = this.model.imagesArray.find(function(image) {
@@ -920,13 +924,13 @@ Polymer({
         }
     },
     _computeProbeData: function(machine, probes){
-        if (this.model && this.model.probes && this.model.probes[machine.uuid] && this.model.probes[machine.uuid].loadavg.length)
-            return this.model.probes[machine.uuid].loadavg[0]+", "+this.model.probes[machine.uuid].loadavg[1]+", "+this.model.probes[machine.uuid].loadavg[2]+" - "+this.model.probes[machine.uuid].cores+" cores. Last probe: "+moment(this.model.probes[machine.uuid].timestamp*1000).fromNow();
+        if (this.model && this.model.probes && this.model.probes[machine.id] && this.model.probes[machine.id].loadavg.length)
+            return this.model.probes[machine.id].loadavg[0]+", "+this.model.probes[machine.id].loadavg[1]+", "+this.model.probes[machine.id].loadavg[2]+" - "+this.model.probes[machine.id].cores+" cores. Last probe: "+moment(this.model.probes[machine.id].timestamp*1000).fromNow();
     },
     _computeDirtyCowAlert: function(machine, probes){
          var info = "";
-         if (this.model && this.model.probes && this.model.probes[machine.uuid]){
-             if (this.model.probes[machine.uuid].dirty_cow != undefined)
+         if (this.model && this.model.probes && this.model.probes[machine.machine_id]){
+             if (this.model.probes[machine.id].dirty_cow != undefined)
                  info += "Dirty COW vulnerability found. Update kernel.";
          }
          return info.length ? info : '';
@@ -935,11 +939,11 @@ Polymer({
         if (!probes) {
             return false;
         } else {
-            if (!this.model || !this.model.probes || !this.model.probes[item.uuid] || !this.model.probes[item.uuid].loadavg) {
+            if (!this.model || !this.model.probes || !this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
                 return false;
             } else {
-                var probe = this.model.probes[item.uuid].loadavg;
-                var cores =  parseInt(this.model.probes[item.uuid].cores);
+                var probe = this.model.probes[item.id].loadavg;
+                var cores =  parseInt(this.model.probes[item.id].cores);
                 var classes = '';
                 var prefix = '';
 
@@ -956,8 +960,8 @@ Polymer({
         }
     },
     _computeProbeObj: function (machine, probes){
-        if (this.model && this.model.probes && this.model.probes[machine.uuid] && this.model.probes[machine.uuid])
-            return this.model.probes[machine.uuid];
+        if (this.model && this.model.probes && this.model.probes[machine.id] && this.model.probes[machine.id])
+            return this.model.probes[machine.id];
         return false;
     },
     loadToColor: function(load, prefix){
@@ -1024,7 +1028,7 @@ Polymer({
     },
     _probeMachine: function(e){
         var payload = {
-            'key': this.machineKeys[0].id
+            'key': this.machineKeys[0].keypair
         };
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.probeMachine.params = payload;
@@ -1037,8 +1041,7 @@ Polymer({
         if (machine)
             return {
                 "cloud_id": machine.cloud.id,
-                "machine_id": machine.id,
-                "machine_uuid": machine.uuid
+                "machine_id": machine.machine_id
             }
     },
     _existsImage: function(extra) {

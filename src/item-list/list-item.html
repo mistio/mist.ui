@@ -322,8 +322,8 @@ Polymer({
 
         // if (field == 'recommendations'){
         //     // temp for machines only
-        //     if (this.section.id == "machines" && this.probes && this.probes[item.uuid]){
-        //         if (this.probes[item.uuid].dirty_cow == true) {
+        //     if (this.section.id == "machines" && this.probes && this.probes[item.id]){
+        //         if (this.probes[item.id].dirty_cow == true) {
         //             this._appendIconOnRecommendations(index, 'icons:report-problem');
         //             return "Dirty COW alert! Update kernel.";
         //         }
@@ -401,7 +401,7 @@ Polymer({
         // item.extra.image.distribution && item.extra.image.name in digital ocean
         // TODO: complete the above list
         if (field == 'image' && item.extra && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
-            return item.extra.image.distribution + " " +item.extra.image.name;
+            return item.extra.image.diswtribution + " " +item.extra.image.name;
         }
         if (field == 'image' && !ret && item.extra && (item.extra[field+'_id'] || item.imageId || item.extra.image)){
             return item.extra[field+'_id'] || item.imageId || item.extra.image.slug || item.extra.image.name || 'not found';
@@ -509,15 +509,15 @@ Polymer({
         return exists;
     },
     _probesChanged: function(probes, item, section){
-        if (JSON.stringify(this.probes) != '{}' && this.section.id == "machines" && this.item.uuid && this.probes[item.uuid] && this.probes[item.uuid].dirty_cow == true) {
+        if (JSON.stringify(this.probes) != '{}' && this.section.id == "machines" && this.item.id && this.probes[item.id] && this.probes[item.id].dirty_cow == true) {
                 //hardcoded index = 1 which is the state column
-                console.log('PROBES CHANGED TRUE', item.uuid)
+                console.log('PROBES CHANGED TRUE', item.id)
                 this._appendIconOnRecommendations(1, 'icons:report-problem');
         }
     },
 
     _computeUri: function(uri,field, item, probes){
-        if (field == 'state' && JSON.stringify(this.probes) != '{}' && this.section.id == "machines" && this.item.uuid && this.probes[item.uuid] && this.probes[item.uuid].dirty_cow == true) {
+        if (field == 'state' && JSON.stringify(this.probes) != '{}' && this.section.id == "machines" && this.item.id && this.probes[item.id] && this.probes[item.id].dirty_cow == true) {
             return '/machines';
         }
         else
@@ -543,7 +543,7 @@ Polymer({
 
     _itemTagsArray: function(tagsobject) {
         var tagsArray = [];
-        if (tagsobject.length > 0) {
+        if (tagsobject && tagsobject.length > 0) {
             for (i = 0; i < tagsobject.length; i++) {
                 tagsArray.unshift(tagsobject[i]);
             }
@@ -560,13 +560,13 @@ Polymer({
             return false;
         }
         else {
-            if (!this.probes[item.uuid] || !this.probes[item.uuid].loadavg) {
+            if (!this.probes[item.id] || !this.probes[item.id].loadavg) {
                 return "";
             }
 
             else {
-                var probe = this.probes[item.uuid].loadavg;
-                var cores =  parseInt(this.probes[item.uuid].cores);
+                var probe = this.probes[item.id].loadavg;
+                var cores =  parseInt(this.probes[item.id].cores);
                 var classes = '';
                 var prefix = '';
                 console.log(parseInt(probe[0]),probe[0]);
