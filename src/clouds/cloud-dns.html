@@ -1,0 +1,114 @@
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/slide-from-top-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/slide-up-animation.html">
+<link rel="import" href="../../bower_components/iron-label/iron-label.html">
+
+<dom-module id="cloud-dns">
+    <template>
+        <style is="custom-style" include="dialogs"></style>
+        <style include="shared-styles">
+            /*:root {
+                --primary-color: #fff;
+                --primary-text-color: rgba(255,255,255,0.87);
+                --secondary-text-color: rgba(255,255,255,0.54);
+                --primary-background-color: #424242;
+                --secondary-background-color: #424242;
+                --paper-input-container-input-color: rgba(255,255,255,0.87);
+                --paper-input-container-focus-color: rgba(255,255,255,0.54);
+            }*/
+            :host {
+                box-sizing: border-box;
+                width: 100%;
+                height: auto;
+                /*margin-top: 7px;*/
+                transition: 200ms all ease-in;
+                position: relative;
+            }
+            :host[opened='true'],
+            :host[opened] {
+                display: block;
+            }
+            :host[opened="false"] .cloud-block,
+            :host:not([opened]) .cloud-block {
+                display: none;
+            }
+            :host .cloud-block {
+                box-sizing: border-box;
+                @apply(--layout-horizontal);
+            }
+            :host >::content paper-input-container {
+                padding: 0 0 8px 0;
+            }
+            .cloud-overview-item {
+                @apply(--layout-horizontal);
+                padding: 16px 0;
+            }
+            .cloud-overview-item.last {
+                padding: 12px 0 16px 0;
+            }
+            .button {
+                align-self: center;
+            }
+            paper-toggle-button {
+                padding: 0.57em 0.57em;
+            }
+            /*::selection,
+            :host >::content ::selection {
+                background-color: yellow;
+                color: black;
+            }*/
+        </style>
+
+        <div class="cloud-block">
+            <div class="cloud-overview flex">
+                <div class="default-rule">
+                    <paper-toggle-button id="DNS-enable-disable" checked$="[[_computeIsDNSEnabled(isToggleOn)]]" on-tap="_changeDNSenabled"></paper-toggle-button>
+                    <p>This option enables DNS access in this cloud if it's a supported provider.</p>
+                </div>
+            </div>
+        </div>
+
+        <iron-ajax id="cloudEditDNSAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" handle-as="xml" method="POST" on-response="_handleCloudEditDNSAjaxResponse" on-error="_handleCloudEditDNSAjaxError"></iron-ajax>
+
+    </template>
+
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'cloud-dns',
+                properties: {
+                    cloud: Object,
+                    isToggleOn: {
+                        type: Boolean,
+                        computed: '_computeIsDNSEnabled(cloud.dns_enabled)'
+                    },
+                },
+                listeners: {
+                },
+                _changeDNSenabled: function() {
+                    var dns_enabled = this.cloud.dns_enabled ? 0 : 1;
+                    this.$.cloudEditDNSAjaxRequest.headers["Content-Type"] = 'application/json';
+                    this.$.cloudEditDNSAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.cloudEditDNSAjaxRequest.body = {
+                        dns_enabled: dns_enabled
+                    };
+                    this.$.cloudEditDNSAjaxRequest.generateRequest();
+                },
+                _computeIsDNSEnabled: function(enabled) {
+                    return enabled;
+                },
+                _handleCloudEditDNSAjaxResponse: function() {
+                    var message = this.cloud.dns_enabled ? 'Cloud ' + this.cloud.title + ' DNS support was disabled!':
+                    'Cloud ' + this.cloud.title + ' DNS support was enabled!' ;
+                    this.fire('toast',{msg:message,duration:5000});
+                },
+                _handleCloudEditDNSAjaxError: function(e) {
+                    this.querySelector('#DNS-enable-disable').checked=this.cloud.dns_enabled;
+                    this.fire('toast',{msg:e.detail.request.xhr.response,duration:10000});
+                },
+            });
+        })();
+    </script>
+</dom-module>
