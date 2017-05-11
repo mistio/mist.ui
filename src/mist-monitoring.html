@@ -90,10 +90,10 @@
                 margin-top: 16px;
             }
         </style>
-        <template is="dom-if" if="[[!resource.id]]" restamp>
-            <template is="dom-if" if="[[showHomeDashboard]]" restamp>
-                <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
-            </template>
+    <template is="dom-if" if="[[!resource.id]]" restamp>
+        <template is="dom-if" if="[[showHomeDashboard]]" restamp>
+            <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
+        </template>
     </template>
     <template is="dom-if" if="[[resource.id]]" restamp>
             <div class="monitoring-head horizontal layout" style$="color:#fff;background-color: [[section.color]];" >
@@ -234,7 +234,6 @@
             },
             isMonitored: {
                 type: Boolean,
-                computed: '_computeIsMonitored(resource, monitoring.monitored_machines.*)',
                 value: false
             },
             waitingData: {
@@ -248,8 +247,7 @@
             },
             isActivated: {
                 type: Boolean,
-                value: false,
-                computed: '_computeIsActivated(resource, monitoring.*, hidden)'
+                value: false
             },
             script: {
                 type: String,
@@ -322,7 +320,9 @@
             '_jobIdChanged(jobId)',
             'stopPolling(logItems)',
             'getStats(isMonitored, isManual, waitingData, isActivated)',
-            'clearJobID(resource.id)'
+            'clearJobID(resource.id)',
+            '_computeIsMonitored(resource, resource.id, monitoring.monitored_machines.*)',
+            '_computeIsActivated(resource, monitoring.*, hidden)'
         ],
         listeners: {
             'update-dashboard': '_forwardEvent',
@@ -343,11 +343,14 @@
             if (resource)
                 return '/api/v1/machines/' + resource.id + '/dashboard';
         },
-        _computeIsMonitored: function(resource, monitoring) {
-            if (this.resource && this.monitoring && this.monitoring.monitored_machines[this.resource.id])
-                return true;
-            else
-                return false;
+        _computeIsMonitored: function(resource, id, monitoring) {
+            console.log('compute Is Monitored', resource, id, monitoring);
+            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[this.resource.id]){
+                this.set('isMonitored', false);
+            }
+            else {
+                this.set('isMonitored', true);
+            }
         },
         _computeIsRunning: function(resource) {
             return this.resource && this.resource.state && (this.resource.state == "running" || this.resource.state == "unknown") ? true : false;
@@ -479,10 +482,12 @@
         _computeIsActivated(resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
-            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at && !this.waitingData))
-                return false;
-            else
-                return true;
+            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at && !this.waitingData)){
+                this.set('isActivated', false);
+            }
+            else {
+                this.set('isActivated', true);
+            }
 
         },
         _computeResourceMonitoringInfo: function(resource, monitoring) {
