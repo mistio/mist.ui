@@ -40,7 +40,8 @@
                 color: inherit;
             }
             polyana-dashboard {
-                overflow: hidden;
+                padding-bottom: 48px;
+                overflow: visible;
             }
             paper-button.blue, paper-button.red {
                 margin: 24px 0 0 0;
@@ -89,19 +90,19 @@
                 margin-top: 16px;
             }
         </style>
-        <template is="dom-if" if="[[!resource.id]]" restamp>
-            <template is="dom-if" if="[[showHomeDashboard]]" restamp>
-                <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
-            </template>
+    <template is="dom-if" if="[[!resource.id]]" restamp>
+        <template is="dom-if" if="[[showHomeDashboard]]" restamp>
+            <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
         </template>
-        <template is="dom-if" if="[[resource.id]]" restamp>
+    </template>
+    <template is="dom-if" if="[[resource.id]]" restamp>
             <div class="monitoring-head horizontal layout" style$="color:#fff;background-color: [[section.color]];" >
                 <h2 class="flex">Monitoring</h2>
                 <div class="monitoring-menu" hidden$="[[!isActivated]]">
                     <paper-menu-button id="monitoring-menu-wrapper" horizontal-align="right" vertical-align="top">
                         <paper-icon-button icon="icons:more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="monitoring-actions" class="dropdown-content">
-                            <paper-button id="disable" on-tap="_showDisableDialog" class="simple">Disable  Monitoring </paper-button>
+                            <paper-button id="disable" on-tap="_showDisableDialog" class="simple">Disable Monitoring </paper-button>
                         </paper-menu>
                     </paper-menu-button>
                 </div>
@@ -131,114 +132,95 @@
                                         [[removeUnderscore(logItem.action)]] <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]]</span>
                                     </div>
                                 </template>
-                                <paper-spinner active="[[!isActivated]]"></paper-spinner>
-                            </p>
-                            <div hidden$="[[jobId]]">
-                                <p hidden$="[[failed]]">
-                                    Agent installation status: [[monitoringState(resource, monitoring)]] <br/>
-                                    [[resourceMonitoringInfo.installation_status.error_msg]]
-                                </p>
-                                <!-- installation failed-->
-                                <p class="error" hidden$="[[!failed]]">
-                                    Installation of the monitoring agent failed.
-                                    [[resourceMonitoringInfo.installation_status.error_msg]]
-                                </p>
-                            </div>
-                            <div hidden$="[[!waitingData]]">
-                                <p>Waiting for data</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="isMonitored" hidden$="[[!isMonitored]]">
-                        <!-- monitoring is not activated -->
-                        <div class="isActivated" hidden$="[[isActivated]]">
-                            <!-- machine has NO keys: manual installation -->
-                            <p hidden$="[[!isManual]]">
-                                Mist.io can not install the monitoring agent automatically, beacause there are no associated keys with this machine.
-                            </p>
-                            <!-- always show script -->
-                            <div>
-                                You can install the agent manually by running the following command with ssh.
-                                <div class="console">
-                                    <code id="monitoringscript">
+    <paper-spinner active="[[!isActivated]]"></paper-spinner>
+    </p>
+    <div hidden$="[[jobId]]">
+        <p hidden$="[[failed]]">
+            Agent installation status: [[monitoringState(resource, monitoring)]] <br/> [[resourceMonitoringInfo.installation_status.error_msg]]
+        </p>
+        <!-- installation failed-->
+        <p class="error" hidden$="[[!failed]]">
+            Installation of the monitoring agent failed. [[resourceMonitoringInfo.installation_status.error_msg]]
+        </p>
+    </div>
+    <div hidden$="[[!waitingData]]">
+        <p>Waiting for data</p>
+    </div>
+    </div>
+    </div>
+    <div class="isMonitored" hidden$="[[!isMonitored]]">
+        <!-- monitoring is not activated -->
+        <div class="isActivated" hidden$="[[isActivated]]">
+            <!-- machine has NO keys: manual installation -->
+            <p hidden$="[[!isManual]]">
+                Mist.io can not install the monitoring agent automatically, because there are no associated keys with this machine.
+            </p>
+            <!-- always show script -->
+            <div>
+                You can install the agent manually by running the following command with ssh.
+                <div class="console">
+                    <code id="monitoringscript">
                                         [[script]]
                                     </code>
-                                </div>
-                                <h4 class="tip"><strong>Tip:</strong> Alternatively you can disable monitoring, associate a key, and enable monitoring again, so Mist.io will automativally connect and install the monitoring agent.</h4>
-                            </div>
-                        </div>
-                        <!-- monitoring is activated. we expect to have data -->
-                        <template is="dom-if" if="[[isActivated]]" restamp>
-                            <polyana-dashboard uri$="[[_computeDashboardUri(resource)]]" datasources="[[datasources]]"></polyana-dashboard>
-                            <add-graph machine="[[resource]]" dashboard="[[dashboard]]" machine-keys="[[machineKeys]]"></add-graph>
-                        </template>
-                    </div>
-
-                    <div id="errormsgArea">
-                        <p class="errormsg-container" hidden$="[[!monitoringError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-                    </div>
-
-                    <!-- we can request monitoring button -->
-                    <div class="enableMonitoring" hidden$="[[isMonitored]]">
-                        <paper-button class="blue" on-tap="toggleMonitoring" disabled="{{showLogs}}">Enable Monitoring</paper-button>
-                    </div>
-
-
-                    <!-- the machine is considered monitored -->
-                    <div class="monitored" hidden$="[[!isMonitored]]">
-                        <!-- instalation succeeded but is not yet activated ie. we have no data yet-->
-                        <paper-button class="red" on-tap="toggleMonitoring" hidden$="[[isActivated]]">Disable Monitoring</paper-button>
-                    </div>
                 </div>
-                <!-- the machine cannot be monitored, it is not running -->
-                <div hidden$="[[isRunning]]">
-                    The machine is [[resource.state]]. It must be running to enable monitoring.<br/>
-                    <paper-button class="blue" on-tap="toggleMonitoring" disabled>enable Monitoring</paper-button>
-                </div>
+                <h4 class="tip"><strong>Tip:</strong> Alternatively you can disable monitoring, associate a key, and enable monitoring again, so Mist.io will automativally connect and install the monitoring agent.</h4>
             </div>
+        </div>
+        <!-- monitoring is activated. we expect to have data -->
+        <template is="dom-if" if="[[isActivated]]" restamp>
+            <polyana-dashboard uri="[[_computeDashboardUri(resource)]]" datasources="[[datasources]]"></polyana-dashboard>
+            <add-graph machine="[[resource]]" dashboard="[[dashboard]]" machine-keys="[[machineKeys]]"></add-graph>
         </template>
-        <dialog-element id="monitorindialog"></dialog-element>
+    </div>
 
-        <iron-ajax id="monitoringRequest" url="/api/v1/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
+    <div id="errormsgArea">
+        <p class="errormsg-container" hidden$="[[!monitoringError]]">
+            <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+    </div>
 
-        <iron-ajax
-            id="getStats"
-            url= "/api/v1/machines/[[resource.id]]/stats"
-            handle-as="xml"
-            method="GET"
-            contentType="application/json"
-            loading="{{loadingStats}}"
-            on-response="_handleStatsResponse"
-            on-error="_handleStatsError">
-        </iron-ajax>
+    <!-- we can request monitoring button -->
+    <div class="enableMonitoring" hidden$="[[isMonitored]]">
+        <paper-button class="blue" on-tap="toggleMonitoring" disabled="{{showLogs}}">Enable Monitoring</paper-button>
+    </div>
 
-        <iron-ajax
-            id="disassociateMetric"
-            handle-as="xml"
-            method="DELETE"
-            contentType="application/json"
-            loading="{{loadingMetrics}}"
-            on-response="_handleAssociateResponse"
-            on-error="_handleAssociateError">
-        </iron-ajax>
 
-        <iron-ajax
-            id="getJobLog" method="GET"
-            url="/api/v1/jobs/[[jobId]]"
-            handle-as="json"
-            on-response="handleGetJobLog"
-            on-error="handleGetJobLogError"></iron-ajax>
+    <!-- the machine is considered monitored -->
+    <div class="monitored" hidden$="[[!isMonitored]]">
+        <!-- instalation succeeded but is not yet activated ie. we have no data yet-->
+        <paper-button class="red" on-tap="toggleMonitoring" hidden$="[[isActivated]]">Disable Monitoring</paper-button>
+    </div>
+    </div>
+    <!-- the machine cannot be monitored, it is not running -->
+    <div hidden$="[[isRunning]]">
+        The machine is [[resource.state]]. It must be running to enable monitoring.<br/>
+        <paper-button class="blue" on-tap="toggleMonitoring" disabled>enable Monitoring</paper-button>
+    </div>
+    </div>
+    </template>
+    <dialog-element id="monitorindialog"></dialog-element>
 
-     </template>
+    <iron-ajax id="monitoringRequest" url="/api/v1/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
+
+    <iron-ajax id="getStats" url="/api/v1/machines/[[resource.id]]/stats" handle-as="xml" method="GET" contentType="application/json" loading="{{loadingStats}}" on-response="_handleStatsResponse" on-error="_handleStatsError">
+    </iron-ajax>
+
+    <iron-ajax id="disassociateMetric" handle-as="xml" method="DELETE" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
+    </iron-ajax>
+
+    <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
+
+    </template>
 </dom-module>
 <script>
-  Polymer({
+    Polymer({
         is: 'mist-monitoring',
 
         properties: {
             resource: {
                 type: Object, //currently machines only, later other resources too
-                value: {id: false}
+                value: {
+                    id: false
+                }
             },
             monitoring: Object,
             section: Object,
@@ -252,7 +234,6 @@
             },
             isMonitored: {
                 type: Boolean,
-                computed: '_computeIsMonitored(resource, monitoring.monitored_machines.*)',
                 value: false
             },
             waitingData: {
@@ -266,8 +247,7 @@
             },
             isActivated: {
                 type: Boolean,
-                value: false,
-                computed: '_computeIsActivated(resource, monitoring.*, hidden)'
+                value: false
             },
             script: {
                 type: String,
@@ -299,9 +279,9 @@
                 type: Boolean,
                 value: false
             },
-            machineKeys:{
-              type:Array,
-              value:[]
+            machineKeys: {
+                type: Array,
+                value: []
             },
             jobId: {
                 type: String
@@ -340,58 +320,59 @@
             '_jobIdChanged(jobId)',
             'stopPolling(logItems)',
             'getStats(isMonitored, isManual, waitingData, isActivated)',
-            'clearJobID(resource.id)'
+            'clearJobID(resource.id)',
+            '_computeIsMonitored(resource, resource.id, monitoring.monitored_machines.*)',
+            '_computeIsActivated(resource, monitoring.*, hidden)'
         ],
         listeners: {
-            'update-dashboard' : '_forwardEvent',
+            'update-dashboard': '_forwardEvent',
             'confirmation': '_monitoringDisableConfirmation',
             'delete-panel': '_disassociateMetric'
         },
-        ready: function(){
+        ready: function() {
 
         },
-        attached: function(){
+        attached: function() {
 
         },
-        detached: function () {
-        },
-        _forwardEvent: function(e){
+        detached: function() {},
+        _forwardEvent: function(e) {
             this.querySelector('polyana-dashboard')._updateDashboard(e);
         },
         _computeDashboardUri: function(resource) {
             if (resource)
                 return '/api/v1/machines/' + resource.id + '/dashboard';
         },
-        _computeIsMonitored: function(resource, monitoring){
-            if (this.resource && this.monitoring && this.monitoring.monitored_machines[this.resource.id])
-                return true;
-            else
-                return false;
-        },
-        _computeIsRunning: function(resource) {
-            return this.resource && this.resource.state && (this.resource.state == "running" || this.resource.state == "unknown") ? true : false ;
-        },
-        _computeWaitingData: function(resource, monitoring){
-            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || !this.monitoring.monitored_machines[resource.id].installation_status){
-                return false;
-            }
-            else if (this.monitoring.monitored_machines[resource.id].installation_status.state == 'succeeded' && (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at > 0 || !this.monitoring.monitored_machines[resource.id].installation_status.finished_at > 0)){
-                return true;
-            }
-            else
-                return false;
-        },
-        monitoringState: function(resource, monitoring){
-            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id]){
-                return "";
+        _computeIsMonitored: function(resource, id, monitoring) {
+            console.log('compute Is Monitored', resource, id, monitoring);
+            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[this.resource.id]){
+                this.set('isMonitored', false);
             }
             else {
+                this.set('isMonitored', true);
+            }
+        },
+        _computeIsRunning: function(resource) {
+            return this.resource && this.resource.state && (this.resource.state == "running" || this.resource.state == "unknown") ? true : false;
+        },
+        _computeWaitingData: function(resource, monitoring) {
+            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || !this.monitoring.monitored_machines[resource.id].installation_status) {
+                return false;
+            } else if (this.monitoring.monitored_machines[resource.id].installation_status.state == 'succeeded' && (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at > 0 || !this.monitoring.monitored_machines[resource.id].installation_status.finished_at > 0)) {
+                return true;
+            } else
+                return false;
+        },
+        monitoringState: function(resource, monitoring) {
+            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id]) {
+                return "";
+            } else {
                 if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed")
                     this.set("failed", true);
                 return this.monitoring.monitored_machines[resource.id].installation_status.state;
             }
         },
-        toggleMonitoring: function(e, action){
+        toggleMonitoring: function(e, action) {
             var payload = {};
             console.log('toggleMonitoring', action)
             if (action != 'disable')
@@ -399,29 +380,29 @@
             else
                 payload.action = action;
 
-                payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
-                payload.name = this.resource.name ? this.resource.name : this.resource.id;
-                payload.dns_name = this.resource.extra.dns_name ? this.resource.extra.dns_name : "n/a";
-                payload.no_ssh = !this.resource.key_associations || this.resource.key_associations.length == 0 ? "true" : "";
-            console.log("toggleMonitoring",payload);
+            payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
+            payload.name = this.resource.name ? this.resource.name : this.resource.id;
+            payload.dns_name = this.resource.extra.dns_name ? this.resource.extra.dns_name : "n/a";
+            payload.no_ssh = !this.resource.key_associations || this.resource.key_associations.length == 0 ? "true" : "";
+            console.log("toggleMonitoring", payload);
             this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.monitoringRequest.params = payload;
             this.$.monitoringRequest.generateRequest();
             this.set("failed", false);
         },
-        _monitoringDisableConfirmation: function(e){
-            console.log('mist-monitoring',e)
+        _monitoringDisableConfirmation: function(e) {
+            console.log('mist-monitoring', e)
             if (e.detail.reason == "monitoring.disable" && e.detail.response.confirmed)
                 this.toggleMonitoring(e, 'disable');
         },
-        _monitoringRequest: function(e){
+        _monitoringRequest: function(e) {
             this.set("failed", false);
         },
-        _monitoringResponse: function(e){
+        _monitoringResponse: function(e) {
             //in case of enabling we get the script response
             var script = YAML.parse(e.detail.xhr.response);
             if (this.resource.os_type)
-                script = script[this.resource.os_type+"_command"];
+                script = script[this.resource.os_type + "_command"];
             else
                 script = script.command;
 
@@ -436,43 +417,42 @@
                 this.set('jobId', response["job_id"]);
             }
         },
-        handleGetJobLog: function(e){
-            console.log('handleGetJobLog',e);
+        handleGetJobLog: function(e) {
+            console.log('handleGetJobLog', e);
             this.set('logItems', e.detail.response.logs)
         },
-        handleGetJobLogError: function(e){
+        handleGetJobLogError: function(e) {
 
         },
-        _jobIdChanged: function(jobid){
+        _jobIdChanged: function(jobid) {
             if (!jobid) {
                 this.resetPolling();
-            }
-            else {
+            } else {
                 this.startPolling(jobid);
             }
         },
-        startPolling: function(jobid){
+        startPolling: function(jobid) {
             this.intervalID = setInterval(function() {
                 this.$.getJobLog.generateRequest();
             }.bind(this), 1000);
 
             console.log('startpolling');
         },
-        stopPolling: function(logItems){
-            if (this.logItems && this.logItems.length > 0 ){
-                if (this.logItems[this.logItems.length-1].action.endsWith('deploy_collectd_finished')){
+        stopPolling: function(logItems) {
+            if (this.logItems && this.logItems.length > 0) {
+                if (this.logItems[this.logItems.length - 1].action.endsWith('deploy_collectd_finished')) {
                     this.resetPolling();
                 }
             }
         },
-        computeShowLogs: function(jobId, isMonitored, isActivated){
+        computeShowLogs: function(jobId, isMonitored, isActivated) {
             // console.log("computeShowLogs", this.resource.id)
             return (this.isMonitored && !this.isActivated) || this.jobId;
         },
-        removeUnderscore: function(action){
+        removeUnderscore: function(action) {
             return action.replace(/_/g, " ");
         },
-        resetPolling: function(error){
+        resetPolling: function(error) {
             if (!error) {
                 this.set('logItems', []);
             }
@@ -480,49 +460,49 @@
             window.clearInterval(this.intervalID);
             this.set('intervalID', false);
         },
-        _monitoringError: function(e){
-            console.log("_monitoringError",e.detail.request.xhr.responseText);
+        _monitoringError: function(e) {
+            console.log("_monitoringError", e.detail.request.xhr.responseText);
             this.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
             this.set("monitoringError", true);
         },
-        _reset: function(resource){
+        _reset: function(resource) {
             this.set("monitoringError", false);
             this.set("showScript", false);
             this.set("failed", false);
         },
-        _computeScript: function(resource, monitoring){
-          if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id]){
+        _computeScript: function(resource, monitoring) {
+            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id]) {
+                return "";
+            } else if (this.monitoring.monitored_machines[resource.id].commands) {
+                return this.monitoring.monitored_machines[resource.id].commands[this.resource.os_type] || this.monitoring.monitored_machines[resource.id].commands["unix"];
+            } else {
                 return "";
             }
-            else if (this.monitoring.monitored_machines[resource.id].commands){
-                return this.monitoring.monitored_machines[resource.id].commands[this.resource.os_type] || this.monitoring.monitored_machines[resource.id].commands["unix"];
-            }
-            else {
-              return "";
-            }
         },
-        _computeIsActivated(resource, monitoring, hidden){
+        _computeIsActivated(resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
-            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at && !this.waitingData))
-                return false;
-            else
-                return true;
+            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id] || (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at && !this.waitingData)){
+                this.set('isActivated', false);
+            }
+            else {
+                this.set('isActivated', true);
+            }
 
         },
-        _computeResourceMonitoringInfo: function(resource, monitoring){
+        _computeResourceMonitoringInfo: function(resource, monitoring) {
             if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[resource.id])
                 return false;
             else
                 return this.monitoring.monitored_machines[resource.id];
         },
-        _computeHasKeys: function(keys){
+        _computeHasKeys: function(keys) {
             if (this.resource.keys)
                 return this.resource.keys.length > 0;
             else
                 return false;
         },
-        _computeIsManual: function(isMonitored, resource, monitoring){
+        _computeIsManual: function(isMonitored, resource, monitoring) {
             console.log(this.resource);
             if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[this.resource.id] || !this.monitoring.monitored_machines[this.resource.id].installation_status.manual)
                 return false;
@@ -545,31 +525,33 @@
             }
             dialog._openDialog();
         },
-        _disassociateMetric: function(e){
+        _disassociateMetric: function(e) {
             console.log(e);
             var targets = e.detail.panel.panel.targets;
 
-            targets.forEach(function(target){
-                if (target.target.startsWith("mist.python")){
-                    this.$.disassociateMetric.url = "/api/v1/machines/"+this.resource.id+"/plugins/" + target.target;
+            targets.forEach(function(target) {
+                if (target.target.startsWith("mist.python")) {
+                    this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id + "/plugins/" + target.target;
                     this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.disassociateMetric.params = {plugin_type: "python"};
+                    this.$.disassociateMetric.params = {
+                        plugin_type: "python"
+                    };
                     this.$.disassociateMetric.generateRequest();
                 };
 
                 var payload = {
-                  metric_id: target.target
+                    metric_id: target.target
                 };
-                this.$.disassociateMetric.url = "/api/v1/machines/"+this.resource.id+"/metrics";
+                this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id + "/metrics";
                 this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.disassociateMetric.params = payload;
                 this.$.disassociateMetric.generateRequest();
             }, this);
         },
-        _handleAssociateResponse: function(target){
+        _handleAssociateResponse: function(target) {
             this.querySelector('polyana-dashboard')._updateDashboard();
         },
-        clearJobID: function(resource){
+        clearJobID: function(resource) {
             // clear job when navigating away
             this.set('jobId', false);
         },
@@ -577,13 +559,12 @@
             if (this.isMonitored && this.isManual && !this.isActivated) {
                 if (!this.intervalMonitoringID)
                     this.monitoringPolling();
-            }
-            else {
+            } else {
                 console.log('stopGetStats');
                 this.stopGetStats();
             }
         },
-        monitoringPolling: function(){
+        monitoringPolling: function() {
             console.log('started monitoringPolling')
             this.intervalMonitoringID = window.setInterval(function() {
                 this.$.getStats.generateRequest();
@@ -592,14 +573,14 @@
 
             console.log('interval id', this.intervalMonitoringID);
         },
-        stopGetStats: function(){
+        stopGetStats: function() {
             window.clearInterval(this.get('intervalMonitoringID'));
             this.set('intervalMonitoringID', false);
             console.log('clearInterval');
         },
-        _computeShowHomeDashboard: function(monitoring, hidden){
+        _computeShowHomeDashboard: function(monitoring, hidden) {
             if (hidden || !monitoring.machines || !monitoring.machines.length)
-              return false;
+                return false;
             return true;
         }
     });

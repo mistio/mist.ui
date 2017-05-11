@@ -3,19 +3,17 @@ MAINTAINER mist.io <support@mist.io>
 
 RUN apk add --update --no-cache git nginx
 
-RUN npm install -g polymer-cli bower
+RUN npm install -g polymer-cli@next bower gulp
 
 ENV bower_allow_root=true \
     bower_interactive= \
     GIT_DIR=
 
-COPY mist_components/ /ui/bower_components
-
 WORKDIR /ui
 
 COPY bower.json /ui/bower.json
 
-RUN bower install
+RUN bower install && cd bower_components/Chart.js && npm install && gulp build && cd -
 
 COPY . /ui
 
@@ -25,12 +23,7 @@ COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
 COPY ./container/entry.sh /entry.sh
 
-ARG build_tag
-
-ENV BUILD_TAG=$build_tag
-
-RUN cd /ui/build && ln -s . $BUILD_TAG && ln -s /ui/assets/ /ui/build/bundled/ && \
-    ln -s /ui/assets/ /ui/build/ && \
-    ln -s /ui/bower_components /ui/build
+RUN cd /ui/build && ln -s /ui/assets/ /ui/build/bundled/ && \
+    ln -s /ui/assets/ /ui/build/
 
 EXPOSE 80

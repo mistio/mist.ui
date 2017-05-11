@@ -12,7 +12,7 @@ MACHINE_CREATE_FIELDS.push({
         show: false,
         required: false,
         helptext: ""
-    },{
+    }, {
         name: "ports",
         label: "Ports *",
         type: "textarea",
@@ -49,7 +49,7 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         helptext: "",
-    },{
+    }, {
         name: "docker_command",
         label: "Docker Command",
         type: "text",
@@ -58,7 +58,7 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         helptext: ""
-    },{
+    }, {
         name: "docker_port_bindings",
         label: "Docker Port Bindings",
         type: "text",
@@ -67,7 +67,7 @@ MACHINE_CREATE_FIELDS.push({
         show: false,
         required: false,
         helptext: ""
-    },{
+    }, {
         name: "docker_exposed_ports",
         label: "Docker Exposed Ports",
         type: "text",
@@ -76,7 +76,7 @@ MACHINE_CREATE_FIELDS.push({
         show: false,
         required: false,
         helptext: ""
-    },{
+    }, {
         name: "ports",
         label: "Ports",
         type: "textarea",
@@ -105,7 +105,7 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: "",
         show: false,
         required: false
-    },{
+    }, {
         name: "location_name",
         label: "Location name",
         type: "text",
@@ -141,7 +141,7 @@ MACHINE_CREATE_FIELDS.push({
         required: false,
         helptext: "Where the VM disk file will be created",
         helpHref: "http://docs.mist.io/article/99-managing-kvm-with-mist-io"
-    },{
+    }, {
         name: "libvirt_disk_size",
         type: "text",
         label: "Disc size (GB)",
@@ -165,7 +165,7 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: "",
         show: false,
         required: false
-    },{
+    }, {
         name: "location_name",
         label: "Location name",
         type: "text",
@@ -279,9 +279,9 @@ MACHINE_CREATE_FIELDS.push({
 });
 
 // add common fields
-MACHINE_CREATE_FIELDS.forEach(function(p){
+MACHINE_CREATE_FIELDS.forEach(function (p) {
     //add common machine properties fields
-    p.fields.splice(0, 0 , {
+    p.fields.splice(0, 0, {
         name: "name",
         label: "Machine Name *",
         type: "text",
@@ -290,7 +290,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: true,
         helptext: "Fill in the machine's name"
-    },{
+    }, {
         name: "image",
         label: "Image *",
         type: "mist_dropdown_searchable",
@@ -300,7 +300,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         required: true,
         options: [],
         search: ""
-    },{
+    }, {
         name: "location",
         label: "Location *",
         type: "mist_dropdown",
@@ -309,7 +309,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: true,
         options: []
-    },{
+    }, {
         name: "size",
         label: "Size *",
         type: "mist_dropdown",
@@ -319,7 +319,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         required: true,
         options: [],
         custom: true
-    },{
+    }, {
         name: "size_ram",
         label: "RAM MB",
         type: "slider",
@@ -336,7 +336,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "size",
             fieldValues: ["custom"]
         }
-    },{
+    }, {
         name: "size_cpu",
         label: "CPU cores",
         type: "slider",
@@ -353,7 +353,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "size",
             fieldValues: ["custom"]
         }
-    },{
+    }, {
         name: "size_disk_primary",
         label: "Primary Disk",
         type: "slider",
@@ -370,7 +370,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "size",
             fieldValues: ["custom"]
         }
-    },{
+    }, {
         name: "size_disk_swap",
         label: "Swap Disk",
         type: "slider",
@@ -399,7 +399,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             show: true,
             hidden: true,
             required: false
-        },{
+        }, {
             name: "onapp_advanced_options",
             label: "Advanced Options",
             type: "toggle",
@@ -409,7 +409,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             helptext: "",
             show: true,
             required: false
-        },{
+        }, {
             name: "port_speed",
             label: "Port Speed",
             type: "slider",
@@ -426,7 +426,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
                 fieldName: "onapp_advanced_options",
                 fieldValues: [true]
             }
-        },{
+        }, {
             name: "cpu_priority",
             label: "CPU Priority",
             type: "slider",
@@ -443,7 +443,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
                 fieldName: "onapp_advanced_options",
                 fieldValues: [true]
             }
-        },{
+        }, {
             name: "cpu_threads",
             label: "CPU Threads",
             type: "slider",
@@ -460,7 +460,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
                 fieldName: "onapp_advanced_options",
                 fieldValues: [true]
             }
-        },{
+        }, {
             name: "cpu_sockets",
             label: "CPU Sockets",
             type: "slider",
@@ -515,7 +515,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             defaultValue: true,
             show: true,
             required: false,
-        },{
+        }, {
             name: "boot",
             label: "Boot",
             type: "toggle",
@@ -537,7 +537,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         helptext: "Open options to run a script immediately after provisioning",
         show: true,
         required: false
-    },{
+    }, {
         name: "radio",
         label: "Script Inline or Select",
         type: "radio",
@@ -557,7 +557,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "post_provision_script",
             fieldValues: ["true", true]
         }
-    },{
+    }, {
         name: "script",
         label: "Inline Script",
         type: "textarea",
@@ -570,7 +570,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "radio",
             fieldValues: ["inline"]
         }
-    },{
+    }, {
         name: "script_id",
         label: "Script",
         type: "mist_dropdown",
@@ -583,7 +583,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "radio",
             fieldValues: ["select"]
         }
-    },{
+    }, {
         name: "script_params",
         label: "Optional Script Params",
         type: "textarea",
@@ -596,7 +596,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "radio",
             fieldValues: ["select"]
         }
-    },{
+    }, {
         name: "post_provision_scheduler",
         label: "Schedule a task",
         type: "toggle",
@@ -606,7 +606,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         helptext: "Enable a scheduled action on this machine",
         show: true,
         required: false
-     },{
+    }, {
         name: "action",
         label: "Schedule Task",
         type: "dropdown",
@@ -618,10 +618,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         helptext: "Choose one from the available tasks to schedule.",
         options: [],
         showIf: {
-         fieldName: "post_provision_scheduler",
-         fieldValues: ["true", true]
+            fieldName: "post_provision_scheduler",
+            fieldValues: ["true", true]
         }
-     },{
+    }, {
         name: "schedule_script_id",
         label: "Script",
         type: "mist_dropdown",
@@ -634,10 +634,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         helptext: "Schedule an existing script to run.",
         options: [],
         showIf: {
-         fieldName: "action",
-         fieldValues: ["run script"]
+            fieldName: "action",
+            fieldValues: ["run script"]
         }
-     },{
+    }, {
         name: "params",
         label: "Parameters",
         type: "textarea",
@@ -647,10 +647,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: false,
         required: false,
         showIf: {
-         fieldName: "action",
-         fieldValues: ["run script"]
+            fieldName: "action",
+            fieldValues: ["run script"]
         }
-     },{
+    }, {
         name: "schedule_type",
         label: "Schedule Type",
         type: "radio",
@@ -665,7 +665,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         options: [{
             title: "Once",
             val: "one_off"
-        },{
+        }, {
             title: "Repeat",
             val: "interval"
         }, {
@@ -676,7 +676,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "post_provision_scheduler",
             fieldValues: ["true", true]
         }
-     },{
+    }, {
         name: "schedule_entry",
         label: "Schedule time",
         type: "text",
@@ -687,7 +687,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         hidden: true,
         excludeFromPayload: true,
         required: false
-     },{
+    }, {
         name: "schedule_entry_interval_every",
         label: "Interval",
         type: "text",
@@ -702,7 +702,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "schedule_type",
             fieldValues: ["interval"]
         }
-     },{
+    }, {
         name: "schedule_entry_interval_period",
         type: "radio",
         value: "minutes",
@@ -718,14 +718,14 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         options: [{ //days, hours, minutes, seconds, microseconds
             title: "days",
             val: "days"
-        },{
+        }, {
             title: "hours",
             val: "hours"
-        },{
+        }, {
             title: "mins",
             val: "minutes"
         }]
-     },{
+    }, {
         name: "schedule_entry_crontab",
         label: "Crontab",
         type: "text",
@@ -741,7 +741,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "schedule_type",
             fieldValues: ["crontab"]
         }
-     },{
+    }, {
         name: "schedule_entry_one_off",
         label: "",
         type: "date",
@@ -756,7 +756,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "schedule_type",
             fieldValues: ["one_off"]
         }
-     },{
+    }, {
         name: "start_after",
         label: "Starts",
         type: "date",
@@ -772,8 +772,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         showIf: {
             fieldName: "schedule_type",
             fieldValues: ["interval", "crontab"]
-         }
-     }, {
+        }
+    }, {
         name: "expires",
         label: "Expires",
         type: "date",
@@ -788,8 +788,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         showIf: {
             fieldName: "schedule_type",
             fieldValues: ["interval", "crontab"]
-         }
-     }, {
+        }
+    }, {
         name: "max_run_count",
         label: "Maximum Run Count",
         type: "text",
@@ -803,7 +803,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             fieldName: "schedule_type",
             fieldValues: ["interval", "crontab"]
         }
-     });
+    });
 
     if (['onapp'].indexOf(p.provider) == -1) {
         p.fields.push({
@@ -816,7 +816,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
             helptext: "Open options to create an A record for this machine.",
             show: true,
             required: false
-        },{
+        }, {
             name: "hostname",
             label: "Hostname",
             type: "textarea",
@@ -841,7 +841,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
         show: true,
         required: false,
         helptext: ""
-    },{
+    }, {
         name: "async",
         label: "Async request",
         type: "toggle",
@@ -853,7 +853,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p){
     });
 
     if (p.provider == "onapp") {
-        var locationField = p.fields.find(function(f){return f.name == 'location'}),
+        var locationField = p.fields.find(function (f) {
+                return f.name == 'location'
+            }),
             index = p.fields.indexOf(locationField);
         p.fields.splice(1, 0, p.fields.splice(index, 1)[0]);
     }
