@@ -8,6 +8,7 @@
 <link rel="import" href="../helpers/dialog-element.html">
 
 <link rel="import" href="cloud-info.html">
+<link rel="import" href="cloud-dns.html">
 <link rel="import" href="cloud-edit.html">
 
 <dom-module id="cloud-page">
@@ -239,6 +240,12 @@
                 <h3>Rename Cloud</h3>
                 <cloud-info cloud="[[cloud]]" opened></cloud-info>
             </paper-material>
+            <template is="dom-if" if="[[_isSupportedDNSProvider(cloud.provider)]]">
+                <paper-material class="separator">
+                    <h3>Enable DNS</h3>
+                    <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
+                </paper-material>
+            </template>
             <paper-material class="separator">
                 <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
             </paper-material>
@@ -321,6 +328,13 @@
                         dialog[i] = info[i];
                     }
                     dialog._openDialog();
+                },
+                _isSupportedDNSProvider: function(provider) {
+                    if (provider == "ec2" || provider == "gce"){
+                        return true;
+                    } else {
+                        return false;
+                    }
                 },
                 _deleteCloudConfirmation:function(){
                   this._showDialog({
