@@ -208,12 +208,14 @@
                 resultsExist: {
                     type: Boolean,
                     value: false
-                }
+                },
+                hide: Boolean
             },
 
             observers: [
                 'queryChanged(query)',
-                'resultsChanged(results)'
+                'resultsChanged(results)',
+                'viewingListsChanged(hide)'
             ],
 
             attached: function() {
@@ -248,7 +250,8 @@
                         }
                     }
                     this.set('resultsExist', rlen > 0);
-                    this.set('visible', true);
+                    if (!this.hide)
+                        this.set('visible', true);
                 }
             },
 
@@ -280,6 +283,12 @@
                 this.async(function() {
                     that.fire('search', that.query);
                 }, 500);
+            },
+
+            viewingListsChanged: function(hide) {
+                if (this.hide){
+                    this.set('visible', false);
+                }
             }
         });
     </script>
