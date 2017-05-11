@@ -2,12 +2,12 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../item-list/item-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
-<link rel="import" href="../logs/log-list.html">
 <link rel="import" href="../mist-monitoring.html">
 
 <link rel="import" href="machine-edit.html">
@@ -305,6 +305,11 @@
             .shorteco.longeco {
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
             }
+
+            #machineLogs {
+                font-size: 12px;
+            }
+
             @media (max-width: 1024px) {
                 .machine-key {
                     display: block;
@@ -342,8 +347,6 @@
                 }
                 table.info-table tr {
                     display: block;
-                    width: calc(100% - 123px);
-                    overflow: scroll;
                 }
                 table.info-table tr > td {
                     width: calc(50% - 34px);
@@ -392,8 +395,8 @@
                         [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
                         [[_computeMachineSize(machine)]]</span>
-                    <span hidden$="[[!machine.extra.created]]"><span class="m-info-head">Created:</span>
-                        [[machine.extra.created]]</span>
+                    <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
+                        [[machine.created]]</span>
                     <div hidden$="[[!probeData]]"> <span class="m-info-head">Probe Data:</span>
                         <span class$="probe-data [[itemProbeClasses(machine, model.probes)]]"> </span>
                         <span hidden$="[[!probeData]]"> [[probeData]] </span> <br/>
@@ -513,7 +516,16 @@
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <log-list resource-filter="[[machineLogFilter]]"></log-list>
+            <template is="dom-if" if=[[machine.id]] restamp>
+            <mist-list timeseries expands id="machineLogs"
+                apiurl="/api/v1/logs"
+                name="logs"
+                frozen=[[_getFrozenLogColumn()]]
+                visible=[[_getVisibleColumns()]]
+                renderers=[[_getRenderers(model.members)]]
+                primary-field-name="time"
+                base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+            </template>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -1107,6 +1119,40 @@ Polymer({
             else
                 return false;
         }
-    }
+    },
+
+    _getVisibleColumns: function() {
+        return ['type', 'action', 'user_id']
+    },
+
+    _getFrozenLogColumn: function() {
+        return ['time']
+    },
+
+    _getRenderers: function() {
+        var _this = this;
+        return {
+            'time': {
+                'body': function(item, row) {
+                    var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
+                    if (row.error)
+                        ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                    return ret;
+                }
+            },
+            'user_id': {
+                'title': function(){ return 'user';},
+                'body': function(item) {
+                    if (_this.model && _this.model.members && item in _this.model.members &&
+                        _this.model.members[item] && _this.model.members[item].name &&
+                        _this.model.members[item].name != undefined){
+                        var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name + '</a>';
+                        return ret;
+                    } else console.log(item);
+                    return item || '';
+                }
+            }
+        };
+    },
 });
 </script>
