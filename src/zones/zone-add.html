@@ -49,8 +49,8 @@
                 </div>
             </paper-material>
             <paper-material hidden$="[[hasdnsClouds]]">
-                <p>To add a zone you need to have an enabled Google or Amazon cloud in your account.<br/>
-                Add and enable an Amazon or Google cloud using the <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
+                <p>To add a zone you need to have an enabled cloud in your account, and have DNS support enabled on that cloud.<br/>
+                Add and enable a cloud using the <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a> and enable the DNS support on that cloud.</p>
             </paper-material>
             <paper-material hidden$="[[!hasdnsClouds]]">
                 <div class="grid-row">
@@ -446,7 +446,7 @@
             },
             _cloudsChanged: function(clouds) {
                 var dnsClouds = this.model.cloudsArray.filter(function(cloud) {
-                    return (cloud.provider == 'ec2' || cloud.provider == 'gce' || cloud.provider == 'digitalocean' || cloud.provider == 'linode' || cloud.provider == 'rackspace' || cloud.provider == 'softlayer' || cloud.provider == 'vultr') && cloud.enabled && cloud.dns_enabled;
+                    return (['ec2','gce','digitalocean','linode','rackspace','softlayer','vultr'].indexOf(cloud.provider) > -1 ) && cloud.enabled && cloud.dns_enabled;
                 });
                 if (dnsClouds.length > 0) {
                     this.set('hasdnsClouds', true);
