@@ -35,12 +35,14 @@
                 <div hidden$="[[success]]">
                     <p>
                         <paper-input id="name" label="Name" error-message="Please enter organization's name" value="{{newOrganization.name}}"></paper-input><br/>
-                        <paper-checkbox id="superorg" label="Name" checked="{{newOrganization.superorg::change}}">
-                            Super Organisation. <br/>
-                            <span class="subtitle">
-                                Its teams will be visible in all orgs.
-                            </span>
-                        </paper-checkbox>
+                        <div> <!-- hidden if currentOrg is not super_org -->
+                            <paper-checkbox id="superorg" label="super org" checked="{{newOrganization.super_org::change}}">
+                                Sub-organisation. <br/>
+                                <span class="subtitle">
+                                    It will inherit [[currentOrg.name]]'s teams.
+                                </span>
+                            </paper-checkbox>
+                        </div>
                     </p>
                     <div id="errormsg" hidden$="[[!fail]]"></div>
                     <div class="clearfix btn-group">
@@ -74,9 +76,10 @@
                         type: Object,
                         value: {
                             name: '',
-                            superorg: false
+                            super_org: false
                         },
                     },
+                    currentOrg: Object,
                     sendingData: {
                         type: Boolean,
                         value: false
@@ -127,7 +130,7 @@
                     this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.organizationAddAjaxRequest.body = {
                         name: this.newOrganization.name,
-                        superorg: this.newOrganization.superorg
+                        super_org: this.newOrganization.super_org
                     };
                     this.$.organizationAddAjaxRequest.generateRequest();
 
@@ -154,7 +157,7 @@
                 },
                 _formReset: function() {
                     this.set('newOrganization.name', '');
-                    this.set('newOrganization.superorg', false);
+                    this.set('newOrganization.super_org', false);
                     this.set('success', false);
                     this.set('newOrgId','');
                     this.set("fail", false);
