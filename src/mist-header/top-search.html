@@ -72,7 +72,7 @@
       </form>
       <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!query.length]]"></iron-icon>
     </div>
-    <search-suggestions query="[[query]]" model="[[model]]" hidden$="[[viewingList]]"></search-suggestions>
+    <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]"></search-suggestions>
   </template>
   <script>
   Polymer({
@@ -96,14 +96,11 @@
     ],
 
     listeners: {
-      keyup: 'hotkeys'  
+      keyup: 'hotkeys'
     },
 
     performSearch: function(e) {
       e.preventDefault();
-      this.fire('nav', {
-        url: '?q=' + this.query
-      });
     },
     
     _queryChanged: function(q) {
@@ -119,7 +116,19 @@
     },
     clearSearch: function(e){
       this.set('query',"");
-    }
+    },
+    hotkeys: function(e) {
+        // ESC
+        if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.$.query) {
+            this.clearSearch(e);
+        }
+        // ENTER
+        if (e.keyCode === 13 && this.query.length) {
+            var a = this.query
+            this.set('query', '');
+            this.set('query', a);
+        }
+    },
   });
   </script>
 </dom-module>

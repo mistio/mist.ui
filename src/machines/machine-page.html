@@ -365,6 +365,9 @@
                     max-height: 200px !important;
                 }
             }
+            iron-icon.icon {
+                margin-right: 4px;
+            }
         </style>
 
         <div id="content">
@@ -388,10 +391,10 @@
             <div class="columns">
                 <paper-material id="leftcolumn" class="left">
                     <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span>
-                        <iron-icon src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
+                        <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
                         [[machine.cloud.title]]</span>
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
-                        <iron-icon src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
+                        <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
                         [[_computeMachineSize(machine)]]</span>
@@ -421,6 +424,12 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
+                    <div hidden$="[[!machine.cost]]">
+                        <h3 class="smallcaps">Monthly Cost:</h3>
+                        <div class="associatedKeys">
+                            $[[_toFixed(machine.cost.monthly)]]
+                        </div>
+                    </div>
                     <div hidden$="[[!machineKeys.length]]">
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
@@ -1005,8 +1014,8 @@ Polymer({
         else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
             return item.extra.image.distribution + " " +item.extra.image.name;
         }
-        else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.extra.image)){
-            return item.extra['image_id'] || item.imageId || item.extra.image.slug || item.extra.image.name || 'not found';
+        else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id || item.extra.image)){
+            return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug || item.extra.image.name;
         }
         else
             return "not found";
@@ -1153,6 +1162,10 @@ Polymer({
                 }
             }
         };
+    },
+
+    _toFixed: function(inp) {
+        return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
     },
 });
 </script>
