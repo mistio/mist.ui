@@ -357,13 +357,6 @@
             margin: 0 auto;
             width: 70%;
         }
-        .log:not(.error-false) iron-icon, .log:not(.error-false) {
-            color: var(--red-color);
-        }
-        .log span.error {
-            padding-left: 28px;
-            display: block;
-        }
         .parsing-loader paper-progress {
             width: 100%;
             margin-bottom: 32px;
@@ -408,9 +401,6 @@
             font-size: 0.7em;
             padding-left: 8px;
         }
-        #logs {
-            line-height: 2em;
-        }
         /* TODO: better */
         .tag {
             padding: 0.5em;
@@ -438,33 +428,6 @@
             float: right;
             margin: 8px !important;
         }.
-        paper-icon-button.logs-show::content iron-icon {
-            transition: transform 300ms ease-in;
-            transform: rotate3d(0, 0, 1, 0);
-        }
-        paper-icon-button.logs-show[active]::content iron-icon {
-            transform: rotate3d(0, 0, 1, 180deg);
-        }
-        #logscollapse > .log:last-of-type{
-            margin-bottom: 24px;
-        }
-        #logscollapse[collapsed] {
-            height: 30px;
-            overflow: hidden;
-        }
-        .logscontrol {
-            margin-top: 16px;
-            padding: 0 8px;
-        }
-
-        .log.more {
-            font-size: 0.9em;
-            color: rgba(0,0,0,0.54);
-        }
-        .log-info {
-            background-color: #eee;
-            padding-left: 16px;
-        }
         </style>
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
@@ -622,34 +585,6 @@
                     renderers=[[_getRenderers()]]
                     primary-field-name="time"
                     base-filter="stack_id:[[stack.id]]"></mist-list>
-                <paper-material>
-                    <h3 class="smallcaps">Job Logs <span class="small">job_id: [[stack.job_id]]</span></h3>
-                    <div id="logscollapse" collapsed$="[[!showLogs]]">
-                        <template is="dom-repeat" items="[[job.logs]]" as="log">
-                            <div class$="log error-[[log.error]]">
-                                <iron-icon icon$="[[computeLogIcon(log, index, stack.status)]]"></iron-icon>
-                                [[log.action]]
-                                <span hidden$="[[!log.workflow]]">: [[log.workflow]] </span>
-                                <span hidden$="[[!log.name]]">: [[log.name]] </span>
-                                <span hidden$="[[!log.machine_name]]">: [[log.machine_name]] </span>
-                                <span hidden$="[[!log.machine_names]]">: [[log.machine_names]] </span>
-                                <span hidden$="[[!log.script_id]]">: <a class="regular blue-link" href$="[[getScriptlink(log.script_id)]]">[[getScriptName(log.script_id)]] </a></span>
-                                <span hidden$="[[!log.script_name]]">: [[log.script_name]] </span>
-                                <span hidden$="[[!log.request_params.name]]">: [[log.request_params.name]] </span>
-                                <span hidden$="[[!log.request_params.workflow]]">: [[log.request_params.workflow]] </span>
-                                <span hidden$="[[!log.result.loadavg]]">: [[log.result.loadavg]] </span> <br/>
-                                <span class="error" hidden$="[[!log.error]]">error: [[log.error]]</span>
-                            </div>
-                        </template>
-                    </div>
-                    <div class="log false more" hidden$="[[showLogs]]">
-                        ... and more. [[job.logs.length]] total log entries
-                    </div>
-                    <paper-button id="minimal" class="logscontrol" toggles active={{showLogs}}>
-                        <span hidden$="{{showLogs}}">expand logs <iron-icon icon="icons:unfold-more"></iron-icon> </span>
-                        <span hidden$="{{!showLogs}}">collapse logs <iron-icon icon="icons:unfold-less"></iron-icon> </span>
-                    </paper-button>
-                </paper-material>
                 <paper-material class="no-pad">
                     <div class="output">
                         <paper-button toggles active={{showOutput}} hidden$="[[showOutput]]" class="blue">Show output</paper-button>
@@ -715,8 +650,7 @@
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
         <iron-ajax id="workflowRequest" method="POST" url="" on-response="handleWorkflowResponse" on-error="handleWorkflowError"></iron-ajax>
-        <iron-ajax id="cancelJob" method="DELETE" url="/api/v1/jobs/[[stack.job_id]]" on-response="handleCanceled" on-error=""></iron-ajax>
-        <iron-ajax id="getJobLog" method="GET" auto url="/api/v1/jobs/[[stack.job_id]]" handle-as="json" on-response="handleGetJobLog" on-error=""></iron-ajax>
+        <iron-ajax id="cancelJob" method="DELETE" url="/api/v1/jobs/[[stack.job_id]]" on-response="handleCanceled" on-error=""></iron-ajax>        
     </template>
 
     <script type="text/javascript" src="../../bower_components/anchorme.js/dist-browser/anchorme.min.js"></script>
@@ -832,7 +766,6 @@
                         value: true,
                         computed: 'is_ok(stack)'
                     },
-                    job: Object,
                     outputsAreEmpty: {
                         type: Boolean,
                         computed: "_computeOutputsAreEmpty(stack)"
@@ -854,7 +787,6 @@
                 },
                 observers: [
                     'newStackPage(stack.id)',
-                    'newJob(stack.job_id)',
                     'stackoutputsChanged(stack.outputs)',
                     'updateTerm(showOutput)'
                 ],
@@ -862,23 +794,8 @@
                     'iron-activate': '_handleInterval'
                 },
                 ready: function(){
-                    this.set('job', {});
                 },
                 attached: function(){
-                },
-                newJob: function(id){
-                    var that = this;
-                    // if (!this.intervalID) {
-                        this.intervalID = window.setInterval(
-                          function(that) {
-                            that._updateLogs(that);
-                          }, 1000, that);
-                        console.log('setting interval for job', this.intervalID);
-                    // }
-
-                    if (this.stack && (this.stack.status == 'workflow_started' || this.stack.status == 'start_creation')){
-                        this.showOutput = true;
-                    }
                 },
                 updateTerm: function(show) {
                     if (show) {
@@ -900,15 +817,6 @@
                     var parent = this.querySelector("div#cfyshell");
                     parent.insertBefore(xterm, parent.firstChild);
                     console.warn('xterm open', xterm);
-                },
-                jobFinished: function(finished_at){
-                    //clear interval
-                    if (this.job && this.job.finished_at > 0 && this.intervalID){
-                        window.clearInterval(this.intervalID);
-                        this.intervalID = null;
-                        // update job logs one last time
-                        this.async(function(){this.$.getJobLog.generateRequest()}, 1000);
-                    }
                 },
                 test: function() {
                     var newmach = {
@@ -969,10 +877,6 @@
                         return stack.status == 'start_creation';
                 },
                 is_error: function(stack) {
-                    //update logs once to view the error
-                    if (this.job && stack && stack.status == 'error'){
-                        this.$.getJobLog.generateRequest();
-                    }
                     return stack && stack.status == 'error';
                 },
                 is_workflow_started: function(stack) {
@@ -1040,9 +944,6 @@
                     if (this.stack)
                         if (this.model.templates[this.stack.template])
                             return this.model.templates[this.stack.template];
-                },
-                _computeJobID: function(stack) {
-                    return stack.job_id ? stack.job_id : false;
                 },
                 _machines: function(stack) {
                     return stack && stack.machines;
@@ -1290,12 +1191,6 @@
                     this._closeworkflows();
                 },
                 handleWorkflowError: function(e) {},
-                handleGetJobLog: function(e) {
-                    // console.log('getJobLog',e.detail.xhr.response.logs);
-                    this.set('job', e.detail.xhr.response);
-                    if (this.job.finished_at > 0)
-                        this.jobFinished(this.job.finished_at);
-                },
                 stackoutputsChanged: function(outputs){
                     this.$.stackOutputs.innerHTML = this._makeString(outputs);
                 },
@@ -1304,25 +1199,6 @@
                     // console.log(anchorme.js(YAML.dump(info)));
                     if (info)
                         return anchorme(YAML.dump(info).replace(/\'/g, ""));
-                },
-                _updateLogs: function(that){
-                    if (that.stack && (that.stack.status == 'workflow_started' || that.stack.status == 'start_creation')){
-                        console.log('_updateLogs');
-                        that.$.getJobLog.generateRequest();
-                        this.showOutput = true;
-                        // this.showLogs = true;
-                    }
-                },
-                computeLogIcon: function(log, index, status){
-                    if (log.error) {
-                        return 'icons:error-outline'
-                    }
-                    else if (index == this.job.logs.length -1 && this.job.finished_at == 0 && status != 'ok'){
-                        return '';
-                    }
-                    else {
-                        return 'icons:done';
-                    }
                 },
                 newStackPage: function(id){
                     console.log('un setting interval for', this.intervalID);
@@ -1336,38 +1212,6 @@
                 },
                 _computeIsloading: function(stack) {
                     return !this.stack ? true : false;
-                },
-                logInfo: function(log) {
-                    var info = "";
-
-                    if (log.action)
-                        info += "action: " + YAML.dump(log.action) +"\n";
-
-                    if (log.inputs && log.inputs.machine_name)
-                        info += "inputs: machine_name: " + YAML.dump(log.inputs.machine_name) +"\n"; 
-                    
-                    if (log.machine_name)
-                        info += "machine_name: " + YAML.dump(log.machine_name) +"\n";
-                    
-                    if (log.script_id)
-                        info += "script_id: " +YAML.dump(log.script_id) +"\n";
-                    
-                    if (log.request_params && log.request_params.name)
-                        info += "name: "+ YAML.dump(log.request_params.name) +"\n";
-
-                    if (log.request_params && log.request_params.workflow)
-                        info += "workflow: "+ YAML.dump(log.request_params.workflow) +"\n";
-                    
-                    if (log.machine_names)
-                        info += "machine_names: " +"\n"+ YAML.dump(log.machine_names) +"\n";
-                    
-                    info += "error: "+ log.error +"\n " ;
-
-
-                    action
-
-                    return info;
-                    // return YAML.dump(log);
                 },
                 getScriptlink: function(id) {
                     if (id && this.model.scripts[id])
