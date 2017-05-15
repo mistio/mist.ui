@@ -332,7 +332,7 @@ PROVIDERS.push({
         required: true,
         // SUPPORTED_PROVIDERS[3].regions.map(function(i){return {val:i.id, title: i.location}})
         //ec2_ap_northeast should be ap-northeast
-        options: [{'val': 'ap-northeast-1', 'title': 'Tokyo'}, {'val': 'ap-northeast-2', 'title': 'Seoul'}, {'val': 'ap-southeast-1', 'title': 'Singapore'}, {'val': 'ap-southeast-2', 'title': 'Sydney'}, {'val': 'eu-central-1', 'title': 'Frankfurt'}, {'val': 'eu-west-1', 'title': 'Ireland'}, {'val': 'sa-east-1', 'title': 'Sao Paulo'}, {'val': 'us-east-1', 'title': 'N. Virginia'}, {'val': 'us-west-1', 'title': 'N. California'}, {'val': 'us-west-2', 'title': 'Oregon'}, {'val': 'us-east-2', 'title': 'Ohio'}, {'val': 'ap-south-1', 'title': 'Mumbai'}]
+        options: [{'val': 'ap-northeast-1', 'title': 'Tokyo'}, {'val': 'ap-northeast-2', 'title': 'Seoul'}, {'val': 'ap-southeast-1', 'title': 'Singapore'}, {'val': 'ap-southeast-2', 'title': 'Sydney'}, {'val': 'eu-central-1', 'title': 'Frankfurt'}, {'val': 'eu-west-1', 'title': 'Ireland'}, {'val': 'eu-west-2', 'title': 'London'},  {'val': 'ca-central-1', 'title': 'Canada Central'}, {'val': 'sa-east-1', 'title': 'Sao Paulo'}, {'val': 'us-east-1', 'title': 'N. Virginia'}, {'val': 'us-west-1', 'title': 'N. California'}, {'val': 'us-west-2', 'title': 'Oregon'}, {'val': 'us-east-2', 'title': 'Ohio'}, {'val': 'ap-south-1', 'title': 'Mumbai'}]
     }, {
         name: "title",
         label: "Title *",
