@@ -29,6 +29,7 @@
 <link rel="import" href="app-sidebar/app-sidebar.html">
 <link rel="import" href="app-styles/app-styles.html">
 <link rel="import" href="app-icons/app-icons.html">
+<link rel="import" href="account/plan-overusage.html">
 
 <link rel="import" href="mist-socket.html">
 <link rel="import" href="mist-icons.html">
@@ -106,6 +107,7 @@
 
     <paper-header-panel mode="standard" class="fit">
         <app-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" sections="[[sections]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></app-sidebar>
+        <plan-overusage is-over-using="[[model.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" ></plan-overusage>
         <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
           <paper-spinner active="[[loading]]"></paper-spinner>
@@ -228,10 +230,6 @@
         '_routePageChanged(routeData.page, subroute.path)'
       ],
 
-      ready: function(){
-
-      },
-
       showToast:function(e){
         var toast=this.querySelector('paper-toast#mist-toast')
         toast.show({text:e.detail.msg,duration:e.detail.duration});
@@ -271,7 +269,8 @@
             page = 'dashboard';
         this.page = page || 'dashboard';
         if (subpath == '') { // Update iron-list
-            var i = this.querySelector('iron-list');
+            var p = page != '' && page != undefined ? '#'+page : '',
+                i = this.querySelector('iron-list'+p);
             if (i) {
                 i.fire('iron-resize');
             }
@@ -286,6 +285,10 @@
         if (this.querySelector('iron-media-query').queryMatches){
             document.querySelector('app-sidebar').closeSidebar();
         }
+        // clear searches
+        document.querySelector('#query').value = '';
+        this.set('sections.'+this.page+'.q', '');
+        this.set('q', '');
       },
 
       _hideLoader: function() {
@@ -326,7 +329,8 @@
                 clouds: true,
                 monitoring: true
             },
-            probes: {}
+            probes: {},
+            monitoring: {}
         };
         this.model.permissions = {
             'cloud': [
@@ -390,6 +394,21 @@
                 'edit',
                 'remove',
                 'run_workflow',
+                'edit_tags',
+                'read_logs',
+            ],
+            'zone': [
+                'add',
+                'read',
+                'remove',
+                'edit_tags',
+                'create_records',
+                'read_logs',
+            ],
+            'record': [
+                'add',
+                'read',
+                'remove',
                 'edit_tags',
                 'read_logs',
             ],
@@ -464,7 +483,6 @@
             color: '#3F51B5',
             icon: 'icons:dns',
             count: '0',
-            // hiding this until add functionality has been created
             add: '/zones/+add',
             q: ''
         },{
@@ -591,20 +609,21 @@
     });
 
     function itemUid(item, section) {
-        // Returns a universal resource id of the form
-        //      resourceType:[cloudId]:itemId
-        // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
-        //      key::MnhLdx9u22YjVJ
-        //
-        // TODO replace with mist uuids
+    // Returns a universal resource id of the form
+    //      resourceType:[cloudId]:itemId
+    // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
+    //      key::MnhLdx9u22YjVJ
+    //
+    // TODO replace with mist uuids
 
-        // if item type is not defined derive it fro the current section id
-        var item_type = item.type ? item.type : (section &&
-                                                 section.id.slice(0,-1));
-        var cloudId = item.cloud ? item.cloud.id : '';
-
-        return item_type + ':' + cloudId + ':' + item.id;
-    }
+    // if item type is not defined derive it fro the current section id
+    var item_type = item && item.type ? item.type : (section && section.id.slice(0,-1));
+    var cloudId = item && section && section.id != 'machines' && item.cloud && item.cloud.id ? item.cloud.id : '';
+    var itemId = item && item.id ? item.id : '';
+    if (item_type == 'incident')
+        itemId = item.incident_id
+    return item_type + ':' + cloudId + ':' + itemId;
+}
 
   </script>
 

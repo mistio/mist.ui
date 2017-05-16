@@ -61,7 +61,9 @@
 
     <page-items name="machines" class="keys" model="[[model]]" items="[[model.machinesArray]]" sections="[[sections]]" section="[[sections.machines]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
     <machine-create model="[[model]]" machines-fields="[[machinesFields]]" sections="[[sections]]" section="[[sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]]></machine-create>
-    <machine-page model="[[model]]" machine="[[_getMachine(data.machine, model.machines)]]" sections="[[sections]]" section="[[sections.machines]]" hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
+    <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
+        <machine-page model="[[model]]" machine="[[_getMachine(data.machine, model.machines)]]" sections="[[sections]]" section="[[sections.machines]]" hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
+    </template>
     <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
         <h2>Recommendation</h2>
         <p>
@@ -76,12 +78,7 @@
         </div>
     </paper-dialog>
 
-    <iron-ajax
-            id="getJobLog" method="GET"
-            url="/api/v1/jobs/[[jobId]]"
-            handle-as="json"
-            on-response="handleGetJobLog"
-            on-error="handleGetJobLogError"></iron-ajax>
+    <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
     <script>
         Polymer({
@@ -144,11 +141,7 @@
                     return this.model.machines[id];
             },
             openRecommendationsDialog: function(e) {
-                var probe;
-                if (e.detail['item-type'] != "machines")
-                    probe = this.model.probes[e.detail.item.id];
-                else
-                    probe = this.model.probes[e.detail.item.uuid];
+                var probe = this.model.probes[e.detail.item.id];
                 var text = 'Kernel ' + probe.kernel + ' OS ' + probe.os + ' ' + probe.os_version;
                 this.querySelector('.recommendation-text').textContent = text;
                 this.$.recommendationsDialog.open();

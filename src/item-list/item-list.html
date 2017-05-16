@@ -314,7 +314,7 @@
         <div class="row no-data" hidden$="[[items.length]]">
             no data yet
         </div>
-        <iron-list items="[[items]]" as="item" style$="{{vpHeight}}">
+        <iron-list id="[[section.id]]" items="[[items]]" as="item" style$="{{vpHeight}}">
             <template>
                 <div class="row" data-index$="[[index]]">
                     <list-item section="[[section]]" item="[[item]]" fields="[[fields]]" id$="[[itemUid(item)]]" uri$="[[_itemLink(item)]]" probes="[[model.probes]]" class$="[[_isItemStarred(item)]]">
@@ -406,6 +406,10 @@ Polymer({
             type: Boolean,
             computed: "isZones(section)"
         },
+        isrecords: {
+            type: Boolean,
+            computed: "isRecords(section)"
+        },
         istunnels: {
             type: Boolean,
             computed: "isTunnels(section)"
@@ -492,8 +496,8 @@ Polymer({
         if (!this.model.monitoring) {
             return " ";
         }
-        else if (this.model.monitoring && this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[item.uuid]) {
-            // console.log('itemMonitoringStatus',this.model.monitoring.monitored_machines[item.uuid])
+        else if (this.model.monitoring && this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[item.id]) {
+            // console.log('itemMonitoringStatus',this.model.monitoring.monitored_machines[item.id])
             classes += "monitoring ";
         }
         else {
@@ -501,11 +505,11 @@ Polymer({
         }
 
         //check state of monitoring
-        if (this.model.monitoring.monitored_machines[item.uuid].installation_status == "installing" || !this.model.monitoring.monitored_machines[item.uuid].installation_status.activated_at) {
+        if (this.model.monitoring.monitored_machines[item.id].installation_status == "installing" || !this.model.monitoring.monitored_machines[item.id].installation_status.activated_at) {
             classes += "pending "
         }
 
-        if (this.model.monitoring.monitored_machines[item.uuid].installation_status == "failed"){
+        if (this.model.monitoring.monitored_machines[item.id].installation_status == "failed"){
             classes += "failed "
         }
 
@@ -636,6 +640,9 @@ Polymer({
     isZones: function(section) {
         return section && section.id == "zones";
     },
+    isRecords: function(section) {
+        return section && section.id == "records";
+    },
     isTunnels: function(section) {
         return section && section.id == "tunnels";
     },
@@ -691,6 +698,9 @@ Polymer({
         }
         if (this.isZones(this.section)) {
             return ['domain', 'provider', 'zone_type', 'id', 'ttl', 'records']
+        }
+        if (this.isRecords(this.section)) {
+            return ['name', 'record_type', 'id', 'ttl', 'rdata']
         }
         if (this.isTunnels(this.section)) {
             return ['name', 'cidrs', 'id']
@@ -827,10 +837,10 @@ Polymer({
 
     _itemLink: function(item) {
         var p, s = this.section.id;
-        if (s == "machines" && item.uuid)
-            p = item.uuid
-        else if (s == "networks")
+        if (s == "networks")
             p = item.id
+        else if (s == "records")
+            p = item.zone_id
         else if (s == "incidents") {
             if (this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id])
                 p = item.machine_id
@@ -838,8 +848,9 @@ Polymer({
         else
             p = item.id
 
-
-        if (s != "incidents")
+        if (s == "records")
+            return "/zones/" + p;
+        else if (s != "incidents")
             return "/" + this.section.id + "/" + p;
         else
             return p ? "/machines/" + p : "/machines";

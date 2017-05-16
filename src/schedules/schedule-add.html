@@ -127,7 +127,6 @@ SCHEDULEACTIONS = {
                         type: "text",
                         value: "",
                         defaultValue: "",
-                        placeholder: "",
                         show: true,
                         required: false,
                         helptext: "Optional. Helpful descriptions improve a team's workflows."
@@ -208,7 +207,7 @@ SCHEDULEACTIONS = {
                         excludeFromPayload: true,
                         helptext: "Select specific machines to be included in scheduler.",
                         options: [],
-                        class: "bind-top background",
+                        class: "bind-both background",
                         showIf: {
                             fieldName: "ids_or_tags",
                             fieldValues: ["ids"]
@@ -221,19 +220,76 @@ SCHEDULEACTIONS = {
                         defaultValue: "",
                         show: true,
                         required: true,
-                        excludeFromPayload: false,
-                        helptext: "Scheduler will include all machines with the specified tags. Tag's keys can only be defined. Alphanumerical only.",
-                        class: "bind-top background",
+                        excludeFromPayload: true,
+                        helptext: "Scheduler will include all machines with the specified tags. Alphanumerical only.",
+                        class: "bind-both background",
                         showIf: {
                             fieldName: "ids_or_tags",
                             fieldValues: ["tags"]
                         }
                     }, {
+                        name: "machines_conditions_age_more_value",
+                        label: "which are older than",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        show: true,
+                        required: false,
+                        pattern: "[0-9]*",
+                        errorMessage: "Please enter numbers only!",
+                        excludeFromPayload: true,
+                        helptext: "",
+                        class: "bind-both background",
+                    },{
+                        name: "machines_conditions_age_more_unit",
+                        label: "",
+                        type: "radio",
+                        value: "days",
+                        defaultValue: "days",
+                        show: true,
+                        required: false,
+                        excludeFromPayload: true,
+                        helptext: "Apply an extra filter to apply the schedule to machines having been created longer than a time period ago",
+                        options: [{
+                            val: 'minutes',
+                            title: 'minutes'
+                        },{
+                            val: 'hours',
+                            title: 'hours'
+                        },{
+                            val: 'days',
+                            title: 'days'
+                        }],
+                        class: "bind-both background",
+                    },{
+                        name: "machines_conditions_cost",
+                        label: "and cost more than",
+                        type: "text",
+                        value: null,
+                        defaultValue: "",
+                        show: true,
+                        required: false,
+                        suffix: '$/month',
+                        pattern: "[0-9]*",
+                        errorMessage: "Please enter numbers only!",
+                        excludeFromPayload: true,
+                        helptext: "Apply an extra filter of costing more than a certain ammount of $ per month",
+                        class: "bind-top background",
+                    },{
+                        name: "conditions",
+                        label: "machines conditions",
+                        type: "text",
+                        value: [],
+                        defaultValue: [],
+                        show: false,
+                        required: true,
+                        excludeFromPayload: false
+                    }, {
                         name: "schedule_type",
                         label: "Schedule Type",
                         type: "radio",
                         value: "one_off",
-                        defaultValue: "interval",
+                        defaultValue: "one_off",
                         helptext: "The scheduler type. Visit the docs ",
                         helpHref: "http://docs.mist.io/article/151-scheduler",
                         show: true,
@@ -253,7 +309,7 @@ SCHEDULEACTIONS = {
                         name: "schedule_entry",
                         label: "Schedule time",
                         type: "text",
-                        value: {every: 10, period: "minutes"},
+                        value: null,
                         defaultValue: "",
                         helptext: "",
                         show: false,
@@ -265,6 +321,8 @@ SCHEDULEACTIONS = {
                         value: "10",
                         defaultValue: "",
                         excludeFromPayload: true,
+                        pattern: "[0-9]*",
+                        errorMessage: "Please enter numbers only!",
                         class: "bind-both background",
                         show: true,
                         required: true,
@@ -434,6 +492,7 @@ SCHEDULEACTIONS = {
 
                         if (f.name  == "machines_uuids") {
                             f.options = this.model.machinesArray || [];
+                            this._updateCheckboxes();
                         }
 
                         if (f.name.startsWith("action")) {
@@ -442,9 +501,23 @@ SCHEDULEACTIONS = {
                     }, this);
                 }
             },
+            _updateCheckboxes: function(){
+                //check if any checkboxes are selected
+                var checkedMachines = this.get('fields.' +this._fieldIndexByName("machines_uuids")+ '.value');
+                //if there are selected checkboxes, keep selection on update
+                if (checkedMachines && checkedMachines.length){
+                    var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
+                    [].forEach.call(checkboxes, function(el, index) {
+                        if (checkedMachines.indexOf(el.dataValue) > -1)
+                            el.checked = true;
+                        else
+                            el.checked = false;
+                    });
+                }
+            },
             _fieldsChanged: function(changeRecord){
                 // console.log('changeRecord', changeRecord);
-                if (changeRecord.path.endsWith('.value')) {
+                if (changeRecord.path.endsWith('.value') && changeRecord.path.split('.value').length < 3) {
 
                     // selecting action
                     if (this.get(changeRecord.path.replace('.value','')).name == "action" ){
@@ -462,24 +535,68 @@ SCHEDULEACTIONS = {
 
                     // selecting uuids or tags
                     if (this.get(changeRecord.path.replace('.value','')).name == "ids_or_tags"){
-
-                        var uuidsInd = this._fieldIndexByName("machines_uuids");
-                        var tagstInd = this._fieldIndexByName("machines_tags");
+                        var condsInd = this._fieldIndexByName("conditions"),
+                            uuidsInd = this._fieldIndexByName("machines_uuids"),
+                            tagstInd = this._fieldIndexByName("machines_tags");
 
                         if (changeRecord.value == "ids") {
-                            this.set('fields.'+ uuidsInd +'.excludeFromPayload', false);
-                            this.set('fields.'+ tagstInd +'.excludeFromPayload', true);
+                            this._removeObjectFromConditions('tags');
                         }
                         else if (changeRecord.value == "tags") {
-                            this.set('fields.'+ uuidsInd +'.excludeFromPayload', true);
-                            this.set('fields.'+ tagstInd +'.excludeFromPayload', false);
-
+                            this._removeObjectFromConditions('machines');
+                            
                             // clear checkbox selection
                             this.set('fields.'+ uuidsInd +'.value', []);
                             var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
                             [].forEach.call(checkboxes, function(el, index) {
                                 el.checked = false;
                             });
+                        }
+                    }
+
+                    // changing uuids
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_uuids")){
+                        console.log('changeRecord.value',changeRecord.value);
+                        this._updateObjectInConditions('machines', 'ids', changeRecord.value);
+                        this._removeObjectFromConditions('tags');
+                    }
+
+                    // changing tags
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_tags")){
+                        var textToArray = changeRecord.value.split(',');
+                        this._updateObjectInConditions('tags', 'tags', this._constructTagsValue(textToArray));
+                        this._removeObjectFromConditions('machines');
+                    }
+
+                    // changing age conditions
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_conditions_age_more_")){
+                        var condsInd = this._fieldIndexByName("conditions"),
+                            perInd = this._fieldIndexByName("machines_conditions_age_more_unit"),
+                            numInd = this._fieldIndexByName("machines_conditions_age_more_value"),
+                            key = this.get('fields.'+ perInd +'.value'),
+                            num = parseInt(this.get('fields.'+ numInd +'.value')),
+                            value;
+
+                        if (!changeRecord.value.length || !key.length || !parseInt(num)){
+                            //clear conditions
+                            this._removeObjectFromConditions('age');
+                        }
+                        else {
+                            this._updateAgeCondition(condsInd, key, num);
+                        }
+                    }
+
+                    // changing cost conditions
+                    if (this.get(changeRecord.path.replace('.value','')).name.startsWith("machines_conditions_cost")){
+                        var condsInd = this._fieldIndexByName("conditions"),
+                            costInd = this._fieldIndexByName("machines_conditions_cost");
+
+                        if (!changeRecord.value.length || !parseInt(changeRecord.value)){
+                            //clear cost condition
+                            this._removeObjectFromConditions('cost__monthly')
+                        }
+                        else {
+                            this._updateObjectInConditions('cost__monthly', 'value', parseInt(changeRecord.value), 'gt')
                         }
                     }
 
@@ -491,6 +608,7 @@ SCHEDULEACTIONS = {
                             maxcountInd = this._fieldIndexByName("max_run_count"),
                             runImmediatelyInd = this._fieldIndexByName("run_immediately"),
                             entry;
+
                         if (changeRecord.value == "interval") {
                             entry = this._processInterval();
                             this.set('fields.'+ expInd +'.disabled', false);
@@ -553,6 +671,80 @@ SCHEDULEACTIONS = {
                     }
                 }
             },
+
+            _updateAgeCondition: function(index, key, value) {
+                var minutes;
+                if (key == 'minutes')
+                    minutes = value;
+                else if (key == 'hours')
+                    minutes = value * 60;
+                else if (key == 'days')
+                    minutes = value * 60 * 24;
+
+                if (minutes)
+                    this._updateObjectInConditions('age', 'minutes', minutes);
+                    // this.set('fields.'+ index +'.value', [{'type': 'age', 'field': 'age', 'minutes': minutes}]);
+            },
+
+            _updateObjectInConditions: function(field, attr, value, operator){
+                var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
+                    conditionsField = conditions.find(function(con){
+                        return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
+                    }),
+                    index = conditions.indexOf(conditionsField);
+                console.log('index', index);
+                if (index > -1){
+                    this.set('fields.'+ this._fieldIndexByName("conditions") +'.value.' + index + '.' + attr, value);
+                }
+                else {
+                    this._addObjectInConditions(field, value, operator);
+                }
+
+            },
+
+            _addObjectInConditions: function(field, value, operator) {
+                var newCondition;
+                if (field == 'age'){
+                    newCondition = {
+                        type: 'age',
+                        minutes: value
+                    };
+                }
+                else if (field == 'machines'){
+                    newCondition = {
+                        type: 'machines',
+                        ids: value
+                    };
+                }
+                else if (field == 'tags'){
+                    newCondition = {
+                        type: 'tags',
+                        tags: value
+                    };
+                }
+                else {
+                    newCondition = {
+                        type: 'field',
+                        field: field,
+                        value: value
+                    };
+                    if (operator)
+                        newCondition['operator'] = operator;
+                }
+                this.push('fields.'+ this._fieldIndexByName("conditions") +'.value', newCondition);
+            },
+
+            _removeObjectFromConditions: function(field) {
+                var conditions = this.get('fields.'+this._fieldIndexByName("conditions")+'.value'),
+                    field = conditions.find(function(con){
+                        return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
+                    }),
+                    index = conditions.indexOf(field);
+
+                if (index > -1)
+                    this.splice('fields.'+ this._fieldIndexByName("conditions") +'.value', index, 1);
+            },
+
             _processInterval: function() {
                 var everyInd = this._fieldIndexByName("schedule_entry_interval_every");
                 var periodInd = this._fieldIndexByName("schedule_entry_interval_period");
@@ -577,6 +769,19 @@ SCHEDULEACTIONS = {
                         'month_of_year': chunchs[4]
                     };
                 return construct;
+            },
+            _constructTagsValue: function(tagStringsArray) {
+                var arr = {};
+                tagStringsArray.forEach(function(string){
+                    var chunks = string.split("=");
+                    if (chunks.length > 0 && chunks[0].trim().length > 0) {
+                        var key = chunks[0].trim();
+                        arr[key] = "";
+                        if (chunks.length > 1)
+                            arr[key] = chunks[1].trim();
+                    }
+                });
+                return arr;
             },
             _handleAddScheduleResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);

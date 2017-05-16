@@ -8,6 +8,7 @@
 <link rel="import" href="../helpers/dialog-element.html">
 
 <link rel="import" href="cloud-info.html">
+<link rel="import" href="cloud-dns.html">
 <link rel="import" href="cloud-edit.html">
 
 <dom-module id="cloud-page">
@@ -17,6 +18,11 @@
             :host {
                 display: block;
                 padding-bottom: 80px;
+                --paper-toggle-button-checked-button-color: #69b46c;
+                --paper-toggle-button-checked-bar-color: #69b46c;
+                --paper-toggle-button-unchecked-button-color: #d96557;
+                --paper-toggle-button-unchecked-bar-color: #d96557;
+                --paper-toggle-button-label-color: #fff;
             }
             paper-material {
                 display: block;
@@ -176,15 +182,6 @@
             paper-toggle-button {
                 cursor: pointer;
             }
-            :host paper-toggle-button >::content .toggle-button {
-                background-color: #d96557 !important;
-            }
-            :host paper-toggle-button[checked]:not([disabled]) >::content .toggle-button {
-                background-color: #69b46c !important;
-            }
-            :host paper-toggle-button >::content .toggle-label {
-                color: #fff !important;
-            }
             .capitalize {
                 text-transform: capitalize;
             }
@@ -243,6 +240,12 @@
                 <h3>Rename Cloud</h3>
                 <cloud-info cloud="[[cloud]]" opened></cloud-info>
             </paper-material>
+            <template is="dom-if" if="[[_isSupportedDNSProvider(cloud.provider)]]">
+                <paper-material class="separator">
+                    <h3>Enable DNS</h3>
+                    <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
+                </paper-material>
+            </template>
             <paper-material class="separator">
                 <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
             </paper-material>
@@ -326,6 +329,13 @@
                     }
                     dialog._openDialog();
                 },
+                _isSupportedDNSProvider: function(provider) {
+                    if (provider == "ec2" || provider == "gce"){
+                        return true;
+                    } else {
+                        return false;
+                    }
+                },
                 _deleteCloudConfirmation:function(){
                   this._showDialog({
                       title: 'Delete '+this.cloud.title+'?',
@@ -366,8 +376,8 @@
                     this.$.cloudStateAjaxRequest.generateRequest();
                 },
                 _handleCloudStateAjaxResponse: function(e) {
-                    var message = !this.cloud.enabled ? 'Cloud ' + this.cloud.title + ' was enabled!':
-                    'Cloud ' + this.cloud.title + ' was disabled!' ;
+                    var message = !this.cloud.enabled ? 'Cloud ' + this.cloud.title + ' was disabled!':
+                    'Cloud ' + this.cloud.title + ' was enabled!' ;
                     this.fire('toast',{msg:message,duration:5000});
                 },
                 _handleCloudStateAjaxError:function(e){

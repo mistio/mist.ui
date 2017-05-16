@@ -135,6 +135,10 @@
             .background {
                 background-color: #eee;
             }
+            paper-radio-group {
+                display: flex;
+                flex-wrap: nowrap;
+            }
             paper-radio-group.background {
                 padding-left: 0;
                 padding-right: 0;
@@ -170,7 +174,7 @@
             }
             .checkboxes {
                 max-height: 400px;
-                overflow: scroll;
+                overflow-y: scroll;
             }
             .date {
                 @apply(--layout-horizontal);
@@ -224,7 +228,10 @@
             <template is="dom-repeat" items="{{fields}}" as="field">
                 <template is="dom-if" if="[[field.show]]">
                     <template is="dom-if" if="[[_computeFieldType(field, 'text', field.show)]]">
-                        <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-input>
+                        <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate auto-validate pattern="[[field.pattern]]" required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" placeholder=[[field.placeholder]]>
+                            <div suffix hidden$="[[!field.suffix]]">[[field.suffix]]</div>
+                            <div prefix hidden$="[[!field.prefix]]">[[field.prefix]]</div>
+                        </paper-input>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'password', field.show)]]">
                         <paper-input  class$="xs12 m6 [[field.class]]" id="[[field.name]]" type="password" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]"></paper-input>
@@ -647,11 +654,13 @@
                             else if (el.name == "cloud_init") {
                                 return el.value.startsWith("#!/bin/bash") || el.value.startsWith("#cloud-config") || el.value.trim() == "";
                             }
+                            else if (el.name == "schedule_entry") {
+                                return !el.excludeFromPayload ? el.value : true;
+                            }
                             else {
                                 return el.show && el.required ? el.value : true;
                             }
                         }, this);
-                        
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
@@ -871,17 +880,8 @@
                     });
                     return arr;
                 },
-                _checkedEvent: function(e) {
-                    // console.log('_checkedEvent', e, e.target, this.querySelector('div#'+e.target.name), e.target.tagName == 'PAPER-CHECKBOX');
-                    if (e.target.tagName == 'PAPER-CHECKBOX'){
-                        this.querySelector('div#'+e.target.name);
-                        this._constructCheckboxValue(e.target.name);
-                    }
-                },
                 _computeID: function(option, fieldname) {
-                    if (fieldname == "machines_uuids")
-                        return option.uuid;
-                    else if (fieldname == "networks")
+                    if (fieldname == "networks")
                         return option.network_id;
                     else
                         return option.id;
@@ -898,6 +898,7 @@
                         if (fieldIndex){
                             var arr = this.querySelectorAll('paper-checkbox[name='+name+'][checked]');
                             var arrvalue = Array.prototype.map.call(arr, function(c){return c.dataValue});
+                            // console.log('_updateCheckboxesField',arrvalue);
                             this.set('fields.' + fieldIndex + '.value', arrvalue);
                         }
                     }

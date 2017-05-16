@@ -236,12 +236,12 @@
                 <paper-material class="machines-list" hidden$="[[!keyHasMachines]]">
                     <h4 class="key">Machine<span hidden$="[[!keyHasMachinesMoreThanOne]]">s <span>([[keyMachines.length]])</span></span> associated with this key</h4>
                     <ul>
-                        <template is="dom-repeat" items="[[key.machines]]" as="machine">
+                        <template is="dom-repeat" items="[[keyMachines]]" as="machine">
                             <li>
                                 <iron-icon icon='hardware:laptop'></iron-icon> <a href="[[getMachineUrl(machine)]]" class="machine">[[getMachineName(machine)]]</a>
                                 <span class="machine-info">
-                                    <span hidden="[[!machine.1]]">: id: [[machine.1]], </span>
-                                <span hidden="[[!machine.3]]">image: [[machine.3]]</span>
+                                    <span hidden="[[!machine.1]]">: id: [[machine.1]] </span>
+                                    <!-- <span hidden="[[!machine.3]]">image: [[machine.3]]</span> -->
                                 </span>
                             </li>
                         </template>
@@ -369,20 +369,18 @@
                         return keyMachines.length > 1 ? true : false;
                 },
                 getMachineUrl: function(keymachine) {
-                    var url;
                     var machine = this.model.machinesArray.find(function(machine) {
-                        return machine.id == keymachine[1];
+                        return machine.cloud.id == keymachine[0] && machine.machine_id == keymachine[1];
+                        console.log('key page', machine.cloud.id, keymachine[0]);
                     });
-                    url = machine ? "/machines/" + machine.uuid : '';
-                    return url;
+                    return machine ? "/machines/" + machine.id : '';
                 },
                 getMachineName: function(keymachine) {
-                    var name;
                     var machine = this.model.machinesArray.find(function(machine) {
-                        return machine.id == keymachine[1];
+                        return machine.cloud.id == keymachine[0] && machine.machine_id == keymachine[1];
+                        console.log('key page', machine.cloud.id, keymachine[0]);
                     });
-                    name = machine ? machine.name : 'missing';
-                    return name;
+                    return machine ? machine.name : 'missing';
                 },
                 _computeIsDefault: function(isDefault) {
                     return isDefault;
