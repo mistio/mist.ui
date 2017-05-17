@@ -173,7 +173,7 @@
             },
 
             style: {
-                computed: "_style(page, sections)",
+                computed: "_style(page, model)",
                 value: "background-color: #424242;",
                 notify: true
             },
@@ -280,11 +280,11 @@
                 this.querySelector('schedule-add').updateScripts(e);
         },
 
-        _style: function (page, sections) {
-            if (page && sections[page]) {
-                return "background-color: " + sections[page].color;
+        _style: function (page, model) {
+            if (page && this.model.sections[page]) {
+                return "background-color: " + this.model.sections[page].color;
             }
-            return "background-color: " + sections['dashboard'].color;
+            return "background-color: " + this.model.sections['dashboard'].color;
         },
 
         _routePageChanged: function (page, subpath) {
@@ -333,7 +333,7 @@
         },
 
         ready: function () {
-            this.model = {
+            var model = {
                 cloudsArray: [],
                 machinesArray: [],
                 imagesArray: [],
@@ -480,11 +480,11 @@
                 }
             };
 
-            for (i = 1; i <= this.model.teamsArray.length; i++) {
-                this.model.teams = this.model.teamsArray[i].teams[i].id;
+            for (i = 1; i <= model.teamsArray.length; i++) {
+                model.teams = model.teamsArray[i].teams[i].id;
             };
 
-            this.set('model.sectionsArray', [{
+            model.sectionsArray = [{
                 id: 'dashboard',
                 color: '#424242',
                 sidebar: false,
@@ -605,9 +605,11 @@
                 icon: 'icons:trending-up',
                 sidebar: this.enableInsights,
                 tile: false
-            }]);
+            }];
 
-            this.set('model.sections', _generateMap(this.model.sectionsArray));
+            model.sections = _generateMap(model.sectionsArray);
+
+            this.set('model', model);
         },
 
         _onUserAction: function (event) {
