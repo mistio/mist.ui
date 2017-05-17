@@ -213,7 +213,10 @@
                 <nav>
                     <template is="dom-repeat" items="[[model.sectionsArray]]">
                         <template is="dom-if" if="[[item.sidebar]]">
-                            <a id$="[[item.id]]" href$="/[[item.id]]" class="section" is="pushstate-anchor" href$="[[item.href]]" active$="[[_isEqual(current, item.id)]]" tabindex="1" style$="[[style(item.color)]]">
+                            <a class="section" is="pushstate-anchor" 
+                                id$="[[item.id]]" href$="/[[item.id]]" href$="[[item.href]]"
+                                hidden$="[[_isHidden(item)]]"
+                                active$="[[_isEqual(current, item.id)]]" tabindex="1" style$="[[style(item.color)]]">
                                 <div class="layout horizontal center">
                                     <section-symbol aria-hidden="true" icon="[[item.icon]]" color="[[item.color]]"></section-symbol>
                                     <span class="title flex">
@@ -326,6 +329,11 @@ Polymer({
     },
     _getSections: function(sections) {
         return this.model.sectionsArray;
+    },
+    _isHidden: function(item) {
+        if (item.hideZero && item.count == 0)
+            return true;
+        return false;
     }
 });
 
