@@ -281,39 +281,19 @@
                     <div id="leftcolumn" class="left">
                         <template is="dom-if" if="[[hasIncidents]]">
                             <div class="incidents">
-                                <app-incidents model="[[model]]" sections="[[sections]]">
+                                <app-incidents model="[[model]]">
                                 </app-incidents>
                             </div>
                         </template>
                         <div class="sections layout horizontal wrap">
-                            <a href="/machines" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="machines" color="[[sections.machines.color]]" icon="[[sections.machines.icon]]" count="[[model.machinesArray.length]]">
-                                </section-tile>
-                            </a>
-                            <a href="/images" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="images" color="[[sections.images.color]]" icon="[[sections.images.icon]]" count="[[model.imagesArray.length]]"></section-tile>
-                            </a>
-                            <a href="/keys" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="keys" color="[[sections.keys.color]]" icon="[[sections.keys.icon]]" count="[[model.keysArray.length]]"></section-tile>
-                            </a>
-                            <a href="/networks" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="networks" color="[[sections.networks.color]]" icon="[[sections.networks.icon]]" count="[[model.networksArray.length]]"></section-tile>
-                            </a>
-                            <!--<a href="/zones" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="zones" color="[[sections.zones.color]]" icon="[[sections.zones.icon]]" count="[[model.zonesArray.length]]"></section-tile>
-                            </a>-->
-                            <a href="/scripts" class="main-section flex" is=" pushstate-anchor">
-                                <section-tile name="scripts" color="[[sections.scripts.color]]" icon="[[sections.scripts.icon]]" count="[[model.scriptsArray.length]]"></section-tile>
-                            </a>
-                            <a href="/templates" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="templates" color="[[sections.templates.color]]" icon="[[sections.templates.icon]]" count="[[model.templatesArray.length]]"></section-tile>
-                            </a>
-                            <a href="/stacks" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="stacks" color="[[sections.stacks.color]]" icon="[[sections.stacks.icon]]" count="[[model.stacksArray.length]]"></section-tile>
-                            </a>
-                            <a href="/teams" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="teams" color="[[sections.teams.color]]" icon="[[sections.teams.icon]]" count="{{model.teamsArray.length}}"></section-tile>
-                            </a>
+                            <template is="dom-repeat" items="[[model.sectionsArray]]">
+                                <template is="dom-if" if="[[item.tile]]">
+                                    <a href$="/[[item.id]]" class="main-section flex" is="pushstate-anchor">
+                                        <section-tile name$="[[item.id]]" color="[[item.color]]" icon="[[item.icon]]" count="[[item.count]]">
+                                        </section-tile>
+                                    </a>
+                                </template>
+                            </template>
                         </div>
                         <paper-material class="graphs" hidden="[[!model.monitoring.machines.length]]">
                             <template is="dom-if" if="[[viewingDashboard]]" restamp>
@@ -332,9 +312,9 @@
                     </div>
                     <div class="left">
                         <div class="costs">
-                            <app-costs model="[[model]]" sections="[[sections]]">
+                            <app-costs model="[[model]]">
                             </app-costs>
-                            <app-costs-per-tag model="[[model]]" sections="[[sections]]">
+                            <app-costs-per-tag model="[[model]]">
                             </app-costs-per-tag>
                         </div>
                         <paper-material id="rightcolumn" class="logs">
@@ -351,7 +331,7 @@
                     <paper-fab id="addBtn" icon="cloud"></paper-fab>
                 </a>
             </div>
-            <div class="is-loading" hidden$="[[!onboarding.isLoadingClouds]]">
+            <div class="is-loading" hidden$="[[!model.onboarding.isLoadingClouds]]">
                 <paper-spinner active></paper-spinner>
             </div>
         </div>
@@ -364,9 +344,6 @@
         is: 'page-dashboard',
         enableCustomStyleProperties: true,
         properties: {
-            sections: {
-                type: Object
-            },
             model: {
                 type: Object
             },
@@ -385,7 +362,7 @@
             showDashboard: {
                 type: Boolean,
                 // value: true,
-                computed: '_computeshowDashboard(model.cloudsArray.length, onboarding.isLoadingClouds)',
+                computed: '_computeshowDashboard(model.cloudsArray.length, model.onboarding.isLoadingClouds)',
                 notify: true
             },
             hasIncidents: {

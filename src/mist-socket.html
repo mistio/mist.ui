@@ -23,25 +23,6 @@
                 type: Boolean,
                 value: false
             },
-            onboarding: {
-                type: Object,
-                value: {
-                    isLoadingClouds: true,
-                    isLoadingMachines: true,
-                    isLoadingImages: true,
-                    isLoadingKeys: true,
-                    isLoadingNetworks: true,
-                    isLoadingZones: true,
-                    isLoadingTunnels: true,
-                    isLoadingScripts: true,
-                    isLoadingSchedules: true,
-                    isLoadingTemplates: true,
-                    isLoadingStacks: true,
-                    isLoadingTeams: true,
-                    isLoadingIncidents: true
-                },
-                notify: true
-            },
             term: {
                 type: Object
             }
@@ -396,6 +377,10 @@
                 console.debug('updating', section);
                 this.set('model.' + section, _generateMap(data, primaryField));
                 this.set('model.' + section + 'Array', data);
+
+                // update section count, necessary for propagating changes to sidebar & dashboard counters
+                var i = this.model.sectionsArray.findIndex(function(i){return i.id == section})
+                this.set('model.sectionsArray.' + i + '.count', data.length);
             } else {
                 if (DEBUG_SOCKET)
                     console.debug('no need to update', section);
@@ -410,16 +395,16 @@
 
         _updateClouds: function (data) {
             // console.log('_updateClouds');
-            if (data.length && this.get('onboarding.hasCloud') != true)
-                this.set('onboarding.hasCloud', true);
+            if (data.length && this.get('model.onboarding.hasCloud') != true)
+                this.set('model.onboarding.hasCloud', true);
             if (!data.length) {
-                this.set('onboarding.hasCloud', false);
-                this.set('onboarding.isLoadingMachines', false);
-                this.set('onboarding.isLoadingImages', false);
-                this.set('onboarding.isLoadingNetworks', false);
+                this.set('model.onboarding.hasCloud', false);
+                this.set('model.onboarding.isLoadingMachines', false);
+                this.set('model.onboarding.isLoadingImages', false);
+                this.set('model.onboarding.isLoadingNetworks', false);
             }
             var ret = this._updateModel('clouds', data);
-            this.set('onboarding.isLoadingClouds', false);
+            this.set('model.onboarding.isLoadingClouds', false);
 
             if (this.model != undefined && data) {
                 data.forEach(function (c) {
@@ -442,19 +427,19 @@
                     return b1 || b2;
                 });
             if (!cloudsResources) {
-                this.set('onboarding.isLoadingMachines', false);
-                this.set('onboarding.isLoadingImages', false);
-                this.set('onboarding.isLoadingNetworks', false);
+                this.set('model.onboarding.isLoadingMachines', false);
+                this.set('model.onboarding.isLoadingImages', false);
+                this.set('model.onboarding.isLoadingNetworks', false);
             }
             return ret;
         },
 
         _updateMonitoring: function (data) {
             console.warn('got monitoring', data);
-            if (data.length && this.get('onboarding.hasMonitoring') != true)
-                this.set('onboarding.hasMonitoring', true);
+            if (data.length && this.get('model.onboarding.hasMonitoring') != true)
+                this.set('model.onboarding.hasMonitoring', true);
             if (!data) //data is an Object
-                this.set('onboarding.hasMonitoring', false);
+                this.set('model.onboarding.hasMonitoring', false);
             this.set('model.pending.monitoring', false);
             // inform machines that have rules
             if (data.rules) {
@@ -483,7 +468,7 @@
         },
 
         _updateOrg: function (data) {
-            this.set('onboarding.isLoadingTeams', false);
+            this.set('model.onboarding.isLoadingTeams', false);
             this._updateModel('teams', data.teams);
             this._updateModel('members', data.members);
             data.teams = data.members = undefined;
@@ -491,7 +476,7 @@
         },
 
         _updateKeys: function (data) {
-            this.set('onboarding.isLoadingKeys', false);
+            this.set('model.onboarding.isLoadingKeys', false);
             if (data) {
                 for (var i = 0; i < data.length; i++) {
                     var key = data[i];
@@ -525,22 +510,22 @@
         },
 
         _updateScripts: function (data) {
-            this.set('onboarding.isLoadingScripts', false);
+            this.set('model.onboarding.isLoadingScripts', false);
             return this._updateModel('scripts', data);
         },
 
         _updateSchedules: function (data) {
-            this.set('onboarding.isLoadingSchedules', false);
+            this.set('model.onboarding.isLoadingSchedules', false);
             return this._updateModel('schedules', data);
         },
 
         _updateTemplates: function (data) {
-            this.set('onboarding.isLoadingTemplates', false);
+            this.set('model.onboarding.isLoadingTemplates', false);
             return this._updateModel('templates', data);
         },
 
         _updateStacks: function (data) {
-            this.set('onboarding.isLoadingStacks', false);
+            this.set('model.onboarding.isLoadingStacks', false);
             return this._updateModel('stacks', data);
         },
 
@@ -554,7 +539,7 @@
 
         _updateImages: function (data) {
             // console.log('_updateImages');
-            this.set('onboarding.isLoadingImages', false);
+            this.set('model.onboarding.isLoadingImages', false);
             var changed = this._updateModel('clouds.' + data.cloud_id + '.images', data.images);
             if (!changed)
                 return false;
@@ -614,13 +599,13 @@
             if (data.length && this.get('model.onboarding.hasMachines') != true)
                 this.set('model.onboarding.hasMachines', true);
 
-            this.set('onboarding.isLoadingMachines', false);
+            this.set('model.onboarding.isLoadingMachines', false);
             this.set('model.machinesArray', allMachines);
             this.set('model.machines', _generateMap(allMachines));
         },
 
         _updateNetworks: function (data) {
-            this.set('onboarding.isLoadingNetworks', false);
+            this.set('model.onboarding.isLoadingNetworks', false);
 
             //update cloud's networks
             var cloudNetworks = [];
@@ -676,7 +661,7 @@
             this.set('model.networks', _generateMap(allNetworks));
         },
         _updateZones: function (data) {
-            this.set('onboarding.isLoadingZones', false);
+            this.set('model.onboarding.isLoadingZones', false);
 
             //update cloud's Zones
             var cloudZones = [];
@@ -741,12 +726,12 @@
             this.set('model.records', _generateMap(allRecords));
         },
         _updateTunnels: function (data) {
-            this.set('onboarding.isLoadingTunnels', false);
+            this.set('model.onboarding.isLoadingTunnels', false);
             return this._updateModel('tunnels', data);
         },
 
         _updateIncidents: function (data) {
-            this.set('onboarding.isLoadingIncidents', false);
+            this.set('model.onboarding.isLoadingIncidents', false);
             if (data) {
                 for (var i = 0; i < data.length; i++) {
                     var inc = data[i];
@@ -777,7 +762,7 @@
                 else if (this.model.org.current_plan && this.model.org.current_plan.title && this.model.machinesArray.length > this.model.org.current_plan.machine_limit)
                     isOverUsing = true;
             }
-            this.set('model.isOverUsing', isOverUsing);
+            this.set('model.onboarding.isOverUsing', isOverUsing);
         },
 
         _probe: function (data) {
