@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="teams/team-page.html">
 <link rel="import" href="teams/member-page.html">
@@ -18,7 +19,17 @@
                 pattern="/:team"
                 data="{{data}}"></app-route>
 
-    <page-items model="[[model]]" items="[[model.teamsArray]]" section="[[sections.teams]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <!-- <page-items model="[[model]]" items="[[model.teamsArray]]" section="[[sections.teams]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items> -->
+
+    <mist-list selectable id="teamsList"
+                items="[[model.teamsArray]]"
+                name="Teams"
+                frozen=[[_getFrozenLogColumn()]]
+                visible=[[_getVisibleColumns()]]
+                renderers=[[_getRenderers(model.teams,model.members)]]
+                route={{route}}
+                primary-field-name="id" hidden$=[[!_isListActive(route.path)]]></mist-list>
+
     <team-page model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" section="[[sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]]></team-page>
     <members-add model="[[model]]" params="[[data]]" section="[[sections.teams]]" hidden$=[[!_isAddMembersPageActive(route.path)]]></members-add>
     <member-add-in-teams model="[[model]]" params="[[data]]" section="[[sections.teams]]" hidden$=[[!_isAddMemberPageActive(route.path)]]></member-add-in-teams>
@@ -55,6 +66,31 @@
           if (this.model.teams && this.model.teams[id])
               return this.model.teams[id];
       },
+
+      _getFrozenLogColumn: function(){
+        return ['name'];
+      },
+
+      _getVisibleColumns: function(){
+        return ['description', 'members', 'tags'];
+      },
+
+      _getRenderers: function(teams, members) {
+        var _this = this;
+        console.log('teams',teams);
+        return {
+            'name': {
+                'body': function(item, row) {
+                  console.log("item", item, row);
+                  if (row.parent && _this.model && _this.model.org && _this.model.org.parent_org_name) {
+                    var ret = "<strong>[" + _this.model.org.parent_org_name + "] " + item +"</strong>";
+                    return ret;
+                  }
+                  return "<strong>"+ item + "</strong>";
+                }
+            }
+        };
+    },
 
     });
   </script>
