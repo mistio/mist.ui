@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="teams/member-page.html">
 
@@ -13,8 +14,8 @@
     </style>
     <app-route route="{{route}}" pattern="/:member" data="{{data}}"></app-route>
 
-    <!--page-items model="[[model]]" items="[[model.membersArray]]" section="[[sections.teams]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items-->
-    <member-page model="[[model]]" params="[[data]]" sections="[[sections]]" section="[[sections.teams]]" hidden$=[[_isListActive(route.path)]]></member-page>
+    <mist-list selectable items="[[model.membersArray]]" hidden$=[[!_isListActive(route.path)]] frozen=[[_getFrozenColumn()]] visible=[[_getVisibleColumns()]]></mist-list>
+    <member-page model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[_isListActive(route.path)]]></member-page>
   </template>
 
   <script>
@@ -23,12 +24,18 @@
       is: 'page-members',
 
       properties: {
-        model: Object,
-        onboarding: Object
+        model: Object
       },
       _isListActive: function (path) {
         return !path;
-      }
+      },
+      _getVisibleColumns: function () {
+        return ['name']
+      },
+
+      _getFrozenColumn: function () {
+        return ['email']
+      },
     });
   </script>
 </dom-module>
