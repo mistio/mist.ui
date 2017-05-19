@@ -1,18 +1,28 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="teams/team-page.html">
+<link rel="import" href="teams/team-actions.html">
 <link rel="import" href="teams/member-page.html">
 <link rel="import" href="teams/members-add.html">
 <link rel="import" href="teams/member-add-in-teams.html">
+<link rel="import" href="teams/team-add.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="item-list/item-actions.html">
+
 
 <dom-module id="page-teams">
   <template>
-    <style>
+    <style include="shared-styles">
       :host {
         display: block;
+      }
+      mist-list {
+          font-size: 14px;
+      }
+      mist-list[selectable] ::content vaadin-grid-table-row {
+          cursor: pointer;
       }
     </style>
     <app-route route="{{route}}"
@@ -21,15 +31,23 @@
     <mist-list selectable id="teamsList"
                 items="[[model.teamsArray]]"
                 name="Teams"
+                selected-items="{{selectedItems}}"
                 frozen=[[_getFrozenLogColumn()]]
                 visible=[[_getVisibleColumns()]]
                 renderers=[[_getRenderers(model.teams,model.members)]]
                 route={{route}}
-                primary-field-name="id" hidden$=[[!_isListActive(route.path)]]></mist-list>
+                primary-field-name="id" hidden$=[[!_isListActive(route.path)]]>
+                  <team-actions class="mistactions" items="[[selectedItems]]"></team-actions>
+                </mist-list>
 
     <team-page model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" section="[[model.sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]]></team-page>
     <members-add model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMembersPageActive(route.path)]]></members-add>
     <member-add-in-teams model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMemberPageActive(route.path)]]></member-add-in-teams>
+
+    <div class="absolute-bottom-right">
+        <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
+    </div>
+    <team-add id="isTeamsPage" organization="[[model.org]]"></team-add>
 
   </template>
 
@@ -39,7 +57,11 @@
       is: 'page-teams',
 
       properties: {
-        model: Object
+        model: Object,
+        selectedItems: {
+          type: Array,
+          value: function() { return [] }
+        },
       },
 
       attached: function() {
@@ -73,13 +95,11 @@
 
       _getRenderers: function(teams, members) {
         var _this = this;
-        console.log('teams',teams);
         return {
             'name': {
                 'body': function(item, row) {
-                  console.log("item", item, row);
                   if (row.parent && _this.model && _this.model.org && _this.model.org.parent_org_name) {
-                    var ret = "<strong>[" + _this.model.org.parent_org_name + "] " + item +"</strong>";
+                    var ret = "[" + _this.model.org.parent_org_name + "] <strong>" + item +"</strong>";
                     return ret;
                   }
                   return "<strong>"+ item + "</strong>";
@@ -87,11 +107,11 @@
             },
             'members': {
                 'body': function(item, row) {
-                  console.log("member", item, row);
                   if (_this.model && _this.model.members && item.length && item.length > 0 ) {
                     var names = item.map(function(i){
                       if (_this.model.members[i])
-                        return _this.model.members[i].name || _this.model.members[i].email;
+                        var displayName = _this.model.members[i].name || _this.model.members[i].email;
+                        return " "+displayName;
                     })
                     var ret = names;
                     return ret;
@@ -100,6 +120,11 @@
                 }
             }
         };
+    },
+
+    _addTeam: function(e) {
+        var dialog = this.querySelector('team-add#isTeamsPage');
+        dialog.openDialog();
     },
 
     });
