@@ -79,7 +79,7 @@
         }
         section-tile ::content h2 {
             color: rgba(0,0,0,0.54) !important;
-            padding: 23px 4px !important;
+            padding: 23px 8px !important;
         }
         section-tile {
             position: relative;
@@ -147,9 +147,6 @@ Polymer({
         model: {
             type: Object
         },
-        sections: {
-            type: Object
-        },
         totalCost: {
             type: Number,
             computed: '_computeTotalCost(model.machinesArray.*)'
@@ -187,7 +184,7 @@ Polymer({
                 return previous + current;
             });
         }
-        return Math.round(cost);
+        return cost.formatMoney(2, '.', ',');
     },
     _computeTopClouds: function(clouds, machines) {
         var topCloudsArray = [];
@@ -213,9 +210,9 @@ Polymer({
                 }
                 var cloud = {};
                     cloud.name = c.title;
-                    cloud.cost = Math.round(cloudCost);
+                    cloud.cost = cloudCost.formatMoney(2, '.', ',');
                     cloud.machinesCount = machinesCount;
-                if (cloud.cost > 0)
+                if (cloudCost > 0)
                     topCloudsArray.push(cloud);
                 else {
                     zeroCostClouds.push(cloud);
@@ -233,4 +230,16 @@ Polymer({
         return topCloudsArray;
     }
 });
+
+Number.prototype.formatMoney = function(c, d, t){
+var n = this,
+    c = isNaN(c = Math.abs(c)) ? 2 : c,
+    d = d == undefined ? "." : d,
+    t = t == undefined ? "," : t,
+    s = n < 0 ? "-" : "",
+    i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+ };
+
 </script>

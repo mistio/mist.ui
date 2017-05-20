@@ -249,21 +249,13 @@
                             show: true,
                             required: false,
                             helptext: "Enable to allow team members to run this template with owner rights."
-                        }, {
-                            name: "push_tags",
-                            label: "Push Template's tags",
-                            type: "toggle",
-                            value: false,
-                            defaultValue: false,
-                            show: true,
-                            required: false,
-                            helptext: "Enable to use the template's tags as input during workflows execution."
                         }]
                     },
                     defaultTemplates: Array
                 },
                 observers: [
-                    'useCatalogueTemplate(selected, fields)'
+                    'useCatalogueTemplate(selected, fields)',
+                    'showWarning(fields.*)'
                 ],
                 listeners: {
                     'reset-form' : 'clearDropDown'
@@ -325,8 +317,22 @@
                 },
                 clearDropDown: function(){
                     this.set('selected', -1)
+                },
+                showWarning: function(fields) {
+                    console.log("fields", fields);
+                    if (fields.path == "fields.#8.value") {
+                        if (fields.value){
+                            this.set('fields.#8.warning', 'Allowing the team to run this template as owner');
+                            this.set('fields.#8.helptext', '');
+                        }
+                        else {
+                            this.set('fields.#8.warning', '');
+                            this.set('fields.#8.helptext', 'Enable to allow team members to run this template with owner rights.');
+                        }
+                    }
                 }
             });
         })();
     </script>
 </dom-module>
+s
