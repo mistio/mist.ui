@@ -227,7 +227,27 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         helptext: "Optional."
-    }]
+    }, {
+            name: "hourly",
+            label: "Hourly billing",
+            type: "toggle",
+            value: true,
+            defaultValue: true,
+            show: true,
+            required: false,
+            helptext: "If you don't select hourly billing, monthly billing will be applied"
+
+        }, {
+            name: "bare_metal",
+            label: "Bare Metal",
+            type: "toggle",
+            value: false,
+            defaultValue: false,
+            show: true,
+            required: false,
+            helptext: "Whether the new server will be Cloud server, or Bare Metal"
+
+        }]
 });
 
 // VCLOUD
