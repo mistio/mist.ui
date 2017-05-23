@@ -13,8 +13,8 @@ MACHINE_CREATE_FIELDS.push({
         required: false,
         helptext: ""
     }, {
-        name: "ports",
-        label: "Ports *",
+        name: "azure_port_bindings",
+        label: "Azure Port Bindings",
         type: "textarea",
         value: "",
         defaultValue: "",
