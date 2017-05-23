@@ -28,18 +28,21 @@
     <app-route route="{{route}}"
                 pattern="/:team"
                 data="{{data}}"></app-route>
-    <mist-list selectable id="teamsList"
-                items="[[model.teamsArray]]"
-                name="Teams"
-                selected-items="{{selectedItems}}"
-                frozen=[[_getFrozenLogColumn()]]
-                visible=[[_getVisibleColumns()]]
-                renderers=[[_getRenderers(model.teams,model.members)]]
-                route={{route}}
-                primary-field-name="id" hidden$=[[!_isListActive(route.path)]]>
-                  <team-actions class="mistactions" items="[[selectedItems]]" org="[[model.org.id]]"></team-actions>
-                </mist-list>
 
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+        <mist-list
+            selectable id="teamsList"
+            items="[[model.teamsArray]]"
+            name="Teams"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.teams,model.members)]]
+            route={{route}}
+            primary-field-name="id">
+            <team-actions class="mistactions" items="[[selectedItems]]" org="[[model.org.id]]"></team-actions>
+        </mist-list>
+    </template>
     <team-page model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" section="[[model.sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]]></team-page>
     <members-add model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMembersPageActive(route.path)]]></members-add>
     <member-add-in-teams model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMemberPageActive(route.path)]]></member-add-in-teams>
