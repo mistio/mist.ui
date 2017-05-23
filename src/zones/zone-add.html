@@ -270,7 +270,6 @@
                                 value: "",
                                 defaultValue: "",
                                 placeholder: "",
-                                excludeFromPayload: true,
                                 helptext: "Linode requires a Start of Authority (SOA) email when creating a master DNS zone.",
                                 required: true,
                                 showIf: {
@@ -278,13 +277,12 @@
                                     fieldValues: ["master"]
                                 }
                             }, {
-                                name: "Master_IP",
+                                name: "master_ips",
                                 label: "DNS Master Node IP",
                                 type: "text",
                                 value: "",
                                 defaultValue: "",
                                 placeholder: "",
-                                excludeFromPayload: true,
                                 helptext: "Linode requires the DNS master node IP address when creating a slave DNS zone.",
                                 required: true,
                                 showIf: {
@@ -545,12 +543,14 @@
                             var soa = this.fields.findIndex(function(field) {
                                 return field.name == "SOA_email";
                             }, this);
+                            delete payload['master_ips'];
                             payload['SOA_Email'] = this.fields[soa].value;
                         } else {
-                            var master_ip = this.fields.findIndex(function(field) {
-                                return field.name == "Master_IP";
+                            var master_ips = this.fields.findIndex(function(field) {
+                                return field.name == "master_ips";
                             }, this);
-                            payload['Master_IP'] = this.fields[master_ip].value;
+                            delete payload['SOA_Email'];
+                            payload['master_ips'] = this.fields[master_ips].value;
                         }
                     }
                     if (this.selectedCloud.provider == "vultr") {
