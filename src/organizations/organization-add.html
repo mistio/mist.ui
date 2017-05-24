@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <dom-module id="organization-add">
     <template>
@@ -22,6 +23,10 @@
             .pad-bot {
                 padding-bottom: 24px;
             }
+            paper-checkbox {
+                --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+                --paper-checkbox-checked-color: var(--mist-blue) !important;
+            }
         </style>
 
         <paper-dialog id="organizationAddModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
@@ -29,7 +34,15 @@
             <paper-dialog-scrollable>
                 <div hidden$="[[success]]">
                     <p>
-                        <paper-input id="name" label="Name" error-message="Please enter organization's name" value="{{newOrganization.name}}"></paper-input>
+                        <paper-input id="name" label="Name" error-message="Please enter organization's name" value="{{newOrganization.name}}"></paper-input><br/>
+                        <div hidden$="[[!currentOrg.super_org]]">
+                            <paper-checkbox id="superorg" label="super org" checked="{{newOrganization.super_org::change}}">
+                                Sub-organisation. <br/>
+                                <span class="subtitle">
+                                    It will inherit [[currentOrg.name]]'s teams.
+                                </span>
+                            </paper-checkbox>
+                        </div>
                     </p>
                     <div id="errormsg" hidden$="[[!fail]]"></div>
                     <div class="clearfix btn-group">
@@ -62,9 +75,11 @@
                     newOrganization: {
                         type: Object,
                         value: {
-                            name: ''
+                            name: '',
+                            super_org: false
                         },
                     },
+                    currentOrg: Object,
                     sendingData: {
                         type: Boolean,
                         value: false
@@ -81,7 +96,8 @@
                     fail: {
                         type: Boolean,
                         value: false
-                    }
+                    },
+                    isSuperOrg: Boolean
                 },
                 _computeFormReady: function(name, sendingData) {
                     var formReady = false;
@@ -114,7 +130,8 @@
                     this.$.organizationAddAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.organizationAddAjaxRequest.body = {
-                        name: this.newOrganization.name
+                        name: this.newOrganization.name,
+                        super_org: this.newOrganization.super_org
                     };
                     this.$.organizationAddAjaxRequest.generateRequest();
 
@@ -141,6 +158,7 @@
                 },
                 _formReset: function() {
                     this.set('newOrganization.name', '');
+                    this.set('newOrganization.super_org', false);
                     this.set('success', false);
                     this.set('newOrgId','');
                     this.set("fail", false);
