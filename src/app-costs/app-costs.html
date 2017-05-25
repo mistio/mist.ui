@@ -71,6 +71,13 @@
         .count {
             color: rgba(0,0,0,0.54);
         }
+        td.count {
+            font-size: 12px;
+            line-height: 22px;
+        }
+        td.count > iron-icon {
+            float: left;
+        }
         .text-right {
             text-align: right;
         }
@@ -126,8 +133,8 @@
                 <template is="dom-repeat" items="[[topClouds]]">
                     <tr>
                         <td colspan="2" class="name">[[item.name]] </td>
-                        <td class="count">[[item.machinesCount]] machines </td>
-                        <td class="text-right cost">$[[item.cost]]</td>
+                        <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
+                        <td class="text-right cost">$[[_formatMoney(item.cost)]]</td>
                     </tr>
                 </template>
             </table>
@@ -210,7 +217,7 @@ Polymer({
                 }
                 var cloud = {};
                     cloud.name = c.title;
-                    cloud.cost = cloudCost.formatMoney(2, '.', ',');
+                    cloud.cost = cloudCost;
                     cloud.machinesCount = machinesCount;
                 if (cloudCost > 0)
                     topCloudsArray.push(cloud);
@@ -228,6 +235,10 @@ Polymer({
         });
         // return all clouds instead of topCloudsArray.slice(0,3);
         return topCloudsArray;
+    },
+
+    _formatMoney: function(cost) {
+        return cost.formatMoney(2, '.', ',');
     }
 });
 
