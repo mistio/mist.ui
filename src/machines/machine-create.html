@@ -89,7 +89,7 @@
             <paper-material>
                 <div class="grid-row">
                     <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
-                        <paper-menu attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
+                        <paper-menu attr-for-selected="value" selected="{{selectedCloud::iron-select}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[providers]]" as="provider">
                                 <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
                             </template>
@@ -183,7 +183,8 @@ SCHEDULEACTIONS = {
                     },
                     machineFields: {
                         type: Array,
-                        value: []
+                        value: [],
+                        notify: true
                     },
                     machinesFields: Array,
                     providers: {
@@ -236,9 +237,15 @@ SCHEDULEACTIONS = {
                     }
                 },
                 _cloudChanged: function(selectedCloud, machinesFields) {
-                    if (selectedCloud){
+                    if (this.machineFields){
+                        this.machineFields.forEach(function(f, index){
+                            this.set('machineFields.'+index+'.value', this.get('machineFields.'+index+'.defaultValue'));
+                        }.bind(this));
+                    }
+                    this.set('machineFields', []);
+
+                    if (this.selectedCloud){
                         var cloudName =  this.model.clouds[selectedCloud].provider.split('_')[0];
-                        console.log('cloud name', cloudName)
                         var machineFields = this.machinesFields.find(function(c){
                             return c.provider == cloudName;
                         });
@@ -246,13 +253,13 @@ SCHEDULEACTIONS = {
                     else {
                         machineFields = []
                     }
-                    // if (machineFields.length > 0)
+                    this.set('machineFields', []);
                     this.set('machineFields', machineFields.fields || []);
-
-                    this._updateFields();
+                    this._updateFields(selectedCloud);
                 },
                 _resetForm: function() {
                     // Reset Form Fields
+                    this.set('selectedCloud', false)
                     this.machineFields.forEach(function(el, index) {
                         if (el.showIf) {
                             this.set('machineFields.' + index + '.show', false);
@@ -269,10 +276,11 @@ SCHEDULEACTIONS = {
                         input.invalid = false;
                     }
                 },
-                _updateFields: function(){
-                    if (this.selectedCloud) {
+                _updateFields: function(selectedCloud){
+                    console.log('selectedCloud', selectedCloud, this.selectedCloud);
+                    if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this.selectedCloud]) {
+                        // console.log('selected cloud', this.model.clouds[this.selectedCloud].title, this.model.clouds[this.selectedCloud].imagesArray[0].name);
                         var cloudId = this.selectedCloud;
-                        console.log('cloudId', cloudId);
 
                         // if is onapp change fields
                         if (this.model.clouds[this.selectedCloud].provider == "onapp"){
@@ -280,6 +288,10 @@ SCHEDULEACTIONS = {
                         }
 
                         this.machineFields.forEach(function(f, index) {
+                            // clear options
+                            if (f.options) 
+                                f.options = []
+
                             if (f.name.endsWith("location")) {
                                 f.options = this.model.clouds[cloudId].locationsArray || [];
                             }
@@ -318,7 +330,7 @@ SCHEDULEACTIONS = {
                                f.options = this.scheduleActions || [];
                             }
 
-                            // for openstack this sould be multi selection
+                            // for openstack this should be multi selection
                             if (f.name.endsWith("networks")) {
                                 f.options = this.model.clouds[cloudId].networksArray || [];
                             }
@@ -329,6 +341,10 @@ SCHEDULEACTIONS = {
                                 else
                                    this.set('machineFields.'+index+'.value', f.options[0].id);
                             }
+
+                            // update options
+                            if (f.options)
+                                this.set('machineFields.'+index+'.options', f.options);
 
                         }, this);
 
@@ -345,7 +361,8 @@ SCHEDULEACTIONS = {
                     }
                 },
                 _machineFieldsChanged: function(model, selectedCloud, changeRecord){
-                    if (this.selectedCloud){
+                    // console.log('model, selected cloud or machine fields changed', this.selectedCloud, changeRecord);
+                    if (this.selectedCloud && this.model && this.model.clouds && this.model.clouds[this.selectedCloud]){
                         // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
                         if (this.model.clouds[this.selectedCloud].provider == "docker" && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'ports'){
                             // TODO: remove _mapPortsToDockerPorts, when backend is ready to accept docker_port_bindings as string
@@ -593,7 +610,7 @@ SCHEDULEACTIONS = {
                     this.set('machineFields.'+ramInd+'.min', image.extra.min_memory_size);
                     this.set('machineFields.'+diskInd+'.min', image.extra.min_disk_size);
 
-                    console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
+                    // console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
                 },
                 _updateFieldOptionsForOnapp: function(loc) {
                     var location = this.model.clouds[this.selectedCloud].locations[loc];
@@ -717,7 +734,7 @@ SCHEDULEACTIONS = {
                         this.set('machineFields.'+ inlineInd +'.excludeFromPayload', true);
                     }
 
-                    console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
+                    // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
                 },
                 _fieldIndexByName: function(name){
                     var index;
@@ -728,13 +745,15 @@ SCHEDULEACTIONS = {
                     return index;
                 },
                 _machineCreateResponse: function(e){
-                    console.log('creation resp', e);
+                    // console.log('creation resp', e);
                     var response = JSON.parse(e.detail.xhr.response);
                     document.querySelector('app-location').set('path', '/machines');
-                    document.querySelector('page-machines').set('jobId', response.job_id)
+                    document.querySelector('page-machines').set('jobId', response.job_id);
+
+                    this._resetForm();
                 },
                 _machineCreateError: function(e){
-                    console.log('creation failed', e)
+                    // console.log('creation failed', e)
                 },
                 _computeProviders: function(model, clouds){
                     //exclude bare metals and other from provider dropdown list
@@ -814,7 +833,7 @@ SCHEDULEACTIONS = {
                     if (changeRecord.path.indexOf("Array") != -1 && changeRecord.path.indexOf("projectsArray") == -1){
                         // this._updateFields();
                     }
-                },
+                }
             });
         })();
     </script>
