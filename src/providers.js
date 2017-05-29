@@ -243,10 +243,13 @@ PROVIDERS.push({
         label: "Authentication",
         type: "dropdown",
         value: "basic",
-        defaultValue: "basic",
+        defaultValue: "open",
         options: [{
+            val: "open",
+            title: "Open"
+        }, {
             val: "basic",
-            title: "Basic"
+            title: "Basic http authentication"
         }, {
             val: "tls",
             title: "TLS"
@@ -262,6 +265,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
+        helptext: 'Username, if you have set basic http authentication in front of the Docker API',
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
@@ -274,6 +278,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
+        helptext: 'Password, if you have set basic http authentication in front of the Docker API',
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
@@ -282,6 +287,7 @@ PROVIDERS.push({
         name: "key_file",
         label: "Key",
         type: "textarea",
+        helptext: 'FIXME',
         value: "",
         defaultValue: "",
         show: true,
@@ -293,6 +299,7 @@ PROVIDERS.push({
     }, {
         name: "cert_file",
         label: "Certificate",
+        helptext: 'FIXME',
         type: "textarea",
         value: "",
         defaultValue: "",
@@ -305,6 +312,7 @@ PROVIDERS.push({
     }, {
         name: "ca_cert_file",
         label: "CA Certificate",
+        helptext: 'FIXME',
         type: "textarea",
         value: "",
         defaultValue: "",
@@ -314,6 +322,15 @@ PROVIDERS.push({
             fieldName: "authentication",
             fieldValues: ["tls"]
         }
+    }, {
+        name: "show_all",
+        label: "Show all containers (including stopped)",
+        helptext: 'Shows all containers, running and stopped. By default only running containers are shown',
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false
     }]
 });
 
