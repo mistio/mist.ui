@@ -202,6 +202,15 @@ PROVIDERS.push({
         errorMessage: "Please enter token",
         helptext: 'You can find your API Token on the Digital Ocean portal',
         helpHref: 'http://docs.mist.io/article/19-adding-digital-ocean'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -362,6 +371,15 @@ PROVIDERS.push({
         required: true,
         helptext: 'You can find your API secret on your Amazon console',
         helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -401,6 +419,15 @@ PROVIDERS.push({
         errorMessage: "Please enter private key",
         helptext: 'You can create a new key on your GCE portal',
         helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -429,6 +456,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API Token on the HostVirtual portal',
         helpHref: 'http://docs.mist.io/article/22-adding-hostvirtual'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -585,6 +621,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can create an API key on your Linode portal',
         helpHref: 'http://docs.mist.io/article/25-adding-linode'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -788,6 +833,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API key on your RackSpace portal',
         helpHref: 'http://docs.mist.io/article/29-adding-rackspace'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -826,6 +880,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API key on your SoftLayer portal',
         helpHref: 'http://docs.mist.io/article/30-adding-softlayer'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -1014,6 +1077,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API Token on the Vultr portal',
         helpHref: 'http://docs.mist.io/article/72-adding-vultr'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 

@@ -692,10 +692,10 @@
                             }
                         )
                         delete zone['type'];
-                        if (this.model.clouds[data.cloud_id].provider == 'gce') {
-                            zone['provider'] = 'Google'
-                        } else if (this.model.clouds[data.cloud_id].provider == 'ec2') {
-                            zone['provider'] = 'Route53'
+                        if (this.model.clouds[data.cloud_id].provider == 'gce'){
+                            zone['provider'] = 'Google';
+                        } else if (this.model.clouds[data.cloud_id].provider == 'ec2'){
+                            zone['provider'] = 'Route53';
                             zone.records.forEach(function(record) {
                                 if (record['name'].length == 0) {
                                     record['name'] = zone.domain;
@@ -703,8 +703,50 @@
                                     record['name'] += '.' + zone.domain;
                                 }
                             })
+                        } else if (this.model.clouds[data.cloud_id].provider == 'digitalocean'){
+                            zone['provider'] = 'Digital Ocean';
+                            zone.records.forEach(function(record) {
+                                if (record['name'] != '@') {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
+
+                        } else if (this.model.clouds[data.cloud_id].provider == 'linode'){
+                            zone['provider'] = 'Linode';
+                            zone.records.forEach(function(record) {
+                                record['name'] += '.' + zone.domain;
+                            })
+
+                        } else if (this.model.clouds[data.cloud_id].provider == 'softlayer'){
+                            zone['provider'] = 'SoftLayer';
+                            zone.records.forEach(function(record) {
+                                if (record['name'] != '@') {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
+
+                        }  else if (this.model.clouds[data.cloud_id].provider == 'rackspace'){
+                            zone['provider'] = 'Rackspace';
+                            zone.records.forEach(function(record) {
+                                if (record['name'].length == 0) {
+                                    record['name'] = zone.domain;
+                                } else {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
+
+                        } else if (this.model.clouds[data.cloud_id].provider == 'vultr'){
+                            zone['provider'] = 'Vultr';
+                            zone.records.forEach(function(record) {
+                                if (record['name'].length == 0) {
+                                    record['name'] = zone.domain;
+                                } else {
+                                    record['name'] += '.' + zone.domain;
+                                }
+                            })
+
                         } else {
-                            zone['provider'] = this.model.clouds[data.cloud_id].provider
+                            zone['provider'] = this.model.clouds[data.cloud_id].provider;
                         }
                         cloudZones.push(zone);
                     }
