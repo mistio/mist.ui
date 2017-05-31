@@ -24,14 +24,15 @@
       mist-list[selectable] ::content vaadin-grid-table-row {
           cursor: pointer;
       }
+
     </style>
     <app-route route="{{route}}"
                 pattern="/:team"
                 data="{{data}}"></app-route>
 
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-        <mist-list
-            selectable id="teamsList"
+        <mist-list id="teamsList"
+            selectable resizable
             items="[[model.teamsArray]]"
             name="Teams"
             selected-items="{{selectedItems}}"
@@ -39,15 +40,16 @@
             visible=[[_getVisibleColumns()]]
             renderers=[[_getRenderers(model.teams,model.members)]]
             route={{route}}
+            user-filter=[[model.sections.teams.q]]
             primary-field-name="id">
-            <team-actions class="mistactions" items="[[selectedItems]]" org="[[model.org.id]]"></team-actions>
+            <team-actions slot="actions" items="[[selectedItems]]" org="[[model.org.id]]"></team-actions>
         </mist-list>
     </template>
     <team-page model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" section="[[model.sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]] rbac=[[rbac]]></team-page>
     <members-add model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMembersPageActive(route.path)]]></members-add>
     <member-add-in-teams model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMemberPageActive(route.path)]]></member-add-in-teams>
 
-    <div class="absolute-bottom-right">
+    <div class="absolute-bottom-right" hidden$=[[!_hasNoSelectedItems(selectedItems.length)]]>
         <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
     </div>
     <team-add id="isTeamsPage" organization="[[model.org]]"></team-add>
@@ -61,15 +63,13 @@
 
       properties: {
         model: Object,
+        route: Object,
+
         selectedItems: {
           type: Array,
           value: function() { return [] }
         },
         rbac: false
-      },
-
-      attached: function() {
-
       },
 
       _isDetailsPageActive: function(path) {
@@ -83,6 +83,9 @@
       },
       _isListActive: function(path) {
           return !path;
+      },
+      _hasNoSelectedItems: function() {
+          return !(this.selectedItems && this.selectedItems.length);
       },
       _getTeam: function(id) {
           if (this.model.teams && this.model.teams[id])
