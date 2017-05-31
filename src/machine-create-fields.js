@@ -850,8 +850,8 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         name: "monitoring",
         label: "Enable monitoring",
         type: "toggle",
-        value: true,
-        defaultValue: "true",
+        value: false,
+        defaultValue: "false",
         show: true,
         required: false,
         helptext: ""
