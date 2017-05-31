@@ -269,10 +269,15 @@ SCHEDULEACTIONS = {
                         input.invalid = false;
                     }
                 },
+
                 _updateFields: function(){
                     if (this.selectedCloud) {
                         var cloudId = this.selectedCloud;
                         console.log('cloudId', cloudId);
+
+
+                        if (!this.monitoring) // hide enable monitoring field if monitoring is disabled
+                            this.set('machineFields.' + this._fieldIndexByName('monitoring') + '.show', false);
 
                         // if is onapp change fields
                         if (this.model.clouds[this.selectedCloud].provider == "onapp"){
@@ -344,6 +349,7 @@ SCHEDULEACTIONS = {
 
                     }
                 },
+
                 _machineFieldsChanged: function(model, selectedCloud, changeRecord){
                     if (this.selectedCloud){
                         // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
@@ -501,6 +507,7 @@ SCHEDULEACTIONS = {
                         }
                     }
                 },
+
                 _mapPortsToDockerPorts: function(input){
                     var lines = input.split('\n');
                     var docker_exposed_ports = {};
@@ -540,8 +547,8 @@ SCHEDULEACTIONS = {
                         this.set('machineFields.'+indDep+'.value', docker_exposed_ports);
                     if (indDpb)
                         this.set('machineFields.'+indDpb+'.value', docker_port_bindings);
-
                 },
+
                 _includeImageExtra: function(image){
                     if (image) {
                         // save in fields
@@ -550,6 +557,7 @@ SCHEDULEACTIONS = {
                             this.set('machineFields.'+indImEx+'.value', this.model.clouds[this.selectedCloud].images[image].extra);
                     }
                 },
+
                 _includeLocationName: function(location){
                     if (location) {
                         // save in fields
@@ -558,6 +566,7 @@ SCHEDULEACTIONS = {
                             this.set('machineFields.'+indLocName+'.value', this.model.clouds[this.selectedCloud].locations[location].name);
                     }
                 },
+
                 _updateDiskMax: function(name, value, total){
                     var sizeInd = this._fieldIndexByName(name),
                         location = this.model.clouds[this.selectedCloud].locations[this.get('machineFields.'+this._fieldIndexByName('location')+'.value')];
@@ -571,15 +580,14 @@ SCHEDULEACTIONS = {
                     if (total && total-value > 0)
                         this.set('machineFields.'+ sizeInd +'.max', total-value);
                 },
+
                 _updateFieldsForOnapp: function () {
                     var keyInd = this._fieldIndexByName('key');
                     this.set('machineFields.'+ keyInd +'.required', false);
                     this.set('machineFields.'+ keyInd +'.label', "Key");
                     this.set('machineFields.'+ keyInd +'.helptext', "Optional.");
-
-                    var monInd = this._fieldIndexByName('monitoring');
-                    this.set('machineFields.'+ monInd +'.value', false);
                 },
+
                 _updateFieldMinsForOnapp: function(image) {
                     var image = this.model.clouds[this.selectedCloud].images[image];
 
