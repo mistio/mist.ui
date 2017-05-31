@@ -521,22 +521,26 @@
                     </table>
                 </div>
             </paper-material>
-            <paper-material class="info-card">
+            <paper-material class="info-card" hidden$=[[!_hasExtra(machine)]]>
                 <h2 style$="color:#fff;background-color: [[section.color]];">More Info</h2>
                 <div class="card-content">
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <template is="dom-if" if=[[machine.id]] restamp>
-            <mist-list timeseries expands id="machineLogs"
-                apiurl="/api/v1/logs"
-                name="logs"
-                frozen=[[_getFrozenLogColumn()]]
-                visible=[[_getVisibleColumns()]]
-                renderers=[[_getRenderers(model.members)]]
-                primary-field-name="time"
-                base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+
+            <div style="max-height: 500px">
+            <template is="dom-if" if=[[machine.machine_id]] restamp>
+                <mist-list id="machineLogs"
+                    timeseries expands column-menu
+                    apiurl="/api/v1/logs"
+                    name="logs"
+                    frozen=[[_getFrozenLogColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers(model.members)]]
+                    primary-field-name="time"
+                    base-filter="machine_id:[[machine.machine_id]]"></mist-list>
             </template>
+            </div>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -1176,5 +1180,9 @@ Polymer({
     _toFixed: function(inp) {
         return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
     },
+
+    _hasExtra: function(machine) {
+        return Object.keys(this.machine.extra).length
+    }
 });
 </script>
