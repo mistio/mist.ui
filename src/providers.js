@@ -287,7 +287,7 @@ PROVIDERS.push({
         name: "key_file",
         label: "Key",
         type: "textarea",
-        helptext: 'FIXME',
+        helptext: 'Client private key file',
         value: "",
         defaultValue: "",
         show: true,
@@ -299,7 +299,7 @@ PROVIDERS.push({
     }, {
         name: "cert_file",
         label: "Certificate",
-        helptext: 'FIXME',
+        helptext: 'Client certificate file',
         type: "textarea",
         value: "",
         defaultValue: "",
@@ -312,7 +312,7 @@ PROVIDERS.push({
     }, {
         name: "ca_cert_file",
         label: "CA Certificate",
-        helptext: 'FIXME',
+        helptext: 'CA certificate file',
         type: "textarea",
         value: "",
         defaultValue: "",
