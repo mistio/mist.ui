@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 
@@ -42,6 +43,7 @@
 
         .flexchild {
             @apply(--layout-flex);
+            align-self: center;
         }
 
         a {
@@ -166,9 +168,15 @@
             color: #fff;
             padding: 2px 6px 4px 6px;
             border-radius: 3px;
+            margin-right: 12px;
         }
         .delete-member {
             opacity: 0.32;
+            align-self: center;
+        }
+        .resend {
+            padding: 8px 0;
+            font-weight: normal;
         }
         </style>
 
@@ -231,9 +239,10 @@
                                     <paper-item>
                                         <div class="flex-horizontal-with-ratios width100">
                                             <span class="flexchild">
+                                                <paper-icon-button id="resend" icon="icons:send" on-tap="_resendMemberInvitation" class="delete-member" data-email="[[item.email]]" hidden$="[[!item.pending]]" title="Resend invitation."></paper-icon-button>
+                                                <span class="pending" hidden$="[[!item.pending]]">pending</span>
                                                 <a href="/members/[[item.id]]" class="pad-left">
                                                     [[item.name]]
-                                                    <span class="pending" hidden$="[[!item.pending]]">pending </span>
                                                 </a>
                                             </span>
                                             <span class="flexchild">[[item.email]]</span>
@@ -274,6 +283,7 @@
         <team-edit team="[[team]]" org="[[model.org]]"></team-edit>
         <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
         <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
+        <iron-ajax id="_resendInvitation" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members" contentType="application/json" handle-as="document" method="POST" on-response="_handleResendResponse" on-error="_handleResendError"></iron-ajax>
 
         <dialog-element></dialog-element>
     </template>
@@ -454,6 +464,25 @@
                 _deleteMemberResponse: function(){
                     this.set('memberToDelete', null);
                     this.fire('toast',{msg:"Member deleted succesfully",duration:3000});
+                },
+                _resendMemberInvitation: function(e){
+                    console.log(e);
+                    var email = e.target['dataEmail'] || e.target.parentNode['dataEmail'];
+                    this.$._resendInvitation.body = {
+                        'emails' : email
+                    };
+                    this.$._resendInvitation.headers["Content-Type"] = 'application/json';
+                    this.$._resendInvitation.headers["Csrf-Token"] = CSRF_TOKEN;
+
+                    this.$._resendInvitation.generateRequest();
+                },
+                _handleResendResponse: function(e){
+                    console.log(e);
+                    this.fire('toast', {msg: "Invitation resent succesfully", duration:3000})
+                },
+                _handleResendError: function(e) {
+                    console.log(e);
+                    this.fire('toast', {msg: e.detail.error.message , duration: 3000})
                 },
                 _showDialog: function(info) {
                     var dialog = this.querySelector('dialog-element');
