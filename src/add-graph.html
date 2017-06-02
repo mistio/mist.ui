@@ -68,6 +68,8 @@
           }
           .errormsg-container iron-icon {
             color: inherit;
+            vertical-align: bottom;
+            padding-right: 8px;
           }
           .add-button {
             background-color: #f1f1f1;
@@ -107,6 +109,9 @@
           #customButton {
             width: 100%;
           }
+          #customOptions {
+            max-width: 500px;
+          }
 
         </style>
 
@@ -126,7 +131,10 @@
         <paper-dialog id="customOptions" with-backdrop>
           <h2>Custom graph</h2>
           <paper-dialog-scrollable>
-            <div id="sshKeyMissing" hidden="{{sshKeyExists}}">
+            <p hidden="[[!sshKeyExists]]">
+                Your Python script will be saved in scripts section, even if it fails to be deployed. Scripts must have a unique name.
+            </p>
+            <div id="sshKeyMissing" hidden="[[sshKeyExists]]">
               <span>You need to have an associated SSH key to add custom graphs</span>
               <paper-button id="addKey" on-tap="_openAddKeyPanel">Add Key</paper-button>
             </div>
@@ -259,7 +267,9 @@
             _handleError: function(e,d) {
                 this.set('sendingData', false);
                 this.set('formError', true);
-                this.$.errormsg.textContent = e.detail.error.message;
+                console.log('error', e, e.detail)
+                var errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
+                this.$.errormsg.textContent = errorMessage;
             },
             _computeplugidId: function(name) {
                 if (!this.metric.name) return;
