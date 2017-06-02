@@ -178,6 +178,9 @@
             padding: 8px 0;
             font-weight: normal;
         }
+        paper-button a {
+            color: #fff;
+        }
         </style>
 
         <div id="content">
@@ -264,12 +267,37 @@
                         </template>
                     </div>
                 </div>
-                <div class="flex-horizontal-with-ratios section" hidden$="[[teamIsOwners]]">
+                <div class="flex-horizontal-with-ratios section" hidden$=[[!billing]]>
                     <div class="width100">
                         <paper-material class="no-pad" hidden$=[[!rbac]]>
                             <!-- TODO: make interactive add edit of rules -->
                             <h3 class="smallcaps resource-head">Team Policy</h3>
-                            <team-policy model="[[model]]" team="[[team]]"></team-policy>
+                            <team-policy model="[[model]]" team="[[team]]" hidden$="[[teamIsOwners]]"></team-policy>
+                            <p class="text-center" hidden$=[[!teamIsOwners]]>
+                                Members of the owners team have full access to all resources in your organization.
+                                </br>
+                                For fine grained permissions add more teams and assign RBAC policies. <a href="http://docs.mist.io/article/102-role-based-access-control" target="_blank" class="blue-link">Documentation</a>
+                                </br>
+                                </br>
+                            </p>
+                        </paper-material>
+                    </div>
+                </div>
+                <div class="flex-horizontal-with-ratios section" hidden$=[[billing]]>
+                    <div class="width100">
+                        <paper-material class="no-pad">
+                            <h3 class="smallcaps resource-head text-center">Team Policy</h3>
+                            <p class="text-center">
+                                Role based access policies are only available in Mist.io's commercial versions.
+                            </p>
+                            <p class="text-center">
+                                <paper-button class="blue"><a href="https://mist.io/sign-up" target="_blank">SIGN UP TO MIST.IO SAAS</a></paper-button>
+                            </p>
+                            <p class="text-center">
+                                or contact <a href="mailto:sales@mist.io" class="blue-link">sales@mist.io</a> for details.
+                                <br/>
+                                <br/>
+                            </p>
                         </paper-material>
                     </div>
                 </div>
@@ -348,6 +376,10 @@
                         computed: '_computeIsOwners(team)',
                     },
                     rbac: {
+                        type: Boolean,
+                        value: false
+                    },
+                    billing: {
                         type: Boolean,
                         value: false
                     }
@@ -497,7 +529,11 @@
                 _computeIsOwners: function(team) {
                     if (this.team)
                         return this.team.name == "Owners";
-                }
+                },
+                _showMessage: function(rbac, billing) {
+                    if (this.team)
+                        return !rbac && !billing;
+                },
             });
         })();
     </script>
