@@ -625,7 +625,9 @@
         },
 
         _onUserAction: function (event) {
-            console.warn('user-action', event);
+            console.log('user-action', event);
+            if (!this.enableAb)
+                return;
             var xhr = new XMLHttpRequest();
             if (!this.fingerprint) {
                 var that = this;
@@ -648,7 +650,6 @@
                         payload['referrer'] = document.referrer;
                     xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
                     xhr.send();
-                    console.log('payload', payload);
                 });
             } else {
                 var payload = {
@@ -683,7 +684,6 @@
         },
 
         _computeViewingList: function (subroute) {
-            // console.log('viewingList',["/", "my-account", "insights"].indexOf(subroute.prefix), subroute);
             return ["/", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
         }
 
