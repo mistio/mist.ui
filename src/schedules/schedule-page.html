@@ -285,8 +285,8 @@
             <paper-material>
                 <div class="layout horizontal">
                     <div class="flex">
+                        <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
                         <h4 class="id">
-                            <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
                             <span hidden$="[[hasExpired]]">
                                 <span hidden$="[[!schedule.task_enabled]]">Enabled</span>
                                 <span hidden$="[[schedule.task_enabled]]">Disabled</span>
@@ -451,7 +451,8 @@
                 },
                 hasExpired: {
                     type: Boolean,
-                    computed: "_computeHasExpired(schedule)"
+                    value: false,
+                    computed: "_computeHasExpired(schedule.*)"
                 },
                 isSpecificMachines: {
                     type: Boolean,
@@ -526,10 +527,12 @@
                 }
             },
             _computeHasExpired: function(schedule) {
-                if (this.schedule && this.schedule.expires && this.schedule.expires.length && moment().diff(moment.utc(this.schedule.expires).local()) > 0)
-                    return true
-                else
-                    return false
+                if (this.schedule && this.schedule.expires != undefined && this.schedule.expires != "" && this.schedule.expires.length > 0){
+                    return moment().diff(moment.utc(this.schedule.expires).local()) > 0;
+                }
+                else {
+                    return false;
+                }
             },
             _computeIsInterval: function(schedule) {
                 if (this.schedule)
