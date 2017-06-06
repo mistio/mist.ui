@@ -89,6 +89,13 @@
             paper-spinner {
                 margin-top: 16px;
             }
+            .incident {
+                text-align: center;
+                background-color: var(--red-color);
+                color: #fff;
+                padding: 4px;
+                margin: 2px 0;
+            }
         </style>
     <template is="dom-if" if="[[!resource.id]]" restamp>
         <template is="dom-if" if="[[showHomeDashboard]]" restamp>
@@ -166,6 +173,15 @@
                 <h4 class="tip"><strong>Tip:</strong> Alternatively you can disable monitoring, associate a key, and enable monitoring again, so Mist.io will automativally connect and install the monitoring agent.</h4>
             </div>
         </div>
+        <!-- if we have incidents -->
+        <template is="dom-if" if="[[incidents.length]]">
+            <template is="dom-repeat" items='[[incidents]]' as="incident">
+                <template is="dom-repeat" items="[[incident.logs]]" as="log">
+                    <div class="incident">[[log.condition]]</div>
+                </template>
+            </template>
+        </template>
+
         <!-- monitoring is activated. we expect to have data -->
         <template is="dom-if" if="[[isActivated]]" restamp>
             <polyana-dashboard uri="[[_computeDashboardUri(resource)]]" datasources="[[datasources]]"></polyana-dashboard>
@@ -312,7 +328,8 @@
             },
             replaceTargets: {
                 type: Object,
-            }
+            },
+            incidents: Array
         },
 
         observers: [
