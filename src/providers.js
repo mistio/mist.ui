@@ -252,11 +252,8 @@ PROVIDERS.push({
         label: "Authentication",
         type: "dropdown",
         value: "basic",
-        defaultValue: "open",
+        defaultValue: "tls",
         options: [{
-            val: "open",
-            title: "Open"
-        }, {
             val: "basic",
             title: "Basic http authentication"
         }, {
