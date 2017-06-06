@@ -173,6 +173,10 @@
             margin: 10% auto;
             display: block;
         }
+        .loading-images {
+            padding: 0.7em 0.57em;
+            margin: 0 0.29em;
+        }
         </style>
 
         <div id="content">
@@ -182,7 +186,10 @@
             <div hidden$="[[showEmptyScreen]]">
                 <div id="section-heading" hidden$="[[!section]]">
                     <div class="search-notice" hidden$="[[!section.q.length]]">
-                        <h2>[[filteredItems.length]] "[[section.q]]" [[section.id]] <paper-icon-button icon="close" on-tap="clearSearch"></paper-icon-button></h2>
+                        <h2 class="flex">[[filteredItems.length]] "[[section.q]]" [[section.id]] <paper-icon-button icon="close" on-tap="clearSearch"></paper-icon-button>
+                        </h2>
+                        <paper-button class="blue" on-tap="openSearchMore" hidden$="[[!showSearchMoreButton(section,imagesLoading)]]"> Search more images</paper-button>
+                        <span class="loading-images" hidden$="[[!imagesLoading]]">Loading provider images...</span>
                     </div>
                     <div class="description">[[section.description]]</div>
                 </div>
@@ -201,7 +208,12 @@
             <div class="absolute-bottom-right">
                 <paper-fab id="notTeams" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
             </div>
-        </template>        
+        </template>
+        <dialog-element id='searchMore'></dialog-element>
+        <iron-ajax  id="searchRequest"
+                    method="GET"
+                    loading="{{imagesLoading}}"
+                    on-error="imagesSearchError"></iron-ajax>
     </template>
 </dom-module>
 <script>
@@ -254,12 +266,20 @@
                 type: Boolean,
                 computed: 'computeIsTeams(section)'
             },
-            itemOfRecommendation: Object
+            itemOfRecommendation: Object,
+            imagesLoading: {
+                type: Boolean,
+                value: false
+            }
         },
 
         observers: [
             'sortingObserver(items.*, sortBy, sortOrder, section.q.*)',
         ],
+
+        listeners: {
+            'confirmation': 'searchImages'
+        },
         ready: function() {
 
         },
@@ -689,6 +709,44 @@
             }
             if (!ret && item.extra && (item.extra[field+'_id'] || item.imageId || item.extra.image)){
                 return item.extra[field+'_id'] || item.imageId || item.extra.image.slug || item.extra.image.name || 'not found';
+            }
+        },
+        showSearchMoreButton: function(section, imagesLoading) {
+            return section.id == 'images' && !this.imagesLoading;
+        },
+        openSearchMore: function(e) {
+            this._showDialog({
+                title: "Search more images?'",
+                body: "Search for more "+ this.section.q +" images from your cloud providers.",
+                danger: false,
+                action: "search",
+                reason: "images.search"
+            });
+        },
+        _showDialog: function(info) {
+            var dialog = this.querySelector('dialog-element#searchMore');
+            for (var i in info) {
+                dialog[i] = info[i];
+            }
+            dialog._openDialog();
+        },
+        searchImages: function(e) {
+            if (e.detail.reason == "images.search") {
+                var payload = {
+                    'search_term': this.section.q
+                }
+                this.$.searchRequest.body = payload;
+                this.$.searchRequest.headers["Content-Type"] = 'application/json';
+                this.$.searchRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                var ec2anddockerclouds = this.model.cloudsArray.filter(function(c){
+                    return ['ec2','docker'].indexOf(c.provider);
+                }).map(function(c){
+                    return c.id;
+                });
+                for (var i=0; i < ec2anddockerclouds.length; i++){
+                    this.$.searchRequest.url = "/api/v1/clouds/"+ ec2anddockerclouds[i] +"/images";
+                    this.$.searchRequest.generateRequest();
+                }
             }
         }
     });
