@@ -461,7 +461,8 @@
                     section="[[section]]"
                     datasources="[[datasources]]"
                     hidden$="[[hidden]]"
-                    machine-keys="[[machineKeys]]"></mist-monitoring>
+                    machine-keys="[[machineKeys]]"
+                    incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"></mist-monitoring>
                 <mist-rules
                     id="monitoringRules"
                     machine="[[machine.machine_id]]"
@@ -1183,6 +1184,16 @@ Polymer({
 
     _hasExtra: function(machine) {
         return Object.keys(this.machine.extra).length
+    },
+
+    _filterMachinesIncidents: function(incarray){
+        return this.model.incidentsArray.filter(function(inc){
+            return this._isMachinesIncident(inc);
+        }.bind(this));
+    },
+
+    _isMachinesIncident: function(inc) {
+        return this.machine.machine_id == inc.machine_id && this.machine.cloud.id == inc.cloud_id;
     }
 });
 </script>
