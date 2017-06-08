@@ -201,153 +201,163 @@
             </div>
         </div>
         <iron-ajax id="scriptDeleteAjaxRequest" url="/api/v1/scripts/[[script.id]]" method="DELETE" on-response="_handleScriptDeleteAjaxResponse" on-error="_handleScriptDeleteAjaxError"></iron-ajax>
-        <script-edit script="[[script]]"></script-edit>
+        <script-edit script="[[script]]">
+        </script-edit>
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
     </template>
     <script>
-    (function() {
-        'use strict';
+    Polymer({
+        is: 'script-page',
 
-        Polymer({
-            is: 'script-page',
+        properties: {
+            section: {
+                type: Object
+            },
+            color: {
+                type: String,
+                computed: '_getHeaderStyle(section)'
+            },
+            model: {
+                type: Object
+            },
+            script: {
+                type: Object
+            },
+            isInline: {
+                type: Boolean,
+                value: false,
+                computed: '_computeIsInline(script.location)'
+            },
+            isLoading: {
+                type: Boolean,
+                computed: '_computeIsloading(script)',
+                value: true
+            }
+        },
 
-            properties: {
-                section: {
-                    type: Object
+        listeners: {
+            'confirmation': '_actions',
+        },
+
+        _getHeaderStyle: function(section) {
+            return 'background-color: ' + section.color + '; color: #fff;';
+        },
+
+        _computeIsInline: function(location) {
+            if (location)
+                return location.source_code ? true : false;
+        },
+
+        _editTags: function() {
+            var el = this.querySelector('tags-list'),
+            items = [];
+            items.push(itemUid(this.script, this.section));
+            el.items = items;
+            el._openDialog();
+        },
+
+        _runScript: function(e) {
+            document.querySelector('app-location').set('path', '/scripts/' + this.script.id + '/+run');
+        },
+
+        _editScript: function(e) {
+            var el = this.querySelector('script-edit');
+            el._openEditScriptModal();
+        },
+
+        _deleteScript: function(e) {
+            this._showDialog({
+                title: 'Delete Script?',
+                body: "Deleting scripts cannot be undone. You are about to delete script: '" + this.script.name + "'." ,
+                danger: true,
+                reason: "script.delete"
+            });
+        },
+
+        _actions: function(e) {
+            var reason = e.detail.reason,
+                response = e.detail.response;
+
+            if (response.confirmed && reason == "script.delete") {
+                this.$.scriptDeleteAjaxRequest.body = {};
+                this.$.scriptDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+                this.$.scriptDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.scriptDeleteAjaxRequest.generateRequest();
+            }
+        },
+
+        _handleScriptDeleteAjaxResponse: function(e) {
+            document.querySelector('app-location').path = '/scripts';
+        },
+
+        _encode: function(script) {
+            return encodeURIComponent(script);
+        },
+
+        _showDialog: function(info) {
+            var dialog = this.querySelector('dialog-element');
+            for (var i in info) {
+                dialog[i] = info[i];
+            }
+            dialog._openDialog();
+        },
+
+        _computeLink: function(location) {
+            if (location)
+                return location.repo || location.url;
+        },
+
+        _computeIsloading: function(script) {
+            return !this.script ? true : false;
+        },
+
+        _getVisibleColumns: function () {
+            return ['type', 'action', 'machine_id', 'user_id']
+        },
+
+        _getFrozenLogColumn: function () {
+            return ['time']
+        },
+
+        _getRenderers: function () {
+            var _this = this;
+            return {
+                'time': {
+                    'body': function(item, row) {
+                        var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
+                        if (row.error)
+                            ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                        return ret;
+                    }
                 },
-                color: {
-                    type: String,
-                    computed: '_getHeaderStyle(section)'
-                },
-                model: {
-                    type: Object
-                },
-                script: {
-                    type: Object
-                },
-                isInline: {
-                    type: Boolean,
-                    value: false,
-                    computed: '_computeIsInline(script.location)'
-                },
-                isLoading: {
-                    type: Boolean,
-                    computed: '_computeIsloading(script)',
-                    value: true
-                }
-            },
-            listeners: {
-                'confirmation': '_actions',
-            },
-            _getHeaderStyle: function(section) {
-                return 'background-color: ' + section.color + '; color: #fff;';
-            },
-            _computeIsInline: function(location) {
-                if (location)
-                    return location.source_code ? true : false;
-            },
-            _editTags: function() {
-                var el = this.querySelector('tags-list'),
-                items = [];
-                items.push(itemUid(this.script, this.section));
-                el.items = items;
-                el._openDialog();
-            },
-            _runScript: function(e) {
-                document.querySelector('app-location').set('path', '/scripts/' + this.script.id + '/+run');
-            },
-            _editScript: function(e) {
-                var el = this.querySelector('script-edit');
-                el._openEditScriptModal();
-            },
-            _deleteScript: function(e) {
-                this._showDialog({
-                    title: 'Delete Script?',
-                    body: "Deleting scripts cannot be undone. You are about to delete script: '" + this.script.name + "'." ,
-                    danger: true,
-                    reason: "script.delete"
-                });
-            },
-            _actions: function(e) {
-                var reason = e.detail.reason,
-                    response = e.detail.response;
-
-                if (response.confirmed && reason == "script.delete") {
-                    this.$.scriptDeleteAjaxRequest.body = {};
-                    this.$.scriptDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.scriptDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.scriptDeleteAjaxRequest.generateRequest();
-                }
-            },
-            _handleScriptDeleteAjaxResponse: function(e) {
-                document.querySelector('app-location').path = '/scripts';
-            },
-            _encode: function(script) {
-                return encodeURIComponent(script);
-            },
-            _showDialog: function(info) {
-                var dialog = this.querySelector('dialog-element');
-                for (var i in info) {
-                    dialog[i] = info[i];
-                }
-                dialog._openDialog();
-            },
-            _computeLink: function(location) {
-                if (location)
-                    return location.repo || location.url;
-            },
-            _computeIsloading: function(script) {
-                return !this.script ? true : false;
-            },
-
-            _getVisibleColumns: function () {
-                return ['type', 'action', 'machine_id', 'user_id']
-            },
-
-            _getFrozenLogColumn: function () {
-                return ['time']
-            },
-
-            _getRenderers: function () {
-                var _this = this;
-                return {
-                    'time': {
-                        'body': function(item, row) {
-                            var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
-                            if (row.error)
-                                ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                'user_id': {
+                    'title': function(){ return 'user';},
+                    'body': function(item) {
+                        if (_this.model && _this.model.members && item in _this.model.members &&
+                            _this.model.members[item] && _this.model.members[item].name &&
+                            _this.model.members[item].name != undefined){
+                            var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name + '</a>';
                             return ret;
                         }
-                    },
-                    'user_id': {
-                        'title': function(){ return 'user';},
-                        'body': function(item) {
-                            if (_this.model && _this.model.members && item in _this.model.members &&
-                                _this.model.members[item] && _this.model.members[item].name &&
-                                _this.model.members[item].name != undefined){
-                                var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name + '</a>';
-                                return ret;
-                            } else console.log(item);
-                            return item || '';
-                        }
-                    },
-                    'machine_id': {
-                        'title': 'machine',
-                        'body': function(item, row) {
-                            if (_this.model && _this.model.clouds && row['cloud_id'] &&
-                                _this.model.clouds[row['cloud_id']] &&
-                                _this.model.clouds[row['cloud_id']].machines &&
-                                item in _this.model.clouds[row['cloud_id']].machines){
-                                var ret = '<a href="/machines/' + _this.model.clouds[row['cloud_id']].machines[item].uuid + '">' + _this.model.clouds[row['cloud_id']].machines[item].name + '</a>';
-                                return ret;
-                            } else console.log(item);
-                            return item || '';
-                        }
+                        return item || '';
                     }
-                };
-            }
-        });
-    })();
+                },
+                'machine_id': {
+                    'title': 'machine',
+                    'body': function(item, row) {
+                        if (_this.model && _this.model.clouds && row['cloud_id'] &&
+                            _this.model.clouds[row['cloud_id']] &&
+                            _this.model.clouds[row['cloud_id']].machines &&
+                            item in _this.model.clouds[row['cloud_id']].machines){
+                            var ret = '<a href="/machines/' + _this.model.clouds[row['cloud_id']].machines[item].uuid + '">' + _this.model.clouds[row['cloud_id']].machines[item].name + '</a>';
+                            return ret;
+                        }
+                        return item || '';
+                    }
+                }
+            };
+        }
+    });
     </script>
 </dom-module>
