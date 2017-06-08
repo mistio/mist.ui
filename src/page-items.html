@@ -156,6 +156,11 @@
         }
         .search-notice {
             padding-left: 0.5em;
+            @apply(--layout-horizontal);
+            align-items: center;
+        }
+        .search-notice paper-button {
+            font-size: 14px;
         }
         .is-loading {
             top: 15px;
@@ -168,6 +173,11 @@
             background-color: #eee;
         }
         paper-spinner {
+            width: 14px;
+            height: 14px;
+            padding: 0px 8px;
+        }
+        .is-loading paper-spinner {
             width: 80px;
             height: 80px;
             margin: 10% auto;
@@ -188,8 +198,15 @@
                     <div class="search-notice" hidden$="[[!section.q.length]]">
                         <h2 class="flex">[[filteredItems.length]] "[[section.q]]" [[section.id]] <paper-icon-button icon="close" on-tap="clearSearch"></paper-icon-button>
                         </h2>
-                        <paper-button class="blue" on-tap="openSearchMore" hidden$="[[!showSearchMoreButton(section,imagesLoading)]]"> Search more images</paper-button>
-                        <span class="loading-images" hidden$="[[!imagesLoading]]">Loading provider images...</span>
+                        <div hidden$="[[!showSearchMoreButton(section)]]">
+                            <paper-button class="blue" on-tap="openSearchMore" disabled$="[[imagesLoading]]"> 
+                                <span hidden$="[[imagesLoading]]">Search more images</span>
+                                <span hidden$="[[!imagesLoading]]">
+                                    <paper-spinner active="[[imagesLoading]]"></paper-spinner> 
+                                    Loading provider images...
+                                </span>
+                            </paper-button>
+                        </div>
                     </div>
                     <div class="description">[[section.description]]</div>
                 </div>
@@ -711,13 +728,13 @@
                 return item.extra[field+'_id'] || item.imageId || item.extra.image.slug || item.extra.image.name || 'not found';
             }
         },
-        showSearchMoreButton: function(section, imagesLoading) {
-            return section.id == 'images' && !this.imagesLoading;
+        showSearchMoreButton: function(section) {
+            return section.id == 'images';
         },
         openSearchMore: function(e) {
             this._showDialog({
                 title: "Search more images?'",
-                body: "Search for more "+ this.section.q +" images from your cloud providers.",
+                body: "Request for more '"+ this.section.q +"' images from your cloud providers.",
                 danger: false,
                 action: "search",
                 reason: "images.search"
@@ -731,7 +748,7 @@
             dialog._openDialog();
         },
         searchImages: function(e) {
-            if (e.detail.reason == "images.search") {
+            if (e.detail.response.confirmed && e.detail.reason == "images.search") {
                 var payload = {
                     'search_term': this.section.q
                 }
