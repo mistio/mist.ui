@@ -13,6 +13,9 @@
        :host {
         display: block;
       }
+      mist-list {
+          font-size: 14px;
+      }
     </style>
     <app-route route="{{route}}" pattern="/:schedule" data="{{data}}"></app-route>
     <!-- <page-items name="schedules" class="schedules" model="[[model]]" items="[[model.schedulesArray]]"
@@ -70,6 +73,39 @@
       _getRenderers: function(teams, members) {
         var _this = this;
         return {
+            'name': {
+              'body': function(item, row) {
+                return '<strong>'+ item + '</strong>'
+              }
+            },
+            'task_type': {
+                'title': function(item, row) {
+                  return 'task';
+                },
+                'body': function(item, row) {
+                  if (item.startsWith("Action"))
+                    return item.replace("Action: ", "").toUpperCase();
+                  else if (item.startsWith("Run")) {
+                    var scriptId = item.replace("Run script: ", ""),
+                        scriptName = _this.model.scripts[scriptId] ? _this.model.scripts[scriptId].name : "missing script";
+                    return item.replace(scriptId, scriptName).toUpperCase();
+                  }
+                }
+            },
+            'schedule': {
+                'body': function(item, row) {
+                  if (item.startsWith("Interval")){
+                    return item.replace("Interval ", "")
+                  }
+                  else if (item.startsWith("OneOff")) {
+                    var isValid = moment().isValid(item.replace("OneOff date to run ",""));
+                    var time;
+                    if (isValid) 
+                      time = moment(item.replace("OneOff date to run ","")).local().fromNow();
+                    return time ? time : item;
+                  }
+                }
+            },
             'conditions': {
                 'body': function(item, row) {
                   var conditions = item;
