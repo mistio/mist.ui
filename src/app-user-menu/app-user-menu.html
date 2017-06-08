@@ -3,7 +3,9 @@
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+
 <link rel="import" href="../organizations/organization-add.html">
+
 <dom-module id="app-user-menu">
     <template>
         <style>
@@ -158,16 +160,16 @@
                         <iron-icon class="user-menu-icon" icon="social:person"></iron-icon>
                     </div>
                     <div class="org xs8">
-                        <h4>[[_computeOrganizationName(org.name)]]</h4>
-                        <div>[[user.email]]</div>
+                        <h4 style$="[[_computeOrganizationNameStyle(org.name)]]">[[_computeOrganizationName(org.name)]]</h4>
+                        <div>[[_computeUserName(user)]]</div>
                         <template is="dom-repeat" items="{{teams}}">
                             <span class="current-org-teams">[[item.name]]</span>
                         </template>
                     </div>
                 </div>
                 <paper-menu>
-                    <template is="dom-repeat" items="[[orgsList]]" as="organization">
-                        <paper-item class="context">
+                    <template is="dom-repeat" items="{{orgsList}}" as="organization" restamp>
+                        <paper-item class="context" hidden$=[[_isCurrentOrg(organization)]]>
                             <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row">
                                 <iron-icon class="user-menu-icon" icon$="[[_computeOrganizationIcon(organization)]]"></iron-icon>
                                 <div class="org-name">[[_computeOrganizationName(organization.name)]]</div>
@@ -245,7 +247,7 @@
             },
             orgsList: {
                 type: Array,
-                computed: '_computeOrganizationsList(user, org)'
+                computed: '_computeOrganizationsList(user, org, user.orgs)'
             }
         },
         _computeGravatar: function(email, size, placeholder) {
@@ -255,6 +257,16 @@
         },
         _computeGravatarName: function(first_name, last_name, email) {
             return first_name && last_name ? first_name + ' ' + last_name : email;
+        },
+        _computeUserName: function(user) {
+            var ret = '';
+            if (user.first_name)
+                ret += user.first_name + ' ';
+            if (user.last_name)
+                ret += user.last_name;
+            if (!ret.length)
+                ret += user.email;
+            return ret;
         },
         _computeOrganizationsList: function(user, org) {
             if (user.orgs) {
@@ -278,10 +290,13 @@
             return organization.id ? 'social:group' : 'social:person';
         },
         _computeOrganizationName: function(name) {
-            return name && name.length ? name : 'unnamed org';
+            return name && name.length ? name : '[ untitled org ]';
         },
-        _computeMemberOfTeamsText: function() {
-
+        _computeOrganizationNameStyle: function(name) {
+            return !name && 'opacity: .5' || '';
+        },
+        _isCurrentOrg: function(organization) {
+            return organization.id == this.org.id;
         },
         _addOrg: function(e) {
             var dialog = this.querySelector('organization-add');
@@ -290,9 +305,6 @@
         _goToOrg: function(e) {
             var orgId = e.currentTarget.getAttribute('id');
             window.location.href = orgId ? '/switch_context/' + orgId : '/switch_context';
-        },
-        _toggleUI: function() {
-            window.location.href = '/toggle-ui/legacy';
         },
         _logout: function(e) {
             window.location.href = '/logout';
