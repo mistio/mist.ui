@@ -306,10 +306,6 @@
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
             }
 
-            #machineLogs {
-                font-size: 12px;
-            }
-
             @media (max-width: 1024px) {
                 .machine-key {
                     display: block;
@@ -367,6 +363,18 @@
             }
             iron-icon.icon {
                 margin-right: 4px;
+            }
+
+            paper-material.machine-logs {
+                padding: 0;
+                overflow: visible;
+            }
+            mist-list {
+                position: relative;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                height: 600px;
             }
         </style>
 
@@ -529,19 +537,19 @@
                 </div>
             </paper-material>
 
-            <div style="max-height: 500px">
-            <template is="dom-if" if=[[machine.machine_id]] restamp>
-                <mist-list id="machineLogs"
-                    timeseries expands column-menu
-                    apiurl="/api/v1/logs"
-                    name="logs"
-                    frozen=[[_getFrozenLogColumn()]]
-                    visible=[[_getVisibleColumns()]]
-                    renderers=[[_getRenderers(model.members)]]
-                    primary-field-name="time"
-                    base-filter="machine_id:[[machine.machine_id]]"></mist-list>
-            </template>
-            </div>
+            <paper-material class="machine-logs">
+                <template is="dom-if" if=[[machine.machine_id]] restamp>
+                    <mist-list id="machineLogs"
+                        timeseries expands column-menu searchable streaming infinite toolbar
+                        apiurl="/api/v1/logs"
+                        name="machine logs"
+                        frozen=[[_getFrozenLogColumn()]]
+                        visible=[[_getVisibleColumns()]]
+                        renderers=[[_getRenderers(model.members)]]
+                        primary-field-name="time"
+                        base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -1183,7 +1191,9 @@ Polymer({
     },
 
     _hasExtra: function(machine) {
-        return Object.keys(this.machine.extra).length
+        if (this.machine && this.machine.extra)
+            return Object.keys(this.machine.extra).length
+        return false
     },
 
     _filterMachinesIncidents: function(incarray){
