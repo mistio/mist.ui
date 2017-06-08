@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 
+<link rel="import" href="tags/tags-form.html">
 <link rel="import" href="helpers/dialog-element.html">
 <link rel="import" href="styles/shared-styles.html">
 
@@ -59,11 +60,14 @@
 
     <dialog-element id="confirm" on-iron-overlay-opened="patchOverlay"></dialog-element>
 
+    <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+
   </template>
   <script>
     Polymer({
       is: 'mist-actions',
       properties: {
+        model: Object,
         actions: {
           type: Array,
           value: []
@@ -84,7 +88,7 @@
       selectAction: function(e){
         var action = e.model.action;
         this.action = action;
-        if (action.confirm) {
+        if (action.confirm && action.name != 'tag') {
           var property = "name";
           this._showDialog({
               title: this.action.name +' ' + this.type +'?',
@@ -93,6 +97,9 @@
               danger: true,
               reason: this.type + "." + this.action.name
           });
+        }
+        else if (action.name == 'tag') {
+          this.showTagDialog();
         }
         else {
           this.performAction();
@@ -104,6 +111,12 @@
               dialog[i] = info[i];
           }
           dialog._openDialog();
+      },
+      showTagDialog: function(){
+        this.$.tagsdialog._openDialog();
+      },
+      tagResources: function(e){
+        console.log('tag resources', this.items.length, this.type);
       },
       _makeList: function(items, property){
         if (items && items.length)
@@ -128,7 +141,7 @@
       tense: function(action) {
         if (action == 'delete')
           return 'Deleting';
-      }
+      },
     });
   </script>
 </dom-module>

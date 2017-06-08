@@ -16,7 +16,7 @@
       }
     </style>
     
-    <mist-actions actions="[[actions]]" type="schedule" items="[[items]]"></mist-actions>
+    <mist-actions actions="[[actions]]" type="schedule" items="[[items]]" model="[[model]]"></mist-actions>
 
     <dialog-element id="confirm"></dialog-element>
 
@@ -67,12 +67,19 @@ SCHEDULE_ACTIONS = {
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(org) {
-        // org policy for actions
+      itemActions: function(schedule) {
+        // single schedule actions
         var arr = [];
-        if (org) {
+        if (schedule) {
+          arr.push('tag');
           arr.push('delete');
         }
+        // if (schedule.enabled) {
+        //   arr.push('disable');
+        // }
+        // else {
+        //   arr.push('enable'); 
+        // }
         return arr;
       },
       actionDetails: function (actions) {
@@ -110,6 +117,9 @@ SCHEDULE_ACTIONS = {
         if (action.name == 'delete') {
           this._delete();
         }
+        // else if (action.name == 'tag') {
+        //   this.$['mist-actions'].showTagDialog(this.items, this.tyoe);
+        // }
       },
       handleResponse: function(e) {
         if (this.$.request && this.$.request.body && this.$.request.body.action)
