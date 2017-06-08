@@ -22,9 +22,9 @@
 <link rel="import" href="../bower_components/paper-input/paper-input-behavior.html">
 <link rel="import" href="../bower_components/paper-input/paper-input-addon-behavior.html">
 <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<!--link rel="import" href="../bower_components/iron-form/iron-form.html"-->
 
-<link rel="import" href="logs/log-list.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+
 <link rel="import" href="onb-element/onb-element.html">
 <link rel="import" href="clouds/cloud-info.html">
 <link rel="import" href="clouds/cloud-chip.html">
@@ -44,8 +44,8 @@
             background-color: #eee;
             display: block;
         }
-        paper-material {
-            overflow: auto !important;
+        paper-material.logs {
+            overflow: visible !important;
         }
         /* layout helper classes */
         #content {
@@ -104,8 +104,10 @@
             margin-bottom: 32px;
         }
         a.main-section {
-            min-width: 100px;
-            flex-basis: 33%;
+            min-width: 150px;
+            flex-basis: 25%;
+            max-width: 250px;
+            flex-grow: initial;
         }
         .columns {
             @apply(--layout-horizontal);
@@ -126,8 +128,13 @@
         }
         .logs {
             width: 100%;
+            height: auto;
         }
-        log-list,
+        .logs mist-list {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
         .graphs {
             margin-bottom: 1em;
             width: 100%;
@@ -317,9 +324,19 @@
                             <app-costs-per-tag model="[[model]]">
                             </app-costs-per-tag>
                         </div>
-                        <paper-material id="rightcolumn" class="logs">
-                            <log-list></log-list>
-                        </paper-material>
+                        <template is="dom-if" if=[[model.org]] restamp>
+                            <paper-material id="rightcolumn" class="logs">
+                                <mist-list id="logs"
+                                    timeseries expands searchable toolbar column-menu resizable streaming infinite
+                                    apiurl="/api/v1/logs"
+                                    name="all logs"
+                                    frozen=[[_getFrozenLogColumn()]]
+                                    visible=[[_getVisibleLogColumns()]]
+                                    renderers=[[_getLogRenderers()]]
+                                    base-filter="owner_id:[[model.org.id]]"
+                                    primary-field-name="time"></mist-list>
+                            </paper-material>
+                        </template>
                     </div>
                 </div>
             </template>
@@ -596,6 +613,42 @@
             if (item.hideZero && item.count == 0)
                 return true;
             return false;
+        },
+        _getLogRenderers: function() {
+            var _this = this;
+            return {
+                'time': {
+                    'body': function(item) {
+                        return '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>'
+                    }
+                },
+                'user_id': {
+                    'title': 'user',
+                    'body': function(item) {
+                        if (_this.model && _this.model.members && item in _this.model.members && _this.model.members[item]){
+                            var name = '', m = _this.model.members[item];
+                            if (m.first_name)
+                                name += m.first_name;
+                            if (m.last_name)
+                                name += ' ' + m.last_name;
+                            if (!name.length)
+                                name += m.email;
+                            return '<a href="/members/' + item + '">' + name + '</a>';
+                        }
+                        if (item)
+                            return item;
+                        return '';
+                    }
+                }
+            };
+        },
+
+        _getVisibleLogColumns: function() {
+            return ['type', 'action', 'user_id']
+        },
+
+        _getFrozenLogColumn: function() {
+            return ['time']
         }
     });
 </script>
