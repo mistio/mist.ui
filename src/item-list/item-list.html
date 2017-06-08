@@ -749,7 +749,7 @@ Polymer({
     },
 
     _isItemStarred: function (item) {
-        if (this.section.id ==  'images') {
+        if (this.section && this.section.id ==  'images') {
             return item.star ? 'star' : '';
         }
     },
@@ -836,21 +836,21 @@ Polymer({
     },
 
     _itemLink: function(item) {
-        var p, s = this.section.id;
+        var p, s = this.section ? this.section.id : '';
         if (s == "networks")
             p = item.id
         else if (s == "records")
             p = item.zone_id
         else if (s == "incidents") {
             if (this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id])
-                p = item.machine_id
+                p = this.model.clouds[item.cloud_id].machines[item.machine_id].id
         }
         else
             p = item.id
 
         if (s == "records")
             return "/zones/" + p;
-        else if (s != "incidents")
+        else if (this.section && s != "incidents")
             return "/" + this.section.id + "/" + p;
         else
             return p ? "/machines/" + p : "/machines";

@@ -20,6 +20,14 @@
             opacity: 1;
         }
 
+        :host[xsmallscreen] {
+            flex-wrap: wrap;
+        }
+
+        :host[xsmallscreen] > paper-material {
+            flex-basis: 100%;
+        }
+
         h3 {
             text-transform: uppercase;
             font-size: 13px;
@@ -71,6 +79,13 @@
         .count {
             color: rgba(0,0,0,0.54);
         }
+        td.count {
+            font-size: 12px;
+            line-height: 22px;
+        }
+        td.count > iron-icon {
+            float: left;
+        }
         .text-right {
             text-align: right;
         }
@@ -79,7 +94,7 @@
         }
         section-tile ::content h2 {
             color: rgba(0,0,0,0.54) !important;
-            padding: 23px 4px !important;
+            padding: 23px 8px !important;
         }
         section-tile {
             position: relative;
@@ -126,8 +141,8 @@
                 <template is="dom-repeat" items="[[topClouds]]">
                     <tr>
                         <td colspan="2" class="name">[[item.name]] </td>
-                        <td class="count">[[item.machinesCount]] machines </td>
-                        <td class="text-right cost">$[[item.cost]]</td>
+                        <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
+                        <td class="text-right cost">$[[_formatMoney(item.cost)]]</td>
                     </tr>
                 </template>
             </table>
@@ -147,9 +162,6 @@ Polymer({
         model: {
             type: Object
         },
-        sections: {
-            type: Object
-        },
         totalCost: {
             type: Number,
             computed: '_computeTotalCost(model.machinesArray.*)'
@@ -160,6 +172,10 @@ Polymer({
         },
         zeroCostClouds: {
             type: Array
+        },
+        xsmallscreen: {
+            type: Boolean,
+            reflectToAttribute: true
         }
     },
     attached: function() {
@@ -187,7 +203,7 @@ Polymer({
                 return previous + current;
             });
         }
-        return Math.round(cost);
+        return cost.formatMoney(2, '.', ',');
     },
     _computeTopClouds: function(clouds, machines) {
         var topCloudsArray = [];
@@ -213,9 +229,9 @@ Polymer({
                 }
                 var cloud = {};
                     cloud.name = c.title;
-                    cloud.cost = Math.round(cloudCost);
+                    cloud.cost = cloudCost;
                     cloud.machinesCount = machinesCount;
-                if (cloud.cost > 0)
+                if (cloudCost > 0)
                     topCloudsArray.push(cloud);
                 else {
                     zeroCostClouds.push(cloud);
@@ -231,6 +247,22 @@ Polymer({
         });
         // return all clouds instead of topCloudsArray.slice(0,3);
         return topCloudsArray;
+    },
+
+    _formatMoney: function(cost) {
+        return cost.formatMoney(2, '.', ',');
     }
 });
+
+Number.prototype.formatMoney = function(c, d, t){
+var n = this,
+    c = isNaN(c = Math.abs(c)) ? 2 : c,
+    d = d == undefined ? "." : d,
+    t = t == undefined ? "," : t,
+    s = n < 0 ? "-" : "",
+    i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+ };
+
 </script>

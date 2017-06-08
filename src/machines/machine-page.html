@@ -306,10 +306,6 @@
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
             }
 
-            #machineLogs {
-                font-size: 12px;
-            }
-
             @media (max-width: 1024px) {
                 .machine-key {
                     display: block;
@@ -367,6 +363,18 @@
             }
             iron-icon.icon {
                 margin-right: 4px;
+            }
+
+            paper-material.machine-logs {
+                padding: 0;
+                overflow: visible;
+            }
+            mist-list {
+                position: relative;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                height: 600px;
             }
         </style>
 
@@ -452,6 +460,7 @@
                     </div>
                 </paper-material>
             </div>
+            <template is="dom-if" if=[[monitoring]]>
             <paper-material id="monitoringBlock" class="info-card">
                 <mist-monitoring
                     id="mistMonitoring"
@@ -460,7 +469,8 @@
                     section="[[section]]"
                     datasources="[[datasources]]"
                     hidden$="[[hidden]]"
-                    machine-keys="[[machineKeys]]"></mist-monitoring>
+                    machine-keys="[[machineKeys]]"
+                    incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"></mist-monitoring>
                 <mist-rules
                     id="monitoringRules"
                     machine="[[machine.machine_id]]"
@@ -473,6 +483,7 @@
                     user-email="[[model.user.email]]"
                     hidden$="[[!isActivated]]"></mist-rules>
             </paper-material>
+            </template>
             <paper-material class="info-card">
                 <h2 style$="color:#fff;background-color: [[section.color]];">Basic Info</h2>
                 <div class="card-content">
@@ -519,22 +530,26 @@
                     </table>
                 </div>
             </paper-material>
-            <paper-material class="info-card">
+            <paper-material class="info-card" hidden$=[[!_hasExtra(machine)]]>
                 <h2 style$="color:#fff;background-color: [[section.color]];">More Info</h2>
                 <div class="card-content">
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <template is="dom-if" if=[[machine.id]] restamp>
-            <mist-list timeseries expands id="machineLogs"
-                apiurl="/api/v1/logs"
-                name="logs"
-                frozen=[[_getFrozenLogColumn()]]
-                visible=[[_getVisibleColumns()]]
-                renderers=[[_getRenderers(model.members)]]
-                primary-field-name="time"
-                base-filter="machine_id:[[machine.machine_id]]"></mist-list>
-            </template>
+
+            <paper-material class="machine-logs">
+                <template is="dom-if" if=[[machine.machine_id]] restamp>
+                    <mist-list id="machineLogs"
+                        timeseries expands column-menu searchable streaming infinite toolbar
+                        apiurl="/api/v1/logs"
+                        name="machine logs"
+                        frozen=[[_getFrozenLogColumn()]]
+                        visible=[[_getVisibleColumns()]]
+                        renderers=[[_getRenderers(model.members)]]
+                        primary-field-name="time"
+                        base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -743,6 +758,10 @@ Polymer({
         machineLogFilter: {
             type: Object,
             computed: "_computeMachineLogFilter(machine)"
+        },
+        monitoring: {
+            type: Boolean,
+            value: false
         }
     },
     observers: [
@@ -806,7 +825,7 @@ Polymer({
     },
     _computeThisItemUid: function(machine) {
         var itemUidInArray = [];
-        itemUidInArray.push(itemUid(this.machine, this.sections['machines']));
+        itemUidInArray.push(itemUid(this.machine, this.model.sections['machines']));
         return itemUidInArray;
     },
     _computeAssociatedKeys: function(machine) {
@@ -1008,8 +1027,11 @@ Polymer({
 
     },
     _computeMachineImage: function(item){
-        if (item && item.image && typeOf(item.image) != "object"){
+        if (item && item.image && typeof(item.image) != "object"){
             return item.image;
+        }
+        else if (item && item.extra.image && typeof(item.extra.image) == "string") {
+            return item.extra.image;
         }
         else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
             return item.extra.image.distribution + " " +item.extra.image.name;
@@ -1167,5 +1189,23 @@ Polymer({
     _toFixed: function(inp) {
         return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
     },
+
+    _hasExtra: function(machine) {
+        if (this.machine && this.machine.extra)
+            return Object.keys(this.machine.extra).length
+        return false
+    },
+
+    _filterMachinesIncidents: function(incarray){
+        if (this.model && this.model.incidentsArray)
+            return this.model.incidentsArray.filter(function(inc){
+                return this._isMachinesIncident(inc);
+            }.bind(this));
+    },
+
+    _isMachinesIncident: function(inc) {
+        if (this.machine)
+            return this.machine.machine_id == inc.machine_id && this.machine.cloud.id == inc.cloud_id;
+    }
 });
 </script>

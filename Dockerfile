@@ -3,7 +3,7 @@ MAINTAINER mist.io <support@mist.io>
 
 RUN apk add --update --no-cache git nginx
 
-RUN npm install -g polymer-cli@next bower gulp
+RUN npm install -g polymer-cli bower gulp
 
 ENV bower_allow_root=true \
     bower_interactive= \

@@ -114,7 +114,7 @@
                 display: none;
             }
 
-            [size=xs] app-sidebar {
+            [size=xs] mist-sidebar {
                 min-width: 100%;
                 height: auto;
             }
@@ -275,9 +275,6 @@
                 is: 'cloud-page',
 
                 properties: {
-                    sections: {
-                        type: Object
-                    },
                     section: {
                         type: Object
                     },
@@ -296,6 +293,7 @@
                         computed: '_computeIsloading(cloud)',
                         value: true
                     },
+                    expectedState: Boolean
                 },
                 listeners: {
                     'confirmation': '_deleteCloud'
@@ -330,7 +328,7 @@
                     dialog._openDialog();
                 },
                 _isSupportedDNSProvider: function(provider) {
-                    if (provider == "ec2" || provider == "gce"){
+                    if (['ec2','gce','digitalocean','linode','rackspace','softlayer','vultr'].indexOf(provider) > -1 ) {
                         return true;
                     } else {
                         return false;
@@ -372,13 +370,12 @@
                     this.$.cloudStateAjaxRequest.body = {
                         new_state: this.cloud.enabled? '0' : '1'
                     };
-                    console.log("request","/api/v1/clouds/"+this.cloud.id)
+                    this.expectedState = this.cloud.enabled? '0' : '1';
                     this.$.cloudStateAjaxRequest.generateRequest();
                 },
                 _handleCloudStateAjaxResponse: function(e) {
-                    var message = !this.cloud.enabled ? 'Cloud ' + this.cloud.title + ' was disabled!':
-                    'Cloud ' + this.cloud.title + ' was enabled!' ;
-                    this.fire('toast',{msg:message,duration:5000});
+                    var message = this.expectedState == true ? 'Cloud ' + this.cloud.title + ' was enabled!' : 'Cloud ' + this.cloud.title + ' was disabled!';
+                    this.fire('toast', { msg:message, duration:5000} );
                 },
                 _handleCloudStateAjaxError:function(e){
                     this.querySelector('#enable-disable-cloud').checked=this.cloud.enabled;

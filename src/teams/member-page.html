@@ -109,7 +109,7 @@
                 display: none;
             }
 
-            [size=xs] app-sidebar {
+            [size=xs] mist-sidebar {
                 min-width: 100%;
                 height: auto;
             }
@@ -186,8 +186,17 @@
                 border-radius: 3px;
             }
 
-            #memberLogs {
-                font-size: 12px;
+            paper-material.member-logs {
+                padding: 0;
+                overflow: visible;
+            }
+            mist-list {
+                position: relative;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                max-height: 600px;
+                min-height: 400px;
             }
         </style>
 
@@ -234,10 +243,18 @@
             <div class="page section">
                 <div class="flex-horizontal-with-ratios section">
                     <div class="width100">
-                        <template is="dom-if" if=[[member.id]] restamp>
-                            <mist-list timeseries expands id="memberLogs" apiurl="/api/v1/logs" name="logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
-                                renderers=[[_getRenderers()]] primary-field-name="time" base-filter=[[resourceFilter]]></mist-list>
-                        </template>
+                        <paper-material class="member-logs">
+                            <template is="dom-if" if=[[member.id]] restamp>
+                                <mist-list id="memberLogs"
+                                    timeseries expands column-menu resizable searchable streaming infinite toolbar
+                                    apiurl="/api/v1/logs"
+                                    name="user logs"
+                                    frozen=[[_getFrozenLogColumn()]]
+                                    visible=[[_getVisibleColumns()]]
+                                    renderers=[[_getRenderers()]]
+                                    primary-field-name="time" base-filter=[[resourceFilter]]></mist-list>
+                            </template>
+                        </paper-material>
                     </div>
                 </div>
             </div>
@@ -304,7 +321,7 @@
                     return memberTeams;
                 },
                 _computeResourceFilter: function (member) {
-                    //if (!member) return {};
+                    if (!member) return '';
                     return 'user_id:' + member.id;
                 },
                 _addMemberToTeam: function (e) {

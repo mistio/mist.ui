@@ -354,7 +354,7 @@
                         <div class="machine">1 Missing machine with id <code>[[item]]</code></div>
                     </template>
                 </div>
-                <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
+                <item-list section="[[model.sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
             </paper-material>
         </div>
         <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
@@ -451,7 +451,8 @@
                 },
                 hasExpired: {
                     type: Boolean,
-                    computed: "_computeHasExpired(schedule)"
+                    value: false,
+                    computed: "_computeHasExpired(schedule.*)"
                 },
                 isSpecificMachines: {
                     type: Boolean,
@@ -526,10 +527,12 @@
                 }
             },
             _computeHasExpired: function(schedule) {
-                if (this.schedule && this.schedule.expires && this.schedule.expires.length && moment().diff(moment.utc(this.schedule.expires).local()) > 0)
-                    return true
-                else
-                    return false
+                if (this.schedule && this.schedule.expires != undefined && this.schedule.expires != "" && this.schedule.expires.length > 0){
+                    return moment().diff(moment.utc(this.schedule.expires).local()) > 0;
+                }
+                else {
+                    return false;
+                }
             },
             _computeIsInterval: function(schedule) {
                 if (this.schedule)

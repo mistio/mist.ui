@@ -86,6 +86,11 @@
                 max-width: 240px;
                 display: inline-block;
             }
+            #newrule > * {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
         </style>
         <paper-material elevation="0">
             <template is="dom-repeat" items="{{items}}">
@@ -110,8 +115,8 @@
 
                     <paper-dropdown-menu class="dropdown-block metricOp">
                         <paper-menu id="metricOp" attr-for-selected="value" selected="{{newRule.operator}}" class="dropdown-content">
-                            <paper-item value="gt"> > </paper-item>
-                            <paper-item value="lt"> < </paper-item>
+                            <paper-item value="gt"> &gt; </paper-item>
+                            <paper-item value="lt"> &lt; </paper-item>
                         </paper-menu>
                     </paper-dropdown-menu>
 
@@ -167,7 +172,6 @@
 
         <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" handle-as="xml" method="POST" on-request="_handleAddRequest" on-response="_handleAddResponse" on-error="_handleAddError" loading="{{sendingData}}"></iron-ajax>
 
-        <!-- get metrics: http://localhost/api/v1/clouds/[[cloud.id]]/machines/[[machine.id]]/metrics -->
     </template>
 
     <script>
@@ -303,11 +307,13 @@
                 }
                 if (this.customMetrics) {
                     for (var q in this.customMetrics){
-                        var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
-                            return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
-                        }, this)
-                        if (machineHasCustomMetric) 
-                            metrics.push(this.customMetrics[q])
+                        if (this.customMetrics[q].machines) {
+                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
+                                return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
+                            }, this);
+                            if (machineHasCustomMetric)
+                                metrics.push(this.customMetrics[q])
+                        }
                     }
                 }
                 return metrics;

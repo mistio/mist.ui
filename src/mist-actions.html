@@ -1,0 +1,126 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="helpers/dialog-element.html">
+<link rel="import" href="styles/shared-styles.html">
+
+<dom-module id="mist-actions">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: inline-block;
+        color: rgba(255,255,255,0.87);
+      }
+      paper-button.actions {
+        display: inline;
+        white-space: nowrap;
+        padding: 16px 16px 16px 0;
+        margin-left: 16px;
+      }
+      paper-button iron-icon {
+        padding-right: 8px;
+      }
+      iron-icon {
+        color: inherit;
+        fill: #fff;
+        margin-top: -2px;
+      }
+      paper-dialog {
+          padding: 0;
+          /*position: fixed;*/
+      }
+      :host paper-dialog > h2 {
+          text-transform: capitalize;
+          margin-top: 24px;
+      }
+      paper-dialog-scrollable  ul {
+          padding-left: 18px;
+          color: rgba(0,0,0,0.54);
+          font-size: 16px;
+      }
+      paper-dialog > p {
+          margin: 0 24px 0 24px
+      }
+      paper-dialog > .btn-group {
+          margin-top: 0;
+          margin-bottom: 16px;
+      }
+
+      paper-dialog p.item-actions {
+          max-height: 200px;
+      }
+    </style>
+    
+    <template is="dom-repeat" items="[[actions]]" as="action">
+      <paper-button on-tap="selectAction" class="actions">
+        <iron-icon icon="[[action.icon]]" hidden$="[[!action.icon]]"></iron-icon>[[action.name]]
+      </paper-button>
+    </template>
+
+    <dialog-element id="confirm" on-iron-overlay-opened="patchOverlay"></dialog-element>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'mist-actions',
+      properties: {
+        actions: {
+          type: Array,
+          value: []
+        },
+        action: {
+          type: Object
+        },
+        type: {
+          type: String
+        },
+        items: Array
+      },
+      listeners: {
+        'iron-overlay-closed': 'confirmAction'
+      },
+      ready: function() {},
+      attached: function() {},
+      selectAction: function(e){
+        var action = e.model.action;
+        this.action = action;
+        if (action.confirm) {
+          this._showDialog({
+              title: this.action.name +' ' + this.type +'?',
+              body: this.tense(this.action.name) + " " + this.type + "s can not be undone. You are about to " + this.action.name + " " + this.items.length + " " + this.type + "s.",
+              danger: true,
+              reason: this.type + "." + this.action.name
+          });
+        }
+        else {
+          this.performAction();
+        }
+      },
+      _showDialog: function(info) {
+          var dialog = this.querySelector('dialog-element');
+          for (var i in info) {
+              dialog[i] = info[i];
+          }
+          dialog._openDialog();
+      },
+      performAction: function() {
+        this.fire('perform-action', {action: this.action});
+      },
+      confirmAction: function(e) {
+        if (!e.detail.canceled && e.detail.confirmed) {
+          this.fire('perform-action', {action: this.action});
+        }
+      },
+      patchOverlay: function (e) {
+        //from https://github.com/PolymerElements/paper-dialog/issues/7
+        if (e.target.withBackdrop) {
+          e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
+        }
+      },
+      tense: function(action) {
+        if (action == 'delete')
+          return 'Deleting';
+      }
+    });
+  </script>
+</dom-module>

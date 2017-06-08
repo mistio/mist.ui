@@ -22,14 +22,12 @@
 <link rel="import" href="../bower_components/paper-input/paper-input-behavior.html">
 <link rel="import" href="../bower_components/paper-input/paper-input-addon-behavior.html">
 <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<!--link rel="import" href="../bower_components/iron-form/iron-form.html"-->
 
-<link rel="import" href="logs/log-list.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+
 <link rel="import" href="onb-element/onb-element.html">
 <link rel="import" href="clouds/cloud-info.html">
 <link rel="import" href="clouds/cloud-chip.html">
-
-<link rel="import" href="account/plan-overusage.html">
 
 <dom-module id="page-dashboard">
     <template>
@@ -46,8 +44,8 @@
             background-color: #eee;
             display: block;
         }
-        paper-material {
-            overflow: auto !important;
+        paper-material.logs {
+            overflow: visible !important;
         }
         /* layout helper classes */
         #content {
@@ -106,8 +104,10 @@
             margin-bottom: 32px;
         }
         a.main-section {
-            min-width: 100px;
+            min-width: 150px;
             flex-basis: 25%;
+            max-width: 250px;
+            flex-grow: initial;
         }
         .columns {
             @apply(--layout-horizontal);
@@ -128,8 +128,13 @@
         }
         .logs {
             width: 100%;
+            height: auto;
         }
-        log-list,
+        .logs mist-list {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
         .graphs {
             margin-bottom: 1em;
             width: 100%;
@@ -262,7 +267,6 @@
         }
         </style>
         <div id="content" class$="flex-horizontal-wide onb-[[!showDashboard]]" main>
-            <plan-overusage is-over-using="[[model.isOverUsing]]" plan="[[model.org.current_plan]]"></plan-overusage>
             <template is="dom-if" if="[[showDashboard]]">
                 <div class="clouds top flexchild-wide-top">
                     <div id="cloudslist" class="flex">
@@ -284,39 +288,19 @@
                     <div id="leftcolumn" class="left">
                         <template is="dom-if" if="[[hasIncidents]]">
                             <div class="incidents">
-                                <app-incidents model="[[model]]" sections="[[sections]]">
+                                <app-incidents model="[[model]]" xsmallscreen="[[xsmallscreen]]">
                                 </app-incidents>
                             </div>
                         </template>
                         <div class="sections layout horizontal wrap">
-                            <a href="/machines" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="machines" color="[[sections.machines.color]]" icon="[[sections.machines.icon]]" count="[[model.machinesArray.length]]">
-                                </section-tile>
-                            </a>
-                            <a href="/images" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="images" color="[[sections.images.color]]" icon="[[sections.images.icon]]" count="[[model.imagesArray.length]]"></section-tile>
-                            </a>
-                            <a href="/keys" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="keys" color="[[sections.keys.color]]" icon="[[sections.keys.icon]]" count="[[model.keysArray.length]]"></section-tile>
-                            </a>
-                            <a href="/networks" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="networks" color="[[sections.networks.color]]" icon="[[sections.networks.icon]]" count="[[model.networksArray.length]]"></section-tile>
-                            </a>
-                            <!--<a href="/zones" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="zones" color="[[sections.zones.color]]" icon="[[sections.zones.icon]]" count="[[model.zonesArray.length]]"></section-tile>
-                            </a>-->
-                            <a href="/scripts" class="main-section flex" is=" pushstate-anchor">
-                                <section-tile name="scripts" color="[[sections.scripts.color]]" icon="[[sections.scripts.icon]]" count="[[model.scriptsArray.length]]"></section-tile>
-                            </a>
-                            <a href="/templates" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="templates" color="[[sections.templates.color]]" icon="[[sections.templates.icon]]" count="[[model.templatesArray.length]]"></section-tile>
-                            </a>
-                            <a href="/stacks" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="stacks" color="[[sections.stacks.color]]" icon="[[sections.stacks.icon]]" count="[[model.stacksArray.length]]"></section-tile>
-                            </a>
-                            <a href="/teams" class="main-section flex" is="pushstate-anchor">
-                                <section-tile name="teams" color="[[sections.teams.color]]" icon="[[sections.teams.icon]]" count="{{model.teamsArray.length}}"></section-tile>
-                            </a>
+                            <template is="dom-repeat" items="[[model.sectionsArray]]">
+                                <template is="dom-if" if="[[item.tile]]">
+                                    <a href$="/[[item.id]]" class="main-section flex" is="pushstate-anchor" hidden$="[[_isHidden(item)]]">
+                                        <section-tile name$="[[item.id]]" color="[[item.color]]" icon="[[item.icon]]" count="[[item.count]]">
+                                        </section-tile>
+                                    </a>
+                                </template>
+                            </template>
                         </div>
                         <paper-material class="graphs" hidden="[[!model.monitoring.machines.length]]">
                             <template is="dom-if" if="[[viewingDashboard]]" restamp>
@@ -335,14 +319,24 @@
                     </div>
                     <div class="left">
                         <div class="costs">
-                            <app-costs model="[[model]]" sections="[[sections]]">
+                            <app-costs model="[[model]]" xsmallscreen="[[xsmallscreen]]">
                             </app-costs>
-                            <app-costs-per-tag model="[[model]]" sections="[[sections]]">
+                            <app-costs-per-tag model="[[model]]">
                             </app-costs-per-tag>
                         </div>
-                        <paper-material id="rightcolumn" class="logs">
-                            <log-list></log-list>
-                        </paper-material>
+                        <template is="dom-if" if=[[model.org]] restamp>
+                            <paper-material id="rightcolumn" class="logs">
+                                <mist-list id="logs"
+                                    timeseries expands searchable toolbar column-menu resizable streaming infinite
+                                    apiurl="/api/v1/logs"
+                                    name="all logs"
+                                    frozen=[[_getFrozenLogColumn()]]
+                                    visible=[[_getVisibleLogColumns()]]
+                                    renderers=[[_getLogRenderers()]]
+                                    base-filter="owner_id:[[model.org.id]]"
+                                    primary-field-name="time"></mist-list>
+                            </paper-material>
+                        </template>
                     </div>
                 </div>
             </template>
@@ -354,7 +348,7 @@
                     <paper-fab id="addBtn" icon="cloud"></paper-fab>
                 </a>
             </div>
-            <div class="is-loading" hidden$="[[!onboarding.isLoadingClouds]]">
+            <div class="is-loading" hidden$="[[!model.onboarding.isLoadingClouds]]">
                 <paper-spinner active></paper-spinner>
             </div>
         </div>
@@ -367,9 +361,6 @@
         is: 'page-dashboard',
         enableCustomStyleProperties: true,
         properties: {
-            sections: {
-                type: Object
-            },
             model: {
                 type: Object
             },
@@ -388,7 +379,7 @@
             showDashboard: {
                 type: Boolean,
                 // value: true,
-                computed: '_computeshowDashboard(model.cloudsArray.length, onboarding.isLoadingClouds)',
+                computed: '_computeshowDashboard(model.cloudsArray.length, model.onboarding.isLoadingClouds)',
                 notify: true
             },
             hasIncidents: {
@@ -411,7 +402,8 @@
                 type: Array,
                 computed: "_computeHasMissingMonitored(model.machines.*, model.monitoring.*)",
                 value: []
-            }
+            },
+            smallscreen: Boolean
         },
         observers: [
             'cloudLayoutMatrix(model.clouds.*, sidebarIsOpen)'
@@ -464,7 +456,7 @@
         hideSidebar: function() {
             // if we are on boarding, close sidebar for focus
             window.setTimeout(function() {
-                var sidebar = document.querySelector('app-sidebar'),
+                var sidebar = document.querySelector('mist-sidebar'),
                     content = document.querySelector('iron-pages');
                 sidebar.classList.add('close');
                 content.classList.add('center');
@@ -534,7 +526,7 @@
         showSidebar: function() {
             //show sidebar for navigation
             window.setTimeout(function() {
-                var sidebar = document.querySelector('app-sidebar'),
+                var sidebar = document.querySelector('mist-sidebar'),
                     content = document.querySelector('iron-pages');
                 sidebar.classList.remove('close');
                 content.classList.remove('center');
@@ -616,6 +608,47 @@
         },
         _fabTap: function() {
             this.fire('user-action', 'add cloud fab click');
+        },
+        _isHidden: function(item) {
+            if (item.hideZero && item.count == 0)
+                return true;
+            return false;
+        },
+        _getLogRenderers: function() {
+            var _this = this;
+            return {
+                'time': {
+                    'body': function(item) {
+                        return '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>'
+                    }
+                },
+                'user_id': {
+                    'title': 'user',
+                    'body': function(item) {
+                        if (_this.model && _this.model.members && item in _this.model.members && _this.model.members[item]){
+                            var name = '', m = _this.model.members[item];
+                            if (m.first_name)
+                                name += m.first_name;
+                            if (m.last_name)
+                                name += ' ' + m.last_name;
+                            if (!name.length)
+                                name += m.email;
+                            return '<a href="/members/' + item + '">' + name + '</a>';
+                        }
+                        if (item)
+                            return item;
+                        return '';
+                    }
+                }
+            };
+        },
+
+        _getVisibleLogColumns: function() {
+            return ['type', 'action', 'user_id']
+        },
+
+        _getFrozenLogColumn: function() {
+            return ['time']
         }
     });
 </script>
