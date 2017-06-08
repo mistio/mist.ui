@@ -216,12 +216,14 @@
                     event: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('received log event', data);
-                        var loglist = document.querySelector('log-list');
-                        if (loglist) {
-                            loglist.eventReceived(data);
-                        } else {
+                        var logLists = document.querySelectorAll('mist-list[streaming]');
+                        if (!logLists.length) {
                             console.warn('No log-list found in DOM to consume log event');
+                            return
                         }
+                        logLists.forEach(function(l){
+                            l.fire('receive-log', data);
+                        });
                     },
                     open_incidents: function (data) {
                         if (DEBUG_SOCKET)
