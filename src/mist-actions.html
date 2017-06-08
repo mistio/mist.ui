@@ -85,9 +85,11 @@
         var action = e.model.action;
         this.action = action;
         if (action.confirm) {
+          var property = "name";
           this._showDialog({
               title: this.action.name +' ' + this.type +'?',
               body: this.tense(this.action.name) + " " + this.type + "s can not be undone. You are about to " + this.action.name + " " + this.items.length + " " + this.type + "s.",
+              list: this._makeList(this.items, property),
               danger: true,
               reason: this.type + "." + this.action.name
           });
@@ -102,6 +104,12 @@
               dialog[i] = info[i];
           }
           dialog._openDialog();
+      },
+      _makeList: function(items, property){
+        if (items && items.length)
+          return items.map(function(item){
+            return item[property];
+          });
       },
       performAction: function() {
         this.fire('perform-action', {action: this.action});
