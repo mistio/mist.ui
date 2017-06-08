@@ -1,20 +1,37 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="schedules/schedule-add.html">
 <link rel="import" href="schedules/schedule-page.html">
+<link rel="import" href="schedules/schedule-actions.html">
 
 <link rel="import" href="page-items.html">
 
 <dom-module id="page-schedules">
   <template>
-    <style>
+    <style include="tags-and-labels">
        :host {
         display: block;
       }
     </style>
     <app-route route="{{route}}" pattern="/:schedule" data="{{data}}"></app-route>
-    <page-items name="schedules" class="schedules" model="[[model]]" items="[[model.schedulesArray]]"
-      section="[[model.sections.schedules]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <!-- <page-items name="schedules" class="schedules" model="[[model]]" items="[[model.schedulesArray]]"
+      section="[[model.sections.schedules]]" hidden$=[[!_isListActive(route.path)]]></page-items> -->
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="schedulesList"
+            selectable resizable
+            items="[[model.schedulesArray]]"
+            name="Schedules"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.teams,model.members)]]
+            route={{route}}
+            user-filter=[[model.sections.schedules.q]]
+            primary-field-name="id">
+          <schedule-actions slot="actions" items="[[selectedItems]]" org="[[model.org.id]]"></schedule-actions>
+      </mist-list>
+    </template>
     <schedule-add model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]]></schedule-add>
     <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules)]]" section="[[model.sections.schedules]]"
       hidden$=[[!_isDetailsPageActive(route.path)]]></schedule-page>
@@ -40,6 +57,76 @@
       _getSchedule: function (id) {
         if (this.model.schedules)
           return this.model.schedules[id];
+      },
+
+      _getFrozenLogColumn: function(){
+        return ['name'];
+      },
+
+      _getVisibleColumns: function(){
+        return ['task_type', 'schedule', 'conditions', 'total_run_count', 'tags'];
+      },
+
+      _getRenderers: function(teams, members) {
+        var _this = this;
+        return {
+            'conditions': {
+                'body': function(item, row) {
+                  var conditions = item;
+                  var display = '';
+                  
+                  console.log('conditions', item.length, row.conditions);
+
+                  for (var i=0; i<conditions.length; i++){
+                    var missingLength = 0; 
+                    if (i == conditions.length-1 && i > 0)
+                      display += "and ";
+                    if (conditions[i].type == "machines" && conditions[i].ids.length > 0 && _this.model.machines) {
+                      display += "on ";
+                      for (var j=0; j<conditions[i].ids.length; j++){
+                        if (_this.model.machines[conditions[i].ids[j]]) {
+                          if (j == conditions[i].ids.length-1 && j > 0 && !missingLength)
+                            display += "and ";
+                          display += _this.model.machines[conditions[i].ids[j]].name;
+                          if (j < conditions[i].ids.length-2)
+                            display += ",";
+                          display += " ";
+                        }
+                        else {
+                          missingLength ++;
+                        }
+                      }
+                      if (missingLength){
+                        if (missingLength < conditions[i].ids.length)
+                          display += " and "
+                        display += missingLength + " missing machine"
+                        if (missingLength > 1)
+                          display += "s "
+                        else
+                          display += " "
+                      }
+                    }
+                    else if (conditions[i].type == "tags") {
+                      display += "on tags ";
+                      for (var p in conditions[i].tags) {
+                        display += "<span class='tag'>"+p;
+                        if (conditions[i].tags.p != undefined && conditions[i].tags.p != "")
+                          display += "=" + conditions[i].tags.p;
+                        display += "</span>";
+                      }
+                    }
+                    if (conditions[i].type == "age") 
+                      display += "older than " + conditions[i].minutes+"min ";
+                    else if (conditions[i].type == "field" && conditions[i].field == "cost__monthly")
+                      display += "cost more than $" + conditions[i].value+"/month ";
+                    else if (conditions[i].type == "field")
+                      display += conditions[i].field + " " + conditions[i].value +" ";
+                  }
+                  
+                  return display;
+                }
+            }
+          }
       }
 
     });
