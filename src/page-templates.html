@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="templates/template-add.html">
 <link rel="import" href="templates/template-page.html">
@@ -7,7 +8,7 @@
 
 <dom-module id="page-templates">
   <template>
-    <style>
+    <style include="shared-styles">
       :host {
         display: block;
       }
@@ -15,7 +16,6 @@
     <app-route route="{{route}}"
                 pattern="/:template"
                 data="{{data}}"></app-route>
-    <!-- <page-items model="[[model]]" items="[[model.templatesArray]]" section="[[model.sections.templates]]" hidden$=[[!_isListActive(route.path)]]></page-items> -->
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="templatesList"
             selectable resizable
@@ -30,6 +30,9 @@
             primary-field-name="id">
           <templates-actions slot="actions" items="[[selectedItems]]"></templates-actions>
       </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="templateAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
     </template>
     <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
     <template-page model="[[model]]" template$="[[_getTemplate(data.template, model.templates)]]" stacks$="[[_getTemplateStacks(data.template, model.templates, model.stacks)]]" section="[[model.sections.templates]]" hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
@@ -60,7 +63,9 @@
             if (this.model.templates)
                 return this.model.templates[id];
         },
-
+        _addResource: function(e) {
+            document.querySelector('app-location').set('path', this.model.sections.templates.add)
+        },
         _getTemplateStacks: function(id){
             return this.model.stacksArray.filter(
                 function(stack) {
