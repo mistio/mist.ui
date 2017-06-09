@@ -1,9 +1,9 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="templates/template-add.html">
 <link rel="import" href="templates/template-page.html">
-
-<link rel="import" href="page-items.html">
+<link rel="import" href="templates/template-actions.html">
 
 <dom-module id="page-templates">
   <template>
@@ -15,8 +15,22 @@
     <app-route route="{{route}}"
                 pattern="/:template"
                 data="{{data}}"></app-route>
-
-    <page-items model="[[model]]" items="[[model.templatesArray]]" section="[[model.sections.templates]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <!-- <page-items model="[[model]]" items="[[model.templatesArray]]" section="[[model.sections.templates]]" hidden$=[[!_isListActive(route.path)]]></page-items> -->
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="templatesList"
+            selectable resizable
+            items="[[model.templatesArray]]"
+            name="Templates"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.templates)]]
+            route={{route}}
+            user-filter=[[model.sections.templates.q]]
+            primary-field-name="id">
+          <templates-actions slot="actions" items="[[selectedItems]]"></templates-actions>
+      </mist-list>
+    </template>
     <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
     <template-page model="[[model]]" template$="[[_getTemplate(data.template, model.templates)]]" stacks$="[[_getTemplateStacks(data.template, model.templates, model.stacks)]]" section="[[model.sections.templates]]" hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
   </template>
@@ -53,6 +67,37 @@
                     return stack.template == id;
                 },
                 this);
+        },
+        _getFrozenLogColumn: function(){
+            return ['name'];
+        },
+
+        _getVisibleColumns: function(){
+            return ['exec_type', 'location_type', 'tags'];
+        },
+
+        _getRenderers: function(templates) {
+            var _this = this;
+            return {
+                'name': {
+                    'body': function(item, row) {
+                        return '<strong>'+ item + '</strong>';
+                    }
+                },
+                'tags': {
+                    'body': function(item, row) {
+                      var tags = item,
+                          display = "";
+                      for (var i=0; i<tags.length; i++){
+                        display += "<span class='tag'>"+tags[i].key;
+                        if (tags[i].value != undefined && tags[i].value != "")
+                          display += "=" + tags[i].value;
+                        display += "</span>";
+                      }
+                      return display;
+                    }
+                },
+            }
         }
     });
   </script>
