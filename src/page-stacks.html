@@ -1,7 +1,10 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="stacks/stack-create.html">
 <link rel="import" href="stacks/stack-page.html">
+<link rel="import" href="stacks/stack-actions.html">
 
 <link rel="import" href="page-items.html">
 
@@ -11,12 +14,31 @@
       :host {
         display: block;
       }
+      mist-list::content .error {
+        color: var(--red-color);
+      }
     </style>
     <app-route route="{{route}}"
                 pattern="/:stack"
                 data="{{data}}"></app-route>
-
-    <page-items model="[[model]]" items="[[model.stacksArray]]" section="[[model.sections.stacks]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="stacksList"
+            selectable resizable
+            items="[[model.stacksArray]]"
+            name="Stacks"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.stacks,model.templates)]]
+            route={{route}}
+            user-filter=[[model.sections.stacks.q]]
+            primary-field-name="id">
+          <stack-actions slot="actions" items="[[selectedItems]]"></stack-actions>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="stackAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
     <stack-create model="[[model]]" section="[[model.sections.stacks]]" params="[[route.__queryParams]]" hidden$=[[!_isAddPageActive(route.path)]]></stack-create>
     <stack-page model="[[model]]" stack$="[[_getStack(data.stack, model.stacks)]]" section="[[model.sections.stacks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
   </template>
@@ -47,7 +69,58 @@
           if (this.model.stacks)
               return this.model.stacks[id];
       },
+      _addResource: function(e) {
+          document.querySelector('app-location').set('path', this.model.sections.stacks.add)
+      },
+      _getFrozenLogColumn: function(){
+          return ['name'];
+      },
 
+      _getVisibleColumns: function(){
+          return ['template', 'status', 'tags'];
+      },
+
+      _getRenderers: function(stacks, templates) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      return '<strong>'+ item + '</strong>';
+                  }
+              },
+              'template': {
+                  'body': function(item, row) {
+                      if (_this.model && _this.model.templates)
+                        return  _this.model.templates[item] ? _this.model.templates[item].name : 'missing template';
+                      else
+                        return '';
+                  }
+              },
+              'status': {
+                  'body': function(item, row) {
+                      if (item == "error"){
+                        return "<span class='error'>"+item.charAt(0).toUpperCase() + item.slice(1);+"</span>";
+                      }
+                      else {
+                        return item ? item.replace(/_/g, " ") : '';
+                      }
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              }
+          }
+      }
     });
   </script>
 </dom-module>
