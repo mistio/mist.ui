@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="schedules/schedule-add.html">
 <link rel="import" href="schedules/schedule-page.html">
@@ -7,7 +8,7 @@
 
 <dom-module id="page-schedules">
   <template>
-    <style include="tags-and-labels">
+    <style include="shared-styles">
        :host {
         display: block;
       }
@@ -27,10 +28,13 @@
             primary-field-name="id">
           <schedule-actions slot="actions" items="[[selectedItems]]"></schedule-actions>
       </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="scheduleAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
     </template>
     <schedule-add model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]]></schedule-add>
-    <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules)]]" section="[[model.sections.schedules]]"
-      hidden$=[[!_isDetailsPageActive(route.path)]]></schedule-page>
+    <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules)]]" section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]]></schedule-page>
+
 
   </template>
   <script>
@@ -54,7 +58,9 @@
         if (this.model.schedules)
           return this.model.schedules[id];
       },
-
+      _addResource: function(e) {
+          document.querySelector('app-location').set('path', this.model.sections.schedules.add)
+      },
       _getFrozenLogColumn: function(){
         return ['name'];
       },
