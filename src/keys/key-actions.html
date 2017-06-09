@@ -1,0 +1,176 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="../mist-actions.html">
+
+<dom-module id="key-actions">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: inline-block;
+        color: rgba(255,255,255,0.87);
+      }
+    </style>
+    
+    <mist-actions actions="[[actions]]" type="key" items="[[items]]"></mist-actions>
+
+    <dialog-element id="confirm"></dialog-element>
+
+    <iron-ajax id="request"
+            handle-as="json"
+            loading="{{loadingData}}"
+            on-response="handleResponse"
+            on-error="handleError"></iron-ajax>
+
+  </template>
+  <script>
+KEY_ACTIONS = {
+  'tag': {
+    'name': 'tag',
+    'icon': 'label',
+    'confirm': true,
+    'multi': true
+  },
+  'make_default': {
+    'name': 'make default',
+    'icon': 'favorite',
+    'confirm': false,
+    'multi': false
+  },
+  'delete': {
+    'name': 'delete',
+    'icon': 'delete',
+    'confirm': true,
+    'multi': true
+  }
+}
+    Polymer({ 
+      is: 'key-actions',
+      properties: {
+        items: { 
+          type: Array,
+          value: []
+        },
+        actions: { 
+          type: Array,
+          value: []
+        }
+      },
+      observers:[
+        '_mapPolicyToActions(items.*)'
+      ],
+      listeners: {
+        'perform-action': 'performAction'
+      },
+      ready: function() {},
+      attached: function() {
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
+      },
+      itemActions: function(key) {
+        var arr = [];
+        if (key && !key.isDefault) {
+          arr.push('make_default');
+        }
+        if (key) {
+          arr.push('tag');
+          arr.push('delete');
+        }
+        return arr;
+      },
+      actionDetails: function (actions) {
+        var ret = [];
+        for (var i=0; i<actions.length; i++) {
+            ret.push(KEY_ACTIONS[actions[i]]);
+        }
+        return ret;
+      },
+      _delete: function() {
+        //set up iron ajax
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "DELETE";
+
+        for (var i = 0; i < this.items.length; i++) {
+          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
+          this.$.request.generateRequest();
+          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
+        }
+      },
+      _makeDefault: function(){
+        //set up iron ajax
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
+
+        for (var i = 0; i < this.items.length; i++) {
+          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
+          this.$.request.generateRequest();
+          this.fire('toast', {msg: 'Making key ' + this.items[i].name + " the default.", duration: 1000})
+        }
+
+      },
+      _showDialog: function(info) {
+          var dialog = this.querySelector('dialog-element');
+          for (var i in info) {
+              dialog[i] = info[i];
+          }
+          dialog._openDialog();
+      },
+      performAction: function(e) {
+        // console.log('performAction', e.detail.action);
+        var action = e.detail.action;
+        if (action.name == 'delete') {
+          this._delete();
+        }
+        else if (action.name == 'make default') {
+          this._makeDefault();
+        }
+      },
+      handleResponse: function(e) {
+        if (this.$.request && this.$.request.body && this.$.request.body.action)
+          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+      },
+      _mapPolicyToActions: function (items) {
+        // recompute the actions array property as the intersection
+        // of the available actions of the selected items
+        this.set('actions', []);
+        var actions = new swiftSet.Set(), 
+            isection = new swiftSet.Set();
+
+        if (this.items.length > 0) {
+          actions.addItems(this.itemActions(this.items[0]) || []);
+
+          for (var i=1; i<this.items.length; i++) {
+              isection.clear()
+              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+              actions.clear();
+              actions.addItems(isection.items());
+          }
+
+          var multiActions;
+
+          if (this.items.length > 1) {
+              multiActions = this.actionDetails(actions.items()).filter(function(a){
+                  return a.multi;
+              });
+          }
+          else {
+              multiActions = this.actionDetails(actions.items());
+          }
+        }
+        this.set('actions', multiActions);
+      },
+
+      handleError: function(e) {
+        // console.log(e.detail.request.xhr.statusText);
+        this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
+      }
+    });
+  </script>
+</dom-module>
