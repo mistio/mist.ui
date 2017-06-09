@@ -65,14 +65,14 @@
         return this.model.scripts[id];
       },
       _addResource: function(e) {
-          document.querySelector('app-location').set('path', this.model.sections.templates.add)
+          document.querySelector('app-location').set('path', this.model.sections.scripts.add)
       },
       _getFrozenLogColumn: function(){
           return ['name'];
       },
 
       _getVisibleColumns: function(){
-          return ['exec_type', 'location_type', 'tags'];
+          return ['exec_type', 'location', 'tags'];
       },
 
       _getRenderers: function(templates) {
@@ -81,6 +81,14 @@
               'name': {
                   'body': function(item, row) {
                       return '<strong>'+ item + '</strong>';
+                  }
+              },
+              'exec_type': {
+                  'title': function(item, row) {
+                      return 'exec type';
+                  },
+                  'body': function(item, row) {
+                    return item;
                   }
               },
               'tags': {
@@ -92,6 +100,23 @@
                       if (tags[i].value != undefined && tags[i].value != "")
                         display += "=" + tags[i].value;
                       display += "</span>";
+                    }
+                    return display;
+                  }
+              },
+              'location': {
+                  'body': function(item, row) {
+                    console.log('loc type', item, row);
+                    var display = "";
+                    for (var p in item){
+                      var type = p;
+                      if (p == "source_code")
+                        type = 'INLINE'
+                      else if (p == "repo")
+                        type = "GITHUB"
+                      else if (p == "url")
+                        type = "URL"
+                      display += " "+ type +": "+item[p]+" ";
                     }
                     return display;
                   }
