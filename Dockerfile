@@ -13,7 +13,7 @@ WORKDIR /ui
 
 COPY bower.json /ui/bower.json
 
-RUN bower install && cd bower_components/Chart.js && npm install && gulp build && cd -
+RUN bower install
 
 COPY . /ui
 
