@@ -234,15 +234,12 @@
                 'edit-request': 'editRequest'
             },
             observers: [
-                'updateNewrule(resource, resource.id)',
                 "_computeShowCommandTextarea(newRule.action)",
                 "_computeRules(rules.*, machine, cloud)"
             ],
             ready: function() {
                 this.set("emails","");
                 var new_rule = {
-                        cloudId: '',
-                        machineId: '',
                         metric:"load.shortterm",
                         operator:"gt",
                         value:5,
@@ -251,11 +248,6 @@
                         emails: ''
                     }
                 this.set('newRule', new_rule);
-            },
-            updateNewrule: function(resource, id){
-                // for machines only for now
-                this.set('newRule.cloudId', this.resource.cloud.id);
-                this.set('newRule.machineId', this.resource.machine_id);
             },
             _computeRules: function (rules, machine, cloud) {
                 var rulesArray = [],
@@ -321,6 +313,10 @@
             addRule: function(e){
                 var payload = {};
                     payload = this.newRule;
+
+                payload.cloudId = this.resource.cloud.id;
+                payload.machineId = this.resource.machine_id;
+
                 if (payload["reminder_offset"])
                     payload["reminder_offset"] = (payload["reminder_offset"]-1 )*60;
                 // clean up command
