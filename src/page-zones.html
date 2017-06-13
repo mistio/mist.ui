@@ -1,6 +1,9 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="zones/zone-add.html">
+<link rel="import" href="zones/zone-actions.html">
 <link rel="import" href="zones/zone-page.html">
 
 <link rel="import" href="page-items.html">
@@ -16,8 +19,24 @@
     <app-route route="{{route}}"
                 pattern="/:zone"
                 data="{{data}}"></app-route>
-
-    <page-items model="[[model]]" items="[[model.zonesArray]]" section="[[model.sections.zones]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="zonesList"
+            selectable resizable
+            items="[[model.zonesArray]]"
+            name="Zones"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.zones)]]
+            route={{route}}
+            user-filter=[[model.sections.zones.q]]
+            primary-field-name="id">
+          <zone-actions slot="actions" items="[[selectedItems]]"></zone-actions>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
     <zone-add model="[[model]]" section="[[model.sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></zone-add>
     <zone-page model="[[model]]" zone$="[[_getZone(data.zone, model.zones)]]" section="[[model.sections.zones]]" hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
   </template>
@@ -47,6 +66,47 @@
       _getZone: function(id) {
           if (this.model.zones)
               return this.model.zones[id];
+      },
+      _addResource: function(e) {
+          document.querySelector('app-location').set('path', this.model.sections.zones.add)
+      },
+      _getFrozenLogColumn: function(){
+          return ['domain'];
+      },
+
+      _getVisibleColumns: function(){
+          return ['provider','zone_type', 'id', 'ttl', 'records', 'tags'];
+      },
+
+      _getRenderers: function(zones) {
+          var _this = this;
+          return {
+              'domain': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'records': {
+                  'body': function(item, row) {
+                      return item ? item.length : '';
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    if (item != undefined) {
+                      for (var i=0; i<tags.length; i++){
+                        display += "<span class='tag'>"+tags[i].key;
+                        if (tags[i].value != undefined && tags[i].value != "")
+                          display += "=" + tags[i].value;
+                        display += "</span>";
+                      }
+                    }
+                    return display;
+                  }
+              }
+          }
       }
 
     });
