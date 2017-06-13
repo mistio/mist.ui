@@ -746,7 +746,7 @@
             <div class="loading-data" hidden="{{!loadingData}}">
             </div>
             <div class="machines-list">
-                <item-list section="[[sections.machines]]" items="[[machines]]" sort-by="cost" sort-order="1" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
+                <item-list section="[[model.sections.machines]]" items="[[machines]]" sort-by="cost" sort-order="1" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
             </div>
         </paper-material>
 
@@ -759,7 +759,7 @@
             loading="{{loadingData}}"
             on-response="handleResponse"
             on-error="handleError"
-            params="{{params}}" auto></iron-ajax>
+            params="{{params}}"></iron-ajax>
     
     <iron-ajax id="getReportLoad"
             method="GET"
@@ -768,7 +768,7 @@
             loading="{{loadingDataLoad}}"
             on-response="handleResponseLoad"
             on-error="handleError"
-            params="{{params}}" auto></iron-ajax>
+            params="{{params}}"></iron-ajax>
 
     </template>
     <script>
@@ -778,13 +778,11 @@
 
             properties: {
                 model: Object,
-                sections: Array,
                 insightsEnabled: {
                     type: Boolean,
                     computed: "_computeInsightsEnabled(model.org.*)",
                     value: false
                 },
-                onboarding: Object,
                 largescreen: Boolean,
                 machines: Array,
                 report: {
@@ -1327,6 +1325,8 @@
                     
                     // console.log('p send ', p, this.params);
                     this.set('params', p);
+                    this.$.getReport.generateRequest();
+                    this.$.getReportLoad.generateRequest();
                 }
             }, 
             handleResponse: function(e) {
@@ -1410,10 +1410,10 @@
 
                 if (this.model.stacksArray > 0){
                     stackmachines = this.model.stacks[stack].machines.map(function(m){
-                                    return m.uuid;
+                                    return m.id;
                                 });
                 }
-                return stackmachines.indexOf(machine.uuid) > -1;
+                return stackmachines.indexOf(machine.id) > -1;
             },
             abs: function(perc) {
                 return Math.abs(perc)

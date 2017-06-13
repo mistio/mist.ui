@@ -351,10 +351,10 @@
                 </div>
                 <div class='missing-machines' hidden$="[[!missingMachines.length]]">
                     <template is="dom-repeat" items="[[missingMachines]]">
-                        <div class="machine">1 Missing machine with uuid <code>[[item]]</code></div>
+                        <div class="machine">1 Missing machine with id <code>[[item]]</code></div>
                     </template>
                 </div>
-                <item-list section="[[sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
+                <item-list section="[[model.sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
             </paper-material>
         </div>
         <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
@@ -451,7 +451,8 @@
                 },
                 hasExpired: {
                     type: Boolean,
-                    computed: "_computeHasExpired(schedule)"
+                    value: false,
+                    computed: "_computeHasExpired(schedule.*)"
                 },
                 isSpecificMachines: {
                     type: Boolean,
@@ -526,10 +527,12 @@
                 }
             },
             _computeHasExpired: function(schedule) {
-                if (this.schedule && this.schedule.expires && this.schedule.expires.length && moment().diff(moment.utc(this.schedule.expires).local()) > 0)
-                    return true
-                else
-                    return false
+                if (this.schedule && this.schedule.expires != undefined && this.schedule.expires != "" && this.schedule.expires.length > 0){
+                    return moment().diff(moment.utc(this.schedule.expires).local()) > 0;
+                }
+                else {
+                    return false;
+                }
             },
             _computeIsInterval: function(schedule) {
                 if (this.schedule)
@@ -703,32 +706,32 @@
                 this.set('missingMachines', missingMachines);
             },
             _computeMachinesIds: function(conditions) {
-                var uuids = [];
+                var ids = [];
                 if (!this.conditions.length || !this._findCondition('machines')){
-                    return uuids;
+                    return ids;
                 }
                 else {
-                    uuids = this.conditions.find(function(c){return c.type == "machines"}).ids;
+                    ids = this.conditions.find(function(c){return c.type == "machines"}).ids;
                 }
-                return uuids;
+                return ids;
             },
             condition: function(m) {
                 var fulfillsAge = true,
                     fulfillsCost = true;
 
                 if (this._findCondition('age')){
-                    fulfillsAge = m.extra.created && m.extra.created.trim() != "" ? moment().diff(m.extra.created, 'minutes') > this.schedule.conditions.find(function(con){
+                    fulfillsAge = m.created && m.created.trim() != "" ? moment().diff(m.created, 'minutes') > this.schedule.conditions.find(function(con){
                             return con.type == 'age';
                         }).minutes : false;
                 }
                 if (this._findCondition('cost__monthly')){
-                    fulfillsCost = m.extra.cost_per_month && m.extra.cost_per_month.trim() != "" ? m.extra.cost_per_month > this.schedule.conditions.find(function(con){
+                    fulfillsCost = m.cost && m.cost.monthly ? m.cost.monthly > this.schedule.conditions.find(function(con){
                             return con.field == 'cost__monthly';
                         }).value : false;
                 }
 
                 if (this.isSpecificMachines) {
-                    return this.isSelectedMachine(m.uuid) && fulfillsAge && fulfillsCost;
+                    return this.isSelectedMachine(m.id) && fulfillsAge && fulfillsCost;
                 }
                 else if (this.isMachinesWithTags) {
                     return this.machineHasTag(m) && fulfillsAge && fulfillsCost;

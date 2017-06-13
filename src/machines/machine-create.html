@@ -89,7 +89,7 @@
             <paper-material>
                 <div class="grid-row">
                     <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
-                        <paper-menu attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
+                        <paper-menu attr-for-selected="value" selected="{{selectedCloud::iron-select}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[providers]]" as="provider">
                                 <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
                             </template>
@@ -119,56 +119,57 @@
     </template>
 
     <script>
-SCHEDULEACTIONS = {
-  'reboot': {
-    'name': 'reboot',
-    'icon': 'av:replay',
-    'confirm': true,
-    'multi': true
-  },
-  'start': {
-    'name': 'start',
-    'icon': 'av:replay',
-    'confirm': true,
-    'multi': true
-  },
-  'stop': {
-    'name': 'stop',
-    'icon': 'av:stop',
-    'confirm': true,
-    'multi': true
-  },
-  'suspend': {
-    'name': 'suspend',
-    'icon': 'av:stop',
-    'confirm': true,
-    'multi': true
-  },
-  'resume': {
-    'name': 'resume',
-    'icon': 'av:replay',
-    'confirm': true,
-    'multi': true
-  },
-  'undefine': {
-    'name': 'undefine',
-    'icon': 'image:panorama-fish-eye',
-    'confirm': true,
-    'multi': true
-  },
-  'destroy': {
-    'name': 'destroy',
-    'icon': 'delete',
-    'confirm': true,
-    'multi': true
-  },
-  'run-script': {
-    'name': 'run script',
-    'icon': 'image:movie-creation',
-    'confirm': true,
-    'multi': false
-  }
-};
+        SCHEDULEACTIONS = {
+            'reboot': {
+                'name': 'reboot',
+                'icon': 'av:replay',
+                'confirm': true,
+                'multi': true
+            },
+            'start': {
+                'name': 'start',
+                'icon': 'av:replay',
+                'confirm': true,
+                'multi': true
+            },
+            'stop': {
+                'name': 'stop',
+                'icon': 'av:stop',
+                'confirm': true,
+                'multi': true
+            },
+            'suspend': {
+                'name': 'suspend',
+                'icon': 'av:stop',
+                'confirm': true,
+                'multi': true
+            },
+            'resume': {
+                'name': 'resume',
+                'icon': 'av:replay',
+                'confirm': true,
+                'multi': true
+            },
+            'undefine': {
+                'name': 'undefine',
+                'icon': 'image:panorama-fish-eye',
+                'confirm': true,
+                'multi': true
+            },
+            'destroy': {
+                'name': 'destroy',
+                'icon': 'delete',
+                'confirm': true,
+                'multi': true
+            },
+            'run-script': {
+                'name': 'run script',
+                'icon': 'image:movie-creation',
+                'confirm': true,
+                'multi': false
+            }
+        };
+
         (function() {
             'use strict';
 
@@ -183,7 +184,8 @@ SCHEDULEACTIONS = {
                     },
                     machineFields: {
                         type: Array,
-                        value: []
+                        value: [],
+                        notify: true
                     },
                     machinesFields: Array,
                     providers: {
@@ -199,7 +201,6 @@ SCHEDULEACTIONS = {
                 },
                 observers: [
                     '_cloudChanged(selectedCloud, machinesFields)',
-                    '_modelChanged(model.*)',
                     '_machineFieldsChanged(model, selectedCloud, machineFields.*)'
                 ],
                 listeners: {
@@ -236,9 +237,15 @@ SCHEDULEACTIONS = {
                     }
                 },
                 _cloudChanged: function(selectedCloud, machinesFields) {
-                    if (selectedCloud){
+                    if (this.machineFields){
+                        this.machineFields.forEach(function(f, index){
+                            this.set('machineFields.'+index+'.value', this.get('machineFields.'+index+'.defaultValue'));
+                        }.bind(this));
+                    }
+                    this.set('machineFields', []);
+
+                    if (this.selectedCloud){
                         var cloudName =  this.model.clouds[selectedCloud].provider.split('_')[0];
-                        console.log('cloud name', cloudName)
                         var machineFields = this.machinesFields.find(function(c){
                             return c.provider == cloudName;
                         });
@@ -246,13 +253,13 @@ SCHEDULEACTIONS = {
                     else {
                         machineFields = []
                     }
-                    // if (machineFields.length > 0)
+                    this.set('machineFields', []);
                     this.set('machineFields', machineFields.fields || []);
-
-                    this._updateFields();
+                    this._updateFields(selectedCloud);
                 },
                 _resetForm: function() {
                     // Reset Form Fields
+                    this.set('selectedCloud', false)
                     this.machineFields.forEach(function(el, index) {
                         if (el.showIf) {
                             this.set('machineFields.' + index + '.show', false);
@@ -269,10 +276,13 @@ SCHEDULEACTIONS = {
                         input.invalid = false;
                     }
                 },
-                _updateFields: function(){
-                    if (this.selectedCloud) {
+
+                _updateFields: function(selectedCloud){
+                    if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this.selectedCloud]) {
                         var cloudId = this.selectedCloud;
-                        console.log('cloudId', cloudId);
+
+                        if (!this.monitoring) // hide enable monitoring field if monitoring is disabled
+                            this.set('machineFields.' + this._fieldIndexByName('monitoring') + '.show', false);
 
                         // if is onapp change fields
                         if (this.model.clouds[this.selectedCloud].provider == "onapp"){
@@ -280,6 +290,10 @@ SCHEDULEACTIONS = {
                         }
 
                         this.machineFields.forEach(function(f, index) {
+                            // clear options
+                            if (f.options) 
+                                f.options = []
+
                             if (f.name.endsWith("location")) {
                                 f.options = this.model.clouds[cloudId].locationsArray || [];
                             }
@@ -318,7 +332,7 @@ SCHEDULEACTIONS = {
                                f.options = this.scheduleActions || [];
                             }
 
-                            // for openstack this sould be multi selection
+                            // for openstack this should be multi selection
                             if (f.name.endsWith("networks")) {
                                 f.options = this.model.clouds[cloudId].networksArray || [];
                             }
@@ -329,6 +343,10 @@ SCHEDULEACTIONS = {
                                 else
                                    this.set('machineFields.'+index+'.value', f.options[0].id);
                             }
+
+                            // update options
+                            if (f.options)
+                                this.set('machineFields.'+index+'.options', f.options);
 
                         }, this);
 
@@ -344,8 +362,10 @@ SCHEDULEACTIONS = {
 
                     }
                 },
+
                 _machineFieldsChanged: function(model, selectedCloud, changeRecord){
-                    if (this.selectedCloud){
+                    // console.log('model, selected cloud or machine fields changed', this.selectedCloud, changeRecord);
+                    if (this.selectedCloud && this.model && this.model.clouds && this.model.clouds[this.selectedCloud]){
                         // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
                         if (this.model.clouds[this.selectedCloud].provider == "docker" && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'ports'){
                             // TODO: remove _mapPortsToDockerPorts, when backend is ready to accept docker_port_bindings as string
@@ -501,6 +521,7 @@ SCHEDULEACTIONS = {
                         }
                     }
                 },
+
                 _mapPortsToDockerPorts: function(input){
                     var lines = input.split('\n');
                     var docker_exposed_ports = {};
@@ -540,8 +561,8 @@ SCHEDULEACTIONS = {
                         this.set('machineFields.'+indDep+'.value', docker_exposed_ports);
                     if (indDpb)
                         this.set('machineFields.'+indDpb+'.value', docker_port_bindings);
-
                 },
+
                 _includeImageExtra: function(image){
                     if (image) {
                         // save in fields
@@ -550,6 +571,7 @@ SCHEDULEACTIONS = {
                             this.set('machineFields.'+indImEx+'.value', this.model.clouds[this.selectedCloud].images[image].extra);
                     }
                 },
+
                 _includeLocationName: function(location){
                     if (location) {
                         // save in fields
@@ -558,6 +580,7 @@ SCHEDULEACTIONS = {
                             this.set('machineFields.'+indLocName+'.value', this.model.clouds[this.selectedCloud].locations[location].name);
                     }
                 },
+
                 _updateDiskMax: function(name, value, total){
                     var sizeInd = this._fieldIndexByName(name),
                         location = this.model.clouds[this.selectedCloud].locations[this.get('machineFields.'+this._fieldIndexByName('location')+'.value')];
@@ -571,15 +594,14 @@ SCHEDULEACTIONS = {
                     if (total && total-value > 0)
                         this.set('machineFields.'+ sizeInd +'.max', total-value);
                 },
+
                 _updateFieldsForOnapp: function () {
                     var keyInd = this._fieldIndexByName('key');
                     this.set('machineFields.'+ keyInd +'.required', false);
                     this.set('machineFields.'+ keyInd +'.label', "Key");
                     this.set('machineFields.'+ keyInd +'.helptext', "Optional.");
-
-                    var monInd = this._fieldIndexByName('monitoring');
-                    this.set('machineFields.'+ monInd +'.value', false);
                 },
+
                 _updateFieldMinsForOnapp: function(image) {
                     var image = this.model.clouds[this.selectedCloud].images[image];
 
@@ -593,7 +615,7 @@ SCHEDULEACTIONS = {
                     this.set('machineFields.'+ramInd+'.min', image.extra.min_memory_size);
                     this.set('machineFields.'+diskInd+'.min', image.extra.min_disk_size);
 
-                    console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
+                    // console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
                 },
                 _updateFieldOptionsForOnapp: function(loc) {
                     var location = this.model.clouds[this.selectedCloud].locations[loc];
@@ -717,7 +739,7 @@ SCHEDULEACTIONS = {
                         this.set('machineFields.'+ inlineInd +'.excludeFromPayload', true);
                     }
 
-                    console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
+                    // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
                 },
                 _fieldIndexByName: function(name){
                     var index;
@@ -728,13 +750,15 @@ SCHEDULEACTIONS = {
                     return index;
                 },
                 _machineCreateResponse: function(e){
-                    console.log('creation resp', e);
+                    // console.log('creation resp', e);
                     var response = JSON.parse(e.detail.xhr.response);
                     document.querySelector('app-location').set('path', '/machines');
-                    document.querySelector('page-machines').set('jobId', response.job_id)
+                    document.querySelector('page-machines').set('jobId', response.job_id);
+
+                    this._resetForm();
                 },
                 _machineCreateError: function(e){
-                    console.log('creation failed', e)
+                    // console.log('creation failed', e)
                 },
                 _computeProviders: function(model, clouds){
                     //exclude bare metals and other from provider dropdown list
@@ -809,12 +833,7 @@ SCHEDULEACTIONS = {
                         this.set('machineFields.'+ scheduleScriptInd +'.options', this.model.scriptsArray || []);
                         this.set('machineFields.'+ scheduleScriptInd +'.value', e.detail.script);
                     }.bind(this), 1000);
-                },
-                _modelChanged: function(changeRecord){
-                    if (changeRecord.path.indexOf("Array") != -1 && changeRecord.path.indexOf("projectsArray") == -1){
-                        // this._updateFields();
-                    }
-                },
+                }
             });
         })();
     </script>

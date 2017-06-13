@@ -23,6 +23,14 @@
             opacity: 1;
         }
 
+        :host[xsmallscreen] {
+            flex-wrap: wrap;
+        }
+
+        :host[xsmallscreen] > paper-material {
+            flex-basis: 100%;
+        }
+
         h3 {
             text-transform: uppercase;
             font-size: 13px;
@@ -119,7 +127,7 @@
                         <div class="list layout horizontal wrap">
                             <a class="list-item red flexchild layout horizontal" href$="[[machineUri(item, model.cloudsArray, model.machinesArray)]]">
                                 <div class="flexchild expression">
-                                    <iron-icon icon="[[sections.machines.icon]]"></iron-icon>
+                                    <iron-icon icon="[[model.sections.machines.icon]]"></iron-icon>
                                     <span class="machine flexchild">[[machineName(item, model.cloudsArray, model.machinesArray)]]</span>: <span class="rule-condition">[[ruleCondition(item)]]</span>
                                 </div>
                                 <span class="time">
@@ -165,8 +173,9 @@ Polymer({
             type: Number,
             notify: true
         },
-        sections: {
-            type: Object
+        xsmallscreen: {
+            type: Boolean,
+            reflectToAttribute: true
         },
         selectedInc: String
     },
@@ -201,12 +210,12 @@ Polymer({
         if (this.model && this.model.clouds && item.logs.length && item.cloud_id && item.machine_id){
             return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id] ? item.logs[0].machine_name : item.logs[0].machine_name +': Machine is missing';
         }
-        return this.model.clouds[item.cloud_id].machines[item.machine_id].name || 'Machine is missing';
+        return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id].name || 'Machine is missing';
     },
     machineUri: function(item, clouds, machines) {
         // give machine url only if machine axists
         if (this.model && this.model.clouds && this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id]){
-            return '/machines/'  + this.model.clouds[item.cloud_id].machines[item.machine_id].uuid;
+            return '/machines/'  + this.model.clouds[item.cloud_id].machines[item.machine_id].id;
         }
         else {
             console.log('incident for missing machine '+[item.machine_id]+' in cloud '+[item.cloud_id]);

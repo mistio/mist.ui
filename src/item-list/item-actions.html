@@ -161,10 +161,10 @@
             </div>
           </paper-dialog>
           <dialog-element hidden></dialog-element>
-          <tags-list id="tagsdialog" model="[[computeModel()]]" items="[[selectedItems]]"></tags-list>
+          <tags-list id="tagsdialog" model="[[model]]" items="[[selectedItems]]"></tags-list>
           <run-script-on-machine id="runscriptdialog" items="[[selectedItems]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
           <associate-key id="associatekeydialog" items="[[selectedItemsOfCurrentSection]]" model="[[model]]"></associate-key>
-          <machine-edit id="renamedialog" items="[[selectedItemsOfCurrentSection]]" model="[[model]]"></machine-edit>
+          <machine-edit id="renamedialog" items="" model="[[model]]"></machine-edit>
         </content>
     </template>
 </dom-module>
@@ -438,11 +438,8 @@ Polymer({
 
         if (this.get('selectedItems.length') != 1)
             item_type+='s';
-
-        // if (item_type != "undefined")
-        //     return item_type;
-        // if (item_type == "undefined")
-            return this.section.id;
+        
+        return this.section.id;
     },
 
     itemIndex: function(itemUid) {
@@ -482,7 +479,7 @@ Polymer({
 
         item.type = item_type;
         var ret = [];
-        if (item.type != 'machine' && item.type != 'network' && item.type != 'zone') {
+        if (item.type != 'machine' && item.type != 'network' && item.type != 'zone' && item.type != 'record') {
             ret.push('tag');
         }
         if (item.type == 'machine') {
@@ -491,27 +488,27 @@ Polymer({
               // if not monitoring then enable monitoring
               ret.push('associate-key');
               ret.push('shell');
-              if (item.keys.length) {
+              if (item.key_associations.length) {
                   ret.push('run-script');
               }
             }
-            if (item.can_tag)
+            if (item.actions.tag)
                 ret.push('tag');
-            if (item.can_start)
+            if (item.actions.start)
                 ret.push('start');
-            if (item.can_stop)
+            if (item.actions.stop)
                 ret.push('stop');
-            if (item.can_suspend)
+            if (item.actions.suspend)
                 ret.push('suspend');
-            if (item.can_reboot)
+            if (item.actions.reboot)
                 ret.push('reboot');
-            if (item.can_resume)
+            if (item.actions.resume)
                 ret.push('resume');
-            if (item.can_rename)
+            if (item.actions.rename)
                 ret.push('rename');
-            if (item.can_destroy)
+            if (item.actions.destroy)
                 ret.push('destroy');
-            if (item.can_undefine)
+            if (item.actions.undefine)
                 ret.push('undefine');
         } else if (item.type == 'image') {
             if (item.star) {
@@ -532,6 +529,10 @@ Polymer({
         } else if (item.type == 'network') {
             ret.push('delete');
         } else if (item.type == 'zone') {
+            ret.push('tag');
+            ret.push('delete');
+        } else if (item.type == 'record') {
+            ret.push('tag');
             ret.push('delete');
         } else if (item.type == 'tunnel') {
             // if(item.active)
@@ -671,12 +672,12 @@ Polymer({
                 return;
             } else if ( ['reboot','start', 'stop', 'suspend', 'resume', 'undefine', 'destroy'].indexOf(action.name) > -1) {
                 // rename excluded
-                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id;
+                uri = '/api/v1/machines/' + item.id;
                 payload = {'action': action.name};
                 console.log(action.name);
             } else if (action.name == 'probe') {
-                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id+ '/probe';
-                payload = {'host': item.public_ips[0], 'key': item.keys[0]};
+                uri = '/api/v1/machines/' + item.id+ '/probe';
+                payload = {'host': item.public_ips[0], 'key': item.key_associations[0]};
             //templates
             } else if (action.name == 'delete' && item.type == 'template') {
                 uri = '/api/v1/templates/' + item.id;
@@ -712,6 +713,10 @@ Polymer({
             } else if (action.name == 'delete' && item.type == 'zone') {
                 uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.id;
                 method = 'DELETE';
+            //records
+            } else if (action.name == 'delete' && item.type == 'record') {
+                uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.zone_id + '/records/' + item.id;
+                method = 'DELETE';
             //tunnels
             } else if (action.name == 'delete' && item.type == 'tunnel') {
                 uri = '/api/v1/tunnels/' + item.id;
@@ -736,7 +741,7 @@ Polymer({
                         console.log(action, 'success');
                         message = 'Successfully '+ this.inPast(action.name) +' '+ this.section.id.slice(0,this.section.id.length-1) +'. Updating...'; //
                         // for machines destroy only and only if in machine page
-                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.uuid){
+                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.id){
                             document.querySelector('app-location').set('path', '/machines');
                         }
                         // for other resources and only if in deleted item's single page
@@ -765,8 +770,7 @@ Polymer({
             xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
             xhr.send(JSON.stringify(payload));
 
-            var thisid = item.uuid || item.id;
-            var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][thisid].name;
+            var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][item.id].name;
             this.fire('performing-action', {log: logMessage});
       }.bind(this);
 

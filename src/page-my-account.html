@@ -17,16 +17,19 @@
             #container {
                 max-width: 600px;
             }
+
             paper-tabs,
             paper-toolbar {
                 background-color: #d3d3d3;
                 color: #000;
                 --paper-tabs-selection-bar-color: #2196F3;
             }
-            iron-pages > * ::content paper-material {
+
+            iron-pages>* ::content paper-material {
                 padding: 0;
                 display: block;
             }
+
             #content {
                 max-width: 900px;
             }
@@ -35,7 +38,7 @@
             <paper-tabs attr-for-selected="data-route" selected="{{selected}}">
                 <paper-tab id="Profile" data-route="0">Profile</paper-tab>
                 <paper-tab id="Password" data-route="1">Password</paper-tab>
-                <paper-tab id="Billing" data-route="2" hidden$="[[!org.is_owner]]">Billing</paper-tab>
+                <paper-tab id="Billing" data-route="2" hidden$="[[!_showBilling(org.is_owner, billing)]]">Billing</paper-tab>
                 <paper-tab id="Active Sessions" data-route="3">Active Sessions</paper-tab>
                 <paper-tab id="API Tokens" data-route="4">API Tokens</paper-tab>
                 <paper-tab data-route="5" hidden$="[[!org.is_owner]]">Subscription History</paper-tab>
@@ -46,7 +49,7 @@
                 <password-page user="[[user]]" data-route="1"></password-page>
                 <plans-list is-over-using="[[isOverUsing]]" org="[[org]]" user="[[user]]" data-route="2" hidden$="[[!org.is_owner]]"></plans-list>
                 <sessions-list org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
-                <tokens-list org="[[org]]" user="[[user]]" data-route="4" ></tokens-list>
+                <tokens-list org="[[org]]" user="[[user]]" data-route="4"></tokens-list>
                 <subscriptions-list org="[[org]]" data-route="5" hidden$="[[!org.is_owner]]"></subscriptions-list>
             </iron-pages>
 
@@ -65,13 +68,17 @@
             sessions: Array,
             selected: {
                 value: 0
-            }
+            },
+            billing: false
         },
-        attached: function(){
+        attached: function () {
             // console.log(document.querySelector("app-location").queryParams);
             if (document.querySelector("app-location").queryParams["plans"] == "true") {
-                this.set("selected",2);
+                this.set("selected", 2);
             }
+        },
+        _showBilling: function(is_owner, has_billing) {
+            return is_owner && has_billing;
         }
     });
 </script>

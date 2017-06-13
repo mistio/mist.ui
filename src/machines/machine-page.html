@@ -2,12 +2,12 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../item-list/item-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
-<link rel="import" href="../logs/log-list.html">
 <link rel="import" href="../mist-monitoring.html">
 
 <link rel="import" href="machine-edit.html">
@@ -305,6 +305,7 @@
             .shorteco.longeco {
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
             }
+
             @media (max-width: 1024px) {
                 .machine-key {
                     display: block;
@@ -342,8 +343,6 @@
                 }
                 table.info-table tr {
                     display: block;
-                    width: calc(100% - 123px);
-                    overflow: scroll;
                 }
                 table.info-table tr > td {
                     width: calc(50% - 34px);
@@ -361,6 +360,21 @@
                 paper-menu-button[vertical-align="top"] ::content .dropdown-content.paper-menu-button {
                     max-height: 200px !important;
                 }
+            }
+            iron-icon.icon {
+                margin-right: 4px;
+            }
+
+            paper-material.machine-logs {
+                padding: 0;
+                overflow: visible;
+            }
+            mist-list {
+                position: relative;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                height: 600px;
             }
         </style>
 
@@ -385,21 +399,21 @@
             <div class="columns">
                 <paper-material id="leftcolumn" class="left">
                     <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span>
-                        <iron-icon src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
+                        <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
                         [[machine.cloud.title]]</span>
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
-                        <iron-icon src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
+                        <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
                         [[_computeMachineSize(machine)]]</span>
-                    <span hidden$="[[!machine.extra.created]]"><span class="m-info-head">Created:</span>
-                        [[machine.extra.created]]</span>
+                    <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
+                        [[machine.created]]</span>
                     <div hidden$="[[!probeData]]"> <span class="m-info-head">Probe Data:</span>
                         <span class$="probe-data [[itemProbeClasses(machine, model.probes)]]"> </span>
                         <span hidden$="[[!probeData]]"> [[probeData]] </span> <br/>
                         <span hidden$="[[!lastProbe]]"> [[lastProbe]] </span>
                     </div>
-                    <div class="probe-button" hidden$="[[!machineKeys.length]]" >
+                    <div class="probe-button" hidden$="[[!machine.key_associations.length]]" >
                         <paper-button id="probeButton" on-tap="_probeMachine" disabled="{{probeLoading}}">probe now</paper-button>
                         <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
                     </div>
@@ -418,13 +432,19 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
+                    <div hidden$="[[!machine.cost]]">
+                        <h3 class="smallcaps">Monthly Cost:</h3>
+                        <div class="associatedKeys">
+                            $[[_toFixed(machine.cost.monthly)]]
+                        </div>
+                    </div>
                     <div hidden$="[[!machineKeys.length]]">
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
-                            <template is="dom-repeat" items="{{machineKeys}}">
+                            <template is="dom-repeat" items="[[machineKeys]]" as="key">
                                 <div class="machine-key">
-                                    <a class="regular blue-link flexchild" href$="/keys/[[item.id]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[item.name]]</a>
-                                    <iron-icon data-keyid="[[item.id]]" data-keyname="[[item.name]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
+                                    <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
+                                    <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
                             <div class="machine-key" id="pendingKeyRequest">
@@ -440,6 +460,7 @@
                     </div>
                 </paper-material>
             </div>
+            <template is="dom-if" if=[[monitoring]]>
             <paper-material id="monitoringBlock" class="info-card">
                 <mist-monitoring
                     id="mistMonitoring"
@@ -448,10 +469,11 @@
                     section="[[section]]"
                     datasources="[[datasources]]"
                     hidden$="[[hidden]]"
-                    machine-keys="[[machineKeys]]"></mist-monitoring>
+                    machine-keys="[[machineKeys]]"
+                    incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"></mist-monitoring>
                 <mist-rules
                     id="monitoringRules"
-                    machine="[[machine.id]]"
+                    machine="[[machine.machine_id]]"
                     cloud="[[machine.cloud.id]]"
                     builtin-metrics="[[model.monitoring.builtin_metrics]]"
                     custom-metrics="[[model.monitoring.custom_metrics]]"
@@ -459,20 +481,21 @@
                     rules="[[model.monitoring.rules]]"
                     resource="[[machine]]"
                     user-email="[[model.user.email]]"
-                    hidden$="{{!isActivated}}"></mist-rules>
+                    hidden$="[[!isActivated]]"></mist-rules>
             </paper-material>
+            </template>
             <paper-material class="info-card">
                 <h2 style$="color:#fff;background-color: [[section.color]];">Basic Info</h2>
                 <div class="card-content">
                     <table class="info-table">
                         <template is="dom-if" if="[[machine.public_ips]]">
                             <tr>
-                                <td>Machine ID</td>
+                                <td>Machine ID (Mist.io unique id)</td>
                                 <td>[[machine.id]]</td>
                             </tr>
                             <tr>
-                                <td>UUID</td>
-                                <td>[[machine.uuid]]</td>
+                                <td>Machine ID given by the provider</td>
+                                <td>[[machine.machine_id]]</td>
                             </tr>
                             <tr><td>Public IPs</td>
                                 <td><template is="dom-repeat" items="[[machine.public_ips]]">
@@ -507,13 +530,26 @@
                     </table>
                 </div>
             </paper-material>
-            <paper-material class="info-card">
+            <paper-material class="info-card" hidden$=[[!_hasExtra(machine)]]>
                 <h2 style$="color:#fff;background-color: [[section.color]];">More Info</h2>
                 <div class="card-content">
                     <element-for-in content="[[machine.extra]]"></element-for-in>
                 </div>
             </paper-material>
-            <log-list resource-filter="[[machineLogFilter]]"></log-list>
+
+            <paper-material class="machine-logs">
+                <template is="dom-if" if=[[machine.machine_id]] restamp>
+                    <mist-list id="machineLogs"
+                        timeseries expands column-menu searchable streaming infinite toolbar
+                        apiurl="/api/v1/logs"
+                        name="machine logs"
+                        frozen=[[_getFrozenLogColumn()]]
+                        visible=[[_getVisibleColumns()]]
+                        renderers=[[_getRenderers(model.members)]]
+                        primary-field-name="time"
+                        base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
         <iron-ajax  id="machineDeleteAjaxRequest"
@@ -523,7 +559,7 @@
                     on-error="_handleMachineDeleteAjaxError"></iron-ajax>
 
         <iron-ajax  id="disassociateKeyRequest"
-                    url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/keys/[[disassociateKeyId]]"
+                    url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]"
                     method="DELETE"
                     on-response="_disassociateKeyResponse"
                     on-error="_disassociateKeyError"
@@ -531,13 +567,13 @@
                     handle-as="xml"></iron-ajax>
 
         <iron-ajax  id="probeMachine"
-                    url="/api/v1/clouds/[[machine.cloud.id]]/machines/[[machine.id]]/probe"
+                    url="/api/v1/machines/[[machine.id]]/probe"
                     method="POST"
                     loading="{{probeLoading}}"
                     on-error="_probeError"
                     handle-as="xml"></iron-ajax>
 
-        <machine-edit machine="[[machine]]"></machine-edit>
+        <!-- <machine-edit model="[[model]]" items="[[itemInArray]]"></machine-edit> -->
         <paper-toast></paper-toast>
     </template>
 </dom-module>
@@ -655,7 +691,7 @@ Polymer({
         },
         machineImage: {
             type: String,
-            computed: "_machineImage(machine.imageId)"
+            computed: "_machineImage(machine.image_id)"
         },
         dashboard: {
             type: Object
@@ -684,7 +720,7 @@ Polymer({
         },
         machineKeys: {
             type: Array,
-            computed: '_computeAssociatedKeys(machine.*, machine.keys.*, machine.keys.length, model.keysArray.*)',
+            computed: '_computeAssociatedKeys(machine, machine.key_associations)',
             value: [],
             notify: true
         },
@@ -722,6 +758,10 @@ Polymer({
         machineLogFilter: {
             type: Object,
             computed: "_computeMachineLogFilter(machine)"
+        },
+        monitoring: {
+            type: Boolean,
+            value: false
         }
     },
     observers: [
@@ -748,24 +788,26 @@ Polymer({
             if(this.hideAssociatedKeys)
                 ret.push('run-script');
         }
-        if (item && item.can_tag)
-            ret.push('tag');
-        if (item && item.can_start)
-            ret.push('start');
-        if (item && item.can_stop)
-            ret.push('stop');
-        if (item && item.can_suspend)
-            ret.push('suspend');
-        if (item && item.can_reboot)
-            ret.push('reboot');
-        if (item && item.can_resume)
-            ret.push('resume');
-        if (item && item.can_rename)
-            ret.push('rename');
-        if (item && item.can_destroy)
-            ret.push('destroy');
-        if (item && item.can_undefine)
-            ret.push('undefine');
+        if (item) {
+            if (item.actions.tag)
+                ret.push('tag');
+            if (item.actions.start)
+                ret.push('start');
+            if (item.actions.stop)
+                ret.push('stop');
+            if (item.actions.suspend)
+                ret.push('suspend');
+            if (item.actions.reboot)
+                ret.push('reboot');
+            if (item.actions.resume)
+                ret.push('resume');
+            if (item.actions.rename)
+                ret.push('rename');
+            if (item.actions.destroy)
+                ret.push('destroy');
+            if (item.actions.undefine)
+                ret.push('undefine');
+        }
 
         var actions = [];
         for (var i = 0; i < ret.length; i++) {
@@ -778,18 +820,18 @@ Polymer({
     _computeItemInArray: function() {
         return [this.machine];
     },
-
+    _computeKeyName: function(keyid){
+        return this.model.keys[keyid].name || 'not found';
+    },
     _computeThisItemUid: function(machine) {
         var itemUidInArray = [];
-        itemUidInArray.push(itemUid(this.machine, this.sections['machines']));
+        itemUidInArray.push(itemUid(this.machine, this.model.sections['machines']));
         return itemUidInArray;
     },
-    _computeAssociatedKeys: function(machine, machinekeys, length, keys) {
-        var keys = this.model.keysArray.filter(function(k) {
-            return k.machines.find(function(m) {
-                return m[1] == this.machine.id && m[0] == this.machine.cloud.id;
-            }, this)
-        }, this);
+    _computeAssociatedKeys: function(machine) {
+        var keys;
+        if (machine)
+            keys = machine.key_associations;
         return keys || [];
     },
     computeMachineIp: function(machineips) {
@@ -814,12 +856,14 @@ Polymer({
             this.set('isMonitored', false);
         }
     },
-    _computeIsActivated: function(machine, monitoring, isInPage){
-        // if (!this.machine || this.model.monitoring || !this.model.monitoring.monitored_machines || !this.model.monitoring.monitored_machines[machine.uuid] || !this.model.monitoring.monitored_machines[machine.uuid].installation_status.activated_at)
-        //     return false;
-        // else
-        if (this.model.monitoring.monitored_machines[machine.uuid])
-            return this.model.monitoring.monitored_machines[machine.uuid].installation_status.activated_at;
+    _computeIsActivated: function(machine, monitoring){
+        // console.log('_computeIsActivated', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
+        if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !this.model.monitoring.monitored_machines[machine.id] || !this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at){
+            return false;
+        }
+        else if (this.model && this.model.monitoring && this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[machine.id] && this.model.monitoring.monitored_machines[machine.id].installation_status){
+            return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
+        }
     },
     _machineImage: function(id) {
         var image = this.model.imagesArray.find(function(image) {
@@ -920,13 +964,13 @@ Polymer({
         }
     },
     _computeProbeData: function(machine, probes){
-        if (this.model && this.model.probes && this.model.probes[machine.uuid] && this.model.probes[machine.uuid].loadavg.length)
-            return this.model.probes[machine.uuid].loadavg[0]+", "+this.model.probes[machine.uuid].loadavg[1]+", "+this.model.probes[machine.uuid].loadavg[2]+" - "+this.model.probes[machine.uuid].cores+" cores. Last probe: "+moment(this.model.probes[machine.uuid].timestamp*1000).fromNow();
+        if (this.model && this.model.probes && this.model.probes[machine.id] && this.model.probes[machine.id].loadavg.length)
+            return this.model.probes[machine.id].loadavg[0]+", "+this.model.probes[machine.id].loadavg[1]+", "+this.model.probes[machine.id].loadavg[2]+" - "+this.model.probes[machine.id].cores+" cores. Last probe: "+moment(this.model.probes[machine.id].timestamp*1000).fromNow();
     },
     _computeDirtyCowAlert: function(machine, probes){
          var info = "";
-         if (this.model && this.model.probes && this.model.probes[machine.uuid]){
-             if (this.model.probes[machine.uuid].dirty_cow != undefined)
+         if (this.model && this.model.probes && this.model.probes[machine.machine_id]){
+             if (this.model.probes[machine.id].dirty_cow != undefined)
                  info += "Dirty COW vulnerability found. Update kernel.";
          }
          return info.length ? info : '';
@@ -935,11 +979,11 @@ Polymer({
         if (!probes) {
             return false;
         } else {
-            if (!this.model || !this.model.probes || !this.model.probes[item.uuid] || !this.model.probes[item.uuid].loadavg) {
+            if (!this.model || !this.model.probes || !this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
                 return false;
             } else {
-                var probe = this.model.probes[item.uuid].loadavg;
-                var cores =  parseInt(this.model.probes[item.uuid].cores);
+                var probe = this.model.probes[item.id].loadavg;
+                var cores =  parseInt(this.model.probes[item.id].cores);
                 var classes = '';
                 var prefix = '';
 
@@ -956,8 +1000,8 @@ Polymer({
         }
     },
     _computeProbeObj: function (machine, probes){
-        if (this.model && this.model.probes && this.model.probes[machine.uuid] && this.model.probes[machine.uuid])
-            return this.model.probes[machine.uuid];
+        if (this.model && this.model.probes && this.model.probes[machine.id] && this.model.probes[machine.id])
+            return this.model.probes[machine.id];
         return false;
     },
     loadToColor: function(load, prefix){
@@ -983,14 +1027,17 @@ Polymer({
 
     },
     _computeMachineImage: function(item){
-        if (item && item.image && typeOf(item.image) != "object"){
+        if (item && item.image && typeof(item.image) != "object"){
             return item.image;
+        }
+        else if (item && item.extra.image && typeof(item.extra.image) == "string") {
+            return item.extra.image;
         }
         else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
             return item.extra.image.distribution + " " +item.extra.image.name;
         }
-        else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.extra.image)){
-            return item.extra['image_id'] || item.imageId || item.extra.image.slug || item.extra.image.name || 'not found';
+        else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id || item.extra.image)){
+            return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug || item.extra.image.name;
         }
         else
             return "not found";
@@ -1024,7 +1071,7 @@ Polymer({
     },
     _probeMachine: function(e){
         var payload = {
-            'key': this.machineKeys[0].id
+            'key': this.machineKeys[0].keypair
         };
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.probeMachine.params = payload;
@@ -1037,8 +1084,7 @@ Polymer({
         if (machine)
             return {
                 "cloud_id": machine.cloud.id,
-                "machine_id": machine.id,
-                "machine_uuid": machine.uuid
+                "machine_id": machine.machine_id
             }
     },
     _existsImage: function(extra) {
@@ -1104,6 +1150,62 @@ Polymer({
             else
                 return false;
         }
+    },
+
+    _getVisibleColumns: function() {
+        return ['type', 'action', 'user_id']
+    },
+
+    _getFrozenLogColumn: function() {
+        return ['time']
+    },
+
+    _getRenderers: function() {
+        var _this = this;
+        return {
+            'time': {
+                'body': function(item, row) {
+                    var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
+                    if (row.error)
+                        ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                    return ret;
+                }
+            },
+            'user_id': {
+                'title': function(){ return 'user';},
+                'body': function(item) {
+                    if (_this.model && _this.model.members && item in _this.model.members &&
+                        _this.model.members[item] && _this.model.members[item].name &&
+                        _this.model.members[item].name != undefined){
+                        var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name + '</a>';
+                        return ret;
+                    } else console.log(item);
+                    return item || '';
+                }
+            }
+        };
+    },
+
+    _toFixed: function(inp) {
+        return parseFloat(inp).toFixed(2) != "NaN" ? parseFloat(inp).toFixed(2) : '';
+    },
+
+    _hasExtra: function(machine) {
+        if (this.machine && this.machine.extra)
+            return Object.keys(this.machine.extra).length
+        return false
+    },
+
+    _filterMachinesIncidents: function(incarray){
+        if (this.model && this.model.incidentsArray)
+            return this.model.incidentsArray.filter(function(inc){
+                return this._isMachinesIncident(inc);
+            }.bind(this));
+    },
+
+    _isMachinesIncident: function(inc) {
+        if (this.machine)
+            return this.machine.machine_id == inc.machine_id && this.machine.cloud.id == inc.cloud_id;
     }
 });
 </script>

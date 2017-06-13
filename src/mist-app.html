@@ -26,9 +26,10 @@
 <link rel="import" href="styles/shared-styles.html">
 
 <link rel="import" href="mist-header/mist-header.html">
-<link rel="import" href="app-sidebar/app-sidebar.html">
+<link rel="import" href="mist-sidebar.html">
 <link rel="import" href="app-styles/app-styles.html">
 <link rel="import" href="app-icons/app-icons.html">
+<link rel="import" href="account/plan-overusage.html">
 
 <link rel="import" href="mist-socket.html">
 <link rel="import" href="mist-icons.html">
@@ -40,7 +41,6 @@
   <template>
 
     <style>
-
     paper-header-panel {
         background-color: #eee;
     }
@@ -49,7 +49,6 @@
         padding: 24px 24px 0 24px;
         margin-left: 210px;
         overflow: hidden;
-        min-height: 85vh;
         transition: margin-left 350ms ease-in-out;
     }
 
@@ -71,7 +70,7 @@
         right: 0;
         bottom: 0;
         position: absolute;
-        height: 100vh;
+        height: 95%;
         background-color: #eee;
         display: block;
         z-index: 0;
@@ -79,6 +78,9 @@
     #main-loader.is-loading-html.center, 
     #main-loader.is-loading-html[smallscreen] {
         left: 0;
+    }
+    #main-loader {
+        overflow: hidden;
     }
     paper-spinner {
         width: 80px;
@@ -96,6 +98,7 @@
 
     <style is="custom-style" include="shared-styles"></style>
     <iron-media-query query="(max-width: 1024px)" query-matches="{{smallscreen}}"></iron-media-query>
+    <iron-media-query query="(max-width: 600px)" query-matches="{{xsmallscreen}}"></iron-media-query>
 
     <app-location route="{{route}}"></app-location>
     <app-route
@@ -105,509 +108,603 @@
         tail="{{subroute}}"></app-route>
 
     <paper-header-panel mode="standard" class="fit">
-        <app-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" sections="[[sections]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></app-sidebar>
+        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></mist-sidebar>
+        <plan-overusage is-over-using="[[model.onboarding.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" hidden$=[[!enableBilling]]></plan-overusage>
         <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
           <paper-spinner active="[[loading]]"></paper-spinner>
         </div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" smallscreen$="{{smallscreen}}" fallback-selection="not-found">
-          <page-dashboard name="dashboard" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]" is-over-using="[[model.isOverUsing]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]"></page-dashboard>
-          <page-clouds name="clouds" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-clouds>
-          <page-machines name="machines" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-machines>
-          <page-images name="images" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-images>
-
-          <page-keys name="keys" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-keys>
-
-          <page-networks name="networks" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-networks>
-          <page-zones name="zones" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-zones>
-          <page-tunnels name="tunnels" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-tunnels>
-          <page-scripts name="scripts" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-scripts>
-          <page-schedules name="schedules" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-schedules>
-          <page-templates name="templates" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-templates>
-          <page-stacks name="stacks" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-stacks>
-          <page-teams name="teams" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-teams>
-          <page-members name="members" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-members>
-
-          <page-incidents name="incidents" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-incidents>
-
-          <page-insights name="insights" route="{{subroute}}" q="[[q]]" model="[[model]]" sections="[[sections]]" onboarding="[[onboarding]]"></page-insights>
-
-          <page-my-account name="my-account" is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machinesArray]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]"></page-my-account>
+          <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
+          <page-clouds name="clouds" route="{{subroute}}" model="[[model]]"></page-clouds>
+          <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[enableMonitoring]]></page-machines>
+          <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
+          <page-keys name="keys" route="{{subroute}}" model="[[model]]"></page-keys>
+          <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
+          <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
+          <template is="dom-if" if="[[enableTunnels]]">
+            <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
+          </template>
+          <page-scripts name="scripts" route="{{subroute}}" model="[[model]]"></page-scripts>
+          <page-schedules name="schedules" route="{{subroute}}" model="[[model]]"></page-schedules>
+          <template is="dom-if" if="[[enableOrchestration]]">
+            <page-templates name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
+            <page-stacks name="stacks" route="{{subroute}}" model="[[model]]"></page-stacks>
+          </template>
+          <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac=[[enableRbac]] billing=[[enableBilling]]></page-teams>
+          <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
+          <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
+          <template is="dom-if" if="[[enableInsights]]">
+            <page-insights name="insights" route="{{subroute}}" model="[[model]]"></page-insights>
+          </template>
+          <page-my-account name="my-account" billing=[[enableBilling]] is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machinesArray]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]"></page-my-account>
           <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
         </iron-pages>
         <paper-toast id="mist-toast"></paper-toast>
     </paper-header-panel>
 
-    <mist-socket model="{{model}}" onboarding="{{onboarding}}"></mist-socket>
+    <mist-socket model="{{model}}"></mist-socket>
 
   </template>
 
   <script>
-
     Polymer({
 
-      is: 'mist-app',
+        is: 'mist-app',
 
-      properties: {
+        properties: {
 
-        page: {
-            type: String,
-            reflectToAttribute: true,
-            observer: '_pageChanged'
-        },
-
-        model: {
-            type: Object
-        },
-
-        onboarding: {
-            type: Object
-        },
-
-        sections: {
-            type: Object
-        },
-
-        sectionsArray: {
-            type: Array,
-            notify: true
-        },
-
-        title: {
-            type: String,
-            value: "",
-        },
-
-        q: { // search query
-            type: String,
-            value: ''
-        },
-
-        style: {
-            computed: "_style(page, sections)",
-            value: "background-color: #424242;",
-            notify: true
-        },
-
-        tag: String,
-
-        routeData: Object,
-
-        subroute: Object,
-
-        viewingList: {
-          type: Boolean,
-          computed: '_computeViewingList(subroute)'
-        },
-
-        fingerprint: {
-          type: String,
-          value: ''
-        },
-
-        loading: {
-          type: Boolean,
-          value: true
-        }
-
-      },
-
-      listeners: {
-          'iron-navigate': 'scrollToTop',
-          'page-meta': 'updateTitle',
-          'toast': 'showToast',
-          'subscribeLogEvents': 'subscribeLogEvents',
-          'search': 'updateSearchQuery',
-          'open-and-select' : 'openAndSelect',
-          'update-keys': 'updateKeys',
-          'update-scripts': 'updateScripts',
-          'user-action': '_onUserAction'
-      },
-
-      observers: [
-        '_routePageChanged(routeData.page, subroute.path)'
-      ],
-
-      ready: function(){
-
-      },
-
-      showToast:function(e){
-        var toast=this.querySelector('paper-toast#mist-toast')
-        toast.show({text:e.detail.msg,duration:e.detail.duration});
-      },
-
-      openAndSelect: function(e){
-        document.addEventListener('open-and-select', function(e) {
-            this.querySelector('machine-page item-actions associate-key').openAndSelect(e);
-        }.bind(this));
-      },
-
-      updateKeys: function(e){
-          if (this.querySelector('stack-create'))
-              this.querySelector('stack-create').updateKeys(e);
-          if (this.querySelector('machine-create'))
-              this.querySelector('machine-create').updateKeys(e);
-          if (this.querySelector('cloud-add'))
-              this.querySelector('cloud-add').updateKeys(e);
-      },
-
-      updateScripts: function(e){
-          if (this.querySelector('machine-create'))
-              this.querySelector('machine-create').updateScripts(e);
-          if (this.querySelector('schedule-add'))
-              this.querySelector('schedule-add').updateScripts(e);
-      },
-
-      _style: function(page, sections) {
-          if (page && sections[page]) {
-              return "background-color: " + sections[page].color;
-          }
-          return "background-color: " + sections['dashboard'].color;
-      },
-
-      _routePageChanged: function(page, subpath) {
-        if (page == 'index.html')
-            page = 'dashboard';
-        this.page = page || 'dashboard';
-        if (subpath == '') { // Update iron-list
-            var p = page != '' && page != undefined ? '#'+page : '',
-                i = this.querySelector('iron-list'+p);
-            if (i) {
-                i.fire('iron-resize');
-            }
-        }
-
-      },
-      _pageChanged: function(page) {
-        this.set('loading', true);
-        // Load page import on demand. Show 404 page if fails
-        var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
-        this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-        if (this.querySelector('iron-media-query').queryMatches){
-            document.querySelector('app-sidebar').closeSidebar();
-        }
-      },
-
-      _hideLoader: function() {
-        this.set('loading', false);
-      },
-
-      _showPage404: function() {
-        this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
-        this.page = 'not-found';
-      },
-
-      computeIsViewing: function(page){
-        return this.page == page;
-      },
-
-      updateSearchQuery: function(e){
-          this.set('q', e.detail);
-          this.set('sections.'+this.page+'.q',e.detail || '');
-      },
-
-      ready: function() {
-        this.model = {
-            cloudsArray: [],
-            machinesArray: [],
-            imagesArray: [],
-            keysArray: [],
-            networksArray: [],
-            zonesArray: [],
-            tunnelsArray: [],
-            scriptsArray: [],
-            schedulesArray: [],
-            stacksArray: [],
-            templatesArray: [],
-            teamsArray: [],
-            teams: [],
-            incidentsArray: [],
-            pending: {
-                clouds: true,
-                monitoring: true
+            page: {
+                type: String,
+                reflectToAttribute: true,
+                observer: '_pageChanged'
             },
-            probes: {}
-        };
-        this.model.permissions = {
-            'cloud': [
-                'add',
-                'read',
-                'edit',
-                'remove',
-                'create_resources',
-                'edit_tags',
-                'read_logs',
-            ],
-            'machine': [
-                'read',
-                'edit',
-                'create',
-                'edit_tags',
-                'edit_rules',
-                'edit_graphs',
-                'edit_custom_metrics',
-                'start',
-                'stop',
-                'reboot',
-                'destroy',
-                'resize',
-                'run_script',
-                'open_shell',
-                'associate_key',
-                'disassociate_key',
-                'read_logs',
-            ],
-            'script': [
-                'add',
-                'read',
-                'edit',
-                'run',
-                'remove',
-                'edit_tags',
-                'read_logs',
-            ],
-            'key': [
-                'add',
-                'read',
-                'read_private',
-                'edit',
-                'remove',
-                'edit_tags',
-                'read_logs',
-            ],
-            'template': [
-                'add',
-                'read',
-                'edit',
-                'remove',
-                'apply',
-                'edit_tags',
-                'read_logs',
-            ],
-            'stack': [
-                'create',
-                'read',
-                'edit',
-                'remove',
-                'run_workflow',
-                'edit_tags',
-                'read_logs',
-            ],
-            'tunnel': [
-                'add',
-                'remove',
-                'edit',
-                'read',
-                'edit_tags',
-                'read_logs',
-            ],
-            'schedule': [
-                'add',
-                'read',
-                'edit',
-                'run',
-                'remove',
-                'edit_tags',
-                'read_logs',
-            ]
-            // 'team': [
-            //     'add',
-            //     'read',
-            //     'edit',
-            //     'remove',
-            //     'edit_tags',
-            //     'read_logs',
-            // ],
-        };
 
-        for(i = 1; i<= this.model.teamsArray.length; i++){
-          this.model.teams = this.model.teamsArray[i].teams[i].id;
-        };
+            model: {
+                type: Object
+            },
 
-        this.sectionsArray = [{
-            id: 'dashboard',
-            color: '#424242',
-            q: ''
-        }, {
-            id: 'incidents',
-            color: '#d96557',
-            q: ''
-        }, {
-            id: 'machines',
-            color: '#8c76d1',
-            icon: 'hardware:computer',
-            count: '0',
-            add: '/machines/+create',
-            q: ''
-        }, {
-            id: 'images',
-            color: '#0099cc',
-            icon: 'image:photo',
-            count: '0',
-            q: ''
-        }, {
-            id: 'keys',
-            color: '#009688',
-            icon: 'communication:vpn-key',
-            count: '0',
-            add: '/keys/+add',
-            q: ''
-        }, {
-            id: 'networks',
-            color: '#795548',
-            icon: 'hardware:device-hub',
-            count: '0',
-            add: '/networks/+add',
-            q: ''
-        }, {
-            id: 'zones',
-            color: '#3F51B5',
-            icon: 'icons:dns',
-            count: '0',
-            // hiding this until add functionality has been created
-            add: '/zones/+add',
-            q: ''
-        },{
-            id: 'tunnels',
-            color: '#795548',
-            icon: 'editor:merge-type',
-            count: '0',
-            add: '/tunnels/+add',
-            q: ''
-        }, {
-            id: 'scripts',
-            color: '#D48900',
-            icon: 'image:movie-creation',
-            count: '0',
-            add: '/scripts/+add',
-            q: ''
-        }, {
-            id: 'schedules',
-            color: '#43A047',
-            icon: 'schedule',
-            count: '0',
-            add: '/schedules/+add',
-            q: ''
-        }, {
-            id: 'templates',
-            color: '#0097A7',
-            icon: 'av:art-track',
-            count: '0',
-            add: '/templates/+add',
-            q: ''
-        }, {
-            id: 'teams',
-            color: '#607D8B',
-            icon: 'social:people',
-            count: '0',
-            q: ''
-        }, {
-            id: 'stacks',
-            color: '#0277BD',
-            icon: 'maps:layers',
-            count: '0',
-            q: ''
-        }, {
-             id: 'my-account',
-            color: '#2F2F3E',
-            icon: 'account-circle',
-            count: null
-        }, {
-            id: 'clouds',
-            color: '#424242',
-            q: ''
-        }, {
-            id: 'members',
-            color: '#607D8B',
-            icon: 'social:people'
-        }, {
-            id: 'insights',
-            color: '#2F2F3E',
-            icon: 'icons:trending-up'
+            title: {
+                type: String,
+                value: "",
+            },
+
+            q: { // search query
+                type: String,
+                value: ''
+            },
+
+            style: {
+                computed: "_style(page, model)",
+                value: "background-color: #424242;",
+                notify: true
+            },
+
+            tag: String,
+
+            routeData: Object,
+
+            subroute: Object,
+
+            viewingList: {
+                type: Boolean,
+                computed: '_computeViewingList(subroute)'
+            },
+
+            fingerprint: {
+                type: String,
+                value: ''
+            },
+
+            loading: {
+                type: Boolean,
+                value: true
+            },
+
+            enableRbac: {
+                type: Boolean,
+                value: false
+            },
+
+            enableTunnels: {
+                type: Boolean,
+                value: false
+            },
+
+            enableInsights: {
+                type: Boolean,
+                value: false
+            },
+
+            enableOrchestration: {
+                type: Boolean,
+                value: false
+            },
+
+            enableInsights: {
+                type: Boolean,
+                value: false
+            },
+
+            enableAb: {
+                type: Boolean,
+                value: false
+            },
+
+            enableBilling: {
+                type: Boolean,
+                value: false
+            },
+
+            enableMonitoring: {
+                type: Boolean,
+                value: false
+            }
+        },
+
+        listeners: {
+            'iron-navigate': 'scrollToTop',
+            'page-meta': 'updateTitle',
+            'toast': 'showToast',
+            'subscribeLogEvents': 'subscribeLogEvents',
+            'search': 'updateSearchQuery',
+            'open-and-select': 'openAndSelect',
+            'update-keys': 'updateKeys',
+            'update-scripts': 'updateScripts',
+            'user-action': '_onUserAction'
+        },
+
+        observers: [
+            '_routePageChanged(routeData.page, subroute.path)'
+        ],
+
+        ready: function () {
+
+        },
+
+        showToast: function (e) {
+            var toast = this.querySelector('paper-toast#mist-toast')
+            toast.show({
+                text: e.detail.msg,
+                duration: e.detail.duration
+            });
+        },
+
+        openAndSelect: function (e) {
+            document.addEventListener('open-and-select', function (e) {
+                this.querySelector('machine-page item-actions associate-key').openAndSelect(e);
+            }.bind(this));
+        },
+
+        updateKeys: function (e) {
+            if (this.querySelector('stack-create'))
+                this.querySelector('stack-create').updateKeys(e);
+            if (this.querySelector('machine-create'))
+                this.querySelector('machine-create').updateKeys(e);
+            if (this.querySelector('cloud-add'))
+                this.querySelector('cloud-add').updateKeys(e);
+        },
+
+        updateScripts: function (e) {
+            if (this.querySelector('machine-create'))
+                this.querySelector('machine-create').updateScripts(e);
+            if (this.querySelector('schedule-add'))
+                this.querySelector('schedule-add').updateScripts(e);
+        },
+
+        _style: function (page, model) {
+            if (page && this.model.sections[page]) {
+                return "background-color: " + this.model.sections[page].color;
+            }
+            return "background-color: " + this.model.sections['dashboard'].color;
+        },
+
+        _routePageChanged: function (page, subpath) {
+            if (page == 'index.html')
+                page = 'dashboard';
+            this.page = page || 'dashboard';
+            if (subpath == '') { // Update iron-list
+                var p = page != '' && page != undefined ? '#' + page : '',
+                    i = this.querySelector('iron-list' + p);
+                if (i) {
+                    i.fire('iron-resize');
+                }
+            }
+        },
+
+        _pageChanged: function (page) {
+            this.set('loading', true);
+            // Load page import on demand. Show 404 page if fails
+            var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
+            this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
+            if (this.querySelector('iron-media-query').queryMatches) {
+                document.querySelector('mist-sidebar').closeSidebar();
+            }
+            // clear searches
+            document.querySelector('#query').value = '';
+            this.set('model.sections.' + this.page + '.q', '');
+            this.set('q', '');
+        },
+
+        _hideLoader: function () {
+            this.set('loading', false);
+        },
+
+        _showPage404: function () {
+            this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
+            this.page = 'not-found';
+        },
+
+        computeIsViewing: function (page) {
+            return this.page == page;
+        },
+
+        updateSearchQuery: function (e) {
+            this.set('q', e.detail);
+            this.set('model.sections.' + this.page + '.q', e.detail || '');
+        },
+
+        ready: function () {
+            var model = {
+                cloudsArray: [],
+                machinesArray: [],
+                imagesArray: [],
+                keysArray: [],
+                networksArray: [],
+                zonesArray: [],
+                tunnelsArray: [],
+                scriptsArray: [],
+                schedulesArray: [],
+                stacksArray: [],
+                templatesArray: [],
+                teamsArray: [],
+                teams: [],
+                incidentsArray: [],
+                pending: {
+                    clouds: true,
+                    monitoring: true
+                },
+                probes: {},
+                monitoring: {},
+                sections: {},
+                sectionsArray: [],
+                onboarding: {
+                    isLoadingClouds: true,
+                    isLoadingMachines: true,
+                    isLoadingImages: true,
+                    isLoadingKeys: true,
+                    isLoadingNetworks: true,
+                    isLoadingZones: true,
+                    isLoadingTunnels: true,
+                    isLoadingScripts: true,
+                    isLoadingSchedules: true,
+                    isLoadingTemplates: true,
+                    isLoadingStacks: true,
+                    isLoadingTeams: true,
+                    isLoadingIncidents: true,
+                    isOverUsing: false
+                },
+                permissions: {
+                    'cloud': [
+                        'add',
+                        'read',
+                        'edit',
+                        'remove',
+                        'create_resources',
+                        'edit_tags',
+                        'read_logs',
+                    ],
+                    'machine': [
+                        'read',
+                        'edit',
+                        'create',
+                        'edit_tags',
+                        'edit_rules',
+                        'edit_graphs',
+                        'edit_custom_metrics',
+                        'start',
+                        'stop',
+                        'reboot',
+                        'destroy',
+                        'resize',
+                        'run_script',
+                        'open_shell',
+                        'associate_key',
+                        'disassociate_key',
+                        'read_logs',
+                    ],
+                    'script': [
+                        'add',
+                        'read',
+                        'edit',
+                        'run',
+                        'remove',
+                        'edit_tags',
+                        'read_logs',
+                    ],
+                    'key': [
+                        'add',
+                        'read',
+                        'read_private',
+                        'edit',
+                        'remove',
+                        'edit_tags',
+                        'read_logs',
+                    ],
+                    'template': [
+                        'add',
+                        'read',
+                        'edit',
+                        'remove',
+                        'apply',
+                        'edit_tags',
+                        'read_logs',
+                    ],
+                    'stack': [
+                        'create',
+                        'read',
+                        'edit',
+                        'remove',
+                        'run_workflow',
+                        'edit_tags',
+                        'read_logs',
+                    ],
+                    'zone': [
+                        'add',
+                        'read',
+                        'remove',
+                        'edit_tags',
+                        'create_records',
+                        'read_logs',
+                    ],
+                    'record': [
+                        'add',
+                        'read',
+                        'remove',
+                        'edit_tags',
+                        'read_logs',
+                    ],
+                    'tunnel': [
+                        'add',
+                        'remove',
+                        'edit',
+                        'read',
+                        'edit_tags',
+                        'read_logs',
+                    ],
+                    'schedule': [
+                        'add',
+                        'read',
+                        'edit',
+                        'run',
+                        'remove',
+                        'edit_tags',
+                        'read_logs',
+                    ]
+                    // 'team': [
+                    //     'add',
+                    //     'read',
+                    //     'edit',
+                    //     'remove',
+                    //     'edit_tags',
+                    //     'read_logs',
+                    // ],
+                }
+            };
+
+            for (i = 1; i <= model.teamsArray.length; i++) {
+                model.teams = model.teamsArray[i].teams[i].id;
+            };
+
+            model.sectionsArray = [{
+                id: 'dashboard',
+                color: '#424242',
+                sidebar: false,
+                tile: false
+            }, {
+                id: 'incidents',
+                color: '#d96557',
+                sidebar: false,
+                tile: false,
+                count: 0
+            }, {
+                id: 'stacks',
+                color: '#0277BD',
+                icon: 'maps:layers',
+                sidebar: this.enableOrchestration,
+                tile: this.enableOrchestration,
+                count: 0,
+                hideZero: true
+            }, {
+                id: 'machines',
+                color: '#8c76d1',
+                icon: 'hardware:computer',
+                add: '/machines/+create',
+                sidebar: true,
+                tile: true,
+                count: 0
+            }, {
+                id: 'networks',
+                color: '#795548',
+                icon: 'hardware:device-hub',
+                add: '/networks/+add',
+                sidebar: true,
+                tile: true,
+                count: 0
+            }, {
+                id: 'tunnels',
+                color: '#795548',
+                icon: 'editor:merge-type',
+                add: '/tunnels/+add',
+                sidebar: this.enableTunnels,
+                tile: false,
+                count: 0
+            }, {
+                id: 'zones',
+                color: '#3F51B5',
+                icon: 'icons:dns',
+                add: '/zones/+add',
+                sidebar: true,
+                tile: true,
+                count: 0
+            }, {
+                id: 'keys',
+                color: '#009688',
+                icon: 'communication:vpn-key',
+                add: '/keys/+add',
+                sidebar: true,
+                tile: true,
+                hr: true,
+                count: 0
+            }, {
+                id: 'images',
+                color: '#0099cc',
+                icon: 'image:photo',
+                sidebar: true,
+                tile: false,
+                count: 0
+            }, {
+                id: 'scripts',
+                color: '#D48900',
+                icon: 'image:movie-creation',
+                add: '/scripts/+add',
+                sidebar: true,
+                tile: true,
+                hr: !this.enableOrchestration,
+                count: 0
+            }, {
+                id: 'templates',
+                color: '#0097A7',
+                icon: 'av:art-track',
+                add: '/templates/+add',
+                sidebar: this.enableOrchestration,
+                tile: this.enableOrchestration,
+                hr: true,
+                count: 0
+            }, {
+                id: 'schedules',
+                color: '#43A047',
+                icon: 'schedule',
+                add: '/schedules/+add',
+                sidebar: true,
+                tile: true,
+                count: 0
+            }, {
+                id: 'teams',
+                color: '#607D8B',
+                icon: 'social:people',
+                sidebar: true,
+                tile: true,
+                count: 0
+            }, {
+                id: 'my-account',
+                color: '#2F2F3E',
+                icon: 'account-circle',
+                count: null
+            }, {
+                id: 'clouds',
+                color: '#424242',
+                icon: 'cloud',
+                count: 0
+            }, {
+                id: 'members',
+                color: '#607D8B',
+                icon: 'social:people',
+                count: 0
+            }, {
+                id: 'insights',
+                color: '#2F2F3E',
+                icon: 'icons:trending-up',
+                sidebar: this.enableInsights,
+                tile: false
+            }];
+
+            model.sections = _generateMap(model.sectionsArray);
+
+            this.set('model', model);
+        },
+
+        _onUserAction: function (event) {
+            console.log('user-action', event);
+            if (!this.enableAb)
+                return;
+            var xhr = new XMLHttpRequest();
+            if (!this.fingerprint) {
+                var that = this;
+                new Fingerprint2().get(function (result, components) {
+                    // this will use all available fingerprinting sources
+                    that.fingerprint = result;
+                    var componentMap = {};
+                    components.forEach(function (e) {
+                        componentMap[e.key] = e.value
+                    });
+                    var payload = {
+                        'action': event.detail,
+                        'fingerprint': result,
+                        'resolution': componentMap.resolution,
+                        'platform': componentMap.navigator_platform,
+                        'browser': that._getBrowser(),
+                        'tz': componentMap.timezone_offset
+                    };
+                    if (document.referrer)
+                        payload['referrer'] = document.referrer;
+                    xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+                    xhr.send();
+                });
+            } else {
+                var payload = {
+                    'action': event.detail,
+                    'fingerprint': this.fingerprint
+                };
+                xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+                xhr.send();
+            }
+        },
+
+        _getBrowser: function () {
+            var userAgent = navigator.userAgent.toLowerCase();
+            var productSub = navigator.productSub;
+
+            //we extract the browser from the user agent (respect the order of the tests)
+            var browser;
+            if (userAgent.indexOf("firefox") >= 0) {
+                browser = "Firefox";
+            } else if (userAgent.indexOf("opera") >= 0 || userAgent.indexOf("opr") >= 0) {
+                browser = "Opera";
+            } else if (userAgent.indexOf("chrome") >= 0) {
+                browser = "Chrome";
+            } else if (userAgent.indexOf("safari") >= 0) {
+                browser = "Safari";
+            } else if (userAgent.indexOf("trident") >= 0) {
+                browser = "Internet Explorer";
+            } else {
+                browser = "Other";
+            }
+            return browser;
+        },
+
+        _computeViewingList: function (subroute) {
+            return ["/", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
         }
-        ];
-
-        this.sections = _generateMap(this.sectionsArray);
-      },
-
-      _onUserAction: function(event) {
-        console.warn('user-action', event);
-        var xhr = new XMLHttpRequest();
-        if (!this.fingerprint){
-          var that = this;
-          new Fingerprint2().get(function(result, components){
-            // this will use all available fingerprinting sources
-            that.fingerprint = result;
-            var componentMap = {};
-            components.forEach(function(e){componentMap[e.key] = e.value});
-            var payload = {'action': event.detail,
-                           'fingerprint': result,
-                           'resolution': componentMap.resolution,
-                           'platform': componentMap.navigator_platform,
-                           'browser': that._getBrowser(),
-                           'tz': componentMap.timezone_offset};
-            if (document.referrer)
-              payload['referrer'] = document.referrer;
-            xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
-            xhr.send();
-            console.log('payload', payload);
-          });
-        } else {
-          var payload = {'action': event.detail,
-                         'fingerprint': this.fingerprint};
-          xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
-          xhr.send();
-        }
-      },
-
-
-      _getBrowser: function() {
-        var userAgent = navigator.userAgent.toLowerCase();
-        var productSub = navigator.productSub;
-
-        //we extract the browser from the user agent (respect the order of the tests)
-        var browser;
-        if(userAgent.indexOf("firefox") >= 0){
-          browser = "Firefox";
-        } else if(userAgent.indexOf("opera") >= 0 || userAgent.indexOf("opr") >= 0){
-          browser = "Opera";
-        } else if(userAgent.indexOf("chrome") >= 0){
-          browser = "Chrome";
-        } else if(userAgent.indexOf("safari") >= 0){
-          browser = "Safari";
-        } else if(userAgent.indexOf("trident") >= 0){
-          browser = "Internet Explorer";
-        } else {
-          browser = "Other";
-        }
-        return browser;
-      },
-
-      _computeViewingList: function(subroute) {
-        // console.log('viewingList',["/", "my-account", "insights"].indexOf(subroute.prefix), subroute);
-        return ["/", "/my-account", "/insights"].indexOf(subroute.prefix) == -1  && subroute.path == "";
-      }
 
     });
 
     function itemUid(item, section) {
-    // Returns a universal resource id of the form
-    //      resourceType:[cloudId]:itemId
-    // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
-    //      key::MnhLdx9u22YjVJ
-    //
-    // TODO replace with mist uuids
+        // Returns a universal resource id of the form
+        //      resourceType:[cloudId]:itemId
+        // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
+        //      key::MnhLdx9u22YjVJ
+        //
+        // TODO replace with mist uuids
 
-    // if item type is not defined derive it fro the current section id
-    var item_type = item && item.type ? item.type : (section &&
-                                             section.id.slice(0,-1));
-    var cloudId = item && item.cloud && item.cloud.id ? item.cloud.id : '';
-    var itemId = item && item.id ? item.id : '';
-    if (item_type == 'incident')
-        itemId = item.incident_id
-    return item_type + ':' + cloudId + ':' + itemId;
-}
+        // if item type is not defined derive it fro the current section id
+        var item_type = item && item.type ? item.type : (section && section.id.slice(0, -1));
+        var cloudId = item && section && section.id != 'machines' && item.cloud && item.cloud.id ? item.cloud.id : '';
+        var itemId = item && item.id ? item.id : '';
+        if (item_type == 'incident')
+            itemId = item.incident_id
+        return item_type + ':' + cloudId + ':' + itemId;
+    }
 
   </script>
 

@@ -6,7 +6,6 @@
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 
-<link rel="import" href="app-sidebar/app-sidebar.html">
 <link rel="import" href="teams/team-add.html">
 <link rel="import" href="item-list/item-list.html">
 <link rel="import" href="empty-pages/empty-pages.html">
@@ -105,7 +104,7 @@
             display: none;
         }
 
-        [size=xs] app-sidebar {
+        [size=xs] mist-sidebar {
             min-width: 100%;
             height: auto;
         }
@@ -202,14 +201,7 @@
             <div class="absolute-bottom-right">
                 <paper-fab id="notTeams" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
             </div>
-        </template>
-        <!-- teams add is not a page but a modal -->
-        <template is="dom-if" if="[[isTeams]]">
-            <div class="absolute-bottom-right">
-                <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
-            </div>
-            <team-add id="isTeamsPage" organization="[[model.org]]"></team-add>
-        </template>
+        </template>        
     </template>
 </dom-module>
 <script>
@@ -222,7 +214,6 @@
 
         properties: {
             model: Object,
-            onboarding: Object,
             section: {
                 type: Object,
                 observer: '_qChanged'
@@ -257,7 +248,7 @@
             },
             isLoading: {
                 type: Boolean,
-                computed: '_computeIsloading(onboarding.*, section.id)'
+                computed: '_computeIsloading(model.onboarding.*, section.id)'
             },
             isTeams: {
                 type: Boolean,
@@ -274,7 +265,7 @@
         },
         _computeIsloading: function(onboarding, section){
             var s = section.charAt(0).toUpperCase()+section.slice(1);
-            return this.onboarding['isLoading'+s];
+            return this.model.onboarding['isLoading'+s];
         },
         computeShowEmptyScreen: function(items, section){
             if (items.length > 0 && section){
@@ -414,18 +405,18 @@
                 // compare costs
                 else if (property == 'cost'){
                     //if both properties exist
-                    if (a.extra.cost_per_month && b.extra.cost_per_month){
-                        if (parseInt(a.extra.cost_per_month) < parseInt(b.extra.cost_per_month)) {
+                    if (a.cost && b.cost){
+                        if (parseInt(a.cost.monthly) < parseInt(b.cost.monthly)) {
                             return 1 * order;
                         }
-                        if (parseInt(a.extra.cost_per_month) > parseInt(b.extra.cost_per_month)) {
+                        if (parseInt(a.cost.monthly) > parseInt(b.cost.monthly)) {
                             return -1 * order;
                         }
                         return 0;
                     }
                     //if some property misses, move it down
                     else {
-                        if (!a.extra.cost_per_month)
+                        if (!a.cost || !a.cost.monthly)
                             return 1;
                         else
                             return -1
@@ -533,17 +524,17 @@
                 //compare created date
                 else if (property == 'created'){
                     //if both properties exist
-                    if (a.extra && b.extra && a.extra.created && b.extra.created){
-                        if (moment(a.extra.created).unix() > moment(b.extra.created).unix()) {
+                    if (a.extra && b.extra && a.created && b.created){
+                        if (moment(a.created).unix() > moment(b.created).unix()) {
                             return -1 * order;
                         }
-                        if (moment(a.extra.created).unix() < moment(b.extra.created).unix()) {
+                        if (moment(a.created).unix() < moment(b.created).unix()) {
                             return 1 * order;
                         }
                         return 0;
                     }
                     else {
-                        if (!a.extra || !a.extra.created)
+                        if (!a.created)
                             return 1;
                         else
                             return -1
@@ -585,15 +576,15 @@
         },
 
         _machineHasMonitoring: function(machine, monitoring){
-            return monitoring && monitoring.monitored_machines && monitoring.monitored_machines[machine.uuid] ? 100 : 0;
+            return monitoring && monitoring.monitored_machines && monitoring.monitored_machines[machine.id] ? 100 : 0;
         },
 
         _machineHasrecommendations: function(machine, probes){
-            return probes && probes[machine.uuid] && probes[machine.uuid].dirty_cow ? 10 : 0;
+            return probes && probes[machine.id] && probes[machine.id].dirty_cow ? 10 : 0;
         },
 
         _machineHasProbe: function(machine, probes){
-            return probes && probes[machine.uuid] && probes[machine.uuid].loadloadavg ? probes[machine.uuid].loadloadavg[0]+probes[machine.uuid].loadloadavg[1]+probes[machine.uuid].loadloadavg[2] : 1;
+            return probes && probes[machine.id] && probes[machine.id].loadloadavg ? probes[machine.id].loadloadavg[0]+probes[machine.sid].loadloadavg[1]+probes[machine.id].loadloadavg[2] : 1;
         },
 
         _machineState: function(machine){
@@ -615,12 +606,6 @@
             this.async(function() {
               this.updateMeta(this.section);
             });
-        },
-
-        _addTeam: function(e) {
-            var dialog = this.querySelector('team-add#isTeamsPage');
-            console.log('_addTeam', dialog);
-            dialog.openDialog();
         },
 
         _stampCards: function(view) {
@@ -651,11 +636,7 @@
             document.querySelector('top-search').query = "";
         },
         openRecommendationsDialog: function(e){
-            var probe;
-            if (e.detail['item-type'] != "machines")
-                probe  = this.model.probes[e.detail.item.id];
-            else
-                probe  = this.model.probes[e.detail.item.uuid];
+            var probe = this.model.probes[e.detail.item.id];
             var text = 'Kernel '+probe.kernel + ' OS '+ probe.os +' '+ probe.os_version;
             this.querySelector('.recommendation-text').textContent = text;
             this.$.recommendationsDialog.open();

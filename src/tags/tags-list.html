@@ -203,7 +203,6 @@
                             itemCloudId = item.split(":")[1],
                             itemId = item.split(":")[2],
                             itemObj = {};
-
                         if (['machine', 'image'].indexOf(itemType) != -1 && itemCloudId)
                             itemObj = this.model.clouds[itemCloudId][itemType+'s'][itemId];
                         else {
@@ -298,22 +297,24 @@
                     payload = this.items.map(function(item) {
                         var itemType = item.split(":")[0],
                             itemCloudId = item.split(":")[1],
-                            itemId = item.split(":")[2],
-                            itemObj;
-
-                        if (['machine', 'image', 'network'].indexOf(itemType) != -1 && itemCloudId)
-                            itemObj = this.model.clouds[itemCloudId][itemType+'s'][itemId];
-                        else {
-                            itemObj = this.model[itemType+'s'][itemId];
-                        }
+                            itemId = item.split(":")[2];
 
                         var newItem = {};
 
-                        newItem.resource = {
-                            type: itemType,
-                            item_id: itemId,
-                            cloud_id: ['machine', 'image', 'network'].indexOf(itemType) != -1 ? itemCloudId : ''
-                        };
+                        if (itemType == "machine") {
+                            newItem.resource = {
+                                type: itemType,
+                                item_id: this.model.machines[itemId].machine_id,
+                                cloud_id: this.model.machines[itemId].cloud.id
+                            };
+                        }
+                        else {
+                            newItem.resource = {
+                                type: itemType,
+                                item_id: itemId,
+                                cloud_id: ['image', 'network'].indexOf(itemType) != -1 ? itemCloudId : ''
+                            };
+                        }
                         newItem.tags = newTags.concat(deltags);
                         return newItem;
                     }, this);

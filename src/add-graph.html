@@ -68,6 +68,8 @@
           }
           .errormsg-container iron-icon {
             color: inherit;
+            vertical-align: bottom;
+            padding-right: 8px;
           }
           .add-button {
             background-color: #f1f1f1;
@@ -107,6 +109,9 @@
           #customButton {
             width: 100%;
           }
+          #customOptions {
+            max-width: 500px;
+          }
 
         </style>
 
@@ -126,7 +131,10 @@
         <paper-dialog id="customOptions" with-backdrop>
           <h2>Custom graph</h2>
           <paper-dialog-scrollable>
-            <div id="sshKeyMissing" hidden="{{sshKeyExists}}">
+            <p hidden="[[!sshKeyExists]]">
+                Your Python script will be saved in scripts section, even if it fails to be deployed. Scripts must have a unique name.
+            </p>
+            <div id="sshKeyMissing" hidden="[[sshKeyExists]]">
               <span>You need to have an associated SSH key to add custom graphs</span>
               <paper-button id="addKey" on-tap="_openAddKeyPanel">Add Key</paper-button>
             </div>
@@ -167,7 +175,7 @@
         </iron-ajax>
         <iron-ajax
           id="metrics"
-          url="[[_computeMetricsUri(cloudId, machine.id)]]"
+          url="[[_computeMetricsUri(machine.id)]]"
           handle-as="json" method="GET"
           contentType="application/json"
           loading="{{loadingMetrics}}"
@@ -186,7 +194,6 @@
                     type: Object
                 },
                 machine: Object,
-                cloudId: String,
                 responseMetrics: {
                     type: Array,
                     value: null
@@ -260,7 +267,9 @@
             _handleError: function(e,d) {
                 this.set('sendingData', false);
                 this.set('formError', true);
-                this.$.errormsg.textContent = e.detail.error.message;
+                console.log('error', e, e.detail)
+                var errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
+                this.$.errormsg.textContent = errorMessage;
             },
             _computeplugidId: function(name) {
                 if (!this.metric.name) return;
@@ -273,11 +282,11 @@
                 this.set('metric.pluginId', newPluginId);
                 this.set('metric.name',name);
             },
-            _computeMetricsUri: function(cloudId, machineId) {
-                return "/api/v1/clouds/" + cloudId + "/machines/" + machineId + "/metrics";
+            _computeMetricsUri: function(machineId) {
+                return "/api/v1/machines/" + machineId + "/metrics";
             },
-            _computeUrl: function(cloudId, machineId, pluginId) {
-                this.uri = '/api/v1/clouds/' + cloudId +'/machines/' + machineId +'/plugins/' + pluginId;
+            _computeUrl: function(machineId, pluginId) {
+                this.uri = '/api/v1/machines/' + machineId +'/plugins/' + pluginId;
             },
             openDialog: function() {
                 if(!this.responseMetrics)
@@ -369,7 +378,7 @@
               var payload = {
                 metric_id: metric
               };
-              this.$.associateMetric.url = "/api/v1/clouds/"+this.cloudId+"/machines/"+this.machine.id+"/metrics";
+              this.$.associateMetric.url = "/api/v1/machines/"+this.machine.id+"/metrics";
               this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
               this.$.associateMetric.params = payload;
               this.$.associateMetric.generateRequest();
@@ -387,13 +396,13 @@
             },
             _generateCustomgraphrequest(){
               this.set('formError', false);
-              this._computeUrl(this.cloudId, this.machine.id, this.metric.pluginId);
-              this.metric.script=this.querySelector('#juicyScript').value;
-              if(this.querySelector('#derivative').checked){
-                this.metric.type="derive";
+              this._computeUrl(this.machine.id, this.metric.pluginId);
+              this.metric.script = this.querySelector('#juicyScript').value;
+              if (this.querySelector('#derivative').checked){
+                this.metric.type = "derive";
               }
-              else{
-                this.metric.type="gauge"
+              else {
+                this.metric.type = "gauge"
               }
               var payload=  {
                    "plugin_type"   : "python",
@@ -403,9 +412,9 @@
                    "read_function" : this.metric.script,
                    "host"          : this.machine.public_ips[0]
                };
-              this.querySelector('#postCustomgraph').contentType="application/json"
+              this.querySelector('#postCustomgraph').contentType = "application/json"
               this.querySelector('#postCustomgraph').headers["Csrf-Token"] = CSRF_TOKEN;
-              this.querySelector('#postCustomgraph').body =payload;
+              this.querySelector('#postCustomgraph').body = payload;
               this.querySelector('#postCustomgraph').generateRequest();
               this.set('sendingData', true);
             }
