@@ -1,7 +1,10 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="scripts/script-add.html">
 <link rel="import" href="scripts/script-page.html">
+<link rel="import" href="scripts/script-actions.html">
 
 <link rel="import" href="page-items.html">
 
@@ -14,8 +17,24 @@
     </style>
 
     <app-route route="{{route}}" pattern="/:script" data="{{data}}"></app-route>
-
-    <page-items model="[[model]]" items="[[model.scriptsArray]]" section="[[model.sections.scripts]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="scriptsList"
+            selectable resizable
+            items="[[model.scriptsArray]]"
+            name="Scripts"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.scripts)]]
+            route={{route}}
+            user-filter=[[model.sections.scripts.q]]
+            primary-field-name="id">
+          <script-actions slot="actions" items="[[selectedItems]]"></script-actions>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="scriptAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
     <script-add model="[[model]]" section="[[model.sections.scripts]]" hidden$=[[!_isAddPageActive(route.path)]]></script-add>
     <script-page model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
     <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
@@ -44,6 +63,56 @@
       },
       _getScript: function (id) {
         return this.model.scripts[id];
+      },
+      _addResource: function(e) {
+          document.querySelector('app-location').set('path', this.model.sections.scripts.add)
+      },
+      _getFrozenLogColumn: function(){
+          return ['name'];
+      },
+
+      _getVisibleColumns: function(){
+          return ['exec_type', 'location', 'tags'];
+      },
+
+      _getRenderers: function(scripts) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'exec_type': {
+                  'title': function(item, row) {
+                      return 'exec type';
+                  },
+                  'body': function(item, row) {
+                    return item;
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              },
+              'location': {
+                  'title': function(item, row) {
+                    return 'location type';
+                  },
+                  'body': function(item, row) {
+                    return  item.type;
+                  }
+              }
+          }
       }
     });
   </script>
