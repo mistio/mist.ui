@@ -5,14 +5,14 @@
 <link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 
-<dom-module id="r12n-indicator">
+<dom-module id="notifications-indicator">
     <template>
         <style>
             /* local styles go here */
             :host {
-                display: inline-block;
-                --paper-badge-margin-left: -24px;
-                --paper-badge-margin-bottom: -25px;
+                position: relative;
+                left: -40px;
+                height: 56px;
             }
 
             paper-icon-button ::content iron-icon {
@@ -21,6 +21,12 @@
 
             :host::content iron-dropdown {
                 width: 400px !important;
+            }
+
+            #indicatorBadge {
+                position: relative;
+                left: 34px !important;
+                top: -54px !important;
             }
 
             .grid-row h4 {
@@ -62,14 +68,6 @@
                 display: none !important;
             }
 
-            .thumbs-up iron-icon {
-                color: #69b46c;
-            }
-
-            .thumbs-down iron-icon {
-                color: #b4696c;
-            }
-
         </style>
 
         <!-- local DOM goes here -->
@@ -87,13 +85,6 @@
                                     <iron-icon class="r12n-icon" icon$="[[_computeR12nIcon(r12n)]]"></iron-icon>
                                     <span>[[r12n.message]]</span>
                                 </a>
-                                <span style="flex: 1;"></span>
-                                <a href="" class$="{{getTUClasses(r12n)}}" on-tap="wasHelpful">
-                                    <iron-icon class="right r12n-icon" icon="icons:thumb-up"></iron-icon>
-                                </a>
-                                <a href="" class$="{{getTDClasses(r12n)}}" on-tap="wasNotHelpful">
-                                    <iron-icon class="right r12n-icon" icon="icons:thumb-down"></iron-icon>
-                                </a>
                             </paper-item>
                         </template>
                         <!--<paper-item>
@@ -105,36 +96,40 @@
                 </div>
         </paper-menu-button>
         <paper-badge hidden="{{_getIndicatorHidden(r12ns)}}" id="indicatorBadge" label="[[_computeBadgeCaption(r12ns)]]"></paper-badge>
-        <iron-ajax id="r12nRequest" method="POST" on-response="handleResponse"></iron-ajax>
 
     </template>
     <script>
         Polymer({
             /* this is the element's prototype */
-            is: 'r12n-indicator',
+            is: 'notifications-indicator',
             properties: {
                 user: {
                     type: Object
                 },
                 r12ns: {
-                    type: Array
+                    type: Array,
+                    value: [
+                        {
+                          message: 'Server down-time',
+                          type: 'notification'
+                        },
+                        {
+                          message: 'Machine stopped working',
+                          type: 'notification'
+                        },
+                        {
+                          message: 'Server down-time',
+                          type: 'notification'
+                        },
+                        {
+                          message: 'Collectd installed successfully',
+                          type: 'notification'
+                        }
+                    ]
                 }
             },
             ready: function () {
-                // TODO: Skotos - refactor this to run as soon as
-                // we have CSRF
-                this.r12ns = [];
-                var self = this;
-                var $self = this.$;
-                setTimeout(function(){
-                    $self.r12nRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    $self.r12nRequest.url = "/api/v1/recommendations";
-                    $self.r12nRequest.params = {"user" : self.user};
-                    $self.r12nRequest.generateRequest();
-                }, 5000);
-            },
-            handleResponse: function (data) {
-                this.r12ns = data.detail.response;
+                
             },
             _computeTitle: function(r12ns) {
                 var type = this.getItemsType(r12ns);
