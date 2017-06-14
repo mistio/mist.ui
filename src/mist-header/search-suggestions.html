@@ -57,14 +57,16 @@
         <div class="section xs12" hidden$="[[resultsExist]]">
             <h2>0 results found for this search.</h2>
         </div>
-        <!-- <div class="section xs6" hidden$="[[!results.cloudsArray.length]]">
-            <h2>Clouds</h2>
-            <ul>
+    <div class="section xs6" hidden$="[[!results.cloudsArray.length]]">
+        <h2>Clouds</h2>
+        <ul>
             <template is="dom-repeat" items="[[results.cloudsArray]]">
-                <li class="truncate"><a href="/">[[item.title]]</a></li>
+                <li class="truncate"> <iron-icon icon="cloud"></iron-icon>
+                <a href="/clouds/[[item.id]]">[[item.title]]</a></li>
             </template>
-    </ul>
-    </div> -->
+            <a class="more" on-tap="goToResultsList" href="/dashboard">view dashboard</a>
+        </ul>
+    </div>
 
     <div class="section xs6" hidden$="[[!results.machinesArray.length]]">
         <h2>Machines</h2>
@@ -231,8 +233,9 @@
                             results[prop] = this.filterItems(this.model[prop]).splice(0, 3);
                         }
                     }
-
                     this.set('results', results);
+                    if (!this.hide)
+                        this.set('visible', true);
                 } else {
                     this.set('results', {});
                 }
@@ -283,6 +286,7 @@
                 this.async(function() {
                     that.fire('search', that.query);
                 }, 500);
+                this.set('visible', false);
             },
 
             viewingListsChanged: function(hide) {
@@ -290,6 +294,7 @@
                     this.set('visible', false);
                 }
             }
+
         });
     </script>
 </dom-module>
