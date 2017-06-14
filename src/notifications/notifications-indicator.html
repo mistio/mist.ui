@@ -71,31 +71,26 @@
         </style>
 
         <!-- local DOM goes here -->
-        <paper-menu-button hidden="{{_getIndicatorHidden(r12ns)}}" horizontal-align="right">
-            <paper-icon-button icon="[[_computeIndicatorIcon(r12ns)]]" class="r12n-icon dropdown-trigger"></paper-icon-button>
+        <paper-menu-button hidden="{{_getIndicatorHidden(notifications)}}" horizontal-align="right">
+            <paper-icon-button icon="[[_computeIndicatorIcon(notifications)]]" class="notification-icon dropdown-trigger"></paper-icon-button>
                 <div class="dropdown-content">
                     <div class="grid-row">
-                        <h4>[[_computeTitle(r12ns)]]</h4>
+                        <h4>[[_computeTitle(notifications)]]</h4>
                     </div>
                     <hr/>
                     <paper-menu>
-                        <template is="dom-repeat" items="[[r12ns]]" as="r12n">
+                        <template is="dom-repeat" items="[[notifications]]" as="notification">
                             <paper-item class="context">
                                 <a href="" on-tap="_goToOrg" class="grid-row">
-                                    <iron-icon class="r12n-icon" icon$="[[_computeR12nIcon(r12n)]]"></iron-icon>
-                                    <span>[[r12n.message]]</span>
+                                    <iron-icon class="notification-icon" icon$="[[_computeNotificationIcon(notification)]]"></iron-icon>
+                                    <span>[[notification.message]]</span>
                                 </a>
                             </paper-item>
                         </template>
-                        <!--<paper-item>
-                            <a href="javascript:void(0)" on-tap="_logout" class="flex">
-                                <iron-icon icon="power-settings-new"></iron-icon> Logout
-                            </a>
-                        </paper-item>-->
                     </paper-menu>
                 </div>
         </paper-menu-button>
-        <paper-badge hidden="{{_getIndicatorHidden(r12ns)}}" id="indicatorBadge" label="[[_computeBadgeCaption(r12ns)]]"></paper-badge>
+        <paper-badge hidden="{{getIndicatorHidden(notifications)}}" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
 
     </template>
     <script>
@@ -103,10 +98,7 @@
             /* this is the element's prototype */
             is: 'notifications-indicator',
             properties: {
-                user: {
-                    type: Object
-                },
-                r12ns: {
+                notifications: {
                     type: Array,
                     value: [
                         {
@@ -128,11 +120,22 @@
                     ]
                 }
             },
-            ready: function () {
-                
+            addNotification: function(message, type, duration) {
+                var d = new Date();
+                var millis = d.getTime();
+                new_notification = {
+                    message: message,
+                    type: type,
+                    duration: duration,
+                    timestamp: millis
+                }
+                this.push('notifications', new_notification)
             },
-            _computeTitle: function(r12ns) {
-                var type = this.getItemsType(r12ns);
+            removeNotification: function(index) {
+                this.notifications.splice(index, 1);
+            },
+            _computeTitle: function(notifications) {
+                var type = this.getItemsType(notifications);
                 if (type == 1)
                 {
                     return "Notifications";
@@ -143,8 +146,8 @@
                 }
                 return "Notifications & Recommendations";
             },
-            _computeIndicatorIcon: function(r12ns) {
-                var type = this.getItemsType(r12ns);
+            _computeIndicatorIcon: function(notifications) {
+                var type = this.getItemsType(notifications);
                 if (type == 1)
                 {
                     return "social:notifications";
@@ -156,15 +159,15 @@
                 // Todo: return dual icon
                 return "social:notifications";
             },
-            _computeIndicatorColor: function(r12ns) {
-                if (r12ns.length > 0)
+            _computeIndicatorColor: function(notifications) {
+                if (notifications.length > 0)
                 {
                     return "white"
                 }
                 return "grey"
             },
-            _computeR12nIcon: function(r12n) {
-                if (r12n.type == "recommendation")
+            _computeNotificationIcon: function(notification) {
+                if (notification.type == "recommendation")
                 {
                     return "image:wb-incandescent";
                 }
@@ -173,45 +176,29 @@
                     return "social:notifications";
                 }
             },
-            _computeBadgeCaption: function(r12ns) {
-                return r12ns.length;
+            computeBadgeCaption: function(notifications) {
+                return notifications.length;
             },
-            _getIndicatorHidden: function(r12ns) {
-                return r12ns.length == 0;
+            getIndicatorHidden: function(notifications) {
+                return notifications.length == 0;
             },
-            getItemsType: function(r12ns) {
+            getItemsType: function(notifications) {
                 // 0= none, 1=notifications, 2=recommendations, 3=both
-                var notifications = false;
-                var recommendations = false;
-                for (i=0; i<r12ns.length; ++i) 
+                var ntf = false;
+                var rec = false;
+                for (i=0; i<notifications.length; ++i) 
                 {
-                    var item = r12ns[i];
+                    var item = notifications[i];
                     if (item.type == "recommendation")
                     {
-                        recommendations = true;
+                        rec = true;
                     }
                     else if (item.type == "notification")
                     {
-                        notifications = true;
+                        ntf = true;
                     }
                 }
-                return notifications + recommendations*2;
-            },
-            getTUClasses: function(r12n) {
-                var classes = 'thumbs-up'
-                if(r12n.type != "recommendation" || r12n.rated == true) classes += ' hide';
-                return classes;
-            },
-            getTDClasses: function(r12n) {
-                var classes = 'thumbs-down'
-                if(r12n.type != "recommendation" || r12n.rated == true) classes += ' hide';
-                return classes;
-            },
-            wasHelpful: function() {
-
-            },
-            wasNotHelpful: function() {
-                
+                return ntf + rec*2;
             }
         });
     </script>
