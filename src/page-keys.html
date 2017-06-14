@@ -1,5 +1,8 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
+<link rel="import" href="keys/key-actions.html">
 <link rel="import" href="keys/key-add.html">
 <link rel="import" href="keys/key-page.html">
 
@@ -18,8 +21,24 @@
     </style>
 
     <app-route route="{{route}}" pattern="/:key" data="{{data}}"></app-route>
-
-    <page-items model="[[model]]" items="[[model.keysArray]]" section="[[model.sections.keys]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="keysList"
+            selectable resizable
+            items="[[model.keysArray]]"
+            name="Keys"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.keys)]]
+            route={{route}}
+            user-filter=[[model.sections.keys.q]]
+            primary-field-name="id">
+          <key-actions slot="actions" items="[[selectedItems]]"></key-actions>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
     <key-add model="[[model]]" section="[[model.sections.keys]]" hidden$=[[!_isAddPageActive(route.path)]]></key-add>
     <key-page model="[[model]]" key$="[[_getKeyPair(data.key, model.keys)]]" section="[[model.sections.keys]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
   </template>
@@ -49,8 +68,54 @@
       _getKeyPair: function (id) {
         if (this.model.keys)
           return this.model.keys[id];
-      }
+      },
+      _addResource: function(e) {
+          document.querySelector('app-location').set('path', this.model.sections.keys.add)
+      },
+      _getFrozenLogColumn: function(){
+          return ['name'];
+      },
 
+      _getVisibleColumns: function(){
+          return ['machines','isDefault', 'id', 'tags'];
+      },
+
+      _getRenderers: function(keys) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'machines': {
+                  'body': function(item, row) {
+                    return item.length;
+                  }
+              },
+              'isDefault': {
+                  'title': function(item, row) {
+                    return 'Default';
+                  },
+                  'body': function(item, row) {
+                    return item ? '<span class="default"><iron-icon icon="communication:vpn-key"></iron-icon> Default key</span>' : '';
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              }
+          }
+      }
     });
   </script>
 </dom-module>

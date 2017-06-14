@@ -7,7 +7,7 @@
 
 <link rel="import" href="../mist-actions.html">
 
-<dom-module id="team-actions">
+<dom-module id="key-actions">
   <template>
     <style include="shared-styles">
       :host {
@@ -16,7 +16,7 @@
       }
     </style>
     
-    <mist-actions actions="[[actions]]" type="team" items="[[items]]"></mist-actions>
+    <mist-actions actions="[[actions]]" type="key" items="[[items]]"></mist-actions>
 
     <dialog-element id="confirm"></dialog-element>
 
@@ -28,7 +28,19 @@
 
   </template>
   <script>
-TEAM_ACTIONS = {
+KEY_ACTIONS = {
+  'tag': {
+    'name': 'tag',
+    'icon': 'label',
+    'confirm': true,
+    'multi': true
+  },
+  'make_default': {
+    'name': 'make default',
+    'icon': 'communication:vpn-key',
+    'confirm': false,
+    'multi': false
+  },
   'delete': {
     'name': 'delete',
     'icon': 'delete',
@@ -37,7 +49,7 @@ TEAM_ACTIONS = {
   }
 }
     Polymer({ 
-      is: 'team-actions',
+      is: 'key-actions',
       properties: {
         items: { 
           type: Array,
@@ -46,8 +58,7 @@ TEAM_ACTIONS = {
         actions: { 
           type: Array,
           value: []
-        },
-        org: String
+        }
       },
       observers:[
         '_mapPolicyToActions(items.*)'
@@ -61,10 +72,13 @@ TEAM_ACTIONS = {
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(org) {
-        // org policy for actions
+      itemActions: function(key) {
         var arr = [];
-        if (org) {
+        if (key && !key.isDefault) {
+          arr.push('make_default');
+        }
+        if (key) {
+          arr.push('tag');
           arr.push('delete');
         }
         return arr;
@@ -72,7 +86,7 @@ TEAM_ACTIONS = {
       actionDetails: function (actions) {
         var ret = [];
         for (var i=0; i<actions.length; i++) {
-            ret.push(TEAM_ACTIONS[actions[i]]);
+            ret.push(KEY_ACTIONS[actions[i]]);
         }
         return ret;
       },
@@ -83,10 +97,23 @@ TEAM_ACTIONS = {
         this.$.request.method = "DELETE";
 
         for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/org/"+ this.org +"/teams/" + this.items[i].id
+          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
           this.$.request.generateRequest();
           this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
         }
+      },
+      _makeDefault: function(){
+        //set up iron ajax
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
+
+        for (var i = 0; i < this.items.length; i++) {
+          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
+          this.$.request.generateRequest();
+          this.fire('toast', {msg: 'Making key ' + this.items[i].name + " the default.", duration: 1000})
+        }
+
       },
       _showDialog: function(info) {
           var dialog = this.querySelector('dialog-element');
@@ -96,10 +123,13 @@ TEAM_ACTIONS = {
           dialog._openDialog();
       },
       performAction: function(e) {
-        console.log('performAction', e.detail.action);
+        // console.log('performAction', e.detail.action);
         var action = e.detail.action;
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'make default') {
+          this._makeDefault();
         }
       },
       handleResponse: function(e) {
@@ -114,7 +144,6 @@ TEAM_ACTIONS = {
             isection = new swiftSet.Set();
 
         if (this.items.length > 0) {
-          console.log(this.items[0], this.items.length);
           actions.addItems(this.itemActions(this.items[0]) || []);
 
           for (var i=1; i<this.items.length; i++) {
@@ -139,7 +168,7 @@ TEAM_ACTIONS = {
       },
 
       handleError: function(e) {
-        console.log(e.detail.request.xhr.statusText);
+        // console.log(e.detail.request.xhr.statusText);
         this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
       }
     });
