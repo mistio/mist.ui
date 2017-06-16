@@ -1,10 +1,11 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="machines/machine-create.html">
 <link rel="import" href="machines/machine-page.html">
-
-<link rel="import" href="page-items.html">
+<link rel="import" href="machines/machine-actions.html">
 
 <script type="text/javascript" src="machine-create-fields.js" inline></script>
 
@@ -15,13 +16,13 @@
         display: block;
       }
       #recommendationsDialog {
-          width: 400px;
+        width: 400px;
       }
       #recommendationsDialog a.blue-link {
-          color: var(--blue-color) !important;
+        color: var(--blue-color) !important;
       }
       #recommendationsDialog iron-icon.orange {
-          color: #F57F17;
+        color: #F57F17;
       }
       .logs {
         max-width: 1450px;
@@ -40,8 +41,25 @@
         cursor: pointer;
       }
       .error {
-          color: var(--red-color);
+        color: var(--red-color);
 
+      }
+      mist-list::content .provider-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+        box-sizing: border-box;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      mist-list::content .error {
+        color: var(--red-color);
+      }
+      mist-list::content .orange {
+        color: var(--orange-color);
+      }
+      mist-list::content .green {
+        color: var(--green-color);
       }
     </style>
     <app-route route="{{route}}"
@@ -59,7 +77,25 @@
         <p id="actionLogs"></p>
     </div>
 
-    <page-items name="machines" class="keys" model="[[model]]" items="[[model.machinesArray]]" section="[[model.sections.machines]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="keysList"
+            selectable resizable
+            items="[[sortedMachines]]"
+            name="Keys"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.machines,model.clouds)]]
+            route={{route}}
+            user-filter=[[model.sections.machines.q]]
+            primary-field-name="id">
+          <machines-actions slot="actions" items="[[selectedItems]]"></machines-actions>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="machinesAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
+
     <machine-create model="[[model]]" machines-fields="[[machinesFields]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]></machine-create>
     <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
         <machine-page model="[[model]]" machine="[[_getMachine(data.machine, model.machines)]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
@@ -89,6 +125,10 @@
                 model: Object,
                 data: Object,
                 itemOfRecommendation: Object,
+                sortedMachines: {
+                    type: Array,
+                    computed: 'computeSortedMachines(model.machinesArray)'
+                },
                 machinesFields: {
                     type: Array,
                     value: MACHINE_CREATE_FIELDS
@@ -212,6 +252,153 @@
             stopActionLogs: function(e) {
                 this.$.actionLogs.textContent = '';
                 this.set('performingAction', false);
+            },
+            _addResource: function(e) {
+              document.querySelector('app-location').set('path', this.model.sections.machines.add);
+            },
+            _getFrozenLogColumn: function(){
+              return ['name'];
+            },
+
+            _getVisibleColumns: function(){
+              return ['state', 'cloud', 'cost', 'created', 'size', 'image', 'id', 'tags'];
+            },            
+
+            _getRenderers: function(machines, clouds) {
+              var _this = this;
+              return {
+                  'name': {
+                      'body': function(item, row) {
+                          return '<strong class="name"><img class="provider-icon" src="./assets/providers/provider-'+row.cloud.provider.replace("_", "").replace(" ", "")+'.png" />' + item + '</strong>';
+                      }
+                  },
+                  'state': {
+                        'body': function(item,  row){
+                            if (item == "running")
+                                return "<span class='green'>"+item+"</span>";
+                            if (item == "error")
+                                return "<span class='red'>"+item+"</span>";
+                            if (item == "stopped")
+                                return "<span class='orange'>"+item+"</span>";
+                            return item;
+                        }
+                  },
+                  'cloud': {
+                      'body': function(item, row) {
+                        if (_this.model && _this.model.clouds)
+                          return _this.model.clouds[item.id].title;
+                      }
+                  },
+                  'cost': {
+                      'body': function(item, row) {
+                          return '$'+ Math.round(item.monthly);
+                      }
+                  },
+                  'created': {
+                      'body': function(item, row) {
+                          return moment(item).isValid() ? moment.utc(item).fromNow() : "";
+                      }
+                  },
+                  'size': {
+                      'body': function(item, row) {
+                        if (row.extra && row.extra.size && row.extra.size.vcpus)
+                            return row.extra.size.vcpus + 'vcpu, ' + row.extra.size.memory + 'M ram';;
+                        if (row.extra && row.extra.size && typeof(row.extra.size) == 'string')
+                            return row.extra.size;
+                        if (row.extra && row.extra.instance_type)
+                            return row.extra.instance_type;
+                        if (row.extra && row.extra.instance_size)
+                            return row.extra.instance_size;
+                        if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
+                            return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
+                        if (_this.model && _this.model.clouds && row.extra && row.extra.PLANID) {
+                            return (cloud && cloud.sizes) ? cloud.sizes[row.extra.PLANID].name  : row.extra.PLANID
+                        }
+                        if (row.extra && row.extra.service_type)
+                            return row.extra.service_type;
+
+                        return "";
+                      }
+                  },
+                  'image': {
+                      'body': function(item, row) {
+                        if (row.extra && row.extra.image && row.extra.image.distribution && row.extra.image.name) {
+                            return row.extra.image.distribution + " " +row.extra.image.name;
+                        }
+                        if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)){
+                            return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
+                        }
+                        return "";
+                      }
+                  },
+                  'tags': {
+                      'body': function(item, row) {
+                        var tags = item,
+                            display = "";
+                        for (var i=0; i<tags.length; i++){
+                          display += "<span class='tag'>"+tags[i].key;
+                          if (tags[i].value != undefined && tags[i].value != "")
+                            display += "=" + tags[i].value;
+                          display += "</span>";
+                        }
+                        return display;
+                      }
+                  }
+               }
+            },
+            computeSortedMachines: function(machines){
+                return this.model.machinesArray.sort(function(a, b){
+                    //if both properties exist
+                    var aW = this._getMachineWeight(a, this.model),
+                        bW = this._getMachineWeight(b, this.model);
+                    if (aW > bW) {
+                        return -1;
+                    }
+                    if (aW < bW) {
+                        return 1;
+                    }
+                    return 0;
+                }.bind(this));
+            },
+            _getMachineWeight: function(machine, model){
+                var weight = 0;
+                var machineHasIncidents = this._machineHasIncidents(machine, model.incidentsArray),
+                    machineHasMonitor = this._machineHasMonitoring(machine, model.monitoring),
+                    machineHasrecommendations = this._machineHasrecommendations(machine, model.probes),
+                    machineHasProbe = this._machineHasProbe(machine, model.probes);
+                    machineState = this._machineState(machine);
+                weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations + machineHasProbe + machineState;
+                return weight;
+            },
+
+            _machineHasIncidents: function(machine, incidents){
+                var machineIncidents = incidents.filter(function(inc){
+                    return inc.machine_id == machine.id
+                });
+                return machineIncidents ? machineIncidents.length * 1000 : 0;
+            },
+
+            _machineHasMonitoring: function(machine, monitoring){
+                return monitoring && monitoring.monitored_machines && monitoring.monitored_machines[machine.id] ? 100 : 0;
+            },
+
+            _machineHasrecommendations: function(machine, probes){
+                return probes && probes[machine.id] && probes[machine.id].dirty_cow ? 10 : 0;
+            },
+
+            _machineHasProbe: function(machine, probes){
+                return probes && probes[machine.id] && probes[machine.id].loadloadavg ? probes[machine.id].loadloadavg[0]+probes[machine.sid].loadloadavg[1]+probes[machine.id].loadloadavg[2] : 1;
+            },
+
+            _machineState: function(machine){
+                if (machine.state == 'running')
+                    return 5;
+                if (machine.state == 'stopped')
+                    return 2;
+                if (machine.state == 'terminated')
+                    return 1;
+                if (machine.state == 'unknown')
+                    return 0;
             },
         });
     </script>
