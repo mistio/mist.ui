@@ -71,7 +71,7 @@
         </style>
 
         <!-- local DOM goes here -->
-        <paper-menu-button hidden="{{_getIndicatorHidden(notifications)}}" horizontal-align="right">
+        <paper-menu-button hidden="{{hidden}}" horizontal-align="right">
             <paper-icon-button icon="[[_computeIndicatorIcon(notifications)]]" class="notification-icon dropdown-trigger"></paper-icon-button>
                 <div class="dropdown-content">
                     <div class="grid-row">
@@ -90,7 +90,7 @@
                     </paper-menu>
                 </div>
         </paper-menu-button>
-        <paper-badge hidden="{{getIndicatorHidden(notifications)}}" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
+        <paper-badge hidden="{{hidden}}" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
 
     </template>
     <script>
@@ -99,25 +99,11 @@
             is: 'notifications-indicator',
             properties: {
                 notifications: {
-                    type: Array,
-                    value: [
-                        {
-                          message: 'Server down-time',
-                          type: 'notification'
-                        },
-                        {
-                          message: 'Machine stopped working',
-                          type: 'notification'
-                        },
-                        {
-                          message: 'Server down-time',
-                          type: 'notification'
-                        },
-                        {
-                          message: 'Collectd installed successfully',
-                          type: 'notification'
-                        }
-                    ]
+                    type: Array
+                },
+                hidden: {
+                    type: Boolean,
+                    computed: '_computeIndicatorHidden(notifications)'
                 }
             },
             addNotification: function(message, type, duration) {
@@ -179,7 +165,7 @@
             computeBadgeCaption: function(notifications) {
                 return notifications.length;
             },
-            getIndicatorHidden: function(notifications) {
+            _computeIndicatorHidden: function(notifications) {
                 return notifications.length == 0;
             },
             getItemsType: function(notifications) {
