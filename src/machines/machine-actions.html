@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
 
 <link rel="import" href="../mist-actions.html">
 
@@ -29,6 +30,78 @@
   </template>
   <script>
 MACHINE_ACTIONS = {
+  'shell': {
+    'name': 'shell',
+    'icon': 'vaadin-icons:terminal',
+    'confirm': false,
+    'multi': true
+  },
+  'tag': {
+    'name': 'tag',
+    'icon': 'label',
+    'confirm': true,
+    'multi': true
+  },
+  'associate-key': {
+    'name': 'associate key',
+    'icon': 'communication:vpn-key',
+    'confirm': true,
+    'multi': true
+  },
+  'run-script': {
+    'name': 'run script',
+    'icon': 'image:movie-creation',
+    'confirm': true,
+    'multi': false
+  },
+  'reboot': {
+    'name': 'reboot',
+    'icon': 'av:replay',
+    'confirm': true,
+    'multi': true
+  },
+  'start': {
+    'name': 'start',
+    'icon': 'av:replay',
+    'confirm': true,
+    'multi': true
+  },
+  'stop': {
+    'name': 'stop',
+    'icon': 'av:stop',
+    'confirm': true,
+    'multi': true
+  },
+  'suspend': {
+    'name': 'suspend',
+    'icon': 'av:stop',
+    'confirm': true,
+    'multi': true
+  },
+  'rename': {
+    'name': 'rename',
+    'icon': 'editor:mode-edit',
+    'confirm': true,
+    'multi': false
+  },
+  'resume': {
+    'name': 'resume',
+    'icon': 'av:replay',
+    'confirm': true,
+    'multi': true
+  },
+  'undefine': {
+    'name': 'undefine',
+    'icon': 'image:panorama-fish-eye',
+    'confirm': true,
+    'multi': true
+  },
+  'destroy': {
+    'name': 'destroy',
+    'icon': 'delete',
+    'confirm': true,
+    'multi': true
+  },
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -43,7 +116,7 @@ MACHINE_ACTIONS = {
   }
 }
     Polymer({ 
-      is: 'key-actions',
+      is: 'machine-actions',
       properties: {
         items: { 
           type: Array,
@@ -69,15 +142,23 @@ MACHINE_ACTIONS = {
       itemActions: function(machine) {
         var arr = [];
         if (machine) {
+          arr.push('shell');
+        }
+        if (machine && machine.actions) {
+          for (var action in machine.actions) {
+            if (machine.actions[action])
+              arr.push(action);
+          }
+        }
+        if (machine) {
           arr.push('tag');
-          arr.push('delete');
         }
         return arr;
       },
       actionDetails: function (actions) {
         var ret = [];
         for (var i=0; i<actions.length; i++) {
-            ret.push(MACHINES_ACTIONS[actions[i]]);
+            ret.push(MACHINE_ACTIONS[actions[i]]);
         }
         return ret;
       },
