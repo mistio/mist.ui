@@ -80,12 +80,12 @@
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="keysList"
             selectable resizable
-            items="[[sortedMachines]]"
+            items="[[sortedMachines(model.machinesArray)]]"
             name="Keys"
             selected-items="{{selectedItems}}"
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.machines,model.clouds)]]
+            renderers=[[_getRenderers(model.machines,model.clouds,model.incidentsArray)]]
             route={{route}}
             user-filter=[[model.sections.machines.q]]
             primary-field-name="id">
@@ -125,10 +125,6 @@
                 model: Object,
                 data: Object,
                 itemOfRecommendation: Object,
-                sortedMachines: {
-                    type: Array,
-                    computed: 'computeSortedMachines(model.machinesArray)'
-                },
                 machinesFields: {
                     type: Array,
                     value: MACHINE_CREATE_FIELDS
@@ -265,9 +261,27 @@
               return ['state', 'cloud', 'cost', 'created', 'size', 'image', 'id', 'tags'];
             },
 
-            _getRenderers: function(machines, clouds) {
+            _getRenderers: function(machines, clouds, incidents) {
               var _this = this;
               return {
+                  'indicator': {
+                      'body': function(item, row) {
+                        var green = "#69b46c",
+                            pending = "#eee",
+                            incident = "#d96557",
+                            color = 'transparent';
+                        // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
+                        if (row.monitoring.hasmonitoring) {
+                            color = green;
+                            if (_this._machineHasIncidents(row,incidents))
+                                color = red;
+                            if (row.monitoring.installation_status == "installing" || !row.monitoring.installation_status == "installing" || !row.monitoring.installation_status.activated_at)
+                                color = pending;
+                            return 'border-left: 8px solid '+ color +'; padding-left: 8px;';
+                        }
+                        return '';
+                      }
+                  },
                   'icon': {
                       'body': function(item, row) {
                           return './assets/providers/provider-'+row.cloud.provider.replace("_", "").replace(" ", "")+'.png';
@@ -352,7 +366,7 @@
                   }
                }
             },
-            computeSortedMachines: function(machines){
+            sortedMachines: function(machines){
                 return this.model.machinesArray.sort(function(a, b){
                     //if both properties exist
                     var aW = this._getMachineWeight(a, this.model),
