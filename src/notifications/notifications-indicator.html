@@ -83,7 +83,7 @@
                             <paper-item class="context">
                                 <a href="" on-tap="_goToOrg" class="grid-row">
                                     <iron-icon class="notification-icon" icon$="[[_computeNotificationIcon(notification)]]"></iron-icon>
-                                    <span>[[notification.message]]</span>
+                                    <span>[[notification.summary]]</span>
                                 </a>
                             </paper-item>
                         </template>
@@ -105,20 +105,6 @@
                     type: Boolean,
                     computed: '_computeIndicatorHidden(notifications)'
                 }
-            },
-            addNotification: function(message, type, duration) {
-                var d = new Date();
-                var millis = d.getTime();
-                new_notification = {
-                    message: message,
-                    type: type,
-                    duration: duration,
-                    timestamp: millis
-                }
-                this.push('notifications', new_notification)
-            },
-            removeNotification: function(index) {
-                this.notifications.splice(index, 1);
             },
             _computeTitle: function(notifications) {
                 var type = this.getItemsType(notifications);
@@ -153,7 +139,7 @@
                 return "grey"
             },
             _computeNotificationIcon: function(notification) {
-                if (notification.type == "recommendation")
+                if (notification.source == "recommendation")
                 {
                     return "image:wb-incandescent";
                 }
@@ -175,11 +161,15 @@
                 for (i=0; i<notifications.length; ++i) 
                 {
                     var item = notifications[i];
-                    if (item.type == "recommendation")
+                    if (item.source == "recommendation")
                     {
                         rec = true;
                     }
-                    else if (item.type == "notification")
+                    else if (item.source == "notification")
+                    {
+                        ntf = true;
+                    }
+                    else
                     {
                         ntf = true;
                     }
