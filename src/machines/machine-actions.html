@@ -19,6 +19,7 @@
     </style>
     
     <mist-actions actions="[[actions]]" type="machine" items="[[items]]"></mist-actions>
+    <machine-edit id="renamedialog" items="" model="[[model]]"></machine-edit>
 
     <dialog-element id="confirm"></dialog-element>
 
@@ -175,6 +176,11 @@ MACHINE_ACTIONS = {
           this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
         }
       },
+      _rename: function(){
+        var items = [];
+        this.$['renamedialog'].items = this.items;
+        this.$['renamedialog']._openDialog();
+      },
       _showDialog: function(info) {
           var dialog = this.querySelector('dialog-element');
           for (var i in info) {
@@ -183,12 +189,15 @@ MACHINE_ACTIONS = {
           dialog._openDialog();
       },
       performAction: function(e) {
-        // console.log('performAction', e.detail.action);
+        console.log('performAction', e.detail.action);
         var action = e.detail.action;
         if (action.name == 'delete') {
           this._delete();
         }
-        else if (action.name) {
+        else if (action.name == 'rename') {
+          this._rename();
+        }
+        else {
           this.performMachineAction(action, this.items);
         }
       },
