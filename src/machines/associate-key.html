@@ -191,10 +191,19 @@ Polymer({
 
         var run = function(el, model) {
             var item = items.shift(),
-                itemType = item.split(':')[0],
-                itemCloud = item.split(':')[1],
-                itemId = item.split(':')[2],
-                machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '',
+                itemType,
+                itemCloud,
+                itemId;
+            if (this.items[i].length) {
+                itemType = item.split(':')[0];
+                itemCloud = this.items[i].split(':')[1];
+                itemId = this.items[i].split(':')[2];
+            }
+            else {
+                itemCloud = this.items[i].cloud.id;
+                itemId = this.items[i].id
+            }
+            var machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '',
                 uri = "/api/v1/machines/" + itemId + "/keys/" + keyId;
 
             // console.log('machineHost', machineHost, model.machines[itemId]);
