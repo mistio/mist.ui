@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 
@@ -19,8 +20,16 @@
                 color: inherit;
             }
 
+            paper-icon-button[type=recommendations], iron-icon[type=recommendation] {
+                -webkit-transform: rotate(180deg);     /* Chrome and other webkit browsers */
+                -moz-transform: rotate(180deg);        /* FF */
+                -o-transform: rotate(180deg);          /* Opera */
+                -ms-transform: rotate(180deg);         /* IE9 */
+                transform: rotate(180deg);             /* W3C compliant browsers */
+            }
+
             :host::content iron-dropdown {
-                width: 400px !important;
+                width: 460px !important;
             }
 
             #indicatorBadge {
@@ -51,11 +60,10 @@
                 margin-right: 22px;
             }
 
-            :host iron-icon.right {
-                width: 16px;
-                height: 16px;
-                margin-right: 0;
-                margin-left: 12px;
+            .close-icon {
+                float: right;
+                margin-left: 6px;
+                margin-right: 2px;
             }
 
             hr {
@@ -71,19 +79,21 @@
 
         <!-- local DOM goes here -->
         <paper-menu-button hidden="[[hidden]]" horizontal-align="right">
-            <paper-icon-button icon="[[icon]]" class="notification-icon dropdown-trigger"></paper-icon-button>
+            <paper-icon-button icon="[[indicatorIcon]]" type$="[[indicatorType]]" class="notification-icon dropdown-trigger"></paper-icon-button>
                 <div class="dropdown-content">
                     <div class="grid-row">
                         <h4>[[_computeTitle(notifications)]]</h4>
                     </div>
                     <hr/>
-                    <paper-menu>
-                        <template is="dom-repeat" items="[[notifications]]" as="notification">
-                            <paper-item class="context">
-                                <a href="" on-tap="_goToOrg" class="grid-row">
-                                    <iron-icon class="notification-icon" icon$="[[_computeNotificationIcon(notification)]]"></iron-icon>
-                                    <span>[[notification.summary]]</span>
-                                </a>
+                    <paper-menu id="notifications-menu">
+                        <template is="dom-repeat" items="[[reverseNotifications]]" as="notification">
+                            <paper-item on-tap="_handleItemTap" class="context" hidden$="{{notification.hidden}}">
+                                <iron-icon icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
+                                <paper-item-body two-line>
+                                    <div>[[notification.summary]]</div>
+                                    <div secondary>[[_computeRelativeTime(notification)]]</div>
+                                </paper-item-body>
+                                <iron-icon on-tap="_dismiss" class="close-icon" icon="icons:clear"></iron-icon>
                             </paper-item>
                         </template>
                     </paper-menu>
@@ -100,14 +110,25 @@
                 notifications: {
                     type: Array
                 },
+                reverseNotifications: {
+                    type: Array,
+                    computed: '_reverseArray(notifications)'
+                },
                 hidden: {
                     type: Boolean,
                     computed: '_computeIndicatorHidden(notifications)'
                 },
-                icon: {
+                indicatorIcon: {
                     type: String,
                     computed: '_computeIndicatorIcon(notifications)'
+                },
+                indicatorType: {
+                    type: String,
+                    computed: '_computeIndicatorType(notifications)'
                 }
+            },
+            _reverseArray: function(array) {
+                return array.reverse()
             },
             _computeTitle: function(notifications) {
                 var type = this.getItemsType(notifications);
@@ -134,6 +155,17 @@
                 // Todo: return dual icon
                 return "social:notifications";
             },
+            _computeIndicatorType: function(notifications) {
+                var type = this.getItemsType(notifications);
+                if (type == 2)
+                {
+                    return "recommendations";
+                }
+                else
+                {
+                    return "notifications";
+                }
+            },
             _computeIndicatorColor: function(notifications) {
                 if (notifications.length > 0)
                 {
@@ -150,6 +182,20 @@
                 {
                     return "social:notifications";
                 }
+            },
+            _computeNotificationType: function(notification) {
+                if (notification.source == "recommendation")
+                {
+                    return "recommendation";
+                }
+                else
+                {
+                    return "notification";
+                }
+            },
+            _computeRelativeTime: function(notification) {
+                var date = new Date(notification.created_date.$date);
+                return this.relativeTime(date);
             },
             computeBadgeCaption: function(notifications) {
                 return notifications.length;
@@ -178,6 +224,53 @@
                     }
                 }
                 return ntf + rec*2;
+            },
+            _handleItemTap: function(event) {
+                // TODO: Get correct element!
+                // var menu = document.querySelector("paper-menu#notifications-menu");
+                // event.stopPropagation()
+            },
+            _dismiss: function(event) {
+                var menu = document.querySelector("paper-menu#notifications-menu");
+                var index = menu.indexOf(event.srcElement.parentElement);
+                console.log(index);
+                if (index != -1)
+                {
+                    var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
+                }
+                event.stopPropagation()
+            },
+            // https://github.com/yields/approximate-time
+            // License: MIT
+            relativeTime: function(date) {
+                var now = new Date;
+                var t;
+
+                // past / future
+                var diff = date > now
+                ? date - now
+                : now - date;
+
+                // just now
+                if (1e3 > diff) return 'just now';
+
+                // s, m, h, d, w, m, y
+                if (60 > (t = Math.round(diff / 1e3))) return this.formatTime(t, 'second');
+                if (60 > (t = Math.round(diff / 6e4))) return this.formatTime(t, 'minute');
+                if (24 > (t = Math.round(diff / 3.6e+6))) return this.formatTime(t, 'hour');
+                if (7 > (t = Math.round(diff / 8.64e+7))) return this.formatTime(t, 'day');
+                if (4.34812 > (t = diff / 6.048e+8)) return this.formatTime(Math.round(t), 'week');
+                if (12 > (t = Math.round(diff / 2.63e+9))) return this.formatTime(t, 'month');
+                if (10 > (t = Math.round(diff / 3.156e+10))) return this.formatTime(t, 'year');
+
+                // decades
+                return this.formatTime(Math.round(diff / 3.156e+11), 'decade');
+            },
+            formatTime: function(n, unit){
+                var a = 'hour' == unit ? 'an' : 'a';
+                unit = 1 == n ? unit : unit + 's';
+                return (1 == n ? a : n)
+                    + ' ' + unit + ' ago';
             }
         });
     </script>
