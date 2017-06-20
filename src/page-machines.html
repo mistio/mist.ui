@@ -237,7 +237,8 @@
             listeners: {
                 'open-recommendation-dialog': 'openRecommendationsDialog',
                 'performing-action': 'updateActionLogs',
-                'action-finished': 'stopActionLogs'
+                'action-finished': 'stopActionLogs',
+                'recommendation': 'openRecommendationsDialog'
             },
             observers: [
                 '_jobIdChanged(jobId)',
@@ -268,7 +269,7 @@
                 var text = 'Kernel ' + probe.kernel + ' OS ' + probe.os + ' ' + probe.os_version;
                 this.querySelector('.recommendation-text').textContent = text;
                 this.$.recommendationsDialog.open();
-                this.caller = e.detail.caller;
+                this.caller = e.detail.caller || 'list_machines';
                 this.set('itemOfRecommendation', e.detail.item);
             },
             _shell: function(event) {
@@ -278,11 +279,13 @@
                     'icon': 'vaadin-icons:terminal',
                     'confirm': false,
                     'multi': true
-                };
-                var itemtoquery = 'item-actions';
-                if (this.caller == 'machine_page')
-                    itemtoquery += '#actions_machine';
-                this.querySelector(itemtoquery)._performAction(action, [this.itemOfRecommendation]);
+                }
+                if (this.caller == 'machine_page'){
+                    this.querySelector('#actions_machine')._performAction(action, [this.itemOfRecommendation]);
+                }
+                else {
+                    this.querySelector('machine-actions').performMachineAction(action, [this.itemOfRecommendation]);
+                }
             },
             _jobIdChanged: function(jobid) {
                 if (!jobid) {
@@ -296,7 +299,6 @@
                 this.intervalID = setInterval(function() {
                     this.$.getJobLog.generateRequest();
                 }.bind(this), 1000);
-
                 console.log('startpolling');
             },
             stopPolling: function(logItems) {
@@ -382,9 +384,10 @@
                   },
                   'state': {
                         'body': function(item,  row){
-                            var ret = item;
+                            var ret = '', 
+                                prefix = '';
                             if (_this.itemRecommendation(row)) {
-                                ret = '<iron-icon icon="icons:report-problem" class="recommendation-icon" on-tap="showRecommendation"></iron-icon>';
+                                prefix = '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
                             }
                             if (item == "running")
                                 ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
@@ -395,7 +398,13 @@
                             else
                                 ret += item;
 
-                            return ret;
+                            return prefix+ret;
+                        },
+                        'tap': function(item, row) {
+                            if (_this.itemRecommendation(row))
+                                return 'recommendation';
+                            else
+                                return '';
                         }
                   },
                   'cloud': {
@@ -516,7 +525,7 @@
                     return 0;
             },
             itemRecommendation: function(item) {
-                if (this.probes == {}) {
+                if (this.probes == {} || !item || !item.id) {
                     return false;
                 }
                 else {
@@ -564,10 +573,6 @@
                     return prefix+"low ";
                 else
                     return prefix+"low ";
-            },
-            showRecommendation: function(item){
-                console.log('showRecommendation');
-                e.preventDefault();
             }
         });
     </script>
