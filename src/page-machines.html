@@ -44,6 +44,13 @@
             color: var(--red-color);
 
         }
+        mist-list::content .recommendation-icon {
+            color: #F57F17;
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            margin-right: 10px;
+        }
         mist-list::content .provider-icon {
             width: 24px;
             height: 24px;
@@ -64,6 +71,7 @@
         /* probe classes */
         mist-list::content .state {
             position: relative;
+            display: inline-block;
         }
         mist-list::content .state.hasprobe {
             overflow: visible;
@@ -74,7 +82,7 @@
             display: inline-block;
             height: 8px;
             width: 4px;
-            margin-left: 12px;
+            margin-left: 10px;
         }
         /* midterm */
         mist-list::content .state.midlow:after {
@@ -374,13 +382,20 @@
                   },
                   'state': {
                         'body': function(item,  row){
+                            var ret = item;
+                            if (_this.itemRecommendation(row)) {
+                                ret = '<iron-icon icon="icons:report-problem" class="recommendation-icon" on-tap="showRecommendation"></iron-icon>';
+                            }
                             if (item == "running")
-                                return "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
                             else if (item == "error")
-                                return "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='red'>"+item+"</span></div>";
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='red'>"+item+"</span></div>";
                             else if (item == "stopped")
-                                return "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='orange'>"+item+"</span></div>";
-                            return item;
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='orange'>"+item+"</span></div>";
+                            else
+                                ret += item;
+
+                            return ret;
                         }
                   },
                   'cloud': {
@@ -500,6 +515,16 @@
                 if (machine.state == 'unknown')
                     return 0;
             },
+            itemRecommendation: function(item) {
+                if (this.probes == {}) {
+                    return false;
+                }
+                else {
+                    if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
+                        return false;
+                    return true;
+                }
+            },
             itemProbeClasses: function(item) {
                 if (this.probes == {}) {
                     return '';
@@ -539,6 +564,10 @@
                     return prefix+"low ";
                 else
                     return prefix+"low ";
+            },
+            showRecommendation: function(item){
+                console.log('showRecommendation');
+                e.preventDefault();
             }
         });
     </script>
