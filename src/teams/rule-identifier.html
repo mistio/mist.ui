@@ -227,9 +227,21 @@
                     return Object.keys(this.rule.rtags).length > 0 ? 2 : 0;
                 }
             },
+            _computeRecords: function(){
+                var allRecords = [];
+                this.model['zonesArray'].forEach(function(zone) {
+                    zone.records.forEach(function(record) {
+                        allRecords.push(record);
+                    })
+                })
+                return allRecords;
+            },
             _computeRuleDD: function(rule, rtype, model){
                 if (rtype && rtype!='' && this.model[rtype+'sArray'] && this.model[rtype+'sArray'].length > 0) {
                     return this.model[rtype+'sArray'];
+                }
+                else if (rtype == 'record') {
+                    return this._computeRecords();
                 }
                 else if (!rtype) {
                     return [{name:'choose recources'}];
