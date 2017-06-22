@@ -216,7 +216,7 @@
             model: Object,
             section: {
                 type: Object,
-                observer: '_qChanged'
+                observer: '_sectionChanged'
             },
             pageTitle: String,
             showEmptyScreen: {
@@ -258,7 +258,7 @@
         },
 
         observers: [
-            'sortingObserver(items.*, sortBy, sortOrder, section.q.*)',
+            'sortingObserver(items.*, sortBy, sortOrder, section.q)',
         ],
         ready: function() {
 
@@ -602,7 +602,9 @@
             return '/' + name;
         },
 
-        _qChanged: function(q) {
+        _sectionChanged: function(section) {
+            if (!section.q)
+                this.set('section.q','');
             this.async(function() {
               this.updateMeta(this.section);
             });
