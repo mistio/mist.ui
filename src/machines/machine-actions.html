@@ -6,6 +6,8 @@
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
 
+<link rel="import" href="../machines/associate-key.html">
+<link rel="import" href="../machines/run-script-on-machine.html">
 <link rel="import" href="../mist-actions.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 
@@ -23,6 +25,8 @@
     
     <mist-actions actions="[[actions]]" type="machine" items="[[items]]"></mist-actions>
     <machine-edit id="renamedialog" items="" model="[[model]]"></machine-edit>
+    <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
+    <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
 
     <dialog-element id="confirm"></dialog-element>
 
@@ -123,6 +127,7 @@ MACHINE_ACTIONS = {
     Polymer({ 
       is: 'machine-actions',
       properties: {
+        model: Object,
         items: { 
           type: Array,
           value: []
@@ -130,7 +135,7 @@ MACHINE_ACTIONS = {
         actions: { 
           type: Array,
           value: []
-        }
+        },
       },
       observers:[
         '_mapPolicyToActions(items.*)'
@@ -154,6 +159,10 @@ MACHINE_ACTIONS = {
             if (machine.actions[action])
               arr.push(action);
           }
+        }
+        if (machine.key_associations && machine.key_associations.length) {
+          arr.push('associate-key');
+          arr.push('run-script');
         }
         if (machine) {
           arr.push('tag');
@@ -184,6 +193,16 @@ MACHINE_ACTIONS = {
         this.$['renamedialog'].items = this.items;
         this.$['renamedialog']._openDialog();
       },
+      _associateKey: function(){
+        var items = [];
+        this.$['associatekeydialog'].items = this.items;
+        this.$['associatekeydialog']._openDialog();
+      },
+      _runScript: function(){
+        var items = [];
+        this.$['runscriptdialog'].items = this.items;
+        this.$['runscriptdialog']._openDialog();
+      },
       _showDialog: function(info) {
           var dialog = this.querySelector('dialog-element');
           for (var i in info) {
@@ -199,6 +218,12 @@ MACHINE_ACTIONS = {
         }
         else if (action.name == 'rename') {
           this._rename();
+        }
+        else if (action.name == 'run script') {
+          this._runScript();
+        }
+        else if (action.name == 'associate key') {
+          this._associateKey();
         }
         else {
           this.performMachineAction(action, this.items);
@@ -249,10 +274,6 @@ MACHINE_ACTIONS = {
                           if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.id){
                               document.querySelector('app-location').set('path', '/machines');
                           }
-                          // for other resources and only if in deleted item's single page
-                          if (action.name == "delete" && document.querySelector('app-location').path.split('/'+item.type+'s/')[1] == item.id){
-                              document.querySelector('app-location').set('path', '/'+item.type+'s');
-                          }
                       } else {
                           console.error(action, 'failed');
                           console.log(xhr);
@@ -275,8 +296,8 @@ MACHINE_ACTIONS = {
               xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
               xhr.send(JSON.stringify(payload));
 
-              // var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][item.id].name;
-              // this.fire('performing-action', {log: logMessage});
+              var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on machine ' + this.model.machines[item.id].name;
+              this.fire('performing-action', {log: logMessage});
         }.bind(this);
 
         run(this);
