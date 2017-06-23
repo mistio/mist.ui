@@ -9,31 +9,41 @@
   <template>
     <style include="shared-styles">
       :host {
-        display: flex;
-        color: rgba(255,255,255,0.87);
-        align-items: flex-start;
-        flex-wrap: nowrap;
+          display: flex;
+          color: rgba(255,255,255,0.87);
+          align-items: flex-start;
+          flex-wrap: nowrap;
       }
       paper-button.actions {
-        display: inline-block;
-        flex-wrap: nowrap;
-        white-space: nowrap;
-        margin-left: 16px;
-        width: auto;
-        min-width: auto;
+          display: inline-block;
+          flex-wrap: nowrap;
+          white-space: nowrap;
+          margin-left: 16px;
+          width: auto;
+          min-width: auto;
       }
-      paper-button iron-icon {
-        padding-right: 8px;
+      paper-button.more.actions {
+          display: block;
+          width: 100%;
+          margin-left: 0 !important;
+      }
+      paper-button.actions iron-icon {
+          fill: #fff;
+      }
+      paper-button.more.actions iron-icon {
+          fill: rgba(0,0,0,0.54);
+      }
+      paper-menu-button {
+          padding: 0;
       }
       iron-icon {
-        color: inherit;
-        fill: #fff;
-        margin-top: -2px;
-        min-width: 24px;
+          color: inherit;
+          margin-top: -2px;
+          min-width: 24px;
+          padding-right: 8px;
       }
       paper-dialog {
           padding: 0;
-          /*position: fixed;*/
       }
       :host paper-dialog > h2 {
           text-transform: capitalize;
@@ -54,12 +64,31 @@
       paper-dialog p.item-actions {
           max-height: 200px;
       }
+      div.dropdown-content {
+        color: rgba(0,0,0,0.87);
+      }
+      div.dropdown-content paper-button {
+          text-align: left;
+          white-space: nowrap;
+          padding: 16px 16px;
+          margin-left: 16px;
+      }
     </style>
     
-    <template is="dom-repeat" items="[[actions]]" as="action">
-      <paper-button on-tap="selectAction" class="actions">
-        <iron-icon icon="[[action.icon]]" hidden$="[[!action.icon]]"></iron-icon>[[action.name]]
-      </paper-button>
+    <template is="dom-if" if="[[topActions.length]]">
+      <template is="dom-repeat" items="[[topActions]]" as="action">
+          <paper-button on-tap="selectAction" class="actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
+      </template>
+    </template>
+
+    <template is="dom-if" if="[[moreActions.length]]">
+      <paper-menu-button id="actionmenu" horizontal-align="right">
+          <paper-button class="dropdown-trigger"><iron-icon icon="more-vert"></iron-icon></paper-button>
+          <div class="dropdown-content">
+              <template is="dom-repeat" items="[[moreActions]]" as="action">
+                  <paper-button on-tap="selectAction" class="more actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
+              </template>
+          </div>
     </template>
 
     <dialog-element id="confirm" on-iron-overlay-opened="patchOverlay"></dialog-element>
@@ -82,7 +111,15 @@
         type: {
           type: String
         },
-        items: Array
+        items: Array,
+        topActions: {
+            type: Array,
+            computed: "_topActions(actions.*)"
+        },
+        moreActions: {
+            type: Array,
+            computed: "_moreActions(actions.*)"
+        },
       },
       listeners: {
         'iron-overlay-closed': 'confirmAction'
@@ -90,6 +127,8 @@
       ready: function() {},
       attached: function() {},
       selectAction: function(e){
+        if (this.querySelector('paper-menu-button#actionmenu'))
+            this.querySelector('paper-menu-button#actionmenu').close();
         var action = e.model.action;
         this.action = action;
         if (action.confirm && ['tag','rename', 'run script', 'associate key'].indexOf(action.name) == -1) {
@@ -147,6 +186,15 @@
       tense: function(action) {
         if (action == 'delete')
           return 'Deleting';
+      },
+      _topActions: function (actions) {
+        if (this.get('actions'))
+          return this.get('actions').slice(0, 3);
+      },
+
+      _moreActions: function (actions) {
+        if (this.get('actions'))
+          return this.get('actions').slice(3);
       },
     });
   </script>
