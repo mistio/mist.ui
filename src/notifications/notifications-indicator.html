@@ -6,6 +6,8 @@
 <link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 
+<script type="text/javascript" src="../bower_components/moment/moment.js" inline></script>
+
 <dom-module id="notifications-indicator">
     <template>
         <style>
@@ -123,6 +125,15 @@
                     computed: '_computeIndicatorType(notifications)'
                 }
             },
+            /*ready: function() {
+                var that = this;
+                setInterval(function() {
+                    var ntf = that.notifications;
+                    that.set('notifications', []);
+                    that.set('notifications', ntf);
+                    console.log("update");
+                }, 1000);
+            },*/
             _computeTitle: function(notifications) {
                 var type = this.getItemsType(notifications);
                 if (type == 1)
@@ -188,7 +199,7 @@
             },
             _computeRelativeTime: function(notification) {
                 var date = new Date(notification.created_date.$date);
-                return this.relativeTime(date);
+                return moment(date).fromNow();
             },
             computeBadgeCaption: function(notifications) {
                 return notifications.length;
@@ -232,38 +243,6 @@
                     var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
                 }
                 event.stopPropagation()
-            },
-            // https://github.com/yields/approximate-time
-            // License: MIT
-            relativeTime: function(date) {
-                var now = new Date;
-                var t;
-
-                // past / future
-                var diff = date > now
-                ? date - now
-                : now - date;
-
-                // just now
-                if (1e3 > diff) return 'just now';
-
-                // s, m, h, d, w, m, y
-                if (60 > (t = Math.round(diff / 1e3))) return this.formatTime(t, 'second');
-                if (60 > (t = Math.round(diff / 6e4))) return this.formatTime(t, 'minute');
-                if (24 > (t = Math.round(diff / 3.6e+6))) return this.formatTime(t, 'hour');
-                if (7 > (t = Math.round(diff / 8.64e+7))) return this.formatTime(t, 'day');
-                if (4.34812 > (t = diff / 6.048e+8)) return this.formatTime(Math.round(t), 'week');
-                if (12 > (t = Math.round(diff / 2.63e+9))) return this.formatTime(t, 'month');
-                if (10 > (t = Math.round(diff / 3.156e+10))) return this.formatTime(t, 'year');
-
-                // decades
-                return this.formatTime(Math.round(diff / 3.156e+11), 'decade');
-            },
-            formatTime: function(n, unit){
-                var a = 'hour' == unit ? 'an' : 'a';
-                unit = 1 == n ? unit : unit + 's';
-                return (1 == n ? a : n)
-                    + ' ' + unit + ' ago';
             }
         });
     </script>
