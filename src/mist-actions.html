@@ -129,27 +129,30 @@
       selectAction: function(e){
         if (this.querySelector('paper-menu-button#actionmenu'))
             this.querySelector('paper-menu-button#actionmenu').close();
-        var action = e.model.action;
-        this.action = action;
-        if (action.confirm && ['tag','rename', 'run script', 'associate key'].indexOf(action.name) == -1) {
-          var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
-              plural = this.items.length == 1 ? '' : 's',
-              count = this.items.length > 1 ? this.items.length+' ' : '';
-          //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
-          this._showDialog({
-              title: this.action.name + ' ' + count + this.type + plural+'?',
-              body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
-              list: this._makeList(this.items, property),
-              action: action.name,
-              danger: true,
-              reason: this.type + "." + this.action.name
-          });
-        }
-        else if (action.name == 'tag') {
-          this.showTagDialog();
-        }
-        else {
-          this.performAction();
+        if (this.items.length) {
+          var action = e.model.action;
+          this.action = action;
+          // console.log('perform action mist-action', this.items);
+          if (action.confirm && ['tag','rename', 'run script', 'associate key'].indexOf(action.name) == -1) {
+            var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
+                plural = this.items.length == 1 ? '' : 's',
+                count = this.items.length > 1 ? this.items.length+' ' : '';
+            //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+            this._showDialog({
+                title: this.action.name + ' ' + count + this.type + plural+'?',
+                body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
+                list: this._makeList(this.items, property),
+                action: action.name,
+                danger: true,
+                reason: this.type + "." + this.action.name
+            });
+          }
+          else if (action.name == 'tag') {
+            this.showTagDialog();
+          }
+          else {
+            this.performAction();
+          }
         }
       },
       _showDialog: function(info) {
@@ -161,9 +164,6 @@
       },
       showTagDialog: function(){
         this.$.tagsdialog._openDialog();
-      },
-      tagResources: function(e){
-        console.log('tag resources', this.items.length, this.type);
       },
       _makeList: function(items, property){
         if (items && items.length)
@@ -197,7 +197,7 @@
       _moreActions: function (actions) {
         if (this.get('actions'))
           return this.get('actions').slice(3);
-      },
+      }
     });
   </script>
 </dom-module>
