@@ -393,7 +393,9 @@
                     </div>
                 </div>
                 <div class="machine-actions">
-                    <machine-actions id="actions_machine" items="[[itemInArray]]" model="[[model]]"></machine-actions>
+                    <template is="dom-if" if="[[machine]]" restamp>
+                        <machine-actions id="actions_machine" items="[[itemInArray(machine)]]" model="[[model]]"></machine-actions>
+                    </template>
                 </div>
             </paper-material>
             <div class="columns">
@@ -573,7 +575,6 @@
                     on-error="_probeError"
                     handle-as="xml"></iron-ajax>
 
-        <!-- <machine-edit model="[[model]]" items="[[itemInArray]]"></machine-edit> -->
         <paper-toast></paper-toast>
     </template>
 </dom-module>
@@ -724,10 +725,6 @@ Polymer({
             value: [],
             notify: true
         },
-        itemInArray: {
-            type: Array,
-            computed: '_computeItemInArray(machine)'
-        },
         itemUid: {
             type: Array,
             computed: '_computeThisItemUid(machine)'
@@ -817,8 +814,9 @@ Polymer({
         return actions;
     },
 
-    _computeItemInArray: function() {
-        return [this.machine];
+    itemInArray: function(machine) {
+        console.log('itemInArray', machine.id || machine);
+        return [machine];
     },
     _computeKeyName: function(keyid){
         return this.model.keys[keyid].name || 'not found';

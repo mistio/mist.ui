@@ -21,7 +21,7 @@
     </style>
     
     <mist-actions actions="[[actions]]" type="machine" items="[[items]]" model="[[model]]"></mist-actions>
-    <machine-edit id="renamedialog" items="" model="[[model]]"></machine-edit>
+    <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
     <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
 
@@ -173,7 +173,7 @@ MACHINE_ACTIONS = {
         }
         return ret;
       },
-      _delete: function() {
+      _delete: function(items) {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -185,18 +185,15 @@ MACHINE_ACTIONS = {
           this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
         }
       },
-      _rename: function(){
-        var items = [];
+      _rename: function(items){
         this.$['renamedialog'].items = this.items;
         this.$['renamedialog']._openDialog();
       },
-      _associateKey: function(){
-        var items = [];
+      _associateKey: function(items){
         this.$['associatekeydialog'].items = this.items;
         this.$['associatekeydialog']._openDialog();
       },
-      _runScript: function(){
-        var items = [];
+      _runScript: function(items){
         this.$['runscriptdialog'].items = this.items;
         this.$['runscriptdialog']._openDialog();
       },
@@ -208,27 +205,28 @@ MACHINE_ACTIONS = {
           dialog._openDialog();
       },
       performAction: function(e) {
-        console.log('performAction', e.detail.action);
+        console.log('performAction', e, e.detail.action);
         var action = e.detail.action;
         if (action.name == 'delete') {
-          this._delete();
+          this._delete(this.items);
         }
         else if (action.name == 'rename') {
-          this._rename();
+          this._rename(this.items);
         }
         else if (action.name == 'run script') {
-          this._runScript();
+          this._runScript(this.items);
         }
         else if (action.name == 'associate key') {
-          this._associateKey();
+          this._associateKey(this.items);
         }
         else {
           this.performMachineAction(action, this.items);
         }
       },
-      performMachineAction: function(action, items){
+      performMachineAction: function(action, items) {
+          var runitems = items;
           var run = function(el) {
-              var uri, payload, item = items.shift(), method = 'POST';
+              var uri, payload, item = runitems.shift(), method = 'POST';
               //machines
               if (action.name == 'shell') {
                   console.warn('opening shell');
@@ -236,8 +234,10 @@ MACHINE_ACTIONS = {
                   //el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
                   // remove existing terminals from DOM
                   var xterm = document.querySelector("xterm-dialog");
-                  if (xterm)
+                  if (xterm) {
                       xterm.remove();
+                      console.log('xterm removed', this.items);
+                    }
 
                   xterm = el.querySelector("xterm-dialog");
                   if (!xterm) {
