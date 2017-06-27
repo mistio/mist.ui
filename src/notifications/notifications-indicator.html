@@ -77,31 +77,52 @@
                 display: none !important;
             }
 
+            .tip {
+                border-color: transparent;
+                border-bottom-color: #fff;
+                border-style: dashed dashed solid;
+                border-width: 0 11px 9px;
+                position: absolute;
+                left: 17px;
+                top: 50px;
+                z-index: 1;
+                height: 0;
+                width: 0;
+                opacity: 1;
+                transition: opacity 0.4s ease-in-out, top 0.3s ease-in-out;
+            }
+            .tip[closed] {
+                opacity: 0;
+                top: 80px;
+                transition: opacity 0s ease-in-out, top 0s ease-in-out;
+            }
+
         </style>
 
         <!-- local DOM goes here -->
-        <paper-menu-button hidden="[[hidden]]" horizontal-align="right">
+        <paper-menu-button hidden="[[hidden]]" horizontal-align="right" vertical-offset="56" opened="{{opened}}">
             <paper-icon-button icon="[[indicatorIcon]]" type$="[[indicatorType]]" class="notification-icon dropdown-trigger"></paper-icon-button>
-                <div class="dropdown-content">
-                    <div class="grid-row">
-                        <h4>[[_computeTitle(notifications)]]</h4>
-                    </div>
-                    <hr/>
-                    <paper-menu id="notifications-menu">
-                        <template is="dom-repeat" items="[[notifications]]" as="notification">
-                            <paper-item on-tap="_handleItemTap" class="context" hidden$="{{notification.hidden}}">
-                                <iron-icon icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
-                                <paper-item-body two-line>
-                                    <div>[[notification.summary]]</div>
-                                    <div secondary>[[_computeRelativeTime(notification)]]</div>
-                                </paper-item-body>
-                                <iron-icon on-tap="_dismiss" class="close-icon" icon="icons:clear"></iron-icon>
-                            </paper-item>
-                        </template>
-                    </paper-menu>
+            <div class="dropdown-content">
+                <div class="grid-row">
+                    <h4>[[_computeTitle(notifications)]]</h4>
                 </div>
+                <hr/>
+                <paper-menu id="notifications-menu">
+                    <template is="dom-repeat" items="[[notifications]]" as="notification">
+                        <paper-item on-tap="_handleItemTap" class="context" hidden$="{{notification.hidden}}">
+                            <iron-icon icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
+                            <paper-item-body two-line>
+                                <div>[[notification.summary]]</div>
+                                <div secondary>[[_computeRelativeTime(notification)]]</div>
+                            </paper-item-body>
+                            <iron-icon on-tap="_dismiss" class="close-icon" icon="icons:clear"></iron-icon>
+                        </paper-item>
+                    </template>
+                </paper-menu>
+            </div>
         </paper-menu-button>
         <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
+        <div class="tip" closed$="[[!opened]]"></div>
 
     </template>
     <script>
@@ -112,6 +133,7 @@
                 notifications: {
                     type: Array
                 },
+                opened: Boolean,
                 hidden: {
                     type: Boolean,
                     computed: '_computeIndicatorHidden(notifications.length)'
