@@ -185,18 +185,6 @@ MACHINE_ACTIONS = {
           this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
         }
       },
-      _rename: function(items){
-        this.$['renamedialog'].items = this.items;
-        this.$['renamedialog']._openDialog();
-      },
-      _associateKey: function(items){
-        this.$['associatekeydialog'].items = this.items;
-        this.$['associatekeydialog']._openDialog();
-      },
-      _runScript: function(items){
-        this.$['runscriptdialog'].items = this.items;
-        this.$['runscriptdialog']._openDialog();
-      },
       _showDialog: function(info) {
           var dialog = this.querySelector('dialog-element');
           for (var i in info) {
@@ -205,26 +193,27 @@ MACHINE_ACTIONS = {
           dialog._openDialog();
       },
       performAction: function(e) {
-        console.log('performAction', e, e.detail.action);
+        // console.log('perform action', e, e.detail.action);
         var action = e.detail.action;
         if (action.name == 'delete') {
           this._delete(this.items);
         }
         else if (action.name == 'rename') {
-          this._rename(this.items);
+          this.$['renamedialog']._openDialog();
         }
         else if (action.name == 'run script') {
-          this._runScript(this.items);
+          this.$['runscriptdialog']._openDialog();
         }
         else if (action.name == 'associate key') {
-          this._associateKey(this.items);
+          this.$['associatekeydialog']._openDialog();
         }
         else {
           this.performMachineAction(action, this.items);
         }
       },
       performMachineAction: function(action, items) {
-          var runitems = items;
+          var runitems = items.slice();
+          // console.log('perform action machine',items);
           var run = function(el) {
               var uri, payload, item = runitems.shift(), method = 'POST';
               //machines
@@ -236,8 +225,8 @@ MACHINE_ACTIONS = {
                   var xterm = document.querySelector("xterm-dialog");
                   if (xterm) {
                       xterm.remove();
-                      console.log('xterm removed', this.items);
-                    }
+                      // console.log('xterm removed', this.items);
+                  }
 
                   xterm = el.querySelector("xterm-dialog");
                   if (!xterm) {
@@ -246,12 +235,13 @@ MACHINE_ACTIONS = {
                       var parent = el.parentElement.parentElement;
                       parent.insertBefore(xterm, parent.firstChild);
                   }
+                  // console.log('perform action shell', item);
                   return;
               } else if ( ['reboot','start', 'stop', 'suspend', 'resume', 'undefine', 'destroy'].indexOf(action.name) > -1) {
                   // rename excluded
                   uri = '/api/v1/machines/' + item.id;
                   payload = {'action': action.name};
-                  console.log(action.name);
+                  // console.log('perform action ',action.name);
               } else if (action.name == 'probe') {
                   uri = '/api/v1/machines/' + item.id+ '/probe';
                   payload = {'host': item.public_ips[0], 'key': item.key_associations[0]};
@@ -278,7 +268,7 @@ MACHINE_ACTIONS = {
                           this.fire('action-finished');
                       }
                       this.fire('toast', {msg: message, duration: 5000});
-                      if (items.length) {
+                      if (runitems.length) {
                           run(el);
                       }
                       else {
