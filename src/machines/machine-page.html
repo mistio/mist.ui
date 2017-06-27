@@ -394,7 +394,7 @@
                 </div>
                 <div class="machine-actions">
                     <template is="dom-if" if="[[machine]]" restamp>
-                        <machine-actions id="actions_machine" items="[[itemInArray(machine)]]" model="[[model]]"></machine-actions>
+                        <machine-actions id="actions_machine" items="[[itemInArray]]" model="[[model]]"></machine-actions>
                     </template>
                 </div>
             </paper-material>
@@ -759,10 +759,12 @@ Polymer({
         monitoring: {
             type: Boolean,
             value: false
-        }
+        },
+        itemInArray: Array
     },
     observers: [
-        '_isMonitored(machine, model.monitoring.machines.*)'
+        '_isMonitored(machine, model.monitoring.machines.*)',
+        '_machineChanged(machine.*)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -813,10 +815,10 @@ Polymer({
 
         return actions;
     },
-
-    itemInArray: function(machine) {
-        console.log('itemInArray', machine.id || machine);
-        return [machine];
+    _machineChanged: function(machine) {
+        console.log('perform action machine changed', machine);
+        if (this.machine)
+            this.set('itemInArray', [this.machine]);
     },
     _computeKeyName: function(keyid){
         return this.model.keys[keyid].name || 'not found';
