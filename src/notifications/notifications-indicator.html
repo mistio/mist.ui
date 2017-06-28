@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 <script type="text/javascript" src="../../bower_components/moment/moment.js" inline></script>
 
@@ -108,7 +109,6 @@
             id="requestDismiss"
             url="/api/v1/notifications/dismiss"
             method="POST"
-            params=""
             handle-as="json"
             on-response="handleDismissResponse">
         </iron-ajax>
@@ -247,23 +247,24 @@
             _dismiss: function(event) {
                 var menu = document.querySelector("paper-menu#notifications-menu");
                 var index = menu.indexOf(event.srcElement.parentElement);
-                console.log(index);
                 if (index != -1)
                 {
                     var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
-                    this.$.requestRepos.params = {"notification_id": this.notifications[index].id};
-                    this.$.requestRepos.generateRequest();
+                    this.$.requestDismiss.body = JSON.stringify({"notification_id": this.notifications[index]._id});
+                    this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.requestDismiss.generateRequest();
                 }
                 event.stopPropagation()
             },
             handleDismissResponse: function(event) {
-                var id = event.detail.id;
-                for (i=0; i<notifications.length; ++i) 
+                var obj = JSON.parse(event.detail.__data__.response);
+                var id = obj._id;
+                for (i=0; i<this.notifications.length; ++i) 
                 {
-                    var notification = notifications[i];
-                    if (notification.id == id)
+                    var notification = this.notifications[i];
+                    if (notification._id == id)
                     {
-                        this.splice('notifications' index, 1);
+                        this.splice('notifications', i, 1);
                         return;
                     }
                 }
