@@ -104,6 +104,15 @@
         </paper-menu-button>
         <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
 
+        <iron-ajax
+            id="requestDismiss"
+            url="/api/v1/notifications/dismiss"
+            method="POST"
+            params=""
+            handle-as="json"
+            on-response="handleDismissResponse">
+        </iron-ajax>
+
     </template>
     <script>
         Polymer({
@@ -242,8 +251,22 @@
                 if (index != -1)
                 {
                     var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
+                    this.$.requestRepos.params = {"notification_id": this.notifications[index].id};
+                    this.$.requestRepos.generateRequest();
                 }
                 event.stopPropagation()
+            },
+            handleDismissResponse: function(event) {
+                var id = event.detail.id;
+                for (i=0; i<notifications.length; ++i) 
+                {
+                    var notification = notifications[i];
+                    if (notification.id == id)
+                    {
+                        this.splice('notifications' index, 1);
+                        return;
+                    }
+                }
             }
         });
     </script>
