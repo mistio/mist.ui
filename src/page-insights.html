@@ -7,8 +7,8 @@
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <script src="../bower_components/moment/moment.js"></script>
+<script src="../bower_components/echarts/dist/echarts.min.js"></script>
 
-<link rel="import" href="../bower_components/chart-elements/chart-elements.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
 <link rel="import" href="item-list/item-list.html">
@@ -398,15 +398,15 @@
                 <div class="block flex">
                     <div class="row row-title">
                         <div class="smaller">Run Rate ($/<span class="lowercase">month</span>)</div>
+                        <div id="costgraph" style$="width: [[graphWidth]]px; height: [[doughnutWidth]]px;"></div>
                     </div>
-                    <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
                 </div>
                 <div class="block flex">
                     <div class="row row-title" hidden$="[[!showRing]]">
                         <div class="smaller">[[ringTitle]]</div>
                     </div>
                     <div id="doughnut" class="row flex-horizontal" hidden$="[[!showRing]]">
-                        <chart-doughnut id="drillcostgraph" data="[[costDrillData]]" type="doughnut" options="[[chartOptions]]" style$="width: [[doughnutWidth]]px; height: [[doughnutWidth]]px"></chart-doughnut>
+                        <div id="drillcostgraph" style$="width: [[doughnutWidth]]px; height: [[doughnutWidth]]px"></div>
                         <div id="drillcostlist" class="flex">
                             <div class="list">
                                 <template is="dom-repeat" items="{{costDrillList}}">
@@ -514,7 +514,8 @@
                     <div class="row row-title">
                         <div class="smaller">Load</div>
                     </div>
-                    <chart-line id="loadgraph" data="[[loadData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+                    <!-- <chart-line id="loadgraph" data="[[loadData]]" type="line" style$="width: [[graphWidth]]px"></chart-line> -->
+                    <div id="loadgraph" style$="width: [[graphWidth]]px; height: [[doughnutWidth]]px;"></div>
                 </div>
                 <div class="block flex">
                     <div class="row" hidden$="[[!showListLoad0]]">
@@ -627,8 +628,8 @@
                 <div class="block flex">
                     <div class="row">
                         <div class="smaller">Machines count</div>
+                        <div id="machinesgraph" style$="width: [[graphWidth]]px; height: [[doughnutWidth]]px;"></div>
                     </div>
-                    <chart-bar id="machinesgraph" data="[[machinesData]]" type="bar" style$="width: [[graphWidth]]px"></chart-bar>
                 </div>
                 <div class="block flex">
                     <!-- <div class="row">
@@ -879,42 +880,12 @@
                 loadDrillList0: Array,
                 loadDrillList1: Array,
                 loadDrillList2: Array,
-                machinesData: {
-                    type: Object,
-                    value: {
-                        labels: [],
-                        datasets: [{
-                            label: "machines",
-                            backgroundColor: "rgba(0,155,155,0.2)",
-                            borderColor: "rgba(0,155,155,1)",
-                            borderWidth: 1,
-                            pointBackgroundColor: "rgba(0,155,155,1)",
-                            pointBorderColor: "#fff",
-                            pointHoverBackgroundColor: "#fff",
-                            pointHoverBorderColor: "rgba(0,155,155,1)",
-                            data: []
-                        }]
-                    }
-                },
                 showRing: Boolean,
                 showSecondList: Boolean,
                 showFirstList: Boolean,
                 ringTitle: String,
                 firstListTitle: String,
                 secondListTitle: String,
-                costDrillData: {
-                    type: Object,
-                    value: {
-                        labels: [],
-                        datasets: [{
-                            data: [],
-                            backgroundColor: ["rgba(0,155,155,0.3)", "rgba(153,255,51,0.3)", "rgba(255,153,0,0.3)", "rgba(155,0,155,0.3)", "rgba(155,0,0,0.3)", "rgba(0,155,0,0.3)", "rgba(0,0,0,0.3)", "rgba(0,0,200,0.3)", "rgba(200,0,200,0.3)", "rgba(255,255,0,0.3)"
-                                ],
-                            hoverBackgroundColor: ["rgba(0,155,155,0.3)", "rgba(153,255,51,0.3)", "rgba(255,153,0,0.3)", "rgba(155,0,155,0.3)", "rgba(155,0,0,0.3)", "rgba(0,155,0,0.3)", "rgba(0,0,0,0.3)", "rgba(0,0,200,0.3)", "rgba(200,0,200,0.3)", "rgba(255,255,0,0.3)"
-                                ],
-                        }]
-                    }
-                },
                 costDrillList: Array,
                 costDrillList1: Array,
                 costDrillList2: Array,
@@ -938,17 +909,198 @@
                     type: String,
                     value: 300
                 },
-                chartOptions: {
+                loadgraph: Object,
+                loadgraphOptions: {
                     type: Object,
                     value: {
-                        "cutoutPercentage": 70,
-                        "legend": {
-                            display: true, 
-                            labels: {
-                                boxWidth: 10,
-                                fontFamily: "Roboto"
+                        tooltip : {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross',
+                                label: {
+                                    backgroundColor: '#6a7985'
+                                }
                             }
-                        }
+                        },
+                        legend: {
+                            data:[{
+                                name:'Load',
+                                textStyle: "rgba(0,155,155,1)",
+                            },{
+                                name:'Cores',
+                                textStyle: "rgba(250,128,114,1)",
+                            }]
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis : [
+                            {
+                                type : 'category',
+                                boundaryGap : false,
+                                data : ['1','2','3','4']
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'Cores',
+                                type:'line',
+                                stack: 'f',
+                                areaStyle: {normal: {color: "rgba(0,155,155,0.2)"}},
+                                lineStyle: {normal: {color: "rgba(0,155,155,1)"}},
+                                itemStyle: {normal: {borderColor: "rgba(0,155,155,1)"}},
+                                data:[120, 132, 101, 134]
+                            },
+                            {
+                                name:'Load',
+                                type:'line',
+                                stack: 'g',
+                                areaStyle: {normal: {color: "rgba(250,128,114,0.2)"}},
+                                lineStyle: {normal: {color: "rgba(250,128,114,1)"}},
+                                itemStyle: {normal: {borderColor: "rgba(250,128,114,1)"}},
+                                data:[120, 132, 101, 134]
+                            }
+                        ]
+                    }
+                },
+                costgraph: Object,
+                costgraphOptions: {
+                    type: Object,
+                    value: {
+                        tooltip : {
+                            trigger: 'axis',
+                            formatter: "{b}: <br/>${c}",
+                            axisPointer: {
+                                type: 'cross',
+                                label: {
+                                    backgroundColor: '#6a7985'
+                                }
+                            }
+                        },
+                        legend: {
+                            data:['Cost per month']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis : [
+                            {
+                                type : 'category',
+                                boundaryGap : false,
+                                data : ['1','2','3','4']
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'Cost',
+                                type:'line',
+                                stack: 'f',
+                                areaStyle: {normal: {color: "rgba(0,155,155,0.2)"}},
+                                lineStyle: {normal: {color: "rgba(0,155,155,1)"}},
+                                itemStyle: {normal: {borderColor: "rgba(0,155,155,1)"}},
+                                data:[120, 132, 101, 134, 90, 230, 210]
+                            }
+                        ]
+                    }
+                },
+                drillcostgraph: Object,
+                drillcostgraphOptions: {
+                    type: Object,
+                    value: {
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: "{b} {a}: <br/>${c} ({d}%)"
+                        },
+                        legend: {
+                            orient: 'vertical',
+                            x: 'left',
+                            data:[]
+                        },
+                        series: [
+                            {
+                                name:'cost',
+                                type:'pie',
+                                radius: ['50%', '70%'],
+                                avoidLabelOverlap: false,
+                                label: {
+                                    normal: {
+                                        show: false,
+                                        position: 'center'
+                                    },
+                                    emphasis: {
+                                        show: true,
+                                        textStyle: {
+                                            fontSize: '30',
+                                            fontWeight: 'bold'
+                                        }
+                                    }
+                                },
+                                labelLine: {
+                                    normal: {
+                                        show: false
+                                    }
+                                },
+                                data:[]
+                            }
+                        ]
+                    }
+                },
+                machinesgraph: Object,
+                machinesgraphOptions: {
+                    type: Object,
+                    value: {
+                        color: ["rgba(0,155,155,0.2)"],
+                        borderColor: ["rgba(0,155,155,1)"],
+                        tooltip : {
+                            trigger: 'axis',
+                            axisPointer : {
+                                type : 'shadow'
+                            }
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis : [
+                            {
+                                type : 'category',
+                                data : ['Mon'],
+                                axisTick: {
+                                    alignWithLabel: true
+                                }
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'machines',
+                                type:'bar',
+                                barWidth: '60%',
+                                data:[10]
+                            }
+                        ]
                     }
                 }
             },
@@ -968,6 +1120,18 @@
             ready: function(){
             },
             attached: function (e) {
+                var colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548','#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
+                echarts.registerTheme('polyana', {
+                    color: colorPalette,
+                    backgroundColor: 'transparent',
+                    graph: {
+                        color: colorPalette
+                    }
+                });
+                this.costgraph = echarts.init(this.$.costgraph, 'polyana');
+                this.loadgraph = echarts.init(this.$.loadgraph, 'polyana');
+                this.drillcostgraph = echarts.init(this.$.drillcostgraph);
+                this.machinesgraph = echarts.init(this.$.machinesgraph);
                 this.updateChartWidth(e);
             },
             _computeInsightsEnabled: function(modelorg){
@@ -1121,15 +1285,19 @@
                     machinesData = history.map(function(datapoint){
                         return datapoint.machine_count;
                     });
+
+                    console.log(labels, costData, machinesData)
                 }
 
-                this.set('costData.datasets.0.data', costData);
-                this.set('costData.labels', labels);
-                this.set('machinesData.datasets.0.data', machinesData);
-                this.set('machinesData.labels', labels);
+                this.set('costgraphOptions.xAxis.0.data', labels);
+                this.set('costgraphOptions.series.0.data', costData);
+                if (this.costgraph)
+                    this.costgraph.setOption(this.costgraphOptions);
 
-                this.$.costgraph.updateChart();
-                this.$.machinesgraph.updateChart();
+                this.set('machinesgraphOptions.xAxis.0.data', labels);
+                this.set('machinesgraphOptions.series.0.data', machinesData);
+                if (this.machinesgraph)
+                    this.machinesgraph.setOption(this.machinesgraphOptions);
             },
             updateDataLoad: function (history) {
                 var loadData = [],
@@ -1150,11 +1318,11 @@
                     });
                 }
 
-                this.set('loadData.datasets.0.data', loadData);
-                this.set('loadData.datasets.1.data', coresData);
-                this.set('loadData.labels', labels);
-
-                this.$.loadgraph.updateChart();
+                this.set('loadgraphOptions.xAxis.0.data', labels);
+                this.set('loadgraphOptions.series.0.data', coresData);
+                this.set('loadgraphOptions.series.1.data', loadData);
+                if (this.loadgraph)
+                    this.loadgraph.setOption(this.loadgraphOptions);
             },
             updateCostDrillData: function(groupby, filterbyname) {
                 var drillData = [],
@@ -1213,6 +1381,13 @@
                     drillLabels = drill.map(function(point){
                         return point.name.length ? point.name : 'untagged';
                     });
+
+                    var costRingData = drill.map(function(point){
+                        return {value: this._toFixed(point.cost), name: point.name};
+                    }, this);
+                    var costRingLabels = drill.map(function(point){
+                        return point.name;
+                    }, this);
                 }
                 else {
                     this.set('showRing', false);
@@ -1220,8 +1395,11 @@
                 }
 
                 // fill in ring
-                this.set('costDrillData.datasets.0.data', drillData);
-                this.set('costDrillData.labels', drillLabels);
+                this.set('drillcostgraphOptions.series.0.data', costRingData);
+                this.set('drillcostgraphOptions.legend.data', costRingLabels);
+                if (this.drillcostgraph)
+                    this.drillcostgraph.setOption(this.drillcostgraphOptions);
+
                 this.set('costDrillList', drill ? drill.sort(function(a,b){ return a.cost < b.cost}) : []);
 
                 // fill in first list
@@ -1245,16 +1423,14 @@
                         plural2 = "s";
 
                     this.set('showSecondList', true);
-                    this.set('secondtListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2+plural2);
+                    this.set('secondListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2+plural2);
 
                     this.set('costDrillList2', this.report.group_by[drillList2] ? this.report.group_by[drillList2].sort(function(a,b){ return a.cost < b.cost}) : [])
                 }
                 else {
                     this.set('showSecondList', false);
-                    this.set('secondtListTitle', "");
+                    this.set('secondListTitle', "");
                 }
-
-                this.$.drillcostgraph.updateChart();
             },
             updateLoadDrillData: function(groupby, filterbyname) {
                 var plural = "",
@@ -1290,9 +1466,9 @@
                 }
                 else {
                     this.set('graphWidth', parentWidth-50);
-                    this.set('doughnutWidth', Math.min((parentWidth-50)/2, 300));
+                    this.set('doughnutWidth', Math.max((parentWidth-50)/2, 300));
                 }
-                this.resizeGraphs();
+                // this.resizeGraphs();
                 var that = this;
                 this.debounce('resizer', function(){
                     console.log('resized chart');
@@ -1301,9 +1477,14 @@
             },
             resizeGraphs: function(){
                 console.log('resizeGraphs');
-                this.$.costgraph.resize();
-                this.$.drillcostgraph.resize();
-                this.$.loadgraph.resize();
+                if (this.costgraph)
+                    this.costgraph.resize();
+                if (this.drillcostgraph)
+                    this.drillcostgraph.resize();
+                if (this.loadgraph)
+                    this.loadgraph.resize();
+                if (this.machinesgraph)
+                    this.machinesgraph.resize();
             },
             combineParams: function(time, filter) {
                 // console.log('p send ', filter);
