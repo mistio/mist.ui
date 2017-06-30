@@ -5,14 +5,13 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
 <script src="../bower_components/moment/moment.js"></script>
 <script src="../bower_components/echarts/dist/echarts.min.js"></script>
 
-<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
-
 <link rel="import" href="item-list/item-list.html">
-
 
 <dom-module id="page-insights">
     <template>
@@ -225,13 +224,12 @@
         #machinesCount {
             padding-bottom: 48px;
         }
-        items-list ::content .header.item-list {
-            border-left: 0 none !important;
-            border-right: 0 none !important;
+        mist-list {
+            padding: 0;
+            width: 100%;
         }
-        items-list ::content .header.item-list {
-            border-left: 0 none !important;
-            border-right: 0 none !important;
+        mist-list::slotted(div#actions) {
+            display: none !important;
         }
         .show-small, .show-medium {
             display: none;
@@ -743,11 +741,21 @@
                 </div>
             </div>
         </paper-material>
-        <paper-material id="machinesList" class="no-pad" hidden$="[[!isToCurrent]]">
+        <paper-material id="machinesList" class="no-pad" hidden$="[[!isToCurrent]]" style="min-height: 450px">
             <div class="loading-data" hidden="{{!loadingData}}">
             </div>
             <div class="machines-list">
-                <item-list section="[[model.sections.machines]]" items="[[machines]]" sort-by="cost" sort-order="1" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
+                <mist-list id="machinesList"
+                    selectable
+                    items="[[model.machinesArray]]"
+                    name="Machines"
+                    selected-items="{{selectedItems}}"
+                    frozen=[[_getFrozenLogColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers(model.machines,model.clouds,model.incidentsArray)]]
+                    user-filter=[[model.sections.machines.q]]
+                    primary-field-name="id">
+                </mist-list>
             </div>
         </paper-material>
 
@@ -1628,6 +1636,175 @@
             },
             isNotNull: function(value) {
                 return value != null;
+            },
+            _getFrozenLogColumn: function(){
+              return ['name'];
+            },
+
+            _getVisibleColumns: function(){
+              return ['state', 'cloud', 'cost', 'created', 'tags'];
+            },
+
+            itemProbeClasses: function(item) {
+                if (this.model.probes == {}) {
+                    return '';
+                }
+                else {
+                    if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
+                        return "";
+                    }
+
+                    else {
+                        var probe = this.model.probes[item.id].loadavg;
+                        var cores =  parseInt(this.model.probes[item.id].cores);
+                        var classes = '';
+                        var prefix = '';
+                        console.log(parseInt(probe[0]),probe[0]);
+
+                        classes += this.loadToColor(parseFloat(probe[0]/cores), "short");
+                        classes += this.loadToColor(parseFloat(probe[1]/cores), "mid");
+                        classes += this.loadToColor(parseFloat(probe[2]/cores), "long");
+
+                        //has probe data
+                        if (classes != "")
+                            classes += "hasprobe "
+
+                        return classes;
+                    }
+                }
+            },
+
+            loadToColor: function(load, prefix){
+                if (load > 1.2)
+                    return prefix+"high ";
+                else if (load > 0.8)
+                    return prefix+"medium ";
+                else if (load > 0.6)
+                    return prefix+"eco ";
+                else if (load > 0.2)
+                    return prefix+"low ";
+                else
+                    return prefix+"low ";
+            },
+
+            _getRenderers: function(machines, clouds, incidents) {
+              var _this = this;
+              return {
+                  'indicator': {
+                      'body': function(item, row) {
+                        var green = "#69b46c",
+                            pending = "#eee",
+                            incident = "#d96557",
+                            color = 'transparent';
+                        // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
+                        if (row.monitoring.hasmonitoring) {
+                            color = green;
+                            // if (_this._machineHasIncidents(row,incidents))
+                            //     color = red;
+                            if (row.monitoring.installation_status == "installing" || !row.monitoring.installation_status == "installing" || !row.monitoring.installation_status.activated_at)
+                                color = pending;
+                            return 'border-left: 8px solid '+ color +'; padding-left: 8px;';
+                        }
+                        return '';
+                      }
+                  },
+                  'icon': {
+                      'body': function(item, row) {
+                          return './assets/providers/provider-'+row.cloud.provider.replace("_", "").replace(" ", "")+'.png';
+                      }
+                  },
+                  'name': {
+                      'body': function(item, row) {
+                          return '<strong class="name">' + item + '</strong>';
+                      }
+                  },
+                  'state': {
+                        'body': function(item,  row){
+                            var ret = '', 
+                                prefix = '';
+                            // if (_this.itemRecommendation(row)) {
+                            //     prefix = '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
+                            // }
+                            if (item == "running")
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
+                            else if (item == "error")
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='red'>"+item+"</span></div>";
+                            else if (item == "stopped")
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='orange'>"+item+"</span></div>";
+                            else
+                                ret += "<div class='state'>"+ item +"</span>";
+
+                            return prefix+ret;
+                        },
+                        'tap': function(item, row) {
+                            // if (_this.itemRecommendation(row))
+                            //     return 'recommendation';
+                            // else
+                                return '';
+                        }
+                  },
+                  'cloud': {
+                      'body': function(item, row) {
+                        if (_this.model && _this.model.clouds)
+                          return _this.model.clouds[item.id].title;
+                      }
+                  },
+                  'cost': {
+                      'body': function(item, row) {
+                          return '$'+ Math.round(item.monthly);
+                      }
+                  },
+                  'created': {
+                      'body': function(item, row) {
+                          return moment(item).isValid() ? moment.utc(item).fromNow() : "";
+                      }
+                  },
+                  'size': {
+                      'body': function(item, row) {
+                        if (row.extra && row.extra.size && row.extra.size.vcpus)
+                            return row.extra.size.vcpus + 'vcpu, ' + row.extra.size.memory + 'M ram';;
+                        if (row.extra && row.extra.size && typeof(row.extra.size) == 'string')
+                            return row.extra.size;
+                        if (row.extra && row.extra.instance_type)
+                            return row.extra.instance_type;
+                        if (row.extra && row.extra.instance_size)
+                            return row.extra.instance_size;
+                        if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
+                            return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
+                        if (_this.model && _this.model.clouds && row.extra && row.extra.PLANID) {
+                            return (cloud && cloud.sizes) ? cloud.sizes[row.extra.PLANID].name  : row.extra.PLANID
+                        }
+                        if (row.extra && row.extra.service_type)
+                            return row.extra.service_type;
+
+                        return "";
+                      }
+                  },
+                  'image': {
+                      'body': function(item, row) {
+                        if (row.extra && row.extra.image && row.extra.image.distribution && row.extra.image.name) {
+                            return row.extra.image.distribution + " " +row.extra.image.name;
+                        }
+                        if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)){
+                            return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
+                        }
+                        return "";
+                      }
+                  },
+                  'tags': {
+                      'body': function(item, row) {
+                        var tags = item,
+                            display = "";
+                        for (var i=0; i<tags.length; i++){
+                          display += "<span class='tag'>"+tags[i].key;
+                          if (tags[i].value != undefined && tags[i].value != "")
+                            display += "=" + tags[i].value;
+                          display += "</span>";
+                        }
+                        return display;
+                      }
+                  }
+               }
             }
         });
 
