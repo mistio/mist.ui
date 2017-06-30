@@ -157,6 +157,18 @@
                             that.openRequests[data.request_id](data);
                             delete that.openRequests[data.request_id];
                         }
+                    },
+                    notifications: function (data) {
+                        console.log('Loaded notifications list');
+                        that.debounce(that._updateNotifications(data), function () {
+                            console.debug('Loaded notifications list data');
+                        }, 250);
+                    },
+                    notification: function (data) {
+                        console.log('Received notification');
+                        that.debounce(that._addNotification(data), function () {
+                            console.debug('Loaded notification');
+                        }, 250);
                     }
                 },
                 shell: {
@@ -821,6 +833,18 @@
                     isOverUsing = true;
             }
             this.set('model.onboarding.isOverUsing', isOverUsing);
+        },
+
+        _updateNotifications: function(data) {
+            json_data = JSON.parse(data);
+            this.set('model.notificationsArray', json_data.reverse());
+
+        },
+
+        _addNotification: function(data) {
+            json_data = JSON.parse(data);
+            this.unshift('model.notificationsArray', json_data);
+            this.fire('toast', {msg:json_data.summary ,duration:3000} );
         },
 
         _probe: function (data) {
