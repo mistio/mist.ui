@@ -156,9 +156,9 @@
             box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
         }
     </style>
-    <app-route route="{{route}}"
-                pattern="/:machine"
-                data="{{data}}"></app-route>
+
+    <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
+
     <div class="logs" hidden$="[[!jobId]]">
         <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner> 
         <p> Creating machine: {{removeUnderscore(logItem.action)}} 
@@ -192,7 +192,7 @@
 
     <machine-create model="[[model]]" machines-fields="[[machinesFields]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]></machine-create>
     <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-        <machine-page model="[[model]]" machine="[[_getMachine(data.machine, model.machines)]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
+        <machine-page model="[[model]]" uuid=[[data.machine]] section="[[model.sections.machines]]" monitoring=[[monitoring]] hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
     </template>
     <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
         <h2>Recommendation</h2>
@@ -212,7 +212,6 @@
     </template>
     <script>
         Polymer({
-
             is: 'page-machines',
 
             properties: {
@@ -265,10 +264,6 @@
                 if (path)
                     this.stopPolling();
                 return !path;
-            },
-            _getMachine: function(id) {
-                if (id && this.model && this.model.machines && this.model.machines[id])
-                    return this.model.machines[id];
             },
             openRecommendationsDialog: function(e) {
                 var probe = this.model.probes[e.detail.item.id];

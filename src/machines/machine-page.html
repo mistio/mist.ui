@@ -386,15 +386,15 @@
                 <span class="icon"><iron-icon class$=" machine-state-icon [[machine.state]]" icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
-                        [[machine.name]]
+                        [[machineName]]
                     </h2>
                     <div class="subtitle">
-                        [[machine.state]] <span class="desc" hidden$="[[isState(machine)]]">[[machine.extra.status]]</span>
+                        [[machineState]] <span class="desc" hidden$="[[_hasExtraStatus(machine)]]">[[_computeExtraStatus(machine, machine.*, model.machines.*)]]</span>
                     </div>
                 </div>
                 <div class="machine-actions">
-                    <template is="dom-if" if="[[machine]]" restamp>
-                        <machine-actions id="actions_machine" items="[[itemInArray]]" model="[[model]]"></machine-actions>
+                    <template is="dom-if" if="[[itemArray]]" restamp>
+                        <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]"></machine-actions>
                     </template>
                 </div>
             </paper-material>
@@ -430,13 +430,12 @@
                             <iron-icon hidden$="[[!probeObj.dirty_cow]]" icon="icons:report-problem" on-tap="_showRecommendationDialog"></iron-icon> [[dirtyCowAlert]]
                             <a class="regular blue-link" on-tap="_showRecommendationDialog">Show recommendation.</a>
                         </span>
-                        <!-- <a href="/link-to-blog" target="new" class="regular" hidden$="[[!probeObj.dirty_cow]]">read more...</a> -->
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
                     <div hidden$="[[!machine.cost]]">
                         <h3 class="smallcaps">Monthly Cost:</h3>
-                        <div class="associatedKeys">
+                        <div>
                             $[[_toFixed(machine.cost.monthly)]]
                         </div>
                     </div>
@@ -664,14 +663,19 @@ Polymer({
     is: 'machine-page',
     properties: {
         model: {
-            type: Object,
-            notify: true
+            type: Object
         },
         router: Object,
-        machine: Object,
-        sections: {
-            type: Array,
+        uuid: {
+            type: String
+        },
+        machine: {
+            type: Object,
+            computed: '_getMachine(uuid, model.machines.*)',
             notify: true
+        },
+        sections: {
+            type: Array
         },
         section: {
             type: Object
@@ -682,17 +686,24 @@ Polymer({
         },
         isMonitored: {
             type: Boolean,
-            value: false,
-            notify: true
+            value: false
         },
         isActivated: {
             type: Boolean,
             value: false,
             computed: '_computeIsActivated(machine, model.monitoring.monitored_machines.*)'
         },
+        machineName: {
+            type: String,
+            computed: "_computeMachineName(machine.*, model.machines.*)"
+        },
+        machineState: {
+            type: String,
+            computed: "_computeMachineState(machine.*, model.machines.*)"
+        },
         machineImage: {
             type: String,
-            computed: "_machineImage(machine.image_id)"
+            computed: "_computeMachineImage(machine.image_id)"
         },
         dashboard: {
             type: Object
@@ -721,9 +732,8 @@ Polymer({
         },
         machineKeys: {
             type: Array,
-            computed: '_computeAssociatedKeys(machine, machine.key_associations)',
-            value: [],
-            notify: true
+            computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.*, model.machines.*, model.keys.*)',
+            value: []
         },
         itemUid: {
             type: Array,
@@ -731,7 +741,7 @@ Polymer({
         },
         actions: {
             type: Array,
-            computed: '_computeActions(machine)'
+            computed: '_computeActions(machine, machine.*, model.machines.*)'
         },
         probeData: {
             type: String,
@@ -760,11 +770,11 @@ Polymer({
             type: Boolean,
             value: false
         },
-        itemInArray: Array
+        itemArray: Array
     },
     observers: [
         '_isMonitored(machine, model.monitoring.machines.*)',
-        '_machineChanged(machine.*)'
+        '_machineChanged(machine.*, model.machines.*)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -773,6 +783,10 @@ Polymer({
     ready: function() {
         this.set('hideAssociatedKeys', true);
         this.set('isPendingKeyRequest', false);
+    },
+    _getMachine: function(id, machines) {
+        if (id && this.model && this.model.machines && this.model.machines[id])
+            return this.model.machines[id];
     },
     _showRecommendationDialog: function(){
         this.fire("open-recommendation-dialog", {'item-type': 'machines', 'item': this.machine, 'caller': "machine_page"});
@@ -818,7 +832,7 @@ Polymer({
     _machineChanged: function(machine) {
         console.log('perform action machine changed', machine);
         if (this.machine)
-            this.set('itemInArray', [this.machine]);
+            this.set('itemArray', [this.machine]);
     },
     _computeKeyName: function(keyid){
         return this.model.keys[keyid].name || 'not found';
@@ -829,10 +843,7 @@ Polymer({
         return itemUidInArray;
     },
     _computeAssociatedKeys: function(machine) {
-        var keys;
-        if (machine)
-            keys = machine.key_associations;
-        return keys || [];
+        return this.machine && this.machine.key_associations || [];
     },
     computeMachineIp: function(machineips) {
         if (this.machine.public_ips) {
@@ -865,14 +876,11 @@ Polymer({
             return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
         }
     },
-    _machineImage: function(id) {
-        var image = this.model.imagesArray.find(function(image) {
-            return image.id == id;
-        }, this);
-        if (image)
-            return image.name;
-        else
-            return "";
+    _computeMachineName: function(machine) {
+        return this.machine && this.machine.name || '';
+    },
+    _computeMachineState: function(machine) {
+        return this.machine && this.machine.state || '';
     },
     confirmAction: function(action) {
         this._showDialog({
@@ -895,9 +903,12 @@ Polymer({
         toast.text = msg;
         toast.show();
     },
-    isState: function(machine) {
+    _hasExtraStatus: function(machine) {
         if (machine && machine.state && machine.extra.status)
             return machine.state.toLowerCase() == machine.extra.status.toLowerCase();
+    },
+    _computeExtraStatus: function(machine) {
+        return machine && machine.extra && machine.extra.status && machine.extra.status.toLowerCase();
     },
     _computeIsloading: function(machine) {
         return !this.machine ? true : false;
@@ -1026,7 +1037,8 @@ Polymer({
             return "";
 
     },
-    _computeMachineImage: function(item){
+    _computeMachineImage: function(img){
+        var item = this.machine;
         if (item && item.image && typeof(item.image) != "object"){
             return item.image;
         }
@@ -1034,7 +1046,7 @@ Polymer({
             return item.extra.image;
         }
         else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
-            return item.extra.image.distribution + " " +item.extra.image.name;
+            return item.extra.image.distribution + " " + item.extra.image.name;
         }
         else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id || item.extra.image)){
             return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug || item.extra.image.name;
