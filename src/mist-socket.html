@@ -81,10 +81,7 @@
             this.handlers = {
                 main: {
                     patch_model: function (data) {
-                        console.warn('patch_model', data);
-                        d = jsonpatch.applyPatch(that.model, data);
-                        console.warn('patch result', d);
-                        that._updateMachines([1], true);
+                        that._patchModel(data);
                     },
                     list_clouds: function (data) {
                         that._updateClouds(data);
@@ -274,6 +271,36 @@
         _reloadPage: function (data) {
             console.warn('reloading', data);
             document.location.reload();
+        },
+
+        _patchModel: function(patch) {
+            console.warn('patch_model', patch);
+            var _this = this;
+            patch.forEach(function(operation){
+                jsonpatch.applyOperation(_this.model, operation, true);
+                var cloud_id, machine_id, resource_id;
+                if (operation.path.indexOf('/clouds/') > -1)
+                    cloud_id = operation.path.split('/clouds/')[1].split('/')[0];
+                if (cloud_id)
+                    machine_id = operation.path.split('/machines/')[1].split('/')[0];
+                if (operation.op == 'remove') {
+                    console.log('remove', operation.path);
+                    var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
+                        function(item) {
+                            return item.machine_id == machine_id
+                        }
+                    );
+                    _this.model.clouds[cloud_id].machinesArray.splice(i, 1);
+                }
+                if (operation.op == 'add') {
+                    console.log('add', operation.path);
+                    _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id].machines[machine_id])
+                }
+                if (operation.op == 'replace') {
+                    _this.set('model' + operation.path.replace(/\//g , "."), operation.value);
+                }
+            });
+            this._updateAllMachines();
         },
 
         _updateModel: function (section, data, primaryField) {
@@ -540,13 +567,16 @@
                 this.set('model.sectionsArray.' + i + '.count', allImages.length);
         },
 
-        _updateMachines: function (data, skipModel) {
-            if (!skipModel) {
-                var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines, 'machine_id');
-                // console.log('machines',data.machines);
-                if (!changed)
-                    return false;
-            }
+        _updateMachines: function (data) {
+            var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines, 'machine_id');
+            // console.log('machines',data.machines);
+            if (!changed)
+                return false;
+
+            this._updateAllMachines();
+        },
+
+        _updateAllMachines: function() {
             var allMachines = [];
             if (this.model != undefined && this.model.cloudsArray.length > 0) {
                 this.model.cloudsArray.forEach(
@@ -568,7 +598,7 @@
                     }, this);
             }
 
-            if (data.length && this.get('model.onboarding.hasMachines') != true)
+            if (allMachines.length && this.get('model.onboarding.hasMachines') != true)
                 this.set('model.onboarding.hasMachines', true);
 
             this.set('model.onboarding.isLoadingMachines', false);
