@@ -173,7 +173,7 @@
 
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="machinesList"
-            selectable resizable
+            selectable resizable column-menu multi-sort
             items="[[sortedMachines(model.machinesArray)]]"
             name="Machines"
             selected-items="{{selectedItems}}"
@@ -349,7 +349,7 @@
             },
 
             _getVisibleColumns: function(){
-              return ['state', 'cloud', 'cost', 'created', 'size', 'image', 'id', 'tags'];
+              return ['state', 'cloud', 'cost', 'created', 'tags', 'image', 'size', 'machine_id', 'id', 'hostname', 'public_ips' ];
             },
 
             _getRenderers: function(machines, clouds, incidents) {
@@ -416,7 +416,14 @@
                   },
                   'cost': {
                       'body': function(item, row) {
-                          return '$'+ Math.round(item.monthly);
+                          return item.monthly && '$' + Math.round(item.monthly) || '';
+                      },
+                      'cmp': function(item1, item2, row1, row2) {
+                            if (item1.monthly < item2.monthly)
+                                return -1;
+                            if (item1.monthly > item2.monthly)
+                                return 1;
+                            return 0;
                       }
                   },
                   'created': {
@@ -447,8 +454,11 @@
                   },
                   'image': {
                       'body': function(item, row) {
-                        if (row.extra && row.extra.image && row.extra.image.distribution && row.extra.image.name) {
-                            return row.extra.image.distribution + " " +row.extra.image.name;
+                        if (row.extra && row.extra.image) {
+                            if (row.extra.image.distribution && row.extra.image.name) {
+                                return row.extra.image.distribution + " " +row.extra.image.name;
+                            }
+                            return row.extra.image;
                         }
                         if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)){
                             return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
@@ -460,13 +470,19 @@
                       'body': function(item, row) {
                         var tags = item,
                             display = "";
-                        for (var i=0; i<tags.length; i++){
-                          display += "<span class='tag'>"+tags[i].key;
-                          if (tags[i].value != undefined && tags[i].value != "")
-                            display += "=" + tags[i].value;
-                          display += "</span>";
+                        for (var i=0; i < tags.length; i++) {
+                            display += "<span class='tag'>" + tags[i].key;
+                            if (tags[i].value != undefined && tags[i].value != "")
+                                display += "=" + tags[i].value;
+                            display += "</span>";
                         }
                         return display;
+                      }
+                  },
+                  'machine_id': {
+                      'title': 'id (external)',
+                      'body': function(i){
+                          return i;
                       }
                   }
                }
