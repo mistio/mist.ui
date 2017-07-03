@@ -32,6 +32,7 @@
 <link rel="import" href="account/plan-overusage.html">
 
 <link rel="import" href="mist-socket.html">
+<link rel="import" href="mist-notice.html">
 <link rel="import" href="mist-icons.html">
 
 <script type="text/javascript" src="providers.js" inline></script>
@@ -63,6 +64,25 @@
     iron-pages::content>* {
         background-color: #eee;
         position: relative;
+        min-height: 80vh;
+    }
+    iron-pages::content mist-list {
+        font-size: 14px;
+    }
+    iron-pages::content mist-list::content .tag {
+        display: inline;
+        background-color: #888;
+        color: #fff;
+        padding: 2px 0.5em;
+        margin: 0 1px;
+        border-radius: 2px;
+        letter-spacing: .4px;
+        font-weight: 500 !important;
+        word-break: break-all;
+        max-width: 250px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .is-loading-html {
         top: 15px;
@@ -109,6 +129,7 @@
 
     <paper-header-panel mode="standard" class="fit">
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></mist-sidebar>
+        <mist-notice model="[[model]]" class="paper-header"></mist-notice>
         <plan-overusage is-over-using="[[model.onboarding.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" hidden$=[[!enableBilling]]></plan-overusage>
         <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
@@ -247,6 +268,7 @@
             'page-meta': 'updateTitle',
             'toast': 'showToast',
             'subscribeLogEvents': 'subscribeLogEvents',
+            'clear-search-on-nav': 'clearSearch',
             'search': 'updateSearchQuery',
             'open-and-select': 'openAndSelect',
             'update-keys': 'updateKeys',
@@ -255,7 +277,8 @@
         },
 
         observers: [
-            '_routePageChanged(routeData.page, subroute.path)'
+            '_routePageChanged(routeData.page, subroute.path)',
+            '_manageSearch(route.*)'
         ],
 
         ready: function () {
@@ -300,14 +323,39 @@
         },
 
         _routePageChanged: function (page, subpath) {
-            if (page == 'index.html')
+            if (['index.html','sign-up','sign-in'].indexOf(page) > -1 )
                 page = 'dashboard';
             this.page = page || 'dashboard';
             if (subpath == '') { // Update iron-list
                 var p = page != '' && page != undefined ? '#' + page : '',
-                    i = this.querySelector('iron-list' + p);
+                    i = this.querySelector('iron-list' + p),
+                    l = this.querySelector('mist-list' + p+"List");
                 if (i) {
                     i.fire('iron-resize');
+                }
+                else if (l) {
+                    l.fire('resize');
+                }
+                console.log('in list or dashboard')
+            }
+            if (this.page == 'dashboard') {
+                this.clearSearch();
+            }
+        },
+
+        _manageSearch: function(changeRecord) {
+            console.log('_manageSearch',changeRecord)
+            if (changeRecord.path == 'route.path' && changeRecord.value.startsWith('/'+this.page+'/')){
+                this.clearSearch();
+            }
+        },
+
+        clearSearch: function(){
+            document.querySelector('top-search').clearSearch();
+            this.set('q', '');
+            if (this.model) {
+                for (var sec in this.model.sections) {
+                    this.set('model.sections.'+sec+'.q', '');
                 }
             }
         },
@@ -320,10 +368,6 @@
             if (this.querySelector('iron-media-query').queryMatches) {
                 document.querySelector('mist-sidebar').closeSidebar();
             }
-            // clear searches
-            document.querySelector('#query').value = '';
-            this.set('model.sections.' + this.page + '.q', '');
-            this.set('q', '');
         },
 
         _hideLoader: function () {
@@ -360,6 +404,7 @@
                 teamsArray: [],
                 teams: [],
                 incidentsArray: [],
+                notificationsArray: [],
                 pending: {
                     clouds: true,
                     monitoring: true
@@ -684,7 +729,7 @@
         },
 
         _computeViewingList: function (subroute) {
-            return ["/", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
+            return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
         }
 
     });

@@ -1,6 +1,9 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="tunnels/tunnel-add.html">
+<link rel="import" href="tunnels/tunnel-actions.html">
 <link rel="import" href="tunnels/tunnel-page.html">
 
 <link rel="import" href="page-items.html">
@@ -17,7 +20,24 @@
                 pattern="/:tunnel"
                 data="{{data}}"></app-route>
 
-    <page-items model="[[model]]" items="[[model.tunnelsArray]]" section="[[model.sections.tunnels]]" hidden$=[[!_isListActive(route.path)]]></page-items>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="tunnelsList"
+            selectable resizable
+            items="[[model.tunnelsArray]]"
+            name="Tunnels"
+            selected-items="{{selectedItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.tunnels)]]
+            route={{route}}
+            user-filter=[[model.sections.tunnels.q]]
+            primary-field-name="id">
+          <tunnel-actions slot="actions" items="[[selectedItems]]"></tunnel-actions>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="tunnelAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
     <tunnel-add model="[[model]]" section="[[model.sections.tunnels]]" hidden$=[[!_isAddPageActive(route.path)]]></tunnel-add>
     <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels)]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
   </template>
@@ -46,6 +66,46 @@
       _getTunnel: function(id) {
           if (this.model.tunnels)
               return this.model.tunnels[id];
+      },
+      _addResource: function(e) {
+          document.querySelector('app-location').set('path', this.model.sections.tunnels.add)
+      },
+      _getFrozenLogColumn: function(){
+          return ['name'];
+      },
+
+      _getVisibleColumns: function(){
+          return ['cidrs', 'id', 'tags'];
+      },
+
+      _getRenderers: function(tunnels) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'cidrs': {
+                  'body': function(item, row) {
+                    if (item)
+                      return item.join(', ');
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              }
+          }
       }
 
     });
