@@ -379,6 +379,7 @@
             <div class="loading-data" hidden="{{!loadingData}}">
                 <paper-spinner active="{{loadingData}}"></paper-spinner>
             </div>
+            <!-- [[parentWidth]] -->
             <div class="comparison">
                 <div class="smaller inline" hidden$="[[!isToCurrent]]">
                     <span>
@@ -815,7 +816,7 @@
                 timeParams: {
                     type: Object,
                     value: {
-                        window: "hour",
+                        window: "day",
                         past: "0"
                     }
                 },
@@ -907,6 +908,10 @@
                 machinesDrillList2: {
                     type: Array,
                     computed: 'sortByMachines(costDrillList2)'
+                },
+                parentWidth: {
+                    type: String,
+                    value: 600
                 },
                 graphWidth: {
                     type: String,
@@ -1466,13 +1471,15 @@
                 }
             },
             updateChartWidth: function(e) {
-                this.set('parentWidth', this.$.graphRow.offsetWidth);
+                var parentWidth = this.$.graphRow.offsetWidth;
+                // (max-width: 1650px == 1438) and (min-width: 1180px == 919)
+                this.set('parentWidth', parentWidth);
                 if (parentWidth > 800){
                     this.set('graphWidth', (parentWidth-50)/2);
-                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 300));
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 400));
                 }
                 else {
-                    this.set('graphWidth', parentWidth-50);
+                    this.set('graphWidth', parentWidth);
                     this.set('doughnutWidth', Math.max((parentWidth-50)/2, 300));
                 }
                 // this.resizeGraphs();
