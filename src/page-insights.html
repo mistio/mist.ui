@@ -5,14 +5,13 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
-
-<script src="../bower_components/moment/moment.js"></script>
-
-<link rel="import" href="../bower_components/chart-elements/chart-elements.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
-<link rel="import" href="item-list/item-list.html">
+<script src="../bower_components/moment/moment.js"></script>
+<script src="../bower_components/echarts/dist/echarts.min.js"></script>
 
+<link rel="import" href="item-list/item-list.html">
 
 <dom-module id="page-insights">
     <template>
@@ -225,13 +224,12 @@
         #machinesCount {
             padding-bottom: 48px;
         }
-        items-list ::content .header.item-list {
-            border-left: 0 none !important;
-            border-right: 0 none !important;
+        mist-list {
+            padding: 0;
+            width: 100%;
         }
-        items-list ::content .header.item-list {
-            border-left: 0 none !important;
-            border-right: 0 none !important;
+        mist-list::slotted(div#actions) {
+            display: none !important;
         }
         .show-small, .show-medium {
             display: none;
@@ -381,6 +379,7 @@
             <div class="loading-data" hidden="{{!loadingData}}">
                 <paper-spinner active="{{loadingData}}"></paper-spinner>
             </div>
+            <!-- [[parentWidth]] -->
             <div class="comparison">
                 <div class="smaller inline" hidden$="[[!isToCurrent]]">
                     <span>
@@ -398,22 +397,25 @@
                 <div class="block flex">
                     <div class="row row-title">
                         <div class="smaller">Run Rate ($/<span class="lowercase">month</span>)</div>
+                        <div id="costgraph" style$="width: [[graphWidth]]px; min-height: [[doughnutWidth]]px;"></div>
                     </div>
-                    <chart-line id="costgraph" data="[[costData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
                 </div>
                 <div class="block flex">
                     <div class="row row-title" hidden$="[[!showRing]]">
                         <div class="smaller">[[ringTitle]]</div>
                     </div>
                     <div id="doughnut" class="row flex-horizontal" hidden$="[[!showRing]]">
-                        <chart-doughnut id="drillcostgraph" data="[[costDrillData]]" type="doughnut" options="[[chartOptions]]" style$="width: [[doughnutWidth]]px; height: [[doughnutWidth]]px"></chart-doughnut>
+                        <div id="drillcostgraph" style$="width: [[doughnutWidth]]px; height: [[doughnutWidth]]px"></div>
                         <div id="drillcostlist" class="flex">
                             <div class="list">
                                 <template is="dom-repeat" items="{{costDrillList}}">
                                     <div class="flex-horizontal">
                                         <span class="flexchild name-col">
                                             [[_index(index)]].  [[item.name]]
-                                            <span hidden$="[[item.name.length]]">untagged</span>
+                                            <span hidden$="[[item.name.length]]">
+                                                <span hidden$="[[!isTag(ringTitle)]]">untagged</span>
+                                                <span hidden$="[[isTag(ringTitle)]]">not in a stack</span>
+                                            </span>
                                         </span>
                                         <div class="machines-column" title="machines">
                                             [[item.machine_count.unique]] 
@@ -435,7 +437,10 @@
                                     <span class="flexchild name-col">
                                         [[_index(index)]]. 
                                         <span hidden$="[[!item.name.length]]" class$="[[firstListTitle]]">[[item.name]]</span>
-                                        <span hidden$="[[item.name.length]]">untagged</span> 
+                                        <span hidden$="[[item.name.length]]">
+                                            <span hidden$="[[!isTag(firstListTitle)]]">untagged</span>
+                                            <span hidden$="[[isTag(firstListTitle)]]">not in a stack</span>
+                                        </span> 
                                     </span>
                                     <div class="machines-column">
                                         [[item.machine_count.unique]] machines 
@@ -455,7 +460,10 @@
                                     <span class="name-col flexchild">
                                         [[_index(index)]].
                                         <span hidden$="[[!item.name.length]]" class$="[[secondListTitle]]">[[item.name]]</span>
-                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                        <span hidden$="[[item.name.length]]">
+                                            <span hidden$="[[!isTag(secondListTitle)]]">untagged</span>
+                                            <span hidden$="[[isTag(secondListTitle)]]">not in a stack</span>
+                                        </span>
                                     </span>
                                     <div class="machines-column">
                                         [[item.machine_count.unique]] machines
@@ -514,7 +522,7 @@
                     <div class="row row-title">
                         <div class="smaller">Load</div>
                     </div>
-                    <chart-line id="loadgraph" data="[[loadData]]" type="line" style$="width: [[graphWidth]]px"></chart-line>
+                    <div id="loadgraph" style$="width: [[graphWidth]]px; min-height: [[doughnutWidth]]px;"></div>
                 </div>
                 <div class="block flex">
                     <div class="row" hidden$="[[!showListLoad0]]">
@@ -525,7 +533,10 @@
                                     <span class="flexchild name-col">
                                         [[_index(index)]]. 
                                         <span hidden$="[[!item.name.length]]" class$="[[listTitleLoad0]]">[[item.name]]</span>
-                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                        <span hidden$="[[item.name.length]]">
+                                            <span hidden$="[[!isTag(listTitleLoad0)]]">untagged</span>
+                                            <span hidden$="[[isTag(listTitleLoad0)]]">not in a stack</span>
+                                        </span>
                                     </span>
                                     <div class="machines-column">
                                         [[item.machine_count.unique]] machines
@@ -548,7 +559,10 @@
                                     <span class="flexchild name-col">
                                         [[_index(index)]]. 
                                         <span hidden$="[[!item.name.length]]" class$="[[listTitleLoad1]]">[[item.name]]</span>
-                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                        <span hidden$="[[item.name.length]]">
+                                            <span hidden$="[[!isTag(listTitleLoad1)]]">untagged</span>
+                                            <span hidden$="[[isTag(listTitleLoad1)]]">not in a stack</span>
+                                        </span>
                                     </span>
                                     <div class="machines-column">
                                         [[item.machine_count.unique]] machines
@@ -571,7 +585,10 @@
                                     <span class="name-col flexchild">
                                         [[_index(index)]]. 
                                         <span hidden$="[[!item.name.length]]" class$="[[listTitleLoad2]]">[[item.name]]</span>
-                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                        <span hidden$="[[item.name.length]]">
+                                            <span hidden$="[[!isTag(listTitleLoad2)]]">untagged</span>
+                                            <span hidden$="[[isTag(listTitleLoad2)]]">not in a stack</span>
+                                        </span>
                                     </span>
                                     <div class="machines-column">
                                         [[item.machine_count.unique]] machines
@@ -627,8 +644,8 @@
                 <div class="block flex">
                     <div class="row">
                         <div class="smaller">Machines count</div>
+                        <div id="machinesgraph" style$="width: [[graphWidth]]px; height: [[doughnutWidth]]px;"></div>
                     </div>
-                    <chart-bar id="machinesgraph" data="[[machinesData]]" type="bar" style$="width: [[graphWidth]]px"></chart-bar>
                 </div>
                 <div class="block flex">
                     <!-- <div class="row">
@@ -707,7 +724,10 @@
                                     <span class="flexchild name-col">
                                         [[_index(index)]].
                                         <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                        <span hidden$="[[item.name.length]]">
+                                            <span hidden$="[[!isTag(firstListTitle)]]">untagged</span>
+                                            <span hidden$="[[isTag(firstListTitle)]]">not in a stack</span>
+                                        </span>
                                     </span>
                                     <div class="machines-column">
                                         [[item.machine_count.unique]] machines
@@ -724,10 +744,13 @@
                         <div class="list">
                             <template is="dom-repeat" items="{{machinesDrillList2}}">
                                 <div class="flex-horizontal">
-                                    <span class="flexchild name-col">
+                                    <span class="name-col flexchild">
                                         [[_index(index)]].
-                                        <span class="tag" hidden$="[[!item.name.length]]">[[item.name]]</span>
-                                        <span hidden$="[[item.name.length]]">untagged</span>
+                                        <span hidden$="[[!item.name.length]]" class$="[[secondListTitle]]">[[item.name]]</span>
+                                        <span hidden$="[[item.name.length]]">
+                                            <span hidden$="[[!isTag(secondListTitle)]]">untagged</span>
+                                            <span hidden$="[[isTag(secondListTitle)]]">not in a stack</span>
+                                        </span>
                                     </span>
                                     <div class="machines-column">
                                         [[item.machine_count.unique]] machines
@@ -742,11 +765,21 @@
                 </div>
             </div>
         </paper-material>
-        <paper-material id="machinesList" class="no-pad" hidden$="[[!isToCurrent]]">
+        <paper-material id="machinesList" class="no-pad" hidden$="[[!isToCurrent]]" style="min-height: 450px">
             <div class="loading-data" hidden="{{!loadingData}}">
             </div>
             <div class="machines-list">
-                <item-list section="[[model.sections.machines]]" items="[[machines]]" sort-by="cost" sort-order="1" org="[[model.org]]" model="[[model]]" hidden$="[[!machines.length]]"></item-list>
+                <mist-list id="machinesList"
+                    selectable
+                    items="[[model.machinesArray]]"
+                    name="Machines"
+                    selected-items="{{selectedItems}}"
+                    frozen=[[_getFrozenLogColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers(model.machines,model.clouds,model.incidentsArray)]]
+                    user-filter=[[model.sections.machines.q]]
+                    primary-field-name="id">
+                </mist-list>
             </div>
         </paper-material>
 
@@ -807,7 +840,7 @@
                 timeParams: {
                     type: Object,
                     value: {
-                        window: "hour",
+                        window: "day",
                         past: "0"
                     }
                 },
@@ -879,42 +912,12 @@
                 loadDrillList0: Array,
                 loadDrillList1: Array,
                 loadDrillList2: Array,
-                machinesData: {
-                    type: Object,
-                    value: {
-                        labels: [],
-                        datasets: [{
-                            label: "machines",
-                            backgroundColor: "rgba(0,155,155,0.2)",
-                            borderColor: "rgba(0,155,155,1)",
-                            borderWidth: 1,
-                            pointBackgroundColor: "rgba(0,155,155,1)",
-                            pointBorderColor: "#fff",
-                            pointHoverBackgroundColor: "#fff",
-                            pointHoverBorderColor: "rgba(0,155,155,1)",
-                            data: []
-                        }]
-                    }
-                },
                 showRing: Boolean,
                 showSecondList: Boolean,
                 showFirstList: Boolean,
                 ringTitle: String,
                 firstListTitle: String,
                 secondListTitle: String,
-                costDrillData: {
-                    type: Object,
-                    value: {
-                        labels: [],
-                        datasets: [{
-                            data: [],
-                            backgroundColor: ["rgba(0,155,155,0.3)", "rgba(153,255,51,0.3)", "rgba(255,153,0,0.3)", "rgba(155,0,155,0.3)", "rgba(155,0,0,0.3)", "rgba(0,155,0,0.3)", "rgba(0,0,0,0.3)", "rgba(0,0,200,0.3)", "rgba(200,0,200,0.3)", "rgba(255,255,0,0.3)"
-                                ],
-                            hoverBackgroundColor: ["rgba(0,155,155,0.3)", "rgba(153,255,51,0.3)", "rgba(255,153,0,0.3)", "rgba(155,0,155,0.3)", "rgba(155,0,0,0.3)", "rgba(0,155,0,0.3)", "rgba(0,0,0,0.3)", "rgba(0,0,200,0.3)", "rgba(200,0,200,0.3)", "rgba(255,255,0,0.3)"
-                                ],
-                        }]
-                    }
-                },
                 costDrillList: Array,
                 costDrillList1: Array,
                 costDrillList2: Array,
@@ -930,6 +933,10 @@
                     type: Array,
                     computed: 'sortByMachines(costDrillList2)'
                 },
+                parentWidth: {
+                    type: String,
+                    value: 600
+                },
                 graphWidth: {
                     type: String,
                     value: 600
@@ -938,17 +945,198 @@
                     type: String,
                     value: 300
                 },
-                chartOptions: {
+                loadgraph: Object,
+                loadgraphOptions: {
                     type: Object,
                     value: {
-                        "cutoutPercentage": 70,
-                        "legend": {
-                            display: true, 
-                            labels: {
-                                boxWidth: 10,
-                                fontFamily: "Roboto"
+                        tooltip : {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross',
+                                label: {
+                                    backgroundColor: '#6a7985'
+                                }
                             }
-                        }
+                        },
+                        legend: {
+                            data:[{
+                                name:'Load',
+                                textStyle: "rgba(0,155,155,1)",
+                            },{
+                                name:'Cores',
+                                textStyle: "rgba(250,128,114,1)",
+                            }]
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis : [
+                            {
+                                type : 'category',
+                                boundaryGap : false,
+                                data : ['1','2','3','4']
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'Cores',
+                                type:'line',
+                                stack: 'f',
+                                areaStyle: {normal: {color: "rgba(0,155,155,0.2)"}},
+                                lineStyle: {normal: {color: "rgba(0,155,155,1)"}},
+                                itemStyle: {normal: {borderColor: "rgba(0,155,155,1)"}},
+                                data:[120, 132, 101, 134]
+                            },
+                            {
+                                name:'Load',
+                                type:'line',
+                                stack: 'g',
+                                areaStyle: {normal: {color: "rgba(250,128,114,0.2)"}},
+                                lineStyle: {normal: {color: "rgba(250,128,114,1)"}},
+                                itemStyle: {normal: {borderColor: "rgba(250,128,114,1)"}},
+                                data:[120, 132, 101, 134]
+                            }
+                        ]
+                    }
+                },
+                costgraph: Object,
+                costgraphOptions: {
+                    type: Object,
+                    value: {
+                        tooltip : {
+                            trigger: 'axis',
+                            formatter: "{b}: <br/>${c}",
+                            axisPointer: {
+                                type: 'cross',
+                                label: {
+                                    backgroundColor: '#6a7985'
+                                }
+                            }
+                        },
+                        legend: {
+                            data:['Cost per month']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis : [
+                            {
+                                type : 'category',
+                                boundaryGap : false,
+                                data : ['1','2','3','4']
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'Cost',
+                                type:'line',
+                                stack: 'f',
+                                areaStyle: {normal: {color: "rgba(0,155,155,0.2)"}},
+                                lineStyle: {normal: {color: "rgba(0,155,155,1)"}},
+                                itemStyle: {normal: {borderColor: "rgba(0,155,155,1)"}},
+                                data:[120, 132, 101, 134, 90, 230, 210]
+                            }
+                        ]
+                    }
+                },
+                drillcostgraph: Object,
+                drillcostgraphOptions: {
+                    type: Object,
+                    value: {
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: "{b} {a}: <br/>${c} ({d}%)"
+                        },
+                        legend: {
+                            orient: 'vertical',
+                            x: 'left',
+                            data:[]
+                        },
+                        series: [
+                            {
+                                name:'cost',
+                                type:'pie',
+                                radius: ['50%', '70%'],
+                                avoidLabelOverlap: false,
+                                label: {
+                                    normal: {
+                                        show: false,
+                                        position: 'center'
+                                    },
+                                    emphasis: {
+                                        show: true,
+                                        textStyle: {
+                                            fontSize: '30',
+                                            fontWeight: 'bold'
+                                        }
+                                    }
+                                },
+                                labelLine: {
+                                    normal: {
+                                        show: false
+                                    }
+                                },
+                                data:[]
+                            }
+                        ]
+                    }
+                },
+                machinesgraph: Object,
+                machinesgraphOptions: {
+                    type: Object,
+                    value: {
+                        color: ["rgba(0,155,155,0.2)"],
+                        borderColor: ["rgba(0,155,155,1)"],
+                        tooltip : {
+                            trigger: 'axis',
+                            axisPointer : {
+                                type : 'shadow'
+                            }
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis : [
+                            {
+                                type : 'category',
+                                data : ['Mon'],
+                                axisTick: {
+                                    alignWithLabel: true
+                                }
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'machines',
+                                type:'bar',
+                                barWidth: '60%',
+                                data:[10]
+                            }
+                        ]
                     }
                 }
             },
@@ -968,6 +1156,18 @@
             ready: function(){
             },
             attached: function (e) {
+                var colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548','#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
+                echarts.registerTheme('polyana', {
+                    color: colorPalette,
+                    backgroundColor: 'transparent',
+                    graph: {
+                        color: colorPalette
+                    }
+                });
+                this.costgraph = echarts.init(this.$.costgraph, 'polyana');
+                this.loadgraph = echarts.init(this.$.loadgraph, 'polyana');
+                this.drillcostgraph = echarts.init(this.$.drillcostgraph);
+                this.machinesgraph = echarts.init(this.$.machinesgraph);
                 this.updateChartWidth(e);
             },
             _computeInsightsEnabled: function(modelorg){
@@ -1121,15 +1321,19 @@
                     machinesData = history.map(function(datapoint){
                         return datapoint.machine_count;
                     });
+
+                    console.log(labels, costData, machinesData)
                 }
 
-                this.set('costData.datasets.0.data', costData);
-                this.set('costData.labels', labels);
-                this.set('machinesData.datasets.0.data', machinesData);
-                this.set('machinesData.labels', labels);
+                this.set('costgraphOptions.xAxis.0.data', labels);
+                this.set('costgraphOptions.series.0.data', costData);
+                if (this.costgraph)
+                    this.costgraph.setOption(this.costgraphOptions);
 
-                this.$.costgraph.updateChart();
-                this.$.machinesgraph.updateChart();
+                this.set('machinesgraphOptions.xAxis.0.data', labels);
+                this.set('machinesgraphOptions.series.0.data', machinesData);
+                if (this.machinesgraph)
+                    this.machinesgraph.setOption(this.machinesgraphOptions);
             },
             updateDataLoad: function (history) {
                 var loadData = [],
@@ -1150,11 +1354,11 @@
                     });
                 }
 
-                this.set('loadData.datasets.0.data', loadData);
-                this.set('loadData.datasets.1.data', coresData);
-                this.set('loadData.labels', labels);
-
-                this.$.loadgraph.updateChart();
+                this.set('loadgraphOptions.xAxis.0.data', labels);
+                this.set('loadgraphOptions.series.0.data', coresData);
+                this.set('loadgraphOptions.series.1.data', loadData);
+                if (this.loadgraph)
+                    this.loadgraph.setOption(this.loadgraphOptions);
             },
             updateCostDrillData: function(groupby, filterbyname) {
                 var drillData = [],
@@ -1213,6 +1417,13 @@
                     drillLabels = drill.map(function(point){
                         return point.name.length ? point.name : 'untagged';
                     });
+
+                    var costRingData = drill.map(function(point){
+                        return {value: this._toFixed(point.cost), name: point.name};
+                    }, this);
+                    var costRingLabels = drill.map(function(point){
+                        return point.name;
+                    }, this);
                 }
                 else {
                     this.set('showRing', false);
@@ -1220,8 +1431,11 @@
                 }
 
                 // fill in ring
-                this.set('costDrillData.datasets.0.data', drillData);
-                this.set('costDrillData.labels', drillLabels);
+                this.set('drillcostgraphOptions.series.0.data', costRingData);
+                this.set('drillcostgraphOptions.legend.data', costRingLabels);
+                if (this.drillcostgraph)
+                    this.drillcostgraph.setOption(this.drillcostgraphOptions);
+
                 this.set('costDrillList', drill ? drill.sort(function(a,b){ return a.cost < b.cost}) : []);
 
                 // fill in first list
@@ -1245,16 +1459,14 @@
                         plural2 = "s";
 
                     this.set('showSecondList', true);
-                    this.set('secondtListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2+plural2);
+                    this.set('secondListTitle', this.filterby.name +" "+ this.report.group_by[drillList2].length +" "+ drillList2+plural2);
 
                     this.set('costDrillList2', this.report.group_by[drillList2] ? this.report.group_by[drillList2].sort(function(a,b){ return a.cost < b.cost}) : [])
                 }
                 else {
                     this.set('showSecondList', false);
-                    this.set('secondtListTitle', "");
+                    this.set('secondListTitle', "");
                 }
-
-                this.$.drillcostgraph.updateChart();
             },
             updateLoadDrillData: function(groupby, filterbyname) {
                 var plural = "",
@@ -1284,15 +1496,17 @@
             },
             updateChartWidth: function(e) {
                 var parentWidth = this.$.graphRow.offsetWidth;
+                // (max-width: 1650px == 1438) and (min-width: 1180px == 919)
+                this.set('parentWidth', parentWidth);
                 if (parentWidth > 800){
                     this.set('graphWidth', (parentWidth-50)/2);
-                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 300));
+                    this.set('doughnutWidth', Math.min((parentWidth-50)/4, 400));
                 }
                 else {
-                    this.set('graphWidth', parentWidth-50);
-                    this.set('doughnutWidth', Math.min((parentWidth-50)/2, 300));
+                    this.set('graphWidth', parentWidth);
+                    this.set('doughnutWidth', Math.max((parentWidth-50)/2, 300));
                 }
-                this.resizeGraphs();
+                // this.resizeGraphs();
                 var that = this;
                 this.debounce('resizer', function(){
                     console.log('resized chart');
@@ -1301,9 +1515,14 @@
             },
             resizeGraphs: function(){
                 console.log('resizeGraphs');
-                this.$.costgraph.resize();
-                this.$.drillcostgraph.resize();
-                this.$.loadgraph.resize();
+                if (this.costgraph)
+                    this.costgraph.resize();
+                if (this.drillcostgraph)
+                    this.drillcostgraph.resize();
+                if (this.loadgraph)
+                    this.loadgraph.resize();
+                if (this.machinesgraph)
+                    this.machinesgraph.resize();
             },
             combineParams: function(time, filter) {
                 // console.log('p send ', filter);
@@ -1362,6 +1581,9 @@
             },
             _index: function(ind) {
                 return ind+1;
+            },
+            isTag: function(string){
+                return string.indexOf('tag') > -1;
             },
             clearFilter: function(e){
                 this.set('filterby', {
@@ -1447,6 +1669,183 @@
             },
             isNotNull: function(value) {
                 return value != null;
+            },
+            _getFrozenLogColumn: function(){
+              return ['name'];
+            },
+
+            _getVisibleColumns: function(){
+              return ['state', 'cloud', 'cost', 'created', 'tags'];
+            },
+
+            itemProbeClasses: function(item) {
+                if (this.model.probes == {}) {
+                    return '';
+                }
+                else {
+                    if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
+                        return "";
+                    }
+
+                    else {
+                        var probe = this.model.probes[item.id].loadavg;
+                        var cores =  parseInt(this.model.probes[item.id].cores);
+                        var classes = '';
+                        var prefix = '';
+                        console.log(parseInt(probe[0]),probe[0]);
+
+                        classes += this.loadToColor(parseFloat(probe[0]/cores), "short");
+                        classes += this.loadToColor(parseFloat(probe[1]/cores), "mid");
+                        classes += this.loadToColor(parseFloat(probe[2]/cores), "long");
+
+                        //has probe data
+                        if (classes != "")
+                            classes += "hasprobe "
+
+                        return classes;
+                    }
+                }
+            },
+
+            _machineHasIncidents: function(machine, incidents){
+                var machineIncidents = incidents.filter(function(inc){
+                    return inc.machine_id == machine.id
+                });
+                return machineIncidents ? machineIncidents.length * 1000 : 0;
+            },
+
+
+            loadToColor: function(load, prefix){
+                if (load > 1.2)
+                    return prefix+"high ";
+                else if (load > 0.8)
+                    return prefix+"medium ";
+                else if (load > 0.6)
+                    return prefix+"eco ";
+                else if (load > 0.2)
+                    return prefix+"low ";
+                else
+                    return prefix+"low ";
+            },
+
+            _getRenderers: function(machines, clouds, incidents) {
+              var _this = this;
+              return {
+                  'indicator': {
+                      'body': function(item, row) {
+                        var green = "#69b46c",
+                            pending = "#eee",
+                            incident = "#d96557",
+                            color = 'transparent';
+                        // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
+                        if (row.monitoring.hasmonitoring) {
+                            color = green;
+                            if (_this._machineHasIncidents(row,incidents))
+                                color = red;
+                            if (row.monitoring.installation_status == "installing" || !row.monitoring.installation_status == "installing" || !row.monitoring.installation_status.activated_at)
+                                color = pending;
+                            return 'border-left: 8px solid '+ color +'; padding-left: 8px;';
+                        }
+                        return '';
+                      }
+                  },
+                  'icon': {
+                      'body': function(item, row) {
+                          return './assets/providers/provider-'+row.cloud.provider.replace("_", "").replace(" ", "")+'.png';
+                      }
+                  },
+                  'name': {
+                      'body': function(item, row) {
+                          return '<strong class="name">' + item + '</strong>';
+                      }
+                  },
+                  'state': {
+                        'body': function(item,  row){
+                            var ret = '', 
+                                prefix = '';
+                            // if (_this.itemRecommendation(row)) {
+                            //     prefix = '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
+                            // }
+                            if (item == "running")
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
+                            else if (item == "error")
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='red'>"+item+"</span></div>";
+                            else if (item == "stopped")
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='orange'>"+item+"</span></div>";
+                            else
+                                ret += "<div class='state'>"+ item +"</span>";
+
+                            return prefix+ret;
+                        },
+                        'tap': function(item, row) {
+                            // if (_this.itemRecommendation(row))
+                            //     return 'recommendation';
+                            // else
+                                return '';
+                        }
+                  },
+                  'cloud': {
+                      'body': function(item, row) {
+                        if (_this.model && _this.model.clouds)
+                          return _this.model.clouds[item.id].title;
+                      }
+                  },
+                  'cost': {
+                      'body': function(item, row) {
+                          return '$'+ Math.round(item.monthly);
+                      }
+                  },
+                  'created': {
+                      'body': function(item, row) {
+                          return moment(item).isValid() ? moment.utc(item).fromNow() : "";
+                      }
+                  },
+                  'size': {
+                      'body': function(item, row) {
+                        if (row.extra && row.extra.size && row.extra.size.vcpus)
+                            return row.extra.size.vcpus + 'vcpu, ' + row.extra.size.memory + 'M ram';;
+                        if (row.extra && row.extra.size && typeof(row.extra.size) == 'string')
+                            return row.extra.size;
+                        if (row.extra && row.extra.instance_type)
+                            return row.extra.instance_type;
+                        if (row.extra && row.extra.instance_size)
+                            return row.extra.instance_size;
+                        if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
+                            return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
+                        if (_this.model && _this.model.clouds && row.extra && row.extra.PLANID) {
+                            return (cloud && cloud.sizes) ? cloud.sizes[row.extra.PLANID].name  : row.extra.PLANID
+                        }
+                        if (row.extra && row.extra.service_type)
+                            return row.extra.service_type;
+
+                        return "";
+                      }
+                  },
+                  'image': {
+                      'body': function(item, row) {
+                        if (row.extra && row.extra.image && row.extra.image.distribution && row.extra.image.name) {
+                            return row.extra.image.distribution + " " +row.extra.image.name;
+                        }
+                        if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)){
+                            return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
+                        }
+                        return "";
+                      }
+                  },
+                  'tags': {
+                      'body': function(item, row) {
+                        var tags = item,
+                            display = "";
+                        for (var i=0; i<tags.length; i++){
+                          display += "<span class='tag'>"+tags[i].key;
+                          if (tags[i].value != undefined && tags[i].value != "")
+                            display += "=" + tags[i].value;
+                          display += "</span>";
+                        }
+                        return display;
+                      }
+                  }
+               }
             }
         });
 
