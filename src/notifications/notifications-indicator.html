@@ -1,0 +1,299 @@
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<script type="text/javascript" src="../../bower_components/moment/moment.js" inline></script>
+
+<dom-module id="notifications-indicator">
+    <template>
+        <style>
+            /* local styles go here */
+            :host {
+                position: relative;
+                left: -40px;
+                height: 56px;
+                outline: none;
+            }
+
+            paper-icon-button ::content iron-icon {
+                color: inherit;
+            }
+
+            paper-icon-button[type=recommendations], iron-icon[type=recommendation] {
+                -webkit-transform: rotate(180deg);     /* Chrome and other webkit browsers */
+                -moz-transform: rotate(180deg);        /* FF */
+                -o-transform: rotate(180deg);          /* Opera */
+                -ms-transform: rotate(180deg);         /* IE9 */
+                transform: rotate(180deg);             /* W3C compliant browsers */
+            }
+
+            :host::content iron-dropdown {
+                width: 460px !important;
+            }
+
+            #indicatorBadge {
+                position: relative;
+                left: 34px !important;
+                top: -54px !important;
+            }
+
+            .grid-row h4 {
+                color: #424242;
+            }
+
+            h4 {
+                margin-left: 16px
+            }
+
+            .grid-row {
+                padding: 0;
+                margin: 0;
+            }
+
+            paper-item:not(.context) {
+                padding: 8px 16px 8px 24px;
+            }
+
+            :host iron-icon {
+                box-sizing: border-box;
+                margin-right: 22px;
+            }
+
+            .close-icon {
+                float: right;
+                margin-left: 6px;
+                margin-right: 2px;
+            }
+
+            hr {
+                margin: 0 !important;
+                border: 1px solid #ddd !important;
+            }
+
+            .hide {
+                display: none !important;
+            }
+
+            .tip {
+                border-color: transparent;
+                border-bottom-color: #fff;
+                border-style: dashed dashed solid;
+                border-width: 0 11px 9px;
+                position: absolute;
+                left: 17px;
+                top: 50px;
+                z-index: 1;
+                height: 0;
+                width: 0;
+                opacity: 1;
+                transition: opacity 0.4s ease-in-out, top 0.3s ease-in-out;
+            }
+            .tip[closed] {
+                opacity: 0;
+                top: 80px;
+                transition: opacity 0s ease-in-out, top 0s ease-in-out;
+            }
+
+        </style>
+
+        <!-- local DOM goes here -->
+        <paper-menu-button hidden="[[hidden]]" horizontal-align="right" vertical-offset="56" opened="{{opened}}" ignore-select="true">
+            <paper-icon-button icon="[[indicatorIcon]]" type$="[[indicatorType]]" class="notification-icon dropdown-trigger"></paper-icon-button>
+            <div class="dropdown-content">
+                <div class="grid-row">
+                    <h4>[[_computeTitle(notifications)]]</h4>
+                </div>
+                <hr/>
+                <paper-menu id="notifications-menu">
+                    <template is="dom-repeat" items="[[notifications]]" as="notification">
+                        <paper-item on-tap="_handleItemTap" class="context" hidden$="{{notification.hidden}}">
+                            <iron-icon icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
+                            <paper-item-body two-line>
+                                <div>[[notification.summary]]</div>
+                                <div secondary>[[_computeRelativeTime(notification)]]</div>
+                            </paper-item-body>
+                            <iron-icon on-tap="_dismiss" class="close-icon" icon="icons:clear"></iron-icon>
+                        </paper-item>
+                    </template>
+                </paper-menu>
+            </div>
+        </paper-menu-button>
+        <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
+        <div class="tip" closed$="[[!opened]]"></div>
+
+        <iron-ajax
+            id="requestDismiss"
+            url="/api/v1/notifications/dismiss"
+            method="POST"
+            handle-as="json"
+            on-response="handleDismissResponse">
+        </iron-ajax>
+
+    </template>
+    <script>
+        Polymer({
+            /* this is the element's prototype */
+            is: 'notifications-indicator',
+            properties: {
+                notifications: {
+                    type: Array
+                },
+                opened: Boolean,
+                hidden: {
+                    type: Boolean,
+                    computed: '_computeIndicatorHidden(notifications.length)'
+                },
+                indicatorIcon: {
+                    type: String,
+                    computed: '_computeIndicatorIcon(notifications)'
+                },
+                indicatorType: {
+                    type: String,
+                    computed: '_computeIndicatorType(notifications)'
+                }
+            },
+            /*ready: function() {
+                var that = this;
+                setInterval(function() {
+                    var ntf = that.notifications;
+                    that.set('notifications', []);
+                    that.set('notifications', ntf);
+                    console.log("update");
+                }, 1000);
+            },*/
+            _computeTitle: function(notifications) {
+                var type = this.getItemsType(notifications);
+                if (type == 1)
+                {
+                    return "Notifications";
+                }
+                else if (type == 2)
+                {
+                    return "Recommendations";
+                }
+                return "Notifications & Recommendations";
+            },
+            _computeIndicatorIcon: function(notifications) {
+                var type = this.getItemsType(notifications);
+                if (type == 1)
+                {
+                    return "social:notifications";
+                }
+                else if (type == 2)
+                {
+                    return "image:wb-incandescent";
+                }
+                // Todo: return dual icon
+                return "social:notifications";
+            },
+            _computeIndicatorType: function(notifications) {
+                var type = this.getItemsType(notifications);
+                if (type == 2)
+                {
+                    return "recommendations";
+                }
+                else
+                {
+                    return "notifications";
+                }
+            },
+            _computeIndicatorColor: function(notifications) {
+                if (notifications.length > 0)
+                {
+                    return "white"
+                }
+                return "grey"
+            },
+            _computeNotificationIcon: function(notification) {
+                if (notification.source == "recommendation")
+                {
+                    return "image:wb-incandescent";
+                }
+                else
+                {
+                    return "social:notifications";
+                }
+            },
+            _computeNotificationType: function(notification) {
+                if (notification.source == "recommendation")
+                {
+                    return "recommendation";
+                }
+                else
+                {
+                    return "notification";
+                }
+            },
+            _computeRelativeTime: function(notification) {
+                var date = new Date(notification.created_date.$date);
+                return moment(date).fromNow();
+            },
+            computeBadgeCaption: function(notifications) {
+                return notifications.length;
+            },
+            _computeIndicatorHidden: function(notificationsLength) {
+                if (notificationsLength == 0) {
+                    this.set('opened', false);
+                }
+                return notificationsLength == 0;
+            },
+            getItemsType: function(notifications) {
+                // 0= none, 1=notifications, 2=recommendations, 3=both
+                var ntf = false;
+                var rec = false;
+                for (i=0; i<notifications.length; ++i) 
+                {
+                    var item = notifications[i];
+                    if (item.source == "recommendation")
+                    {
+                        rec = true;
+                    }
+                    else if (item.source == "notification")
+                    {
+                        ntf = true;
+                    }
+                    else
+                    {
+                        ntf = true;
+                    }
+                }
+                return ntf + rec*2;
+            },
+            _handleItemTap: function(event) {
+                // TODO: Get correct element!
+                // var menu = document.querySelector("paper-menu#notifications-menu");
+                // event.stopPropagation()
+            },
+            _dismiss: function(event) {
+                var menu = document.querySelector("paper-menu#notifications-menu");
+                var index = menu.indexOf(event.srcElement.parentElement);
+                if (index != -1)
+                {
+                    var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
+                    this.$.requestDismiss.body = JSON.stringify({"notification_id": this.notifications[index]._id});
+                    this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.requestDismiss.generateRequest();
+                }
+                event.stopPropagation()
+            },
+            handleDismissResponse: function(event) {
+                var obj = JSON.parse(event.detail.__data__.response);
+                var id = obj._id;
+                for (i=0; i<this.notifications.length; ++i) 
+                {
+                    var notification = this.notifications[i];
+                    if (notification._id == id)
+                    {
+                        this.splice('notifications', i, 1);
+                        return;
+                    }
+                }
+            }
+        });
+    </script>
+</dom-module>
