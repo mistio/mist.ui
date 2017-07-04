@@ -442,125 +442,34 @@
                   },
                   'size': {
                       'body': function(item, row) {
-                        if (row.extra && row.extra.size && row.extra.size.vcpus)
-                            return row.extra.size.vcpus + 'vcpu, ' + row.extra.size.memory + 'M ram';;
-                        if (row.extra && row.extra.size && typeof(row.extra.size) == 'string')
-                            return row.extra.size;
-                        if (row.extra && row.extra.instance_type)
-                            return row.extra.instance_type;
-                        if (row.extra && row.extra.instance_size)
-                            return row.extra.instance_size;
-                        if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
-                            return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
-                        if (_this.model && _this.model.clouds && row.extra && row.extra.PLANID) {
-                            return (cloud && cloud.sizes) ? cloud.sizes[row.extra.PLANID].name  : row.extra.PLANID
-                        }
-                        if (row.extra && row.extra.service_type)
-                            return row.extra.service_type;
-
-                        return "";
+                        return _this.computeSize(row);
                       },
                       'cmp': function(item1, item2, row1, row2){
-                        var s1 = '', s2 = '';
+                        var s1 = _this.computeSize(row1), 
+                            s2 = _this.computeSize(row2);
 
-                        if (row1.extra && row1.extra.size && row1.extra.size.vcpus){
-                            s1 = row1.extra.size.vcpus + 'vcpu, ' + row1.extra.size.memory + 'M ram';
-                        }
-                        else if (row1.extra && row1.extra.size && typeof(row1.extra.size) == 'string') {
-                            s1 = row1.extra.size;
-                        }
-                        else if (row1.extra && row1.extra.instance_type) {
-                            s1 = row1.extra.instance_type;
-                        }
-                        else if (row1.extra && row1.extra.instance_size){
-                            s1 = row1.extra.instance_size;
-                        }
-                        else if (row1.extra && row1.extra.maxCpu && row1.extra.maxMemory){
-                            s1 = row1.extra.maxCpu + 'cpu, ' + row1.extra.maxMemory + 'M ram';
-                        }
-                        else if (_this.model && _this.model.clouds && row1.extra && row1.extra.PLANID) {
-                            s1 = (cloud && cloud.sizes) ? cloud.sizes[row1.extra.PLANID].name  : row1.extra.PLANID
-                        }
-                        else if (row1.extra && row1.extra.service_type) {
-                            s1 = row1.extra.service_type;
-                        }
+                        console.log('cmp sizes ',s1, s2 , s1.toLowerCase() < s2.toLowerCase())
 
-
-                        if (row2.extra && row2.extra.size && row2.extra.size.vcpus){
-                            s2 = row2.extra.size.vcpus + 'vcpu, ' + row2.extra.size.memory + 'M ram';
-                        }
-                        else if (row2.extra && row2.extra.size && typeof(row2.extra.size) == 'string'){
-                            s2 = row2.extra.size;
-                        }
-                        else if (row2.extra && row2.extra.instance_type){
-                            s2 = row2.extra.instance_type;
-                        }
-                        else if (row2.extra && row2.extra.instance_size){
-                            s2 = row2.extra.instance_size;
-                        }
-                        else if (row2.extra && row2.extra.maxCpu && row2.extra.maxMemory){
-                            s2 = row2.extra.maxCpu + 'cpu, ' + row2.extra.maxMemory + 'M ram';
-                        }
-                        else if (_this.model && _this.model.clouds && row2.extra && row2.extra.PLANID) {
-                            s2 = (cloud && cloud.sizes) ? cloud.sizes[row2.extra.PLANID].name  : row2.extra.PLANID
-                        }
-                        else if (row2.extra && row2.extra.service_type) {
-                            s2 = row2.extra.service_type;
-                        }
-
-                        if (!s2.length && !s1.length) 
-                            return 0;
-                        if (!s1.length || s1.toLowerCase() < s2.toLowerCase())
+                        if (s1.toLowerCase() < s2.toLowerCase())
                             return -1;
-                        if (!s2.length || s1.toLowerCase() > s2.toLowerCase())
+                        if (s1.toLowerCase() > s2.toLowerCase())
                             return 1;
                         return 0;
 
                       }
                   },
                   'image_id': {
-                      'title': 'image',
+                      'title': function(item, row) {
+                        return 'image';
+                      },
                       'body': function(item, row) {
-                        if (row.extra && row.extra.image) {
-                            if (row.extra.image.distribution && row.extra.image.name) {
-                                return row.extra.image.distribution + " " + row.extra.image.name;
-                            }
-                            return row.extra.image;
-                        }
-                        if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)){
-                            return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
-                        }
-                        return "";
+                        return _this.computeImage(row);
                       },
                       'cmp': function(item1, item2, row1, row2){
-                            var im1 = '',
-                                im2 = '';
-                            if (row1.extra && row1.extra.image) {
-                                if (row1.extra.image.distribution && row1.extra.image.name) {
-                                    im1 = row1.extra.image.distribution + " " + row1.extra.image.name;
-                                }
-                                else 
-                                    im1 = row1.extra.image;
-                            }
-                            else if (row1.extra && (row1.extra['image_id'] || row1.imageId || row1.extra.image)){
-                                im1 = row1.extra['image_id'] || row1.imageId || row1.extra.image.slug || row1.extra.image.name;
-                            }
+                            var im1 = _this.computeImage(row1),
+                                im2 = _this.computeImage(row2);
 
-                            if (row2.extra && row2.extra.image) {
-                                if (row2.extra.image.distribution && row2.extra.image.name) {
-                                    im2 = row2.extra.image.distribution + " " + row2.extra.image.name;
-                                }
-                                else 
-                                    im2 = row2.extra.image;
-                            }
-                            else if (row2.extra && (row2.extra['image_id'] || row2.imageId || row2.extra.image)){
-                                im2 = row2.extra['image_id'] || row2.imageId || row2.extra.image.slug || row2.extra.image.name;
-                            }
-
-                            if (!im1.length)
-                                return 1;
-                            if (!im2.length)
-                                return -1;
+                            console.log('cmp images ', item1, item2, im1.toLowerCase() < im2.toLowerCase())
 
                             if (im1.toLowerCase() < im2.toLowerCase())
                                 return -1;
@@ -595,6 +504,37 @@
                       }
                   }
                }
+            },
+            computeImage: function(row){
+                if (row.extra && row.extra.image) {
+                    if (row.extra.image.distribution && row.extra.image.name) {
+                        return row.extra.image.distribution + " " + row.extra.image.name;
+                    }
+                    return row.extra.image;
+                }
+                if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)){
+                    return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
+                }
+                return "";
+            },
+            computeSize: function(row){
+                if (row.extra && row.extra.size && row.extra.size.vcpus)
+                    return row.extra.size.vcpus + 'vcpu, ' + row.extra.size.memory + 'M ram';;
+                if (row.extra && row.extra.size && typeof(row.extra.size) == 'string')
+                    return row.extra.size;
+                if (row.extra && row.extra.instance_type)
+                    return row.extra.instance_type;
+                if (row.extra && row.extra.instance_size)
+                    return row.extra.instance_size;
+                if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
+                    return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
+                if (this.model && this.model.clouds && row.extra && row.extra.PLANID) {
+                    return (cloud && cloud.sizes) ? cloud.sizes[row.extra.PLANID].name  : row.extra.PLANID
+                }
+                if (row.extra && row.extra.service_type)
+                    return row.extra.service_type;
+
+                return "";
             },
             sortedMachines: function(machines){
                 return this.model.machinesArray.sort(function(a, b){
@@ -674,7 +614,6 @@
                         var cores =  parseInt(this.model.probes[item.id].cores);
                         var classes = '';
                         var prefix = '';
-                        console.log(parseInt(probe[0]),probe[0]);
 
                         classes += this.loadToColor(parseFloat(probe[0]/cores), "short");
                         classes += this.loadToColor(parseFloat(probe[1]/cores), "mid");
