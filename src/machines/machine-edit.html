@@ -40,7 +40,6 @@
                 </div>
             </paper-dialog-scrollable>
         </paper-dialog>
-        <iron-ajax id="editMachineAjax" method="POST" on-request="_editMachineRequest" on-response="_editMachineResponse" on-erro="_editMachineError" handle-as="xml"></iron-ajax>
     </template>
 
     <script>
@@ -97,49 +96,20 @@
                     this._formReset();
                 },
                 _submitForm: function(e) {
-                    // this.fire('updateSelectedMachine', {
-                    //     machine: this.machine
-                    // });
-
-                    var request = this.$.editMachineAjax;
-
-                    var items = this.items.slice(0);
-                    var run = function(el) {
-                        var item = items.shift(),
-                            itemName = el.querySelector('#item'+item.id).value;
-
-                        request.body = {'action': 'rename', 'name': itemName};
-                        request.url = '/api/v1/machines/' + item.id;
-
-                        request.headers["Content-Type"] = 'application/json';
-                        request.headers["Csrf-Token"] = CSRF_TOKEN;
-                        request.generateRequest();
-
-                        if (items.length) {
-                            run(el);
-                        }
-                    }
-                    run(this); 
-
+                    e.stopImmediatePropagation();
+                    var item = this.items[0],
+                        action = {
+                            'name': 'rename',
+                            'icon': 'editor:mode-edit',
+                            'confirm': true,
+                            'multi': false
+                        },
+                        itemName = this.querySelector('#item'+item.id).value;
+                    this.fire('rename-machine', {action: action, name: itemName});
                     this._closeDialog();
                 },
                 _formReset: function() {
                       this.set('machine.id', '');
-                },
-                _editMachineAjax: function(e) {
-                    
-                },
-                _editMachineRequest: function() {
-                    this.fire('rename-request', {request: true})
-                    this.set('sendingData', true);
-                },
-                _editMachineResponse: function(e) {
-                    this.fire('rename-request', {response: e.detail.xhr.response})
-                    this.set('sendingData', false);
-                },
-                _editMachineError: function(e) {
-                    this.fire('rename-request', {error: true, errormsg: e.detail.xhr.responseText});
-                    this.set('sendingData', false);
                 },
                 _computeLabel: function(itemname){
                     var l = itemname.slice(0);
