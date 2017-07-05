@@ -181,7 +181,7 @@
             selected-items="{{selectedItems}}"
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.machines,model.clouds,model.incidentsArray)]]
+            renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
             route={{route}}
             user-filter=[[model.sections.machines.q]]
             primary-field-name="id">
@@ -357,7 +357,7 @@
             },
 
             _getVisibleColumns: function(){
-              return ['state', 'cloud', 'cost', 'created', 'tags', 'image_id', 'size', 'public_ips' ];
+              return ['state', 'cloud', 'cost', 'created', 'tags', 'image_id', 'size', 'hostname', 'public_ips'];
             },
 
             _getRenderers: function(machines, clouds, incidents) {
@@ -372,7 +372,7 @@
                         // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
                         if (row.monitoring.hasmonitoring) {
                             color = green;
-                            if (_this._machineHasIncidents(row,incidents))
+                            if (_this._machineHasIncidents(row, this.incidentsArray))
                                 color = red;
                             if (row.monitoring.installation_status == "installing" || !row.monitoring.installation_status == "installing" || !row.monitoring.installation_status.activated_at)
                                 color = pending;
@@ -383,7 +383,7 @@
                   },
                   'icon': {
                       'body': function(item, row) {
-                          return './assets/providers/provider-'+row.cloud.provider.replace("_", "").replace(" ", "")+'.png';
+                          return './assets/providers/provider-' + row.cloud.provider.replace("_", "").replace(" ", "") + '.png';
                       }
                   },
                   'name': {
@@ -580,9 +580,9 @@
             },
 
             _machineHasIncidents: function(machine, incidents){
-                var machineIncidents = incidents.filter(function(inc){
+                var machineIncidents = incidents ? incidents.filter(function(inc){
                     return inc.machine_id == machine.id
-                });
+                }) : [];
                 return machineIncidents ? machineIncidents.length * 1000 : 0;
             },
 
