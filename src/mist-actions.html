@@ -1,8 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 
-<link rel="import" href="tags/tags-form.html">
-<link rel="import" href="helpers/dialog-element.html">
 <link rel="import" href="styles/shared-styles.html">
 
 <dom-module id="mist-actions">
@@ -75,13 +73,13 @@
       }
     </style>
     
-    <template is="dom-if" if="[[topActions.length]]">
+    <template is="dom-if" if="[[topActions.length]]" restamp>
       <template is="dom-repeat" items="[[topActions]]" as="action">
           <paper-button on-tap="selectAction" class="actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
       </template>
     </template>
 
-    <template is="dom-if" if="[[moreActions.length]]">
+    <template is="dom-if" if="[[moreActions.length]]" restamp>
       <paper-menu-button id="actionmenu" horizontal-align="right">
           <paper-button class="dropdown-trigger"><iron-icon icon="more-vert"></iron-icon></paper-button>
           <div class="dropdown-content">
@@ -89,11 +87,8 @@
                   <paper-button on-tap="selectAction" class="more actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
               </template>
           </div>
+      </paper-menu-button>
     </template>
-
-    <dialog-element id="confirm" on-iron-overlay-opened="patchOverlay"></dialog-element>
-
-    <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]" on-iron-overlay-opened="patchOverlay"></tags-form>
 
   </template>
   <script>
@@ -121,69 +116,13 @@
             computed: "_moreActions(actions.*)"
         },
       },
-      listeners: {
-        'iron-overlay-closed': 'confirmAction'
-      },
       ready: function() {},
       attached: function() {},
       selectAction: function(e){
-        if (this.querySelector('paper-menu-button#actionmenu'))
-            this.querySelector('paper-menu-button#actionmenu').close();
-        if (this.items.length) {
-          var action = e.model.action;
-          this.action = action;
-          // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag','rename', 'run script', 'associate key'].indexOf(action.name) == -1) {
-            var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
-                plural = this.items.length == 1 ? '' : 's',
-                count = this.items.length > 1 ? this.items.length+' ' : '';
-            //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
-            this._showDialog({
-                title: this.action.name + ' ' + count + this.type + plural+'?',
-                body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
-                list: this._makeList(this.items, property),
-                action: action.name,
-                danger: true,
-                reason: this.type + "." + this.action.name
-            });
-          }
-          else if (action.name == 'tag') {
-            this.showTagDialog();
-          }
-          else {
-            this.performAction();
-          }
-        }
-      },
-      _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
-          for (var i in info) {
-              dialog[i] = info[i];
-          }
-          dialog._openDialog();
-      },
-      showTagDialog: function(){
-        this.$.tagsdialog._openDialog();
-      },
-      _makeList: function(items, property){
-        if (items && items.length)
-          return items.map(function(item){
-            return item[property];
-          });
-      },
-      performAction: function() {
-        this.fire('perform-action', {action: this.action});
-      },
-      confirmAction: function(e) {
-        if (!e.detail.canceled && e.detail.confirmed) {
-          this.fire('perform-action', {action: this.action});
-        }
-      },
-      patchOverlay: function (e) {
-        //from https://github.com/PolymerElements/paper-dialog/issues/7
-        if (e.target.withBackdrop) {
-          e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
-        }
+        // if (this.querySelector('paper-menu-button#actionmenu'))
+        //     this.querySelector('paper-menu-button#actionmenu').close();
+        this.set('action', e.model.action);
+        this.fire('select-action',{action: e.model.action})
       },
       tense: function(action) {
         if (action == 'delete')
