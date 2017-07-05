@@ -6,6 +6,8 @@
 <link rel="import" href="schedules/schedule-page.html">
 <link rel="import" href="schedules/schedule-actions.html">
 
+<link rel="import" href="mist-actions.html">
+
 <dom-module id="page-schedules">
   <template>
     <style include="shared-styles">
@@ -26,7 +28,8 @@
             route={{route}}
             user-filter=[[model.sections.schedules.q]]
             primary-field-name="id">
-          <schedule-actions slot="actions" items="[[selectedItems]]"></schedule-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="schedule" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <schedule-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></schedule-actions>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="scheduleAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -43,7 +46,18 @@
       is: 'page-schedules',
 
       properties: {
-        model: Object
+        model: Object,
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
+      },
+      listeners: {
+        'select-action': 'selectAction'
       },
       _isAddPageActive: function (path) {
         return path == '/+add';
@@ -177,6 +191,13 @@
                   return display;
                 }
             }
+          }
+      },
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('schedule-actions')) {
+            this.querySelector('schedule-actions').selectAction(e);
           }
       }
 
