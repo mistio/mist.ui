@@ -6,7 +6,7 @@
 <link rel="import" href="networks/network-page.html">
 <link rel="import" href="networks/network-actions.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-networks">
   <template>
@@ -30,7 +30,8 @@
             route={{route}}
             user-filter=[[model.sections.networks.q]]
             primary-field-name="id">
-          <network-actions slot="actions" items="[[selectedItems]]"></network-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></network-actions>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="networkAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -47,11 +48,19 @@
       is: 'page-networks',
 
       properties: {
-        model: Object
+        model: Object,
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
       },
 
-      attached: function () {
-
+      listeners: {
+        'select-action': 'selectAction'
       },
 
       _isAddPageActive: function (path) {
@@ -116,6 +125,13 @@
                     return display;
                   }
               }
+          }
+      },
+      // redirect events
+      selectAction: function(e) {
+          //e.stopImmediatePropagation();
+          if (this.querySelector('network-actions')) {
+            this.querySelector('network-actions').selectAction(e);
           }
       }
 
