@@ -6,7 +6,7 @@
 <link rel="import" href="tunnels/tunnel-actions.html">
 <link rel="import" href="tunnels/tunnel-page.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-tunnels">
   <template>
@@ -32,7 +32,8 @@
             route={{route}}
             user-filter=[[model.sections.tunnels.q]]
             primary-field-name="id">
-          <tunnel-actions slot="actions" items="[[selectedItems]]"></tunnel-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="tunnel" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></tunnel-actions>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="tunnelAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -48,10 +49,19 @@
       is: 'page-tunnels',
 
       properties: {
-        model: Object
+        model: Object,
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
       },
-      attached: function() {
 
+      listeners: {
+        'select-action': 'selectAction'
       },
 
       _isAddPageActive: function(path) {
@@ -105,6 +115,13 @@
                     return display;
                   }
               }
+          }
+      },
+
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('tunnel-actions')) {
+            this.querySelector('tunnel-actions').selectAction(e);
           }
       }
 
