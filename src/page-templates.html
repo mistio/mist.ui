@@ -6,6 +6,8 @@
 <link rel="import" href="templates/template-page.html">
 <link rel="import" href="templates/template-actions.html">
 
+<link rel="import" href="mist-actions.html">
+
 <dom-module id="page-templates">
   <template>
     <style include="shared-styles">
@@ -28,7 +30,8 @@
             route={{route}}
             user-filter=[[model.sections.templates.q]]
             primary-field-name="id">
-          <template-actions slot="actions" items="[[selectedItems]]"></template-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="template" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></template-actions>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="templateAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -43,11 +46,19 @@
         is: 'page-templates',
 
         properties: {
-            model: Object
+            model: Object,
+            actions: {
+                type: Array,
+                notify: true
+            },
+            selectedItems: {
+              type: Array,
+              notify: true
+            }
         },
 
-        attached: function() {
-
+        listeners: {
+            'select-action': 'selectAction'
         },
 
         _isAddPageActive: function(path) {
@@ -102,6 +113,13 @@
                       return display;
                     }
                 }
+            }
+        },
+
+        selectAction: function(e) {
+            e.stopImmediatePropagation();
+            if (this.querySelector('template-actions')) {
+              this.querySelector('template-actions').selectAction(e);
             }
         }
     });
