@@ -289,27 +289,37 @@
             console.warn('patch_model', patch);
             var _this = this;
             patch.forEach(function(operation){
+                // apply patch to the model
                 jsonpatch.applyOperation(_this.model, operation, true);
+
+                // let's also update the machinesArray if necessary 
                 var cloud_id, machine_id, resource_id;
-                if (operation.path.indexOf('/clouds/') > -1)
-                    cloud_id = operation.path.split('/clouds/')[1].split('/')[0];
-                if (cloud_id)
-                    machine_id = operation.path.split('/machines/')[1].split('/')[0];
-                if (operation.op == 'remove') {
-                    console.log('remove', operation.path);
-                    var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
-                        function(item) {
-                            return item.machine_id == machine_id
-                        }
-                    );
-                    _this.model.clouds[cloud_id].machinesArray.splice(i, 1);
+                if (operation.path.indexOf('/clouds/') > -1) {
+                    path = operation.path.split('/clouds/')[1].split('/');
+                    cloud_id = path[0];
                 }
-                if (operation.op == 'add') {
-                    console.log('add', operation.path);
-                    _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id].machines[machine_id])
+                if (cloud_id) {
+                    path = operation.path.split('/machines/')[1].split('/');
+                    machine_id = path[0];
                 }
-                if (operation.op == 'replace') {
-                    _this.set('model' + operation.path.replace(/\//g , "."), operation.value);
+                if (machine_id && path.length == 1){
+                    if (operation.op == 'remove') {
+                        console.log('remove', operation.path);
+                        var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
+                            function(item) {
+                                return item.machine_id == machine_id
+                            }
+                        );
+                        _this.model.clouds[cloud_id].machinesArray.splice(i, 1);
+                    }
+                    if (operation.op == 'add') {
+                        console.log('add', operation.path);
+                        _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id].machines[machine_id])
+                    }
+                    // not sure if this is necessary
+                    if (operation.op == 'replace') {
+                        _this.set('model' + operation.path.replace(/\//g , "."), operation.value);
+                    }
                 }
             });
             this.debounce('updateAllMachines', function() {
