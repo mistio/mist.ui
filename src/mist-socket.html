@@ -495,34 +495,30 @@
 
         _updateKeys: function (data) {
             this.set('model.onboarding.isLoadingKeys', false);
-            if (data) {
-                for (var i = 0; i < data.length; i++) {
-                    var key = data[i];
-                    if (this.model.clouds && key.machines)
-                        key.machines.forEach(function (m, index) {
-                            var cloud = m[0],
-                                machine = m[1];
-                            if (this.model.clouds && this.model.clouds[cloud] && this.model.clouds[
-                                    cloud].machines && this.model.clouds[cloud].machines[machine]) {
-                                // check if machine has this key, if not add
-                                var keyexists = this.model.clouds[cloud].machines[machine].key_associations.find(
-                                    function (k) {
-                                        return k.name == key.name;
-                                    });
-                            }
-                            if (!keyexists) {
-                                if (!this.get('model.clouds.' + cloud + '.machines.' + machine +
-                                        '.key_associations'))
-                                    this.set('model.clouds.' + cloud + '.machines.' + machine + '.key_associations', [
-                                        key
-                                    ])
-                                else
-                                    this.push('model.clouds.' + cloud + '.machines.' + machine +
-                                        '.key_associations', key)
-                            }
-                        }, this)
-                }
-            }
+            console.log('keys updated');
+            // if (data) {
+            //     for (var i = 0; i < data.length; i++) {
+            //         var key = data[i];
+            //         console.log('keys', key);
+            //         if (this.model.clouds && key.machines)
+            //             key.machines.forEach(function (m, index) {
+            //                 var cloud = m[0],
+            //                     machine = m[1];
+            //                 this.set('model.clouds.' + cloud + '.machines.' + machine + '.keys', [])
+            //                 if (this.model.clouds && this.model.clouds[cloud] && this.model.clouds[cloud].machines && this.model.clouds[cloud].machines[machine]) {
+            //                     // check if machine has this key, if not add
+            //                     var keyexists = this.model.clouds[cloud].machines[machine].keys.find(
+            //                         function (k) {
+            //                             return k.name == key.name;
+            //                         });
+            //                 }
+            //                 if (!keyexists) {
+            //                     this.push('model.clouds.' + cloud + '.machines.' + machine + '.keys', key)
+            //                 }
+            //                 console.log(this.get('model.clouds.' + cloud + '.machines.' + machine + '.keys'));
+            //             }, this)
+            //     }
+            // }
             return this._updateModel('keys', data);
         },
 
@@ -595,9 +591,9 @@
             // console.log('machines',data.machines);
             if (!changed)
                 return false;
-            this.debounce('updateAllMachines', function() {
+            // this.debounce('updateAllMachines', function() {
                 this._updateAllMachines();
-            }, 300);
+            // }, 300);
         },
 
         _updateAllMachines: function() {
@@ -612,7 +608,7 @@
                                     'title': cloud.title,
                                     'provider': cloud.provider
                                 };
-                                // machine.keys = this._machineKeys(machine.machine_id, machine.cloud.id) || [];
+                                // machine.keys = this._machineKeys(machine.machine_id, machine.cloud.id);
                                 machine.rules = this._machineRules(machine.machine_id, machine.cloud.id);
                             }, this);
 
