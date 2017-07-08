@@ -439,13 +439,13 @@
                             $[[_toFixed(machine.cost.monthly)]]
                         </div>
                     </div>
-                    <div hidden$="[[!machineKeys.length]]">
+                    <div hidden$="[[!machineKeys]]">
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="[[machineKeys]]" as="key">
                                 <div class="machine-key">
-                                    <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
-                                    <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
+                                    <a class="regular blue-link flexchild" href$="/keys/[[key.id]]"><iron-icon icon="communication:vpn-key"></iron-icon>[[key.name]]</a>
+                                    <iron-icon data-keyid="[[key.id]]" data-keyname="[[key.name]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
                             <div class="machine-key" id="pendingKeyRequest">
@@ -728,8 +728,8 @@ Polymer({
         },
         machineKeys: {
             type: Array,
-            computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
-            value: []
+            value: [],
+            notify: true
         },
         itemUid: {
             type: Array,
@@ -774,7 +774,8 @@ Polymer({
     },
     observers: [
         '_isMonitored(machine, model.monitoring.machines.*)',
-        '_machineChanged(machine.*, model.machines.*)'
+        '_machineChanged(machine.*, model.machines.*)',
+        '_computeAssociatedKeys(machine.*, model.keys.*)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -843,8 +844,22 @@ Polymer({
         itemUidInArray.push(itemUid(this.machine, this.model.sections['machines']));
         return itemUidInArray;
     },
-    _computeAssociatedKeys: function(machine, keys, keyLength, machineChangeRecord) {
-        return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
+    _computeAssociatedKeys: function(machineRecord, keys) {
+        var _this = this;
+        this.async(function(){
+            this.set('machineKeys', []);
+            var keys = this.model.keysArray.filter(function(k) {
+                console.log('_computeAssociatedKeys',_this.machineHasKey(k) ? true : false);
+                    return _this.machineHasKey(k) ? true : false;
+                });
+            this.set('machineKeys', keys || []);
+        }, 500)
+    },
+    machineHasKey: function(key){
+        var _this = this;
+        return key.machines.find(function (m) {
+                return m[1] == _this.machine.machine_id && m[0] == _this.machine.cloud.id;
+            });
     },
     computeMachineIp: function(machineips) {
         if (this.machine.public_ips) {
@@ -1084,7 +1099,7 @@ Polymer({
     },
     _probeMachine: function(e){
         var payload = {
-            'key': this.machineKeys[0].keypair
+            'key': this.machine.key_associations[0].keypair
         };
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.probeMachine.params = payload;
