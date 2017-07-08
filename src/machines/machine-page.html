@@ -442,7 +442,7 @@
                     <div hidden$="[[!machineKeys.length]]">
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
-                            <template is="dom-repeat" items="[[machineKeys]]" as="key">
+                            <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
                                 <div class="machine-key">
                                     <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
                                     <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
@@ -729,7 +729,10 @@ Polymer({
         machineKeys: {
             type: Array,
             computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
-            value: []
+            value: function(){
+                return []
+            },
+            notify: true
         },
         itemUid: {
             type: Array,
@@ -774,7 +777,8 @@ Polymer({
     },
     observers: [
         '_isMonitored(machine, model.monitoring.machines.*)',
-        '_machineChanged(machine.*, model.machines.*)'
+        '_machineChanged(machine.*, model.machines.*)',
+        '_machineKeysChanged(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -1226,6 +1230,11 @@ Polymer({
         if (this.querySelector('machine-actions')) {
           this.querySelector('machine-actions').selectAction(e);
         }
+    },
+
+    // this should not be necessary, yet it is :(
+    _machineKeysChanged: function(machineKeys) {
+        this.$.machineKeysDomRepeat.render();
     }
 });
 </script>

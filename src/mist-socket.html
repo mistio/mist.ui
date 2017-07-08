@@ -494,34 +494,65 @@
         },
 
         _updateKeys: function (data) {
+            var _this = this;
             this.set('model.onboarding.isLoadingKeys', false);
             if (data) {
                 for (var i = 0; i < data.length; i++) {
                     var key = data[i];
-                    if (this.model.clouds && key.machines)
+                    if (this.model.clouds && key.machines) {
                         key.machines.forEach(function (m, index) {
                             var cloud = m[0],
-                                machine = m[1];
-                            if (this.model.clouds && this.model.clouds[cloud] && this.model.clouds[
-                                    cloud].machines && this.model.clouds[cloud].machines[machine]) {
+                                machine = m[1],
+                                last_used = m[2],
+                                user = m[3],
+                                sudo = m[4],
+                                port = m[5];
+                            if (this.model.clouds && this.model.clouds[cloud] &&
+                                this.model.clouds[cloud].machines && 
+                                this.model.clouds[cloud].machines[machine]) {
                                 // check if machine has this key, if not add
-                                var keyexists = this.model.clouds[cloud].machines[machine].key_associations.find(
+                                var keyIndex = this.model.clouds[cloud].machines[machine].key_associations.findIndex(
                                     function (k) {
-                                        return k.name == key.name;
+                                        return k.keypair == key.id && k.ssh_user == user && k.port == port;
                                     });
                             }
-                            if (!keyexists) {
-                                if (!this.get('model.clouds.' + cloud + '.machines.' + machine +
-                                        '.key_associations'))
-                                    this.set('model.clouds.' + cloud + '.machines.' + machine + '.key_associations', [
-                                        key
-                                    ])
-                                else
-                                    this.push('model.clouds.' + cloud + '.machines.' + machine +
-                                        '.key_associations', key)
+                            if (keyIndex > -1) {
+                                this.set('model.clouds.' + cloud + '.machines.' + machine + '.key_associations.' + keyIndex, 
+                                    {'keypair': key.id,
+                                     'last_used': last_used,
+                                     'port': port,
+                                     'ssh_user': user});
+                            } else {
+                                var mid = this.model.clouds[cloud].machines[machine].id;
+                                this.push(
+                                    'model.machines.' + mid + '.key_associations', 
+                                    {'keypair': key.id,
+                                     'last_used': last_used,
+                                     'port': port,
+                                     'ssh_user': user}
+                                )
                             }
                         }, this)
+                    }
+
+                    // remove disassociated keys from machines
+                    this.model.machinesArray.forEach(function(m, index){
+                        var associationIndexMachine, associationIndexKey;
+                        associationIndexMachine = m.key_associations.findIndex(function(k){
+                            return k.keypair == key.id;
+                        });
+                        if (associationIndexMachine > -1) {
+                            associationIndexKey = key.machines.findIndex(function(ka){
+                                return ka[0] == m.cloud.id && ka[1] == m.machine_id && ka[3] == m.key_associations[associationIndexMachine].ssh_user && ka[5] == m.key_associations[associationIndexMachine].port;
+                            });
+                            if (associationIndexKey == -1) {
+                                _this.model.machines[m.id].key_associations.splice(associationIndexMachine, 1);
+                            }
+                        }
+                    });
                 }
+
+
             }
             return this._updateModel('keys', data);
         },
