@@ -19,6 +19,8 @@ COPY . /ui
 
 RUN node --max_old_space_size=4096 /usr/local/bin/polymer build
 
+RUN cd bower_components/mist-insights && bower install && polymer build && cd -
+
 COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
 COPY ./container/entry.sh /entry.sh
