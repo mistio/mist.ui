@@ -6,6 +6,7 @@
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
+<link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../machines/associate-key.html">
 <link rel="import" href="../machines/run-script-on-machine.html">
@@ -22,6 +23,7 @@
                 width: 100%;
                 box-shadow: none;
                 text-transform: none;
+                display: inherit;
             }
 
             #select-multi-action-dropdown,
@@ -162,6 +164,7 @@
           </paper-dialog>
           <dialog-element hidden></dialog-element>
           <tags-list id="tagsdialog" model="[[model]]" items="[[selectedItems]]"></tags-list>
+          <!-- <tags-form id="tagsdialog" model="[[model]]" items="[[selectedItems]]" type="[[getType(section)]]"></tags-form> -->
           <run-script-on-machine id="runscriptdialog" items="[[selectedItems]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
           <associate-key id="associatekeydialog" items="[[selectedItemsOfCurrentSection]]" model="[[model]]"></associate-key>
           <machine-edit id="renamedialog" items="" model="[[model]]"></machine-edit>
@@ -355,10 +358,17 @@ Polymer({
 
     ready: function () {
     },
+    getType: function(section){
+        return section.id.slice(0,section.id.length-1);
+    },
     computeSelectedOfCurrent: function(selected, section){
         var selectedOfCurrent = [];
         selectedOfCurrent = this.selectedItems.filter(function(i){
-            var itemtype = i.split(':')[0];
+            var itemtype;
+            if (i.length)
+                itemtype = i.split(':')[0];
+            else if (i.machine_type)
+                itemtype = 'machine';
             return this.section.id.indexOf(itemtype) > -1;
         }, this);
         this.fire('selected-of-current-section-length', {'itemLength': selectedOfCurrent.length})
@@ -444,12 +454,17 @@ Polymer({
 
     itemIndex: function(itemUid) {
         // returns the index of the item in the items list based on the itemUid
-
-        var chunks = itemUid.split(':'),
+        var chunks = [];
+        if (itemUid.length) {
+            chunks = itemUid.split(':'),
             itemId = chunks[2],
             cloudId = chunks[1];
-
-        // there are items whose ides contain ':', like imahes sha256:e02e811..
+        }
+        else {
+            itemId = itemUid.id;
+            cloudId = itemUid.cloud.id;
+        }
+        // there are items whose ids contain ':', like imahes sha256:e02e811..
         // we reconstruct the id if chunk's length is bigger than expected
         if (chunks.length > 3) {
             for (var i=3; i<chunks.length; i++){
