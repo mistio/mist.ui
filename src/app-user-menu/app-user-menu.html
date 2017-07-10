@@ -152,8 +152,32 @@
             .current-org-teams:last-of-type:after {
                 content: " ";
             }
+
+            :host {
+                position: relative;
+            }
+
+            .tip {
+                border-color: transparent;
+                border-bottom-color: #fff;
+                border-style: dashed dashed solid;
+                border-width: 0 11px 9px;
+                position: absolute;
+                left: 17px;
+                top: 50px;
+                z-index: 1;
+                height: 0;
+                width: 0;
+                opacity: 1;
+                transition: opacity 0.4s ease-in-out, top 0.3s ease-in-out;
+            }
+            .tip[closed] {
+                opacity: 0;
+                top: 80px;
+                transition: opacity 0s ease-in-out, top 0s ease-in-out;
+            }
         </style>
-        <paper-menu-button horizontal-align="right">
+        <paper-menu-button horizontal-align="right" vertical-offset="56"  opened="{{opened}}">
             <paper-icon-button src="[[gravatar]]" class="gravatar dropdown-trigger"></paper-icon-button>
             <div class="dropdown-content">
                 <div class="grid-row current context">
@@ -207,6 +231,7 @@
                 </paper-menu>
             </div>
         </paper-menu-button>
+        <div class="tip" closed$="[[!opened]]"></div>
 
         <organization-add current-org="[[org]]"></organization-add>
     </template>
@@ -249,7 +274,8 @@
             orgsList: {
                 type: Array,
                 computed: '_computeOrganizationsList(user, org, user.orgs)'
-            }
+            },
+            opened: Boolean
         },
         _computeGravatar: function(email, size, placeholder) {
             var avatarString = md5(email),
