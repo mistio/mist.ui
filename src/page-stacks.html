@@ -6,7 +6,7 @@
 <link rel="import" href="stacks/stack-page.html">
 <link rel="import" href="stacks/stack-actions.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-stacks">
   <template>
@@ -23,7 +23,7 @@
                 data="{{data}}"></app-route>
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="stacksList"
-            selectable resizable
+            selectable resizable column-menu multi-sort
             items="[[model.stacksArray]]"
             name="Stacks"
             selected-items="{{selectedItems}}"
@@ -33,7 +33,8 @@
             route={{route}}
             user-filter=[[model.sections.stacks.q]]
             primary-field-name="id">
-          <stack-actions slot="actions" items="[[selectedItems]]"></stack-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="stack" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <stack-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></stack-actions>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="stackAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -49,11 +50,19 @@
       is: 'page-stacks',
 
       properties: {
-        model: Object
+        model: Object,
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
       },
 
-      attached: function() {
-
+      listeners: {
+        'select-action': 'selectAction'
       },
 
       _isAddPageActive: function(path) {
@@ -119,6 +128,13 @@
                     return display;
                   }
               }
+          }
+      },
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('stack-actions')) {
+            this.querySelector('stack-actions').selectAction(e);
           }
       }
     });
