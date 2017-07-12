@@ -9,8 +9,9 @@
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../mist-monitoring.html">
+<link rel="import" href="../mist-actions.html">
 
-<link rel="import" href="machine-edit.html">
+<link rel="import" href="machine-actions.html">
 
 <dom-module id="machine-page">
     <template>
@@ -187,27 +188,23 @@
                 height: 24px !important;
                 vertical-align: middle !important;
             }
-            .machine-actions > * {
-                /*vertical-align: middle;*/
-            }
-            .machine-actions > paper-button.left-icon iron-icon {
-                /*padding-right: 8px;*/
-            }
-            .machine-actions > paper-button.right-icon iron-icon {
-                /*padding-left: 8px;*/
-            }
-            item-actions {
+            machine-actions {
                 display: flex;
                 font-size: 1em;
             }
-            item-actions ::content .actions {
+            machine-actions ::content .actions {
                 height: auto;
                 display: flex;
                 vertical-align: auto;
                 padding: 0;
             }
-            item-actions ::content .item-actions {
+            machine-actions ::content .item-actions {
                 margin-left: 0 !important;
+            }
+            :host machine-actions ::content mist-actions ::content paper-button:not(.more).actions,
+            :host machine-actions ::content mist-actions ::content paper-button.dropdown-trigger {
+                padding: 16px !important;
+                margin: 0 !important;
             }
             span[class*="dc-"] {
                 padding-top: 16px;
@@ -374,9 +371,8 @@
                 width: 100%;
                 padding: 0;
                 margin: 0;
-                max-height: 700px;
+                height: 600px;
                 font-size: 75%;
-                min-height: 500px;
                 --row-height: 48px;
             }
         </style>
@@ -385,18 +381,21 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
+            <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></machine-actions>
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
                 <span class="icon"><iron-icon class$=" machine-state-icon [[machine.state]]" icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
-                        [[machine.name]]
+                        [[machineName]]
                     </h2>
                     <div class="subtitle">
-                        [[machine.state]] <span class="desc" hidden$="[[isState(machine)]]">[[machine.extra.status]]</span>
+                        [[machineState]] <span class="desc" hidden$="[[_hasExtraStatus(machine)]]">[[_computeExtraStatus(machine, machine.*, model.machines.*)]]</span>
                     </div>
                 </div>
                 <div class="machine-actions">
-                    <item-actions id="actions_machine" items="[[itemInArray]]" selected-items="[[itemUid]]" selected-item="[[machine]]" section="[[section]]" actions="[[actions]]" org="[[model.org]]" model="[[model]]"></item-actions>
+                    <template is="dom-if" if="[[itemArray]]" restamp>
+                        <mist-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></mists-actions>
+                    </template>
                 </div>
             </paper-material>
             <div class="columns">
@@ -431,20 +430,19 @@
                             <iron-icon hidden$="[[!probeObj.dirty_cow]]" icon="icons:report-problem" on-tap="_showRecommendationDialog"></iron-icon> [[dirtyCowAlert]]
                             <a class="regular blue-link" on-tap="_showRecommendationDialog">Show recommendation.</a>
                         </span>
-                        <!-- <a href="/link-to-blog" target="new" class="regular" hidden$="[[!probeObj.dirty_cow]]">read more...</a> -->
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
                     <div hidden$="[[!machine.cost]]">
                         <h3 class="smallcaps">Monthly Cost:</h3>
-                        <div class="associatedKeys">
+                        <div>
                             $[[_toFixed(machine.cost.monthly)]]
                         </div>
                     </div>
                     <div hidden$="[[!machineKeys.length]]">
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
-                            <template is="dom-repeat" items="[[machineKeys]]" as="key">
+                            <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
                                 <div class="machine-key">
                                     <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
                                     <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
@@ -540,10 +538,10 @@
                 </div>
             </paper-material>
 
-            <paper-material class="machine-logs">
+            <paper-material class="machine-logs" hidden$=[[!count]]>
                 <template is="dom-if" if=[[machine.machine_id]] restamp>
                     <mist-list id="machineLogs"
-                        timeseries expands column-menu searchable streaming infinite toolbar
+                        timeseries expands column-menu searchable streaming infinite toolbar auto-hide
                         apiurl="/api/v1/logs"
                         name="machine logs"
                         frozen=[[_getFrozenLogColumn()]]
@@ -576,7 +574,6 @@
                     on-error="_probeError"
                     handle-as="xml"></iron-ajax>
 
-        <!-- <machine-edit model="[[model]]" items="[[itemInArray]]"></machine-edit> -->
         <paper-toast></paper-toast>
     </template>
 </dom-module>
@@ -666,14 +663,19 @@ Polymer({
     is: 'machine-page',
     properties: {
         model: {
-            type: Object,
-            notify: true
+            type: Object
         },
         router: Object,
-        machine: Object,
-        sections: {
-            type: Array,
+        uuid: {
+            type: String
+        },
+        machine: {
+            type: Object,
+            computed: '_getMachine(uuid, model.machines.*)',
             notify: true
+        },
+        sections: {
+            type: Array
         },
         section: {
             type: Object
@@ -684,17 +686,20 @@ Polymer({
         },
         isMonitored: {
             type: Boolean,
-            value: false,
-            notify: true
+            value: false
         },
         isActivated: {
             type: Boolean,
             value: false,
             computed: '_computeIsActivated(machine, model.monitoring.monitored_machines.*)'
         },
-        machineImage: {
+        machineName: {
             type: String,
-            computed: "_machineImage(machine.image_id)"
+            computed: "_computeMachineName(machine.*, model.machines.*)"
+        },
+        machineState: {
+            type: String,
+            computed: "_computeMachineState(machine.*, model.machines.*)"
         },
         dashboard: {
             type: Object
@@ -723,13 +728,11 @@ Polymer({
         },
         machineKeys: {
             type: Array,
-            computed: '_computeAssociatedKeys(machine, machine.key_associations)',
-            value: [],
+            computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
+            value: function(){
+                return []
+            },
             notify: true
-        },
-        itemInArray: {
-            type: Array,
-            computed: '_computeItemInArray(machine)'
         },
         itemUid: {
             type: Array,
@@ -737,7 +740,7 @@ Polymer({
         },
         actions: {
             type: Array,
-            computed: '_computeActions(machine)'
+            computed: '_computeActions(machine, machine.*, model.machines.*)'
         },
         probeData: {
             type: String,
@@ -765,18 +768,30 @@ Polymer({
         monitoring: {
             type: Boolean,
             value: false
+        },
+        itemArray: Array,
+        actions: {
+            type: Array,
+            notify: true
         }
     },
     observers: [
-        '_isMonitored(machine, model.monitoring.machines.*)'
+        '_isMonitored(machine, model.monitoring.machines.*)',
+        '_machineChanged(machine.*, model.machines.*)',
+        '_machineKeysChanged(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
         'pending-key-request': '_updateKeyLoader',
+        'select-action': 'selectAction'
     },
     ready: function() {
         this.set('hideAssociatedKeys', true);
         this.set('isPendingKeyRequest', false);
+    },
+    _getMachine: function(id, machines) {
+        if (id && this.model && this.model.machines && this.model.machines[id])
+            return this.model.machines[id];
     },
     _showRecommendationDialog: function(){
         this.fire("open-recommendation-dialog", {'item-type': 'machines', 'item': this.machine, 'caller': "machine_page"});
@@ -819,9 +834,10 @@ Polymer({
 
         return actions;
     },
-
-    _computeItemInArray: function() {
-        return [this.machine];
+    _machineChanged: function(machine) {
+        console.log('perform action machine changed', machine);
+        if (this.machine)
+            this.set('itemArray', [this.machine]);
     },
     _computeKeyName: function(keyid){
         return this.model.keys[keyid].name || 'not found';
@@ -831,11 +847,8 @@ Polymer({
         itemUidInArray.push(itemUid(this.machine, this.model.sections['machines']));
         return itemUidInArray;
     },
-    _computeAssociatedKeys: function(machine) {
-        var keys;
-        if (machine)
-            keys = machine.key_associations;
-        return keys || [];
+    _computeAssociatedKeys: function(machine, keys, keyLength, machineChangeRecord) {
+        return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
     },
     computeMachineIp: function(machineips) {
         if (this.machine.public_ips) {
@@ -868,14 +881,11 @@ Polymer({
             return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
         }
     },
-    _machineImage: function(id) {
-        var image = this.model.imagesArray.find(function(image) {
-            return image.id == id;
-        }, this);
-        if (image)
-            return image.name;
-        else
-            return "";
+    _computeMachineName: function(machine) {
+        return this.machine && this.machine.name || '';
+    },
+    _computeMachineState: function(machine) {
+        return this.machine && this.machine.state || '';
     },
     confirmAction: function(action) {
         this._showDialog({
@@ -898,9 +908,12 @@ Polymer({
         toast.text = msg;
         toast.show();
     },
-    isState: function(machine) {
+    _hasExtraStatus: function(machine) {
         if (machine && machine.state && machine.extra.status)
             return machine.state.toLowerCase() == machine.extra.status.toLowerCase();
+    },
+    _computeExtraStatus: function(machine) {
+        return machine && machine.extra && machine.extra.status && machine.extra.status.toLowerCase();
     },
     _computeIsloading: function(machine) {
         return !this.machine ? true : false;
@@ -1029,7 +1042,8 @@ Polymer({
             return "";
 
     },
-    _computeMachineImage: function(item){
+    _computeMachineImage: function(img){
+        var item = this.machine;
         if (item && item.image && typeof(item.image) != "object"){
             return item.image;
         }
@@ -1037,7 +1051,7 @@ Polymer({
             return item.extra.image;
         }
         else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
-            return item.extra.image.distribution + " " +item.extra.image.name;
+            return item.extra.image.distribution + " " + item.extra.image.name;
         }
         else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id || item.extra.image)){
             return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug || item.extra.image.name;
@@ -1211,6 +1225,18 @@ Polymer({
     _isMachinesIncident: function(inc) {
         if (this.machine)
             return this.machine.machine_id == inc.machine_id && this.machine.cloud.id == inc.cloud_id;
+    },
+
+    // redirect events
+    selectAction: function(e) {
+        if (this.querySelector('machine-actions')) {
+          this.querySelector('machine-actions').selectAction(e);
+        }
+    },
+
+    // this should not be necessary, yet it is :(
+    _machineKeysChanged: function(machineKeys) {
+        this.$.machineKeysDomRepeat.render();
     }
 });
 </script>

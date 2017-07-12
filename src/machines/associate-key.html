@@ -53,7 +53,7 @@
             }
         }
         </style>
-        <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+        <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
             <h2>Associate a key</h2>
             <paper-dialog-scrollable>
                 <p>
@@ -181,6 +181,7 @@ Polymer({
         document.querySelector('app-location').set('queryParams', qParams);
     },
     associateKey: function(e){
+
         var user = this.querySelector('paper-input#user').value || 'root',
             port = this.querySelector('paper-input#port').value || '22',
             request = this.$.associateKeyRequest,
@@ -191,10 +192,19 @@ Polymer({
 
         var run = function(el, model) {
             var item = items.shift(),
-                itemType = item.split(':')[0],
-                itemCloud = item.split(':')[1],
-                itemId = item.split(':')[2],
-                machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '',
+                itemType,
+                itemCloud,
+                itemId;
+            if (item.length) {
+                itemType = item.split(':')[0];
+                itemCloud = item.split(':')[1];
+                itemId = item.split(':')[2];
+            }
+            else {
+                itemCloud = item.cloud.id;
+                itemId = item.id
+            }
+            var machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '',
                 uri = "/api/v1/machines/" + itemId + "/keys/" + keyId;
 
             // console.log('machineHost', machineHost, model.machines[itemId]);
@@ -210,6 +220,8 @@ Polymer({
             }
         }
         run(this, this.computeModel());
+        this.$.dialogModal.close();
+        e.stopImmediatePropagation();
     },
     _associateKeyRequest: function(){
         this.fire('pending-key-request', {request: true, keyId: this.selectedKeyId});
@@ -246,8 +258,16 @@ Polymer({
         var count = 0;
         var model = this.model;
         for (var i=0; i<this.items.length; i++) {
-            var itemCloud = this.items[i].split(':')[1],
+            var itemCloud,
+                itemId;
+            if (this.items[i].length) {
+                itemCloud = this.items[i].split(':')[1];
                 itemId = this.items[i].split(':')[2];
+            }
+            else {
+                itemCloud = this.items[i].cloud.id;
+                itemId = this.items[i].machine_id;
+            }
             for (var j=0; j<model.keys[key].machines.length; j++) {
                 if (model.keys[key].machines[j][0] == itemCloud && model.keys[key].machines[j][1] == itemId){
                     count++;
