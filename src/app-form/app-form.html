@@ -444,18 +444,6 @@
                     },
                     form: {
                         type: Object,
-                        value: function() {
-                            var uniqueFields = {};
-                            for (var field in this.fields) {
-                                if (this.fields[field].defaultValue) {
-                                    uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
-                                } else {
-                                    uniqueFields[this.fields[field].name] = null
-                                }
-
-                            }
-                            return uniqueFields
-                        },
                         // computed: '_computePayload(fields)'
                     },
                     fields: {
@@ -497,6 +485,7 @@
                     }
                 },
                 observers: [
+                    'computeForm(fields.*)',
                     '_fieldsChanged(fields.*, sendingData)'
                 ],
                 listeners: {
@@ -507,6 +496,20 @@
                 },
                 attached: function(){
                     this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
+                },
+                computeForm: function(fields){
+                    if (fields.path == 'fields'){
+                        var uniqueFields = {};
+                        for (var field in this.fields) {
+                            if (this.fields[field].defaultValue) {
+                                uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
+                            } else {
+                                uniqueFields[this.fields[field].name] = null
+                            }
+
+                        }
+                        this.set('form', uniqueFields);
+                    }
                 },
                 showOption: function(option){
                     if (option.title)
