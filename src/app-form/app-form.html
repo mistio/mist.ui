@@ -485,7 +485,6 @@
                     }
                 },
                 observers: [
-                    'computeForm(fields.*)',
                     '_fieldsChanged(fields.*, sendingData)'
                 ],
                 listeners: {
@@ -497,19 +496,17 @@
                 attached: function(){
                     this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
                 },
-                computeForm: function(fields){
-                    if (fields.path == 'fields'){
-                        var uniqueFields = {};
-                        for (var field in this.fields) {
-                            if (this.fields[field].defaultValue) {
-                                uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
-                            } else {
-                                uniqueFields[this.fields[field].name] = null
-                            }
-
+                _updateForm: function(){
+                    var uniqueFields = {};
+                    for (var field in this.fields) {
+                        if (this.fields[field].defaultValue) {
+                            uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
+                        } else {
+                            uniqueFields[this.fields[field].name] = null
                         }
-                        this.set('form', uniqueFields);
+
                     }
+                    this.set('form', uniqueFields);
                 },
                 showOption: function(option){
                     if (option.title)
@@ -544,6 +541,9 @@
                 _fieldsChanged: function(fields, sendingData) {
                     if (this.formError){
                         this.set('formError', false);
+                    }
+                    if (fields.path == 'fields'){
+                        this._updateForm();
                     }
                     this.async(function() {
                         var form = this.form,
