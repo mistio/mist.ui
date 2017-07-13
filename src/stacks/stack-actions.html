@@ -5,21 +5,19 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
-<link rel="import" href="../mist-actions.html">
+<link rel="import" href="../tags/tags-form.html">
 
 <dom-module id="stack-actions">
   <template>
     <style include="shared-styles">
       :host {
-        display: inline-block;
+        display: inline;
         color: rgba(255,255,255,0.87);
       }
     </style>
     
-    <mist-actions actions="[[actions]]" type="stack" items="[[items]]"></mist-actions>
-
     <dialog-element id="confirm"></dialog-element>
-
+    <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
@@ -51,24 +49,28 @@ STACK_ACTIONS = {
         },
         actions: { 
           type: Array,
-          value: []
+          value: [],
+          notify: true
+        },
+        type: {
+          type: String,
+          value: 'stack'
         }
       },
       observers:[
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
-        'perform-action': 'performAction'
+        'iron-overlay-closed': 'confirmAction'
       },
-      ready: function() {},
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(zone) {
+      itemActions: function(stack) {
         var arr = [];
-        if (zone) {
+        if (stack) {
           arr.push('tag');
           arr.push('delete');
         }
@@ -100,9 +102,38 @@ STACK_ACTIONS = {
           }
           dialog._openDialog();
       },
-      performAction: function(e) {
-        // console.log('performAction', e.detail.action);
-        var action = e.detail.action;
+      confirmAction: function(e){
+        if (e.detail.confirmed)
+          this.performAction(this.action, this.items);
+      },
+      selectAction: function(e){
+        if (this.items.length) {
+          var action = e.detail.action;
+          this.set('action', action);
+          // console.log('perform action mist-action', this.items);
+          if (action.confirm && action.name != 'tag') {
+            var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
+                plural = this.items.length == 1 ? '' : 's',
+                count = this.items.length > 1 ? this.items.length+' ' : '';
+            //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+            this._showDialog({
+                title: this.action.name + ' ' + count + this.type + plural+'?',
+                body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
+                list: this._makeList(this.items, property),
+                action: action.name,
+                danger: true,
+                reason: this.type + "." + this.action.name
+            });
+          }
+          else if (action.name == "tag") {
+            this.$.tagsdialog._openDialog();
+          }
+          else {
+            this.performAction(this.action, this.items);
+          }
+        }
+      },
+      performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
         }
@@ -145,7 +176,14 @@ STACK_ACTIONS = {
       handleError: function(e) {
         // console.log(e.detail.request.xhr.statusText);
         this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
-      }
+      },
+
+      _makeList: function(items, property){
+        if (items && items.length)
+          return items.map(function(item){
+            return item[property];
+          });
+      },
     });
   </script>
 </dom-module>

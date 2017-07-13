@@ -444,18 +444,6 @@
                     },
                     form: {
                         type: Object,
-                        value: function() {
-                            var uniqueFields = {};
-                            for (var field in this.fields) {
-                                if (this.fields[field].defaultValue) {
-                                    uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
-                                } else {
-                                    uniqueFields[this.fields[field].name] = null
-                                }
-
-                            }
-                            return uniqueFields
-                        },
                         // computed: '_computePayload(fields)'
                     },
                     fields: {
@@ -508,6 +496,18 @@
                 attached: function(){
                     this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
                 },
+                _updateForm: function(){
+                    var uniqueFields = {};
+                    for (var field in this.fields) {
+                        if (this.fields[field].defaultValue) {
+                            uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
+                        } else {
+                            uniqueFields[this.fields[field].name] = null
+                        }
+
+                    }
+                    this.set('form', uniqueFields);
+                },
                 showOption: function(option){
                     if (option.title)
                         return option.title;
@@ -541,6 +541,9 @@
                 _fieldsChanged: function(fields, sendingData) {
                     if (this.formError){
                         this.set('formError', false);
+                    }
+                    if (fields.path == 'fields'){
+                        this._updateForm();
                     }
                     this.async(function() {
                         var form = this.form,

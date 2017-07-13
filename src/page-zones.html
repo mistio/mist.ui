@@ -6,7 +6,7 @@
 <link rel="import" href="zones/zone-actions.html">
 <link rel="import" href="zones/zone-page.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-zones">
   <template>
@@ -21,7 +21,7 @@
                 data="{{data}}"></app-route>
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="zonesList"
-            selectable resizable
+            selectable resizable column-menu multi-sort
             items="[[model.zonesArray]]"
             name="Zones"
             selected-items="{{selectedItems}}"
@@ -31,7 +31,8 @@
             route={{route}}
             user-filter=[[model.sections.zones.q]]
             primary-field-name="id">
-          <zone-actions slot="actions" items="[[selectedItems]]"></zone-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="zone" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <zone-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></zone-actions>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -47,11 +48,19 @@
       is: 'page-zones',
 
       properties: {
-        model: Object
+        model: Object,
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
       },
 
-      attached: function() {
-
+      listeners: {
+        'select-action': 'selectAction'
       },
 
       _isAddPageActive: function(path) {
@@ -106,6 +115,13 @@
                     return display;
                   }
               }
+          }
+      },
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('zone-actions')) {
+            this.querySelector('zone-actions').selectAction(e);
           }
       }
 

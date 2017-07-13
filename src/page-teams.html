@@ -9,8 +9,7 @@
 <link rel="import" href="teams/member-add-in-teams.html">
 <link rel="import" href="teams/team-add.html">
 
-<link rel="import" href="item-list/item-actions.html">
-
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-teams">
   <template>
@@ -32,7 +31,7 @@
 
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
         <mist-list id="teamsList"
-            selectable resizable
+            selectable resizable column-menu multi-sort
             items="[[model.teamsArray]]"
             name="Teams"
             selected-items="{{selectedItems}}"
@@ -42,7 +41,8 @@
             route={{route}}
             user-filter=[[model.sections.teams.q]]
             primary-field-name="id">
-            <team-actions slot="actions" items="[[selectedItems]]" org="[[model.org.id]]"></team-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="tema" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <team-actions slot="actions" items="[[selectedItems]]" org="[[model.org.id]]" actions="{{actions}}"></team-actions>
         </mist-list>
     </template>
     <team-page model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" section="[[model.sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]] rbac=[[rbac]] billing="[[billing]]"></team-page>
@@ -64,12 +64,19 @@
       properties: {
         model: Object,
         route: Object,
-
+        actions: {
+            type: Array,
+            notify: true
+        },
         selectedItems: {
           type: Array,
           value: function() { return [] }
         },
         rbac: false
+      },
+
+      listeners: {
+        'select-action': 'selectAction'
       },
 
       _isDetailsPageActive: function(path) {
@@ -133,6 +140,13 @@
         var dialog = this.querySelector('team-add#isTeamsPage');
         dialog.openDialog();
     },
+
+    selectAction: function(e) {
+        e.stopImmediatePropagation();
+        if (this.querySelector('team-actions')) {
+          this.querySelector('team-actions').selectAction(e);
+        }
+    }
 
     });
   </script>

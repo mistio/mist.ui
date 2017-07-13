@@ -6,7 +6,7 @@
 <link rel="import" href="scripts/script-page.html">
 <link rel="import" href="scripts/script-actions.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-scripts">
   <template>
@@ -19,7 +19,7 @@
     <app-route route="{{route}}" pattern="/:script" data="{{data}}"></app-route>
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="scriptsList"
-            selectable resizable
+            selectable resizable column-menu multi-sort
             items="[[model.scriptsArray]]"
             name="Scripts"
             selected-items="{{selectedItems}}"
@@ -29,7 +29,8 @@
             route={{route}}
             user-filter=[[model.sections.scripts.q]]
             primary-field-name="id">
-          <script-actions slot="actions" items="[[selectedItems]]"></script-actions>
+          <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+          <script-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></script-actions>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="scriptAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -46,7 +47,18 @@
       is: 'page-scripts',
 
       properties: {
-        model: Object
+        model: Object,
+        actions: {
+          type: Array,
+          notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        },
+      },
+      listeners: {
+          'select-action': 'selectAction'
       },
 
       _isAddPageActive: function (path) {
@@ -112,6 +124,14 @@
                     return  item.type;
                   }
               }
+          }
+      },
+
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('script-actions')) {
+            this.querySelector('script-actions').selectAction(e);
           }
       }
     });
