@@ -4,11 +4,14 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/iron-image/iron-image.html">
+
+<link rel="import" href="multi-inputs.html">
 
 <dom-module id="details-page">
     <template>
@@ -118,6 +121,10 @@
                 margin-left: -17px;
             }
 
+            div.ips-section {
+                margin-bottom: 24px;
+            }
+
             paper-toggle-button {
                 margin: auto;
             }
@@ -177,6 +184,12 @@
                             <paper-icon-button icon="close" on-tap="_deleteAvatar" class="delete-avatar-icon"></paper-icon-button>
                         </div>
                     </div>
+                    <div class="ips-section" hidden$="[[!allowWhiteListEdit]]">
+                        <h2>IP whitelisting</h2>
+                        <p>Allow aceess to whitelisted ips only.</p>
+                        <multi-inputs inputs-array="{{whiteIps}}"></multi-inputs>
+                        <paper-button on-tap="_saveWhitelist">Save IPs</paper-button>
+                    </div>
                     <div hidden$="[[org.avatar.length]]">
                         <paper-toggle-button checked="{{customLogo}}">
                             Custom logo
@@ -194,7 +207,7 @@
                                     <iron-image src$="[[_computeAvatarURL(orgAvatar)]]" fades hidden$="[[!orgAvatar]]" sizing="contain" class="avatar-preview"></iron-image>
                                 </div>
                             </vaadin-upload>
-                        </div
+                        </div>
                     </div>
                 </div>
 
@@ -280,8 +293,15 @@
                         type: String,
                         value: ''
                     },
-                    customLogo: false
-
+                    customLogo: false,
+                    allowWhiteListEdit: {
+                        type: Boolean,
+                        // TODO set org.allowEdit
+                        value: true
+                    },
+                    whiteIps: {
+                        type: Array
+                    }
                 },
                 observers: [
                     '_userUpdated(user)',
@@ -300,12 +320,21 @@
                     });
                 },
 
+                _saveWhitelist: function(e){
+                    console.log('save Whitelist')
+
+                },
+
                 _userUpdated: function(user) {
                     this.firstName = user.first_name;
                     this.lastName = user.last_name;
                 },
 
                 _orgUpdated: function(org) {
+                    if (this.allowWhiteListEdit){
+                        // TODO set org.ips
+                        this.set('whiteIps',["1.1.2.1", "1.23.2.2"])
+                    }
                     this.orgName = org.name;
                     this.orgAlertEmails = org.alerts_email.join('\n')
                     this.customLogo = org.avatar ? true : false

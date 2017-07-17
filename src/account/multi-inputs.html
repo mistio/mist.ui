@@ -1,0 +1,47 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<dom-module id="multi-inputs">
+    <template>
+        <style is="custom-style" include="forms"></style>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+            paper-input {
+                width: 50%;
+                display: inline-block;
+            }
+            paper-button, .remove {
+                display: inline-block;   
+            }
+        </style>
+        <template is="dom-repeat" items="[[inputsArray]]">
+            <paper-input value="[[item]]"></paper-input> 
+            <div class="remove"><paper-button data-index="[[index]]" on-tap="removeInput">remove</paper-button></div>
+        </template>
+        <paper-button on-tap="addInput">Add ip</paper-button>
+    </template>
+    <script>
+        Polymer({
+            is: 'multi-inputs',
+
+            properties: {
+                inputsArray: {
+                    type: Array,
+                    notify: true
+                }
+            },
+            addInput: function(e){
+                this.push('inputsArray', '');
+            },
+            removeInput: function(e){
+                console.log('removeInput', e.target.dataIndex);
+                this.splice('inputsArray', e.target.dataIndex, 1);
+            }
+        });
+    </script>
+</dom-module>
