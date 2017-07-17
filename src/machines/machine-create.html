@@ -718,7 +718,9 @@
 
                         var sizeInd = this._fieldIndexByName('size');
                         var sizesOptions = this.model.clouds[this.selectedCloud].sizesArray.filter(function(s){
-                            return s.extra.virtualizationTypes.indexOf(virtualization_type) > -1
+                            if (s.extra.virtualizationTypes){
+                                return s.extra.virtualizationTypes.indexOf(virtualization_type) > -1
+                            } else {return 1}
                         });
                         this.set('machineFields.' + sizeInd + '.options', sizesOptions);
                         // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
@@ -763,7 +765,7 @@
                 _computeProviders: function(model, clouds){
                     //exclude bare metals and other from provider dropdown list
                     return this.model.cloudsArray.filter(function(c){
-                        return  ["bare_metal", "vsphere", "indonesian_vcloud", "azure_arm"].indexOf(c.provider) == -1;
+                        return  ["bare_metal", "vsphere", "azure_arm"].indexOf(c.provider) == -1;
                     });
                 },
                 addInput: function(e){
