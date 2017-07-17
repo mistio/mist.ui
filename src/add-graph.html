@@ -334,7 +334,6 @@
                 }
             });
             this.set('responseMetrics', output);
-            // this._createMenus(output, null);
             this.set('responseMetricsArray', this._makeArray(output));
         },
         _makeArray: function(output){
@@ -367,38 +366,6 @@
             this.querySelector('#customOptions').close();
             this.querySelector('#selectTarget').close();
             this.fire("open-and-select");
-        },
-        _createMenus: function(input, parent) {
-            if (parent == null) {
-                var menu = this.querySelector('paper-menu');
-            } else {
-                var par = parent.querySelector('iron-collapse')
-                var menu = document.createElement('paper-menu');
-                Polymer.dom(par).appendChild(menu);
-            }
-            Object.keys(input).forEach(function(i) {
-                var sub = document.createElement('paper-submenu');
-                var item = document.createElement('paper-item');
-                Polymer.dom(item).textContent = i;
-                // TODO
-                // item.disabled = this.checkIfInGraph(i);
-                sub.id = i;
-                Polymer.dom(sub.querySelector('div')).appendChild(item);
-                //sub.querySelector('iron-collapse').appendChild("to menou ");  tis epiloges (item) mesa sto div tou menou opws apo panw
-                Polymer.dom(menu.querySelector('div')).appendChild(sub);
-                if (typeof input[i] != 'string') {
-                    var icon = document.createElement('iron-icon');
-                    icon.icon = "icons:expand-more";
-                    Polymer.dom(item).appendChild(icon);
-                    icon.classList.add("expand-more");
-                    this._createMenus(input[i], sub);
-                } else {
-                    item.onclick = function() {
-                        this.fire('panelAdded', { metric: input[i] });
-                        this._exit('selectTarget');
-                    }.bind(this)
-                }
-            }, this);
         },
         checkIfInGraph: function(i) {
             var isIn = this.dashboard.rows.forEach(function(r) {
