@@ -1,34 +1,47 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 
-<link rel="import" href="tags/tags-form.html">
-<link rel="import" href="helpers/dialog-element.html">
 <link rel="import" href="styles/shared-styles.html">
 
 <dom-module id="mist-actions">
   <template>
     <style include="shared-styles">
       :host {
-        display: inline-block;
-        color: rgba(255,255,255,0.87);
+          display: flex;
+          color: rgba(255,255,255,0.87);
+          align-items: flex-start;
+          flex-wrap: nowrap;
       }
       paper-button.actions {
-        display: inline;
-        white-space: nowrap;
-        padding: 16px 16px 16px 0;
-        margin-left: 16px;
+          display: inline-block;
+          flex-wrap: nowrap;
+          white-space: nowrap;
+          margin-left: 16px;
+          width: auto;
+          min-width: auto;
       }
-      paper-button iron-icon {
-        padding-right: 8px;
+      paper-button.more.actions {
+          display: block;
+          width: 100%;
+          margin-left: 0 !important;
+      }
+      paper-button.actions iron-icon {
+          fill: #fff;
+      }
+      paper-button.more.actions iron-icon {
+          fill: rgba(0,0,0,0.54);
+      }
+      paper-menu-button {
+          padding: 0;
       }
       iron-icon {
-        color: inherit;
-        fill: #fff;
-        margin-top: -2px;
+          color: inherit;
+          margin-top: -2px;
+          min-width: 24px;
+          padding-right: 8px;
       }
       paper-dialog {
           padding: 0;
-          /*position: fixed;*/
       }
       :host paper-dialog > h2 {
           text-transform: capitalize;
@@ -49,17 +62,33 @@
       paper-dialog p.item-actions {
           max-height: 200px;
       }
+      div.dropdown-content {
+        color: rgba(0,0,0,0.87);
+      }
+      div.dropdown-content paper-button {
+          text-align: left;
+          white-space: nowrap;
+          padding: 16px 16px;
+          margin-left: 16px;
+      }
     </style>
     
-    <template is="dom-repeat" items="[[actions]]" as="action">
-      <paper-button on-tap="selectAction" class="actions">
-        <iron-icon icon="[[action.icon]]" hidden$="[[!action.icon]]"></iron-icon>[[action.name]]
-      </paper-button>
+    <template is="dom-if" if="[[topActions.length]]" restamp>
+      <template is="dom-repeat" items="[[topActions]]" as="action">
+          <paper-button on-tap="selectAction" class="actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
+      </template>
     </template>
 
-    <dialog-element id="confirm" on-iron-overlay-opened="patchOverlay"></dialog-element>
-
-    <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+    <template is="dom-if" if="[[moreActions.length]]" restamp>
+      <paper-menu-button id="actionmenu" horizontal-align="right" vertical-offset="40">
+          <paper-button class="dropdown-trigger"><iron-icon icon="more-vert"></iron-icon></paper-button>
+          <div class="dropdown-content">
+              <template is="dom-repeat" items="[[moreActions]]" as="action">
+                  <paper-button on-tap="selectAction" class="more actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
+              </template>
+          </div>
+      </paper-menu-button>
+    </template>
 
   </template>
   <script>
@@ -77,70 +106,39 @@
         type: {
           type: String
         },
-        items: Array
-      },
-      listeners: {
-        'iron-overlay-closed': 'confirmAction'
+        items: Array,
+        topActions: {
+            type: Array,
+            computed: "_topActions(actions.*)"
+        },
+        moreActions: {
+            type: Array,
+            computed: "_moreActions(actions.*)"
+        },
       },
       ready: function() {},
       attached: function() {},
       selectAction: function(e){
-        var action = e.model.action;
-        this.action = action;
-        if (action.confirm && action.name != 'tag') {
-          var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
-          this._showDialog({
-              title: this.action.name +' ' + this.type +'?',
-              body: this.tense(this.action.name) + " " + this.type + "s can not be undone. You are about to " + this.action.name + " " + this.items.length + " " + this.type + "s.",
-              list: this._makeList(this.items, property),
-              danger: true,
-              reason: this.type + "." + this.action.name
-          });
-        }
-        else if (action.name == 'tag') {
-          this.showTagDialog();
-        }
-        else {
-          this.performAction();
-        }
-      },
-      _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
-          for (var i in info) {
-              dialog[i] = info[i];
-          }
-          dialog._openDialog();
-      },
-      showTagDialog: function(){
-        this.$.tagsdialog._openDialog();
-      },
-      tagResources: function(e){
-        console.log('tag resources', this.items.length, this.type);
-      },
-      _makeList: function(items, property){
-        if (items && items.length)
-          return items.map(function(item){
-            return item[property];
-          });
-      },
-      performAction: function() {
-        this.fire('perform-action', {action: this.action});
-      },
-      confirmAction: function(e) {
-        if (!e.detail.canceled && e.detail.confirmed) {
-          this.fire('perform-action', {action: this.action});
-        }
-      },
-      patchOverlay: function (e) {
-        //from https://github.com/PolymerElements/paper-dialog/issues/7
-        if (e.target.withBackdrop) {
-          e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
-        }
+        if (this.querySelector('paper-menu-button#actionmenu'))
+            this.querySelector('paper-menu-button#actionmenu').close();
+        this.set('action', e.model.action);
+        this.fire('select-action',{action: e.model.action})
       },
       tense: function(action) {
         if (action == 'delete')
           return 'Deleting';
       },
+      updateActions: function(actions){
+
+      },
+      _topActions: function (actions) {
+        if (this.get('actions'))
+          return this.get('actions').slice(0, 3);
+      },
+      _moreActions: function (actions) {
+        if (this.get('actions'))
+          return this.get('actions').slice(3);
+      }
     });
   </script>
 </dom-module>

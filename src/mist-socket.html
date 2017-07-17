@@ -1,4 +1,5 @@
 <script src="../bower_components/sockjs-client/dist/sockjs.min.js"></script>
+<script src="../bower_components/fast-json-patch/dist/fast-json-patch.js"></script>
 <script>
     CSRF_TOKEN = '';
     DEBUG_SOCKET = false;
@@ -79,117 +80,77 @@
             // Initialize main handlers
             this.handlers = {
                 main: {
+                    patch_model: function (data) {
+                        that._patchModel(data);
+                    },
                     list_clouds: function (data) {
-                        that.debounce(that._updateClouds(data), function () {
-                            // console.debug('list_clouds', data);
-                        }, 250);
+                        that._updateClouds(data);
                     },
                     list_keys: function (data) {
-                        that.debounce(that._updateKeys(data), function () {
-                            // console.debug('list_keys', data);
-                        }, 250);
+                        that._updateKeys(data);
                     },
                     list_scripts: function (data) {
-                        that.debounce(that._updateScripts(data), function () {
-                            // console.debug('list_scripts', data);
-                        }, 250);
+                        that._updateScripts(data);
                     },
                     list_schedules: function (data) {
-                        that.debounce(that._updateSchedules(data), function () {
-                            // console.debug('list_schedules', data);
-                        }, 250);
+                        that._updateSchedules(data);
                     },
                     list_templates: function (data) {
-                        console.warn('got templates', data);
-                        that.debounce(that._updateTemplates(data), function () {
-                            // console.debug('list_templates', data);
-                        }, 250);
+                        that._updateTemplates(data);
                     },
                     list_stacks: function (data) {
-                        console.warn('got stacks', data);
-                        that.debounce(that._updateStacks(data), function () {
-                            // console.debug('list_stacks', data);
-                        }, 250);
+                        that._updateStacks(data);
                     },
                     list_machines: function (data) {
-                        that.debounce(that._updateMachines(data), function () {
-                            // console.debug('list_machines', data);
-                        }, 250);
+                        that._updateMachines(data);
                     },
                     list_images: function (data) {
-                        that.debounce(that._updateImages(data), function () {
-                            // console.log('list_images', data);
-                        }, 250);
+                        that._updateImages(data);
                     },
                     list_sizes: function (data) {
-                        that.debounce(that._updateSizes(data), function () {
-                            // console.debug('list_sizes', data);
-                        }, 250);
+                        that._updateSizes(data);
                     },
                     list_locations: function (data) {
-                        that.debounce(that._updateLocations(data), function () {
-                            // console.debug('list_locations', data);
-                        }, 250);
+                        that._updateLocations(data);
                     },
                     list_networks: function (data) {
-                        that.debounce(that._updateNetworks(data), function () {
-                            // console.debug('list_networks', data);
-                        }, 250);
+                        that._updateNetworks(data);
                     },
                     list_zones: function (data) {
-                        that.debounce(that._updateZones(data), function () {
-                            // console.debug('list_zones', data);
-                        }, 250);
+                        that._updateZones(data);
                     },
                     list_tunnels: function (data) {
-                        that.debounce(that._updateTunnels(data), function () {
-                            // console.debug('list_networks', data);
-                        }, 250);
+                        that._updateTunnels(data);
                     },
                     list_projects: function (data) {
-                        that.debounce(that._updateProjects(data), function () {
-                            // console.debug('list_projects', data);
-                        }, 250);
+                        that._updateProjects(data);
                     },
                     list_tags: function (data) {
-                        that.debounce(that._updateTags(data), function () {
-                            console.debug('list_tags', data);
-                        }, 250);
+                        that._updateTags(data);
                     },
                     ping: function (data) {
-                        // console.debug('ping', data);
                         that._ping(data);
                     },
                     probe: function (data) {
-                        // console.debug('probe', data);
                         that._probe(data);
                     },
                     monitoring: function (data) {
-                        that.debounce(that._updateMonitoring(data), function () {
-                            // console.debug('monitoring', data);
-                        }, 250);
+                        that._updateMonitoring(data);
                     },
                     reload: function (data) {
-                        that.debounce(that._reloadPage(data), function () {
-                            console.debug('reloading page', data);
-                        }, 250);
+                        that._reloadPage(data);
                     },
                     user: function (data) {
-                        that.debounce(that._updateUser(data), function () {
-                            console.debug('Loaded user data');
-                        }, 250);
+                        that._updateUser(data);
                     },
                     org: function (data) {
-                        console.warn('Loaded org data');
-                        that.debounce(that._updateOrg(data), function () {
-                            console.debug('Loaded org data');
-                        }, 250);
+                        console.info('Loaded org data');
+                        that._updateOrg(data);
                     },
                     logout: function (data) {
                         document.location.pathname = '/';
                     },
                     stats: function (data) {
-                        // console.log(that.openRequests)
                         if (!that.openRequests[data.request_id])
                             console.warn('cannot find open request', data.request_id)
                         else {
@@ -322,6 +283,48 @@
         _reloadPage: function (data) {
             console.warn('reloading', data);
             document.location.reload();
+        },
+
+        _patchModel: function(patch) {
+            console.warn('patch_model', patch);
+            var _this = this;
+            patch.forEach(function(operation){
+                // apply patch to the model
+                jsonpatch.applyOperation(_this.model, operation, true);
+
+                // let's also update the machinesArray if necessary 
+                var cloud_id, machine_id, resource_id;
+                if (operation.path.indexOf('/clouds/') > -1) {
+                    path = operation.path.split('/clouds/')[1].split('/');
+                    cloud_id = path[0];
+                }
+                if (cloud_id) {
+                    path = operation.path.split('/machines/')[1].split('/');
+                    machine_id = path[0];
+                }
+                if (machine_id && path.length == 1){
+                    if (operation.op == 'remove') {
+                        console.log('remove', operation.path);
+                        var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
+                            function(item) {
+                                return item.machine_id == machine_id
+                            }
+                        );
+                        _this.model.clouds[cloud_id].machinesArray.splice(i, 1);
+                    }
+                    if (operation.op == 'add') {
+                        console.log('add', operation.path);
+                        _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id].machines[machine_id])
+                    }
+                    // not sure if this is necessary
+                    if (operation.op == 'replace') {
+                        _this.set('model' + operation.path.replace(/\//g , "."), operation.value);
+                    }
+                }
+            });
+            this.debounce('updateAllMachines', function() {
+                this._updateAllMachines()
+            }, 300);
         },
 
         _updateModel: function (section, data, primaryField) {
@@ -491,35 +494,65 @@
         },
 
         _updateKeys: function (data) {
+            var _this = this;
             this.set('model.onboarding.isLoadingKeys', false);
             if (data) {
                 for (var i = 0; i < data.length; i++) {
                     var key = data[i];
-                    if (this.model.clouds && key.machines)
+                    if (this.model.clouds && key.machines) {
                         key.machines.forEach(function (m, index) {
                             var cloud = m[0],
-                                machine = m[1];
-                            if (this.model.clouds && this.model.clouds[cloud] && this.model.clouds[
-                                    cloud].machines && this.model.clouds[cloud].machines[machine] &&
-                                this.model.clouds[cloud].machines[machine].keys) {
+                                machine = m[1],
+                                last_used = m[2],
+                                user = m[3],
+                                sudo = m[4],
+                                port = m[5];
+                            if (this.model.clouds && this.model.clouds[cloud] &&
+                                this.model.clouds[cloud].machines && 
+                                this.model.clouds[cloud].machines[machine]) {
                                 // check if machine has this key, if not add
-                                var keyexists = this.model.clouds[cloud].machines[machine].keys.find(
+                                var keyIndex = this.model.clouds[cloud].machines[machine].key_associations.findIndex(
                                     function (k) {
-                                        return k.name == key.name;
+                                        return k.keypair == key.id && k.ssh_user == user && k.port == port;
                                     });
-                            }
-                            if (!keyexists) {
-                                if (!this.get('model.clouds.' + cloud + '.machines.' + machine +
-                                        '.keys'))
-                                    this.set('model.clouds.' + cloud + '.machines.' + machine + '.keys', [
-                                        key
-                                    ])
-                                else
-                                    this.push('model.clouds.' + cloud + '.machines.' + machine +
-                                        '.keys', key)
+                                if (keyIndex > -1) {
+                                    this.set('model.clouds.' + cloud + '.machines.' + machine + '.key_associations.' + keyIndex,
+                                             {'keypair': key.id,
+                                              'last_used': last_used,
+                                              'port': port,
+                                              'ssh_user': user});
+                                    } else {
+                                    var mid = this.model.clouds[cloud].machines[machine].id;
+                                    this.push(
+                                        'model.machines.' + mid + '.key_associations',
+                                        {'keypair': key.id,
+                                         'last_used': last_used,
+                                         'port': port,
+                                         'ssh_user': user}
+                                    )
+                                }
                             }
                         }, this)
+                    }
+
+                    // remove disassociated keys from machines
+                    this.model.machinesArray.forEach(function(m, index){
+                        var associationIndexMachine, associationIndexKey;
+                        associationIndexMachine = m.key_associations.findIndex(function(k){
+                            return k.keypair == key.id;
+                        });
+                        if (associationIndexMachine > -1) {
+                            associationIndexKey = key.machines.findIndex(function(ka){
+                                return ka[0] == m.cloud.id && ka[1] == m.machine_id && ka[3] == m.key_associations[associationIndexMachine].ssh_user && ka[5] == m.key_associations[associationIndexMachine].port;
+                            });
+                            if (associationIndexKey == -1) {
+                                _this.model.machines[m.id].key_associations.splice(associationIndexMachine, 1);
+                            }
+                        }
+                    });
                 }
+
+
             }
             return this._updateModel('keys', data);
         },
@@ -593,7 +626,12 @@
             // console.log('machines',data.machines);
             if (!changed)
                 return false;
+            this.debounce('updateAllMachines', function() {
+                this._updateAllMachines();
+            }, 300);
+        },
 
+        _updateAllMachines: function() {
             var allMachines = [];
             if (this.model != undefined && this.model.cloudsArray.length > 0) {
                 this.model.cloudsArray.forEach(
@@ -615,7 +653,7 @@
                     }, this);
             }
 
-            if (data.length && this.get('model.onboarding.hasMachines') != true)
+            if (allMachines.length && this.get('model.onboarding.hasMachines') != true)
                 this.set('model.onboarding.hasMachines', true);
 
             this.set('model.onboarding.isLoadingMachines', false);
