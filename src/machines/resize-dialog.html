@@ -1,0 +1,191 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
+
+<dom-module id="resize-dialog">
+  <template>
+    <style include="shared-styles forms">
+      :host {
+        display: inline;
+        color: rgba(255,255,255,0.87);
+      }
+      #dialogModal {
+        max-width: 500px;
+      }
+      .helptext {
+        align-self: center;
+      }
+      .sup {
+        font-size: 12px;
+        font-weight: normal;
+        opacity: 0.54;
+      }
+      .btn-group {
+        display: flex;
+        justify-content: flex-end;
+      }
+      .progress {
+        margin: 32px -24px;
+        width: 100%;
+      }
+      .progress paper-progress {
+        width: 100%;
+      }
+      paper-progress.progresserror ::content #primaryProgress {
+        background-color: var(--red-color);
+      }
+      .error {
+        color: var(--red-color);
+        align-self: flex-end;
+        padding: 8px;
+        font-size: 0.9em;
+      }
+      iron-icon {
+        color: inherit;
+      }
+      .errormsg-container {
+        color: var(--red-color);
+        padding-left: 24px;
+        padding-right: 24px
+      }
+      .errormsg-container iron-icon {
+        color: inherit;
+      }
+    </style>
+    <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+        <h2>Resize Machine <span class="sup">[[size]]</span></h2>
+        <paper-dialog-scrollable>
+          <div class="grid-row">
+            <div class="xs12 m6 l6">
+              <paper-input id="cpus" label="cpus" on-keyup="hotkeys" value="{{cpus}}" pattern="[0-9]*" errorMessage="Please enter numbers only" autovalidate></paper-input>
+            </div>
+            <div class="helptext xs12 m6 l6">
+              Current machine cpus [[current_cpus]].
+            </div>
+            <div class="xs12 m6 l6">
+              <paper-input id="memory" label="memory" on-keyup="hotkeys" value="{{memory}}" pattern="[0-9]*" errorMessage="Please enter numbers only" autovalidate></paper-input>
+            </div>
+            <div class="helptext xs12 m6 l6">
+              Current machine memory [[current_memory]].
+            </div>
+          </div>
+        </div>
+        </paper-dialog-scrollable>
+        <div class="progress">
+            <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
+            <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+            <hr class="appform"/>
+            <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+        </div>
+        <div class="btn-group">
+            <paper-button dialog-dismiss>Cancel</paper-button>
+            <paper-button class="blue" on-tap="resizeMachine" disabled$="[[!formReady]]">Resize Machine</paper-button>
+        </div>
+    </paper-dialog>
+
+    <dialog-element id="confirm"></dialog-element>
+
+    <iron-ajax  id="resizeMachine" 
+                url="/api/v1/machines/[[machine.id]]"
+                method="POST" 
+                on-response="_resizeMachineResponse" 
+                on-error="_resizeMachineError" 
+                loading="{{loading}}"
+                on-request="_resizeMachineRequest"></iron-ajax>
+
+  </template>
+  <script>
+    Polymer({ 
+      is: 'resize-dialog',
+      properties: {
+        machine: { 
+          type: Object
+        },
+        size: String,
+        current_cpus: Number,
+        current_memory: Number,
+        cpus: Number,
+        memory: Number,
+        formReady: {
+          type: Boolean,
+          value: false
+        },
+        loading: {
+          type: Boolean,
+          value: false
+        },
+        formError: {
+          type: Boolean,
+          value: false
+        }
+      },
+      listeners: {
+      },
+      observers:[
+        'machineChanged(machine)',
+        'updateFormReady(current_cpus, current_memory, cpus, memory)'
+      ],
+      ready: function() {},
+      attached: function() {},
+      resizeMachine: function() {
+        this.$.resizeMachine.headers["Content-Type"] = 'application/json';
+        this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
+        this.$.resizeMachine.generateRequest();
+      },
+      machineChanged: function(machine){
+        this.updateValues();
+      },
+      updateValues: function(){
+        if (this.machine) {
+          if (this.machine.cloud.provider == 'onapp'){
+            this.set('cpus', this.machine.extra.cpus);
+            this.set('memory', this.machine.extra.memory);
+
+            this.current_cpus = this.machine.extra.cpus;
+            this.current_memory = this.machine.extra.memory;
+
+            this.set('size', 'current '+this.machine.extra.size);
+          }
+          else if (this.machine.cloud.provider == 'linode'){ // TODO
+          }
+        }
+        this.set('formError', false);
+        this.$.errormsg.textContent = '';
+      },
+      updateFormReady: function(current_cpus, current_memory, cpus, memory){
+        this.set('formReady', current_cpus != cpus || current_memory != memory)
+      },
+      _openDialog: function(e) {
+        //reset
+        this.updateValues();
+        this.$.dialogModal.open();
+      },
+      _resizeMachineResponse: function(e) {
+        this.$.dialogModal.close();
+        this.fire('toast',{msg: 'Resize request sent successfully. Updating machine..', duration: 3000})
+      },
+      _resizeMachineError: function(e) {
+        this.set('formError', true);
+        this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+      },
+      _resizeMachineRequest: function(e) {},
+      hotkeys: function(e) {
+        console.log('hotkeys',e);
+        if (e.keyCode === 38) {
+          //arrow up
+          if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', this.cpus+1)}
+          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', this.memory+5)}
+        }
+        else if (e.keyCode === 40) {
+          //arrow down
+          if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', this.cpus-1)}
+          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', this.memory-5)}
+        }
+      }
+    });
+  </script>
+</dom-module>
