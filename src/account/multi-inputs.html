@@ -6,10 +6,10 @@
 
 <dom-module id="multi-inputs">
     <template>
-        <style is="custom-style" include="forms"></style>
-        <style include="shared-styles">
+        <style is="custom-style" include="shared-styles forms">
             :host {
                 display: block;
+                margin-bottom: 40px;
             }
             paper-input {
                 width: 50%;
@@ -24,6 +24,7 @@
             <div class="remove"><paper-button data-index="[[index]]" on-tap="removeInput">remove</paper-button></div>
         </template>
         <paper-button on-tap="addInput">Add ip</paper-button>
+        <paper-button on-tap="saveInputs">Save IPs</paper-button>
     </template>
     <script>
         Polymer({
@@ -34,7 +35,8 @@
                     type: Array,
                     value: function(){ return []},
                     notify: true
-                }
+                },
+                eventName: String
             },
             addInput: function(e){
                 this.push('inputsArray', '');
@@ -42,6 +44,9 @@
             removeInput: function(e){
                 console.log('removeInput', e.target.dataIndex);
                 this.splice('inputsArray', e.target.dataIndex, 1);
+            },
+            saveInputs: function(e){
+                this.fire(this.eventName, {inputs: this.inputsArray})
             }
         });
     </script>

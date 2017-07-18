@@ -15,8 +15,7 @@
 
 <dom-module id="details-page">
     <template>
-        <style is="custom-style" include="forms"></style>
-        <style include="shared-styles">
+        <style is="custom-style" include="shared-styles forms">
             :host {
                 display: block;
             }
@@ -62,6 +61,10 @@
                 width: 100%;
                 left: 0;
                 right: 0;
+            }
+            
+            .margin {
+                margin: 32px 0;
             }
 
             .bottom-actions {
@@ -185,14 +188,14 @@
                         </div>
                     </div>
                     <div class="ips-section" hidden$="[[!allowWhiteListEdit]]">
-                        <h2>IP whitelisting</h2>
-                        <p>Allow aceess to whitelisted ips only.</p>
-                        <multi-inputs inputs-array="{{whiteIps}}"></multi-inputs>
-                        <paper-button on-tap="_saveWhitelist">Save IPs</paper-button>
+                        <div class="xs12 org-logo-field-title">IP whitelisting</div>
+                        <p>Allow account access to whitelisted ips only.</p>
+                        <multi-inputs inputs-array="{{whiteIps}}" event-name="save-ips"></multi-inputs>
                     </div>
                     <div hidden$="[[org.avatar.length]]">
+                        <div class="xs12 org-logo-field-title margin">Custom Logo</div>
                         <paper-toggle-button checked="{{customLogo}}">
-                            Custom logo
+                            Enable account custom logo.
                         </paper-toggle-button>
                         <div hidden$="[[!customLogo]]">
                             <p class="xs12 l12">Upload an image that will override the default mist.io logo</p>
@@ -308,6 +311,10 @@
                     '_orgUpdated(org)'
                 ],
 
+                listeners: {
+                    'save-ips': '_saveWhitelist'
+                },
+
                 attached: function() {
                     var that = this;
                     this.$.orgAvatarUpload.addEventListener('upload-response', function(e) {
@@ -322,7 +329,7 @@
 
                 _saveWhitelist: function(e){
                     console.log('save Whitelist')
-
+                    // TODO save ips
                 },
 
                 _userUpdated: function(user) {
