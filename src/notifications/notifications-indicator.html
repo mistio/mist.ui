@@ -119,7 +119,8 @@
                 <hr/>
                 <paper-menu id="notifications-menu" selectable="none">
                     <template is="dom-repeat" items="[[notifications]]" as="notification">
-                        <paper-item on-tap="_handleItemTap" class="context" hidden$="{{notification.hidden}}">
+                        <paper-item on-tap="_handleItemTap" class="context" 
+                            notification-id$="[[notification._id]]">
                             <iron-icon  slot="item-icon" icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
                             <paper-item-body two-line>
                                 <div class="summary">[[notification.summary]]</div>
@@ -272,17 +273,12 @@
                 // event.stopPropagation()
             },
             _dismiss: function(event) {
-                var menu = document.querySelector("paper-menu#notifications-menu");
-                var index = menu.indexOf(event.srcElement.parentElement);
-                if (index != -1)
-                {
-                    var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
-                    var dismissURL = "/api/v1/notifications/" + this.notifications[index]._id;
-                    this.$.requestDismiss.url = dismissURL;
-                    this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.requestDismiss.generateRequest();
-                }
-                event.stopPropagation()
+                var notificationID = event.srcElement.parentElement.parentElement.getAttribute("notification-id");
+                var dismissURL = "/api/v1/notifications/" + notificationID;
+                this.$.requestDismiss.url = dismissURL;
+                this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.requestDismiss.generateRequest();
+                event.stopPropagation();
             },
             handleDismissResponse: function(event) {
                 var obj = JSON.parse(event.detail.__data__.response);

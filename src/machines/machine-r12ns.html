@@ -70,14 +70,14 @@
 
         </style>
 
-        <h3 class="smallcaps" hidden$="{{hasScaleR12n}}">Recommendations</h3>
-            <template is="dom-repeat" items="[[notifications]]" as="notification" hidden$="{{hasScaleR12n}}">
-                <div class="r12n">
+        <h3 class="smallcaps" hidden$="{{!hasScaleR12n}}">Recommendations</h3>
+            <template is="dom-repeat" items="[[notifications]]" as="notification" hidden$="{{!hasScaleR12n}}">
+                <div class="r12n" notification-id$="[[notification._id]]">
                     <div class="description">
                         <span inner-h-t-m-l="{{notification.html_body}}"></span>
                     </div>
                     <paper-button on-tap="_resizeTap" class="apply" raised>Resize...</paper-button>
-                    <paper-button on-tap="_resizeTap" class="dismiss">Dismiss</paper-button>
+                    <paper-button on-tap="_dismiss" class="dismiss">Dismiss</paper-button>
                 </div>
             </template>
 
@@ -130,7 +130,25 @@
                 // TODO: dismiss notification on success?
             },
             _dismiss: function(e) {
-                // TODO: dismiss notification
+                var notificationID = event.srcElement.parentElement.getAttribute("notification-id");
+                var dismissURL = "/api/v1/notifications/" + notificationID;
+                this.$.requestDismiss.url = dismissURL;
+                this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.requestDismiss.generateRequest();
+                event.stopPropagation();
+            },
+            handleDismissResponse: function(event) {
+                var obj = JSON.parse(event.detail.__data__.response);
+                var id = obj._id;
+                for (i=0; i<this.notifications.length; ++i) 
+                {
+                    var notification = this.notifications[i];
+                    if (notification._id == id)
+                    {
+                        this.splice('notifications', i, 1);
+                        return;
+                    }
+                }
             }
         });
     </script>
