@@ -76,10 +76,19 @@
                     <div class="description">
                         <span inner-h-t-m-l="{{notification.html_body}}"></span>
                     </div>
-                    <paper-button class="apply" raised>Resize...</paper-button>
-                    <paper-button class="dismiss">Dismiss</paper-button>
+                    <paper-button on-tap="_resizeTap" class="apply" raised>Resize...</paper-button>
+                    <paper-button on-tap="_resizeTap" class="dismiss">Dismiss</paper-button>
                 </div>
             </template>
+
+        <iron-ajax
+            id="requestDismiss"
+            url="/api/v1/notifications/"
+            method="DELETE"
+            handle-as="json"
+            on-response="handleDismissResponse">
+        </iron-ajax>
+
     </template>
     <script>
         Polymer({
@@ -109,6 +118,19 @@
                     }
                 }
                 return false;
+            },
+            _resizeTap: function(e) {
+                var action = {
+                    'name': 'resize',
+                    'icon': 'device:signal-cellular-2-bar',
+                    'confirm': true,
+                    'multi': false
+                }
+                this.fire('select-action',{action: action})
+                // TODO: dismiss notification on success?
+            },
+            _dismiss: function(e) {
+                // TODO: dismiss notification
             }
         });
     </script>
