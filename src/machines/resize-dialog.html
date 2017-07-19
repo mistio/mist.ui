@@ -101,6 +101,7 @@
     Polymer({ 
       is: 'resize-dialog',
       properties: {
+        items: Array,
         machine: { 
           type: Object
         },
@@ -125,7 +126,7 @@
       listeners: {
       },
       observers:[
-        'machineChanged(machine)',
+        'machineChanged(items)',
         'updateFormReady(current_cpus, current_memory, cpus, memory)'
       ],
       ready: function() {},
@@ -136,8 +137,11 @@
         this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
         this.$.resizeMachine.generateRequest();
       },
-      machineChanged: function(machine){
-        this.updateValues();
+      machineChanged: function(items){
+        if (this.items.length) {
+          this.set('machine', this.items[0]);
+          this.updateValues();
+        }
       },
       updateValues: function(){
         if (this.machine) {
@@ -148,7 +152,7 @@
             this.current_cpus = this.machine.extra.cpus;
             this.current_memory = this.machine.extra.memory;
 
-            this.set('size', 'current '+this.machine.extra.size);
+            this.set('size', 'Current '+this.machine.extra.size);
           }
           else if (this.machine.cloud.provider == 'linode'){ // TODO
           }
