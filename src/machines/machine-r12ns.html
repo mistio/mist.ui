@@ -1,0 +1,115 @@
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<script type="text/javascript" src="../../bower_components/moment/moment.js" inline></script>
+
+<dom-module id="machine-r12ns">
+    <template>
+        <style is="custom-style" include="tags-and-labels"></style>
+        <style is="custom-style" include="info-table-style"></style>
+        <style is="custom-style" include="single-page"></style>
+        <style include="shared-styles">
+
+            .smallcaps {
+                margin: 0;
+            }
+
+            div.r12n {
+                overflow: auto;
+                font-size: 14px;
+                line-height: 1.4em;
+                border-top: 1px solid #ddd;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            div.r12n:first-of-type {
+                border-top: none;
+            }
+
+            div.r12n a {
+                color: #2196F3 !important;
+                font-weight: 400;
+                font-size: 0.9em;
+            }
+
+            .description h4 {
+                margin: 0;
+                margin-top: 3px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .recommended .customize {
+                margin-left: 10px;
+            }
+
+            div.r12n paper-button {
+                margin-top: 12px;
+            }
+
+            paper-button.apply {
+                background-color: var(--paper-indigo-500);
+                color: white;
+                --paper-button-raised-keyboard-focus: {
+                  background-color: var(--paper-pink-a200) !important;
+                  color: white !important;
+                };
+            }
+            paper-button.dismiss {
+                background-color: #eee;
+                color: #777;
+            }
+
+        </style>
+
+        <h3 class="smallcaps" hidden$="{{hasScaleR12n}}">Recommendations</h3>
+            <template is="dom-repeat" items="[[notifications]]" as="notification" hidden$="{{hasScaleR12n}}">
+                <div class="r12n">
+                    <div class="description">
+                        <span inner-h-t-m-l="{{notification.html_body}}"></span>
+                    </div>
+                    <paper-button class="apply" raised>Resize...</paper-button>
+                    <paper-button class="dismiss">Dismiss</paper-button>
+                </div>
+            </template>
+    </template>
+    <script>
+        Polymer({
+            is: 'machine-r12ns',
+            properties: {
+                notifications: {
+                    type: Array
+                },
+                machine: {
+                    type: Object
+                },
+                hasScaleR12n: {
+                    type: Boolean,
+                    computed: '_hasScaleR12n(notifications, machine)'
+                }
+            },
+            _hasScaleR12n: function(notifications, machine) {
+                if (machine)
+                {
+                    for (i=0; i<notifications.length; i++)
+                    {
+                        var notification = notifications[i]
+                        if (notification.resource && notification.resource._ref.$id == machine.id)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
+    </script>
+</dom-module>
