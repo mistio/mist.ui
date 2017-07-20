@@ -1,11 +1,10 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
-<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 <script type="text/javascript" src="../../bower_components/moment/moment.js" inline></script>
@@ -17,17 +16,11 @@
         <style is="custom-style" include="single-page"></style>
         <style include="shared-styles">
 
-            .smallcaps {
-                margin: 0;
-            }
-
             div.r12n {
                 overflow: auto;
-                font-size: 14px;
+                font-size: 16px;
                 line-height: 1.4em;
                 border-top: 1px solid #ddd;
-                padding-top: 5px;
-                padding-bottom: 5px;
             }
 
             div.r12n:first-of-type {
@@ -40,19 +33,33 @@
                 font-size: 0.9em;
             }
 
-            .description h4 {
+            div.info-card {
                 margin: 0;
-                margin-top: 3px;
-                font-size: 14px;
-                font-weight: 600;
+            }
+
+            div.card-content {
+                padding: 18px 24px;
+            }
+
+            paper-material {
+                padding: 24px;
+                box-sizing: border-box;
+                width: 100%;
+            }
+
+            .description {
+                float: left;
+                width: 70%;
+                vertical-align: center;
             }
 
             .recommended .customize {
                 margin-left: 10px;
             }
 
-            div.r12n paper-button {
-                margin-top: 12px;
+            .actions {
+                float: right;
+                wdith: 30%;
             }
 
             paper-button.apply {
@@ -63,23 +70,29 @@
                   color: white !important;
                 };
             }
+
             paper-button.dismiss {
                 background-color: #eee;
                 color: #777;
             }
 
         </style>
-
-        <h3 class="smallcaps" hidden$="{{!hasScaleR12n}}">Recommendations</h3>
-            <template is="dom-repeat" items="[[notifications]]" as="notification" hidden$="{{!hasScaleR12n}}">
+        <div class="info-card" style="background-color: #8c76d1;">
+            <h2 style="color:#fff; margin: 4px;">Recommendations</h2>
+        </div>
+        <div class="card-content">
+            <template is="dom-repeat" items="[[model.notificationsArray]]" as="notification" hidden$="{{!hasScaleR12n}}">
                 <div class="r12n" notification-id$="[[notification._id]]">
                     <div class="description">
                         <span inner-h-t-m-l="{{notification.html_body}}"></span>
                     </div>
-                    <paper-button on-tap="_resizeTap" class="apply" raised>Resize...</paper-button>
-                    <paper-button on-tap="_dismiss" class="dismiss">Dismiss</paper-button>
+                    <div class="actions">
+                        <paper-button on-tap="_resizeTap" class="apply" raised>Resize...</paper-button>
+                        <paper-button on-tap="_dismiss" class="dismiss">Dismiss</paper-button>
+                    </div>
                 </div>
             </template>
+        </div>
 
         <iron-ajax
             id="requestDismiss"
@@ -94,27 +107,24 @@
         Polymer({
             is: 'machine-r12ns',
             properties: {
-                notifications: {
-                    type: Array
+                model: {
+                    type: Object
                 },
                 machine: {
-                    type: Object
+                    type: String
                 },
                 hasScaleR12n: {
                     type: Boolean,
-                    computed: '_hasScaleR12n(notifications, machine)'
+                    computed: '_hasScaleR12n(model.notificationsArray, machine)'
                 }
             },
             _hasScaleR12n: function(notifications, machine) {
-                if (machine)
+                for (i=0; i<notifications.length; i++)
                 {
-                    for (i=0; i<notifications.length; i++)
+                    var notification = notifications[i]
+                    if (notification.resource && notification.resource._ref.$id == machine)
                     {
-                        var notification = notifications[i]
-                        if (notification.resource && notification.resource._ref.$id == machine.id)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
                 return false;
@@ -140,12 +150,12 @@
             handleDismissResponse: function(event) {
                 var obj = JSON.parse(event.detail.__data__.response);
                 var id = obj._id;
-                for (i=0; i<this.notifications.length; ++i) 
+                for (i=0; i<this.model.notificationsArray.length; ++i) 
                 {
-                    var notification = this.notifications[i];
+                    var notification = this.model.notificationsArray[i];
                     if (notification._id == id)
                     {
-                        this.splice('notifications', i, 1);
+                        this.splice('model.notificationsArray', i, 1);
                         return;
                     }
                 }
