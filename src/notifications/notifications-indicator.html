@@ -114,11 +114,11 @@
             <paper-icon-button icon$="[[indicatorIcon]]" type$="[[indicatorType]]" class="notification-icon dropdown-trigger"></paper-icon-button>
             <div class="dropdown-content">
                 <div class="grid-row">
-                    <h4>[[_computeTitle(notifications)]]</h4>
+                    <h4>[[_computeTitle(model.notificationsArray)]]</h4>
                 </div>
                 <hr/>
                 <paper-menu id="notifications-menu" selectable="none">
-                    <template is="dom-repeat" items="[[notifications]]" as="notification">
+                    <template is="dom-repeat" items="[[model.notificationsArray]]" as="notification">
                         <paper-item on-tap="_handleItemTap" class="context" 
                             notification-id$="[[notification._id]]">
                             <iron-icon  slot="item-icon" icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
@@ -133,7 +133,7 @@
                 </paper-menu>
             </div>
         </paper-menu-button>
-        <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
+        <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="{{model.notificationsArray.length}}"></paper-badge>
         <div class="tip" closed$="[[!opened]]"></div>
 
         <iron-ajax
@@ -150,32 +150,23 @@
             /* this is the element's prototype */
             is: 'notifications-indicator',
             properties: {
-                notifications: {
-                    type: Array
+                model: {
+                    type: Object
                 },
                 opened: Boolean,
                 hidden: {
                     type: Boolean,
-                    computed: '_computeIndicatorHidden(notifications.length)'
+                    computed: '_computeIndicatorHidden(model.notificationsArray.length)'
                 },
                 indicatorIcon: {
                     type: String,
-                    computed: '_computeIndicatorIcon(notifications.length)'
+                    computed: '_computeIndicatorIcon(model.notificationsArray.length)'
                 },
                 indicatorType: {
                     type: String,
-                    computed: '_computeIndicatorType(notifications.length)'
+                    computed: '_computeIndicatorType(model.notificationsArray.length)'
                 }
             },
-            /*ready: function() {
-                var that = this;
-                setInterval(function() {
-                    var ntf = that.notifications;
-                    that.set('notifications', []);
-                    that.set('notifications', ntf);
-                    console.log("update");
-                }, 1000);
-            },*/
             _computeTitle: function(notifications) {
                 var type = this.getItemsType(notifications);
                 if (type == 1)
@@ -189,7 +180,7 @@
                 return "Notifications & Recommendations";
             },
             _computeIndicatorIcon: function(notificationsLength) {
-                var type = this.getItemsType(this.notifications);
+                var type = this.getItemsType(this.model.notificationsArray);
                 if (type == 1)
                 {
                     return "social:notifications";
@@ -202,7 +193,7 @@
                 return "social:notifications";
             },
             _computeIndicatorType: function(notificationsLength) {
-                var type = this.getItemsType(this.notifications);
+                var type = this.getItemsType(this.model.notificationsArray);
                 if (type == 2)
                 {
                     return "recommendations";
@@ -268,9 +259,14 @@
                 return ntf + rec*2;
             },
             _handleItemTap: function(event) {
-                // TODO: Get correct element!
-                // var menu = document.querySelector("paper-menu#notifications-menu");
-                // event.stopPropagation()
+                // check if machine
+                if (notification.resource)
+                {
+                    var resourceID = notification.resource._ref.$id;
+                    var URL = "/machines/" + resourceID;
+                    // transition to URL
+                }
+                event.stopPropagation()
             },
             _dismiss: function(event) {
                 var notificationID = event.srcElement.parentElement.parentElement.getAttribute("notification-id");
@@ -283,12 +279,12 @@
             handleDismissResponse: function(event) {
                 var obj = JSON.parse(event.detail.__data__.response);
                 var id = obj._id;
-                for (i=0; i<this.notifications.length; ++i) 
+                for (i=0; i<this.model.notificationsArray.length; ++i) 
                 {
-                    var notification = this.notifications[i];
+                    var notification = this.model.notificationsArray[i];
                     if (notification._id == id)
                     {
-                        this.splice('notifications', i, 1);
+                        this.splice('model.notificationsArray', i, 1);
                         return;
                     }
                 }
