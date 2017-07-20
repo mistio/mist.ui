@@ -106,7 +106,6 @@
     Polymer({ 
       is: 'resize-dialog',
       properties: {
-        items: Array,
         machine: { 
           type: Object
         },
@@ -115,10 +114,20 @@
           value: true
         },
         size: String,
-        current_cpus: Number,
-        current_memory: Number,
-        cpus: Number,
-        memory: Number,
+        current_cpus: {
+          type: Number,
+          computed: 'computeCurrentCpus(machine.id)'
+        },
+        current_memory: {
+          type: Number,
+          computed: 'computeCurrentMemory(machine.id)'
+        },
+        cpus: {
+          type: Number
+        },
+        memory: {
+          type: Number,
+        },
         formReady: {
           type: Boolean,
           value: false
@@ -136,47 +145,34 @@
       listeners: {
       },
       observers:[
-        'itemsChanged(items.splices)',
         'updateFormReady(current_cpus, current_memory, cpus, memory)',
-        'updateShowNotification(machine.extra, memory)',
-        'showNotificationChanged(showNotification)'
+        'updateShowNotification(machine.extra, memory)'
       ],
       ready: function() {},
       attached: function() {},
       resizeMachine: function() {
-        this.$.resizeMachine.headers["Content-Type"] = 'application/json';
-        this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
-        this.$.resizeMachine.generateRequest();
-      },
-      itemsChanged: function(items){
-        if (this.items.length) {
-          this.set('machine', this.items[0]);
-          this.updateValues();
+        if (this.machine.cloud.provider == 'onapp'){
+          this.$.resizeMachine.headers["Content-Type"] = 'application/json';
+          this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
+          this.$.resizeMachine.generateRequest();
         }
       },
       updateShowNotification: function(machine, memory){
         if (this.machine.extra.hypervisor_type) {
           if (this.machine.extra.hypervisor_type == 'kvm' && this.current_memory >= this.memory){
             this.set('showNotification', false);
+            this.set('buttonColor', 'blue');
           }
           else {
             this.set('showNotification', true);
+            this.set('buttonColor', 'red');
           }
         }
       },
-      showNotificationChanged: function(showNotification){ 
-        this.set('buttonColor', this.showNotification ? 'red' : 'blue');
-      },
-      updateValues: function(){
+      updateValues: function(machine){
         if (this.machine) {
           if (this.machine.cloud.provider == 'onapp'){
-            this.set('cpus', this.machine.extra.cpus);
-            this.set('memory', this.machine.extra.memory);
-
-            this.current_cpus = this.machine.extra.cpus;
-            this.current_memory = this.machine.extra.memory;
-
             this.set('size', 'Current '+this.machine.extra.size);
           }
           else if (this.machine.cloud.provider == 'linode'){ // TODO
@@ -185,12 +181,28 @@
         this.set('formError', false);
         this.$.errormsg.textContent = '';
       },
+      computeCurrentCpus: function(machine){
+        if (this.machine && this.machine.cloud && this.machine.cloud.provider == 'onapp'){
+          var cpus = this.machine.extra.cpus;
+          this.cpus = cpus;
+          return this.machine.extra.cpus;
+        }
+      },
+      computeCurrentMemory: function(machine){
+        if (this.machine && this.machine.cloud && this.machine.cloud.provider == 'onapp'){
+          var memory = this.machine.extra.memory;
+          this.memory = memory;
+          return this.machine.extra.memory;
+        }
+      },
       updateFormReady: function(current_cpus, current_memory, cpus, memory){
-        this.set('formReady', current_cpus != cpus || current_memory != memory)
+        this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
       },
       _openDialog: function(e) {
         //reset
-        this.updateValues();
+        // this.updateValues(this.machine);
+        this.set('cpus', null);
+        this.set('memory', null);
         this.$.dialogModal.open();
       },
       _resizeMachineResponse: function(e) {
@@ -202,20 +214,17 @@
         this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       },
       _resizeMachineRequest: function(e) {},
-      _buttonColor: function(showNotification){
-        return this.showNotification ? 'red' : 'blue';
-      },
       hotkeys: function(e) {
         console.log('hotkeys',e);
         if (e.keyCode === 38) {
           //arrow up
-          if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', this.cpus+1)}
-          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', this.memory+5)}
+          if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus+1, 1))}
+          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory+5, 256))}
         }
         else if (e.keyCode === 40) {
           //arrow down
           if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus-1, 1))}
-          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory-5, 512))}
+          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory-5, 256))}
         }
       }
     });

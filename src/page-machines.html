@@ -260,8 +260,17 @@
             observers: [
                 '_jobIdChanged(jobId)',
                 '_pathChanged(path)',
-                'stopPolling(logItem)'
+                'stopPolling(logItem)',
+                '_selectedItemsChanged(selectedItems.length)'
             ],
+
+            _selectedItemsChanged: function(length){
+                this.set('selectedItemsArray', this.selectedItems);
+                var items = this.selectedItems;
+
+                // this.set('selectedItems', []);
+                this.set('selectedItems', items);
+            },
 
             _isAddPageActive: function(path) {
                 return path == '/+create';
@@ -405,7 +414,7 @@
                             if (item == "running")
                                 ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
                             else if (item == "error")
-                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='red'>"+item+"</span></div>";
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='error'>"+item+"</span></div>";
                             else if (item == "stopped")
                                 ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='orange'>"+item+"</span></div>";
                             else
@@ -437,7 +446,7 @@
                   },
                   'cost': {
                       'body': function(item, row) {
-                          return item.monthly && '$' + Math.round(item.monthly) || '';
+                          return item.monthly && '$' + item.monthly.formatMoney(0) || '';
                       },
                       'cmp': function(item1, item2, row1, row2) {
                             if (item1.monthly < item2.monthly)
