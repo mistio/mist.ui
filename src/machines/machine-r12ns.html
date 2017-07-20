@@ -48,6 +48,11 @@
                 width: 100%;
             }
 
+            .r12n-icon {
+                float: left;
+                padding: 8px 15px 8px 0;
+            }
+
             .description {
                 float: left;
                 width: 70%;
@@ -86,6 +91,7 @@
         <div class="card-content">
             <template is="dom-repeat" items="[[model.notificationsArray]]" as="notification" hidden$="{{!hasScaleR12n}}">
                 <div class="r12n" notification-id$="[[notification._id]]">
+                <iron-icon class="r12n-icon" slot="item-icon" icon="[[_computeR12nIcon(notification)]]"></iron-icon>
                     <div class="description">
                         <span inner-h-t-m-l="{{notification.html_body}}"></span>
                     </div>
@@ -123,7 +129,6 @@
                 }
             },
             _hasScaleR12n: function(notifications, machine) {
-                console.log("!!!!!!!!!!!!!!!!!!!!!!!!")
                 for (i=0; i<notifications.length; i++)
                 {
                     var notification = notifications[i]
@@ -133,6 +138,14 @@
                     }
                 }
                 return false;
+            },
+            _computeR12nIcon: function(notification) {
+                if (notification.kind == "r12n.machine.scale.up") {
+                    return "icons:arrow-upward";
+                }
+                else if (notification.kind == "r12n.machine.scale.down") {
+                    return "icons:arrow-downward";
+                }
             },
             _resizeTap: function(e) {
                 var action = {
