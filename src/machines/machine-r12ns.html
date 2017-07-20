@@ -78,6 +78,8 @@
             }
 
         </style>
+
+        <!--template is="dom-if" if="[[hasScaleR12n]]"-->
         <div class="info-card" style="background-color: #8c76d1;">
             <h2 style="color:#fff; margin: 4px;">Recommendations</h2>
         </div>
@@ -89,11 +91,12 @@
                     </div>
                     <div class="actions">
                         <paper-button on-tap="_resizeTap" class="apply" raised>Resize...</paper-button>
-                        <paper-button on-tap="_dismiss" class="dismiss">Dismiss</paper-button>
+                        <paper-button on-tap="_dismiss" class="dismiss" notification-id$="[[notification._id]]">Dismiss</paper-button>
                     </div>
                 </div>
             </template>
         </div>
+        <!--/template-->
 
         <iron-ajax
             id="requestDismiss"
@@ -120,6 +123,7 @@
                 }
             },
             _hasScaleR12n: function(notifications, machine) {
+                console.log("!!!!!!!!!!!!!!!!!!!!!!!!")
                 for (i=0; i<notifications.length; i++)
                 {
                     var notification = notifications[i]
@@ -141,7 +145,7 @@
                 // TODO: dismiss notification on success?
             },
             _dismiss: function(e) {
-                var notificationID = event.srcElement.parentElement.getAttribute("notification-id");
+                var notificationID = event.srcElement.getAttribute("notification-id");
                 var dismissURL = "/api/v1/notifications/" + notificationID;
                 this.$.requestDismiss.url = dismissURL;
                 this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -156,7 +160,7 @@
                     var notification = this.model.notificationsArray[i];
                     if (notification._id == id)
                     {
-                        this.splice('model.notificationsArray', i, 1);
+                        this.fire('dismiss-notification', i)
                         return;
                     }
                 }
