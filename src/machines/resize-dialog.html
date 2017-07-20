@@ -23,6 +23,9 @@
         font-weight: normal;
         opacity: 0.54;
       }
+      .plan .sup {
+        padding-left: 16px;
+      }
       .btn-group {
         display: flex;
         justify-content: flex-end;
@@ -60,24 +63,40 @@
         margin-top: 0;
       }
     </style>
-    <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+    <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" modal with-dropdown>
         <h2>Resize Machine <span class="sup">[[size]]</span></h2>
         <paper-dialog-scrollable>
           <p class="red" hidden$="[[!showNotification]]">Warning! Resize may cause a reboot to the machine.</p>
-          <div class="grid-row">
-            <div class="xs12 m6 l6">
-              <paper-input id="cpus" label="cpus" always-float-label auto-validate allowed-pattern="[0-9]*" value="{{cpus::input}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
-            </div>
-            <div class="helptext xs12 m6 l6">
-              Current machine cpus [[current_cpus]].
-            </div>
-            <div class="xs12 m6 l6">
-              <paper-input id="memory" label="memory" always-float-label auto-validate allowed-pattern="[0-9]*" value="{{memory::input}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
-            </div>
-            <div class="helptext xs12 m6 l6">
-              Current machine memory [[current_memory]].
+
+          <div hidden$="[[!isOnapp]]">
+            <div class="grid-row">
+              <div class="xs12 m6 l6">
+                <paper-input id="cpus" label="cpus" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{cpus::input}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
+              </div>
+              <div class="helptext xs12 m6 l6">
+                Current machine cpus [[current_cpus]].
+              </div>
+              <div class="xs12 m6 l6">
+                <paper-input id="memory" label="memory" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{memory::input}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
+              </div>
+              <div class="helptext xs12 m6 l6">
+                Current machine memory [[current_memory]].
+              </div>
             </div>
           </div>
+
+          <div hidden$="[[isOnapp]]">
+            <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
+              <template is="dom-repeat" items="[[plans]]" as="plan">
+                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan.id)]]">
+                  [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
+                  <br/>
+                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[plan.price]]/month</div>
+                </paper-radio-button>
+              </template>
+            </paper-radio-group>
+          </div>
+
         </div>
         </paper-dialog-scrollable>
         <div class="progress">
@@ -108,6 +127,7 @@
     Polymer({ 
       is: 'resize-dialog',
       properties: {
+        clouds: Object,
         machine: { 
           type: Object
         },
@@ -142,22 +162,41 @@
           type: Boolean,
           value: false
         },
-        buttonColor: String
+        buttonColor: {
+          type: String,
+          value: 'red'
+        },
+        isOnapp: {
+          type: Boolean,
+          computed: 'computeIsOnapp(machine.cloud.provider)'
+        },
+        plans: {
+          type: Array,
+          computed: 'computePlans(machine, clouds)'
+        },
+        selectedPlan: String
       },
       listeners: {
         input: 'clearError'
       },
       observers:[
-        'updateFormReady(current_cpus, current_memory, cpus, memory)',
+        'updateFormReadyOnapp(current_cpus, current_memory, cpus, memory)',
+        'updateFormReady(selectedPlan)',
         'updateShowNotification(machine.extra, memory)'
       ],
       ready: function() {},
       attached: function() {},
       resizeMachine: function() {
-        if (this.machine.cloud.provider == 'onapp'){
+        if (this.isOnapp){
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
           this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
+          this.$.resizeMachine.generateRequest();
+        }
+        else if (!this.isOnapp && this.machine.cloud.provider == 'linode'){
+          this.$.resizeMachine.headers["Content-Type"] = 'application/json';
+          this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.resizeMachine.body = {"action": "resize", "plan_id": this.selectedPlan };
           this.$.resizeMachine.generateRequest();
         }
       },
@@ -175,34 +214,54 @@
       },
       updateValues: function(machine){
         if (this.machine) {
-          if (this.machine.cloud.provider == 'onapp'){
+          if (this.isOnapp){
             this.set('size', 'Current '+this.machine.extra.size);
           }
           else if (this.machine.cloud.provider == 'linode'){ // TODO
+
           }
         }
         this.clearError();
       },
       computeCurrentCpus: function(machine){
-        if (this.machine && this.machine.cloud && this.machine.cloud.provider == 'onapp'){
+        if (this.isOnapp){
           var cpus = this.machine.extra.cpus;
           this.cpus = cpus;
           return this.machine.extra.cpus;
         }
       },
       computeCurrentMemory: function(machine){
-        if (this.machine && this.machine.cloud && this.machine.cloud.provider == 'onapp'){
+        if (this.isOnapp){
           var memory = this.machine.extra.memory;
           this.memory = memory;
           return this.machine.extra.memory;
+        }
+      },
+      computeIsOnapp: function(cloud){
+        if (cloud)
+          return cloud == 'onapp';
+      },
+      computePlans: function(machine, clouds){
+        if (this.machine) {
+          if (!this.isOnapp && this.machine.cloud.provider == 'linode'){
+            var planId = this.machine.extra.PLANID;
+            return this.clouds[this.machine.cloud.id].sizesArray;
+          }
         }
       },
       clearError: function(){
         this.set('formError', false);
         this.$.errormsg.textContent = '';
       },
-      updateFormReady: function(current_cpus, current_memory, cpus, memory){
-        this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
+      updateFormReadyOnapp: function(current_cpus, current_memory, cpus, memory){
+        if (this.isOnapp) {
+          this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
+        }
+      },
+      updateFormReady: function(selectedPlan){
+        if (!this.isOnapp && this.machine.cloud.provider == 'linode' && this.selectedPlan != undefined) {
+          this.set('formReady', true);
+        }
       },
       _openDialog: function(e) {
         //reset
@@ -219,6 +278,9 @@
         this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       },
       _resizeMachineRequest: function(e) {},
+      isCurrent: function(id){
+        return id == this.machine.extra.PLANID;
+      },
       hotkeys: function(e) {
         console.log('hotkeys',e);
         if (e.keyCode === 38) {
