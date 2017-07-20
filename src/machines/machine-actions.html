@@ -4,14 +4,16 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
 
-<link rel="import" href="../machines/associate-key.html">
-<link rel="import" href="../machines/run-script-on-machine.html">
-<link rel="import" href="../helpers/xterm-dialog.html">
-
 <link rel="import" href="../tags/tags-form.html">
+<link rel="import" href="../helpers/xterm-dialog.html">
 <link rel="import" href="../helpers/dialog-element.html">
+
+<link rel="import" href="associate-key.html">
+<link rel="import" href="run-script-on-machine.html">
+<link rel="import" href="resize-dialog.html">
 
 <dom-module id="machine-actions">
   <template>
@@ -27,6 +29,7 @@
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
+    <resize-dialog id="resizedialog" machine="[[_getMachine(items)]]" clouds="[[model.clouds]]"></resize-dialog>
 
     <iron-ajax id="request"
             handle-as="json"
@@ -36,6 +39,12 @@
 
   </template>
   <script>
+//   'resize': {
+//   'name': 'resize',
+//   'icon': 'device:signal-cellular-2-bar',
+//   'confirm': true,
+//   'multi': false
+// },
 MACHINE_ACTIONS = {
   'shell': {
     'name': 'shell',
@@ -128,11 +137,11 @@ MACHINE_ACTIONS = {
         model: Object,
         items: { 
           type: Array,
-          value: []
+          value: function(){return []}
         },
         actions: { 
           type: Array,
-          value: [],
+          value: function(){return []},
           notify: true
         },
         action: Object,
@@ -159,6 +168,7 @@ MACHINE_ACTIONS = {
         var arr = [];
         if (machine) {
           arr.push('shell');
+          arr.push('associate-key');
         }
         if (machine && machine.actions) {
           for (var action in machine.actions) {
@@ -167,13 +177,19 @@ MACHINE_ACTIONS = {
           }
         }
         if (machine.key_associations && machine.key_associations.length) {
-          arr.push('associate-key');
           arr.push('run-script');
         }
         if (machine) {
           arr.push('tag');
         }
         return arr;
+      },
+      _getMachine: function(items){
+        console.log('getting Machine', items[0]);
+        if (this.items.length)
+          return this.items[0];
+        else
+          return undefined;
       },
       actionDetails: function (actions) {
         var ret = [];
@@ -207,7 +223,7 @@ MACHINE_ACTIONS = {
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag','rename', 'run script', 'associate key'].indexOf(action.name) == -1) {
+          if (action.confirm && ['tag','rename', 'run script', 'associate key', 'resize'].indexOf(action.name) == -1) {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
                 plural = this.items.length == 1 ? '' : 's',
                 count = this.items.length > 1 ? this.items.length+' ' : '';
@@ -223,6 +239,9 @@ MACHINE_ACTIONS = {
           }
           else if (action.name == 'delete') {
             this._delete(this.items);
+          }
+          else if (action.name == 'resize') {
+            this.$.resizedialog._openDialog();
           }
           else if (action.name == 'tag') {
             this.$.tagsdialog._openDialog();
