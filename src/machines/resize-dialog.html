@@ -71,13 +71,13 @@
           <div hidden$="[[!isOnapp]]">
             <div class="grid-row">
               <div class="xs12 m6 l6">
-                <paper-input id="cpus" label="cpus" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{cpus::input}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
+                <paper-input id="cpus" label="cpus" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{cpus}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
               </div>
               <div class="helptext xs12 m6 l6">
                 Current machine cpus [[current_cpus]].
               </div>
               <div class="xs12 m6 l6">
-                <paper-input id="memory" label="memory" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{memory::input}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
+                <paper-input id="memory" label="memory" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{memory}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
               </div>
               <div class="helptext xs12 m6 l6">
                 Current machine memory [[current_memory]].
@@ -138,14 +138,14 @@
         size: String,
         current_cpus: {
           type: Number,
-          computed: 'computeCurrentCpus(machine.id)'
+          computed: 'computeCurrentCpus(machine)'
         },
         current_memory: {
           type: Number,
-          computed: 'computeCurrentMemory(machine.id)'
+          computed: 'computeCurrentMemory(machine)'
         },
         cpus: {
-          type: Number
+          type: Number,
         },
         memory: {
           type: Number,
@@ -168,7 +168,7 @@
         },
         isOnapp: {
           type: Boolean,
-          computed: 'computeIsOnapp(machine.cloud.provider)'
+          computed: 'computeIsOnapp(machine)'
         },
         plans: {
           type: Array,
@@ -180,9 +180,9 @@
         input: 'clearError'
       },
       observers:[
-        'updateFormReadyOnapp(current_cpus, current_memory, cpus, memory)',
-        'updateFormReady(selectedPlan)',
-        'updateShowNotification(machine.extra, memory)'
+        'updateFormReadyOnapp(machine, current_cpus, current_memory, cpus, memory)',
+        'updateFormReady(machine, selectedPlan)',
+        'updateShowNotification(machine, memory)'
       ],
       ready: function() {},
       attached: function() {},
@@ -196,7 +196,7 @@
         else if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1){
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
-          this.$.resizeMachine.body = {"action": "resize", "plan_id": this.selectedPlan };
+          this.$.resizeMachine.body = {"action": "resize", "plan_id": parseInt(this.selectedPlan)};
           this.$.resizeMachine.generateRequest();
         }
       },
@@ -224,22 +224,20 @@
         this.clearError();
       },
       computeCurrentCpus: function(machine){
-        if (this.isOnapp){
-          var cpus = this.machine.extra.cpus;
-          this.cpus = cpus;
+        if (this.machine && this.machine.extra && this.machine.extra.cpus){
+          this.cpus = this.machine.extra.cpus;
           return this.machine.extra.cpus;
         }
       },
       computeCurrentMemory: function(machine){
-        if (this.isOnapp){
-          var memory = this.machine.extra.memory;
-          this.memory = memory;
+        if (this.machine && this.machine.extra && this.machine.extra.memory){
+          this.memory = this.machine.extra.memory;
           return this.machine.extra.memory;
         }
       },
       computeIsOnapp: function(cloud){
-        if (cloud)
-          return cloud == 'onapp';
+        if (this.machine && this.machine.cloud && this.machine.cloud.provider)
+          return this.machine.cloud.provider == 'onapp';
       },
       computePlans: function(machine, clouds){
         if (this.machine) {
