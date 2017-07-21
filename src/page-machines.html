@@ -578,13 +578,13 @@
             },
             _getMachineWeight: function(machine, model){
                 var weight = 0;
-                var machineHasIncidents = this._machineHasIncidents(machine, model.incidentsArray),
-                    machineHasMonitor = this._machineHasMonitoring(machine, model.monitoring),
-                    machineHasrecommendations = this._machineHasrecommendations(machine, model.probes),
-                    machineHasProbe = this._machineHasProbe(machine, model.probes);
+                var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
+                    machineHasMonitor = this._machineHasMonitoring(machine, this.model.monitoring),
+                    machineHasrecommendations = this._machineHasrecommendations(machine, this.model.probes),
+                    machineHasProbe = this._machineHasProbe(machine, this.model.probes);
                     machineState = this._machineState(machine);
                 weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations + machineHasProbe + machineState;
-                return weight;
+                return weight != NaN ? weight : 0;
             },
 
             _machineHasIncidents: function(machine, incidents){
@@ -609,12 +609,15 @@
             _machineState: function(machine){
                 if (machine.state == 'running')
                     return 5;
+                if (machine.state == 'error')
+                    return 3;
                 if (machine.state == 'stopped')
                     return 2;
                 if (machine.state == 'terminated')
                     return 1;
                 if (machine.state == 'unknown')
                     return 0;
+                return 0;
             },
             itemRecommendation: function(item) {
                 if (this.probes == {} || !item || !item.id) {
