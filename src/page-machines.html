@@ -579,9 +579,9 @@
             _getMachineWeight: function(machine, model){
                 var weight = 0;
                 var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
-                    machineHasMonitor = this._machineHasMonitoring(machine, this.model.monitoring),
-                    machineHasrecommendations = this._machineHasrecommendations(machine, this.model.probes),
-                    machineHasProbe = this._machineHasProbe(machine, this.model.probes);
+                    machineHasMonitor = this._machineHasMonitoring(machine),
+                    machineHasrecommendations = this._machineHasrecommendations(machine),
+                    machineHasProbe = this._machineHasProbe(machine);
                     machineState = this._machineState(machine);
                 weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations + machineHasProbe + machineState;
                 return weight != NaN ? weight : 0;
@@ -594,16 +594,16 @@
                 return machineIncidents ? machineIncidents.length * 1000 : 0;
             },
 
-            _machineHasMonitoring: function(machine, monitoring){
-                return monitoring && monitoring.monitored_machines && monitoring.monitored_machines[machine.id] ? 100 : 0;
+            _machineHasMonitoring: function(machine){
+                return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
             },
 
             _machineHasrecommendations: function(machine, probes){
-                return probes && probes[machine.id] && probes[machine.id].dirty_cow ? 10 : 0;
+                return machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
             },
 
-            _machineHasProbe: function(machine, probes){
-                return probes && probes[machine.id] && probes[machine.id].loadloadavg ? probes[machine.id].loadloadavg[0]+probes[machine.sid].loadloadavg[1]+probes[machine.id].loadloadavg[2] : 1;
+            _machineHasProbe: function(machine){
+                return machine.probe.ssh && machine.probe.ssh.loadloadavg ? machine.probe.ssh.loadloadavg[0]+machine.probe.ssh.loadloadavg[1]+machine.probe.ssh.loadloadavg[2] : 1;
             },
 
             _machineState: function(machine){
