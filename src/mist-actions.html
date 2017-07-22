@@ -97,10 +97,7 @@
       properties: {
         model: Object,
         actions: {
-          type: Array,
-          value: function(){
-            return []
-          }
+          type: Array
         },
         action: {
           type: Object
@@ -109,20 +106,24 @@
           type: String
         },
         items: Array,
+        visibleActions: {
+          type: Number,
+          value: 3
+        },
         topActions: {
             type: Array,
-            computed: "_topActions(actions.*)",
+            computed: "_topActions(actions, visibleActions)",
             value: function(){
               return []
             }
         },
         moreActions: {
             type: Array,
-            computed: "_moreActions(actions.*)",
+            computed: "_moreActions(actions, visibleActions)",
             value: function(){
               return []
             }
-        },
+        }
       },
       selectAction: function(e){
         if (this.querySelector('paper-menu-button#actionmenu'))
@@ -134,16 +135,19 @@
         if (action == 'delete')
           return 'Deleting';
       },
-      updateActions: function(actions){
-
-      },
-      _topActions: function (actions) {
+      _topActions: function (actions, visibleActions) {
+        this.updateVisibleActions();
         if (this.actions)
-          return this.actions.slice(0, 3);
+          return this.actions.slice(0, this.visibleActions);
       },
-      _moreActions: function (actions) {
+      _moreActions: function (actions, visbleActions) {
+        this.updateVisibleActions();
         if (this.actions)
-          return this.actions.slice(3);
+          return this.actions.slice(this.visibleActions);
+      },
+      updateVisibleActions: function(){
+        var parent = this.parentNode;
+        this.set('visibleActions', Math.floor((parent.offsetWidth-300)/200));
       }
     });
   </script>
