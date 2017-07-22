@@ -125,6 +125,15 @@
             }
         }
       },
+      observers: [
+        'actionsChanged(actions)'
+      ],
+      listeners: {
+        'actions-resize': 'updateVisibleActions'
+      },
+      attached: function(){
+        this.updateVisibleActions();
+      },
       selectAction: function(e){
         if (this.querySelector('paper-menu-button#actionmenu'))
             this.querySelector('paper-menu-button#actionmenu').close();
@@ -135,13 +144,14 @@
         if (action == 'delete')
           return 'Deleting';
       },
-      _topActions: function (actions, visibleActions) {
+      actionsChanged: function(actions){
         this.updateVisibleActions();
+      },
+      _topActions: function (actions, visibleActions) {
         if (this.actions)
           return this.actions.slice(0, this.visibleActions);
       },
       _moreActions: function (actions, visbleActions) {
-        this.updateVisibleActions();
         if (this.actions)
           return this.actions.slice(this.visibleActions);
       },
@@ -149,6 +159,29 @@
         var parent = this.parentNode;
         this.set('visibleActions', Math.floor((parent.offsetWidth-300)/200));
       }
+    });
+    (function() {
+        var throttle = function(type, name, obj) {
+            obj = obj || window;
+            var running = false;
+            var func = function() {
+                if (running) { return; }
+                running = true;
+                 requestAnimationFrame(function() {
+                    obj.dispatchEvent(new CustomEvent(name));
+                    running = false;
+                });
+            };
+            obj.addEventListener(type, func);
+        };
+
+        /* init - you can init any event */
+        throttle("actions-resize", "optimizedResizeActions");
+    })();
+
+    // handle event
+    window.addEventListener("optimizedResizeActions", function() {
+        document.querySelector('mist-actions').fire('actions-resize')
     });
   </script>
 </dom-module>
