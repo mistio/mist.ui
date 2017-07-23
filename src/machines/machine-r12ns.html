@@ -17,10 +17,8 @@
         <style include="shared-styles">
 
             div.r12n {
-                overflow: visible;
-                height: 44px;
-                font-size: 16px;
-                line-height: 1.4em;
+                margin: 8px;
+                padding: 8px;
                 border-top: 1px solid #ddd;
             }
 
@@ -28,18 +26,12 @@
                 border-top: none;
             }
 
-            div.r12n a {
-                color: #2196F3 !important;
-                font-weight: 400;
-                font-size: 0.9em;
-            }
-
             div.info-card {
                 margin: 0;
             }
 
             div.card-content {
-                padding: 18px 24px;
+                padding: 8px;
             }
 
             paper-material {
@@ -54,9 +46,7 @@
             }
 
             .description {
-                float: left;
-                width: 70%;
-                vertical-align: center;
+                padding: 8px;
             }
 
             .recommended .customize {
@@ -65,7 +55,7 @@
 
             .actions {
                 float: right;
-                wdith: 30%;
+                margin-top: -4px
             }
 
             paper-button.apply {
@@ -82,22 +72,26 @@
                 color: #777;
             }
 
+            paper-button {
+                padding: 8px;
+            }
+
         </style>
 
-        <!--template is="dom-if" if="[[hasScaleR12n]]"-->
         <div class="info-card" style="background-color: #8c76d1;">
             <h2 style="color:#fff; margin: 4px;">Recommendations</h2>
         </div>
         <div class="card-content">
-            <template is="dom-repeat" items="[[model.notificationsArray]]" as="notification" hidden$="{{!hasScaleR12n}}">
-                <div class="r12n" notification-id$="[[notification._id]]">
-                <iron-icon class="r12n-icon" slot="item-icon" icon="[[_computeR12nIcon(notification)]]"></iron-icon>
+            <template is="dom-repeat" items="[[r12ns]]">
+                <div class="r12n">
+                    <iron-icon class="r12n-icon" slot="item-icon" icon="[[_computeR12nIcon(item)]]"></iron-icon>
                     <div class="description">
-                        <span inner-h-t-m-l="{{notification.html_body}}"></span>
-                    </div>
+                        <span>[[item.summary]]</span>
+                        <span inner-h-t-m-l="[[item.html_body]]"></span>
                     <div class="actions">
-                        <paper-button on-tap="_resizeTap" class="apply" raised>Resize...</paper-button>
-                        <paper-button on-tap="_dismiss" class="dismiss" notification-id$="[[notification._id]]">Dismiss</paper-button>
+                        <paper-button on-tap="_resizeTap" class="apply" raised>Resize</paper-button>
+                        <paper-button on-tap="_dismiss" class="dismiss">Dismiss</paper-button>
+                    </div>
                     </div>
                 </div>
             </template>
@@ -106,7 +100,6 @@
 
         <iron-ajax
             id="requestDismiss"
-            url="/api/v1/notifications/"
             method="DELETE"
             handle-as="json"
             on-response="handleDismissResponse">
@@ -117,33 +110,14 @@
         Polymer({
             is: 'machine-r12ns',
             properties: {
-                model: {
-                    type: Object
-                },
-                machine: {
-                    type: String
-                },
-                hasScaleR12n: {
-                    type: Boolean,
-                    computed: '_hasScaleR12n(model.notificationsArray, machine)'
+                r12ns: {
+                    type: Array
                 }
             },
-            _hasScaleR12n: function(notifications, machine) {
-                for (i=0; i<notifications.length; i++)
-                {
-                    var notification = notifications[i]
-                    if (notification.resource && notification.resource._ref.$id == machine)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            },
-            _computeR12nIcon: function(notification) {
-                if (notification.kind == "r12n.machine.scale.up") {
+            _computeR12nIcon: function(item) {
+                if (item.kind == "r12n.machine.scale.up") {
                     return "icons:arrow-upward";
-                }
-                else if (notification.kind == "r12n.machine.scale.down") {
+                } else if (item.kind == "r12n.machine.scale.down") {
                     return "icons:arrow-downward";
                 }
             },
@@ -154,25 +128,22 @@
                     'confirm': true,
                     'multi': false
                 }
-                this.fire('select-action',{action: action})
+                this.fire('select-action', {action: action})
                 // TODO: dismiss notification on success?
+                // TODO: resize to what?
             },
             _dismiss: function(e) {
-                var notificationID = event.srcElement.getAttribute("notification-id");
-                var dismissURL = "/api/v1/notifications/" + notificationID;
-                this.$.requestDismiss.url = dismissURL;
+                this.$.requestDismiss.url = "/api/v1/notifications/" + event.model.item._id;
                 this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.requestDismiss.generateRequest();
                 event.stopPropagation();
             },
             handleDismissResponse: function(event) {
-                var obj = JSON.parse(event.detail.__data__.response);
+                var obj = JSON.parse(event.detail.response);
                 var id = obj._id;
-                for (i=0; i<this.model.notificationsArray.length; ++i) 
-                {
-                    var notification = this.model.notificationsArray[i];
-                    if (notification._id == id)
-                    {
+                for (i=0; i< this.r12ns.length; ++i) {
+                    var notification = this.r12ns[i];
+                    if (notification._id == id) {
                         this.fire('dismiss-notification', i)
                         return;
                     }
