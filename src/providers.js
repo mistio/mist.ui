@@ -900,6 +900,71 @@ PROVIDERS.push({
     }]
 });
 
+// SOLUSVM
+PROVIDERS.push({
+    title: 'SolusVM',
+    val: 'solusvm',
+    className: 'provider-solusvm',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "SolusVM",
+        defaultValue: "SolusVM",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "username",
+        label: "Username *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter username",
+        helptext: 'Username you use to connect to SolusVM portal'
+    }, {
+        name: "apikey",
+        label: "Password *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter password",
+        helptext: 'Password you use to connect to SolusVM portal',
+        helpHref: 'http://docs.mist.io'
+    }, {
+        name: "host",
+        label: "Host *",
+        type: "text",
+        value: "",
+        defaultValue: "solusvm.com",
+        show: true,
+        required: true,
+        errorMessage: "Please enter SolusVM host",
+        helptext: 'URL of the SolusVM host',
+        helpHref: 'http://docs.mist.io'
+    }, {
+        name: "port",
+        label: "Host port",
+        type: "text",
+        value: 80,
+        defaultValue: 80,
+        show: true,
+        required: false
+    }, {
+        name: "verify",
+        label: "Verify SSL certificate",
+        type: "toggle",
+        value: true,
+        defaultValue: true,
+        show: true,
+        required: false
+    }]
+});
+
 // VCLOUD
 PROVIDERS.push({
     title: 'VMWare vCloud',
