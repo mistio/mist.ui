@@ -15,7 +15,6 @@
             /* local styles go here */
             :host {
                 position: relative;
-                left: -40px;
                 height: 56px;
                 outline: none;
             }
@@ -64,10 +63,19 @@
                 margin-right: 22px;
             }
 
-            .close-icon {
-                float: right;
-                margin-left: 6px;
-                margin-right: 2px;
+            div.summary {
+                padding-bottom: 2px;
+            }
+
+            div.body {
+                white-space: normal;
+                padding-bottom: 3px;
+                color: #555;
+            }
+
+            div.time {
+                padding-bottom: 4px;
+                color: #888;
             }
 
             hr {
@@ -103,21 +111,22 @@
 
         <!-- local DOM goes here -->
         <paper-menu-button hidden="[[hidden]]" horizontal-align="right" vertical-offset="56" opened="{{opened}}" ignore-select="true">
-            <paper-icon-button icon="[[indicatorIcon]]" type$="[[indicatorType]]" class="notification-icon dropdown-trigger"></paper-icon-button>
+            <paper-icon-button icon$="[[indicatorIcon]]" type$="[[indicatorType]]" class="notification-icon dropdown-trigger"></paper-icon-button>
             <div class="dropdown-content">
                 <div class="grid-row">
                     <h4>[[_computeTitle(notifications)]]</h4>
                 </div>
                 <hr/>
-                <paper-menu id="notifications-menu">
+                <paper-menu id="notifications-menu" selectable="none">
                     <template is="dom-repeat" items="[[notifications]]" as="notification">
                         <paper-item on-tap="_handleItemTap" class="context" hidden$="{{notification.hidden}}">
-                            <iron-icon icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
+                            <iron-icon  slot="item-icon" icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
                             <paper-item-body two-line>
-                                <div>[[notification.summary]]</div>
-                                <div secondary>[[_computeRelativeTime(notification)]]</div>
+                                <div class="summary">[[notification.summary]]</div>
+                                <div secondary inner-h-t-m-l="{{notification.html_body}}" class="body"></div>
+                                <div secondary class="time">[[_computeRelativeTime(notification)]]</div>
                             </paper-item-body>
-                            <iron-icon on-tap="_dismiss" class="close-icon" icon="icons:clear"></iron-icon>
+                            <paper-icon-button on-tap="_dismiss" class="dismiss-icon" icon="icons:clear"></paper-icon-button>
                         </paper-item>
                     </template>
                 </paper-menu>
@@ -128,8 +137,8 @@
 
         <iron-ajax
             id="requestDismiss"
-            url="/api/v1/notifications/dismiss"
-            method="POST"
+            url="/api/v1/notifications/"
+            method="DELETE"
             handle-as="json"
             on-response="handleDismissResponse">
         </iron-ajax>
@@ -150,11 +159,11 @@
                 },
                 indicatorIcon: {
                     type: String,
-                    computed: '_computeIndicatorIcon(notifications)'
+                    computed: '_computeIndicatorIcon(notifications.length)'
                 },
                 indicatorType: {
                     type: String,
-                    computed: '_computeIndicatorType(notifications)'
+                    computed: '_computeIndicatorType(notifications.length)'
                 }
             },
             /*ready: function() {
@@ -178,8 +187,8 @@
                 }
                 return "Notifications & Recommendations";
             },
-            _computeIndicatorIcon: function(notifications) {
-                var type = this.getItemsType(notifications);
+            _computeIndicatorIcon: function(notificationsLength) {
+                var type = this.getItemsType(this.notifications);
                 if (type == 1)
                 {
                     return "social:notifications";
@@ -191,8 +200,8 @@
                 // Todo: return dual icon
                 return "social:notifications";
             },
-            _computeIndicatorType: function(notifications) {
-                var type = this.getItemsType(notifications);
+            _computeIndicatorType: function(notificationsLength) {
+                var type = this.getItemsType(this.notifications);
                 if (type == 2)
                 {
                     return "recommendations";
@@ -201,13 +210,6 @@
                 {
                     return "notifications";
                 }
-            },
-            _computeIndicatorColor: function(notifications) {
-                if (notifications.length > 0)
-                {
-                    return "white"
-                }
-                return "grey"
             },
             _computeNotificationIcon: function(notification) {
                 if (notification.source == "recommendation")
@@ -275,7 +277,8 @@
                 if (index != -1)
                 {
                     var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
-                    this.$.requestDismiss.body = JSON.stringify({"notification_id": this.notifications[index]._id});
+                    var dismissURL = "/api/v1/notifications/" + this.notifications[index]._id;
+                    this.$.requestDismiss.url = dismissURL;
                     this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.requestDismiss.generateRequest();
                 }

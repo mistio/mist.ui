@@ -97,8 +97,7 @@
       properties: {
         model: Object,
         actions: {
-          type: Array,
-          value: []
+          type: Array
         },
         action: {
           type: Object
@@ -107,17 +106,25 @@
           type: String
         },
         items: Array,
+        visibleActions: {
+          type: Number,
+          value: 3
+        },
         topActions: {
             type: Array,
-            computed: "_topActions(actions.*)"
+            computed: "_topActions(actions, visibleActions)",
+            value: function(){
+              return []
+            }
         },
         moreActions: {
             type: Array,
-            computed: "_moreActions(actions.*)"
-        },
+            computed: "_moreActions(actions, visibleActions)",
+            value: function(){
+              return []
+            }
+        }
       },
-      ready: function() {},
-      attached: function() {},
       selectAction: function(e){
         if (this.querySelector('paper-menu-button#actionmenu'))
             this.querySelector('paper-menu-button#actionmenu').close();
@@ -128,16 +135,19 @@
         if (action == 'delete')
           return 'Deleting';
       },
-      updateActions: function(actions){
-
+      _topActions: function (actions, visibleActions) {
+        this.updateVisibleActions();
+        if (this.actions)
+          return this.actions.slice(0, this.visibleActions);
       },
-      _topActions: function (actions) {
-        if (this.get('actions'))
-          return this.get('actions').slice(0, 3);
+      _moreActions: function (actions, visbleActions) {
+        this.updateVisibleActions();
+        if (this.actions)
+          return this.actions.slice(this.visibleActions);
       },
-      _moreActions: function (actions) {
-        if (this.get('actions'))
-          return this.get('actions').slice(3);
+      updateVisibleActions: function(){
+        var parent = this.parentNode;
+        this.set('visibleActions', Math.floor((parent.offsetWidth-300)/200));
       }
     });
   </script>
