@@ -225,6 +225,9 @@
                     type: Array,
                     value: MACHINE_CREATE_FIELDS
                 },
+                selectedItems: {
+                    type: Array
+                },
                 jobId: {
                     type: String,
                     value: false
@@ -256,8 +259,13 @@
             observers: [
                 '_jobIdChanged(jobId)',
                 '_pathChanged(path)',
-                'stopPolling(logItem)'
+                'stopPolling(logItem)',
+                '_selectedItemsChanged(selectedItems.length)'
             ],
+
+            _selectedItemsChanged: function(length){
+                console.log('_selectedItemsChanged', length);
+            },
 
             _isAddPageActive: function(path) {
                 return path == '/+create';
@@ -401,7 +409,7 @@
                             if (item == "running")
                                 ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
                             else if (item == "error")
-                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='red'>"+item+"</span></div>";
+                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='error'>"+item+"</span></div>";
                             else if (item == "stopped")
                                 ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='orange'>"+item+"</span></div>";
                             else
@@ -433,7 +441,7 @@
                   },
                   'cost': {
                       'body': function(item, row) {
-                          return item.monthly && '$' + Math.round(item.monthly) || '';
+                          return item.monthly && '$' + item.monthly.formatMoney(0) || '';
                       },
                       'cmp': function(item1, item2, row1, row2) {
                             if (item1.monthly < item2.monthly)
@@ -547,7 +555,7 @@
                 if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
                     return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
                 if (this.model && this.model.clouds && row.extra && row.extra.PLANID) {
-                    return (cloud && cloud.sizes) ? cloud.sizes[row.extra.PLANID].name  : row.extra.PLANID
+                    return (row.cloud && this.model.clouds[row.cloud.id].sizes) ? this.model.clouds[row.cloud.id].sizes[row.extra.PLANID].name  : row.extra.PLANID
                 }
                 if (row.extra && row.extra.service_type)
                     return row.extra.service_type;
@@ -570,13 +578,13 @@
             },
             _getMachineWeight: function(machine, model){
                 var weight = 0;
-                var machineHasIncidents = this._machineHasIncidents(machine, model.incidentsArray),
-                    machineHasMonitor = this._machineHasMonitoring(machine, model.monitoring),
-                    machineHasrecommendations = this._machineHasrecommendations(machine, model.probes),
-                    machineHasProbe = this._machineHasProbe(machine, model.probes);
+                var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
+                    machineHasMonitor = this._machineHasMonitoring(machine),
+                    machineHasrecommendations = this._machineHasrecommendations(machine),
+                    machineHasProbe = this._machineHasProbe(machine);
                     machineState = this._machineState(machine);
                 weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations + machineHasProbe + machineState;
-                return weight;
+                return weight != NaN ? weight : 0;
             },
 
             _machineHasIncidents: function(machine, incidents){
@@ -586,27 +594,30 @@
                 return machineIncidents ? machineIncidents.length * 1000 : 0;
             },
 
-            _machineHasMonitoring: function(machine, monitoring){
-                return monitoring && monitoring.monitored_machines && monitoring.monitored_machines[machine.id] ? 100 : 0;
+            _machineHasMonitoring: function(machine){
+                return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
             },
 
             _machineHasrecommendations: function(machine, probes){
-                return probes && probes[machine.id] && probes[machine.id].dirty_cow ? 10 : 0;
+                return machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
             },
 
-            _machineHasProbe: function(machine, probes){
-                return probes && probes[machine.id] && probes[machine.id].loadloadavg ? probes[machine.id].loadloadavg[0]+probes[machine.sid].loadloadavg[1]+probes[machine.id].loadloadavg[2] : 1;
+            _machineHasProbe: function(machine){
+                return machine.probe.ssh && machine.probe.ssh.loadloadavg ? machine.probe.ssh.loadloadavg[0]+machine.probe.ssh.loadloadavg[1]+machine.probe.ssh.loadloadavg[2] : 1;
             },
 
             _machineState: function(machine){
                 if (machine.state == 'running')
                     return 5;
+                if (machine.state == 'error')
+                    return 3;
                 if (machine.state == 'stopped')
                     return 2;
                 if (machine.state == 'terminated')
                     return 1;
                 if (machine.state == 'unknown')
                     return 0;
+                return 0;
             },
             itemRecommendation: function(item) {
                 if (this.probes == {} || !item || !item.id) {
