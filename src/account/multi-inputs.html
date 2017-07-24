@@ -45,7 +45,10 @@
                     notify: true
                 },
                 inputLabel: String,
-                withDescription: Boolean,
+                withDescription: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
                 withConfirmRemove: {
                     type: Boolean,
                     reflectToAttribute: true
@@ -68,16 +71,16 @@
             },
             removeInput: function(e){
                 console.log('removeInput', e.target.dataIndex, this.withConfirmRemove);
-                if (this.withConfirmRemove != true)
+                if (this.withConfirmRemove != true || this.get('inputsArray.'+e.target.dataIndex+'.'+this.inputLabel).trim() == '')
                     this.splice('inputsArray', e.target.dataIndex, 1);
                 else {
+                    this.set('toRemove', e.target.dataIndex);
                     this._showDialog({
                         title: 'Remove '+this.inputLabel,
                         body: "This cannot be undone. You will need to manually readd it." ,
                         reason: "ip.remove",
                         action: "Remove "+this.inputLabel
                     });
-                    this.set('toRemove', e.target.dataIndex);
                 }
             },
             _showDialog: function(info) {
