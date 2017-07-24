@@ -3,6 +3,9 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
 
 <dom-module id="multi-inputs">
     <template>
@@ -12,7 +15,7 @@
                 margin-bottom: 40px;
             }
             paper-input {
-                width: 50%;
+                width: 30%;
                 display: inline-block;
             }
             paper-button, .remove {
@@ -20,11 +23,16 @@
             }
         </style>
         <template is="dom-repeat" items="[[inputsArray]]">
-            <paper-input value="[[item]]"></paper-input> 
-            <div class="remove"><paper-button data-index="[[index]]" on-tap="removeInput">remove</paper-button></div>
+            <div class="input">
+                <paper-input label="[[inputLabel]]" value="[[calculateValue(item)]]"></paper-input> 
+                <paper-input label="description" value="[[item.description]]" hidden$="[[!withDescription]]"></paper-input> 
+                <div class="remove"><paper-button data-index="[[index]]" on-tap="removeInput"><iron-icon icon="clear"></iron-icon>remove</paper-button></div>
+            </div>
         </template>
-        <paper-button on-tap="addInput">Add ip</paper-button>
-        <paper-button on-tap="saveInputs">Save IPs</paper-button>
+        <paper-button class="blue" on-tap="addInput"><iron-icon icon="add"></iron-icon> Add [[inputLabel]]</paper-button>
+
+        <dialog-element id="confirmRemove"></dialog-element>
+
     </template>
     <script>
         Polymer({
@@ -36,14 +44,57 @@
                     value: function(){ return []},
                     notify: true
                 },
-                eventName: String
+                inputLabel: String,
+                withDescription: Boolean,
+                withConfirmRemove: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
+                eventName: String,
+                toRemove: Number
+            },
+            listeners: {
+                'confirmation': '_confirmRemove',
+            },
+            calculateValue: function(item){
+                return item[this.inputLabel];
             },
             addInput: function(e){
-                this.push('inputsArray', '');
+                var obj = {};
+                obj[this.inputLabel] = '';
+                if (this.withDescription)
+                    obj['description'] = '';
+                this.push('inputsArray', obj);
             },
             removeInput: function(e){
-                console.log('removeInput', e.target.dataIndex);
-                this.splice('inputsArray', e.target.dataIndex, 1);
+                console.log('removeInput', e.target.dataIndex, this.withConfirmRemove);
+                if (this.withConfirmRemove != true)
+                    this.splice('inputsArray', e.target.dataIndex, 1);
+                else {
+                    this._showDialog({
+                        title: 'Remove '+this.inputLabel,
+                        body: "This cannot be undone. You will need to manually readd it." ,
+                        reason: "ip.remove",
+                        action: "Remove "+this.inputLabel
+                    });
+                    this.set('toRemove', e.target.dataIndex);
+                }
+            },
+            _showDialog: function(info) {
+                var dialog = this.querySelector('dialog-element#confirmRemove');
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
+                dialog._openDialog();
+            },
+            _confirmRemove: function(e){
+                var reason = e.detail.reason,
+                    response = e.detail.response;
+
+                if (response.confirmed && reason == "ip.remove") {
+                    this.splice('inputsArray', this.toRemove, 1);
+                    this.set('toRemove', null);
+                }
             },
             saveInputs: function(e){
                 this.fire(this.eventName, {inputs: this.inputsArray})

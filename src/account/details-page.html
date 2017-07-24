@@ -124,10 +124,6 @@
                 margin-left: -17px;
             }
 
-            div.ips-section {
-                margin-bottom: 24px;
-            }
-
             paper-toggle-button {
                 margin: auto;
             }
@@ -162,10 +158,25 @@
                         handle-as="xml"></iron-ajax>
                 </div>
             </div>
-
         </paper-material>
         <paper-material class="separator">
-
+            <div class="grid-row">
+                <div class="xs12 head">
+                    <h2 class="title">IP whitelisting</h2>
+                </div>
+                <div class="ips-section xs12 m12 l12">
+                    <p>Allow account access to whitelisted ips only.</p>
+                    <multi-inputs with-description with-confirm-remove
+                        input-label="ip" 
+                        inputs-array="{{whiteIps}}" 
+                        event-name="save-ips" ></multi-inputs>
+                </div>
+                <div class="bottom-actions clearfix xs12">
+                    <paper-button class="pull-right" on-tap="saveInputs" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material class="separator">
             <div class="grid-row" hidden$="[[!org.is_owner]]">
                 <div class="xs12 head">
                     <h2 class="title">Organisation Profile</h2>
@@ -186,11 +197,6 @@
                             </div>
                             <paper-icon-button icon="close" on-tap="_deleteAvatar" class="delete-avatar-icon"></paper-icon-button>
                         </div>
-                    </div>
-                    <div class="ips-section" hidden$="[[!allowWhiteListEdit]]">
-                        <div class="xs12 org-logo-field-title">IP whitelisting</div>
-                        <p>Allow account access to whitelisted ips only.</p>
-                        <multi-inputs inputs-array="{{whiteIps}}" event-name="save-ips"></multi-inputs>
                     </div>
                     <div hidden$="[[org.avatar.length]]">
                         <div class="xs12 org-logo-field-title margin">Custom Logo</div>
@@ -268,6 +274,10 @@
                     orgAlertEmails: {
                         type: String,
                     },
+                    ipsFormReady: {
+                        type: Boolean,
+                        computed: '_computIpFormReady(user)'
+                    },
                     userFormReady: {
                         type: Boolean,
                         computed: '_computeUserFormReady(firstName, lastName, loadingUser, user)'
@@ -297,11 +307,6 @@
                         value: ''
                     },
                     customLogo: false,
-                    allowWhiteListEdit: {
-                        type: Boolean,
-                        // TODO set org.allowEdit
-                        value: true
-                    },
                     whiteIps: {
                         type: Array
                     }
@@ -333,15 +338,14 @@
                 },
 
                 _userUpdated: function(user) {
+                    // TODO set user.ips
+                    this.set('whiteIps',[{ip:"1.1.2.1", description: ""}, {ip:"1.23.2.2", description:""}])
+
                     this.firstName = user.first_name;
                     this.lastName = user.last_name;
                 },
 
                 _orgUpdated: function(org) {
-                    if (this.allowWhiteListEdit){
-                        // TODO set org.ips
-                        this.set('whiteIps',["1.1.2.1", "1.23.2.2"])
-                    }
                     this.orgName = org.name;
                     this.orgAlertEmails = org.alerts_email.join('\n')
                     this.customLogo = org.avatar ? true : false
@@ -358,6 +362,11 @@
                     xhr.send();
                     this.orgAvatar = '';
                     this.$.orgAvatarUpload.files = [];
+                },
+
+                _computIpFormReady: function(user){
+                    // TODO: calculate comparing current to input
+                    return false;
                 },
 
                 _computeUserFormReady: function(firstName, lastName, loading, user) {
