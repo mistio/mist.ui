@@ -22,6 +22,9 @@
                 display: inline-block;   
             }
         </style>
+        <template is="dom-if" if="[[!inputsArray.length]]">
+            <p class="sub">No whitelisted IPs.</p>
+        </template>
         <template is="dom-repeat" items="[[inputsArray]]">
             <div class="input">
                 <paper-input label="[[inputLabel]]" value="[[calculateValue(item)]]"></paper-input> 
@@ -71,14 +74,17 @@
             },
             removeInput: function(e){
                 console.log('removeInput', e.target.dataIndex, this.withConfirmRemove);
-                if (this.withConfirmRemove != true || this.get('inputsArray.'+e.target.dataIndex+'.'+this.inputLabel).trim() == '')
+                var inputValue = this.get('inputsArray.'+e.target.dataIndex+'.'+this.inputLabel);
+                    if (inputValue)
+                        inputValue = inputValue.trim();
+                if (this.withConfirmRemove != true || inputValue == '')
                     this.splice('inputsArray', e.target.dataIndex, 1);
                 else {
                     this.set('toRemove', e.target.dataIndex);
                     this._showDialog({
                         title: 'Remove '+this.inputLabel,
-                        body: "This cannot be undone. You will need to manually readd it." ,
-                        reason: "ip.remove",
+                        body: "This cannot be undone. You will need to manually re-add "+ inputValue +" if you need so." ,
+                        reason: "input.remove",
                         action: "Remove "+this.inputLabel
                     });
                 }
@@ -94,7 +100,7 @@
                 var reason = e.detail.reason,
                     response = e.detail.response;
 
-                if (response.confirmed && reason == "ip.remove") {
+                if (response.confirmed && reason == "input.remove") {
                     this.splice('inputsArray', this.toRemove, 1);
                     this.set('toRemove', null);
                 }

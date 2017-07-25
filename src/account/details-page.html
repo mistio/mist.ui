@@ -172,6 +172,7 @@
                         event-name="save-ips" ></multi-inputs>
                 </div>
                 <div class="bottom-actions clearfix xs12">
+                    <paper-button class="pull-right" on-tap="addCurrentIP" hidden$="[[!showAddCurrent]]">Add your current IP: [[user.current_ip]]</paper-button>
                     <paper-button class="pull-right" on-tap="saveInputs" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
                 </div>
             </div>
@@ -276,7 +277,7 @@
                     },
                     ipsFormReady: {
                         type: Boolean,
-                        computed: '_computIpFormReady(user)'
+                        computed: '_computIpFormReady(user, whiteIps, whiteIps.length)'
                     },
                     userFormReady: {
                         type: Boolean,
@@ -309,11 +310,16 @@
                     customLogo: false,
                     whiteIps: {
                         type: Array
+                    },
+                    showAddCurrent: {
+                        type: Boolean,
+                        value: false
                     }
                 },
                 observers: [
                     '_userUpdated(user)',
-                    '_orgUpdated(org)'
+                    '_orgUpdated(org)',
+                    '_showAddCurrent(whiteIps.length, user.current_ip)'
                 ],
 
                 listeners: {
@@ -337,10 +343,19 @@
                     // TODO save ips
                 },
 
+                addCurrentIP: function(e){
+                    this.push('whiteIps', {ip: this.user.current_ip, description: "Current ip"});
+                },
+
+                _showAddCurrent: function(ips, currentIp){
+                    if (this.whiteIps && this.whiteIps.length)
+                        var isInArray = this.whiteIps.find(function(p){ return p.ip == currentIp});
+                    this.set('showAddCurrent', isInArray ? false : true);
+                },
+
                 _userUpdated: function(user) {
                     // TODO set user.ips
-                    this.set('whiteIps',[{ip:"1.1.2.1", description: ""}, {ip:"1.23.2.2", description:""}])
-
+                    this.whiteIps = user.ips || [];
                     this.firstName = user.first_name;
                     this.lastName = user.last_name;
                 },
@@ -365,7 +380,19 @@
                 },
 
                 _computIpFormReady: function(user){
-                    // TODO: calculate comparing current to input
+                    // TODO: set || []
+                    var currentUserIps = this.user.ips || [],
+                        formIps = this.whiteIps ? this.whiteIps.filter(function(p){return p.ip && p.ip.trim() != ''}) : [];
+
+                    if (currentUserIps.length != formIps.length)
+                        return true;
+                    else {
+                        // check if there are changes
+                        for (var i = 0; i < formIps.length; i++) {
+                            if (formIps[i].ip != currentUserIps[i].ip || formIps[i].description != currentUserIps[i].description )
+                                return true
+                        }
+                    }
                     return false;
                 },
 
