@@ -94,6 +94,9 @@
   <script>
     Polymer({
       is: 'mist-actions',
+      behaviors: [
+          Polymer.IronResizableBehavior
+      ],
       properties: {
         model: Object,
         actions: {
@@ -125,6 +128,15 @@
             }
         }
       },
+      observers: [
+        'actionsChanged(actions)'
+      ],
+      listeners: {
+        'iron-resize': 'updateVisibleActions'
+      },
+      attached: function(){
+        this.updateVisibleActions();
+      },
       selectAction: function(e){
         if (this.querySelector('paper-menu-button#actionmenu'))
             this.querySelector('paper-menu-button#actionmenu').close();
@@ -135,17 +147,19 @@
         if (action == 'delete')
           return 'Deleting';
       },
-      _topActions: function (actions, visibleActions) {
+      actionsChanged: function(actions){
         this.updateVisibleActions();
+      },
+      _topActions: function (actions, visibleActions) {
         if (this.actions)
           return this.actions.slice(0, this.visibleActions);
       },
       _moreActions: function (actions, visbleActions) {
-        this.updateVisibleActions();
         if (this.actions)
           return this.actions.slice(this.visibleActions);
       },
-      updateVisibleActions: function(){
+      updateVisibleActions: function(e){
+        // e.stopImmediatePropagation();
         var parent = this.parentNode;
         this.set('visibleActions', Math.floor((parent.offsetWidth-300)/200));
       }
