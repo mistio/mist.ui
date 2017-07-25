@@ -121,17 +121,19 @@ Polymer({
         }
         run(this); 
     },
-    _runScriptRequest: function(e){
-        this.fire('run-script-request', {request: true, scriptId: this.selectedScriptId});
+    _runScriptRequest: function() {
+        var logMessage = 'Sending request to run script on machine.';
+        this.fire('performing-action', {log: logMessage});
     },
     _runScriptResponse: function(e){
         console.log(e, e.detail);
         this.fire('action-finished', {success: true});
-        this.fire('run-script-request', {response: e.detail.xhr.response, scriptId: this.selectedScriptId});
+        this.fire('toast', {msg: 'Run script request sent successfully. Review in machine logs.', duration: 5000});        
     },
     _runScriptError: function(e){
         console.log(e, e.detail);
-        this.fire('run-script-request', {error: true, errormsg: e.detail.xhr.responseText, scriptId: this.selectedScriptId});
+        this.fire('action-finished', {success: false});
+        this.fire('toast', {msg: e.detail.xhr.response, duration: 5000});
     }
 });
 </script>
