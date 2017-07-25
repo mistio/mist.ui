@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 
+<link rel="import" href="mist-resizer.html">
+
 <link rel="import" href="styles/shared-styles.html">
 
 <dom-module id="mist-actions">
@@ -90,6 +92,7 @@
       </paper-menu-button>
     </template>
 
+    <mist-resizer></mist-resizer>
   </template>
   <script>
     Polymer({
@@ -129,7 +132,7 @@
         'actionsChanged(actions)'
       ],
       listeners: {
-        'actions-resize': 'updateVisibleActions'
+        'resize': 'updateVisibleActions'
       },
       attached: function(){
         this.updateVisibleActions();
@@ -155,33 +158,11 @@
         if (this.actions)
           return this.actions.slice(this.visibleActions);
       },
-      updateVisibleActions: function(){
+      updateVisibleActions: function(e){
+        // e.stopImmediatePropagation();
         var parent = this.parentNode;
         this.set('visibleActions', Math.floor((parent.offsetWidth-300)/200));
       }
-    });
-    (function() {
-        var throttle = function(type, name, obj) {
-            obj = obj || window;
-            var running = false;
-            var func = function() {
-                if (running) { return; }
-                running = true;
-                 requestAnimationFrame(function() {
-                    obj.dispatchEvent(new CustomEvent(name));
-                    running = false;
-                });
-            };
-            obj.addEventListener(type, func);
-        };
-
-        /* init - you can init any event */
-        throttle("actions-resize", "optimizedResizeActions");
-    })();
-
-    // handle event
-    window.addEventListener("optimizedResizeActions", function() {
-        document.querySelector('mist-actions').fire('actions-resize')
     });
   </script>
 </dom-module>
