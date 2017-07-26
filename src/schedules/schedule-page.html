@@ -673,8 +673,26 @@
                 }
             },
             _parseToLocalTime: function(string) {
-                if (!this.isOneOff)
+                if (!this.isOneOff) {
+                     if (this.isCrontab){
+                        var diff =  moment().utcOffset() / 60;
+
+                        var time = string.split(' ')[2];
+                        if (time && time != '*'){
+                            time = parseInt(time) + diff;
+
+                            var newTime = '';
+                            for (var i=0; i<string.split(' ').length; i++){
+                                if (i != 2)
+                                    newTime += string.split(' ')[i]+' ';
+                                else
+                                    newTime += time+' ';
+                            }
+                            return newTime;
+                        }
+                     }
                     return string;
+                }
                 else {
                     if (string){
                         var newString = "once on " + moment.utc(this.schedule.schedule_entry.entry).local().format('YYYY-MM-DD HH:mm').toString() +" ("+ moment.utc(this.schedule.schedule_entry.entry).local().fromNow()+")";

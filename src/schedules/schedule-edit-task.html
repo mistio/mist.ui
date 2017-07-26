@@ -152,7 +152,7 @@
                 </div>
                 <div class="background" hidden$="{{!_computeIsCrontab(newSchedule.schedule_type)}}">
                     <paper-input id="crontab" value="{{crontabEntry}}" tabindex="1"></paper-input>
-                    <span class="smaller">eg */10 * * * * .Space separated values for <br/> Minute, Hour, Day of the Month, Month of the Year, Day of the Week.</span>
+                    <span class="smaller">eg */10 * * * * .Space separated values for <br/> Minute, Hour (UTC timezone), Day of the Month, Month of the Year, Day of the Week.</span>
                 </div>
                 <div class="background" hidden$="{{!_computeIsOneOff(newSchedule.schedule_type)}}">
                     <paper-button id="date" on-tap="_selectDate" class="simple-button" tabindex="1">
@@ -309,7 +309,12 @@
                 _stringifyCrontab: function(entry){
                     var scheduleEntry = "";
                     if (this.newSchedule.schedule_type == "crontab" && entry && typeof(entry) == "object") {
-                        scheduleEntry = entry.minute +" "+ entry.hour +" "+ entry.day_of_month +" "+ entry.month_of_year +" "+ entry.day_of_week;
+                        var localHour = entry.hour;
+                        if (entry.hour && entry.hour != '*'){
+                            var diff =  moment().utcOffset() / 60;
+                            localHour = parseInt(entry.hour) + diff;
+                        }
+                        scheduleEntry = entry.minute +" "+ localHour +" "+ entry.day_of_month +" "+ entry.month_of_year +" "+ entry.day_of_week;
                         return scheduleEntry;
                     }
                     else if (entry && typeof(entry) == "string"){
@@ -402,6 +407,7 @@
                         if (!chunchs[i])
                             chunchs[i] = "*"
                     }
+                    var diff =  moment().utcOffset() / 60;
                     var construct = {
                             'minute': chunchs[0],
                             'hour': chunchs[1],
@@ -409,6 +415,9 @@
                             'month_of_year': chunchs[3],
                             'day_of_week': chunchs[4],
                         };
+                    if (construct.hour != "*" && parseInt(chunchs[1]) && diff){
+                        construct.hour = ((parseInt(chunchs[1]) - diff)%24).toString();
+                    }
                     return construct;
                 },
                 _updateformReady: function(sendingData) {
