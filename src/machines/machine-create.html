@@ -251,12 +251,6 @@
                         this.set('machineFields', machineFields.fields);
                     // set values by provider
                     this._updateFields(selectedCloud);
-                    // default values
-                    if (this.machineFields){
-                        this.machineFields.forEach(function(f, index){
-                            this.set('machineFields.'+index+'.value', this.get('machineFields.'+index+'.defaultValue'));
-                        }.bind(this));
-                    }
                 },
                 _resetForm: function() {
                     // Reset Form Fields
@@ -292,7 +286,7 @@
 
                         this.machineFields.forEach(function(f, index) {
                             // clear options
-                            if (f.options) 
+                            if (f.type != 'radio' && f.options) 
                                 f.options = []
 
                             if (f.name.endsWith("location")) {
@@ -361,6 +355,13 @@
                             this._updateFieldsForKvm();
                         }
 
+                        // default values
+                        if (this.machineFields){
+                            this.machineFields.forEach(function(f, index){
+                                this.set('machineFields.'+index+'.value', this.get('machineFields.'+index+'.defaultValue'));
+                            }.bind(this));
+                        }
+
                     }
                 },
 
@@ -395,7 +396,8 @@
                         }
 
                         // let either script or script_id to pass in the from payload
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'radio'){
+                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'run_script'){
+                            console.log('changeRecord.path',changeRecord.path)
                             this._toggleScriptFields(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
