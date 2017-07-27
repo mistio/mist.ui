@@ -292,6 +292,12 @@ MACHINE_CREATE_FIELDS.push({
     }]
 });
 
+// SOLUSVM
+MACHINE_CREATE_FIELDS.push({
+    provider: 'solusvm',
+    fields: []
+});
+
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function (p) {
     //add common machine properties fields
