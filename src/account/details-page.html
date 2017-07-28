@@ -11,8 +11,6 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/iron-image/iron-image.html">
 
-<link rel="import" href="multi-inputs.html">
-
 <dom-module id="details-page">
     <template>
         <style is="custom-style" include="shared-styles forms">
@@ -159,41 +157,6 @@
             </div>
         </paper-material>
         <paper-material class="separator">
-            <div class="grid-row">
-                <div class="xs12 head">
-                    <h2 class="title">IP whitelisting</h2>
-                </div>
-                <div class="ips-section xs12 m12 l12">
-                    <p>Allow account access to whitelisted ips only. You can use cidr format.</p>
-                    <multi-inputs with-description with-confirm-remove
-                        input-label="cidr" 
-                        inputs-array="{{whiteIps}}" 
-                        event-name="save-ips"></multi-inputs>
-                </div>
-                
-                <div class="progress">
-                    <paper-progress id="ipProgress" indeterminate hidden$="[[!loadingIp]]"></paper-progress>
-                    <paper-progress id="ipprogresserror" class="progresserror" value="100" hidden$="[[!ipError]]"></paper-progress>
-                    <hr class="appform"/>
-                    <p id="iprprogressmessage" class="errormsg-container" hidden$="[[!ipError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="iperrormsg"></span></p>
-                </div>
-
-                <div class="bottom-actions clearfix xs12">
-                    <paper-button class="pull-right" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
-                    <paper-button class="pull-right" on-tap="addCurrentIP" hidden$="[[!showAddCurrent]]">Add your current IP: [[user.current_ip]]</paper-button>
-
-                    <iron-ajax id="ipsRequest"
-                        url="/api/v1/users/whitelist"
-                        method="POST"
-                        handle-as="xml"
-                        loading="{{loadingIp}}"
-                        on-response="handleIpResponse"
-                        on-error="handleIpError"></iron-ajax>
-
-                </div>
-            </div>
-        </paper-material>
-        <paper-material class="separator">
             <div class="grid-row" hidden$="[[!org.is_owner]]">
                 <div class="xs12 head">
                     <h2 class="title">Organisation Profile</h2>
@@ -291,10 +254,6 @@
                     orgAlertEmails: {
                         type: String,
                     },
-                    ipsFormReady: {
-                        type: Boolean,
-                        value: false
-                    },
                     userFormReady: {
                         type: Boolean,
                         computed: '_computeUserFormReady(firstName, lastName, loadingUser, user)'
@@ -319,32 +278,15 @@
                         type: Boolean,
                         value: false
                     },
-                    loadingIp: {
-                        type: Boolean,
-                        value: false
-                    },
-                    ipError: {
-                        type: Boolean,
-                        value: false
-                    },
                     orgAvatar: {
                         type: String,
                         value: ''
                     },
-                    customLogo: false,
-                    whiteIps: {
-                        type: Array
-                    },
-                    showAddCurrent: {
-                        type: Boolean,
-                        value: false
-                    }
+                    customLogo: false                    
                 },
                 observers: [
                     '_userUpdated(user)',
-                    '_orgUpdated(org)',
-                    '_showAddCurrent(whiteIps.length, user.current_ip)',
-                    '_computIpFormReady(user, whiteIps, whiteIps.length)'
+                    '_orgUpdated(org)'
                 ],
 
                 attached: function() {
@@ -359,37 +301,7 @@
                     });
                 },
 
-                _saveWhitelist: function(e){
-                    console.log('save Whitelist')
-                    // TODO save ips
-                    var payload = {
-                        ips: this.whiteIps.filter(function(p){return p.cidr && p.cidr.trim() != ''})
-                    };
-
-                    this.$.ipsRequest.headers["Content-Type"] = 'application/json';
-                    this.$.ipsRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.ipsRequest.body = payload;
-                    console.log('_saveWhitelist',payload)
-                    this.$.ipsRequest.generateRequest();
-                },
-
-                addCurrentIP: function(e){
-                    this.push('whiteIps', {cidr: this.user.current_ip, description: "Current ip"});
-                },
-
-                _showAddCurrent: function(ips, currentIp){
-                    if (this.whiteIps && this.whiteIps.length)
-                        var isInArray = this.whiteIps.find(function(p){ return p.cidr == currentIp+'/32'});
-                    this.set('showAddCurrent', isInArray ? false : true);
-                },
-
                 _userUpdated: function(user) {
-                    // TODO set user.ips
-                    //test code
-                    // this.set("user.current_ip",'1.1.1.1');
-                    // this.whiteIps = user.ips || [{cidr:'2.2.2.2', description:''},{cidr:'3.3.3.3', description:''}];
-                    
-                    this.whiteIps = user.ips.slice(0) || [];
                     this.firstName = user.first_name;
                     this.lastName = user.last_name;
                 },
@@ -411,29 +323,6 @@
                     xhr.send();
                     this.orgAvatar = '';
                     this.$.orgAvatarUpload.files = [];
-                },
-
-                _computIpFormReady: function(user, whitelist, length){
-                    // TODO: set || []
-                    // return true
-                    var bool = false;
-
-                    var currentUserIps = this.user.ips.slice(0) || [],
-                        formIps = this.whiteIps;
-
-                    if (currentUserIps.length != formIps.length){
-                        bool = true;
-                    }
-                    else {
-                        // check if there are changes
-                        for (var i = 0; i < formIps.length; i++) {
-                            if (formIps[i].cidr != currentUserIps[i].cidr || formIps[i].description != currentUserIps[i].description )
-                                bool = true;
-                                break;
-                        }
-                    }
-                    // return false;
-                    this.set('ipsFormReady', bool);
                 },
 
                 _computeUserFormReady: function(firstName, lastName, loading, user) {
@@ -507,14 +396,7 @@
                 _handleOrgAjaxError: function(e) {
                     this.set('orgError', true);
                     this.$.orgerrormsg.textContent = e.detail.request.xhr.responseText;
-                },
-                handleIpResponse: function() {
-                    this.fire('toast',{msg:"IPs saved succesfully!",duration:3000});
-                },
-                handleIpError: function(e) {
-                    this.set('ipError', true);
-                    this.$.iperrormsg.textContent = e.detail.request.xhr.responseText;
-                },
+                }
             });
         })();
     </script>

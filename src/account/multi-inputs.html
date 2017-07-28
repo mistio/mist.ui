@@ -27,8 +27,8 @@
         </template>
         <template is="dom-repeat" items="[[inputsArray]]">
             <div class="input">
-                <paper-input label="[[inputLabel]]" value="[[calculateValue(item)]]"></paper-input> 
-                <paper-input label="description" value="[[item.description]]" hidden$="[[!withDescription]]"></paper-input> 
+                <paper-input label="[[inputLabel]]" value="{{item.cidr}}"></paper-input> 
+                <paper-input label="description" value="{{item.description}}" hidden$="[[!withDescription]]"></paper-input> 
                 <div class="remove"><paper-button data-index="[[index]]" on-tap="removeInput"><iron-icon icon="clear"></iron-icon>remove</paper-button></div>
             </div>
         </template>
@@ -44,7 +44,6 @@
             properties: {
                 inputsArray: {
                     type: Array,
-                    value: function(){ return []},
                     notify: true
                 },
                 inputLabel: String,
@@ -62,8 +61,14 @@
             listeners: {
                 'confirmation': '_confirmRemove',
             },
-            calculateValue: function(item){
-                return item[this.inputLabel];
+            observers:[
+                'inputsArrayChanged(inputsArray)'
+            ],
+            // calculateValue: function(item){
+            //     return item[this.inputLabel];
+            // },
+            inputsArrayChanged: function(inputsArray){
+                console.log('inputsArray',inputsArray);
             },
             addInput: function(e){
                 var obj = {};

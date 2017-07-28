@@ -8,6 +8,7 @@
 <link rel="import" href="account/subscriptions-list.html">
 <link rel="import" href="account/sessions-list.html">
 <link rel="import" href="account/tokens-list.html">
+<link rel="import" href="account/whitelisted-ips.html">
 
 <script src='../bower_components/moment/min/moment.min.js'></script>
 
@@ -39,8 +40,9 @@
                 <paper-tab id="Profile" data-route="0">Profile</paper-tab>
                 <paper-tab id="Password" data-route="1">Password</paper-tab>
                 <paper-tab id="Billing" data-route="2" hidden$="[[!_showBilling(org.is_owner, billing)]]">Billing</paper-tab>
-                <paper-tab id="Active Sessions" data-route="3">Active Sessions</paper-tab>
-                <paper-tab id="API Tokens" data-route="4">API Tokens</paper-tab>
+                <paper-tab id="Active-Sessions" data-route="3">Active Sessions</paper-tab>
+                <paper-tab id="API-Tokens" data-route="4">API Tokens</paper-tab>
+                <paper-tab id="Whitelisted-IPs" data-route="5">Whitelisted IPs</paper-tab>
                 <paper-tab data-route="5" hidden$="[[!org.is_owner]]">Subscription History</paper-tab>
             </paper-tabs>
 
@@ -50,7 +52,8 @@
                 <plans-list is-over-using="[[isOverUsing]]" org="[[org]]" user="[[user]]" data-route="2" hidden$="[[!org.is_owner]]"></plans-list>
                 <sessions-list org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
                 <tokens-list org="[[org]]" user="[[user]]" data-route="4"></tokens-list>
-                <subscriptions-list org="[[org]]" data-route="5" hidden$="[[!org.is_owner]]"></subscriptions-list>
+                <whitelisted-ips user="[[user]]" data-route="5"></whitelisted-ips>
+                <subscriptions-list org="[[org]]" data-route="6" hidden$="[[!org.is_owner]]"></subscriptions-list>
             </iron-pages>
 
         </div>
@@ -75,6 +78,9 @@
             // console.log(document.querySelector("app-location").queryParams);
             if (document.querySelector("app-location").queryParams["plans"] == "true") {
                 this.set("selected", 2);
+            }
+            else if (document.querySelector("app-location").queryParams["ips"] == "true") {
+                this.set("selected", 5);
             }
         },
         _showBilling: function(is_owner, has_billing) {
