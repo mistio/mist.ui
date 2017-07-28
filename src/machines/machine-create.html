@@ -381,8 +381,11 @@
                         }
 
                         // if solusvm and type chosen
-                        if (this.model.clouds[this.selectedCloud].provider == "solusvm" && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'solusvm_vttype') {
-                            this._updateFieldsForSolusVm(this.selectedCloud, changeRecord.value);
+                        if (this.model.clouds[this.selectedCloud].provider == "solusvm" && changeRecord.path.endsWith('value')) {
+                            if (this.get(changeRecord.path.replace('.value','')).name == 'solusvm_vttype')
+                                this._updateFieldsForSolusVm(this.selectedCloud, changeRecord.value);
+                            if (this.get(changeRecord.path.replace('.value','')).name.startsWith('solusvm_ipv'))
+                                this._excludedIPV(this.get(changeRecord.path.replace('.value','')).name, changeRecord.value);
                         }
 
                         // if is gce/linode and image changed, include image extar in payload
@@ -578,6 +581,18 @@
                     this.set('machineFields.'+ script +'.notice', "Requires public IP or tunnel.");
                     this.set('machineFields.'+ monitoring +'.notice', "Requires public IP or tunnel.");
 
+                },
+
+                _excludedIPV: function(name, value){
+                    var ipv4 = this._fieldIndexByName("solusvm_ipv4");
+                    var ipv6 = this._fieldIndexByName("solusvm_ipv6");
+
+                    if (name == 'solusvm_ipv4' && this.get('machineFields.'+ipv4+'.value') == this.get('machineFields.'+ipv6+'.value')){
+                        this.set('machineFields.'+ipv6+'.value', !this.get('machineFields.'+ipv4+'.value'))
+                    }
+                    else if (name == 'solusvm_ipv6' && this.get('machineFields.'+ipv4+'.value') == this.get('machineFields.'+ipv6+'.value')){
+                        this.set('machineFields.'+ipv4+'.value', !this.get('machineFields.'+ipv6+'.value'))
+                    }
                 },
 
                 _mapPortsToDockerPorts: function(input){

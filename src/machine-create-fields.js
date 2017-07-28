@@ -357,6 +357,92 @@ MACHINE_CREATE_FIELDS.push({
             fieldValues: ['openvz']
         }
     },{
+        name: "size_disk_primary",
+        label: "Disk Space GB",
+        type: "slider",
+        value: 1,
+        defaultValue: 1,
+        min: 1,
+        max: 1000,
+        step: 1,
+        show: true,
+        required: false,
+        unit: "GB",
+        helptext: "Disk Space, size in GB.",
+        showIf: {
+            fieldName: "solusvm_vttype",
+            fieldValues: ['openvz']
+        }
+    },{
+        name: "size_ram",
+        label: "Memory MB",
+        type: "slider",
+        value: 32,
+        defaultValue: 32,
+        min: 32,
+        max: 50000,
+        step: 1,
+        show: true,
+        required: false,
+        unit: "MB",
+        helptext: "Memory in MB.",
+        showIf: {
+            fieldName: "solusvm_vttype",
+            fieldValues: ['openvz']
+        }
+    },{
+        name: "size_swap",
+        label: "Burst/Vswap",
+        type: "slider",
+        value: 32,
+        defaultValue: 32,
+        min: 32,
+        max: 25000,
+        step: 1,
+        show: true,
+        required: false,
+        unit: "MB",
+        helptext: "Burst/Vswap size in MB.",
+        showIf: {
+            fieldName: "solusvm_vttype",
+            fieldValues: ['openvz']
+        }
+    },{
+        name: "solusvm_ipv4",
+        label: "IPV4",
+        type: "toggle",
+        value: true,
+        defaultValue: true,
+        helptext: "IPV4 (Default)",
+        show: true,
+        required: false
+    },{
+        name: "solusvm_ipv6",
+        label: "IPV6",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        helptext: "IPV6",
+        show: true,
+        required: false
+    },{
+        name: "solusvm_bandwidth",
+        label: "Bandwidth",
+        type: "slider",
+        value: 1,
+        defaultValue: 1,
+        min: 1,
+        max: 1000,
+        step: 1,
+        show: true,
+        required: false,
+        unit: "GB",
+        helptext: "Bandwidth in GB.",
+        showIf: {
+            fieldName: "solusvm_vttype",
+            fieldValues: ['openvz']
+        }
+    },{
         name: "size",
         type: "text",
         value: "",
