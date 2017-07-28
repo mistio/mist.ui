@@ -159,15 +159,13 @@
                         }
                     },
                     notifications: function (data) {
-                        console.log('Loaded notifications list');
                         that.debounce(that._updateNotifications(data), function () {
                             console.debug('Loaded notifications list data');
                         }, 250);
                     },
-                    notification: function (data) {
-                        console.log('Received notification');
-                        that.debounce(that._addNotification(data), function () {
-                            console.debug('Loaded notification');
+                    patch_notifications: function (data) {
+                        that.debounce(that._patchNotifications(data), function () {
+                            console.debug('Applied notifications patch');
                         }, 250);
                     }
                 },
@@ -884,12 +882,16 @@
 
         },
 
-        _addNotification: function(data) {
-            json_data = JSON.parse(data);
-            this.unshift('model.notificationsArray', json_data);
-            if (json_data.source == "notification") {
-                this.fire('toast', {msg:json_data.summary ,duration:3000} );
+        _patchNotifications: function(data) {
+            var patch = JSON.parse(data);
+            var _this = this;
+
+            patch.forEach(function(operation){
+                // apply patch to the model
+                jsonpatch.applyOperation(_this.model.notificationsArray, operation, true);
             }
+            });
+            //TODO: Display toast
         },
 
         _probe: function (data) {
