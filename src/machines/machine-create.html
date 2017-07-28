@@ -245,15 +245,16 @@
                     this.set('machineFields', []);
 
                     if (this.selectedCloud){
+                        var machineFields;
                         var cloudName =  this.model.clouds[selectedCloud].provider.split('_')[0];
-                        var machineFields = this.machinesFields.find(function(c){
+                        machineFields = this.machinesFields.find(function(c){
                             return c.provider == cloudName;
                         });
                     }
                     else {
                         machineFields = []
                     }
-                    this.set('machineFields', []);
+
                     this.set('machineFields', machineFields.fields || []);
                     this._updateFields(selectedCloud);
                 },
@@ -291,13 +292,19 @@
 
                         this.machineFields.forEach(function(f, index) {
                             // clear options
-                            if (f.options)
+                            if (f.type != 'radio' && f.type != 'dropdown' && f.options)
                                 f.options = []
+
+                            if (f.name == "solusvm_vttype") {
+                                f.options = this.model.clouds[selectedCloud].sizesArray.map(function(s){
+                                    return {title: s.name, val: s.id}
+                                });
+                            }
 
                             if (f.name.endsWith("location")) {
                                 f.options = this.model.clouds[cloudId].locationsArray || [];
                             }
-                            if (f.name.endsWith("image")) {
+                            if (f.name.endsWith("image") && this.model.clouds[cloudId].provider != 'solusvm') {
                                 f.options = this.model.clouds[cloudId].imagesArray ? this.model.clouds[cloudId].imagesArray.sort(function(ima, imb){
                                     if (ima.star){
                                         return -1;
@@ -371,6 +378,11 @@
                             // TODO: remove _mapPortsToDockerPorts, when backend is ready to accept docker_port_bindings as string
                             // Then also, replace field ports with docker_port_bindings as a textarea and remove docker_exposed_ports and ports altogether in machine-create-fields.js
                             this._mapPortsToDockerPorts(changeRecord.value);
+                        }
+
+                        // if solusvm and type chosen
+                        if (this.model.clouds[this.selectedCloud].provider == "solusvm" && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'solusvm_vttype') {
+                            this._updateFieldsForSolusVm(this.selectedCloud, changeRecord.value);
                         }
 
                         // if is gce/linode and image changed, include image extar in payload
@@ -520,6 +532,47 @@
                             }
                         }
                     }
+                },
+
+                _updateFieldsForSolusVm: function(selectedCloud, selectedSize){
+                    var type = this.model.clouds[selectedCloud].sizes[selectedSize];
+                    console.log('_updateFieldsForSolusVm', type.extra);
+                    if (type && type.extra) {
+                        // Node Group: solusvm_node_group  size.extra.grouplist
+                        var groupOptions = type.extra.grouplist.map(function(s){
+                                            return {title: s.name, val: s.id}}),
+                            groupInd = this._fieldIndexByName("solusvm_node_group");
+                        this.set('machineFields.'+ groupInd +'.options', groupOptions);
+
+                        // User: solusvm_user_id size.extra.userlist
+                        var userOptions = type.extra.userlist.map(function(s){
+                                            return {title: s.username, val: s.id}}),
+                            userInd = this._fieldIndexByName("solusvm_user_id");
+                        this.set('machineFields.'+ userInd +'.options', userOptions);
+
+                        // OS: templatelist image
+                        var templateOptions = type.extra.templatelist.map(function(s){
+                                            return {title: s.friendlyname, val: s.templateid}}),
+                            templateInd = this._fieldIndexByName("image");
+                        this.set('machineFields.'+ templateInd +'.options', templateOptions);
+                    }
+
+                    // Disk Space 1GB -1000GB size_disk_primary
+
+                    // Memory 32MB mexri 50G size_ram
+
+                    // Burst/Vswap 32MB mexri 25G size_swap
+
+                    // IPV4: stelneis 1-0, 1 default, solusvm_ipv4
+
+                    // IPV6: stelneis 1-0, 0 default, solusvm_ipv6
+
+                    // Bandwidth: solusvm_bandwidth
+
+                    // size to size.id
+                    var sizeInd = this._fieldIndexByName("size");
+                    this.set('machineFields.'+ sizeInd +'.options', selectedSize);
+
                 },
 
                 _mapPortsToDockerPorts: function(input){
@@ -765,7 +818,7 @@
                 _computeProviders: function(model, clouds){
                     //exclude bare metals and other from provider dropdown list
                     return this.model.cloudsArray.filter(function(c){
-                        return  ["bare_metal", "vsphere", "azure_arm", "solusvm"].indexOf(c.provider) == -1;
+                        return  ["bare_metal", "vsphere", "azure_arm"].indexOf(c.provider) == -1;
                     });
                 },
                 addInput: function(e){
