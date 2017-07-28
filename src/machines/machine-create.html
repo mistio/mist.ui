@@ -536,8 +536,7 @@
 
                 _updateFieldsForSolusVm: function(selectedCloud, selectedSize){
                     var type = this.model.clouds[selectedCloud].sizes[selectedSize];
-                    console.log('_updateFieldsForSolusVm', type.extra);
-                    if (type && type.extra) {
+                    if (type && type.extra != undefined) {
                         // Node Group: solusvm_node_group  size.extra.grouplist
                         var groupOptions = type.extra.grouplist.map(function(s){
                                             return {title: s.name, val: s.id}}),
@@ -572,6 +571,12 @@
                     // size to size.id
                     var sizeInd = this._fieldIndexByName("size");
                     this.set('machineFields.'+ sizeInd +'.options', selectedSize);
+
+                    // notice for public ip
+                    var script = this._fieldIndexByName("post_provision_script");
+                    var monitoring = this._fieldIndexByName("monitoring");
+                    this.set('machineFields.'+ script +'.notice', "Requires public IP or tunnel.");
+                    this.set('machineFields.'+ monitoring +'.notice', "Requires public IP or tunnel.");
 
                 },
 
