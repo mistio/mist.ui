@@ -295,12 +295,81 @@ MACHINE_CREATE_FIELDS.push({
 // SOLUSVM
 MACHINE_CREATE_FIELDS.push({
     provider: 'solusvm',
-    fields: []
+    fields: [{
+        name: "name",
+        label: "Machine Name *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: "Fill in the machine's name"
+    }, {
+        name: "solusvm_vttype",
+        label: "Virtualization Type *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        options: [],
+        show: true,
+        required: true,
+        helptext: "Choose virtualization type"
+    }, {
+        name: "solusvm_node_group",
+        label: "Node Group *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        options: [],
+        show: true,
+        required: true,
+        helptext: "Choose group",
+        showIf: {
+            fieldName: "solusvm_vttype",
+            fieldValues: ['openvz']
+        }
+    }, {
+        name: "solusvm_user_id",
+        label: "User *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        options: [],
+        show: true,
+        required: true,
+        helptext: "Choose user",
+        showIf: {
+            fieldName: "solusvm_vttype",
+            fieldValues: ['openvz']
+        }
+    },{
+        name: "image",
+        label: "Image *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        options: [],
+        show: true,
+        required: true,
+        helptext: "Choose image",
+        showIf: {
+            fieldName: "solusvm_vttype",
+            fieldValues: ['openvz']
+        }
+    },{
+        name: "size",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: true
+    }]
 });
 
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function (p) {
     //add common machine properties fields
+if (['solusvm'].indexOf(p.provider) == -1) {
     p.fields.splice(0, 0, {
         name: "name",
         label: "Machine Name *",
@@ -408,6 +477,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             fieldValues: ["custom"]
         }
     });
+}
 
     if (['onapp'].indexOf(p.provider) != -1) {
         p.fields.push({
@@ -500,16 +570,18 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         });
     }
 
-    p.fields.push({
-        name: "key",
-        label: "Key *",
-        type: "ssh_key",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        options: []
-    });
+    if (['solusvm'].indexOf(p.provider) == -1) { 
+        p.fields.push({
+            name: "key",
+            label: "Key *",
+            type: "ssh_key",
+            value: "",
+            defaultValue: "",
+            show: true,
+            required: true,
+            options: []
+        });
+    }
 
     //add cloud init field only to providers that accept and we support
     if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt'].indexOf(p.provider) != -1) {
@@ -825,7 +897,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         }
     });
 
-    if (['onapp'].indexOf(p.provider) == -1) {
+    if (['solusvm', 'onapp'].indexOf(p.provider) == -1) {
         p.fields.push({
             name: "create_hostname_machine",
             label: "Create Hostname",
