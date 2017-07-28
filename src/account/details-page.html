@@ -184,7 +184,7 @@
 
                     <iron-ajax id="ipsRequest"
                         url="/api/v1/users/whitelist"
-                        method="PUT"
+                        method="POST"
                         handle-as="xml"
                         loading="{{loadingIp}}"
                         on-response="handleIpResponse"
@@ -293,7 +293,7 @@
                     },
                     ipsFormReady: {
                         type: Boolean,
-                        computed: '_computIpFormReady(user, whiteIps, whiteIps.length)'
+                        value: false
                     },
                     userFormReady: {
                         type: Boolean,
@@ -343,7 +343,8 @@
                 observers: [
                     '_userUpdated(user)',
                     '_orgUpdated(org)',
-                    '_showAddCurrent(whiteIps.length, user.current_ip)'
+                    '_showAddCurrent(whiteIps.length, user.current_ip)',
+                    '_computIpFormReady(user, whiteIps, whiteIps.length)'
                 ],
 
                 attached: function() {
@@ -378,7 +379,7 @@
 
                 _showAddCurrent: function(ips, currentIp){
                     if (this.whiteIps && this.whiteIps.length)
-                        var isInArray = this.whiteIps.find(function(p){ return p.cidr == currentIp});
+                        var isInArray = this.whiteIps.find(function(p){ return p.cidr == currentIp+'/32'});
                     this.set('showAddCurrent', isInArray ? false : true);
                 },
 
@@ -412,21 +413,27 @@
                     this.$.orgAvatarUpload.files = [];
                 },
 
-                _computIpFormReady: function(user){
+                _computIpFormReady: function(user, whitelist, length){
                     // TODO: set || []
-                    var currentUserIps = this.user.ips || [],
-                        formIps = this.whiteIps ? this.whiteIps.filter(function(p){return p.cidr && p.cidr.trim() != ''}) : [];
+                    // return true
+                    var bool = false;
 
-                    if (currentUserIps.length != formIps.length)
-                        return true;
+                    var currentUserIps = this.user.ips.slice(0) || [],
+                        formIps = this.whiteIps;
+
+                    if (currentUserIps.length != formIps.length){
+                        bool = true;
+                    }
                     else {
                         // check if there are changes
                         for (var i = 0; i < formIps.length; i++) {
                             if (formIps[i].cidr != currentUserIps[i].cidr || formIps[i].description != currentUserIps[i].description )
-                                return true
+                                bool = true;
+                                break;
                         }
                     }
-                    return false;
+                    // return false;
+                    this.set('ipsFormReady', bool);
                 },
 
                 _computeUserFormReady: function(firstName, lastName, loading, user) {
