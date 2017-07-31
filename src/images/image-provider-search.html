@@ -1,0 +1,184 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="image-provider-search">
+  <template>
+    <style include="shared-styles dialogs forms">
+      :host {
+        display: inline;
+        color: rgba(255,255,255,0.87);
+      }
+      paper-checkbox {
+          --paper-checkbox-checked-color: var(--mist-blue) !important;
+          --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+      }
+      .no-clouds {
+        font-style: italic;
+      }
+      .btn-group {
+        display: flex;
+        justify-content: flex-end;
+        margin: 24px 0;
+      }
+      .progress {
+        margin: 14px -24px 0 -24px;
+        width: 100%;
+      }
+      .progress paper-progress {
+        width: 100%;
+      }
+      paper-progress.progresserror ::content #primaryProgress {
+        background-color: var(--red-color);
+      }
+      .error {
+        color: var(--red-color);
+        align-self: flex-end;
+        padding: 8px;
+        font-size: 0.9em;
+      }
+      iron-icon {
+        color: inherit;
+      }
+      .errormsg-container {
+        color: var(--red-color);
+        padding-left: 24px;
+        padding-right: 24px;
+        margin-bottom: 0;
+      }
+      .errormsg-container iron-icon {
+        color: inherit;
+      }
+      .checkboxes {
+        margin: 24px 0;
+      }
+    </style>
+    
+    <paper-dialog id="providerSearch" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+      <h2>Search and Import Images</h2>
+      <paper-dialog-scrollable>
+          <paper-input value="{{queryTerm}}" label="search term"></paper-input>
+          <div class="checkboxes">
+            <p hidden$="[[!clouds]]">Search in </p>
+            <template is="dom-repeat" items="[[clouds]]">
+              <paper-checkbox name="searchableClouds" data-value="[[item.id]]">[[item.title]]</paper-checkbox><br/>
+            </template>
+          </div>
+          <p class="no-clouds" hidden$="[[clouds.length]]">No clouds found.</p>
+          <p class="sup">Image search is supported in EC2 and Docker providers.</p>
+      </paper-dialog-scrollable>
+
+      <div class="progress">
+          <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
+          <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+          <hr class="appform"/>
+          <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+      </div>
+
+      <div class="btn-group">
+          <paper-button dialog-dismiss>Cancel</paper-button>
+          <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Submit</paper-button>
+      </div>
+    </paper-dialog>
+
+    <iron-ajax id="request"
+            handle-as="xml"
+            method="GET"
+            loading="{{loading}}"
+            on-response="handleResponse"
+            on-error="handleError"></iron-ajax>
+
+  </template>
+  <script>
+    Polymer({ 
+      is: 'image-provider-search',
+      properties: {
+        queryTerm: { 
+          type: String
+        },
+        clouds: {
+          type: Array
+        },
+        formReady: {
+          type: Boolean,
+          value: false
+        },
+        loading: {
+          type: Boolean,
+          value: false
+        },
+        formError: {
+          type: Boolean,
+          value: false
+        },
+        selectedClouds: {
+          type: Array
+        }
+      },
+      observers:[
+        'updateFormError(queryTerm, selectedClouds, loading)',
+        'queryTermChanged(queryTerm)'
+      ],
+      listeners: {
+        'change': 'toggleSelection'
+      },
+      attached: function() {
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
+      },
+      _openDialog: function() {
+        this.$.providerSearch.open();
+      },
+      updateFormError(queryTerm, selectedClouds, loading){
+        this.set('formReady', this.queryTerm.length && this.selectedClouds.length && !this.loading);
+      },
+      handleResponse: function(e) {
+        this.$.providerSearch.close();
+        var newImages = JSON.parse(e.detail.xhr.response);
+        console.log('handleResponse',e, newImages);
+        if (newImages.length) 
+          this.fire('toast',{msg: newImages.length+' new images. Updating..', duration: 3000})
+        else
+          this.fire('toast',{msg: 'No new images found.', duration: 3000})
+        this.fire('clear-search-on-nav');
+      },
+      queryTermChanged: function(queryTerm){
+        this.set('formError', false);
+      },
+      toggleSelection: function(e){
+        if (e.target.tagName == "PAPER-CHECKBOX")
+          this._updateSelectedClouds();
+      },
+      _updateSelectedClouds: function() {
+        var checkboxes = this.querySelectorAll('paper-checkbox[name="searchableClouds"]'); // get checkboxes
+        var arr = [];
+        checkboxes.forEach(function(c){
+            if (c.checked)
+                arr.push(c.dataValue);
+        })
+        this.set('selectedClouds', arr);
+      },
+      handleError: function(e) {
+        this.set('formError', true);
+        console.log('error',e)
+        this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+      },
+      _submitForm: function(){
+        var payload = {
+            'search_term': this.queryTerm
+        }
+        this.$.request.body = payload;
+        for (var i=0; i < this.selectedClouds.length; i++){
+            if (this.selectedClouds[i].length) {
+              this.$.request.url = "/api/v1/clouds/"+ this.selectedClouds[i] +"/images";
+              this.$.request.generateRequest();
+            }
+        }
+      }
+    });
+  </script>
+</dom-module>

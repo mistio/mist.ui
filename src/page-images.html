@@ -4,6 +4,7 @@
 
 <link rel="import" href="images/image-page.html">
 <link rel="import" href="images/image-actions.html">
+<link rel="import" href="images/image-provider-search.html">
 
 <link rel="import" href="mist-actions.html">
 
@@ -36,6 +37,7 @@
       <div class="absolute-bottom-right">
           <paper-fab id="imageAdd" icon="search" on-tap="_addResource"></paper-fab>
       </div>
+      <image-provider-search clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
     </template>
 
     <image-page model="[[model]]" image$="[[_getImage(data.image, model.images)]]" section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]>
@@ -66,6 +68,7 @@
       _addResource: function(e) {
           // document.querySelector('app-location').set('path', this.model.sections.images.add)
           //maybe a dialog to search images in providers
+          this.querySelector('image-provider-search')._openDialog();
       },
       _getFrozenLogColumn: function(){
           return ['name'];
@@ -105,6 +108,11 @@
                   }
               }
           }
+      },
+      searchableClouds: function(clouds){
+        return clouds.filter(function(c){
+          return ['ec2','docker'].indexOf(c.provider) > -1;
+        });
       },
       sortedImages: function(images){
           return this.model.imagesArray.sort(function(a, b){
