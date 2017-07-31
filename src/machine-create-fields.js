@@ -326,7 +326,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: "Choose group",
         showIf: {
             fieldName: "solusvm_vttype",
-            fieldValues: ['openvz']
+            fieldValues: ['openvz', 'kvm' ]
         }
     }, {
         name: "solusvm_user_id",
@@ -340,7 +340,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: "Choose user",
         showIf: {
             fieldName: "solusvm_vttype",
-            fieldValues: ['openvz']
+            fieldValues: ['openvz', 'kvm' ]
         }
     },{
         name: "image",
@@ -354,7 +354,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: "Choose image",
         showIf: {
             fieldName: "solusvm_vttype",
-            fieldValues: ['openvz']
+            fieldValues: ['openvz', 'kvm' ]
         }
     },{
         name: "size_disk_primary",
@@ -371,7 +371,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: "Disk Space, size in GB.",
         showIf: {
             fieldName: "solusvm_vttype",
-            fieldValues: ['openvz']
+            fieldValues: ['openvz', 'kvm' ]
         }
     },{
         name: "size_ram",
@@ -388,7 +388,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: "Memory in MB.",
         showIf: {
             fieldName: "solusvm_vttype",
-            fieldValues: ['openvz']
+            fieldValues: ['openvz', 'kvm' ]
         }
     },{
         name: "size_swap",
@@ -405,7 +405,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: "Burst/Vswap size in MB.",
         showIf: {
             fieldName: "solusvm_vttype",
-            fieldValues: ['openvz']
+            fieldValues: ['openvz', 'kvm' ]
         }
     },{
         name: "solusvm_ipv4",
@@ -440,7 +440,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: "Bandwidth in GB.",
         showIf: {
             fieldName: "solusvm_vttype",
-            fieldValues: ['openvz']
+            fieldValues: ['openvz', 'kvm' ]
         }
     },{
         name: "size",
