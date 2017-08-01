@@ -63,25 +63,12 @@
       ::-webkit-search-cancel-button {
         display: none;
       }
-      paper-button.search-on-providers {
-        background-color: #424242;
-        color: rgba(255,255,255,0.87);
-        padding: 4px 6px;
-        font-size: .75em;
-        border-radius: 4px;
-        margin-right: 4px;
-        cursor: pointer;
-        text-transform: none;
-      }
     </style>
     <div id="search" class="horizontal layout center">
       <iron-icon icon="search"></iron-icon>
       <form on-submit="performSearch" class="flex">
           <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
       </form>
-      <paper-button class="search-on-providers" on-tap="searchOnProviders" hidden$="[[!showImageSearch]]">
-        Search more provider images
-      </paper-button>
       <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!query.length]]"></iron-icon>
     </div>
     <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]"></search-suggestions>
@@ -100,17 +87,12 @@
         type: Object,
         notify: true
       },
-      showImageSearch: {
-        type: Boolean,
-        value: false
-      },
       viewingList: Boolean,
       page: String
     },
 
     observers: [
-      '_queryChanged(query)',
-      'updateShowImageSearch(page, query, viewingList)'
+      '_queryChanged(query)'
     ],
 
     listeners: {
@@ -119,9 +101,6 @@
 
     performSearch: function(e) {
       e.preventDefault();
-    },
-    updateShowImageSearch: function(page, query, viewingList){
-      this.set('showImageSearch', this.page == 'images' && this.query && this.query.length && this.viewingList);
     },
     _queryChanged: function(q) {
       if (q && q.length) {
@@ -149,9 +128,6 @@
             this.set('query', '');
             this.set('query', a);
         }
-    },
-    searchOnProviders: function(){
-      document.querySelector('image-provider-search')._openDialog();
     }
   });
   </script>
