@@ -157,6 +157,9 @@
         mist-list::content .state.shorteco.longeco:after {
             box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
         }
+        h2[slot="header"] {
+            margin: 8px;
+        }
     </style>
 
     <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
@@ -179,12 +182,15 @@
             items="[[sortedMachines(model.machinesArray)]]"
             name="Machines"
             selected-items="{{selectedItems}}"
+            filtered-items="{{filteredItems}}"
+            combined-filter={{combinedFilter}}
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
             renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
             route={{route}}
             user-filter=[[model.sections.machines.q]]
             primary-field-name="id">
+            <h2 slot="header">[[filteredItems.length]] [[combinedFilter]] Machines </h2>
             <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
             <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
             <p slot="no-items-found">No machines found.</p>
@@ -248,7 +254,9 @@
                 actions: {
                     type: Array,
                     notify: true
-                }
+                },
+                filteredItems: Array,
+                combinedFilter: String
             },
             listeners: {
                 'open-recommendation-dialog': 'openRecommendationsDialog',
