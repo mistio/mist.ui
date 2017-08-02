@@ -61,14 +61,14 @@
       <h2>Search and Import Images</h2>
       <paper-dialog-scrollable>
           <paper-input value="{{queryTerm}}" label="search term"></paper-input>
-          <div class="checkboxes">
+          <!-- <div class="checkboxes">
             <p hidden$="[[!clouds]]">Search in </p>
             <template is="dom-repeat" items="[[clouds]]">
               <paper-checkbox name="searchableClouds" data-value="[[item.id]]">[[item.title]]</paper-checkbox><br/>
             </template>
-          </div>
+          </div> -->
           <p class="no-clouds" hidden$="[[clouds.length]]">No clouds found.</p>
-          <p class="sup">Image search is supported in EC2 and Docker providers.</p>
+          <p class="sup">Image search is supported in EC2 and Docker clouds.</p>
       </paper-dialog-scrollable>
 
       <div class="progress">
@@ -104,7 +104,7 @@
         },
         formReady: {
           type: Boolean,
-          value: false
+          value: true
         },
         loading: {
           type: Boolean,
@@ -116,10 +116,14 @@
         },
         selectedClouds: {
           type: Array
+        },
+        activeSearchIndex: {
+          type: Number,
+          value: 0
         }
       },
       observers:[
-        'updateFormError(queryTerm, selectedClouds, loading)',
+        'updateFormReady(queryTerm, selectedClouds, loading)',
         'queryTermChanged(queryTerm)'
       ],
       listeners: {
@@ -133,20 +137,31 @@
       _openDialog: function() {
         this.$.providerSearch.open();
       },
-      updateFormError(queryTerm, selectedClouds, loading){
+      updateFormReady(queryTerm, selectedClouds, loading){
         this.set('formReady', this.queryTerm.length && this.selectedClouds.length && !this.loading);
+
       },
       handleResponse: function(e) {
         this.$.providerSearch.close();
         var newImages = JSON.parse(e.detail.xhr.response);
-        console.log('handleResponse',e, newImages);
+        console.log('handleResponse',e, newImages.length);
         if (newImages.length) {
-          this.fire('toast',{msg: newImages.length+' new images. Updating..', duration: 3000})
+          this.fire('toast',{msg: newImages.length+' new images in '+this.get('clouds.'+this.activeSearchIndex+'.title')+'. Updating..', duration: 3000})
           this.fire('add-new-images', {images: newImages});
         }
         else {
-          this.fire('toast',{msg: 'No new images found.', duration: 3000})
+          this.fire('toast',{msg: 'No new images found in '+this.get('clouds.'+this.activeSearchIndex+'.title'), duration: 3000})
         }
+        this.set('activeSearchIndex', this.activeSearchIndex+1);
+        this.nextSearch(this.activeSearchIndex);
+      },
+      handleError: function(e) {
+        this.set('formError', true);
+        console.log('handleError',e)
+        this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+
+        this.set('activeSearchIndex', this.activeSearchIndex+1);
+        this.nextSearch(this.activeSearchIndex);
       },
       queryTermChanged: function(queryTerm){
         this.set('formError', false);
@@ -164,21 +179,21 @@
         })
         this.set('selectedClouds', arr);
       },
-      handleError: function(e) {
-        this.set('formError', true);
-        console.log('error',e)
-        this.$.errormsg.textContent = e.detail.request.xhr.responseText;
-      },
-      _submitForm: function(){
+      _submitForm: function(e){
         var payload = {
             'search_term': this.queryTerm
         }
         this.$.request.body = payload;
-        for (var i=0; i < this.selectedClouds.length; i++){
-            if (this.selectedClouds[i].length) {
-              this.$.request.url = "/api/v1/clouds/"+ this.selectedClouds[i] +"/images";
-              this.$.request.generateRequest();
-            }
+        this.nextSearch(0);
+      },
+      nextSearch: function(index){
+        console.log('nextSearch', this.clouds.length, index)
+        if (this.clouds && this.clouds.length && index < this.clouds.length) {
+          this.$.request.url = "/api/v1/clouds/"+ this.get('clouds.'+index+'.id') +"/images";
+          this.$.request.generateRequest();
+        }
+        else {
+          this.set('activeSearchIndex', 0);
         }
       }
     });
