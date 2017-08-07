@@ -1,17 +1,44 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 
-<link rel="import" href="machines/machine-page.html">
-
-<link rel="import" href="page-items.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-incidents">
   <template>
-    <style>
-       :host {
+    <style include="shared-styles">
+      :host {
         display: block;
       }
+      .error {
+          color: #d96557;
+      }
+      h2[slot="header"] {
+          margin: 8px;
+      }
     </style>
-    <page-items class="incidents" model="[[model]]" items="[[model.incidentsArray]]" section="[[model.sections.incidents]]"></page-items>
+    <app-route route="{{route}}" data="{{data}}"></app-route>
+
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="incidentsList"
+            expands resizable column-menu multi-sort
+            items="[[model.incidentsArray]]"
+            name="Incidents"
+            selected-items="{{selectedItems}}"
+            filtered-items="{{filteredItems}}"
+            combined-filter={{combinedFilter}}
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.incidents,model.clouds,model.machines)]]
+            route={{route}}
+            primary-field="machine_id"
+            user-filter=[[model.sections.incidents.q]]>
+          <h2 slot="header">[[filteredItems.length]] [[combinedFilter]] Incidents </h2>
+          <mist-actions slot="action-buttons" actions="[[actions]]" type="incident" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+          <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></key-actions>
+          <p slot="no-items-found">Hooray! No Incidents found.</p>
+      </mist-list>
+    </template>
+
   </template>
 
   <script>
@@ -20,6 +47,60 @@
 
       properties: {
         model: Object
+      },
+      _isListActive: function (path) {
+        return !path;
+      },
+      _getFrozenLogColumn: function(){
+          return ['started_at'];
+      },
+
+      _getVisibleColumns: function(){
+          return ['machine_id','cloud_id', 'id', 'error'];
+      },
+
+      _getRenderers: function(incidents,clouds,machines) {
+          var _this = this;
+          return {
+              'started_at': {
+                  'body': function(item, row) {
+                      var active = '';
+                      if (!row.finished_at) {
+                        active = '<strong class="error"> - Active now </strong>'
+                      }
+                      return '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>' + active;
+                  }
+              },
+              'machine_id': {
+                  'title': function(item, row) {
+                    return 'machine';
+                  },
+                  'body': function(item, row) {
+                    return machines && clouds && clouds[row['cloud_id']] && clouds[row['cloud_id']].machines[row['machine_id']] ? clouds[row['cloud_id']].machines[row['machine_id']].name : item;
+                  }
+              },
+              'cloud_id': {
+                  'title': function(item, row) {
+                    return 'cloud';
+                  },
+                  'body': function(item, row) {
+                    return clouds && clouds[item] ? clouds[item].title : item;
+                  }
+              },
+              'error': {
+                  'body': function(item, row) {
+                    var classname = item ? 'error' : '';
+                    return '<span class="'+classname+'">'+item+'</span>';
+                  }
+              }
+          }
+      },
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('key-actions')) {
+            this.querySelector('key-actions').selectAction(e);
+          }
       }
     });
   </script>
