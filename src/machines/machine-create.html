@@ -296,7 +296,7 @@
                                 f.options = []
 
                             if (f.name == "solusvm_vttype") {
-                                f.options = this.model.clouds[selectedCloud].sizesArray.map(function(s){
+                                f.options = this.model.clouds[selectedCloud].locationsArray.map(function(s){
                                     return {title: s.name, val: s.id}
                                 });
                             }
@@ -535,16 +535,16 @@
                     }
                 },
 
-                _updateFieldsForSolusVm: function(selectedCloud, selectedSize){
-                    var type = this.model.clouds[selectedCloud].sizes[selectedSize];
+                _updateFieldsForSolusVm: function(selectedCloud, selectedLocation){
+                    var type = this.model.clouds[selectedCloud].locations[selectedLocation];
                     if (type && type.extra != undefined) {
-                        // Node Group: solusvm_node_group  size.extra.grouplist
+                        // Node Group: solusvm_node_group  location.extra.grouplist
                         var groupOptions = type.extra.grouplist.map(function(s){
                                             return {title: s.name, val: s.id}}),
                             groupInd = this._fieldIndexByName("solusvm_node_group");
                         this.set('machineFields.'+ groupInd +'.options', groupOptions);
 
-                        // User: solusvm_user_id size.extra.userlist
+                        // User: solusvm_user_id location.extra.userlist
                         var userOptions = type.extra.userlist.map(function(s){
                                             return {title: s.username, val: s.id}}),
                             userInd = this._fieldIndexByName("solusvm_user_id");
@@ -559,19 +559,19 @@
 
                     // Disk Space 1GB -1000GB size_disk_primary
 
-                    // Memory 32MB mexri 50G size_ram
+                    // Memory 32MB to 50G size_ram
 
-                    // Burst/Vswap 32MB mexri 25G size_swap
+                    // Burst/Vswap 32MB to 25G size_swap
 
-                    // IPV4: stelneis 1-0, 1 default, solusvm_ipv4
+                    // IPV4: default 1, solusvm_ipv4
 
-                    // IPV6: stelneis 1-0, 0 default, solusvm_ipv6
+                    // IPV6: default 0, solusvm_ipv6
 
                     // Bandwidth: solusvm_bandwidth
 
                     // size to size.id
                     var sizeInd = this._fieldIndexByName("size");
-                    this.set('machineFields.'+ sizeInd +'.options', selectedSize);
+                    this.set('machineFields.'+ sizeInd +'.options', selectedLocation);
 
                     // notice for public ip
                     var script = this._fieldIndexByName("post_provision_script");
