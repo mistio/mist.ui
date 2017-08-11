@@ -112,7 +112,8 @@
             </div>
         </paper-material>
 
-        </paper-material>
+        <dialog-element id="saveIps"></dialog-element>
+
     </template>
     <script>
         (function() {
@@ -151,21 +152,49 @@
                 observers: [
                     '_userUpdated(user)',
                     '_showAddCurrent(whiteIps.length, user.current_ip)',
-                    '_computIpFormReady(user, whiteIps, whiteIps.length)'
+                    '_computIpFormReady(user, whiteIps, whiteIps.length)',
+                    '_whitelistedIpsChanged(user.ips)'
                 ],
 
-                _saveWhitelist: function(e){
-                    console.log('save Whitelist')
-                    // TODO save ips
-                    var payload = {
-                        ips: this.whiteIps
-                    };
+                listeners: {
+                    'confirmation': '_proceedToSaveWhitelist',
+                },
 
-                    this.$.ipsRequest.headers["Content-Type"] = 'application/json';
-                    this.$.ipsRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.ipsRequest.body = payload;
-                    console.log('_saveWhitelist',payload)
-                    this.$.ipsRequest.generateRequest();
+                _saveWhitelist: function(e){
+                    var message = {
+                        title: 'Save Ips',
+                        body: "Save the whitelisted IPs.",
+                        reason: "proceed.saveips",
+                        action: "Save IPs",
+                        danger: false
+                    };
+                    if (this.showAddCurrent) {
+                        message.body = "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP you will be automaticaly logged out.";
+                        message.danger = true;
+                        message.action = "Save anyway";
+                    }
+                    this._showDialog(message);
+                },
+
+                _showDialog: function(info) {
+                    var dialog = this.querySelector('dialog-element#saveIps');
+                    for (var i in info) {
+                        dialog[i] = info[i];
+                    }
+                    dialog._openDialog();
+                },
+
+                _proceedToSaveWhitelist: function(e){
+                    console.log('_proceedToSaveWhitelist',e.detail);
+                    if (e.detail.response.confirmed && e.detail.reason == "proceed.saveips"){
+                        var payload = {
+                            ips: this.whiteIps
+                        };
+                        this.$.ipsRequest.headers["Content-Type"] = 'application/json';
+                        this.$.ipsRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.ipsRequest.body = payload;
+                        this.$.ipsRequest.generateRequest();
+                    }
                 },
 
                 addCurrentIP: function(e){
@@ -174,12 +203,12 @@
 
                 _showAddCurrent: function(ips, currentIp){
                     if (this.whiteIps && this.whiteIps.length)
-                        var isInArray = this.whiteIps.find(function(p){ return p.cidr == currentIp+'/32'});
+                        var isInArray = this.whiteIps.find(function(p){ return p.cidr == currentIp+'/32' || p.cidr == currentIp});
                     this.set('showAddCurrent', isInArray ? false : true);
                 },
 
                 _userUpdated: function(user) {
-                    this.whiteIps = user.ips.slice(0) || [];
+                    this.whiteIps = user.ips ? user.ips.slice(0) : [];
                     this.firstName = user.first_name;
                     this.lastName = user.last_name;
                 },
@@ -189,7 +218,7 @@
                     // return true
                     var bool = false;
 
-                    var currentUserIps = this.user.ips.slice(0) || [],
+                    var currentUserIps = this.user.ips ? this.user.ips.slice(0) : [],
                         formIps = this.whiteIps;
 
                     if (currentUserIps.length != formIps.length){
@@ -205,6 +234,18 @@
                     }
                     // return false;
                     this.set('ipsFormReady', bool);
+                },
+
+                _whitelistedIpsChanged: function(userIPs) {
+                    if (this.user && this.user.current_ip && this.user.ips.length && !this.ipIsWhitelisted(this.user.current_ip)) {
+                        window.location.href = '/logout';
+                    }
+                },
+
+                ipIsWhitelisted: function(currentIp) {
+                    return this.user.ips && this.user.ips.find(function(ip){
+                        return ip.cidr == currentIp+'/32';
+                    });
                 },
 
                 _handleIpResponse: function() {
