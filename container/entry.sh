@@ -2,7 +2,7 @@
 
 if [ "$1" = "unison" ];then
     rm -rf /ui
-    ln -s /mist.core/src/mist.io/ui /ui 
+    ln -s /mist.core/mist.io/ui /ui
 fi
 
 cd /ui

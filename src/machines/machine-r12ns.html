@@ -1,0 +1,148 @@
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<script type="text/javascript" src="../../bower_components/moment/moment.js" inline></script>
+
+<dom-module id="machine-r12ns">
+    <template>
+        <style is="custom-style" include="tags-and-labels"></style>
+        <style is="custom-style" include="info-table-style"></style>
+        <style is="custom-style" include="single-page"></style>
+        <style include="shared-styles">
+
+            div.r12n {
+                margin: 8px;
+                padding: 8px;
+                border-top: 1px solid #ddd;
+            }
+
+            div.r12n:first-of-type {
+                border-top: none;
+            }
+
+            div.info-card {
+                margin: 0;
+            }
+
+            div.card-content {
+                padding: 8px;
+            }
+
+            paper-material {
+                padding: 24px;
+                box-sizing: border-box;
+                width: 100%;
+            }
+
+            .r12n-icon {
+                float: left;
+                padding: 8px 15px 8px 0;
+            }
+
+            .description {
+                padding: 8px;
+            }
+
+            .recommended .customize {
+                margin-left: 10px;
+            }
+
+            .actions {
+                float: right;
+                margin-top: -4px
+            }
+
+            paper-button.apply {
+                background-color: #2196F3;
+                color: white;
+                --paper-button-raised-keyboard-focus: {
+                  background-color: var(--paper-pink-a200) !important;
+                  color: white !important;
+                };
+            }
+
+            paper-button.dismiss {
+                background-color: #eee;
+                color: #777;
+            }
+
+            paper-button {
+                padding: 8px;
+            }
+
+        </style>
+
+        <div class="info-card" style="background-color: #8c76d1;">
+            <h2 style="color:#fff; margin: 4px;">Recommendations</h2>
+        </div>
+        <div class="card-content">
+            <template is="dom-repeat" items="[[r12ns]]">
+                <div class="r12n">
+                    <iron-icon class="r12n-icon" slot="item-icon" icon="[[_computeR12nIcon(item)]]"></iron-icon>
+                    <div class="description">
+                        <span inner-h-t-m-l="[[item.html_body]]"></span>
+                    <div class="actions">
+                        <paper-button on-tap="_resizeTap" class="apply" raised>Resize</paper-button>
+                        <paper-button on-tap="_dismiss" class="dismiss">Dismiss</paper-button>
+                    </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <!--/template-->
+
+        <iron-ajax
+            id="requestDismiss"
+            method="DELETE"
+            handle-as="json"
+            on-response="handleDismissResponse">
+        </iron-ajax>
+
+    </template>
+    <script>
+        Polymer({
+            is: 'machine-r12ns',
+            properties: {
+                r12ns: {
+                    type: Array
+                }
+            },
+            _computeR12nIcon: function(item) {
+                if (item._cls == "Notification.InAppNotification.InAppRecommendation" && 
+                    item.model_id == "autoscale_v1") {
+                    if (item.model_output.direction == "up") {
+                        return "icons:arrow-upward";
+                    } else if (item.model_output.direction == "down") {
+                        return "icons:arrow-downward";
+                    }
+                }
+            },
+            _resizeTap: function(e) {
+                var action = {
+                    'name': 'resize',
+                    'icon': 'device:signal-cellular-2-bar',
+                    'confirm': true,
+                    'multi': false
+                }
+                this.fire('select-action', {action: action})
+                // TODO: dismiss notification on success?
+                // TODO: resize to what?
+            },
+            _dismiss: function(e) {
+                this.$.requestDismiss.url = "/api/v1/notifications/" + event.model.item._id;
+                this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.requestDismiss.generateRequest();
+                event.stopPropagation();
+            },
+            handleDismissResponse: function(event) {
+                console.log("Machine R12ns: Received dismiss response");
+            }
+        });
+    </script>
+</dom-module>

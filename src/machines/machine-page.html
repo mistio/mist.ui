@@ -12,6 +12,7 @@
 <link rel="import" href="../mist-actions.html">
 
 <link rel="import" href="machine-actions.html">
+<link rel="import" href="machine-r12ns.html">
 
 <dom-module id="machine-page">
     <template>
@@ -459,6 +460,11 @@
                     </div>
                 </paper-material>
             </div>
+
+            <paper-material id="r12nsBlock" class="info-card" hidden$=[[!r12ns.length]]>
+                <machine-r12ns r12ns=[[r12ns]]></machine-r12ns>
+            </paper-material>
+
             <template is="dom-if" if=[[monitoring]]>
             <paper-material id="monitoringBlock" class="info-card">
                 <mist-monitoring
@@ -771,6 +777,11 @@ Polymer({
         actions: {
             type: Array,
             notify: true
+        },
+        r12ns: {
+            type: Array,
+            value: function() { return [] },
+            computed: '_computeMachineR12ns(machine, model.notificationsArray.length)'
         }
     },
     observers: [
@@ -1236,6 +1247,21 @@ Polymer({
     // this should not be necessary, yet it is :(
     _machineKeysChanged: function(machineKeys) {
         this.$.machineKeysDomRepeat.render();
+    },
+
+    _computeMachineR12ns: function() {
+        var ret = [], _this = this;
+        if (this.machine && this.model.notificationsArray.length) {
+            this.model.notificationsArray.forEach(function(i){
+                console.log(i)
+                if (i.resource._ref.$id == _this.machine.id && i.resource._ref.$ref == 'machines' &&
+                    i._cls == 'Notification.InAppNotification.InAppRecommendation'){
+                    ret.push(i);
+                }
+            });
+        }
+
+        return ret;
     }
 });
 </script>
