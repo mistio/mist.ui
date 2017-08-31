@@ -221,7 +221,6 @@
                         };
                         actions.push(transformRet);
                     }
-
                     return actions;
                 },
                 _computeProviderLogo: function(className) {
@@ -237,24 +236,19 @@
                     }
                 },
                 _cloudChanged: function(selectedCloud, machinesFields) {
-                    if (this.machineFields){
-                        this.machineFields.forEach(function(f, index){
-                            this.set('machineFields.'+index+'.value', this.get('machineFields.'+index+'.defaultValue'));
-                        }.bind(this));
-                    }
+                    // clear to reset
                     this.set('machineFields', []);
-
+                    var machineFields = [];
                     if (this.selectedCloud){
                         var cloudName =  this.model.clouds[selectedCloud].provider.split('_')[0];
-                        var machineFields = this.machinesFields.find(function(c){
+                        machineFields = this.machinesFields.find(function(c){
                             return c.provider == cloudName;
                         });
                     }
-                    else {
-                        machineFields = []
-                    }
-                    this.set('machineFields', []);
-                    this.set('machineFields', machineFields.fields || []);
+                    // add cloud fields
+                    if (machineFields.fields)
+                        this.set('machineFields', machineFields.fields);
+                    // set values by provider
                     this._updateFields(selectedCloud);
                 },
                 _resetForm: function() {
@@ -291,7 +285,7 @@
 
                         this.machineFields.forEach(function(f, index) {
                             // clear options
-                            if (f.options) 
+                            if (f.type != 'radio' && f.options) 
                                 f.options = []
 
                             if (f.name.endsWith("location")) {
@@ -328,7 +322,7 @@
                                 f.options = this.model.scriptsArray || [];
                             }
 
-                            if (f.name.startsWith("action")) {
+                            if (f.name == "action") {
                                f.options = this.scheduleActions || [];
                             }
 
@@ -358,6 +352,13 @@
                         // if is kvm, change helptexts
                         if (this.model.clouds[this.selectedCloud].provider == "libvirt"){
                             this._updateFieldsForKvm();
+                        }
+
+                        // default values
+                        if (this.machineFields){
+                            this.machineFields.forEach(function(f, index){
+                                this.set('machineFields.'+index+'.value', this.get('machineFields.'+index+'.defaultValue'));
+                            }.bind(this));
                         }
 
                     }
@@ -394,7 +395,8 @@
                         }
 
                         // let either script or script_id to pass in the from payload
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'radio'){
+                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'run_script'){
+                            console.log('changeRecord.path',changeRecord.path)
                             this._toggleScriptFields(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
@@ -813,8 +815,12 @@
                     var construct = {};
                     if (entry) {
                         var chunchs = entry.split(" ");
-                        // "minute" : "30", "hour" : "2", "day_of_week" : "*", "day_of_month" : "*", "month_of_year" : "*"
                         // fill in missin
+                        for (var i = 0; i < 5; i++) {
+                        if (!chunchs[i])
+                            chunchs[i] = "*"
+                        }
+                        var diff =  moment().utcOffset() / 60;
                         for (var i = 0; i < 5; i++) {
                             if (!chunchs[i])
                                 chunchs[i] = "*"
@@ -822,10 +828,13 @@
                         var construct = {
                                 'minute': chunchs[0],
                                 'hour': chunchs[1],
-                                'day_of_week': chunchs[2],
-                                'day_of_month': chunchs[3],
-                                'month_of_year': chunchs[4]
+                                'day_of_month': chunchs[2],
+                                'month_of_year': chunchs[3],
+                                'day_of_week': chunchs[4],
                             };
+                        if (construct.hour != "*" && parseInt(chunchs[1]) && diff){
+                            construct.hour = ((parseInt(chunchs[1]) - diff)%24).toString();
+                        }
                     }
                     return construct;
                 },
