@@ -1,0 +1,261 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="multi-inputs.html">
+
+<dom-module id="whitelisted-ips">
+    <template>
+        <style is="custom-style" include="shared-styles forms">
+            :host {
+                display: block;
+            }
+
+            :host paper-material {
+                display: block;
+                padding: 0;
+            }
+
+            label {
+                color: rgba(0, 0, 0, 0.54) !important;
+                font-size: 12px;
+            }
+
+            .grid-row {
+                padding: 24px;
+            }
+
+            .head {
+                margin-bottom: 16px;
+            }
+
+            h2.title {
+                font-weight: 500;
+            }
+
+            h2.title, h2.title~p {
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+            hr {
+                width: 100%;
+            }
+            :host paper-progress{
+                position: absolute;
+                width: 100%;
+                left: 0;
+                right: 0;
+            }
+            
+            .margin {
+                margin: 32px 0;
+            }
+
+            .bottom-actions {
+                padding-bottom: 24px;
+                padding-left: 1rem;
+            }
+            .separator {
+                border-top: 4px solid #ddd;
+            }
+            .progress {
+                margin: 32px 0 8px 0;
+                width: 100%;
+            }
+            paper-progress.progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: var(--red-color);
+                padding-left: 24px;
+                padding-right: 24px
+            }
+            .errormsg-container iron-icon {
+                color: inherit;
+            }
+        </style>
+        <paper-material>            
+            <div class="grid-row">
+                <div class="xs12 head">
+                    <h2 class="title">IP whitelisting</h2>
+                </div>
+                <div class="ips-section xs12 m12 l12">
+                    <p>Allow account access to whitelisted ips only. You can use cidr format.</p>
+                    <multi-inputs with-description with-confirm-remove
+                        input-label="cidr" 
+                        inputs-array="{{whiteIps}}" 
+                        event-name="save-ips"></multi-inputs>
+                </div>
+                
+                <div class="progress">
+                    <paper-progress id="ipProgress" indeterminate hidden$="[[!loadingIp]]"></paper-progress>
+                    <paper-progress id="ipprogresserror" class="progresserror" value="100" hidden$="[[!ipError]]"></paper-progress>
+                    <hr class="appform"/>
+                    <p id="iprprogressmessage" class="errormsg-container" hidden$="[[!ipError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="iperrormsg"></span></p>
+                </div>
+
+                <div class="bottom-actions clearfix xs12">
+                    <paper-button id="save_ips" class="pull-right" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
+                    <paper-button id="add_current_ip" class="pull-right" on-tap="addCurrentIP" hidden$="[[!showAddCurrent]]">Add your current IP: [[user.current_ip]]</paper-button>
+
+                    <iron-ajax id="ipsRequest"
+                        url="/api/v1/whitelist"
+                        method="POST"
+                        handle-as="xml"
+                        loading="{{loadingIp}}"
+                        on-response="_handleIpResponse"
+                        on-error="_handleIpError"></iron-ajax>
+
+                </div>
+            </div>
+        </paper-material>
+
+        <dialog-element id="saveIps"></dialog-element>
+
+    </template>
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'whitelisted-ips',
+
+                properties: {
+                    org: {
+                        type: Object
+                    },
+                    user: {
+                        type: Object,
+                    },
+                    ipsFormReady: {
+                        type: Boolean,
+                        value: false
+                    },
+                    loadingIp: {
+                        type: Boolean,
+                        value: false
+                    },
+                    ipError: {
+                        type: Boolean,
+                        value: false
+                    },
+                    whiteIps: {
+                        type: Array
+                    },
+                    showAddCurrent: {
+                        type: Boolean,
+                        value: false
+                    }
+                },
+                observers: [
+                    '_userUpdated(user)',
+                    '_showAddCurrent(whiteIps.length, user.current_ip)',
+                    '_computIpFormReady(user, whiteIps, whiteIps.length)',
+                    '_whitelistedIpsChanged(user.ips)'
+                ],
+
+                listeners: {
+                    'confirmation': '_proceedToSaveWhitelist',
+                },
+
+                _saveWhitelist: function(e){
+                    var message = {
+                        title: 'Save Ips',
+                        body: "Save the whitelisted IPs.",
+                        reason: "proceed.saveips",
+                        action: "Save IPs",
+                        danger: false
+                    };
+                    if (this.showAddCurrent) {
+                        message.body = "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP you will be automaticaly logged out.";
+                        message.danger = true;
+                        message.action = "Save anyway";
+                    }
+                    this._showDialog(message);
+                },
+
+                _showDialog: function(info) {
+                    var dialog = this.querySelector('dialog-element#saveIps');
+                    for (var i in info) {
+                        dialog[i] = info[i];
+                    }
+                    dialog._openDialog();
+                },
+
+                _proceedToSaveWhitelist: function(e){
+                    console.log('_proceedToSaveWhitelist',e.detail);
+                    if (e.detail.response.confirmed && e.detail.reason == "proceed.saveips"){
+                        var payload = {
+                            ips: this.whiteIps
+                        };
+                        this.$.ipsRequest.headers["Content-Type"] = 'application/json';
+                        this.$.ipsRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.ipsRequest.body = payload;
+                        this.$.ipsRequest.generateRequest();
+                    }
+                },
+
+                addCurrentIP: function(e){
+                    this.push('whiteIps', {cidr: this.user.current_ip, description: "Current ip"});
+                },
+
+                _showAddCurrent: function(ips, currentIp){
+                    if (this.whiteIps && this.whiteIps.length)
+                        var isInArray = this.whiteIps.find(function(p){ return p.cidr == currentIp+'/32' || p.cidr == currentIp});
+                    this.set('showAddCurrent', isInArray ? false : true);
+                },
+
+                _userUpdated: function(user) {
+                    this.whiteIps = user.ips ? user.ips.slice(0) : [];
+                    this.firstName = user.first_name;
+                    this.lastName = user.last_name;
+                },
+
+                _computIpFormReady: function(user, whitelist, length){
+                    // TODO: set || []
+                    // return true
+                    var bool = false;
+
+                    var currentUserIps = this.user.ips ? this.user.ips.slice(0) : [],
+                        formIps = this.whiteIps;
+
+                    if (currentUserIps.length != formIps.length){
+                        bool = true;
+                    }
+                    else {
+                        // check if there are changes
+                        for (var i = 0; i < formIps.length; i++) {
+                            if (formIps[i].cidr != currentUserIps[i].cidr || formIps[i].description != currentUserIps[i].description )
+                                bool = true;
+                                break;
+                        }
+                    }
+                    // return false;
+                    this.set('ipsFormReady', bool);
+                },
+
+                _whitelistedIpsChanged: function(userIPs) {
+                    if (this.user && this.user.current_ip && this.user.ips.length && !this.ipIsWhitelisted(this.user.current_ip)) {
+                        window.location.href = '/logout';
+                    }
+                },
+
+                ipIsWhitelisted: function(currentIp) {
+                    return this.user.ips && this.user.ips.find(function(ip){
+                        return ip.cidr == currentIp+'/32';
+                    });
+                },
+
+                _handleIpResponse: function() {
+                    this.fire('toast',{msg:"IPs saved succesfully!",duration:3000});
+                },
+                _handleIpError: function(e) {
+                    this.set('ipError', true);
+                    this.$.iperrormsg.textContent = e.detail.request.xhr.responseText;
+                },
+            });
+        })();
+    </script>
+</dom-module>
