@@ -552,7 +552,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         show: true,
         required: false
     }, {
-        name: "radio",
+        name: "run_script",
         label: "Script Inline or Select",
         type: "radio",
         value: "inline",
@@ -560,6 +560,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         helptext: "Edit a script to run or choose one from your existing ones.",
         show: true,
         required: false,
+        class: "bind-bottom radio-highight",
         options: [{
             title: "Inline Script",
             val: "inline"
@@ -579,9 +580,10 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         defaultValue: "",
         show: true,
         required: false,
+        class: "bind-top background",
         helptext: "The inline script will run after provisioning",
         showIf: {
-            fieldName: "radio",
+            fieldName: "run_script",
             fieldValues: ["inline"]
         }
     }, {
@@ -590,11 +592,12 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
+        class: "bind-both background",
         show: true,
         required: false,
         helptext: "The selected script will run after provisioning",
         showIf: {
-            fieldName: "radio",
+            fieldName: "run_script",
             fieldValues: ["select"]
         }
     }, {
@@ -605,9 +608,10 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         defaultValue: "",
         show: true,
         required: false,
+        class: "bind-top background",
         helptext: "",
         showIf: {
-            fieldName: "radio",
+            fieldName: "run_script",
             fieldValues: ["select"]
         }
     }, {
@@ -749,7 +753,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         class: "bind-top background",
         show: false,
         required: false,
-        helptext: "Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: minute hour day_of_week day_of_month month_of_year.",
+        helptext: "Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: Minute, Hour, Day of the Month, Month of the Year, Day of the Week.",
         helpHref: "http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules",
         showIf: {
             fieldName: "schedule_type",

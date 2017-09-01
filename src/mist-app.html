@@ -273,7 +273,9 @@
             'open-and-select': 'openAndSelect',
             'update-keys': 'updateKeys',
             'update-scripts': 'updateScripts',
-            'user-action': '_onUserAction'
+            'user-action': '_onUserAction',
+            'dismiss-notification' : '_dismissNotification',
+            'add-new-images': 'addImages'
         },
 
         observers: [
@@ -291,6 +293,14 @@
                 text: e.detail.msg,
                 duration: e.detail.duration
             });
+        },
+
+        addImages: function(e){
+            var images = e.detail.images;
+            for (var i=0; i<images.length; i++) {
+                this.push('model.imagesArray', images[i]);
+                this.model.images[images[i].id] = images[i];
+            }
         },
 
         openAndSelect: function (e) {
@@ -731,6 +741,10 @@
 
         _computeViewingList: function (subroute) {
             return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
+        },
+
+        _dismissNotification: function(index) {
+            this.splice('model.notificationsArray', index, 1);
         }
     });
 
