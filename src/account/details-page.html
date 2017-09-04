@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
@@ -12,8 +13,7 @@
 
 <dom-module id="details-page">
     <template>
-        <style is="custom-style" include="forms"></style>
-        <style include="shared-styles">
+        <style is="custom-style" include="shared-styles forms">
             :host {
                 display: block;
             }
@@ -53,12 +53,15 @@
             hr {
                 width: 100%;
             }
-            paper-progress#orgProgress,
-            paper-progress#userProgress {
+            :host paper-progress{
                 position: absolute;
                 width: 100%;
                 left: 0;
                 right: 0;
+            }
+            
+            .margin {
+                margin: 32px 0;
             }
 
             .bottom-actions {
@@ -154,10 +157,8 @@
                         handle-as="xml"></iron-ajax>
                 </div>
             </div>
-
         </paper-material>
         <paper-material class="separator">
-
             <div class="grid-row" hidden$="[[!org.is_owner]]">
                 <div class="xs12 head">
                     <h2 class="title">Organisation Profile</h2>
@@ -180,8 +181,9 @@
                         </div>
                     </div>
                     <div hidden$="[[org.avatar.length]]">
+                        <div class="xs12 org-logo-field-title margin">Custom Logo</div>
                         <paper-toggle-button checked="{{customLogo}}">
-                            Custom logo
+                            Enable custom logo.
                         </paper-toggle-button>
                         <div hidden$="[[!customLogo]]">
                             <p class="xs12 l12">Upload an image that will override the default mist.io logo</p>
@@ -201,10 +203,10 @@
                 </div>
                 <div class="xs12">
                     <div hidden$="[[!org.is_owner]]">
-                        <paper-toggle-button checked="{{showRecommendations}}">
-                            Show Recommendations
+                        <paper-toggle-button checked="{{enableR12ns}}">
+                            Enable Recommendations
                         </paper-toggle-button>
-                        <p>Enable recommendations to allow Mist.io to offer cost and performance recommendations for your monitored infrastructure.</p>
+                        <p>Allow Mist.io to offer cost and performance recommendations for your monitored infrastructure.</p>
                     </div>
                 </div>
 
@@ -268,7 +270,7 @@
                     },
                     orgFormReady: {
                         type: Boolean,
-                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, showRecommendations, loadingOrg, org)'
+                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, enableR12ns, loadingOrg, org)'
                     },
                     loadingUser: {
                         type: Boolean,
@@ -291,7 +293,7 @@
                         value: ''
                     },
                     customLogo: false,
-                    showRecommendations: false
+                    enableR12ns: false
                 },
                 observers: [
                     '_userUpdated(user)',
@@ -319,7 +321,7 @@
                     this.orgName = org.name;
                     this.orgAlertEmails = org.alerts_email.join('\n');
                     this.customLogo = org.avatar ? true : false;
-                    this.showRecommendations = org.show_recommendations;
+                    this.enableR12ns = org.enable_r12ns;
                 },
 
                 _computeUploadHeaders: function() {
@@ -348,9 +350,9 @@
                     return false;
                 },
 
-                _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, showRecommendations, loading, org){
+                _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, enableR12ns, loading, org){
                     if (orgName && orgName.trim() != "" && org.is_owner && !loading &&
-                        (orgName != org.name || showRecommendations != org.show_recommendations || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
+                        (orgName != org.name || enableR12ns != org.enable_r12ns || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
                          (orgAvatar && orgAvatar != org.avatar)))
                         return true;
                     return false;
@@ -383,7 +385,7 @@
                     var payload = {
                         new_name: this.orgName,
                         alerts_email: this.orgAlertEmails,
-                        show_recommendations: this.showRecommendations
+                        enable_r12ns: this.enableR12ns
                     };
 
                     if (this.orgAvatar)
