@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
@@ -12,8 +13,7 @@
 
 <dom-module id="details-page">
     <template>
-        <style is="custom-style" include="forms"></style>
-        <style include="shared-styles">
+        <style is="custom-style" include="shared-styles forms">
             :host {
                 display: block;
             }
@@ -53,12 +53,15 @@
             hr {
                 width: 100%;
             }
-            paper-progress#orgProgress,
-            paper-progress#userProgress {
+            :host paper-progress{
                 position: absolute;
                 width: 100%;
                 left: 0;
                 right: 0;
+            }
+            
+            .margin {
+                margin: 32px 0;
             }
 
             .bottom-actions {
@@ -152,10 +155,8 @@
                         handle-as="xml"></iron-ajax>
                 </div>
             </div>
-
         </paper-material>
         <paper-material class="separator">
-
             <div class="grid-row" hidden$="[[!org.is_owner]]">
                 <div class="xs12 head">
                     <h2 class="title">Organisation Profile</h2>
@@ -178,8 +179,9 @@
                         </div>
                     </div>
                     <div hidden$="[[org.avatar.length]]">
+                        <div class="xs12 org-logo-field-title margin">Custom Logo</div>
                         <paper-toggle-button checked="{{customLogo}}">
-                            Custom logo
+                            Enable custom logo.
                         </paper-toggle-button>
                         <div hidden$="[[!customLogo]]">
                             <p class="xs12 l12">Upload an image that will override the default mist.io logo</p>
@@ -194,7 +196,7 @@
                                     <iron-image src$="[[_computeAvatarURL(orgAvatar)]]" fades hidden$="[[!orgAvatar]]" sizing="contain" class="avatar-preview"></iron-image>
                                 </div>
                             </vaadin-upload>
-                        </div
+                        </div>
                     </div>
                 </div>
 
@@ -280,8 +282,7 @@
                         type: String,
                         value: ''
                     },
-                    customLogo: false
-
+                    customLogo: false                    
                 },
                 observers: [
                     '_userUpdated(user)',
