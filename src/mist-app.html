@@ -16,6 +16,7 @@
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/app-notifications/app-notifications.html">
 
 <script type="text/javascript" src="../bower_components/moment/moment.js" inline></script>
 <script type="text/javascript" src="../bower_components/swiftSet/swiftSet.js" inline></script>
@@ -166,6 +167,8 @@
 
     <mist-socket model="{{model}}"></mist-socket>
 
+    <app-notifications id="desktop-notifier"></app-notifications>
+
   </template>
 
   <script>
@@ -267,6 +270,7 @@
             'iron-navigate': 'scrollToTop',
             'page-meta': 'updateTitle',
             'toast': 'showToast',
+            'desktop-notification': 'showDesktopNotification',
             'subscribeLogEvents': 'subscribeLogEvents',
             'clear-search-on-nav': 'clearSearch',
             'search': 'updateSearchQuery',
@@ -274,7 +278,6 @@
             'update-keys': 'updateKeys',
             'update-scripts': 'updateScripts',
             'user-action': '_onUserAction',
-            'dismiss-notification' : '_dismissNotification',
             'add-new-images': 'addImages'
         },
 
@@ -285,6 +288,11 @@
 
         ready: function () {
 
+        },
+
+        showDesktopNotification: function (e) {
+            var notifications = document.getElementById('desktop-notifier');
+            notifications.show(e.detail.title, { "body":e.detail.body });
         },
 
         showToast: function (e) {
@@ -741,10 +749,6 @@
 
         _computeViewingList: function (subroute) {
             return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
-        },
-
-        _dismissNotification: function(index) {
-            this.splice('model.notificationsArray', index, 1);
         }
     });
 
