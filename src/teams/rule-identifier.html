@@ -86,7 +86,7 @@
             </paper-dropdown-menu>
         </span>
         <span hidden$="[[!showTags]]">
-            <paper-input id="inputField" class="flex" value$="{{tagString::input}}" hidden$="[[!showEdit]]" on-blur="_updateTags"></paper-input>
+            <paper-input id="inputField" class="flex" value$="{{tagString}}" hidden$="[[!showEdit]]" on-blur="_updateTags"></paper-input>
             <iron-icon class="edit" icon="editor:mode-edit" on-tap="_toggleShowEdit"></iron-icon>
         </span>
     </template>
@@ -106,11 +106,10 @@
                 index: Number,
                 selectedIndetifierType: {
                     type: Number,
-                    computed: "_computeSelectedIdentifierType(rule, rule.rtags, rule.rid)"
+                    computed: "_computeSelectedIdentifierType(rule)"
                 },
                 resourceDropDown: {
-                    type: Array,
-                    computed: "_computeRuleDD(rule, rule.rtype, model.*)"
+                    type: Array
                 },
                 showDropDown: {
                     type: Boolean,
@@ -123,7 +122,7 @@
                 ruleHasTags: {
                     type: Boolean,
                     value: false,
-                    computed: "_ruleHasTags(rule, rule.rtags)"
+                    computed: "_ruleHasTags(rule)"
                 },
                 showEdit: {
                     type: Boolean,
@@ -131,13 +130,16 @@
                 },
                 tagString: {
                     type: String,
-                    computed: "_computeTagString(rule, rule.rtags)"
+                    computed: "_computeTagString(rule)"
                 },
                 tags: {
                     type: Array,
-                    computed: '_computeRTags(rule.rtags)'
+                    computed: '_computeRTags(rule)'
                 }
             },
+            observers: [
+                '_computeRuleDD(model,rule.rtype)'
+            ],
             listeners: {
                 'iron-select': '_updateIdentifier',
                 keyup: 'hotkeys'
@@ -145,8 +147,8 @@
             ready: function(){
 
             },
-            _computeTagString: function(rule, rtags){
-                return this._computeRTags(rtags).join(', ');
+            _computeTagString: function(rule){
+                return this._computeRTags(rule.rtags).join(', ');
             },
             _updateIdentifier: function(e){
                 // case of changing identifier-type 
@@ -179,7 +181,7 @@
                     this.fire('update-rid', {'index': this.index, 'rid': rid});
                 }
             },
-            _ruleHasTags: function(rule, tags){
+            _ruleHasTags: function(rule){
                 if (Object.keys(rule.rtags).length > 0)
                     this.showTags = true;
                 return Object.keys(rule.rtags).length > 0 ? true : false;
@@ -187,13 +189,13 @@
             _ruleHasId: function(rule){
                 return rule.rid.length > 0 ? true : false;
             },
-            _computeRTags: function(tags){
-                if (tags) {
-                    var arrTags = Object.keys(tags); 
+            _computeRTags: function(rule){
+                if (rule.rtags) {
+                    var arrTags = Object.keys(rule.rtags); 
                     for (var i=0; i < arrTags.length; i++) {
                         var t = arrTags[i];
-                        if (tags[t] != null) {
-                            arrTags[i] = arrTags[i]+'='+tags[t];
+                        if (rule.rtags[t] != null) {
+                            arrTags[i] = arrTags[i]+'='+rule.rtags[t];
                         }
                     }
                     return arrTags;
@@ -219,7 +221,7 @@
                     return mod[id].name;
                 }
             },
-            _computeSelectedIdentifierType: function(rule, rtags, rid){
+            _computeSelectedIdentifierType: function(rule){
                 if (this.rule.rid.length > 0) {
                     return 1;
                 }
@@ -236,18 +238,18 @@
                 })
                 return allRecords;
             },
-            _computeRuleDD: function(rule, rtype, model){
+            _computeRuleDD: function(model, rtype){
                 if (rtype && rtype!='' && this.model[rtype+'sArray'] && this.model[rtype+'sArray'].length > 0) {
-                    return this.model[rtype+'sArray'];
+                    this.set('resourceDropDown', this.model[rtype+'sArray']);
                 }
                 else if (rtype == 'record') {
-                    return this._computeRecords();
+                    this.set('resourceDropDown', this._computeRecords());
                 }
                 else if (!rtype) {
-                    return [{name:'choose recources'}];
+                    this.set('resourceDropDown', [{name:'choose recources'}]);
                 }
                 else {
-                    return [{name:'no '+rtype+'s found'}];
+                    this.set('resourceDropDown', [{name:'no '+rtype+'s found'}]);
                 }
             },
             _toggleShowEdit: function(){
