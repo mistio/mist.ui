@@ -123,6 +123,8 @@
 
             paper-toggle-button {
                 margin: auto;
+                display: inline-flex;
+                cursor: pointer;
             }
         </style>
         <paper-material>
@@ -199,6 +201,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="xs12">
+                    <div hidden$="[[!org.is_owner]]">
+                        <paper-toggle-button checked="{{enableR12ns}}">
+                            Enable Recommendations
+                        </paper-toggle-button>
+                        <p>Allow Mist.io to offer cost and performance recommendations for your monitored infrastructure.</p>
+                    </div>
+                </div>
 
                 <div class="progress">
                     <paper-progress id="orgProgress" indeterminate hidden$="[[!loadingOrg]]"></paper-progress>
@@ -260,7 +270,7 @@
                     },
                     orgFormReady: {
                         type: Boolean,
-                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, loadingOrg, org)'
+                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, enableR12ns, loadingOrg, org)'
                     },
                     loadingUser: {
                         type: Boolean,
@@ -282,7 +292,8 @@
                         type: String,
                         value: ''
                     },
-                    customLogo: false                    
+                    customLogo: false,
+                    enableR12ns: false
                 },
                 observers: [
                     '_userUpdated(user)',
@@ -308,8 +319,9 @@
 
                 _orgUpdated: function(org) {
                     this.orgName = org.name;
-                    this.orgAlertEmails = org.alerts_email.join('\n')
-                    this.customLogo = org.avatar ? true : false
+                    this.orgAlertEmails = org.alerts_email.join('\n');
+                    this.customLogo = org.avatar ? true : false;
+                    this.enableR12ns = org.enable_r12ns;
                 },
 
                 _computeUploadHeaders: function() {
@@ -338,9 +350,9 @@
                     return false;
                 },
 
-                _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, loading, org){
+                _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, enableR12ns, loading, org){
                     if (orgName && orgName.trim() != "" && org.is_owner && !loading &&
-                        (orgName != org.name || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
+                        (orgName != org.name || enableR12ns != org.enable_r12ns || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
                          (orgAvatar && orgAvatar != org.avatar)))
                         return true;
                     return false;
@@ -372,7 +384,8 @@
                 _submitOrgForm: function(e, org) {
                     var payload = {
                         new_name: this.orgName,
-                        alerts_email: this.orgAlertEmails
+                        alerts_email: this.orgAlertEmails,
+                        enable_r12ns: this.enableR12ns
                     };
 
                     if (this.orgAvatar)
