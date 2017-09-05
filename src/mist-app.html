@@ -16,6 +16,7 @@
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/app-notifications/app-notifications.html">
 
 <script type="text/javascript" src="../bower_components/moment/moment.js" inline></script>
 <script type="text/javascript" src="../bower_components/swiftSet/swiftSet.js" inline></script>
@@ -158,13 +159,15 @@
           <template is="dom-if" if="[[enableInsights]]">
             <page-insights name="insights" route="{{subroute}}" model="[[model]]"></page-insights>
           </template>
-          <page-my-account name="my-account" billing=[[enableBilling]] is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machinesArray]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]"></page-my-account>
+          <page-my-account name="my-account" route="{{subroute}}" billing=[[enableBilling]] is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machinesArray]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]"></page-my-account>
           <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
         </iron-pages>
         <paper-toast id="mist-toast"></paper-toast>
     </paper-header-panel>
 
     <mist-socket model="{{model}}"></mist-socket>
+
+    <app-notifications id="desktop-notifier"></app-notifications>
 
   </template>
 
@@ -267,13 +270,15 @@
             'iron-navigate': 'scrollToTop',
             'page-meta': 'updateTitle',
             'toast': 'showToast',
+            'desktop-notification': 'showDesktopNotification',
             'subscribeLogEvents': 'subscribeLogEvents',
             'clear-search-on-nav': 'clearSearch',
             'search': 'updateSearchQuery',
             'open-and-select': 'openAndSelect',
             'update-keys': 'updateKeys',
             'update-scripts': 'updateScripts',
-            'user-action': '_onUserAction'
+            'user-action': '_onUserAction',
+            'add-new-images': 'addImages'
         },
 
         observers: [
@@ -285,12 +290,25 @@
 
         },
 
+        showDesktopNotification: function (e) {
+            var notifications = document.getElementById('desktop-notifier');
+            notifications.show(e.detail.title, { "body":e.detail.body });
+        },
+
         showToast: function (e) {
             var toast = this.querySelector('paper-toast#mist-toast')
             toast.show({
                 text: e.detail.msg,
                 duration: e.detail.duration
             });
+        },
+
+        addImages: function(e){
+            var images = e.detail.images;
+            for (var i=0; i<images.length; i++) {
+                this.push('model.imagesArray', images[i]);
+                this.model.images[images[i].id] = images[i];
+            }
         },
 
         openAndSelect: function (e) {

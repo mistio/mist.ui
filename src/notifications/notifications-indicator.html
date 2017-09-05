@@ -118,13 +118,13 @@
                 </div>
                 <hr/>
                 <paper-menu id="notifications-menu" selectable="none">
-                    <template is="dom-repeat" items="[[notifications]]" as="notification">
-                        <paper-item on-tap="_handleItemTap" class="context" hidden$="{{notification.hidden}}">
-                            <iron-icon  slot="item-icon" icon="[[_computeNotificationIcon(notification)]]" type$="[[_computeNotificationType(notification)]]"></iron-icon>
+                    <template is="dom-repeat" items="[[notifications]]">
+                        <paper-item on-tap="_handleItemTap" class="context">
+                            <iron-icon  slot="item-icon" icon="[[_computeNotificationIcon(item)]]" type$="[[_computeNotificationType(item)]]"></iron-icon>
                             <paper-item-body two-line>
-                                <div class="summary">[[notification.summary]]</div>
-                                <div secondary inner-h-t-m-l="{{notification.html_body}}" class="body"></div>
-                                <div secondary class="time">[[_computeRelativeTime(notification)]]</div>
+                                <div class="summary">[[item.summary]]</div>
+                                <div secondary inner-h-t-m-l="[[item.html_body]]" class="body"></div>
+                                <div secondary class="time">[[_computeRelativeTime(item, timestamp_counter)]]</div>
                             </paper-item-body>
                             <paper-icon-button on-tap="_dismiss" class="dismiss-icon" icon="icons:clear"></paper-icon-button>
                         </paper-item>
@@ -132,12 +132,11 @@
                 </paper-menu>
             </div>
         </paper-menu-button>
-        <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="{{notifications.length}}"></paper-badge>
+        <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="[[notifications.length]]"></paper-badge>
         <div class="tip" closed$="[[!opened]]"></div>
 
         <iron-ajax
             id="requestDismiss"
-            url="/api/v1/notifications/"
             method="DELETE"
             handle-as="json"
             on-response="handleDismissResponse">
@@ -150,7 +149,10 @@
             is: 'notifications-indicator',
             properties: {
                 notifications: {
-                    type: Array
+                    type: Array,
+                    value: function () {
+                        return []
+                    }
                 },
                 opened: Boolean,
                 hidden: {
@@ -164,138 +166,120 @@
                 indicatorType: {
                     type: String,
                     computed: '_computeIndicatorType(notifications.length)'
+                },
+                timestamp_counter: {
+                    value: 0
                 }
             },
-            /*ready: function() {
-                var that = this;
-                setInterval(function() {
-                    var ntf = that.notifications;
-                    that.set('notifications', []);
-                    that.set('notifications', ntf);
-                    console.log("update");
-                }, 1000);
-            },*/
-            _computeTitle: function(notifications) {
-                var type = this.getItemsType(notifications);
-                if (type == 1)
-                {
-                    return "Notifications";
+            attached: function() {
+                if (!this.timestamp_interval) {
+                    var th1s = this;
+                    this.timestamp_interval = setInterval(function() {
+                        th1s.set('timestamp_counter', th1s.timestamp_counter + 1);
+                    }, 10000);
                 }
-                else if (type == 2)
-                {
+            },
+            detached: function() {
+                if (this.timestamp_interval) {
+                    unsetInterval(this.timestamp_interval);
+                } 
+            },
+            _computeTitle: function (notifications) {
+                var type = this.getItemsType(notifications);
+                if (type == 1) {
+                    return "Notifications";
+                } else if (type == 2) {
                     return "Recommendations";
                 }
                 return "Notifications & Recommendations";
             },
-            _computeIndicatorIcon: function(notificationsLength) {
+            _computeIndicatorIcon: function (notificationsLength) {
                 var type = this.getItemsType(this.notifications);
-                if (type == 1)
-                {
+                if (type == 1) {
                     return "social:notifications";
-                }
-                else if (type == 2)
-                {
+                } else if (type == 2) {
                     return "image:wb-incandescent";
                 }
                 // Todo: return dual icon
                 return "social:notifications";
             },
-            _computeIndicatorType: function(notificationsLength) {
+            _computeIndicatorType: function (notificationsLength) {
                 var type = this.getItemsType(this.notifications);
-                if (type == 2)
-                {
+                if (type == 2) {
                     return "recommendations";
-                }
-                else
-                {
+                } else {
                     return "notifications";
                 }
             },
-            _computeNotificationIcon: function(notification) {
-                if (notification.source == "recommendation")
-                {
-                    return "image:wb-incandescent";
+            _computeNotificationIcon: function (notification) {
+                if (notification._cls == "Notification.InAppNotification.InAppRecommendation" && 
+                    notification.model_id == "autoscale_v1") {
+                    if (notification.model_output.direction == "up") {
+                        return "icons:arrow-upward";
+                    } else if (notification.model_output.direction == "down") {
+                        return "icons:arrow-downward";
+                    }
                 }
-                else
-                {
+                else if (notification._cls == "Notification.InAppNotification.InAppRecommendation") {
+                    return "image:wb-incandescent";
+                } else {
                     return "social:notifications";
                 }
             },
-            _computeNotificationType: function(notification) {
-                if (notification.source == "recommendation")
-                {
+            _computeNotificationType: function (notification) {
+                if (notification.model_id.length > 0) {
+                    return "recommendation-specific";
+                } else if (notification._cls == "Notification.InAppNotification.InAppRecommendation") {
                     return "recommendation";
-                }
-                else
-                {
+                } else {
                     return "notification";
                 }
             },
-            _computeRelativeTime: function(notification) {
+            _computeRelativeTime: function (notification, timestamp_counter) {
                 var date = new Date(notification.created_date.$date);
                 return moment(date).fromNow();
             },
-            computeBadgeCaption: function(notifications) {
+            computeBadgeCaption: function (notifications) {
                 return notifications.length;
             },
-            _computeIndicatorHidden: function(notificationsLength) {
+            _computeIndicatorHidden: function (notificationsLength) {
                 if (notificationsLength == 0) {
                     this.set('opened', false);
                 }
                 return notificationsLength == 0;
             },
-            getItemsType: function(notifications) {
+            getItemsType: function (notifications) {
                 // 0= none, 1=notifications, 2=recommendations, 3=both
                 var ntf = false;
                 var rec = false;
-                for (i=0; i<notifications.length; ++i) 
-                {
+                for (i = 0; i < notifications.length; ++i) {
                     var item = notifications[i];
-                    if (item.source == "recommendation")
-                    {
+                    if (item._cls == "Notification.InAppNotification.InAppRecommendation") {
                         rec = true;
-                    }
-                    else if (item.source == "notification")
-                    {
+                    } else if (item._cls == "Notification.InAppNotification") {
                         ntf = true;
-                    }
-                    else
-                    {
+                    } else {
                         ntf = true;
                     }
                 }
-                return ntf + rec*2;
+                return ntf + rec * 2;
             },
-            _handleItemTap: function(event) {
-                // TODO: Get correct element!
-                // var menu = document.querySelector("paper-menu#notifications-menu");
-                // event.stopPropagation()
+            _handleItemTap: function (event) {
+                var path = '/' + event.model.item.resource._ref.$ref + '/' + event.model.item.resource._ref.$id;
+                window.history.pushState({}, null, path);
+                window.dispatchEvent(new CustomEvent('location-changed'));
+                this.opened = false;
+                event.stopPropagation();
             },
-            _dismiss: function(event) {
-                var menu = document.querySelector("paper-menu#notifications-menu");
-                var index = menu.indexOf(event.srcElement.parentElement);
-                if (index != -1)
-                {
-                    var item = document.querySelector("paper-menu#notifications-menu paper-item")[index];
-                    var dismissURL = "/api/v1/notifications/" + this.notifications[index]._id;
-                    this.$.requestDismiss.url = dismissURL;
-                    this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.requestDismiss.generateRequest();
-                }
-                event.stopPropagation()
+            _dismiss: function (event) {
+                var dismissURL = "/api/v1/notifications/" + event.model.item._id;
+                this.$.requestDismiss.url = dismissURL;
+                this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.requestDismiss.generateRequest();
+                event.stopPropagation();
             },
-            handleDismissResponse: function(event) {
-                var obj = JSON.parse(event.detail.__data__.response);
-                var id = obj._id;
-                for (i=0; i<this.notifications.length; ++i) 
-                {
-                    var notification = this.notifications[i];
-                    if (notification._id == id)
-                    {
-                        this.splice('notifications', i, 1);
-                        return;
-                    }
-                }
+            handleDismissResponse: function (event) {
+                console.log("Notifications: Received dismiss response");
             }
         });
     </script>

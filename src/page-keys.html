@@ -19,6 +19,9 @@
       paper-dialog {
         position: fixed !important;
       }
+      h2[slot="header"] {
+          margin: 8px;
+      }
     </style>
 
     <app-route route="{{route}}" pattern="/:key" data="{{data}}"></app-route>
@@ -28,14 +31,18 @@
             items="[[model.keysArray]]"
             name="Keys"
             selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            combined-filter={{combinedFilter}}
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
             renderers=[[_getRenderers(model.keys)]]
             route={{route}}
             user-filter=[[model.sections.keys.q]]
             primary-field-name="id">
+          <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Keys </h2>
           <mist-actions slot="action-buttons" actions="[[actions]]" type="key" items="[[selectedItems]]" model="[[model]]"></mist-actions>
           <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></key-actions>
+          <p slot="no-items-found">No keys found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
           <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
