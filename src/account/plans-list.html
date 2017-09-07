@@ -8,7 +8,7 @@
 
 <dom-module id="plans-list">
     <template>
-        <style include="shared-styles">
+        <style is="custom-style" include="shared-styles">
         :host {
             display: block;
         }
@@ -49,6 +49,9 @@
         plan-overusage::content .notice {
             margin: 16px 0;
         }
+        .add-card {
+            cursor: pointer;
+        }
         </style>
         <paper-material>
             <div class="grid-row">
@@ -67,6 +70,15 @@
             </div>
             <div class="grid-row">
                 <div class="xs12 head">
+                    <h2 class="title">Payment Information</h2>
+                    <p hidden$="[[!org.card]]">Card Number [[org.card]]</p>
+                    <p>Add a payment card to your account.
+                        <span class="add-card blue-link" on-tap="addCard">Add Card.</span>
+                    </p>
+                </div>
+            </div>
+            <div class="grid-row">
+                <div class="xs12 head">
                     <h2 class="title">Other plans</h2>
                     <p>Other Mist.io available plans.</p>
                 </div>
@@ -81,6 +93,7 @@
             </div>
         </paper-material>
         <plan-purchase id="purchasePlan" org="[[org]]"></plan-purchase>
+        <plan-purchase id="addCard" org="[[org]]" add-card></plan-purchase>
     </template>
     <script>
         Polymer({
@@ -128,6 +141,9 @@
             purchasePlan: function(e){
                 this.$.purchasePlan.plan = e.detail.plan;
                 this.$.purchasePlan.open();
+            },
+            addCard: function(e){
+                this.$.addCard.open();
             },
             showErrorsOfCancel: function(errormessage){
 
