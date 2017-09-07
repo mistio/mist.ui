@@ -235,12 +235,11 @@
                         return field.type == value;
                     }
                 },
-                _cloinesFields) {
+                _cloudChanged: function(selectedCloud, machinesFields) {
                     // clear to reset
                     this.set('machineFields', []);
                     var machineFields = [];
                     if (this.selectedCloud){
-                        var machineFields;
                         var cloudName =  this.model.clouds[selectedCloud].provider.split('_')[0];
                         machineFields = this.machinesFields.find(function(c){
                             return c.provider == cloudName;
@@ -252,6 +251,7 @@
                     // set values by provider
                     this._updateFields(selectedCloud);
                 },
+
                 _resetForm: function() {
                     // Reset Form Fields
                     this.set('selectedCloud', false)
@@ -826,7 +826,7 @@
                 _computeProviders: function(model, clouds){
                     //exclude bare metals and other from provider dropdown list
                     return this.model.cloudsArray.filter(function(c){
-                        return  ["bare_metal", "vsphere", "azure_arm"].indexOf(c.provider) == -1;
+                        return c.can_create_vms;
                     });
                 },
                 addInput: function(e){
