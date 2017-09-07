@@ -1,0 +1,118 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
+
+<dom-module id="multi-inputs">
+    <template>
+        <style is="custom-style" include="shared-styles forms">
+            :host {
+                display: block;
+                margin-bottom: 40px;
+            }
+            paper-input {
+                width: 30%;
+                display: inline-block;
+            }
+            paper-button, .remove {
+                display: inline-block;   
+            }
+        </style>
+        <template is="dom-if" if="[[!inputsArray.length]]">
+            <p class="sub">No whitelisted IPs.</p>
+        </template>
+        <template is="dom-repeat" items="[[inputsArray]]">
+            <div class="input">
+                <paper-input label="[[inputLabel]]" value="{{item.cidr}}"></paper-input> 
+                <paper-input label="description" value="{{item.description}}" hidden$="[[!withDescription]]"></paper-input> 
+                <div class="remove"><paper-button data-index="[[index]]" on-tap="removeInput"><iron-icon icon="clear"></iron-icon>remove</paper-button></div>
+            </div>
+        </template>
+        <paper-button class="blue" on-tap="addInput"><iron-icon icon="add"></iron-icon> Add [[inputLabel]]</paper-button>
+
+        <dialog-element id="confirmRemove"></dialog-element>
+
+    </template>
+    <script>
+        Polymer({
+            is: 'multi-inputs',
+
+            properties: {
+                inputsArray: {
+                    type: Array,
+                    notify: true
+                },
+                inputLabel: String,
+                withDescription: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
+                withConfirmRemove: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
+                eventName: String,
+                toRemove: Number
+            },
+            listeners: {
+                'confirmation': '_confirmRemove',
+            },
+            observers:[
+                'inputsArrayChanged(inputsArray)'
+            ],
+            // calculateValue: function(item){
+            //     return item[this.inputLabel];
+            // },
+            inputsArrayChanged: function(inputsArray){
+                console.log('inputsArray',inputsArray);
+            },
+            addInput: function(e){
+                var obj = {};
+                obj[this.inputLabel] = '';
+                if (this.withDescription)
+                    obj['description'] = '';
+                this.push('inputsArray', obj);
+            },
+            removeInput: function(e){
+                console.log('removeInput', e.target.dataIndex, this.withConfirmRemove);
+                var inputValue = this.get('inputsArray.'+e.target.dataIndex+'.'+this.inputLabel);
+                    if (inputValue)
+                        inputValue = inputValue.trim();
+                if (this.withConfirmRemove != true || inputValue == '')
+                    this.splice('inputsArray', e.target.dataIndex, 1);
+                else {
+                    this.set('toRemove', e.target.dataIndex);
+                    this._showDialog({
+                        title: 'Remove '+this.inputLabel,
+                        body: "This cannot be undone. You will need to manually re-add "+ inputValue +" if you need so." ,
+                        reason: "input.remove",
+                        action: "Remove "+this.inputLabel
+                    });
+                }
+            },
+            _showDialog: function(info) {
+                var dialog = this.querySelector('dialog-element#confirmRemove');
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
+                dialog._openDialog();
+            },
+            _confirmRemove: function(e){
+                var reason = e.detail.reason,
+                    response = e.detail.response;
+
+                if (response.confirmed && reason == "input.remove") {
+                    this.splice('inputsArray', this.toRemove, 1);
+                    this.set('toRemove', null);
+                }
+            },
+            saveInputs: function(e){
+                this.fire(this.eventName, {inputs: this.inputsArray})
+            }
+        });
+    </script>
+</dom-module>

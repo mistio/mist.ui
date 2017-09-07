@@ -50,7 +50,6 @@
         }
         .error {
             color: var(--red-color);
-
         }
         mist-list::content .recommendation-icon {
             color: #F57F17;
@@ -157,6 +156,9 @@
         mist-list::content .state.shorteco.longeco:after {
             box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
         }
+        h2[slot="header"] {
+            margin: 8px;
+        }
     </style>
 
     <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
@@ -179,12 +181,15 @@
             items="[[sortedMachines(model.machinesArray)]]"
             name="Machines"
             selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            combined-filter={{combinedFilter}}
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
             renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
             route={{route}}
             user-filter=[[model.sections.machines.q]]
             primary-field-name="id">
+            <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Machines </h2>
             <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
             <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
             <p slot="no-items-found">No machines found.</p>
@@ -376,12 +381,12 @@
                       'body': function(item, row) {
                         var green = "#69b46c",
                             pending = "#eee",
-                            incident = "#d96557",
+                            red = "#d96557",
                             color = 'transparent';
                         // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
                         if (row.monitoring.hasmonitoring) {
                             color = green;
-                            if (_this._machineHasIncidents(row, this.incidentsArray))
+                            if (_this._machineHasIncidents(row,_this.model.incidentsArray))
                                 color = red;
                             if (row.monitoring.installation_status == "installing" || !row.monitoring.installation_status == "installing" || !row.monitoring.installation_status.activated_at)
                                 color = pending;
@@ -428,10 +433,10 @@
                   'cloud': {
                       'body': function(item, row) {
                         if (_this.model && _this.model.clouds)
-                          return _this.model.clouds[item.id].title;
+                          return _this.model.clouds[item.id] ? _this.model.clouds[item.id].title : '';
                       },
                       'cmp': function(item1, item2, row1, row2) {
-                        if (_this.model && _this.model.clouds) {
+                        if (_this.model && _this.model.clouds && _this.model.clouds[item.id]) {
                             if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
                                 return -1;
                             if (_this.model.clouds[item1.id].title > _this.model.clouds[item2.id].title)
@@ -590,7 +595,7 @@
 
             _machineHasIncidents: function(machine, incidents){
                 var machineIncidents = incidents ? incidents.filter(function(inc){
-                    return inc.machine_id == machine.id
+                    return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud.id
                 }) : [];
                 return machineIncidents ? machineIncidents.length * 1000 : 0;
             },

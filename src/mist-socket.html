@@ -159,15 +159,13 @@
                         }
                     },
                     notifications: function (data) {
-                        console.log('Loaded notifications list');
-                        that.debounce(that._updateNotifications(data), function () {
+                        that.debounce(that._loadNotifications(data), function () {
                             console.debug('Loaded notifications list data');
                         }, 250);
                     },
-                    notification: function (data) {
-                        console.log('Received notification');
-                        that.debounce(that._addNotification(data), function () {
-                            console.debug('Loaded notification');
+                    patch_notifications: function (data) {
+                        that.debounce(that._patchNotifications(data), function () {
+                            console.debug('Applied notifications patch');
                         }, 250);
                     }
                 },
@@ -878,18 +876,35 @@
             this.set('model.onboarding.isOverUsing', isOverUsing);
         },
 
-        _updateNotifications: function(data) {
+        _loadNotifications: function(data) {
             json_data = JSON.parse(data);
+            // Reverse the array here to display more recent first
             this.set('model.notificationsArray', json_data.reverse());
-
         },
 
-        _addNotification: function(data) {
-            json_data = JSON.parse(data);
-            this.unshift('model.notificationsArray', json_data);
-            if (json_data.source == "notification") {
-                this.fire('toast', {msg:json_data.summary ,duration:3000} );
-            }
+        _patchNotifications: function(data) {
+            var obj = JSON.parse(data);
+            var _this = this;
+
+            // TODO: Do not replace the entire array. Also take care
+            // of reversing the array in a more elegant way.
+            var newArray = _this.model.notificationsArray.slice().reverse();
+            obj.patch.forEach(function(operation) {
+
+                // apply patch to model
+                jsonpatch.applyOperation(newArray, operation, true);
+
+                // display toast and desktop notification if add or replace
+                if (operation.op == "add" || operation.op == "replace") {
+                    //if (operation.value._cls == "Notification.InAppNotification") {
+                        _this.fire('toast', {msg:operation.value.summary, duration:3000} );
+                        _this.fire('desktop-notification', {
+                            title:operation.value.summary,
+                            body:operation.value.body} );
+                    //}
+                }
+            });
+            _this.set('model.notificationsArray', newArray.reverse());
         },
 
         _probe: function (data) {
