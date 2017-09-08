@@ -113,25 +113,25 @@
 
     <dialog-element id="confirm"></dialog-element>
 
-    <iron-ajax  id="resizeMachine" 
+    <iron-ajax  id="resizeMachine"
                 url="/api/v1/machines/[[machine.id]]"
-                method="POST" 
-                on-response="_resizeMachineResponse" 
-                on-error="_resizeMachineError" 
+                method="POST"
+                on-response="_resizeMachineResponse"
+                on-error="_resizeMachineError"
                 loading="{{loading}}"
                 handle-as="xml"
                 on-request="_resizeMachineRequest"></iron-ajax>
 
   </template>
   <script>
-    Polymer({ 
+    Polymer({
       is: 'resize-dialog',
       properties: {
         clouds: Object,
-        machine: { 
+        machine: {
           type: Object
         },
-        showNotification: { 
+        showNotification: {
           type: Boolean,
           value: true
         },
@@ -193,7 +193,7 @@
           this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
           this.$.resizeMachine.generateRequest();
         }
-        else if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1){
+        else if (!this.isOnapp){
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
           this.$.resizeMachine.body = {"action": "resize", "plan_id": parseInt(this.selectedPlan)};
@@ -241,7 +241,7 @@
       },
       computePlans: function(machine, clouds){
         if (this.machine) {
-          if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1){
+          if (!this.isOnapp){
             var planId = this.machine.extra.PLANID;
             return this.clouds[this.machine.cloud.id].sizesArray;
           }
@@ -257,7 +257,7 @@
         }
       },
       updateFormReady: function(selectedPlan){
-        if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1 && this.selectedPlan != undefined){
+        if (!this.isOnapp && this.selectedPlan != undefined){
           this.set('formReady', true);
         }
       },
