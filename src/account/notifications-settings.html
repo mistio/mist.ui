@@ -1,0 +1,247 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+
+<dom-module id="notifications-settings">
+    <template>
+        <style is="custom-style" include="shared-styles forms">
+            :host {
+                display: block;
+            }
+
+            :host paper-material {
+                display: block;
+                padding: 0;
+            }
+
+            label {
+                color: rgba(0, 0, 0, 0.54) !important;
+                font-size: 12px;
+            }
+
+            .grid-row {
+                padding: 24px;
+            }
+
+            .head {
+                margin-bottom: 16px;
+            }
+
+            h2.title {
+                font-weight: 500;
+            }
+
+            h2.title, h2.title~p {
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+
+            paper-radio-button {
+                --paper-radio-button-checked-color: var(--paper-light-blue-500);
+                --paper-radio-button-checked-ink-color: var(--paper-light-blue-500);
+                --paper-radio-button-unchecked-ink-color: var(--paper-light-blue-900);
+            }
+            hr {
+                width: 100%;
+            }
+            :host paper-progress{
+                position: absolute;
+                width: 100%;
+                left: 0;
+                right: 0;
+            }
+            
+            .margin {
+                margin: 32px 0;
+            }
+
+            .bottom-actions {
+                padding-bottom: 24px;
+                padding-left: 1rem;
+            }
+            .separator {
+                border-top: 4px solid #ddd;
+            }
+            .progress {
+                margin: 32px 0 8px 0;
+                width: 100%;
+            }
+            paper-progress.progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: var(--red-color);
+                padding-left: 24px;
+                padding-right: 24px
+            }
+            .errormsg-container iron-icon {
+                color: inherit;
+            }
+
+            paper-icon-button.white {
+                --paper-icon-button-ink-color: var(--paper-orange-500);
+            }
+
+            paper-icon-button.delete-avatar-icon {
+                top: -12px;
+            }
+
+            iron-image.avatar-preview {
+                width: 80px;
+                height: 36px;
+                margin: 2px 6px;
+            }
+
+            div.existing-org-logo {
+                display: inline-block;
+                vertical-align: middle;
+                text-align: center;
+            }
+
+            div.org-logo-container {
+                background-color: #2F2F3E;
+                margin: 6px;
+                display: inline-block
+            }
+
+            div.org-logo-field-title {
+                color: var(--paper-light-blue-600);
+                text-transform: uppercase;
+                font-weight: 400;
+                font-size: 12px;
+                margin-left: -17px;
+            }
+
+            paper-toggle-button {
+                margin: auto;
+                display: inline-flex;
+                cursor: pointer;
+            }
+        </style>
+        <paper-material>
+            <div class="grid-row">
+                <div class="xs12 head">
+                    <h2 class="title">Notifications Settings</h2>
+                </div>
+
+                <p>Enter your organisation details. To switch organisation use the  user menu in the top right corner of your screen.</p>
+
+                <div class="info-body">
+                    <template is="dom-repeat" items="[[sessions]]" as="session">
+                        <div class="row">
+                            <paper-toggle-button checked="{{enableR12ns}}">
+                                Enable Recommendations
+                            </paper-toggle-button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div class="bottom-actions clearfix xs12">
+                <paper-button class="pull-right" disabled$="[[!formReady]]" raised on-tap="_submitForm">Save Notifications Settings</paper-button>
+            </div>
+
+        </paper-material>
+
+       <iron-ajax id="ajaxRequest"
+            url="/api/v1/org/[[org.id]]"
+            method="PUT"
+            loading="{{loadingNotifications}}"
+            on-response="_handleAjaxResponse"
+            on-error="_handleAjaxError"
+            handle-as="xml"></iron-ajax>
+
+    </template>
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'notifications-settings',
+
+                properties: {
+                    notifications: {
+                        type: Array
+                    },
+                    loadingNotifications: {
+                        type: Boolean,
+                        value: false
+                    },
+                    notificationsError: {
+                        type: Boolean,
+                        value: false
+                    }
+                },
+                observers: [
+                    '_notificationsUpdated(notifications)'
+                ],
+
+                attached: function() {
+                    var that = this;
+                    this.$.orgAvatarUpload.addEventListener('upload-response', function(e) {
+                        if (e.detail.xhr.status == 200) {
+                            that.orgAvatar = JSON.parse(e.detail.xhr.response).id;
+                        }
+                    });
+                    this.$.orgAvatarUpload.addEventListener('file-remove', function(e) {
+                        that.orgAvatar = '';
+                    });
+                },
+
+                _computeFormReady: function(firstName, lastName, loading, user) {
+                    if (loading || !user)
+                        return false;
+
+                    if (firstName == user.first_name && lastName == user.last_name)
+                        return false;
+
+                    if (firstName && lastName)
+                        return true;
+
+                    return false;
+                },
+
+                _computeShowProgress: function(sendingData) {
+                    return sendingData;
+                },
+
+                _computeAvatarURL: function(orgAvatar) {
+                    if (orgAvatar.length)
+                        return '/api/v1/avatars/' + orgAvatar;
+                },
+
+                _submitForm: function(e, user) {
+                    var payload = {
+                        action: 'update_details',
+                        first_name: this.firstName,
+                        last_name: this.lastName
+                    };
+
+                    this.$.ajaxRequest.headers["Content-Type"] = 'application/json';
+                    this.$.ajaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.ajaxRequest.body = payload;
+                    this.$.ajaxRequest.generateRequest();
+                    console.log('loadingUser', this.loadingUser);
+                },
+
+                _handleAjaxResponse: function(e) {
+                    this.fire('toast',{msg:"Changes saved succesfully!",duration:3000});
+                },
+
+                _handleAjaxError: function() {
+                    this.set('notificationsError', true);
+                    this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
+                }
+            });
+        })();
+    </script>
+</dom-module>
