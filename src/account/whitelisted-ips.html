@@ -83,7 +83,7 @@
                 </div>
                 <div class="ips-section xs12 m12 l12">
                     <p>Allow account access to whitelisted ips only. You can use cidr format.</p>
-                    <multi-inputs with-description with-confirm-remove
+                    <multi-inputs with-description
                         input-label="cidr" 
                         inputs-array="{{whiteIps}}" 
                         event-name="save-ips"></multi-inputs>
@@ -162,18 +162,21 @@
 
                 _saveWhitelist: function(e){
                     var message = {
-                        title: 'Save Ips',
+                        title: 'Save IPs',
                         body: "Save the whitelisted IPs.",
                         reason: "proceed.saveips",
                         action: "Save IPs",
                         danger: false
                     };
-                    if (this.showAddCurrent) {
-                        message.body = "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP you will be automaticaly logged out.";
+                    if (this.showAddCurrent && this.whiteIps.length) {
+                        message.body = "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP you will be logged out after saving.";
                         message.danger = true;
                         message.action = "Save anyway";
+                        this._showDialog(message);
                     }
-                    this._showDialog(message);
+                    else {
+                        this._proceedToSaveWhitelist();
+                    }
                 },
 
                 _showDialog: function(info) {
@@ -185,8 +188,7 @@
                 },
 
                 _proceedToSaveWhitelist: function(e){
-                    console.log('_proceedToSaveWhitelist',e.detail);
-                    if (e.detail.response.confirmed && e.detail.reason == "proceed.saveips"){
+                    if (!e || (e.detail.response.confirmed && e.detail.reason == "proceed.saveips")){
                         var payload = {
                             ips: this.whiteIps
                         };
