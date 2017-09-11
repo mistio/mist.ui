@@ -153,9 +153,9 @@
         </paper-material>
 
        <iron-ajax id="ajaxRequest"
-            url="/api/v1/org/[[org.id]]"
+            url="/api/v1/notification_rules/"
             method="PUT"
-            loading="{{loadingNotifications}}"
+            loading="{{loadingRules}}"
             on-response="_handleAjaxResponse"
             on-error="_handleAjaxError"
             handle-as="xml"></iron-ajax>
@@ -169,20 +169,20 @@
                 is: 'notifications-settings',
 
                 properties: {
-                    notifications: {
+                    rules: {
                         type: Array
                     },
-                    loadingNotifications: {
+                    loadingRules: {
                         type: Boolean,
                         value: false
                     },
-                    notificationsError: {
+                    rulesError: {
                         type: Boolean,
                         value: false
                     }
                 },
                 observers: [
-                    '_notificationsUpdated(notifications)'
+                    '_rulesUpdated(rules)'
                 ],
 
                 attached: function() {
@@ -210,20 +210,10 @@
                     return false;
                 },
 
-                _computeShowProgress: function(sendingData) {
-                    return sendingData;
-                },
-
-                _computeAvatarURL: function(orgAvatar) {
-                    if (orgAvatar.length)
-                        return '/api/v1/avatars/' + orgAvatar;
-                },
-
                 _submitForm: function(e, user) {
                     var payload = {
-                        action: 'update_details',
-                        first_name: this.firstName,
-                        last_name: this.lastName
+                        action: 'update_notification_rules',
+                        rules: this.rules
                     };
 
                     this.$.ajaxRequest.headers["Content-Type"] = 'application/json';
@@ -238,7 +228,7 @@
                 },
 
                 _handleAjaxError: function() {
-                    this.set('notificationsError', true);
+                    this.set('rulesError', true);
                     this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
                 }
             });
