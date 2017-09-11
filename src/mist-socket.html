@@ -167,6 +167,16 @@
                         that.debounce(that._patchNotifications(data), function () {
                             console.debug('Applied notifications patch');
                         }, 250);
+                    },
+                    notification_rules: function (data) {
+                        that.debounce(that._loadNotificationRules(data), function () {
+                            console.debug('Loaded notifications rules list data');
+                        }, 250);
+                    },
+                    patch_notification_rules: function (data) {
+                        that.debounce(that._patchNotificationRules(data), function () {
+                            console.debug('Applied notification rules patch');
+                        }, 250);
                     }
                 },
                 shell: {
@@ -905,6 +915,23 @@
                 }
             });
             _this.set('model.notificationsArray', newArray.reverse());
+        },
+
+        _loadNotificationRules: function(data) {
+            json_data = JSON.parse(data);
+            this.set('model.notificationRulesArray', json_data);
+        },
+
+        _patchNotificationRules: function(data) {
+            var obj = JSON.parse(data);
+            var _this = this;
+
+            // TODO: Do not replace the entire array.
+            var newArray = _this.model.notificationRulesArray.slice();
+            obj.patch.forEach(function(operation) {
+                jsonpatch.applyOperation(newArray, operation, true);
+            });
+            _this.set('model.notificationRulesArray', newArray);
         },
 
         _probe: function (data) {
