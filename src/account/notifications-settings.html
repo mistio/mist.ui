@@ -133,10 +133,12 @@
                     <h2 class="title">Notifications Settings</h2>
                 </div>
 
-                <p>Below you can adjust how you wish to be notified of important events and recommendations regarding your infrastructure.</p>
+                <div class="ips-section xs12 m12 l12">
+                    <p>Below you can adjust how you wish to be notified of important events and recommendations regarding your infrastructure.</p>
+                </div>
 
-                <div class="info-body">
-                    <template is="dom-repeat" items="[[rules]]" as="rule">
+                <div class="ips-section xs12 m12 l12">
+                    <template is="dom-repeat" items="[[notificationRules]]" as="rule">
                         <div class="row">
                             <paper-toggle-button checked="{{_computeAllowed(rule)}}">
                                 [[rule.source]] - [[rule.channel]]
@@ -147,95 +149,73 @@
             </div>
 
             <div class="bottom-actions clearfix xs12">
-                <paper-button class="pull-right" disabled$="[[!formReady]]" raised on-tap="_submitForm">Save Notifications Settings</paper-button>
+                <paper-button class="pull-right" 
+                    disabled$="[[!formReady]]" 
+                    raised on-tap="_submitForm">Save Notifications Settings</paper-button>
             </div>
 
         </paper-material>
 
-       <iron-ajax id="ajaxRequest"
-            url="/api/v1/notification_rules/"
+        <iron-ajax auto id="getNotificationRulesRequest" 
+            method="GET" 
+            url="/api/v1/notification_rules" 
+            on-response="_handleGetRulesResponse" 
+            on-error="_handleGetRulesError" 
+            handle-as="json"></iron-ajax>
+
+       <iron-ajax id="setNotificationRulesRequest"
+            url="/api/v1/notification_rules"
             method="PUT"
-            loading="{{loadingRules}}"
-            on-response="_handleAjaxResponse"
-            on-error="_handleAjaxError"
-            handle-as="xml"></iron-ajax>
+            on-response="_handleSetRulesResponse"
+            on-error="_handleSetRulesError"
+            handle-as="json"></iron-ajax>
 
     </template>
     <script>
-        (function() {
-            'use strict';
+        Polymer({
+            is: 'notifications-settings',
+            properties: {
+                notificationRules: Array,
+                rulesError: Boolean
+            },
 
-            Polymer({
-                is: 'notifications-settings',
+            _computeAllowed: function(rule) {
+                return rule.value == "ALLOW";
+            },
 
-                properties: {
-                    rules: {
-                        type: Array
-                    },
-                    loadingRules: {
-                        type: Boolean,
-                        value: false
-                    },
-                    rulesError: {
-                        type: Boolean,
-                        value: false
-                    }
-                },
-                observers: [
-                    '_rulesUpdated(rules)'
-                ],
+            _getRules: function(e, user) {
+                this.$.getNotificationRulesRequest.headers["Content-Type"] = 'application/json';
+                this.$.getNotificationRulesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.getNotificationRulesRequest.generateRequest();
+            },
 
-                attached: function() {
-                    var that = this;
-                    this.$.orgAvatarUpload.addEventListener('upload-response', function(e) {
-                        if (e.detail.xhr.status == 200) {
-                            that.orgAvatar = JSON.parse(e.detail.xhr.response).id;
-                        }
-                    });
-                    this.$.orgAvatarUpload.addEventListener('file-remove', function(e) {
-                        that.orgAvatar = '';
-                    });
-                },
+            _handleGetRulesResponse: function(e) {
+                this.set('notificationRules', JSON.parse(e.detail.response));
+            },
 
-                _computeAllowed: function(rule) {
-                    return rule.value == "ALLOW";
-                },
+            _handleGetRulesError: function() {
+                this.set('rulesError', true);
+            },
 
-                _computeFormReady: function(firstName, lastName, loading, user) {
-                    if (loading || !user)
-                        return false;
+            _submitForm: function(e) {
+                var payload = {
+                    action: 'update_notification_rules',
+                    rules: this.notificationRules
+                };
+                this.$.setNotificationRulesRequest.headers["Content-Type"] = 'application/json';
+                this.$.setNotificationRulesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.setNotificationRulesRequest.body = payload;
+                this.$.setNotificationRulesRequest.generateRequest();
+            },
 
-                    if (firstName == user.first_name && lastName == user.last_name)
-                        return false;
+            _handleSetRulesResponse: function(e) {
+                this.fire('toast',{msg:"Changes saved succesfully!",duration:3000});
+            },
 
-                    if (firstName && lastName)
-                        return true;
-
-                    return false;
-                },
-
-                _submitForm: function(e, user) {
-                    var payload = {
-                        action: 'update_notification_rules',
-                        rules: this.rules
-                    };
-
-                    this.$.ajaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.ajaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.ajaxRequest.body = payload;
-                    this.$.ajaxRequest.generateRequest();
-                    console.log('loadingUser', this.loadingUser);
-                },
-
-                _handleAjaxResponse: function(e) {
-                    this.fire('toast',{msg:"Changes saved succesfully!",duration:3000});
-                },
-
-                _handleAjaxError: function() {
-                    this.set('rulesError', true);
-                    this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
-                }
-            });
-        })();
+            _handleSetRulesError: function() {
+                this.set('rulesError', true);
+                this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
+            }
+        });
     </script>
 </dom-module>
