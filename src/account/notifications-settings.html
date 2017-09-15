@@ -140,8 +140,8 @@
                 <div class="ips-section xs12 m12 l12">
                     <template is="dom-repeat" items="[[notificationRules]]" as="rule">
                         <div class="row">
-                            <paper-toggle-button checked="{{_computeAllowed(rule)}}">
-                                [[rule.source]] - [[rule.channel]]
+                            <paper-toggle-button checked="{{_computeAllowed(rule)}}" on-change="_ruleChanged" index="[[index]]">
+                                [[_computeRuleLabel(rule)]]
                             </paper-toggle-button>
                         </div>
                     </template>
@@ -181,6 +181,28 @@
 
             _computeAllowed: function(rule) {
                 return rule.value == "ALLOW";
+            },
+
+            _computeRuleLabel: function(rule) {
+                var lowerCase = (rule.channel + " " + rule.source).toLowerCase();
+                if (lowerCase.includes("inapp")) 
+                {
+                    if (lowerCase.includes("recommendations"))
+                    {
+                        return "In-App Recommendations";
+                    }
+                    return "In-App Notifications";
+                }
+                else if (lowerCase.includes("email"))
+                {
+                    return "Email Reports";
+                }
+            },
+
+            _ruleChanged: function(e) {
+                var checked = e.target.checked;
+                var index = e.target.index;
+                this.notificationRules[index].value = checked ? "ALLOW" : "BLOCK";
             },
 
             _getRules: function(e, user) {
