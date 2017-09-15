@@ -97,8 +97,8 @@
                 </div>
 
                 <div class="bottom-actions clearfix xs12">
-                    <paper-button id="save_ips" class="pull-right" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
-                    <paper-button id="add_current_ip" class="pull-right" on-tap="addCurrentIP" hidden$="[[!showAddCurrent]]">Add your current IP: [[user.current_ip]]</paper-button>
+                    <paper-button id="save_ips" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
+                    <paper-button id="add_current_ip" on-tap="addCurrentIP" hidden$="[[!showAddCurrent]]">Add your current IP: [[user.current_ip]]</paper-button>
 
                     <iron-ajax id="ipsRequest"
                         url="/api/v1/whitelist"
@@ -127,7 +127,7 @@
                         type: Object
                     },
                     user: {
-                        type: Object,
+                        type: Object
                     },
                     ipsFormReady: {
                         type: Boolean,
@@ -152,11 +152,12 @@
                 observers: [
                     '_userUpdated(user)',
                     '_showAddCurrent(whiteIps.length, user.current_ip)',
-                    '_computIpFormReady(user, whiteIps, whiteIps.length)',
+                    '_updateFormReady(user, whiteIps.splices)',
                     '_whitelistedIpsChanged(user.ips)'
                 ],
 
                 listeners: {
+                    'input': '_formInput',
                     'confirmation': '_proceedToSaveWhitelist',
                 },
 
@@ -197,7 +198,7 @@
                 },
 
                 addCurrentIP: function(e){
-                    this.push('whiteIps', {cidr: this.user.current_ip, description: "Current ip"});
+                    this.push('whiteIps', {cidr: this.user.current_ip, description: "Current IP"});
                 },
 
                 _showAddCurrent: function(ips, currentIp){
@@ -212,27 +213,18 @@
                     this.lastName = user.last_name;
                 },
 
-                _computIpFormReady: function(user, whitelist, length){
-                    // TODO: set || []
-                    // return true
-                    var bool = false;
+                _updateFormReady: function(user, whitelist){
+                    // console.log('_updateFormReady', whitelist);
+                    // listen to array length changes
+                    if (whitelist.keySplices && whitelist.keySplices.length)
+                        this.set('ipsFormReady', true);
+                },
 
-                    var currentUserIps = this.user.ips ? this.user.ips.slice(0) : [],
-                        formIps = this.whiteIps;
-
-                    if (currentUserIps.length != formIps.length){
-                        bool = true;
-                    }
-                    else {
-                        // check if there are changes
-                        for (var i = 0; i < formIps.length; i++) {
-                            if (formIps[i].cidr != currentUserIps[i].cidr || formIps[i].description != currentUserIps[i].description )
-                                bool = true;
-                                break;
-                        }
-                    }
-                    // return false;
-                    this.set('ipsFormReady', bool);
+                _formInput: function(){
+                    // listen to input changes
+                    if (this.ipError)
+                        this.set('ipError', false);
+                    this.set('ipsFormReady', true);
                 },
 
                 _whitelistedIpsChanged: function(userIPs) {
@@ -250,9 +242,11 @@
 
                 _handleIpResponse: function() {
                     this.fire('toast',{msg:"IPs saved succesfully!",duration:3000});
+                    this.set('ipsFormReady', false);
                 },
                 _handleIpError: function(e) {
                     this.set('ipError', true);
+                    this.set('ipsFormReady', false);
                     this.$.iperrormsg.textContent = e.detail.request.xhr.responseText;
                 },
             });
