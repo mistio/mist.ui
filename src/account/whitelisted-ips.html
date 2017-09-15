@@ -168,10 +168,10 @@
                 },
 
                 _saveWhitelist: function(e){
-                    if (this.showAddCurrent && this.whiteIps.length) {
+                    if (this.showAddCurrent && this.whiteIps.length && !this.ipIsWhitelisted('0.0.0.0/0')) {
                         var message = {
                             title: 'Save IPs',
-                            body: "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP you will be logged out after saving.",
+                            body: "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP or the 0.0.0.0/0 wildcard, you will be logged out after saving.",
                             reason: "proceed.saveips",
                             action: "Save anyway",
                             danger: true
@@ -245,7 +245,7 @@
                 ipIsWhitelisted: function(currentIp) {
                     // allow access, if wildcard ip 0.0.0.0/0 is included
                     return this.user.ips && this.user.ips.find(function(ip){
-                        return ip.cidr == currentIp+'/32' || ip.cidr == '0.0.0.0/0';
+                        return ip.cidr == currentIp+'/32' || ip.cidr == '0.0.0.0/0' || || ip.cidr == '0.0.0.0';
                     });
                 },
 
