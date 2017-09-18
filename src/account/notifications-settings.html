@@ -23,6 +23,14 @@
                 padding: 0;
             }
 
+            .flex-horizontal-with-ratios {
+                @apply(--layout-horizontal);
+            }
+
+            .flexchild {
+                @apply(--layout-flex);
+            }
+
             label {
                 color: rgba(0, 0, 0, 0.54) !important;
                 font-size: 12px;
@@ -69,7 +77,8 @@
                 padding-left: 1rem;
             }
             .separator {
-                border-top: 4px solid #ddd;
+                border-top: 1px solid #ddd;
+                margin: 0 0 32px 0;
             }
             .progress {
                 margin: 32px 0 8px 0;
@@ -121,10 +130,17 @@
                 margin-left: -17px;
             }
 
+            .ruleLabel {
+                margin-right: 1em;
+                vertical-align: top;
+            }
+
             paper-toggle-button {
                 margin: auto;
                 display: inline-flex;
                 cursor: pointer;
+                /*--paper-toggle-button-checked-bar-color: #2196F3;
+                --paper-toggle-button-checked-button-color: #fff;*/
             }
         </style>
         <paper-material>
@@ -134,21 +150,22 @@
                 </div>
 
                 <div class="ips-section xs12 m12 l12">
-                    <p>Below you can adjust how you wish to be notified of important events and recommendations regarding your infrastructure.</p>
+                    <p>Adjust how you wish to be notified of important events and recommendations regarding your infrastructure.</p>
                 </div>
-
+                <div class="separator clearfix xs12 m12 l12"></div>
                 <div class="ips-section xs12 m12 l12">
                     <template is="dom-repeat" items="[[notificationRules]]" as="rule">
                         <div class="row">
+                            <span class="ruleLabel">[[_computeRuleLabel(rule)]]</span>
                             <paper-toggle-button checked="{{_computeAllowed(rule)}}" on-change="_ruleChanged" index="[[index]]">
-                                [[_computeRuleLabel(rule)]]
+                                [[_computeRuleStateLabel(rule)]]
                             </paper-toggle-button>
                         </div>
                     </template>
                 </div>
             </div>
-
             <div class="bottom-actions clearfix xs12">
+                <div class="separator clearfix xs12 m12 l12"></div>
                 <paper-button class="pull-right" 
                     disabled$="[[!formReady]]" 
                     raised on-tap="_submitForm">Save Notifications Settings</paper-button>
@@ -199,10 +216,17 @@
                 }
             },
 
+            _computeRuleStateLabel: function(rule) {
+                var valueString = rule.value.toLowerCase();
+                return valueString.charAt(0).toUpperCase() + valueString.slice(1);
+            },
+
             _ruleChanged: function(e) {
                 var checked = e.target.checked;
                 var index = e.target.index;
-                this.notificationRules[index].value = checked ? "ALLOW" : "BLOCK";
+                var newRule = JSON.parse(JSON.stringify(this.notificationRules[index]));
+                newRule.value = checked ? "ALLOW" : "BLOCK";
+                this.splice('notificationRules', index, 1, newRule);
             },
 
             _getRules: function(e, user) {
