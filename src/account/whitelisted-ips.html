@@ -75,6 +75,10 @@
             .errormsg-container iron-icon {
                 color: inherit;
             }
+            iron-icon {
+                margin-top: -3px;
+                margin-right: 3px;
+            }
         </style>
         <paper-material>            
             <div class="grid-row">
@@ -86,9 +90,12 @@
                     <multi-inputs with-description
                         input-label="cidr" 
                         inputs-array="{{whiteIps}}" 
-                        event-name="save-ips"></multi-inputs>
+                        event-name="save-ips"
+                        default="[[user.current_ip]]"
+                        show-add-default="[[showAddCurrent]]"
+                        ></multi-inputs>
                 </div>
-                
+
                 <div class="progress">
                     <paper-progress id="ipProgress" indeterminate hidden$="[[!loadingIp]]"></paper-progress>
                     <paper-progress id="ipprogresserror" class="progresserror" value="100" hidden$="[[!ipError]]"></paper-progress>
@@ -97,8 +104,7 @@
                 </div>
 
                 <div class="bottom-actions clearfix xs12">
-                    <paper-button id="save_ips" class="pull-right" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
-                    <paper-button id="add_current_ip" class="pull-right" on-tap="addCurrentIP" hidden$="[[!showAddCurrent]]">Add your current IP: [[user.current_ip]]</paper-button>
+                    <paper-button id="save_ips" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
 
                     <iron-ajax id="ipsRequest"
                         url="/api/v1/whitelist"
@@ -107,7 +113,6 @@
                         loading="{{loadingIp}}"
                         on-response="_handleIpResponse"
                         on-error="_handleIpError"></iron-ajax>
-
                 </div>
             </div>
         </paper-material>
@@ -127,7 +132,7 @@
                         type: Object
                     },
                     user: {
-                        type: Object,
+                        type: Object
                     },
                     ipsFormReady: {
                         type: Boolean,
@@ -152,19 +157,21 @@
                 observers: [
                     '_userUpdated(user)',
                     '_showAddCurrent(whiteIps.length, user.current_ip)',
-                    '_computIpFormReady(user, whiteIps, whiteIps.length)',
+                    '_updateFormReady(user, whiteIps.splices)',
                     '_whitelistedIpsChanged(user.ips)'
                 ],
 
                 listeners: {
+                    'input': '_formInput',
+                    'add-current': 'addCurrentIP',
                     'confirmation': '_proceedToSaveWhitelist',
                 },
 
                 _saveWhitelist: function(e){
-                    if (this.showAddCurrent && this.whiteIps.length) {
+                    if (this.showAddCurrent && this.whiteIps.length && !this.ipIsWhitelisted('0.0.0.0/0')) {
                         var message = {
                             title: 'Save IPs',
-                            body: "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP you will be logged out after saving.",
+                            body: "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP or the 0.0.0.0/0 wildcard, you will be logged out after saving.",
                             reason: "proceed.saveips",
                             action: "Save anyway",
                             danger: true
@@ -186,8 +193,11 @@
 
                 _proceedToSaveWhitelist: function(e){
                     if (!e || (e.detail.response.confirmed && e.detail.reason == "proceed.saveips")){
+                        var payloadIPs = this.whiteIps.filter(function(ip){
+                                return ip.cidr && ip.cidr.length;
+                            });
                         var payload = {
-                            ips: this.whiteIps
+                            ips: payloadIPs
                         };
                         this.$.ipsRequest.headers["Content-Type"] = 'application/json';
                         this.$.ipsRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -197,7 +207,8 @@
                 },
 
                 addCurrentIP: function(e){
-                    this.push('whiteIps', {cidr: this.user.current_ip, description: "Current ip"});
+                    e.stopImmediatePropagation();
+                    this.push('whiteIps', {cidr: this.user.current_ip, description: "Current IP"});
                 },
 
                 _showAddCurrent: function(ips, currentIp){
@@ -212,27 +223,18 @@
                     this.lastName = user.last_name;
                 },
 
-                _computIpFormReady: function(user, whitelist, length){
-                    // TODO: set || []
-                    // return true
-                    var bool = false;
+                _updateFormReady: function(user, whitelist){
+                    // console.log('_updateFormReady', whitelist);
+                    // listen to array length changes
+                    if (whitelist.keySplices && whitelist.keySplices.length)
+                        this.set('ipsFormReady', true);
+                },
 
-                    var currentUserIps = this.user.ips ? this.user.ips.slice(0) : [],
-                        formIps = this.whiteIps;
-
-                    if (currentUserIps.length != formIps.length){
-                        bool = true;
-                    }
-                    else {
-                        // check if there are changes
-                        for (var i = 0; i < formIps.length; i++) {
-                            if (formIps[i].cidr != currentUserIps[i].cidr || formIps[i].description != currentUserIps[i].description )
-                                bool = true;
-                                break;
-                        }
-                    }
-                    // return false;
-                    this.set('ipsFormReady', bool);
+                _formInput: function(){
+                    // listen to input changes
+                    if (this.ipError)
+                        this.set('ipError', false);
+                    this.set('ipsFormReady', true);
                 },
 
                 _whitelistedIpsChanged: function(userIPs) {
@@ -242,16 +244,19 @@
                 },
 
                 ipIsWhitelisted: function(currentIp) {
+                    // allow access, if wildcard ip 0.0.0.0/0 is included
                     return this.user.ips && this.user.ips.find(function(ip){
-                        return ip.cidr == currentIp+'/32';
+                        return ip.cidr == currentIp+'/32' || ip.cidr == '0.0.0.0/0';
                     });
                 },
 
                 _handleIpResponse: function() {
                     this.fire('toast',{msg:"IPs saved succesfully!",duration:3000});
+                    this.set('ipsFormReady', false);
                 },
                 _handleIpError: function(e) {
                     this.set('ipError', true);
+                    this.set('ipsFormReady', false);
                     this.$.iperrormsg.textContent = e.detail.request.xhr.responseText;
                 },
             });
