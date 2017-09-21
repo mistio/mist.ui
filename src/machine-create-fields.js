@@ -55,6 +55,15 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: true,
         helptext: ""
+    }, {
+        name: "machine_password",
+        label: "Machine Password",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: ""
     }]
 });
 

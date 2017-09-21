@@ -389,6 +389,11 @@
                             this._updateEc2Sizes(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
+                        // if image and image is Windows, show password field
+                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'image'){
+                            this._showPassword(this.get(changeRecord.path.replace('.value','')).value);
+                        }
+
                         // if its kvm
                         if (this.model.clouds[this.selectedCloud].provider == 'libvirt' && changeRecord.path.endsWith('.value')  && this.get(changeRecord.path.replace('.value','')).name == 'name') {
                             this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value','')).value);
@@ -744,6 +749,15 @@
                     }
 
                     // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
+                },
+                _showPassword: function(value){
+                    if (value.includes("Windows")){
+                        var passwordInd = this._fieldIndexByName('machine_password');
+                        //this.set('machineFields.'+ passwordInd +'.show', false);
+                    }
+                    else {
+                        //this.set('machineFields.'+ passwordInd +'.show', true);
+                    }
                 },
                 _fieldIndexByName: function(name){
                     var index;
