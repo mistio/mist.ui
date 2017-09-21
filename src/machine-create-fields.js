@@ -58,7 +58,7 @@ MACHINE_CREATE_FIELDS.push({
     }, {
         name: "machine_password",
         label: "Machine Password *",
-        type: "text",
+        type: "password",
         value: "",
         defaultValue: "",
         show: false,
