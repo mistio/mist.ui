@@ -284,7 +284,16 @@ MACHINE_CREATE_FIELDS.push({
             required: false,
             helptext: "Whether the new server will be Cloud server, or Bare Metal"
 
-        }]
+        }, {
+        name: "machine_password",
+        label: "Machine Password *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        helptext: "Windows machine password is required."
+    }]
 });
 
 // VCLOUD
