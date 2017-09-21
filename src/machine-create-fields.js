@@ -61,7 +61,7 @@ MACHINE_CREATE_FIELDS.push({
         type: "text",
         value: "",
         defaultValue: "",
-        show: true,
+        show: false,
         required: false,
         helptext: ""
     }]
