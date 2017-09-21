@@ -24,10 +24,38 @@ MACHINE_CREATE_FIELDS.push({
     }]
 });
 
+
 // AZURE ARM
 MACHINE_CREATE_FIELDS.push({
     provider: 'azure_arm',
-    fields: []
+    fields: [{
+        name: "networks",
+        label: "Networks *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: []
+    }, {
+        name: "ex_storage_account",
+        label: "Storage Account",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: ""
+    }, {
+        name: "ex_resource_group",
+        label: "Resource Group",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: ""
+    }]
 });
 
 
