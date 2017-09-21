@@ -57,13 +57,13 @@ MACHINE_CREATE_FIELDS.push({
         helptext: ""
     }, {
         name: "machine_password",
-        label: "Machine Password",
+        label: "Machine Password *",
         type: "text",
         value: "",
         defaultValue: "",
         show: false,
         required: false,
-        helptext: ""
+        helptext: "Windows machine password is required."
     }]
 });
 
