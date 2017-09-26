@@ -272,7 +272,7 @@ MACHINE_ACTIONS = {
           // console.log('perform action machine',items);
           var run = function(el) {
               var uri, payload, item = runitems.shift(), method = 'POST';
-              console.log('renameAction', item.name, action.name, name);
+              // console.log('renameAction', item.name, action.name, name);
               //machines
               if (action.name == 'shell') {
                   console.warn('opening shell');
@@ -305,6 +305,7 @@ MACHINE_ACTIONS = {
                   payload = {'host': item.public_ips[0], 'key': item.key_associations[0]};
               } else {
                   console.error('unknown action', action, 'on item', item );
+                  return;
               }
 
               var xhr = new XMLHttpRequest();
@@ -314,6 +315,7 @@ MACHINE_ACTIONS = {
                       if (xhr.status == 200) {
                           console.log(action, 'success');
                           message = 'Successfully ' + this.inPast(action.name) + ' machine. Updating...'; 
+                          this.fire('action-finished', {success: true});
                           // for machines destroy only and only if in machine page
                           if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.id){
                               document.querySelector('app-location').set('path', '/machines');
@@ -323,7 +325,7 @@ MACHINE_ACTIONS = {
                           console.log(xhr);
                           var responsetext = xhr.responseText ? xhr.responseText : '';
                           message = action.name.toUpperCase() +' failed.'+ responsetext;
-                          this.fire('action-finished');
+                          this.fire('action-finished', {success: false});
                       }
                       this.fire('toast', {msg: message, duration: 5000});
                       if (runitems.length) {
