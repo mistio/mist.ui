@@ -167,7 +167,7 @@
 
     <mist-socket model="{{model}}"></mist-socket>
 
-    <app-notifications id="desktop-notifier"></app-notifications>
+    <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
   </template>
 
@@ -291,8 +291,19 @@
         },
 
         showDesktopNotification: function (e) {
-            var notifications = document.getElementById('desktop-notifier');
-            notifications.show(e.detail.title, { "body":e.detail.body });
+            var notifier = document.getElementById('desktop-notifier');
+            notifier.show(e.detail.title, { 
+                "body":e.detail.body, 
+                "data": {"url":e.detail.url}
+            });
+        },
+
+        handleDesktopNotificationClick: function (e) {
+            if (e.detail.data.url) {
+                window.history.pushState({}, null, e.detail.data.url);
+                window.dispatchEvent(new CustomEvent('location-changed'));
+                e.stopPropagation();
+            }
         },
 
         showToast: function (e) {
