@@ -260,7 +260,8 @@
                 'performing-action': 'updateActionLogs',
                 'action-finished': 'stopActionLogs',
                 'recommendation': 'openRecommendationsDialog',
-                'select-action': 'selectAction'
+                'select-action': 'selectAction',
+                'set-job-id': 'setJobId'
             },
             observers: [
                 '_jobIdChanged(jobId)',
@@ -268,6 +269,11 @@
                 'stopPolling(logItem)',
                 '_selectedItemsChanged(selectedItems.length)'
             ],
+
+            setJobId: function(e) {
+                if (e.detail.jobId)
+                    this.set('jobId', e.detail.jobId);
+            },
 
             _selectedItemsChanged: function(length){
                 console.log('_selectedItemsChanged', length);
@@ -359,11 +365,17 @@
                 this.$.actionLogs.textContent = e.detail.log;
             },
             stopActionLogs: function(e) {
+                var success = e.detail.success;
                 this.$.actionLogs.textContent = '';
                 this.set('performingAction', false);
+                if (success)
+                    this.clearListSelection();
+            },
+            clearListSelection: function(){
+                this.set('selectedItems', []);
             },
             _addResource: function(e) {
-              document.querySelector('app-location').set('path', this.model.sections.machines.add);
+                this.fire('go-to', {url: this.model.sections.machines.add});
             },
 
             _getFrozenLogColumn: function(){
@@ -436,7 +448,7 @@
                           return _this.model.clouds[item.id] ? _this.model.clouds[item.id].title : '';
                       },
                       'cmp': function(item1, item2, row1, row2) {
-                        if (_this.model && _this.model.clouds && _this.model.clouds[item.id]) {
+                        if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] && _this.model.clouds[item2.id]) {
                             if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
                                 return -1;
                             if (_this.model.clouds[item1.id].title > _this.model.clouds[item2.id].title)

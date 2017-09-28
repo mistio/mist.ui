@@ -111,9 +111,11 @@
         <paper-dialog id="form" with-backdrop>
             <img class="logo" src="../../assets/logos/logo-vertical-v2.svg" width="80" alt="Mist.io Logo" tabindex="0" on-tap="_goToDashboard"></a>
             <div class="head">
-                <p class="title">[[plan.title]] plan</p>
+                <p class="title" hidden$="[[addCard]]">[[plan.title]] plan</p>
+                <p class="title" hidden$="[[!addCard]]">Add Card</p>
                 <hr class="headhr"/>
-                <p class="desc">Subscription of $[[plan.price]]/mo. <br/> up to [[plan.machine_limit]] machines, monitoring for [[plan.monitor_limit]] of them.</p>
+                <p class="desc" hidden$="[[addCard]]">Subscription of $[[plan.price]]/mo. <br/> up to [[plan.machine_limit]] machines, monitoring for [[plan.monitor_limit]] of them.</p>
+                <p class="desc" hidden$="[[!addCard]]">Add a credit card to your account</p>
             </div>
             <paper-dialog-scrollable>
                 <div class="form-inputs" hidden$="[[hideCardFields]]">
@@ -157,14 +159,17 @@
             </div>
             <div class="buttons">
                 <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button autofocus on-tap="submit" class="blue" disabled="[[!formReady]]">[[buttonText]] </paper-button>
+                <paper-button autofocus on-tap="submit" class="blue" disabled="[[!formReady]]">
+                    <span hidden$="[[addCard]]">[[buttonText]] </span>
+                    <span hidden$="[[!addCard]]">Add Card </span>
+                </paper-button>
             </div>
             <div class="stripe">
                 * Mist.io uses Stripe for safe payments
             </div>
         <paper-dialog>
 
-        <iron-ajax id="purchasePlanRequest" method="POST" url="/purchase" on-request="purchaseRequest" on-response="purchaseResponse" on-error="purchaseError"></iron-ajax>
+        <iron-ajax id="purchasePlanRequest" method="POST" on-request="purchaseRequest" on-response="purchaseResponse" on-error="purchaseError"></iron-ajax>
 
     </template>
     <script>
@@ -188,6 +193,11 @@
                     }
                 },
                 notify: true
+            },
+            addCard: {
+                type: Boolean,
+                value: false,
+                reflectToAttribute: true
             },
             sendingData: {
                 type: Boolean,
@@ -284,11 +294,22 @@
             }
         },
         sumbmitPayment: function(status, response){
-            var mistPayload = {
-                token: response.id,
-                plan: this.plan.title,
-                promo_code: ''
-            };
+            var mistPayload;
+            if (this.addCard) {
+                mistPayload = {
+                    token: response.id
+                };
+                this.$.purchasePlanRequest.url = "/card";
+            }
+            else {
+                mistPayload = {
+                    token: response.id,
+                    plan: this.plan.title,
+                    promo_code: ''
+                };
+                this.$.purchasePlanRequest.url = "/purchase";
+            }
+
             this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.purchasePlanRequest.params = mistPayload;
             this.$.purchasePlanRequest.generateRequest();
@@ -348,6 +369,11 @@
 
             this.querySelector("#form").close();
             this.reset();
+
+            if (this.addCard)
+                this.fire('toast', {msg: 'Card added.', duration: 3000});
+            else
+                this.fire('toast', {msg: 'Plan changed.', duration: 3000});
         },
         reset: function(){
             // reset form after submit
