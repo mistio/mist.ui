@@ -442,7 +442,7 @@
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
-                                <div class="machine-key">
+                                <div class="machine-key" hidden$="[[!_visibleKey(model.keys,key)]]">
                                     <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
                                     <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
@@ -848,8 +848,12 @@ Polymer({
         if (this.machine)
             this.set('itemArray', [this.machine]);
     },
+    _visibleKey: function(modelKeys,keyid) {
+        return this.model.keys[keyid];
+    },
     _computeKeyName: function(keyid){
-        return this.model.keys[keyid].name || 'not found';
+        if (this.model.keys[keyid])
+            return this.model.keys[keyid].name || 'not found';
     },
     _computeThisItemUid: function(machine) {
         var itemUidInArray = [];
