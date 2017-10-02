@@ -17,6 +17,7 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/app-notifications/app-notifications.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <script type="text/javascript" src="../bower_components/moment/moment.js" inline></script>
 <script type="text/javascript" src="../bower_components/swiftSet/swiftSet.js" inline></script>
@@ -54,12 +55,11 @@
         transition: margin-left 350ms ease-in-out;
     }
 
-    iron-pages[smallscreen],
-    iron-pages.center {
+    :host[center-content] iron-pages {
         margin-left: 0;
     }
 
-    iron-pages[smallscreen]::content #content {
+    :host[center-content] iron-pages::content #content {
         padding: 0;
     }
     iron-pages::content>* {
@@ -96,8 +96,7 @@
         display: block;
         z-index: 0;
     }
-    #main-loader.is-loading-html.center, 
-    #main-loader.is-loading-html[smallscreen] {
+    :host[center-content] #main-loader.is-loading-html {
         left: 0;
     }
     #main-loader {
@@ -129,14 +128,12 @@
         tail="{{subroute}}"></app-route>
 
     <paper-header-panel mode="standard" class="fit">
-        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></mist-sidebar>
+        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
         <plan-overusage is-over-using="[[model.onboarding.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" hidden$=[[!enableBilling]]></plan-overusage>
         <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
-        <div id="main-loader" class="is-loading-html" smallscreen$="{{smallscreen}}">
-          <paper-spinner active="[[loading]]"></paper-spinner>
-        </div>
-        <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" smallscreen$="{{smallscreen}}" fallback-selection="not-found">
+        <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
+        <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
           <page-clouds name="clouds" route="{{subroute}}" model="[[model]]"></page-clouds>
           <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[enableMonitoring]]></page-machines>
@@ -175,6 +172,9 @@
     Polymer({
 
         is: 'mist-app',
+        behaviors: [
+            Polymer.ironResizableBehavior
+        ],
 
         properties: {
 
@@ -182,6 +182,19 @@
                 type: String,
                 reflectToAttribute: true,
                 observer: '_pageChanged'
+            },
+
+            smallscreen: Boolean,
+
+            xsmallscreen: Boolean,
+
+            sidebarIsClosed: Boolean,
+
+            centerContent: {
+                type: Boolean,
+                value: false,
+                computed: '_computeCenterContent(sidebarIsClosed, smallscreen)',
+                reflectToAttribute: true
             },
 
             model: {
@@ -284,12 +297,26 @@
 
         observers: [
             '_routePageChanged(routeData.page, subroute.path)',
-            '_manageSearch(route.*)'
+            '_manageSearch(route.*)',
+            '_sizeChanged(smallscreen)'
         ],
 
         ready: function () {
 
         },
+
+        _sizeChanged: function(smallscreen) {
+            console.log('updateResize');
+            if (this.smallscreen)
+                this.querySelector('mist-sidebar').closeSidebar();
+            else
+                this.querySelector('mist-sidebar').openSidebar();
+        },
+
+        _computeCenterContent: function(sidebarIsClosed, smallscreen) {
+            return this.sidebarIsClosed || this.smallscreen;
+        },
+
 
         setLocationPath: function(e) {
             if (e.detail.url && this.querySelector('app-location')){
@@ -404,7 +431,7 @@
             // Load page import on demand. Show 404 page if fails
             var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
             this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-            if (this.querySelector('iron-media-query').queryMatches) {
+            if (this.smallscreen) {
                 document.querySelector('mist-sidebar').closeSidebar();
             }
         },
