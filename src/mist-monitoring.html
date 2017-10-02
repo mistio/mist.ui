@@ -224,7 +224,7 @@
                 </div>
                 <!-- the machine cannot be monitored, it is not running -->
                 <div hidden$="[[isRunning]]">
-                    The machine is [[resource.state]]. It must be running to enable monitoring.
+                    The machine is [[state]]. It must be running to enable monitoring.
                     <br/>
                     <paper-button class="blue" on-tap="toggleMonitoring" disabled>enable Monitoring</paper-button>
                 </div>
@@ -246,15 +246,16 @@ Polymer({
     properties: {
         resource: {
             type: Object, //currently machines only, later other resources too
-            value: {
-                id: false
+            value: function(){
+                return {id: false}
             }
         },
+        state: String,
         monitoring: Object,
         section: Object,
         isRunning: {
             type: Boolean,
-            computed: '_computeIsRunning(resource)'
+            computed: '_computeIsRunning(resource, resource.*, state)'
         },
         resourceMonitoringInfo: {
             type: Object,
@@ -380,7 +381,7 @@ Polymer({
             this.set('isMonitored', true);
         }
     },
-    _computeIsRunning: function(resource) {
+    _computeIsRunning: function(resource, resourceChangePath, state) {
         return this.resource && this.resource.state && (this.resource.state == "running" || this.resource.state == "unknown") ? true : false;
     },
     _computeWaitingData: function(resource, monitoring) {
