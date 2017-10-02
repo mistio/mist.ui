@@ -894,13 +894,18 @@
                 // apply patch to model
                 jsonpatch.applyOperation(newArray, operation, true);
 
-                // display toast and desktop notification if add or replace
-                if (operation.op == "add" || operation.op == "replace") {
+                // display toast and desktop notification if adding
+                if (operation.op == "add") {
                     //if (operation.value._cls == "Notification.InAppNotification") {
                         _this.fire('toast', {msg:operation.value.summary, duration:3000} );
+                        var url;
+                        if (operation.value.resource) {
+                            url = '/' + operation.value.resource._ref.$ref + '/' + operation.value.resource._ref.$id;
+                        }
                         _this.fire('desktop-notification', {
-                            title:operation.value.summary,
-                            body:operation.value.body} );
+                            "title":operation.value.summary,
+                            "body":operation.value.body,
+                            "url":url} );
                     //}
                 }
             });

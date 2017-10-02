@@ -35,11 +35,7 @@
                 opacity: 0.32;
             }
         </style>
-        <style is="custom-style" include="lists"></style>
-        <style is="custom-style" include="forms"></style>
-        <style is="custom-style" include="tags-and-labels"></style>
-        <style is="custom-style" include="single-page"></style>
-        <style is="custom-style" include="shared-styles">
+        <style is="custom-style" include="lists forms tags-and-labels single-page shared-styles">
             :host {
                 display: block;
             }
@@ -446,7 +442,8 @@
                     </div>
                 </div>
                 <div class="item-actions">
-                    <paper-button on-tap="_editTags" class="simple">tags</paper-button>
+                    <paper-button on-tap="_editTags" class="simple">Tags</paper-button>
+                    <paper-button on-tap="_deleteStack" class="simple">Delete</paper-button>
                     <!-- buttons to show normally-->
                     <paper-button id$="[[workflows.0.name]]" on-tap="_quickActionsNavigation" class="simple" disabled$="[[disabled]]">[[workflows.0.name]]</paper-button>
                     <paper-button id$="[[workflows.1.name]]" on-tap="_quickActionsNavigation" class="simple" disabled$="[[disabled]]">[[workflows.1.name]]</paper-button>
@@ -537,6 +534,16 @@
                         <h3>Started workflow</h3>
                         <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
                         <paper-button class="blue-link" on-tap="cancelWorkflow">Cancel</paper-button>
+                    </div>
+                </paper-material>
+            </template>
+
+            <!-- If stack status workflow_started-->
+            <template is="dom-if" if="[[delete_request]]">
+                <paper-material>
+                    <div class="parsing-loader">
+                        <h3>Deleting Stack</h3>
+                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
                     </div>
                 </paper-material>
             </template>
@@ -648,7 +655,8 @@
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
         <iron-ajax id="workflowRequest" method="POST" url="" on-response="handleWorkflowResponse" on-error="handleWorkflowError"></iron-ajax>
-        <iron-ajax id="cancelJob" method="DELETE" url="/api/v1/jobs/[[stack.job_id]]" on-response="handleCanceled" on-error=""></iron-ajax>        
+        <iron-ajax id="cancelJob" method="DELETE" url="/api/v1/jobs/[[stack.job_id]]" on-response="handleCanceled" on-error=""></iron-ajax>
+        <iron-ajax id="deleteStack" method="DELETE" url="/api/v1/stacks/[[stack.id]]" on-request="handleDeleteRequest" on-response="handleDelete"></iron-ajax>
     </template>
 
     <script type="text/javascript" src="../../bower_components/anchorme.js/dist-browser/anchorme.min.js"></script>
@@ -781,7 +789,8 @@
                         type: Boolean,
                         computed: '_computeIsloading(stack)',
                         value: true
-                    }
+                    },
+                    delete_request: false
                 },
                 observers: [
                     'newStackPage(stack.id)',
@@ -790,7 +799,8 @@
                     'enhanceWorkflowLogs(stack.workflows)'
                 ],
                 listeners: {
-                    'iron-activate': '_handleInterval'
+                    'iron-activate': '_handleInterval',
+                    'confirmation': '_confirmAction'
                 },
                 ready: function(){
                 },
@@ -1171,6 +1181,35 @@
                     el.items = items;
                     el._openDialog();
                 },
+                _deleteStack: function() {
+                    this._showDialog({
+                        title: 'Delete Stack',
+                        body: "Deleting stacks cannot be undone. Verify deletion." ,
+                        danger: true,
+                        reason: "stack.delete",
+                        action: "Delete"
+                    });
+                },
+                _confirmAction: function(e){
+                    console.log('_confirmAction',e);
+                    var reason = e.detail.reason,
+                        response = e.detail.response;
+
+                    if (response.confirmed && reason == "stack.delete") {
+                        this.$.deleteStack.body = {stack_id: this.stack.id};
+                        this.$.deleteStack.headers["Content-Type"] = 'application/json';
+                        this.$.deleteStack.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.deleteStack.generateRequest();
+                    }
+                },
+                handleDeleteRequest: function(e){
+                    this.set('stack.error', false);
+                    this.set('delete_request', true);
+                },
+                handleDelete: function(e){
+                    this.fire('toast', {msg: 'Deletion completed', duration: 3000})
+                    document.querySelector('app-location').set('path', '/stacks');
+                },
                 _workflowNavigation: function(e) {
                     var action = e.target.id;
                     this.$.workflows.classList.add('open');
@@ -1259,7 +1298,8 @@
                     var xterm = this.querySelector("xterm-dialog");
                     if (xterm)
                         xterm.remove();
-                    this.showOutput = false;
+                    this.set('showOutput', false);
+                    this.set('delete_request', false);
                     // this.showLogs = false;
                 },
                 _computeIsloading: function(stack) {

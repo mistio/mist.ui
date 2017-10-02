@@ -6,6 +6,7 @@
 <link rel="import" href="schedules/schedule-page.html">
 <link rel="import" href="schedules/schedule-actions.html">
 
+<link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-schedules">
@@ -51,6 +52,9 @@
     Polymer({
 
       is: 'page-schedules',
+      behaviors: [
+        mistListsBehavior
+      ],
 
       properties: {
         model: Object,
@@ -64,7 +68,7 @@
         }
       },
       listeners: {
-        'select-action': 'selectAction'
+        'select-action': 'selectAction',
       },
       _isAddPageActive: function (path) {
         return path == '/+add';
@@ -80,7 +84,7 @@
           return this.model.schedules[id];
       },
       _addResource: function(e) {
-          document.querySelector('app-location').set('path', this.model.sections.schedules.add)
+          this.fire('go-to', {url: this.model.sections.schedules.add});
       },
       _getFrozenLogColumn: function(){
         return ['name'];

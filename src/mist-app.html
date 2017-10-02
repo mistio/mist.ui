@@ -159,7 +159,7 @@
           <template is="dom-if" if="[[enableInsights]]">
             <page-insights name="insights" route="{{subroute}}" model="[[model]]"></page-insights>
           </template>
-          <page-my-account name="my-account" route="{{subroute}}" billing=[[enableBilling]] is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machinesArray]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]"></page-my-account>
+          <page-my-account name="my-account" route="{{subroute}}" billing=[[enableBilling]] is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machinesArray]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" enable-monitoring="[[enableMonitoring]]"></page-my-account>
           <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
         </iron-pages>
         <paper-toast id="mist-toast"></paper-toast>
@@ -167,7 +167,7 @@
 
     <mist-socket model="{{model}}"></mist-socket>
 
-    <app-notifications id="desktop-notifier"></app-notifications>
+    <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
   </template>
 
@@ -278,7 +278,8 @@
             'update-keys': 'updateKeys',
             'update-scripts': 'updateScripts',
             'user-action': '_onUserAction',
-            'add-new-images': 'addImages'
+            'add-new-images': 'addImages',
+            'go-to': 'setLocationPath'
         },
 
         observers: [
@@ -290,9 +291,29 @@
 
         },
 
+        setLocationPath: function(e) {
+            if (e.detail.url && this.querySelector('app-location')){
+                this.querySelector('app-location').set('path', e.detail.url);
+                if (e.detail.params)
+                    this.querySelector('app-location').set('queryParams', e.detail.params);
+            } else
+                console.error('redirect url could not be found');
+        },
+
         showDesktopNotification: function (e) {
-            var notifications = document.getElementById('desktop-notifier');
-            notifications.show(e.detail.title, { "body":e.detail.body });
+            var notifier = document.getElementById('desktop-notifier');
+            notifier.show(e.detail.title, { 
+                "body":e.detail.body, 
+                "data": {"url":e.detail.url}
+            });
+        },
+
+        handleDesktopNotificationClick: function (e) {
+            if (e.detail.data.url) {
+                window.history.pushState({}, null, e.detail.data.url);
+                window.dispatchEvent(new CustomEvent('location-changed'));
+                e.stopPropagation();
+            }
         },
 
         showToast: function (e) {
