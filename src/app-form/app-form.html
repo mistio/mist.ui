@@ -702,6 +702,30 @@
                         for (var i = 0; i < excludeFields.length; i++){
                             delete payload[excludeFields[i].name];
                         }
+                        if (this.url == "/api/v1/clouds" && payload['provider'] == 'bare_metal') {
+                            var machine = {};
+                            machine['machine_ip'] = payload['machine_ip'];
+                            machine['operating_system'] = payload['operating_system'];
+                            delete payload['machine_ip'];
+                            delete payload['operating_system'];
+                            if ('machine_key' in payload) {
+                                machine['machine_key'] = payload['machine_key'];
+                                delete payload['machine_key'];
+                            }
+                            if ('machine_user' in payload) {
+                                machine['machine_user'] = payload['machine_user'];
+                                delete payload['machine_user'];
+                            }
+                            if ('machine_port' in payload) {
+                                machine['machine_port'] = payload['machine_port'];
+                                delete payload['machine_port'];
+                            }
+                            if ('remote_desktop_port' in payload) {
+                                machine['remote_desktop_port'] = payload['remote_desktop_port'];
+                                delete payload['remote_desktop_port'];
+                            }
+                            payload['machines'] = [machine];
+                        }
                     }
                     console.log('Payload', payload, this.form);
 
