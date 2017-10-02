@@ -407,8 +407,8 @@
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
                         <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
-                    <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
-                        [[_computeMachineSize(machine)]]</span>
+                    <span hidden$="[[!machineSize]]" class="break"><span class="m-info-head">Size:</span>
+                        [[machineSize]]</span>
                     <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
                         [[machine.created]]</span>
                     <div hidden$="[[!probeData]]"> <span class="m-info-head">Probe Data:</span>
@@ -704,6 +704,10 @@ Polymer({
             type: String,
             computed: "_computeMachineState(machine.*, model.machines.*)"
         },
+        machineSize: {
+            type: String,
+            computed: "_computeMachineSize(machine, machine.*, model.machines.*)"
+        },
         dashboard: {
             type: Object
         },
@@ -798,7 +802,6 @@ Polymer({
         this.set('isPendingKeyRequest', false);
     },
     _getMachine: function(id, machines) {
-        console.log('resource mp', id, machines)
         if (id && this.model && this.model.machines && this.model.machines[id]) 
             return this.model.machines[id];
     },
@@ -1074,7 +1077,7 @@ Polymer({
         else
             return "not found";
     },
-    _computeMachineSize: function(item) {
+    _computeMachineSize: function(item, itemChangeRecord, machines) {
         // field could be in the 'extra' section, but should not be an object
         if (item) {
             var ret = item['size'];
