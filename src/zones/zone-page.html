@@ -3,33 +3,28 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 
 <link rel="import" href="record-add.html">
-<link rel="import" href="list-records.html">
+<link rel="import" href="record-actions.html">
 
 <dom-module id="zone-page">
     <template>
-        <style is="custom-style" include="single-page"></style>
-        <style is="custom-style" include="tags-and-labels"></style>
-        <style include="shared-styles">
+        <style include="shared-styles single-page tags-and-labels">
             :host {
                 display: block;
             }
 
             [hidden] {
-            display: none !important;
+                display: none !important;
             }
 
             paper-material {
                 display: block;
                 padding: 20px;
-            }
-
-            paper-menu-button paper-button {
-                display: block;
             }
 
             .flex-horizontal-with-ratios {
@@ -40,69 +35,8 @@
                 @apply(--layout-flex);
             }
 
-            .command-container {
-                background-color: #444;
-                color: #fff;
-                font-family: monospace;
-                padding: 10px;
-            }
-
-            a {
-                color: black;
-                text-decoration: none;
-            }
-
-            .paper-header [paper-drawer-toggle] {
-                margin-left: 10px;
-            }
-
-            .paper-header {
-                @apply(--layout-horizontal);
-            }
-
-            .paper-header {
-                height: 60px;
-                font-size: 24px;
-                line-height: 60px;
-                padding: 0 10px;
-                color: white;
-                transition: height 0.2s;
-                transition: font-size 0.2s;
-            }
-
-            .paper-header.tall {
-                height: 320px;
-                font-size: 16px;
-            }
-
-            .paper-header h2 {
-                margin-left: 20px;
-                @apply(--layout-flex);
-                text-transform: capitalize;
-            }
-
-            .paper-header .toggleViewButton {
-                --paper-icon-button-ink-color: transparent;
-            }
-
-            .paper-header .cartButton {
-                margin-right: 10px;
-            }
-
             #content {
                 -webkit-overflow-scrolling: touch;
-            }
-
-            paper-icon-button {
-                transition: all 200ms;
-            }
-
-            paper-icon-button.active-sort {
-                transform: rotate(180deg);
-            }
-
-            paper-icon-button.active-sort::content iron-icon {
-                color: #D48900 !important;
             }
 
             h4.id {
@@ -128,17 +62,18 @@
                 margin: auto;
             }
 
-            paper-icon-bottom.bottom {
-                padding-right: 8px;
+            mist-list {
+                padding: 0;
+                width: 100%;
             }
         </style>
         <app-location route="{{route}}"></app-location>
         <div id="content">
             <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-                <div class="notify" hidden$="[[!isLoading]]"> Retrieving details from the provider...</div>
+                <paper-spinner active="[[isLoading]]"></paper-spinner>
+                <div class="notify"> Retrieving details from the provider...</div>
             </div>
-            <div class="is-loading-2" hidden$="[[isLoading]]">
+            <div hidden$="[[isLoading]]">
                 <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
                     <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                         <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
@@ -204,7 +139,17 @@
                     </paper-material>
                     <paper-material hidden$="[[!hasRecords]]">
                         <h4 class="id">Records</h4>
-                        <list-records model="[[model]]" items="[[zone.records]]" section="[[recordsSections]]" onboarding="[[onboarding]]"></list-records>
+                        <mist-list id="recordsList" class$="[[zone.id]]"
+                            selectable resizable column-menu multi-sort
+                            items="[[zone.records]]"
+                            name="Records"
+                            selected-items="{{selectedRecordItems}}"
+                            frozen=[[_getFrozenLogColumn()]]
+                            visible=[[_getVisibleColumns()]]
+                            renderers=[[_getRenderers()]]>
+                            <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
+                            <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}"></record-actions>
+                      </mist-list>
                     </paper-material>
                     <div class="absolute-bottom-right">
                         <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
@@ -241,6 +186,7 @@
                             return {
                                 id: 'records',
                                 color: '#3F51B5',
+                                icon: 'icons:dns',
                                 q: '',
                             }
                         },
@@ -266,22 +212,33 @@
                     itemsfortags: {
                         type: Array,
                         computed: 'computeTagItems(zone)'
+                    },
+                    recordActions: {
+                        type: Array,
+                        notify: true
+                    },
+                    selectedRecordItems: {
+                      type: Array,
+                      notify: true
                     }
-
                 },
                 listeners: {
                     'confirmation': '_deleteZoneEventResponse'
                 },
+                attached: function(){
+                    this.async(function(){
+                        if (this.$.recordsList)
+                            this.$.recordsList.fire('resize');
+                    },500)
+                },
                 _computeHasRecords: function(records) {
+                    if (this.$.recordsList)
+                            this.$.recordsList.fire('resize');
                     return records && records.length;
                 },
                 _computeZoneCloud: function(zone, clouds){
                     if (zone)
                         return this.model.clouds[this.zone.cloud_id].title
-                },
-                _getRecord: function(id) {
-                    if (zone.records)
-                        return zone.records[id];
                 },
                 _editZone: function(e) {
                     console.log(e);
@@ -347,6 +304,53 @@
                         arr.push(item);
                         return arr;
                     }
+                },
+                _addResource: function(e) {
+                  this.fire('go-to', {url: this.model.sections.zones.add});
+                },
+                _getFrozenLogColumn: function(){
+                  return ['name'];
+                },
+
+                _getVisibleColumns: function(){
+                  return ['record_type', 'id', 'ttl', 'rdata', 'tags'];
+                },
+
+                _getRenderers: function() {
+                  var _this = this;
+                  return {
+                      'name': {
+                          'body': function(item) {
+                              return '<strong class="name">'+ item + '</strong>';
+                          }
+                      },
+                      'rdata': {
+                          'body': function(item, row){
+                            return item.join(', ');
+                          }
+                      },
+                      'record_type': {
+                          'title': function(item, row){
+                            return 'record type';
+                          },
+                          'body': function(item, row) {
+                            return item;
+                          }
+                      },
+                      'tags': {
+                          'body': function(item, row) {
+                            var tags = item,
+                                display = "";
+                            for (var i=0; i<tags.length; i++){
+                              display += "<span class='tag'>"+tags[i].key;
+                              if (tags[i].value != undefined && tags[i].value != "")
+                                display += "=" + tags[i].value;
+                              display += "</span>";
+                            }
+                            return display;
+                          }
+                      }
+                  }
                 },
                 _showDialog: function(info) {
                     var dialog = this.querySelector('.zone-dialog');
