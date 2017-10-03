@@ -177,8 +177,7 @@ Polymer({
         var qParams = {
             'origin': origin
         }
-        document.querySelector('app-location').set('path', '/keys/+add');
-        document.querySelector('app-location').set('queryParams', qParams);
+        this.fire('go-to',{url: '/keys/+add', params: qParams});
     },
     associateKey: function(e){
 
@@ -224,13 +223,16 @@ Polymer({
         e.stopImmediatePropagation();
     },
     _associateKeyRequest: function(){
-        this.fire('pending-key-request', {request: true, keyId: this.selectedKeyId});
+        var logMessage = 'Sending request to associate key with machine.';
+        this.fire('performing-action', {log: logMessage});
     },
     _associateKeyResponse: function(){
-        this.fire('pending-key-request', {response: true, keyId: this.selectedKeyId});
+        this.fire('action-finished', {success: true});
+        this.fire('toast', {msg: 'Key association request sent successfully', duration: 3000});
     },
     _associateKeyError: function(e){
-        this.fire('pending-key-request', {error: true, errormsg: e.detail.request.xhr.responseText ,keyId: this.selectedKeyId});
+        this.fire('action-finished', {success: true});
+        this.fire('toast', {msg: e.detail.request.xhr.responseText, duration: 5000});
     },
     updateInputs: function(e){
         var target = e.target.id;

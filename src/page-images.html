@@ -6,6 +6,7 @@
 <link rel="import" href="images/image-actions.html">
 <link rel="import" href="images/image-provider-search.html">
 
+<link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-images">
@@ -63,6 +64,9 @@
   <script>
     Polymer({
       is: 'page-images',
+      behaviors: [
+        mistListsBehavior
+      ],
       properties: {
         model: Object,
         items: Array,
@@ -71,7 +75,6 @@
       },
       listeners: {
         'select-action': 'selectAction',
-        'action-finished': 'clearSelection'
       },
       _isDetailsPageActive: function (path) {
         return path;
@@ -85,7 +88,6 @@
           return this.model.images[route.path.slice(1,route.path.length)];
       },
       _addResource: function(e) {
-          // document.querySelector('app-location').set('path', this.model.sections.images.add)
           //maybe a dialog to search images in providers
           this.querySelector('image-provider-search')._openDialog();
       },
@@ -147,9 +149,6 @@
               }
               return 0;
           }.bind(this));
-      },
-      clearSelection: function(e) {
-        this.set('selectedItems', []);
       },
       searchOnProviders: function(){
         document.querySelector('image-provider-search')._openDialog();

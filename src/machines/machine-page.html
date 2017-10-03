@@ -442,7 +442,7 @@
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
-                                <div class="machine-key">
+                                <div class="machine-key" hidden$="[[!_visibleKey(model,key)]]">
                                     <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
                                     <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
@@ -503,10 +503,7 @@
                                 <td>[[machine.machine_id]]</td>
                             </tr>
                             <tr><td>Public IPs</td>
-                                <td><template is="dom-repeat" items="[[machine.public_ips]]">
-                                        [[item]]
-                                    </template>
-                                </td>
+                                <td>[[displayArray(machine.public_ips)]]</td>
                             </tr>
                             <tr>
                                 <td>Private IPs</td>
@@ -848,8 +845,13 @@ Polymer({
         if (this.machine)
             this.set('itemArray', [this.machine]);
     },
+    _visibleKey: function(model,key) {
+        if (model)
+            return this.model.keys && this.model.keys[key.keypair];
+    },
     _computeKeyName: function(keyid){
-        return this.model.keys[keyid].name || 'not found';
+        if (this.model.keys[keyid])
+            return this.model.keys[keyid].name || 'not found';
     },
     _computeThisItemUid: function(machine) {
         var itemUidInArray = [];
@@ -859,12 +861,13 @@ Polymer({
     _computeAssociatedKeys: function(machine, keys, keyLength, machineChangeRecord) {
         return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
     },
+    displayArray: function(array) {
+        if (array.length)
+            return array.join(', ');
+        return '';
+    },
     computeMachineIp: function(machineips) {
-        if (this.machine.public_ips) {
-            return this.machine.public_ips[0]
-        } else {
-            return ''
-        }
+        return this.machine.public_ips ? this.machine.public_ips[0] : '';
     },
     _isEqual: function(a, b) {
         return a === b;

@@ -6,6 +6,7 @@
 <link rel="import" href="stacks/stack-page.html">
 <link rel="import" href="stacks/stack-actions.html">
 
+<link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-stacks">
@@ -52,6 +53,9 @@
     Polymer({
 
       is: 'page-stacks',
+      behaviors: [
+        mistListsBehavior
+      ],
 
       properties: {
         model: Object,
@@ -66,9 +70,8 @@
       },
 
       listeners: {
-        'select-action': 'selectAction'
+        'select-action': 'selectAction',
       },
-
       _isAddPageActive: function(path) {
           return path.split('?')[0] == '/+create';
       },
@@ -83,7 +86,7 @@
               return this.model.stacks[id];
       },
       _addResource: function(e) {
-          document.querySelector('app-location').set('path', this.model.sections.stacks.add)
+          this.fire('go-to', {url: this.model.sections.stacks.add});
       },
       _getFrozenLogColumn: function(){
           return ['name'];
