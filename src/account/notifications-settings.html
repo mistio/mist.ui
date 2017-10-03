@@ -135,7 +135,7 @@
                 margin-left: -17px;
             }
 
-            .ruleLabel {
+            .overrideLabel {
                 display: inline-flex;
                 width: 30%;
                 vertical-align: top;
@@ -160,11 +160,11 @@
                 </div>
                 <div class="separator clearfix xs12 m12 l12"></div>
                 <div class="ips-section xs12 m12 l12">
-                    <template is="dom-repeat" items="[[notificationRules]]" as="rule">
+                    <template is="dom-repeat" items="[[notificationOverrides]]" as="override">
                         <div class="row">
-                            <span class="ruleLabel">[[_computeRuleLabel(rule)]]</span>
-                            <paper-toggle-button checked="{{_computeAllowed(rule)}}" on-change="_ruleChanged" index="[[index]]">
-                                [[_computeRuleStateLabel(rule)]]
+                            <span class="overrideLabel">[[_computeOverrideLabel(override)]]</span>
+                            <paper-toggle-button checked="{{_computeAllowed(override)}}" on-change="_overrideChanged" index="[[index]]">
+                                [[_computeOverrideStateLabel(override)]]
                             </paper-toggle-button>
                         </div>
                     </template>
@@ -179,18 +179,18 @@
 
         </paper-material>
 
-        <iron-ajax auto id="getNotificationRulesRequest" 
+        <iron-ajax auto id="getNotificationOverridesRequest" 
             method="GET" 
-            url="/api/v1/notification_rules" 
-            on-response="_handleGetRulesResponse" 
-            on-error="_handleGetRulesError" 
+            url="/api/v1/notification_overrides" 
+            on-response="_handleGetOverridesResponse" 
+            on-error="_handleGetOverridesError" 
             handle-as="json"></iron-ajax>
 
-       <iron-ajax id="setNotificationRulesRequest"
-            url="/api/v1/notification_rules"
+       <iron-ajax id="setNotificationOverridesRequest"
+            url="/api/v1/notification_overrides"
             method="PUT"
-            on-response="_handleSetRulesResponse"
-            on-error="_handleSetRulesError"
+            on-response="_handleSetOverridesResponse"
+            on-error="_handleSetOverridesError"
             handle-as="json"></iron-ajax>
 
     </template>
@@ -198,16 +198,16 @@
         Polymer({
             is: 'notifications-settings',
             properties: {
-                notificationRules: Array,
-                rulesError: Boolean
+                notificationOverrides: Array,
+                overridesError: Boolean
             },
 
-            _computeAllowed: function(rule) {
-                return rule.value == "ALLOW";
+            _computeAllowed: function(override) {
+                return override.value == "ALLOW";
             },
 
-            _computeRuleLabel: function(rule) {
-                var lowerCase = (rule.channel + " " + rule.source).toLowerCase();
+            _computeOverrideLabel: function(override) {
+                var lowerCase = (override.channel + " " + override.source).toLowerCase();
                 if (lowerCase.includes("inapp")) 
                 {
                     if (lowerCase.includes("recommendation"))
@@ -222,50 +222,50 @@
                 }
             },
 
-            _computeRuleStateLabel: function(rule) {
-                var valueString = rule.value.toLowerCase();
+            _computeOverrideStateLabel: function(override) {
+                var valueString = override.value.toLowerCase();
                 return valueString.charAt(0).toUpperCase() + valueString.slice(1);
             },
 
-            _ruleChanged: function(e) {
+            _overrideChanged: function(e) {
                 var checked = e.target.checked;
                 var index = e.target.index;
-                var newRule = JSON.parse(JSON.stringify(this.notificationRules[index]));
-                newRule.value = checked ? "ALLOW" : "BLOCK";
-                this.splice('notificationRules', index, 1, newRule);
+                var newOverride = JSON.parse(JSON.stringify(this.notificationOverrides[index]));
+                newOverride.value = checked ? "ALLOW" : "BLOCK";
+                this.splice('notificationOverrides', index, 1, newOverride);
             },
 
-            _getRules: function(e, user) {
-                this.$.getNotificationRulesRequest.headers["Content-Type"] = 'application/json';
-                this.$.getNotificationRulesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.getNotificationRulesRequest.generateRequest();
+            _getOverrides: function(e, user) {
+                this.$.getNotificationOverridesRequest.headers["Content-Type"] = 'application/json';
+                this.$.getNotificationOverridesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.getNotificationOverridesRequest.generateRequest();
             },
 
-            _handleGetRulesResponse: function(e) {
-                this.set('notificationRules', JSON.parse(e.detail.response));
+            _handleGetOverridesResponse: function(e) {
+                this.set('notificationOverrides', JSON.parse(e.detail.response));
             },
 
-            _handleGetRulesError: function() {
-                this.set('rulesError', true);
+            _handleGetOverridesError: function() {
+                this.set('overridesError', true);
             },
 
             _submitForm: function(e) {
                 var payload = {
-                    action: 'update_notification_rules',
-                    rules: this.notificationRules
+                    action: 'update_notification_overrides',
+                    overrides: this.notificationOverrides
                 };
-                this.$.setNotificationRulesRequest.headers["Content-Type"] = 'application/json';
-                this.$.setNotificationRulesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.setNotificationRulesRequest.body = payload;
-                this.$.setNotificationRulesRequest.generateRequest();
+                this.$.setNotificationOverridesRequest.headers["Content-Type"] = 'application/json';
+                this.$.setNotificationOverridesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.setNotificationOverridesRequest.body = payload;
+                this.$.setNotificationOverridesRequest.generateRequest();
             },
 
-            _handleSetRulesResponse: function(e) {
+            _handleSetOverridesResponse: function(e) {
                 this.fire('toast',{msg:"Changes saved succesfully!",duration:3000});
             },
 
-            _handleSetRulesError: function() {
-                this.set('rulesError', true);
+            _handleSetOverridesError: function() {
+                this.set('overridesError', true);
                 this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
             }
         });
