@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 
@@ -42,6 +43,7 @@
 
         .flexchild {
             @apply(--layout-flex);
+            align-self: center;
         }
 
         a {
@@ -102,7 +104,7 @@
             display: none;
         }
 
-        [size=xs] app-sidebar {
+        [size=xs] mist-sidebar {
             min-width: 100%;
             height: auto;
         }
@@ -166,9 +168,18 @@
             color: #fff;
             padding: 2px 6px 4px 6px;
             border-radius: 3px;
+            margin-right: 12px;
         }
-        .delete-member {
+        .delete-member, .resend-invitation {
             opacity: 0.32;
+            align-self: center;
+        }
+        .resend {
+            padding: 8px 0;
+            font-weight: normal;
+        }
+        paper-button a {
+            color: #fff;
         }
         </style>
 
@@ -180,6 +191,7 @@
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
+                        <span hidden$="[[!team.parent]]"><span>[</span>[[model.org.parent_org_name]]<span>]</span></span>
                         [[team.name]]
                     </h2>
                     <div class="subtitle">
@@ -230,9 +242,10 @@
                                     <paper-item>
                                         <div class="flex-horizontal-with-ratios width100">
                                             <span class="flexchild">
+                                                <paper-icon-button id="resend" icon="icons:send" on-tap="_resendMemberInvitation" class="resend-invitation" data-email="[[item.email]]" hidden$="[[!item.pending]]" title="Resend invitation."></paper-icon-button>
+                                                <span class="pending" hidden$="[[!item.pending]]">pending</span>
                                                 <a href="/members/[[item.id]]" class="pad-left">
                                                     [[item.name]]
-                                                    <span class="pending" hidden$="[[!item.pending]]">pending </span>
                                                 </a>
                                             </span>
                                             <span class="flexchild">[[item.email]]</span>
@@ -254,13 +267,39 @@
                         </template>
                     </div>
                 </div>
-                <div class="flex-horizontal-with-ratios section">
+                <div class="flex-horizontal-with-ratios section" hidden$=[[!billing]]>
                     <div class="width100">
-                    <paper-material class="no-pad">
-                        <!-- TODO: make interactive add edit of rules -->
-                        <h3 class="smallcaps resource-head">Team Policy</h3>
-                        <team-policy model="[[model]]" team="[[team]]"></team-policy>
-                    </paper-material>
+                        <paper-material class="no-pad" hidden$=[[!rbac]]>
+                            <!-- TODO: make interactive add edit of rules -->
+                            <h3 class="smallcaps resource-head">Team Policy</h3>
+                            <team-policy model="[[model]]" team="[[team]]" hidden$="[[teamIsOwners]]"></team-policy>
+                            <p class="text-center" hidden$=[[!teamIsOwners]]>
+                                Members of the owners team have full access to all resources in your organization.
+                                </br>
+                                For fine grained permissions add more teams and assign RBAC policies. <a href="http://docs.mist.io/article/102-role-based-access-control" target="_blank" class="blue-link">Documentation</a>
+                                </br>
+                                </br>
+                            </p>
+                        </paper-material>
+                    </div>
+                </div>
+                <div class="flex-horizontal-with-ratios section" hidden$=[[billing]]>
+                    <div class="width100">
+                        <paper-material class="no-pad">
+                            <h3 class="smallcaps resource-head text-center">Team Policy</h3>
+                            <p class="text-center">
+                                Role based access policies are only available in Mist.io's commercial versions.
+                            </p>
+                            <p class="text-center">
+                                <paper-button class="blue"><a href="https://mist.io/sign-up" target="_blank">SIGN UP TO MIST.IO SAAS</a></paper-button>
+                            </p>
+                            <p class="text-center">
+                                or contact <a href="mailto:sales@mist.io" class="blue-link">sales@mist.io</a> for details.
+                                <br/>
+                                <br/>
+                            </p>
+                        </paper-material>
+                    </div>
                 </div>
             </div>
         </div>
@@ -270,8 +309,9 @@
         </div>
 
         <team-edit team="[[team]]" org="[[model.org]]"></team-edit>
-        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleDeleteAjaxError" ></iron-ajax>
+        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
         <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
+        <iron-ajax id="_resendInvitation" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members" contentType="application/json" handle-as="document" method="POST" on-response="_handleResendResponse" on-error="_handleResendError"></iron-ajax>
 
         <dialog-element></dialog-element>
     </template>
@@ -334,6 +374,14 @@
                     teamIsOwners: {
                         type: Boolean,
                         computed: '_computeIsOwners(team)',
+                    },
+                    rbac: {
+                        type: Boolean,
+                        value: false
+                    },
+                    billing: {
+                        type: Boolean,
+                        value: false
                     }
                 },
                 listeners: {
@@ -397,7 +445,7 @@
                     return teamMembers;
                 },
                 _addMember: function(e) {
-                    document.querySelector('app-location').set('path', '/teams/' + this.team.id + '/+add');
+                    this.fire('go-to', {url: '/teams/' + this.team.id + '/+add'})
                 },
                 _editTeam: function(e) {
                     var el = this.querySelector('team-edit');
@@ -429,7 +477,7 @@
                     }
                 },
                 _handleTeamDeleteAjaxResponse: function(e) {
-                    document.querySelector('app-location').set('path', '/teams');
+                    this.fire('go-to', {url: '/teams'})
                 },
                 _handleDeleteAjaxError: function(e) {
                     this.fire('toast',{msg:e.detail.error.message ,duration:3000});
@@ -440,7 +488,7 @@
                     this.set('memberToDelete', membId);
                     this._showDialog({
                         title: 'Delete member from team?',
-                        body: "Deleting member" + membname + " from team "+this.team.name +'. You can allways reinvite people by email.',
+                        body: "Deleting member " + membname + " from team "+this.team.name +'. You can allways reinvite people by email.',
                         danger: true,
                         reason: "member.delete"
                     });
@@ -448,6 +496,25 @@
                 _deleteMemberResponse: function(){
                     this.set('memberToDelete', null);
                     this.fire('toast',{msg:"Member deleted succesfully",duration:3000});
+                },
+                _resendMemberInvitation: function(e){
+                    console.log(e);
+                    var email = e.target['dataEmail'] || e.target.parentNode['dataEmail'];
+                    this.$._resendInvitation.body = {
+                        'emails' : email
+                    };
+                    this.$._resendInvitation.headers["Content-Type"] = 'application/json';
+                    this.$._resendInvitation.headers["Csrf-Token"] = CSRF_TOKEN;
+
+                    this.$._resendInvitation.generateRequest();
+                },
+                _handleResendResponse: function(e){
+                    console.log(e);
+                    this.fire('toast', {msg: "Invitation resent succesfully", duration:3000})
+                },
+                _handleResendError: function(e) {
+                    console.log(e);
+                    this.fire('toast', {msg: e.detail.error.message , duration: 3000})
                 },
                 _showDialog: function(info) {
                     var dialog = this.querySelector('dialog-element');
@@ -462,7 +529,11 @@
                 _computeIsOwners: function(team) {
                     if (this.team)
                         return this.team.name == "Owners";
-                }
+                },
+                _showMessage: function(rbac, billing) {
+                    if (this.team)
+                        return !rbac && !billing;
+                },
             });
         })();
     </script>

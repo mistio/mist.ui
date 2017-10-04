@@ -1,9 +1,13 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="tunnels/tunnel-add.html">
+<link rel="import" href="tunnels/tunnel-actions.html">
 <link rel="import" href="tunnels/tunnel-page.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-tunnels">
   <template>
@@ -11,30 +15,64 @@
       :host {
         display: block;
       }
+      h2[slot="header"] {
+        margin: 8px;
+      }
     </style>
 
     <app-route route="{{route}}"
                 pattern="/:tunnel"
                 data="{{data}}"></app-route>
 
-    <page-items model="[[model]]" items="[[model.tunnelsArray]]" section="[[sections.tunnels]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
-    <tunnel-add model="[[model]]" section="[[sections.tunnels]]" hidden$=[[!_isAddPageActive(route.path)]]></tunnel-add>
-    <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels)]]" section="[[sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="tunnelsList"
+            selectable resizable column-menu multi-sort
+            items="[[model.tunnelsArray]]"
+            name="Tunnels"
+            selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.tunnels)]]
+            route={{route}}
+            user-filter=[[model.sections.tunnels.q]]
+            primary-field-name="id">
+            <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Tunnels </h2>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="tunnel" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></tunnel-actions>
+            <p slot="no-items-found">No tunnels found.</p>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="tunnelAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
+    <tunnel-add model="[[model]]" section="[[model.sections.tunnels]]" hidden$=[[!_isAddPageActive(route.path)]]></tunnel-add>
+    <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels)]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
   </template>
 
   <script>
     Polymer({
 
       is: 'page-tunnels',
+      behaviors: [
+        mistListsBehavior
+      ],
 
       properties: {
         model: Object,
-        onboarding: Object
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
       },
-      attached: function() {
 
+      listeners: {
+        'select-action': 'selectAction',
       },
-
       _isAddPageActive: function(path) {
           return path == '/+add';
       },
@@ -47,6 +85,53 @@
       _getTunnel: function(id) {
           if (this.model.tunnels)
               return this.model.tunnels[id];
+      },
+      _addResource: function(e) {
+          this.fire('go-to', {url: this.model.sections.tunnels.add});
+      },
+      _getFrozenLogColumn: function(){
+          return ['name'];
+      },
+
+      _getVisibleColumns: function(){
+          return ['cidrs', 'id', 'tags'];
+      },
+
+      _getRenderers: function(tunnels) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'cidrs': {
+                  'body': function(item, row) {
+                    if (item)
+                      return item.join(', ');
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              }
+          }
+      },
+
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('tunnel-actions')) {
+            this.querySelector('tunnel-actions').selectAction(e);
+          }
       }
 
     });

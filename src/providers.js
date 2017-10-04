@@ -202,6 +202,15 @@ PROVIDERS.push({
         errorMessage: "Please enter token",
         helptext: 'You can find your API Token on the Digital Ocean portal',
         helpHref: 'http://docs.mist.io/article/19-adding-digital-ocean'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -243,10 +252,10 @@ PROVIDERS.push({
         label: "Authentication",
         type: "dropdown",
         value: "basic",
-        defaultValue: "basic",
+        defaultValue: "tls",
         options: [{
             val: "basic",
-            title: "Basic"
+            title: "Basic http authentication"
         }, {
             val: "tls",
             title: "TLS"
@@ -262,6 +271,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
+        helptext: 'Username, if you have set basic http authentication in front of the Docker API',
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
@@ -274,6 +284,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
+        helptext: 'Password, if you have set basic http authentication in front of the Docker API',
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
@@ -282,6 +293,7 @@ PROVIDERS.push({
         name: "key_file",
         label: "Key",
         type: "textarea",
+        helptext: 'Client private key file',
         value: "",
         defaultValue: "",
         show: true,
@@ -293,6 +305,7 @@ PROVIDERS.push({
     }, {
         name: "cert_file",
         label: "Certificate",
+        helptext: 'Client certificate file',
         type: "textarea",
         value: "",
         defaultValue: "",
@@ -305,6 +318,7 @@ PROVIDERS.push({
     }, {
         name: "ca_cert_file",
         label: "CA Certificate",
+        helptext: 'CA certificate file',
         type: "textarea",
         value: "",
         defaultValue: "",
@@ -314,6 +328,15 @@ PROVIDERS.push({
             fieldName: "authentication",
             fieldValues: ["tls"]
         }
+    }, {
+        name: "show_all",
+        label: "Show all containers (including stopped)",
+        helptext: 'Shows all containers, running and stopped. By default only running containers are shown',
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false
     }]
 });
 
@@ -332,7 +355,7 @@ PROVIDERS.push({
         required: true,
         // SUPPORTED_PROVIDERS[3].regions.map(function(i){return {val:i.id, title: i.location}})
         //ec2_ap_northeast should be ap-northeast
-        options: [{"val":"ec2_ap_northeast","title":"Tokyo"},{"val":"ec2_ap_northeast_2","title":"Seoul"},{"val":"ec2_ap_southeast","title":"Singapore"},{"val":"ec2_ap_southeast_2","title":"Sydney"},{"val":"ec2_eu_central","title":"Frankfurt"},{"val":"ec2_eu_west","title":"Ireland"},{"val":"ec2_sa_east","title":"Sao Paulo"},{"val":"ec2_us_east","title":"N. Virginia"},{"val":"ec2_us_west","title":"N. California"},{"val":"ec2_us_west_oregon","title":"Oregon"}]
+        options: [{'val': 'ap-northeast-1', 'title': 'Tokyo'}, {'val': 'ap-northeast-2', 'title': 'Seoul'}, {'val': 'ap-southeast-1', 'title': 'Singapore'}, {'val': 'ap-southeast-2', 'title': 'Sydney'}, {'val': 'eu-central-1', 'title': 'Frankfurt'}, {'val': 'eu-west-1', 'title': 'Ireland'}, {'val': 'eu-west-2', 'title': 'London'},  {'val': 'ca-central-1', 'title': 'Canada Central'}, {'val': 'sa-east-1', 'title': 'Sao Paulo'}, {'val': 'us-east-1', 'title': 'N. Virginia'}, {'val': 'us-west-1', 'title': 'N. California'}, {'val': 'us-west-2', 'title': 'Oregon'}, {'val': 'us-east-2', 'title': 'Ohio'}, {'val': 'ap-south-1', 'title': 'Mumbai'}]
     }, {
         name: "title",
         label: "Title *",
@@ -362,6 +385,15 @@ PROVIDERS.push({
         required: true,
         helptext: 'You can find your API secret on your Amazon console',
         helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -401,6 +433,15 @@ PROVIDERS.push({
         errorMessage: "Please enter private key",
         helptext: 'You can create a new key on your GCE portal',
         helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -429,69 +470,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API Token on the HostVirtual portal',
         helpHref: 'http://docs.mist.io/article/22-adding-hostvirtual'
-    }]
-});
-
-// INDONESIAN CLOUD
-PROVIDERS.push({
-    title: 'Indonesian Cloud',
-    val: 'indonesian_vcloud',
-    className: 'provider-indonesian',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "Indonesian Cloud",
-        defaultValue: "Indonesian Cloud",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
     }, {
-        name: "username",
-        label: "Username *",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
         show: true,
-        required: true,
-        errorMessage: "Please enter username",
-        helptext: 'The username you use to login Indonesian Cloud\'s portal'
-    }, {
-        name: "password",
-        label: "Password *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter password",
-        helptext: 'The password you use to login Indonesian Cloud\'s portal',
-        helpHref: 'http://docs.mist.io/article/23-adding-indonesian-cloud'
-    }, {
-        name: "organization",
-        label: "Organization *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter organization",
-        helptext: 'The name of your organization'
-    }, {
-        name: "host",
-        label: "Region",
-        type: "dropdown",
-        value: "my.idcloudonline.com",
-        defaultValue: "my.idcloudonline.com",
-        options: [{
-            val: "my.idcloudonline.com",
-            title: "my.idcloudonline.com"
-        }, {
-            val: "compute.idcloudonline.com",
-            title: "compute.idcloudonline.com"
-        }],
-        show: true,
-        required: false
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -585,6 +572,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can create an API key on your Linode portal',
         helpHref: 'http://docs.mist.io/article/25-adding-linode'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -788,6 +784,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API key on your RackSpace portal',
         helpHref: 'http://docs.mist.io/article/29-adding-rackspace'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -826,6 +831,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API key on your SoftLayer portal',
         helpHref: 'http://docs.mist.io/article/30-adding-softlayer'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -875,6 +889,14 @@ PROVIDERS.push({
         errorMessage: "Please enter onapp host",
         helptext: 'URL of the OnApp host',
         helpHref: 'http://docs.mist.io/article/155-onapp'
+    }, {
+        name: "verify",
+        label: "Verify SSL certificate",
+        type: "toggle",
+        value: true,
+        defaultValue: true,
+        show: true,
+        required: false
     }]
 });
 
@@ -1014,6 +1036,15 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API Token on the Vultr portal',
         helpHref: 'http://docs.mist.io/article/72-adding-vultr'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 

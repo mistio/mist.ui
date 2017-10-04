@@ -8,6 +8,7 @@
 <link rel="import" href="account/subscriptions-list.html">
 <link rel="import" href="account/sessions-list.html">
 <link rel="import" href="account/tokens-list.html">
+<link rel="import" href="account/whitelisted-ips.html">
 
 <script src='../bower_components/moment/min/moment.min.js'></script>
 
@@ -17,37 +18,43 @@
             #container {
                 max-width: 600px;
             }
+
             paper-tabs,
             paper-toolbar {
                 background-color: #d3d3d3;
                 color: #000;
                 --paper-tabs-selection-bar-color: #2196F3;
             }
-            iron-pages > * ::content paper-material {
+
+            iron-pages>* ::content paper-material {
                 padding: 0;
                 display: block;
             }
+
             #content {
                 max-width: 900px;
             }
         </style>
+        <app-route route="{{route}}" pattern="/:page" data="{{data}}"></app-route>
         <div id="content">
-            <paper-tabs attr-for-selected="data-route" selected="{{selected}}">
-                <paper-tab id="Profile" data-route="0">Profile</paper-tab>
-                <paper-tab id="Password" data-route="1">Password</paper-tab>
-                <paper-tab id="Billing" data-route="2" hidden$="[[!org.is_owner]]">Billing</paper-tab>
-                <paper-tab id="Active Sessions" data-route="3">Active Sessions</paper-tab>
-                <paper-tab id="API Tokens" data-route="4">API Tokens</paper-tab>
-                <paper-tab data-route="5" hidden$="[[!org.is_owner]]">Subscription History</paper-tab>
+            <paper-tabs attr-for-selected="name" selected="{{data.page}}">
+                <paper-tab id="profile" name="profile" data-route="0">Profile</paper-tab>
+                <paper-tab id="password" name="password" data-route="1">Password</paper-tab>
+                <paper-tab id="billing" name="billing" data-route="2" hidden$="[[!_showBilling(org.is_owner, billing)]]">Billing</paper-tab>
+                <paper-tab id="sessions" name="sessions" data-route="3">Active Sessions</paper-tab>
+                <paper-tab id="tokens" name="tokens" data-route="4">API Tokens</paper-tab>
+                <paper-tab id="ips" name="ips" data-route="5">Whitelisted IPs</paper-tab>
+                <paper-tab id="subscriptions" name="subscriptions" data-route="5" hidden$="[[!org.is_owner]]">Subscription History</paper-tab>
             </paper-tabs>
 
-            <iron-pages selected="{{selected}}">
-                <details-page org="[[org]]" user="[[user]]" data-route="0"></details-page>
-                <password-page user="[[user]]" data-route="1"></password-page>
-                <plans-list is-over-using="[[isOverUsing]]" org="[[org]]" user="[[user]]" data-route="2" hidden$="[[!org.is_owner]]"></plans-list>
-                <sessions-list org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
-                <tokens-list org="[[org]]" user="[[user]]" data-route="4" ></tokens-list>
-                <subscriptions-list org="[[org]]" data-route="5" hidden$="[[!org.is_owner]]"></subscriptions-list>
+            <iron-pages attr-for-selected="name" selected="{{data.page}}">
+                <details-page enable-rbac="[[enableRbac]]" name="profile" org="[[org]]" user="[[user]]" data-route="0"></details-page>
+                <password-page name="password" user="[[user]]" data-route="1"></password-page>
+                <plans-list name="billing" is-over-using="[[isOverUsing]]" org="[[org]]" user="[[user]]" data-route="2" hidden$="[[!org.is_owner]]"></plans-list>
+                <sessions-list name="sessions" org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
+                <tokens-list name="tokens" org="[[org]]" user="[[user]]" data-route="4"></tokens-list>
+                <whitelisted-ips name="ips" user="[[user]]" data-route="5"></whitelisted-ips>
+                <subscriptions-list  name="subscriptions" org="[[org]]" data-route="6" hidden$="[[!org.is_owner]]"></subscriptions-list>
             </iron-pages>
 
         </div>
@@ -59,19 +66,23 @@
         is: 'page-my-account',
         properties: {
             isOverUsing: Boolean,
+            enableRbac: Boolean,
             user: Object,
             org: Object,
             tokens: Array,
             sessions: Array,
-            selected: {
-                value: 0
-            }
+            location: Object,
+            billing: false,
+            data: Object
         },
+        observer: [
+        ],
         attached: function(){
-            // console.log(document.querySelector("app-location").queryParams);
-            if (document.querySelector("app-location").queryParams["plans"] == "true") {
-                this.set("selected",2);
-            }
+            if (this.data == undefined || this.data.page == undefined)
+                this.set('data', {page: 'profile'});
+        },
+        _showBilling: function(is_owner, has_billing) {
+            return is_owner && has_billing;
         }
     });
 </script>

@@ -6,6 +6,7 @@
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
+<link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../machines/associate-key.html">
 <link rel="import" href="../machines/run-script-on-machine.html">
@@ -22,6 +23,7 @@
                 width: 100%;
                 box-shadow: none;
                 text-transform: none;
+                display: inherit;
             }
 
             #select-multi-action-dropdown,
@@ -126,7 +128,7 @@
             </paper-listbox>
           </paper-dialog>
 
-          <paper-dialog id="confirmation" modal closingReason="{{confirmationStatus}}">
+          <paper-dialog id="confirmation" modal closingReason="{{confirmationStatus}}" with-backdrop>
               <template is="dom-if" if="[[!multi]]">
                   <h2>[[selectedAction.name]] [[selectedItem.type]] ?</h2>
               </template>
@@ -161,10 +163,11 @@
             </div>
           </paper-dialog>
           <dialog-element hidden></dialog-element>
-          <tags-list id="tagsdialog" model="[[computeModel()]]" items="[[selectedItems]]"></tags-list>
+          <tags-list id="tagsdialog" model="[[model]]" items="[[selectedItems]]"></tags-list>
+          <!-- <tags-form id="tagsdialog" model="[[model]]" items="[[selectedItems]]" type="[[getType(section)]]"></tags-form> -->
           <run-script-on-machine id="runscriptdialog" items="[[selectedItems]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
           <associate-key id="associatekeydialog" items="[[selectedItemsOfCurrentSection]]" model="[[model]]"></associate-key>
-          <machine-edit id="renamedialog" items="[[selectedItemsOfCurrentSection]]" model="[[model]]"></machine-edit>
+          <machine-edit id="renamedialog" items="" model="[[model]]"></machine-edit>
         </content>
     </template>
 </dom-module>
@@ -304,24 +307,6 @@ function actionDetails(actions) {
     return ret;
 }
 
-function itemUid(item, section) {
-    // Returns a universal resource id of the form
-    //      resourceType:[cloudId]:itemId
-    // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
-    //      key::MnhLdx9u22YjVJ
-    //
-    // TODO replace with mist uuids
-
-    // if item type is not defined derive it fro the current section id
-    var item_type = item && item.type ? item.type : (section &&
-                                             section.id.slice(0,-1));
-    var cloudId = item && item.cloud && item.cloud.id ? item.cloud.id : '';
-    var itemId = item && item.id ? item.id : '';
-    if (item_type == 'incident')
-        itemId = item.incident_id
-    return item_type + ':' + cloudId + ':' + itemId;
-}
-
 Polymer({
     is: 'item-actions',
 
@@ -373,10 +358,17 @@ Polymer({
 
     ready: function () {
     },
+    getType: function(section){
+        return section.id.slice(0,section.id.length-1);
+    },
     computeSelectedOfCurrent: function(selected, section){
         var selectedOfCurrent = [];
         selectedOfCurrent = this.selectedItems.filter(function(i){
-            var itemtype = i.split(':')[0];
+            var itemtype;
+            if (i.length)
+                itemtype = i.split(':')[0];
+            else if (i.machine_type)
+                itemtype = 'machine';
             return this.section.id.indexOf(itemtype) > -1;
         }, this);
         this.fire('selected-of-current-section-length', {'itemLength': selectedOfCurrent.length})
@@ -456,21 +448,23 @@ Polymer({
 
         if (this.get('selectedItems.length') != 1)
             item_type+='s';
-
-        // if (item_type != "undefined")
-        //     return item_type;
-        // if (item_type == "undefined")
-            return this.section.id;
+        
+        return this.section.id;
     },
 
     itemIndex: function(itemUid) {
         // returns the index of the item in the items list based on the itemUid
-
-        var chunks = itemUid.split(':'),
+        var chunks = [];
+        if (itemUid.length) {
+            chunks = itemUid.split(':'),
             itemId = chunks[2],
             cloudId = chunks[1];
-
-        // there are items whose ides contain ':', like imahes sha256:e02e811..
+        }
+        else {
+            itemId = itemUid.id;
+            cloudId = itemUid.cloud.id;
+        }
+        // there are items whose ids contain ':', like imahes sha256:e02e811..
         // we reconstruct the id if chunk's length is bigger than expected
         if (chunks.length > 3) {
             for (var i=3; i<chunks.length; i++){
@@ -500,7 +494,7 @@ Polymer({
 
         item.type = item_type;
         var ret = [];
-        if (item.type != 'machine' && item.type != 'network' && item.type != 'zone') {
+        if (item.type != 'machine' && item.type != 'network' && item.type != 'zone' && item.type != 'record') {
             ret.push('tag');
         }
         if (item.type == 'machine') {
@@ -509,27 +503,27 @@ Polymer({
               // if not monitoring then enable monitoring
               ret.push('associate-key');
               ret.push('shell');
-              if (item.keys.length) {
+              if (item.key_associations.length) {
                   ret.push('run-script');
               }
             }
-            if (item.can_tag)
+            if (item.actions.tag)
                 ret.push('tag');
-            if (item.can_start)
+            if (item.actions.start)
                 ret.push('start');
-            if (item.can_stop)
+            if (item.actions.stop)
                 ret.push('stop');
-            if (item.can_suspend)
+            if (item.actions.suspend)
                 ret.push('suspend');
-            if (item.can_reboot)
+            if (item.actions.reboot)
                 ret.push('reboot');
-            if (item.can_resume)
+            if (item.actions.resume)
                 ret.push('resume');
-            if (item.can_rename)
+            if (item.actions.rename)
                 ret.push('rename');
-            if (item.can_destroy)
+            if (item.actions.destroy)
                 ret.push('destroy');
-            if (item.can_undefine)
+            if (item.actions.undefine)
                 ret.push('undefine');
         } else if (item.type == 'image') {
             if (item.star) {
@@ -550,6 +544,10 @@ Polymer({
         } else if (item.type == 'network') {
             ret.push('delete');
         } else if (item.type == 'zone') {
+            ret.push('tag');
+            ret.push('delete');
+        } else if (item.type == 'record') {
+            ret.push('tag');
             ret.push('delete');
         } else if (item.type == 'tunnel') {
             // if(item.active)
@@ -689,12 +687,12 @@ Polymer({
                 return;
             } else if ( ['reboot','start', 'stop', 'suspend', 'resume', 'undefine', 'destroy'].indexOf(action.name) > -1) {
                 // rename excluded
-                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id;
+                uri = '/api/v1/machines/' + item.id;
                 payload = {'action': action.name};
                 console.log(action.name);
             } else if (action.name == 'probe') {
-                uri = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id+ '/probe';
-                payload = {'host': item.public_ips[0], 'key': item.keys[0]};
+                uri = '/api/v1/machines/' + item.id+ '/probe';
+                payload = {'host': item.public_ips[0], 'key': item.key_associations[0]};
             //templates
             } else if (action.name == 'delete' && item.type == 'template') {
                 uri = '/api/v1/templates/' + item.id;
@@ -730,6 +728,10 @@ Polymer({
             } else if (action.name == 'delete' && item.type == 'zone') {
                 uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.id;
                 method = 'DELETE';
+            //records
+            } else if (action.name == 'delete' && item.type == 'record') {
+                uri = '/api/v1/clouds/'+ item.cloud_id +'/dns/zones/' + item.zone_id + '/records/' + item.id;
+                method = 'DELETE';
             //tunnels
             } else if (action.name == 'delete' && item.type == 'tunnel') {
                 uri = '/api/v1/tunnels/' + item.id;
@@ -754,12 +756,12 @@ Polymer({
                         console.log(action, 'success');
                         message = 'Successfully '+ this.inPast(action.name) +' '+ this.section.id.slice(0,this.section.id.length-1) +'. Updating...'; //
                         // for machines destroy only and only if in machine page
-                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.uuid){
-                            document.querySelector('app-location').set('path', '/machines');
+                        if (action.name == "destroy" && document.querySelector('app-location').path.split('/machines/')[1] == item.id){
+                            this.fire('go-to', {url: '/machines'});
                         }
                         // for other resources and only if in deleted item's single page
                         if (action.name == "delete" && document.querySelector('app-location').path.split('/'+item.type+'s/')[1] == item.id){
-                            document.querySelector('app-location').set('path', '/'+item.type+'s');
+                            this.fire('go-to', {url: '/'+item.type+'s'});
                         }
                     } else {
                         console.error(action, 'failed');
@@ -783,8 +785,7 @@ Polymer({
             xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
             xhr.send(JSON.stringify(payload));
 
-            var thisid = item.uuid || item.id;
-            var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][thisid].name;
+            var logMessage = 'Performing action '+ action.name.toUpperCase() + ' on ' + item.type + ' ' + this.model[item.type+'s'][item.id].name;
             this.fire('performing-action', {log: logMessage});
       }.bind(this);
 

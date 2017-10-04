@@ -63,8 +63,9 @@
             </div>
             <div hidden$="[[isStacks]]">
               <template is="dom-if" if="[[!needCloud]]">
-                    <div>No [[section.id]] available. Yet.</div>
-                    <paper-button class="wide blue" on-tap="_fabAction"> ADD YOUR [[section.id]] </paper-button>
+                    <div hidden$="[[!isIncidents]]">Hooray! You have no [[section.id]]!</div>
+                    <div hidden$="[[isIncidents]]">No [[section.id]] available. Yet.</div>
+                    <paper-button class="wide blue" on-tap="_fabAction" hidden$="[[isIncidents]]"> ADD YOUR [[section.id]] </paper-button>
               </template>
               <template is="dom-if" if="[[needCloud]]">
                     <div>To view [[section.id]] you need to first add clouds.</div>
@@ -95,6 +96,11 @@ Polymer({
             value: true,
             computed: "needCloudChange(clouds, section)"
         },
+        isIncidents: {
+            type: Boolean,
+            value: true,
+            computed: "_computeIsIncidents(section)"
+        },
     },
     needCloudChange: function(clouds, section){
         if (this.clouds.length > 0) {
@@ -108,19 +114,21 @@ Polymer({
         }
     },
     _addCloudAction: function(){
-        document.querySelector('app-location').set('path', '/clouds/+add');
+        this.fire('go-to', {url: '/clouds/+add'});
     },
     _goToTemplate: function(){
-        document.querySelector('app-location').set('path', '/templates');
+        this.fire('go-to', {url: '/templates'});
     },
     _computeIsStacks: function(section){
         return this.section.id == "stacks";
     },
+    _computeIsIncidents: function(section){
+        return this.section.id == "incidents";
+    },
     _fabAction: function(e) {
-        if(this.section.id != "teams")
-        {
+        if(this.section.id != "teams") {
             console.debug('fabAction', e, this.section.add);
-            document.querySelector('app-location').set('path', this.section.add);
+            this.fire("go-to", {url: this.section.add})
         } else {
             var dialog = this.querySelector('team-add');
             dialog.openDialog();

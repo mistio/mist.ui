@@ -8,15 +8,22 @@
 <link rel="import" href="../helpers/dialog-element.html">
 
 <link rel="import" href="cloud-info.html">
+<link rel="import" href="cloud-dns.html">
 <link rel="import" href="cloud-edit.html">
 
 <dom-module id="cloud-page">
     <template>
-        <style include="single-page"></style>
-        <style is="custom-style" include="shared-styles">
+        <style include="tags-and-labels single-page shared-styles">
             :host {
                 display: block;
                 padding-bottom: 80px;
+                --paper-toggle-button-checked-button-color: #69b46c;
+                --paper-toggle-button-checked-bar-color: #69b46c;
+                --paper-toggle-button-unchecked-button-color: #d96557;
+                --paper-toggle-button-unchecked-bar-color: #d96557;
+            }
+            :host #enable-disable-cloud {
+                --paper-toggle-button-label-color: #fff !important;
             }
             paper-material {
                 display: block;
@@ -108,7 +115,7 @@
                 display: none;
             }
 
-            [size=xs] app-sidebar {
+            [size=xs] mist-sidebar {
                 min-width: 100%;
                 height: auto;
             }
@@ -176,15 +183,6 @@
             paper-toggle-button {
                 cursor: pointer;
             }
-            :host paper-toggle-button >::content .toggle-button {
-                background-color: #d96557 !important;
-            }
-            :host paper-toggle-button[checked]:not([disabled]) >::content .toggle-button {
-                background-color: #69b46c !important;
-            }
-            :host paper-toggle-button >::content .toggle-label {
-                color: #fff !important;
-            }
             .capitalize {
                 text-transform: capitalize;
             }
@@ -219,17 +217,17 @@
             </paper-material>
             <template is="dom-if" if="[[cloud]]">
                 <paper-material>
-                    <h4 class="id">cloud ID:</h4><span class="id">[[cloud.id]]</span>
-                    <h4 class="id tags" hidden$="[[!cloud.region]]">Region:</h4><span class="id">[[cloud.region]]</span>
-                    <h4 class="id tags" hidden$="[[!cloud.enabled]]">State:</h4><span class="id" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span>
+                    <h4 class="id">ID:</h4> <span class="id">[[cloud.id]]</span>
+                    <h4 class="id tags" hidden$="[[!cloud.region]]">Region:</h4> <span class="id">[[cloud.region]]</span>
+                    <h4 class="id tags" hidden$="[[!cloud.enabled]]">State:</h4> <span class="id" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span>
                     <h4 class="id tags" hidden$="[[!cloud.tags.length]]">Tags
                         <span class="id">([[cloud.tags.length]])</span>
                     </h4>
-                    <div hidden$="[[!cloud.tags]]">
+                    <span hidden$="[[!cloud.tags]]">
                         <template is="dom-repeat" items="[[cloud.tags]]">
                             <span class="id tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
                         </template>
-                    </div>
+                    </span>
                 </paper-material>
                 <paper-material class="no-pad">
                     <div class="info-table">
@@ -243,6 +241,12 @@
                 <h3>Rename Cloud</h3>
                 <cloud-info cloud="[[cloud]]" opened></cloud-info>
             </paper-material>
+            <template is="dom-if" if="[[_isSupportedDNSProvider(cloud.provider)]]">
+                <paper-material class="separator">
+                    <h3>Enable DNS</h3>
+                    <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
+                </paper-material>
+            </template>
             <paper-material class="separator">
                 <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
             </paper-material>
@@ -272,9 +276,6 @@
                 is: 'cloud-page',
 
                 properties: {
-                    sections: {
-                        type: Object
-                    },
                     section: {
                         type: Object
                     },
@@ -293,6 +294,7 @@
                         computed: '_computeIsloading(cloud)',
                         value: true
                     },
+                    expectedState: Boolean
                 },
                 listeners: {
                     'confirmation': '_deleteCloud'
@@ -326,6 +328,13 @@
                     }
                     dialog._openDialog();
                 },
+                _isSupportedDNSProvider: function(provider) {
+                    if (['ec2','gce','digitalocean','linode','rackspace','softlayer','vultr'].indexOf(provider) > -1 ) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                },
                 _deleteCloudConfirmation:function(){
                   this._showDialog({
                       title: 'Delete '+this.cloud.title+'?',
@@ -349,7 +358,7 @@
                     if (this.cloud && this.cloud.title)
                         title = this.cloud.title;
                     document.querySelector('paper-header-panel').scroller.scrollTop = 0;
-                    document.querySelector('app-location').set('path', '/');
+                    this.fire('go-to', {url: '/'});
                     this.fire('toast',{msg:'Cloud ' + title + ' was deleted',duration:3000});
                 },
                 _handleCloudDeletionAjaxError: function(e){
@@ -362,13 +371,12 @@
                     this.$.cloudStateAjaxRequest.body = {
                         new_state: this.cloud.enabled? '0' : '1'
                     };
-                    console.log("request","/api/v1/clouds/"+this.cloud.id)
+                    this.expectedState = this.cloud.enabled? '0' : '1';
                     this.$.cloudStateAjaxRequest.generateRequest();
                 },
                 _handleCloudStateAjaxResponse: function(e) {
-                    var message = !this.cloud.enabled ? 'Cloud ' + this.cloud.title + ' was enabled!':
-                    'Cloud ' + this.cloud.title + ' was disabled!' ;
-                    this.fire('toast',{msg:message,duration:5000});
+                    var message = this.expectedState == true ? 'Cloud ' + this.cloud.title + ' was enabled!' : 'Cloud ' + this.cloud.title + ' was disabled!';
+                    this.fire('toast', { msg:message, duration:5000} );
                 },
                 _handleCloudStateAjaxError:function(e){
                     this.querySelector('#enable-disable-cloud').checked=this.cloud.enabled;

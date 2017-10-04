@@ -1,58 +1,146 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
+<link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="keys/key-actions.html">
 <link rel="import" href="keys/key-add.html">
 <link rel="import" href="keys/key-page.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-keys">
   <template>
     <style>
-      :host {
+       :host {
         display: block;
       }
+
       paper-dialog {
-          position: fixed !important;
+        position: fixed !important;
+      }
+      h2[slot="header"] {
+          margin: 8px;
       }
     </style>
 
-    <app-route route="{{route}}"
-                pattern="/:key"
-                data="{{data}}"></app-route>
-
-    <page-items model="[[model]]" items="[[model.keysArray]]" section="[[sections.keys]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
-    <key-add model="[[model]]" section="[[sections.keys]]" hidden$=[[!_isAddPageActive(route.path)]]></key-add>
-    <key-page model="[[model]]" key$="[[_getKeyPair(data.key, model.keys)]]" section="[[sections.keys]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
+    <app-route route="{{route}}" pattern="/:key" data="{{data}}"></app-route>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="keysList"
+            selectable resizable column-menu multi-sort
+            items="[[model.keysArray]]"
+            name="Keys"
+            selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            combined-filter={{combinedFilter}}
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.keys)]]
+            route={{route}}
+            user-filter=[[model.sections.keys.q]]
+            primary-field-name="id">
+          <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Keys </h2>
+          <mist-actions slot="action-buttons" actions="[[actions]]" type="key" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+          <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></key-actions>
+          <p slot="no-items-found">No keys found.</p>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
+    <key-add model="[[model]]" section="[[model.sections.keys]]" hidden$=[[!_isAddPageActive(route.path)]]></key-add>
+    <key-page model="[[model]]" key$="[[_getKeyPair(data.key, model.keys)]]" section="[[model.sections.keys]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
   </template>
 
   <script>
     Polymer({
 
       is: 'page-keys',
-
+      behaviors: [
+        mistListsBehavior
+      ],
       properties: {
-          model: Object,
-          onboarding: Object,
+        model: Object,
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
       },
 
-      attached: function() {
-
+      listeners: {
+        'select-action': 'selectAction'
+      },
+      _isAddPageActive: function (path) {
+        return path == '/+add';
+      },
+      _isDetailsPageActive: function (path) {
+        return path && path != '/+add';
+      },
+      _isListActive: function (path) {
+        return !path;
+      },
+      _getKeyPair: function (id) {
+        if (this.model.keys)
+          return this.model.keys[id];
+      },
+      _addResource: function(e) {
+          this.fire('go-to', {url: this.model.sections.keys.add});
+      },
+      _getFrozenLogColumn: function() {
+          return ['name'];
       },
 
-      _isAddPageActive: function(path) {
-          return path == '/+add';
+      _getVisibleColumns: function(){
+          return ['machines','isDefault', 'id', 'tags'];
       },
-      _isDetailsPageActive: function(path) {
-          return path && path != '/+add';
+
+      _getRenderers: function(keys) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'machines': {
+                  'body': function(item, row) {
+                    return item.length;
+                  }
+              },
+              'isDefault': {
+                  'title': function(item, row) {
+                    return 'Default';
+                  },
+                  'body': function(item, row) {
+                    return item ? '<span class="default"><iron-icon icon="communication:vpn-key"></iron-icon> Default key</span>' : '';
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              }
+          }
       },
-      _isListActive: function(path) {
-          return !path;
-      },
-      _getKeyPair: function(id) {
-          if (this.model.keys)
-              return this.model.keys[id];
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('key-actions')) {
+            this.querySelector('key-actions').selectAction(e);
+          }
       }
-
     });
   </script>
 </dom-module>

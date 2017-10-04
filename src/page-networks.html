@@ -1,53 +1,164 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="networks/network-add.html">
 <link rel="import" href="networks/network-page.html">
+<link rel="import" href="networks/network-actions.html">
 
-<link rel="import" href="page-items.html">
+<link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-networks">
   <template>
     <style>
-      :host {
+       :host {
         display: block;
+      }
+      h2[slot="header"] {
+        margin: 8px;
       }
     </style>
 
-    <app-route route="{{route}}"
-                pattern="/:network"
-                data="{{data}}"></app-route>
+    <app-route route="{{route}}" pattern="/:network" data="{{data}}"></app-route>
 
-    <page-items model="[[model]]" items="[[model.networksArray]]" section="[[sections.networks]]" onboarding="[[onboarding]]" hidden$=[[!_isListActive(route.path)]]></page-items>
-    <network-add model="[[model]]" section="[[sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-add>
-    <network-page model="[[model]]" network$="[[_getNetwork(data.network, model.networks)]]" section="[[sections.networks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="networksList"
+            selectable resizable column-menu multi-sort
+            items="[[model.networksArray]]"
+            name="Networks"
+            selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            combined-filter={{combinedFilter}}
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.networks)]]
+            route={{route}}
+            user-filter=[[model.sections.networks.q]]
+            primary-field-name="id">
+            <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Networks </h2>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></network-actions>
+            <p slot="no-items-found">No networks found.</p>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="networkAdd" icon="add" on-tap="_addResource"></paper-fab>
+      </div>
+    </template>
+    <network-add model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-add>
+    <network-page model="[[model]]" network$="[[_getNetwork(data.network, model.networks)]]" section="[[model.sections.networks]]"
+      hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
   </template>
 
   <script>
     Polymer({
 
       is: 'page-networks',
+      behaviors: [
+        mistListsBehavior
+      ],
 
       properties: {
         model: Object,
-        onboarding: Object
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+          type: Array,
+          notify: true
+        }
       },
 
-      attached: function() {
-
+      listeners: {
+        'select-action': 'selectAction',
+      },
+      _isAddPageActive: function (path) {
+        return path == '/+add';
+      },
+      _isDetailsPageActive: function (path) {
+        return path && path != '/+add';
+      },
+      _isListActive: function (path) {
+        return !path;
+      },
+      _getNetwork: function (id) {
+        if (this.model.networks)
+          return this.model.networks[id];
+      },
+      _addResource: function(e) {
+          this.fire('go-to', {url: this.model.sections.networks.add});
+      },
+      _getFrozenLogColumn: function(){
+          return ['name'];
       },
 
-      _isAddPageActive: function(path) {
-          return path == '/+add';
+      _getVisibleColumns: function(){
+          return ['provider', 'network_type', 'state', 'subnets'];
       },
-      _isDetailsPageActive: function(path) {
-          return path && path != '/+add';
+
+      _getRenderers: function(networks) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'provider': {
+                  'title': function(item, row) {
+                      return 'cloud';
+                  },
+                  'body': function(item, row) {
+                      return item;
+                  }
+              },
+              'network_type': {
+                  'title': function(item, row) {
+                      return 'network type';
+                  },
+                  'body': function(item, row) {
+                      return item;
+                  }
+              },
+              'subnets': {
+                  'body': function(item, row) {
+                      return item ? item.length : '';
+                  }
+              },
+              'state': {
+                  'body': function(item, row) {
+                      if (row.provider == 'ec2')
+                        return row.extra && row.extra.state != undefined ? row.extra.state : '';
+                      else if (row.provider == 'openstack')
+                        return row.admin_state_up != undefined ? 'admin state up:' + row.admin_state_up : '';
+                      else
+                        return '';
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    if (item != undefined) {
+                      for (var i=0; i<tags.length; i++){
+                        display += "<span class='tag'>"+tags[i].key;
+                        if (tags[i].value != undefined && tags[i].value != "")
+                          display += "=" + tags[i].value;
+                        display += "</span>";
+                      }
+                    }
+                    return display;
+                  }
+              }
+          }
       },
-      _isListActive: function(path) {
-          return !path;
-      },
-      _getNetwork: function(id) {
-          if (this.model.networks)
-              return this.model.networks[id];
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('network-actions')) {
+            this.querySelector('network-actions').selectAction(e);
+          }
       }
 
     });

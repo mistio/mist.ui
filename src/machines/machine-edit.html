@@ -30,17 +30,16 @@
             <h2>Rename Machine</h2>
             <paper-dialog-scrollable>
                 <p>
-                    <template is="dom-repeat" items="[[itemsObj]]">
-                        <paper-input id="item[[item.uuid]]" label="[[_computeLabel(item.name)]]" required allowed-pattern="[A-Za-z0-9]" error-message="Please enter machines's new name" value="[[item.name]]"></paper-input>
+                    <template is="dom-repeat" items="[[items]]">
+                        <paper-input id="item[[item.id]]" label="[[item.name]]" required allowed-pattern="[A-Za-z0-9]" error-message="Please enter machines's new name" value="[[item.name]]"></paper-input>
                     </template>
                 </p>
                 <div class="clearfix btn-group">
                     <paper-button class="link" dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="submit-btn btn-block" raised on-tap="_submitForm">Submit</paper-button>
+                    <paper-button class="submit-btn btn-block" raised on-tap="_submitForm" dialog-confirm>Submit</paper-button>
                 </div>
             </paper-dialog-scrollable>
         </paper-dialog>
-        <iron-ajax id="editMachineAjax" method="POST" on-request="_editMachineRequest" on-response="_editMachineResponse" on-erro="_editMachineError" handle-as="xml"></iron-ajax>
     </template>
 
     <script>
@@ -51,16 +50,11 @@
                 is: 'machine-edit',
 
                 properties: {
-                    model: Object,
                     items: Array,
-                    itemsObj: {
-                        type:Array,
-                        computed: '_computeItemsObj(items)'
-                    },
                     machine: {
                         type: Object,
                         value: {
-                            uuid: null
+                            id: null
                         },
                         notify: true
                     },
@@ -70,21 +64,11 @@
                     },
                     formReady: {
                         type: Boolean,
-                        computed: '_computeFormReady(machine.uuid, sendingData)'
+                        computed: '_computeFormReady(machine.id, sendingData)'
                     }
                 },
                 listeners: {
                     'iron-overlay-closed': '_modalClosed'
-                },
-                ready: function() {
-
-                },
-                _computeItemsObj: function(items){
-                    if (items)
-                    return this.model.machinesArray.filter(function(m){
-                        var str = 'machine:'+m.cloud.id+':'+m.id;
-                        return str.indexOf(this.items)>-1;
-                    }, this);
                 },
                 _computeFormReady: function(id, sendingData) {
                     var formReady = false;
@@ -102,61 +86,33 @@
                 _openDialog: function(e) {
                     this.$.editMachineModal.open();
                 },
-                _closeDialod: function(e) {
+                _closeDialog: function(e) {
                     this.$.editMachineModal.close();
                 },
                 _modalClosed: function() {
                     this._formReset();
                 },
                 _submitForm: function(e) {
-                    // this.fire('updateSelectedMachine', {
-                    //     machine: this.machine
-                    // });
-
-                    var request = this.$.editMachineAjax;
-
-                    var items = this.itemsObj.slice(0);
-                    var run = function(el) {
-                        var item = items.shift(),
-                            itemName = el.querySelector('#item'+item.uuid).value;
-
-                        request.body = {'action': 'rename', 'name': itemName};
-                        request.url = '/api/v1/clouds/' + item.cloud.id + '/machines/' + item.id;
-
-                        request.headers["Content-Type"] = 'application/json';
-                        request.headers["Csrf-Token"] = CSRF_TOKEN;
-                        request.generateRequest();
-
-                        if (items.length) {
-                            run(el);
-                        }
-                    }
-                    run(this); 
-
-                    this._closeDialod();
+                    e.stopImmediatePropagation();
+                    var item = this.items[0],
+                        action = {
+                            'name': 'rename',
+                            'icon': 'editor:mode-edit',
+                            'confirm': true,
+                            'multi': false
+                        },
+                        itemName = this.querySelector('#item'+item.id).value;
+                    this.fire('rename-machine', {action: action, name: itemName});
+                    this._closeDialog();
                 },
                 _formReset: function() {
-                      this.set('machine.uuid', '');
-                },
-                _editMachineAjax: function(e) {
-                    
-                },
-                _editMachineRequest: function() {
-                    this.fire('rename-request', {request: true})
-                    this.set('sendingData', true);
-                },
-                _editMachineResponse: function(e) {
-                    this.fire('rename-request', {response: e.detail.xhr.response})
-                    this.set('sendingData', false);
-                },
-                _editMachineError: function(e) {
-                    this.fire('rename-request', {error: true, errormsg: e.detail.xhr.responseText});
-                    this.set('sendingData', false);
+                      this.set('machine.id', '');
                 },
                 _computeLabel: function(itemname){
                     var l = itemname.slice(0);
                     return l;
-                }
+                },
+                //from https://github.com/PolymerElements/paper-dialog/issues/7
             });
         })();
     </script>

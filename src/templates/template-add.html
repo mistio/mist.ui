@@ -78,7 +78,15 @@
             location_type: "github",
             template_github: "https://github.com/mistio/kubernetes-blueprint",
             entrypoint: "blueprint.yaml"
+        },{
+            name: 'Cloudify Blueprint example',
+            description: 'Simple Cloudify Blueprint example for provisioning resources through Mist.io',
+            exec_type: "cloudify",
+            location_type: "github",
+            template_github: "https://github.com/mistio/simple-resource-provisioning-blueprint",
+            entrypoint: "blueprint.yaml"
         }
+
     ];
 
         (function() {
@@ -240,12 +248,22 @@
                             },
                             errorMessage: "Please enter entry point",
                             helptext: "Please enter entry point"
+                        }, {
+                            name: "setuid",
+                            label: "Let run as owner",
+                            type: "toggle",
+                            value: false,
+                            defaultValue: false,
+                            show: true,
+                            required: false,
+                            helptext: "Enable to allow team members to run this template with owner rights."
                         }]
                     },
                     defaultTemplates: Array
                 },
                 observers: [
-                    'useCatalogueTemplate(selected, fields)'
+                    'useCatalogueTemplate(selected, fields)',
+                    'showWarning(fields.*)'
                 ],
                 listeners: {
                     'reset-form' : 'clearDropDown'
@@ -262,9 +280,7 @@
                 },
                 _addTemplateAjaxResponse: function(e) {
                     var response = YAML.parse(e.detail.xhr.response);
-                    document.querySelector('app-location').set('path', '/templates/' + response.id);
-                    console.log(response.template.id);
-
+                    this.fire('go-to', {url: '/templates/' + response.id});
                     this.debounce('resetForm', function() {
                         this._resetForm();
                     }, 500);
@@ -307,8 +323,22 @@
                 },
                 clearDropDown: function(){
                     this.set('selected', -1)
+                },
+                showWarning: function(fields) {
+                    // console.log("fields", fields);
+                    if (fields.path == "fields.#8.value") {
+                        if (fields.value){
+                            this.set('fields.#8.warning', 'Allowing the team to run this template as owner');
+                            this.set('fields.#8.helptext', '');
+                        }
+                        else {
+                            this.set('fields.#8.warning', '');
+                            this.set('fields.#8.helptext', 'Enable to allow team members to run this template with owner priviledges.');
+                        }
+                    }
                 }
             });
         })();
     </script>
 </dom-module>
+s

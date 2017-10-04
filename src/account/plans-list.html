@@ -8,7 +8,7 @@
 
 <dom-module id="plans-list">
     <template>
-        <style include="shared-styles">
+        <style is="custom-style" include="shared-styles">
         :host {
             display: block;
         }
@@ -22,6 +22,7 @@
             padding-left: 8px;
             padding-right: 8px;
             @apply(--layout-horizontal);
+            @apply(--layout-wrap);
         }
 
         .plan {
@@ -48,6 +49,9 @@
         plan-overusage::content .notice {
             margin: 16px 0;
         }
+        .add-card {
+            cursor: pointer;
+        }
         </style>
         <paper-material>
             <div class="grid-row">
@@ -62,6 +66,7 @@
                     <plan-overusage is-over-using="[[isOverUsing]]" plan="[[org.current_plan]]" in-account-page></plan-overusage>
                     <p hidden$="[[!org.current_plan.promo_code.description]]">Your current plan offers you: [[org.current_plan.promo_code.description]]</p>
                     <p>For questions and other information contact us at <a href="mailto:sales@mist.io">sales@mist.io</a></p>
+                    <span class="add-card blue-link" on-tap="addCard" hidden$=[[!org.current_plan.started]]>Update payment method.</span>
                 </div>
             </div>
             <div class="grid-row">
@@ -80,6 +85,7 @@
             </div>
         </paper-material>
         <plan-purchase id="purchasePlan" org="[[org]]"></plan-purchase>
+        <plan-purchase id="addCard" org="[[org]]" add-card></plan-purchase>
     </template>
     <script>
         Polymer({
@@ -100,7 +106,8 @@
             },
             listeners: {
                 'plan-selected': 'purchasePlan',
-                'error-on-cancel-plan': 'showErrorsOfCancel'
+                'error-on-cancel-plan': 'showErrorsOfCancel',
+                'update-payment-method': 'addCard'
             },
             computeIsCurrent: function(plan, org) {
                 if (this.org.current_plan) {
@@ -127,6 +134,9 @@
             purchasePlan: function(e){
                 this.$.purchasePlan.plan = e.detail.plan;
                 this.$.purchasePlan.open();
+            },
+            addCard: function(e){
+                this.$.addCard.open();
             },
             showErrorsOfCancel: function(errormessage){
 

@@ -3,10 +3,18 @@
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+
 <link rel="import" href="../organizations/organization-add.html">
+
 <dom-module id="app-user-menu">
     <template>
         <style>
+            :host {
+                position: absolute;
+                right: 0;
+                outline: none;
+            }
+
             :host::content iron-dropdaown {
                 width: 300px !important;
             }
@@ -39,11 +47,6 @@
                 margin-right: 26px;
             }
 
-            :host {
-                position: relative;
-                z-index: 1000;
-            }
-
             .add-org {
                 opacity: 0.54;
                 margin-top: 0;
@@ -63,6 +66,10 @@
                 padding: 0;
                 margin: 0;
                 max-width: 270px;
+            }
+
+            a.grid-row {
+                width: 100%;
             }
 
             paper-item:not(.context) {
@@ -144,8 +151,32 @@
             .current-org-teams:last-of-type:after {
                 content: " ";
             }
+
+            :host {
+                position: relative;
+            }
+
+            .tip {
+                border-color: transparent;
+                border-bottom-color: #fff;
+                border-style: dashed dashed solid;
+                border-width: 0 11px 9px;
+                position: absolute;
+                left: 17px;
+                top: 50px;
+                z-index: 1;
+                height: 0;
+                width: 0;
+                opacity: 1;
+                transition: opacity 0.4s ease-in-out, top 0.3s ease-in-out;
+            }
+            .tip[closed] {
+                opacity: 0;
+                top: 80px;
+                transition: opacity 0s ease-in-out, top 0s ease-in-out;
+            }
         </style>
-        <paper-menu-button horizontal-align="right">
+        <paper-menu-button horizontal-align="right" vertical-offset="56"  opened="{{opened}}">
             <paper-icon-button src="[[gravatar]]" class="gravatar dropdown-trigger"></paper-icon-button>
             <div class="dropdown-content">
                 <div class="grid-row current context">
@@ -153,19 +184,19 @@
                         <iron-icon class="user-menu-icon" icon="social:person"></iron-icon>
                     </div>
                     <div class="org xs8">
-                        <h4>[[org.name]]</h4>
-                        <div>[[user.email]]</div>
+                        <h4 style$="[[_computeOrganizationNameStyle(org.name)]]">[[_computeOrganizationName(org.name)]]</h4>
+                        <div>[[_computeUserName(user)]]</div>
                         <template is="dom-repeat" items="{{teams}}">
                             <span class="current-org-teams">[[item.name]]</span>
                         </template>
                     </div>
                 </div>
                 <paper-menu>
-                    <template is="dom-repeat" items="[[orgsList]]" as="organization">
-                        <paper-item class="context">
+                    <template is="dom-repeat" items="{{orgsList}}" as="organization" restamp>
+                        <paper-item class="context" hidden$=[[_isCurrentOrg(organization)]]>
                             <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row">
                                 <iron-icon class="user-menu-icon" icon$="[[_computeOrganizationIcon(organization)]]"></iron-icon>
-                                <div class="org-name">[[organization.name]]</div>
+                                <div class="org-name">[[_computeOrganizationName(organization.name)]]</div>
                             </a>
                         </paper-item>
                     </template>
@@ -199,8 +230,9 @@
                 </paper-menu>
             </div>
         </paper-menu-button>
+        <div class="tip" closed$="[[!opened]]"></div>
 
-        <organization-add></organization-add>
+        <organization-add current-org="[[org]]"></organization-add>
     </template>
 </dom-module>
 <script type="text/javascript" src="../../bower_components/md5/build/md5.min.js"></script>
@@ -240,8 +272,9 @@
             },
             orgsList: {
                 type: Array,
-                computed: '_computeOrganizationsList(user, org)'
-            }
+                computed: '_computeOrganizationsList(user, org, user.orgs)'
+            },
+            opened: Boolean
         },
         _computeGravatar: function(email, size, placeholder) {
             var avatarString = md5(email),
@@ -250,6 +283,16 @@
         },
         _computeGravatarName: function(first_name, last_name, email) {
             return first_name && last_name ? first_name + ' ' + last_name : email;
+        },
+        _computeUserName: function(user) {
+            var ret = '';
+            if (user.first_name)
+                ret += user.first_name + ' ';
+            if (user.last_name)
+                ret += user.last_name;
+            if (!ret.length)
+                ret += user.email;
+            return ret;
         },
         _computeOrganizationsList: function(user, org) {
             if (user.orgs) {
@@ -272,8 +315,14 @@
         _computeOrganizationIcon: function(organization) {
             return organization.id ? 'social:group' : 'social:person';
         },
-        _computeMemberOfTeamsText: function() {
-
+        _computeOrganizationName: function(name) {
+            return name && name.length ? name : '[ untitled org ]';
+        },
+        _computeOrganizationNameStyle: function(name) {
+            return !name && 'opacity: .5' || '';
+        },
+        _isCurrentOrg: function(organization) {
+            return organization.id == this.org.id;
         },
         _addOrg: function(e) {
             var dialog = this.querySelector('organization-add');
@@ -282,9 +331,6 @@
         _goToOrg: function(e) {
             var orgId = e.currentTarget.getAttribute('id');
             window.location.href = orgId ? '/switch_context/' + orgId : '/switch_context';
-        },
-        _toggleUI: function() {
-            window.location.href = '/toggle-ui/legacy';
         },
         _logout: function(e) {
             window.location.href = '/logout';

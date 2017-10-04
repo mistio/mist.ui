@@ -23,6 +23,14 @@
             opacity: 1;
         }
 
+        :host[xsmallscreen] {
+            flex-wrap: wrap;
+        }
+
+        :host[xsmallscreen] > paper-material {
+            flex-basis: 100%;
+        }
+
         h3 {
             text-transform: uppercase;
             font-size: 13px;
@@ -73,6 +81,13 @@
         }
         .count {
             color: rgba(0,0,0,0.54);
+        }
+        td.count {
+            font-size: 12px;
+            line-height: 22px;
+        }
+        td.count > iron-icon {
+            float: left;
         }
         .text-right {
             text-align: right;
@@ -129,8 +144,8 @@
                 <template is="dom-repeat" items="[[topClouds]]">
                     <tr>
                         <td colspan="2" class="name">[[item.name]] </td>
-                        <td class="count">[[item.machinesCount]] machines </td>
-                        <td class="text-right cost">$[[item.cost]]</td>
+                        <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
+                        <td class="text-right cost">$[[_formatMoney(item.cost)]]</td>
                     </tr>
                 </template>
             </table>
@@ -150,9 +165,6 @@ Polymer({
         model: {
             type: Object
         },
-        sections: {
-            type: Object
-        },
         totalCost: {
             type: Number,
             computed: '_computeTotalCost(model.machinesArray.*)'
@@ -163,6 +175,10 @@ Polymer({
         },
         zeroCostClouds: {
             type: Array
+        },
+        xsmallscreen: {
+            type: Boolean,
+            reflectToAttribute: true
         }
     },
     attached: function() {
@@ -177,7 +193,7 @@ Polymer({
         if (machines.base.length > 0){
             // map machines costs in an array
             var machinesWithCost = this.model.machinesArray.map(function(m){
-                return m.extra.cost_per_month ? m.extra.cost_per_month : 0;
+                return m.cost && m.cost.monthly ? m.cost.monthly : 0;
             });
             // add all cost values
             cost = machinesWithCost.reduce(function(previous, current, index){
@@ -190,7 +206,7 @@ Polymer({
                 return previous + current;
             });
         }
-        return Math.round(cost);
+        return cost.formatMoney(2, '.', ',');
     },
     _computeTopClouds: function(clouds, machines) {
         var topCloudsArray = [];
@@ -201,13 +217,13 @@ Polymer({
                 var machinesCount = 0;
                 if (c.machines) {
                     for (var m in c.machines) {
-                        if (c.machines[m].extra && c.machines[m].extra.cost_per_month) {
+                        if (c.machines[m].cost && c.machines[m].cost.monthly) {
                             var mcost;
-                            if (typeof c.machines[m].extra.cost_per_month != 'number'){
-                                mcost = parseInt(c.machines[m].extra.cost_per_month);
+                            if (typeof c.machines[m].cost.monthly != 'number'){
+                                mcost = parseInt(c.machines[m].cost.monthly);
                             }
                             else {
-                                mcost = c.machines[m].extra.cost_per_month;
+                                mcost = c.machines[m].cost.monthly;
                             }
                             cloudCost = cloudCost + mcost;
                         }
@@ -216,9 +232,9 @@ Polymer({
                 }
                 var cloud = {};
                     cloud.name = c.title;
-                    cloud.cost = Math.round(cloudCost);
+                    cloud.cost = cloudCost;
                     cloud.machinesCount = machinesCount;
-                if (cloud.cost > 0)
+                if (cloudCost > 0)
                     topCloudsArray.push(cloud);
                 else {
                     zeroCostClouds.push(cloud);
@@ -234,6 +250,11 @@ Polymer({
         });
         // return all clouds instead of topCloudsArray.slice(0,3);
         return topCloudsArray;
+    },
+
+    _formatMoney: function(cost) {
+        return cost.formatMoney(2, '.', ',');
     }
 });
+
 </script>

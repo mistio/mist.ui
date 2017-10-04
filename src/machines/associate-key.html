@@ -177,10 +177,10 @@ Polymer({
         var qParams = {
             'origin': origin
         }
-        document.querySelector('app-location').set('path', '/keys/+add');
-        document.querySelector('app-location').set('queryParams', qParams);
+        this.fire('go-to',{url: '/keys/+add', params: qParams});
     },
     associateKey: function(e){
+
         var user = this.querySelector('paper-input#user').value || 'root',
             port = this.querySelector('paper-input#port').value || '22',
             request = this.$.associateKeyRequest,
@@ -191,13 +191,22 @@ Polymer({
 
         var run = function(el, model) {
             var item = items.shift(),
-                itemType = item.split(':')[0],
-                itemCloud = item.split(':')[1],
-                itemId = item.split(':')[2],
-                machineHost = model.clouds[itemCloud].machines[itemId].public_ips ? model.clouds[itemCloud].machines[itemId].public_ips[0] : '',
-                uri = "/api/v1/clouds/" + itemCloud + "/machines/" + itemId + "/keys/" + keyId;
+                itemType,
+                itemCloud,
+                itemId;
+            if (item.length) {
+                itemType = item.split(':')[0];
+                itemCloud = item.split(':')[1];
+                itemId = item.split(':')[2];
+            }
+            else {
+                itemCloud = item.cloud.id;
+                itemId = item.id
+            }
+            var machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '',
+                uri = "/api/v1/machines/" + itemId + "/keys/" + keyId;
 
-            console.log('machineHost', machineHost, model.clouds[itemCloud].machines[itemId]);
+            // console.log('machineHost', machineHost, model.machines[itemId]);
 
             request.url = uri;
             request.headers["Content-Type"] = 'application/json';
@@ -210,15 +219,20 @@ Polymer({
             }
         }
         run(this, this.computeModel());
+        this.$.dialogModal.close();
+        e.stopImmediatePropagation();
     },
     _associateKeyRequest: function(){
-        this.fire('pending-key-request', {request: true, keyId: this.selectedKeyId});
+        var logMessage = 'Sending request to associate key with machine.';
+        this.fire('performing-action', {log: logMessage});
     },
     _associateKeyResponse: function(){
-        this.fire('pending-key-request', {response: true, keyId: this.selectedKeyId});
+        this.fire('action-finished', {success: true});
+        this.fire('toast', {msg: 'Key association request sent successfully', duration: 3000});
     },
     _associateKeyError: function(e){
-        this.fire('pending-key-request', {error: true, errormsg: e.detail.request.xhr.responseText ,keyId: this.selectedKeyId});
+        this.fire('action-finished', {success: true});
+        this.fire('toast', {msg: e.detail.request.xhr.responseText, duration: 5000});
     },
     updateInputs: function(e){
         var target = e.target.id;
@@ -246,8 +260,16 @@ Polymer({
         var count = 0;
         var model = this.model;
         for (var i=0; i<this.items.length; i++) {
-            var itemCloud = this.items[i].split(':')[1],
+            var itemCloud,
+                itemId;
+            if (this.items[i].length) {
+                itemCloud = this.items[i].split(':')[1];
                 itemId = this.items[i].split(':')[2];
+            }
+            else {
+                itemCloud = this.items[i].cloud.id;
+                itemId = this.items[i].machine_id;
+            }
             for (var j=0; j<model.keys[key].machines.length; j++) {
                 if (model.keys[key].machines[j][0] == itemCloud && model.keys[key].machines[j][1] == itemId){
                     count++;

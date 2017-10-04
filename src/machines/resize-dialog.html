@@ -1,0 +1,298 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
+
+<dom-module id="resize-dialog">
+  <template>
+    <style include="shared-styles forms">
+      :host {
+        display: inline;
+        color: rgba(255,255,255,0.87);
+      }
+      #dialogModal {
+        max-width: 500px;
+      }
+      .helptext {
+        align-self: center;
+      }
+      .sup {
+        font-size: 12px;
+        font-weight: normal;
+        opacity: 0.54;
+      }
+      .plan .sup {
+        padding-left: 16px;
+      }
+      .btn-group {
+        display: flex;
+        justify-content: flex-end;
+      }
+      .progress {
+        margin: 14px -24px 0 -24px;
+        width: 100%;
+      }
+      .progress paper-progress {
+        width: 100%;
+      }
+      paper-progress.progresserror ::content #primaryProgress {
+        background-color: var(--red-color);
+      }
+      .error {
+        color: var(--red-color);
+        align-self: flex-end;
+        padding: 8px;
+        font-size: 0.9em;
+      }
+      iron-icon {
+        color: inherit;
+      }
+      .errormsg-container {
+        color: var(--red-color);
+        padding-left: 24px;
+        padding-right: 24px;
+        margin-bottom: 0;
+      }
+      .errormsg-container iron-icon {
+        color: inherit;
+      }
+      p.red {
+        padding: 4px;
+        margin-top: 0;
+      }
+    </style>
+    <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+        <h2>Resize Machine <span class="sup">[[size]]</span></h2>
+        <paper-dialog-scrollable>
+          <p class="red" hidden$="[[!showNotification]]">Warning! Resize may cause a reboot to the machine.</p>
+
+          <div hidden$="[[!isOnapp]]">
+            <div class="grid-row">
+              <div class="xs12 m6 l6">
+                <paper-input id="cpus" label="cpus" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{cpus}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
+              </div>
+              <div class="helptext xs12 m6 l6">
+                Current machine cpus [[current_cpus]].
+              </div>
+              <div class="xs12 m6 l6">
+                <paper-input id="memory" label="memory" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{memory}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
+              </div>
+              <div class="helptext xs12 m6 l6">
+                Current machine memory [[current_memory]].
+              </div>
+            </div>
+          </div>
+
+          <div hidden$="[[isOnapp]]">
+            <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
+              <template is="dom-repeat" items="[[plans]]" as="plan">
+                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan.id)]]">
+                  [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
+                  <br/>
+                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[plan.price]]/month</div>
+                </paper-radio-button>
+              </template>
+            </paper-radio-group>
+          </div>
+
+        </div>
+        </paper-dialog-scrollable>
+        <div class="progress">
+            <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
+            <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+            <hr class="appform"/>
+            <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+        </div>
+        <div class="btn-group">
+            <paper-button dialog-dismiss>Cancel</paper-button>
+            <paper-button class$="[[buttonColor]]" on-tap="resizeMachine" disabled$="[[!formReady]]">Resize Machine</paper-button>
+        </div>
+    </paper-dialog>
+
+    <dialog-element id="confirm"></dialog-element>
+
+    <iron-ajax  id="resizeMachine" 
+                url="/api/v1/machines/[[machine.id]]"
+                method="POST" 
+                on-response="_resizeMachineResponse" 
+                on-error="_resizeMachineError" 
+                loading="{{loading}}"
+                handle-as="xml"
+                on-request="_resizeMachineRequest"></iron-ajax>
+
+  </template>
+  <script>
+    Polymer({ 
+      is: 'resize-dialog',
+      properties: {
+        clouds: Object,
+        machine: { 
+          type: Object
+        },
+        showNotification: { 
+          type: Boolean,
+          value: true
+        },
+        size: String,
+        current_cpus: {
+          type: Number,
+          computed: 'computeCurrentCpus(machine)'
+        },
+        current_memory: {
+          type: Number,
+          computed: 'computeCurrentMemory(machine)'
+        },
+        cpus: {
+          type: Number,
+        },
+        memory: {
+          type: Number,
+        },
+        formReady: {
+          type: Boolean,
+          value: false
+        },
+        loading: {
+          type: Boolean,
+          value: false
+        },
+        formError: {
+          type: Boolean,
+          value: false
+        },
+        buttonColor: {
+          type: String,
+          value: 'red'
+        },
+        isOnapp: {
+          type: Boolean,
+          computed: 'computeIsOnapp(machine)'
+        },
+        plans: {
+          type: Array,
+          computed: 'computePlans(machine, clouds)'
+        },
+        selectedPlan: String
+      },
+      listeners: {
+        input: 'clearError'
+      },
+      observers:[
+        'updateFormReadyOnapp(machine, current_cpus, current_memory, cpus, memory)',
+        'updateFormReady(machine, selectedPlan)',
+        'updateShowNotification(machine, memory)'
+      ],
+      ready: function() {},
+      attached: function() {},
+      resizeMachine: function() {
+        if (this.isOnapp){
+          this.$.resizeMachine.headers["Content-Type"] = 'application/json';
+          this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
+          this.$.resizeMachine.generateRequest();
+        }
+        else if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1){
+          this.$.resizeMachine.headers["Content-Type"] = 'application/json';
+          this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.resizeMachine.body = {"action": "resize", "plan_id": parseInt(this.selectedPlan)};
+          this.$.resizeMachine.generateRequest();
+        }
+      },
+      updateShowNotification: function(machine, memory){
+        if (this.machine.extra.hypervisor_type) {
+          if (this.machine.extra.hypervisor_type == 'kvm' && this.current_memory >= this.memory){
+            this.set('showNotification', false);
+            this.set('buttonColor', 'blue');
+          }
+          else {
+            this.set('showNotification', true);
+            this.set('buttonColor', 'red');
+          }
+        }
+      },
+      updateValues: function(machine){
+        if (this.machine) {
+          if (this.isOnapp){
+            this.set('size', 'Current '+this.machine.extra.size);
+          }
+          else if (this.machine.cloud.provider == 'linode'){ // TODO
+
+          }
+        }
+        this.clearError();
+      },
+      computeCurrentCpus: function(machine){
+        if (this.machine && this.machine.extra && this.machine.extra.cpus){
+          this.cpus = this.machine.extra.cpus;
+          return this.machine.extra.cpus;
+        }
+      },
+      computeCurrentMemory: function(machine){
+        if (this.machine && this.machine.extra && this.machine.extra.memory){
+          this.memory = this.machine.extra.memory;
+          return this.machine.extra.memory;
+        }
+      },
+      computeIsOnapp: function(cloud){
+        if (this.machine && this.machine.cloud && this.machine.cloud.provider)
+          return this.machine.cloud.provider == 'onapp';
+      },
+      computePlans: function(machine, clouds){
+        if (this.machine) {
+          if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1){
+            var planId = this.machine.extra.PLANID;
+            return this.clouds[this.machine.cloud.id].sizesArray;
+          }
+        }
+      },
+      clearError: function(){
+        this.set('formError', false);
+        this.$.errormsg.textContent = '';
+      },
+      updateFormReadyOnapp: function(current_cpus, current_memory, cpus, memory){
+        if (this.isOnapp) {
+          this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
+        }
+      },
+      updateFormReady: function(selectedPlan){
+        if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1 && this.selectedPlan != undefined){
+          this.set('formReady', true);
+        }
+      },
+      _openDialog: function(e) {
+        //reset
+        this.updateValues(this.machine);
+        this.$.dialogModal.open();
+      },
+      _resizeMachineResponse: function(e) {
+        this.$.dialogModal.close();
+        this.fire('action-finished', {success: true});
+        this.fire('toast',{msg: 'Resize request sent successfully. Updating machine..', duration: 3000})
+      },
+      _resizeMachineError: function(e) {
+        this.set('formError', true);
+        console.log('error',e)
+        this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+      },
+      _resizeMachineRequest: function(e) {},
+      isCurrent: function(id){
+        return id == this.machine.extra.PLANID;
+      },
+      hotkeys: function(e) {
+        console.log('hotkeys',e);
+        if (e.keyCode === 38) {
+          //arrow up
+          if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus+1, 1))}
+          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory+5, 256))}
+        }
+        else if (e.keyCode === 40) {
+          //arrow down
+          if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus-1, 1))}
+          if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory-5, 256))}
+        }
+      }
+    });
+  </script>
+</dom-module>

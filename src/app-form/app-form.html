@@ -135,6 +135,10 @@
             .background {
                 background-color: #eee;
             }
+            paper-radio-group {
+                display: flex;
+                flex-wrap: nowrap;
+            }
             paper-radio-group.background {
                 padding-left: 0;
                 padding-right: 0;
@@ -170,7 +174,7 @@
             }
             .checkboxes {
                 max-height: 400px;
-                overflow: scroll;
+                overflow-y: scroll;
             }
             .date {
                 @apply(--layout-horizontal);
@@ -224,7 +228,10 @@
             <template is="dom-repeat" items="{{fields}}" as="field">
                 <template is="dom-if" if="[[field.show]]">
                     <template is="dom-if" if="[[_computeFieldType(field, 'text', field.show)]]">
-                        <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-input>
+                        <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate auto-validate pattern="[[field.pattern]]" required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" placeholder=[[field.placeholder]]>
+                            <div suffix hidden$="[[!field.suffix]]">[[field.suffix]]</div>
+                            <div prefix hidden$="[[!field.prefix]]">[[field.prefix]]</div>
+                        </paper-input>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'password', field.show)]]">
                         <paper-input  class$="xs12 m6 [[field.class]]" id="[[field.name]]" type="password" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]"></paper-input>
@@ -287,7 +294,7 @@
                     <template is="dom-if" if="[[_computeFieldType(field, 'mist_dropdown_searchable', field.show)]]">
                         <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <div class="dropdown-content">
-                                <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
+                                <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
                                 <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
                                         <paper-item disabled>No [[_replaceAsterisk(field.name)]]s found</paper-item>
@@ -437,18 +444,6 @@
                     },
                     form: {
                         type: Object,
-                        value: function() {
-                            var uniqueFields = {};
-                            for (var field in this.fields) {
-                                if (this.fields[field].defaultValue) {
-                                    uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
-                                } else {
-                                    uniqueFields[this.fields[field].name] = null
-                                }
-
-                            }
-                            return uniqueFields
-                        },
                         // computed: '_computePayload(fields)'
                     },
                     fields: {
@@ -501,6 +496,18 @@
                 attached: function(){
                     this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
                 },
+                _updateForm: function(){
+                    var uniqueFields = {};
+                    for (var field in this.fields) {
+                        if (this.fields[field].defaultValue) {
+                            uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
+                        } else {
+                            uniqueFields[this.fields[field].name] = null
+                        }
+
+                    }
+                    this.set('form', uniqueFields);
+                },
                 showOption: function(option){
                     if (option.title)
                         return option.title;
@@ -534,6 +541,9 @@
                 _fieldsChanged: function(fields, sendingData) {
                     if (this.formError){
                         this.set('formError', false);
+                    }
+                    if (fields.path == 'fields'){
+                        this._updateForm();
                     }
                     this.async(function() {
                         var form = this.form,
@@ -647,11 +657,13 @@
                             else if (el.name == "cloud_init") {
                                 return el.value.startsWith("#!/bin/bash") || el.value.startsWith("#cloud-config") || el.value.trim() == "";
                             }
+                            else if (el.name == "schedule_entry") {
+                                return !el.excludeFromPayload ? el.value : true;
+                            }
                             else {
                                 return el.show && el.required ? el.value : true;
                             }
                         }, this);
-                        
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
@@ -684,7 +696,7 @@
 
                         // clean up form for payload
                         var excludeFields = this.fields.filter(function(el) {
-                            return el.excludeFromPayload == true;
+                            return el.excludeFromPayload == true || (!el.show && el.showIf);
                         });
 
                         for (var i = 0; i < excludeFields.length; i++){
@@ -782,9 +794,7 @@
                     var qParams = {
                         'origin': origin
                     }
-                    // document.querySelector('app-location').set('path', '/keys/+add?origin=' + origin);
-                    document.querySelector('app-location').set('path', '/keys/+add');
-                    document.querySelector('app-location').set('queryParams', qParams);
+                    this.fire('go-to', {url: '/keys/+add', params: qParams})
                 },
                 _addInput: function(e) {
                     this.fire('add-input', {event: e, fieldname: e.target.dataAdd});
@@ -820,7 +830,7 @@
                     this.$.dateTimePickers.close();
                 },
                 _displayDate: function(field, value){
-                    if (!moment(field.value).isValid() || field.value.trim() == "")
+                    if (!moment(field.value).isValid() || (field.value && field.value.trim() == ""))
                         return field.placeholder ? field.placeholder : "select date";
                     else {
                         return moment.utc(field.value).local().fromNow()+', '+moment.utc(field.value).local().format('YYYY-MM-DD hh:mm').toString().replace('T',' ').replace('Z','');
@@ -871,17 +881,8 @@
                     });
                     return arr;
                 },
-                _checkedEvent: function(e) {
-                    // console.log('_checkedEvent', e, e.target, this.querySelector('div#'+e.target.name), e.target.tagName == 'PAPER-CHECKBOX');
-                    if (e.target.tagName == 'PAPER-CHECKBOX'){
-                        this.querySelector('div#'+e.target.name);
-                        this._constructCheckboxValue(e.target.name);
-                    }
-                },
                 _computeID: function(option, fieldname) {
-                    if (fieldname == "machines_uuids")
-                        return option.uuid;
-                    else if (fieldname == "networks")
+                    if (fieldname == "networks")
                         return option.network_id;
                     else
                         return option.id;
@@ -898,6 +899,7 @@
                         if (fieldIndex){
                             var arr = this.querySelectorAll('paper-checkbox[name='+name+'][checked]');
                             var arrvalue = Array.prototype.map.call(arr, function(c){return c.dataValue});
+                            // console.log('_updateCheckboxesField',arrvalue);
                             this.set('fields.' + fieldIndex + '.value', arrvalue);
                         }
                     }

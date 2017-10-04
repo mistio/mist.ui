@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../app-togglable/app-togglable-list.html">
@@ -34,11 +35,7 @@
                 opacity: 0.32;
             }
         </style>
-        <style is="custom-style" include="lists"></style>
-        <style is="custom-style" include="forms"></style>
-        <style is="custom-style" include="tags-and-labels"></style>
-        <style is="custom-style" include="single-page"></style>
-        <style is="custom-style" include="shared-styles">
+        <style is="custom-style" include="lists forms tags-and-labels single-page shared-styles">
             :host {
                 display: block;
             }
@@ -171,7 +168,7 @@
                 display: none;
             }
 
-            [size=xs] app-sidebar {
+            [size=xs] mist-sidebar {
                 min-width: 100%;
                 height: auto;
             }
@@ -356,13 +353,6 @@
             margin: 0 auto;
             width: 70%;
         }
-        .log:not(.error-false) iron-icon, .log:not(.error-false) {
-            color: var(--red-color);
-        }
-        .log span.error {
-            padding-left: 28px;
-            display: block;
-        }
         .parsing-loader paper-progress {
             width: 100%;
             margin-bottom: 32px;
@@ -407,9 +397,6 @@
             font-size: 0.7em;
             padding-left: 8px;
         }
-        #logs {
-            line-height: 2em;
-        }
         /* TODO: better */
         .tag {
             padding: 0.5em;
@@ -437,33 +424,6 @@
             float: right;
             margin: 8px !important;
         }.
-        paper-icon-button.logs-show::content iron-icon {
-            transition: transform 300ms ease-in;
-            transform: rotate3d(0, 0, 1, 0);
-        }
-        paper-icon-button.logs-show[active]::content iron-icon {
-            transform: rotate3d(0, 0, 1, 180deg);
-        }
-        #logscollapse > .log:last-of-type{
-            margin-bottom: 24px;
-        }
-        #logscollapse[collapsed] {
-            height: 30px;
-            overflow: hidden;
-        }
-        .logscontrol {
-            margin-top: 16px;
-            padding: 0 8px;
-        }
-
-        .log.more {
-            font-size: 0.9em;
-            color: rgba(0,0,0,0.54);
-        }
-        .log-info {
-            background-color: #eee;
-            padding-left: 16px;
-        }
         </style>
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
@@ -482,7 +442,8 @@
                     </div>
                 </div>
                 <div class="item-actions">
-                    <paper-button on-tap="_editTags" class="simple">tags</paper-button>
+                    <paper-button on-tap="_editTags" class="simple">Tags</paper-button>
+                    <paper-button on-tap="_deleteStack" class="simple">Delete</paper-button>
                     <!-- buttons to show normally-->
                     <paper-button id$="[[workflows.0.name]]" on-tap="_quickActionsNavigation" class="simple" disabled$="[[disabled]]">[[workflows.0.name]]</paper-button>
                     <paper-button id$="[[workflows.1.name]]" on-tap="_quickActionsNavigation" class="simple" disabled$="[[disabled]]">[[workflows.1.name]]</paper-button>
@@ -577,6 +538,16 @@
                 </paper-material>
             </template>
 
+            <!-- If stack status workflow_started-->
+            <template is="dom-if" if="[[delete_request]]">
+                <paper-material>
+                    <div class="parsing-loader">
+                        <h3>Deleting Stack</h3>
+                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
+                    </div>
+                </paper-material>
+            </template>
+
             <paper-material id="workflows" class="no-pad closed" hidden$="[[hideWorkflows]]">
                 <paper-icon-button id="closeworkflows" icon="close" on-tap="_closeworkflows"></paper-icon-button>
                 <div id="workflows-panel">
@@ -611,41 +582,15 @@
                 </div>
             </paper-material>
 
-            <!-- <template is="dom-if" if="[[ok]]"> -->
             <div id="logs" class="page">
-                <paper-material>
-                    <h3 class="smallcaps">Job Logs <span class="small">job_id: [[stack.job_id]]</span></h3>
-                    <div id="logscollapse" collapsed$="[[!showLogs]]">
-                        <template is="dom-repeat" items="[[job.logs]]" as="log">
-                            <div class$="log error-[[log.error]]">
-                                <iron-icon icon$="[[computeLogIcon(log, index, stack.status)]]"></iron-icon>
-                                [[log.action]]
-                                <span hidden$="[[!log.workflow]]">: [[log.workflow]] </span>
-                                <span hidden$="[[!log.name]]">: [[log.name]] </span>
-                                <span hidden$="[[!log.machine_name]]">: [[log.machine_name]] </span>
-                                <span hidden$="[[!log.machine_names]]">: [[log.machine_names]] </span>
-                                <span hidden$="[[!log.script_id]]">: <a class="regular blue-link" href$="[[getScriptlink(log.script_id)]]">[[getScriptName(log.script_id)]] </a></span>
-                                <span hidden$="[[!log.script_name]]">: [[log.script_name]] </span>
-                                <span hidden$="[[!log.request_params.name]]">: [[log.request_params.name]] </span>
-                                <span hidden$="[[!log.request_params.workflow]]">: [[log.request_params.workflow]] </span>
-                                <span hidden$="[[!log.result.loadavg]]">: [[log.result.loadavg]] </span> <br/>
-                                <span class="error" hidden$="[[!log.error]]">error: [[log.error]]</span>
-                                <!-- <div class="log-info" hidden$="[[!showLogs]]">
-                                    <pre><code>
-                                    [[logInfo(log)]]
-                                    </code></pre>
-                                </div> -->
-                            </div>
-                        </template>
-                    </div>
-                    <div class="log false more" hidden$="[[showLogs]]">
-                        ... and more. [[job.logs.length]] total log entries
-                    </div>
-                    <paper-button id="minimal" class="logscontrol" toggles active={{showLogs}}>
-                        <span hidden$="{{showLogs}}">expand logs <iron-icon icon="icons:unfold-more"></iron-icon> </span>
-                        <span hidden$="{{!showLogs}}">collapse logs <iron-icon icon="icons:unfold-less"></iron-icon> </span>
-                    </paper-button>
-                </paper-material>
+                <mist-list timeseries expands id="stackLogs"
+                    items=[[_sortByTimestamp(stack.workflows)]]
+                    name="logs"
+                    frozen=[[_getFrozenLogColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers()]]
+                    primary-field-name="time">
+                    </mist-list>
                 <paper-material class="no-pad">
                     <div class="output">
                         <paper-button toggles active={{showOutput}} hidden$="[[showOutput]]" class="blue">Show output</paper-button>
@@ -654,7 +599,6 @@
                     <div id="cfyshell" hidden$="[[!showOutput]]"></div>
                 </paper-material>
             </div>
-            <!-- </template> -->
 
             <template is="dom-if" if="[[showAll]]">
                 <!-- If stack has resources -->
@@ -712,7 +656,7 @@
         <tags-list model="[[model]]"></tags-list>
         <iron-ajax id="workflowRequest" method="POST" url="" on-response="handleWorkflowResponse" on-error="handleWorkflowError"></iron-ajax>
         <iron-ajax id="cancelJob" method="DELETE" url="/api/v1/jobs/[[stack.job_id]]" on-response="handleCanceled" on-error=""></iron-ajax>
-        <iron-ajax id="getJobLog" method="GET" auto url="/api/v1/jobs/[[stack.job_id]]" handle-as="json" on-response="handleGetJobLog" on-error=""></iron-ajax>
+        <iron-ajax id="deleteStack" method="DELETE" url="/api/v1/stacks/[[stack.id]]" on-request="handleDeleteRequest" on-response="handleDelete"></iron-ajax>
     </template>
 
     <script type="text/javascript" src="../../bower_components/anchorme.js/dist-browser/anchorme.min.js"></script>
@@ -828,7 +772,6 @@
                         value: true,
                         computed: 'is_ok(stack)'
                     },
-                    job: Object,
                     outputsAreEmpty: {
                         type: Boolean,
                         computed: "_computeOutputsAreEmpty(stack)"
@@ -846,35 +789,22 @@
                         type: Boolean,
                         computed: '_computeIsloading(stack)',
                         value: true
-                    }
+                    },
+                    delete_request: false
                 },
                 observers: [
                     'newStackPage(stack.id)',
-                    'newJob(stack.job_id)',
                     'stackoutputsChanged(stack.outputs)',
-                    'updateTerm(showOutput)'
+                    'updateTerm(showOutput)',
+                    'enhanceWorkflowLogs(stack.workflows)'
                 ],
                 listeners: {
-                    'iron-activate': '_handleInterval'
+                    'iron-activate': '_handleInterval',
+                    'confirmation': '_confirmAction'
                 },
                 ready: function(){
-                    this.set('job', {});
                 },
                 attached: function(){
-                },
-                newJob: function(id){
-                    var that = this;
-                    // if (!this.intervalID) {
-                        this.intervalID = window.setInterval(
-                          function(that) {
-                            that._updateLogs(that);
-                          }, 1000, that);
-                        console.log('setting interval for job', this.intervalID);
-                    // }
-
-                    if (this.stack && (this.stack.status == 'workflow_started' || this.stack.status == 'start_creation')){
-                        this.showOutput = true;
-                    }
                 },
                 updateTerm: function(show) {
                     if (show) {
@@ -897,15 +827,6 @@
                     parent.insertBefore(xterm, parent.firstChild);
                     console.warn('xterm open', xterm);
                 },
-                jobFinished: function(finished_at){
-                    //clear interval
-                    if (this.job && this.job.finished_at > 0 && this.intervalID){
-                        window.clearInterval(this.intervalID);
-                        this.intervalID = null;
-                        // update job logs one last time
-                        this.async(function(){this.$.getJobLog.generateRequest()}, 1000);
-                    }
-                },
                 test: function() {
                     var newmach = {
                         mist_type: "machine",
@@ -913,6 +834,40 @@
                     }
                     this.stack.node_instances.push(newmach);
                     console.log(newmach, this.stack.node_instances);
+                },
+                enhanceWorkflowLogs: function(workflows) {
+                    var workflowLogs = this.stack.workflows || [];
+                    var runitems = this._sortByTimestamp(workflowLogs.slice());
+
+                    var run = function(el) {
+                        var item = runitems.shift();
+                        var uri = '/api/v1/jobs/' + item.job_id;
+                        var xhr = new XMLHttpRequest();
+                        xhr.onreadystatechange = function() {
+                        if (xhr.readyState == XMLHttpRequest.DONE) {
+                            if (xhr.status == 200) {
+                                var response = xhr.response ? xhr.response : [];
+                                if (response) {
+                                    response = JSON.parse(response);
+                                    console.log(response);
+                                    for (var p in response) {
+                                        item[p] = response[p];
+                                    }
+                                }
+                                item.response = response;
+                            }
+                            if (runitems.length) {
+                                run(el);
+                            }
+                        }
+                      }.bind(this);
+
+                      xhr.open('GET', uri);
+                      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                      xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
+                      xhr.send();
+                    }
+                    run(this);
                 },
                 _computeStack: function(params) {
                     var stack = {};
@@ -927,6 +882,41 @@
                             name: "Stack is missing"
                         }
                     }
+                },
+                _sortByTimestamp: function(items) {
+                    if (items)
+                        return items.sort(function(a,b){ return a.timestamp < b.timestamp});
+                    return items;
+                },
+                _computeFromNow: function(timestamp){
+                    return moment.utc(timestamp*1000).fromNow();
+                },
+                _getVisibleColumns: function() {
+                    return ['name', 'error']
+                },
+                _getFrozenLogColumn: function() {
+                    return ['timestamp']
+                },
+                _getRenderers: function() {
+                    var _this = this;
+                    return {
+                        'timestamp': {
+                            'body': function(item, row) {
+                                var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
+                                if (row.error)
+                                    ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                                return ret;
+                            }
+                        },
+                        'name': {
+                            'title': function(item, row) {
+                                return 'workflow';
+                            },
+                            'body': function(item, row) {
+                                return item;
+                            }
+                        }
+                    };
                 },
                 _computeHasResources: function(machines, networks, keys, nodeInstances){
                     return this.listMachines.length || this.networks.length || this.keys.length;
@@ -946,10 +936,6 @@
                         return stack.status == 'start_creation';
                 },
                 is_error: function(stack) {
-                    //update logs once to view the error
-                    if (this.job && stack && stack.status == 'error'){
-                        this.$.getJobLog.generateRequest();
-                    }
                     return stack && stack.status == 'error';
                 },
                 is_workflow_started: function(stack) {
@@ -1018,9 +1004,6 @@
                         if (this.model.templates[this.stack.template])
                             return this.model.templates[this.stack.template];
                 },
-                _computeJobID: function(stack) {
-                    return stack.job_id ? stack.job_id : false;
-                },
                 _machines: function(stack) {
                     return stack && stack.machines;
                 },
@@ -1030,7 +1013,7 @@
                         nis.base.forEach(function(rtpy) {
                             if (rtpy.runtime_properties.mist_type == 'machine') {
                                 var mac = this.model.machinesArray.find(function(mach) {
-                                    return mach.uuid == rtpy.runtime_properties.info.uuid;
+                                    return mach.id == rtpy.runtime_properties.info.id;
                                 });
 
                                 if (mac) {
@@ -1040,7 +1023,7 @@
                                         name: rtpy.runtime_properties.info.name,
                                         state: 'missing',
                                         cloud: {
-                                            provider: 'machine_id: ' + rtpy.runtime_properties.info.id
+                                            provider: 'Machine id: ' + rtpy.runtime_properties.info.machine_id +' Cloud id: ' + rtpy.runtime_properties.info.cloud
                                         },
                                         isDead: true
                                     };
@@ -1123,9 +1106,12 @@
                 },
                 _computeWorkflows: function(template) {
                     console.log('_computeWorkflows');
-                    var workflows = this.template.workflows.filter(function(wf){
-                        return wf.name != 'scale' &&  wf.name != 'execute_operation';
-                    });
+                    var workflows = [];
+                    if (this.template) {
+                        workflows = this.template.workflows.filter(function(wf){
+                            return wf.name != 'scale' &&  wf.name != 'execute_operation';
+                        });
+                    }
                     workflows.forEach(function(wf){
                         var yaml_inputs = '';
                         if (wf.params.length > 0 ) {
@@ -1142,7 +1128,7 @@
                                 name: "yaml_or_form",
                                 label: "YAML or form",
                                 type: "radio",
-                                value: "yaml",
+                                value: "form",
                                 defaultValue: "yaml",
                                 helptext: "Choose the way you want to insert inputs",
                                 errorMessage: "Choose an input format",
@@ -1194,6 +1180,35 @@
                     items.push(itemUid(this.stack, this.section));
                     el.items = items;
                     el._openDialog();
+                },
+                _deleteStack: function() {
+                    this._showDialog({
+                        title: 'Delete Stack',
+                        body: "Deleting stacks cannot be undone. Verify deletion." ,
+                        danger: true,
+                        reason: "stack.delete",
+                        action: "Delete"
+                    });
+                },
+                _confirmAction: function(e){
+                    console.log('_confirmAction',e);
+                    var reason = e.detail.reason,
+                        response = e.detail.response;
+
+                    if (response.confirmed && reason == "stack.delete") {
+                        this.$.deleteStack.body = {stack_id: this.stack.id};
+                        this.$.deleteStack.headers["Content-Type"] = 'application/json';
+                        this.$.deleteStack.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.deleteStack.generateRequest();
+                    }
+                },
+                handleDeleteRequest: function(e){
+                    this.set('stack.error', false);
+                    this.set('delete_request', true);
+                },
+                handleDelete: function(e){
+                    this.fire('toast', {msg: 'Deletion completed', duration: 3000})
+                    document.querySelector('app-location').set('path', '/stacks');
                 },
                 _workflowNavigation: function(e) {
                     var action = e.target.id;
@@ -1267,38 +1282,14 @@
                     this._closeworkflows();
                 },
                 handleWorkflowError: function(e) {},
-                handleGetJobLog: function(e) {
-                    console.log('getJobLog',e.detail.xhr.response.logs);
-                    this.set('job', e.detail.xhr.response);
-                    if (this.job.finished_at > 0)
-                        this.jobFinished(this.job.finished_at);
-                },
                 stackoutputsChanged: function(outputs){
                     this.$.stackOutputs.innerHTML = this._makeString(outputs);
                 },
                 _makeString: function(info){
                     // console.log(YAML.dump(info));
                     // console.log(anchorme.js(YAML.dump(info)));
-                    return anchorme.js(YAML.dump(info).replace(/\'/g, ""));
-                },
-                _updateLogs: function(that){
-                    if (that.stack && (that.stack.status == 'workflow_started' || that.stack.status == 'start_creation')){
-                        console.log('_updateLogs');
-                        that.$.getJobLog.generateRequest();
-                        this.showOutput = true;
-                        // this.showLogs = true;
-                    }
-                },
-                computeLogIcon: function(log, index, status){
-                    if (log.error) {
-                        return 'icons:error-outline'
-                    }
-                    else if (index == this.job.logs.length -1 && this.job.finished_at == 0 && status != 'ok'){
-                        return '';
-                    }
-                    else {
-                        return 'icons:done';
-                    }
+                    if (info)
+                        return anchorme(YAML.dump(info).replace(/\'/g, ""));
                 },
                 newStackPage: function(id){
                     console.log('un setting interval for', this.intervalID);
@@ -1307,43 +1298,12 @@
                     var xterm = this.querySelector("xterm-dialog");
                     if (xterm)
                         xterm.remove();
-                    this.showOutput = false;
+                    this.set('showOutput', false);
+                    this.set('delete_request', false);
                     // this.showLogs = false;
                 },
                 _computeIsloading: function(stack) {
                     return !this.stack ? true : false;
-                },
-                logInfo: function(log) {
-                    var info = "";
-
-                    if (log.action)
-                        info += "action: " + YAML.dump(log.action) +"\n";
-
-                    if (log.inputs && log.inputs.machine_name)
-                        info += "inputs: machine_name: " + YAML.dump(log.inputs.machine_name) +"\n"; 
-                    
-                    if (log.machine_name)
-                        info += "machine_name: " + YAML.dump(log.machine_name) +"\n";
-                    
-                    if (log.script_id)
-                        info += "script_id: " +YAML.dump(log.script_id) +"\n";
-                    
-                    if (log.request_params && log.request_params.name)
-                        info += "name: "+ YAML.dump(log.request_params.name) +"\n";
-
-                    if (log.request_params && log.request_params.workflow)
-                        info += "workflow: "+ YAML.dump(log.request_params.workflow) +"\n";
-                    
-                    if (log.machine_names)
-                        info += "machine_names: " +"\n"+ YAML.dump(log.machine_names) +"\n";
-                    
-                    info += "error: "+ log.error +"\n " ;
-
-
-                    action
-
-                    return info;
-                    // return YAML.dump(log);
                 },
                 getScriptlink: function(id) {
                     if (id && this.model.scripts[id])

@@ -69,7 +69,7 @@
         },
         createTpl: function(content) {
             function replaceURLWithHTMLLinks(text) {
-                console.log('createTpl',text);
+                // console.log('createTpl',text);
                 if (!text.replace)
                     return text;
                 var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i;
@@ -81,7 +81,9 @@
             for (var i = 0, len = content.length; i < len; i++) {
                 tpl += "<div class='info-item flex-horizontal-with-ratios'>";
                 tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
-                if (content[i].key != "ports")
+                if (content[i].key.indexOf("password") > -1)
+                    tpl += "<div class='flexchild'>" + content[i].value.replace('<', '&lt;').replace('>', '&gt;') +"</div>";
+                else if (content[i].key != "ports")
                     tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";
                 else
                     tpl += "<div class='flexchild'>" + this.createObjTpl(YAML.parse(content[i].value)) + "</div>";
@@ -92,7 +94,7 @@
         },
         createObjTpl: function(obj) {
             var tpl = '';
-            console.log(obj)
+            // console.log(obj)
             for (var p in obj) {
                 tpl += "<div class='info-item'><pre><code>"+ YAML.dump(obj[p]) +"</code></pre></div>";
             }
