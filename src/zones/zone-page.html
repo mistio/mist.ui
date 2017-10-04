@@ -168,6 +168,9 @@
 
             Polymer({
                 is: 'zone-page',
+                behaviors: [
+                  mistListsBehavior
+                ],
 
                 properties: {
                     model: {
@@ -223,7 +226,12 @@
                     }
                 },
                 listeners: {
-                    'confirmation': '_deleteZoneEventResponse'
+                    'confirmation': '_deleteZoneEventResponse',
+                    'select-action': 'selectAction',
+                    'action-finished': 'clearListSelection'
+                },
+                clearListSelection: function(){
+                  this.set('selectedItems', []);
                 },
                 attached: function(){
                     this.async(function(){
@@ -365,6 +373,14 @@
                 _computeAddRecordPageActive: function(path) {
                     return path.endsWith('/+add');
                 },
+
+                // redirect events
+                selectAction: function(e) {
+                  e.stopImmediatePropagation();
+                  if (this.querySelector('record-actions')) {
+                    this.querySelector('record-actions').selectAction(e);
+                  }
+                }
             });
         })();
     </script>
