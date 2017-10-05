@@ -133,7 +133,7 @@
         <app-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" sections="[[sections]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></app-sidebar>
         <mist-header model="[[model]]" title="[[page]]" class="paper-header" viewing-list="[[viewingList]]"></mist-header>
 ======= -->
-        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop></mist-sidebar>
+        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen$="{{smallscreen}}" with-backdrop onapp-theme="[[onappTheme]]"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
         <plan-overusage is-over-using="[[model.onboarding.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" hidden$=[[!enableBilling]]></plan-overusage>
         <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
@@ -181,6 +181,12 @@
         is: 'mist-app',
 
         properties: {
+
+            onappTheme: {
+                type: Boolean,
+                reflectToAttribute: true,
+                value: true
+            },
 
             page: {
                 type: String,
@@ -359,7 +365,7 @@
         },
 
         _style: function (page, model) {
-            if (page && this.model.sections[page]) {
+            if (!this.onappTheme && page && this.model.sections[page]) {
                 return "background-color: " + this.model.sections[page].color;
             }
             return "background-color: " + this.model.sections['dashboard'].color;
