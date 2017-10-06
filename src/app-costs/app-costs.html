@@ -4,7 +4,7 @@
 
 <dom-module id="app-costs">
     <template>
-        <style is="custom-style" include="headings tags-and-labels"></style>
+        <style is="custom-style" include="headings tags-and-labels dialogs"></style>
         <style>
         :host {
             display: flex;
@@ -28,23 +28,34 @@
             flex-basis: 100%;
         }
 
-        h3 {
-            text-transform: uppercase;
-            font-size: 13px;
-            color: rgba(0, 0, 0, 0.54);
-            padding: 0 10px;
+        .tabs {
             border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            padding-right: 8px;
+        }
+        .buttons {
+            display: flex;
+            flex: 1;
+        }
+        paper-button {
+            text-transform: uppercase;
+            color: var(--blue-color);
+            font-size: 13px;
+            padding: 10px;
+            margin: 2px;
+        }
+        paper-button.active {
+            color: rgba(0, 0, 0, 0.54);
         }
         paper-material {
             overflow: hidden !important;
         }
-
         .list-item {
             border-bottom: 1px solid #eee;
             padding: 6px 10px;
             min-width: 33%;
         }
-
         .list-item:last-child {
             border-bottom: 0 none;
             padding-top: 16px;
@@ -55,7 +66,6 @@
         .flex3child {
             @apply(--layout-flex-3);
         }
-
         :host(.active) .block {
             transform: translate(0, 0);
             opacity: 1;
@@ -65,7 +75,7 @@
             table-layout: fixed;
             width: 100%;
             padding: 0 6px;
-            margin-bottom: 6px;
+            margin: 6px 0;
         }
         table tr {
             border-bottom: 1px solid #eee;
@@ -134,28 +144,31 @@
             </div>
         </div>
         <paper-material class="flex3child">
-            <h3>monthly cost per cloud
+            <div class="tabs">
+                <div class="buttons">
+                    <paper-button id="cloudsBtn" class="blue-link active" on-tap="changeTab">Monthly cost per cloud</paper-button>
+                    <paper-button id="tagsBtn" class="blue-link" on-tap="changeTab" hidden$="[[!tags.length]]">Top [[tags.length]] tags</paper-button>
+                </div>
                 <a href="http://docs.mist.io/article/103-cost-reporting-with-mist-io" target="new"> <iron-icon id="costdocs" icon="help" position="left"></iron-icon></a>
-            </h3>
-            <table>
-                <template is="dom-repeat" items="[[topClouds]]">
-                    <tr>
-                        <td colspan="2" class="name">[[item.name]] </td>
-                        <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
-                        <td class="text-right cost">$[[_formatMoney(item.cost)]]</td>
-                    </tr>
-                </template>
-            </table>
-            <div class="zero-clouds" hidden$="[[!zeroCostClouds.length]]">
-                and [[zeroCostClouds.length]] more clouds of $0 cost:
-                <template is="dom-repeat" items="[[zeroCostClouds]]">
-                    <span class="zero-cloud">[[item.name]]</span>
-                </template>
             </div>
-            <div hidden$="[[!tags.length]]">
-                <h3>Top [[tags.length]] tags
-                    <!-- <a href="http://docs.mist.io/article/103-cost-reporting-with-mist-io" target="new"> <iron-icon id="costdocs" icon="help" position="left"></iron-icon> --></a>
-                </h3>
+            <div id="clouds" hidden$="[[!showClouds]]">
+                <table>
+                    <template is="dom-repeat" items="[[topClouds]]">
+                        <tr>
+                            <td colspan="2" class="name">[[item.name]] </td>
+                            <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
+                            <td class="text-right cost">$[[_formatMoney(item.cost)]]</td>
+                        </tr>
+                    </template>
+                </table>
+                <div class="zero-clouds" hidden$="[[!zeroCostClouds.length]]">
+                    and [[zeroCostClouds.length]] more clouds of $0 cost:
+                    <template is="dom-repeat" items="[[zeroCostClouds]]">
+                        <span class="zero-cloud">[[item.name]]</span>
+                    </template>
+                </div>
+            </div>
+            <div id="tags" hidden$="[[showClouds]]">
                 <table>
                     <template is="dom-repeat" items="[[tags]]">
                         <tr>
@@ -194,6 +207,10 @@ Polymer({
         xsmallscreen: {
             type: Boolean,
             reflectToAttribute: true
+        },
+        showClouds: {
+            type: Boolean,
+            value: true
         }
     },
     attached: function() {
@@ -300,7 +317,17 @@ Polymer({
         // return all clouds instead of topCloudsArray.slice(0,3);
         return tagsArray.slice(0,7);
     },
-
+    changeTab: function(e){
+        console.log('changeTab', e)
+        var target = e.target.id;
+        if (this.tags && this.tags.length){
+            if ((target == 'cloudsBtn' && !this.showClouds) || (target == 'tagsBtn' && this.showClouds)) {
+                this.set('showClouds', !this.showClouds);
+                this.$.tagsBtn.classList.toggle('active');
+                this.$.cloudsBtn.classList.toggle('active');
+            }
+        }
+    },
     _formatMoney: function(cost) {
         return cost.formatMoney(2, '.', ',');
     }
