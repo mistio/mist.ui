@@ -38,17 +38,17 @@ MACHINE_CREATE_FIELDS.push({
         required: false,
         options: []
     }, {
-        name: "ex_storage_account",
-        label: "Storage Account",
-        type: "text",
+        name: "ex_resource_group",
+        label: "Resource Group",
+        type: "mist_dropdown",
         value: "",
         defaultValue: "",
         show: true,
         required: true,
-        helptext: ""
+        options: []
     }, {
-        name: "resource_group",
-        label: "Resource Group",
+        name: "ex_storage_account",
+        label: "Storage Account",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
