@@ -4,7 +4,7 @@
 
 <dom-module id="app-costs">
     <template>
-        <style is="custom-style" include="headings"></style>
+        <style is="custom-style" include="headings tags-and-labels"></style>
         <style>
         :host {
             display: flex;
@@ -152,6 +152,20 @@
                     <span class="zero-cloud">[[item.name]]</span>
                 </template>
             </div>
+            <div hidden$="[[!tags.length]]">
+                <h3>Top [[tags.length]] tags
+                    <!-- <a href="http://docs.mist.io/article/103-cost-reporting-with-mist-io" target="new"> <iron-icon id="costdocs" icon="help" position="left"></iron-icon> --></a>
+                </h3>
+                <table>
+                    <template is="dom-repeat" items="[[tags]]">
+                        <tr>
+                            <td colspan="3" class="tag">[[item.key]] <span hidden$="[[!item.value]]"> = [[item.value]] </span></td>
+                            <td class="count">[[item.count]] machines </td>
+                            <td class="text-right cost">$[[item.cost]]</td>
+                        </tr>
+                    </template>
+                </table>
+            </div>
         </paper-material>
     </template>
 </dom-module>
@@ -172,6 +186,10 @@ Polymer({
         },
         zeroCostClouds: {
             type: Array
+        },
+        tags: {
+            type: Array,
+            computed: '_computeTags(model.cloudsArray.*, model.machinesArray.*)'
         },
         xsmallscreen: {
             type: Boolean,
@@ -247,6 +265,40 @@ Polymer({
         });
         // return all clouds instead of topCloudsArray.slice(0,3);
         return topCloudsArray;
+    },
+    _computeTags: function(clouds, machines) {
+        var tagsArray = [];
+        if (machines.base.length > 0) {
+            this.model.machinesArray.forEach(function(m){
+                var mcost = m.cost ? m.cost.monthly : false;
+                if (m.tags && m.tags.length  && mcost){
+                    m.tags.forEach(function(t){
+                        var tagExists = tagsArray.find(function(prevt, index){
+                            return prevt.key == t.key && prevt.value == t.value;
+                        });
+                        if (tagExists){
+                                tagExists.count ++;
+                                tagExists.cost = tagExists.cost + Math.round(parseInt(mcost));
+                            }
+                        else {
+                            var tag = t;
+                            tag.cost = Math.round(parseInt(mcost));
+                            tag.count = 1;
+                            tagsArray.push(tag);
+                        }                        
+                    });
+                }                
+                
+            });
+        }
+        // sort by cost
+        tagsArray.sort(function (a, b) {
+            if (a.cost > b.cost) { return -1; }
+            if (a.cost < b.cost) { return 1; }
+            return 0;
+        });
+        // return all clouds instead of topCloudsArray.slice(0,3);
+        return tagsArray.slice(0,7);
     },
 
     _formatMoney: function(cost) {
