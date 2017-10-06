@@ -47,7 +47,7 @@ MACHINE_CREATE_FIELDS.push({
         required: true,
         helptext: ""
     }, {
-        name: "resource_groups",
+        name: "resource_group",
         label: "Resource Group",
         type: "mist_dropdown",
         value: "",
