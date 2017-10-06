@@ -47,14 +47,14 @@ MACHINE_CREATE_FIELDS.push({
         required: true,
         helptext: ""
     }, {
-        name: "ex_resource_group",
+        name: "resource_groups",
         label: "Resource Group",
-        type: "text",
+        type: "mist_dropdown",
         value: "",
         defaultValue: "",
         show: true,
         required: true,
-        helptext: ""
+        options: []
     }, {
         name: "machine_password",
         label: "Machine Password *",
