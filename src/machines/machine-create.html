@@ -411,6 +411,11 @@
                             this._toggleScriptFields(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
+                        // handle storage accounts
+                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_storage_account'){
+                            this._toggleStorageAccountFields(this.get(changeRecord.path.replace('.value','')).value);
+                        }
+
                         if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path.endsWith('value')){
                             // if is onapp controll options based on location
                             if (this.get(changeRecord.path.replace('.value','')).name == 'location')
@@ -755,6 +760,21 @@
                     }
 
                     // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
+                },
+                _toggleStorageAccountFields: function(new_account){
+                    var newInd = this._fieldIndexByName('new_storage_account');
+                    var oldInd = this._fieldIndexByName('ex_storage_account');
+
+                    //if one, hide the other
+                    if (new_account == true){
+                        this.set('machineFields.'+ newInd +'.show', true);
+                        this.set('machineFields.'+ oldInd +'.show', false);
+
+                    }
+                    else if (new_account == false){
+                        this.set('machineFields.'+ newInd +'.show', false);
+                        this.set('machineFields.'+ oldInd +'.show', true);
+                    }
                 },
                 _showPassword: function(value){
                     console.log('_showPassword', value);

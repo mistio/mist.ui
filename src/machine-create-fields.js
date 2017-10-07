@@ -47,6 +47,24 @@ MACHINE_CREATE_FIELDS.push({
         required: true,
         options: []
     }, {
+        name: "create_storage_account",
+        label: "Create new storage account",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        helptext: "Create the machine in a new storage account",
+        show: true,
+        required: false
+    }, {
+        name: "new_storage_account",
+        label: "Storage Account name",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        helptext: ""
+    }, {
         name: "ex_storage_account",
         label: "Storage Account",
         type: "mist_dropdown",
