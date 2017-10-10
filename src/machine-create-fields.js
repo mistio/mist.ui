@@ -83,6 +83,24 @@ MACHINE_CREATE_FIELDS.push({
         required: true,
         options: []
     }, {
+        name: "create_network",
+        label: "Create new network",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        helptext: "Create the machine in a new network",
+        show: true,
+        required: false
+    }, {
+        name: "new_network",
+        label: "Network name",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        helptext: ""
+    }, {
         name: "networks",
         label: "Networks *",
         type: "mist_dropdown",

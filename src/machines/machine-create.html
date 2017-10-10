@@ -441,6 +441,11 @@
                             this._toggleResourceGroupFields(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
+                        // handle networks
+                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_network'){
+                            this._toggleNetworkFields(this.get(changeRecord.path.replace('.value','')).value);
+                        }
+
                         if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path.endsWith('value')){
                             // if is onapp controll options based on location
                             if (this.get(changeRecord.path.replace('.value','')).name == 'location')
@@ -797,6 +802,21 @@
 
                     }
                     else if (new_account == false){
+                        this.set('machineFields.'+ newInd +'.show', false);
+                        this.set('machineFields.'+ oldInd +'.show', true);
+                    }
+                },
+                _toggleNetworkFields: function(new_network){
+                    var newInd = this._fieldIndexByName('new_network');
+                    var oldInd = this._fieldIndexByName('networks');
+
+                    //if one, hide the other
+                    if (new_network == true){
+                        this.set('machineFields.'+ newInd +'.show', true);
+                        this.set('machineFields.'+ oldInd +'.show', false);
+
+                    }
+                    else if (new_network == false){
                         this.set('machineFields.'+ newInd +'.show', false);
                         this.set('machineFields.'+ oldInd +'.show', true);
                     }
