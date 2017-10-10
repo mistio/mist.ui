@@ -384,7 +384,9 @@
             </div> -->
             <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></machine-actions>
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
-                <span class="icon"><iron-icon class$=" machine-state-icon [[machine.state]]" icon="[[section.icon]]"></iron-icon></span>
+                <span class="icon">
+                    <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
+                </span>
                 <div class="title flex">
                     <h2>
                         [[machineName]]
@@ -405,8 +407,8 @@
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
                         <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
-                    <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
-                        [[_computeMachineSize(machine)]]</span>
+                    <span hidden$="[[!machineSize]]" class="break"><span class="m-info-head">Size:</span>
+                        [[machineSize]]</span>
                     <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
                         [[machine.created]]</span>
                     <div hidden$="[[!probeData]]"> <span class="m-info-head">Probe Data:</span>
@@ -470,6 +472,7 @@
                 <mist-monitoring
                     id="mistMonitoring"
                     resource="[[machine]]"
+                    state="[[machineState]]"
                     monitoring="[[model.monitoring]]"
                     section="[[section]]"
                     datasources="[[datasources]]"
@@ -672,8 +675,7 @@ Polymer({
         },
         machine: {
             type: Object,
-            computed: '_getMachine(uuid, model.machines.*)',
-            notify: true
+            computed: '_getMachine(uuid, model.machines.*)'
         },
         sections: {
             type: Array
@@ -701,6 +703,10 @@ Polymer({
         machineState: {
             type: String,
             computed: "_computeMachineState(machine.*, model.machines.*)"
+        },
+        machineSize: {
+            type: String,
+            computed: "_computeMachineSize(machine, machine.*, model.machines.*)"
         },
         dashboard: {
             type: Object
@@ -796,7 +802,7 @@ Polymer({
         this.set('isPendingKeyRequest', false);
     },
     _getMachine: function(id, machines) {
-        if (id && this.model && this.model.machines && this.model.machines[id])
+        if (id && this.model && this.model.machines && this.model.machines[id]) 
             return this.model.machines[id];
     },
     _showRecommendationDialog: function(){
@@ -1071,7 +1077,7 @@ Polymer({
         else
             return "not found";
     },
-    _computeMachineSize: function(item) {
+    _computeMachineSize: function(item, itemChangeRecord, machines) {
         // field could be in the 'extra' section, but should not be an object
         if (item) {
             var ret = item['size'];

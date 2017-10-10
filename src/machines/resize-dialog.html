@@ -68,7 +68,7 @@
         <paper-dialog-scrollable>
           <p class="red" hidden$="[[!showNotification]]">Warning! Resize may cause a reboot to the machine.</p>
 
-          <div hidden$="[[!isOnapp]]">
+          <div hidden$="[[!showCustomSizeForm]]">
             <div class="grid-row">
               <div class="xs12 m6 l6">
                 <paper-input id="cpus" label="cpus" always-float-label prevent-invalid-input auto-validate allowed-pattern="[0-9]*" value="{{cpus}}" error-message="Please enter numbers only" on-keyup="hotkeys"></paper-input>
@@ -85,13 +85,13 @@
             </div>
           </div>
 
-          <div hidden$="[[isOnapp]]">
+          <div hidden$="[[showCustomSizeForm]]">
             <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
               <template is="dom-repeat" items="[[plans]]" as="plan">
                 <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan.id)]]">
                   [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
                   <br/>
-                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[plan.price]]/month</div>
+                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[displayPrice(plan.price)]]/hour</div>
                 </paper-radio-button>
               </template>
             </paper-radio-group>
@@ -113,25 +113,25 @@
 
     <dialog-element id="confirm"></dialog-element>
 
-    <iron-ajax  id="resizeMachine" 
+    <iron-ajax  id="resizeMachine"
                 url="/api/v1/machines/[[machine.id]]"
-                method="POST" 
-                on-response="_resizeMachineResponse" 
-                on-error="_resizeMachineError" 
+                method="POST"
+                on-response="_resizeMachineResponse"
+                on-error="_resizeMachineError"
                 loading="{{loading}}"
                 handle-as="xml"
                 on-request="_resizeMachineRequest"></iron-ajax>
 
   </template>
   <script>
-    Polymer({ 
+    Polymer({
       is: 'resize-dialog',
       properties: {
         clouds: Object,
-        machine: { 
+        machine: {
           type: Object
         },
-        showNotification: { 
+        showNotification: {
           type: Boolean,
           value: true
         },
@@ -166,41 +166,41 @@
           type: String,
           value: 'red'
         },
-        isOnapp: {
+        showCustomSizeForm: {
           type: Boolean,
-          computed: 'computeIsOnapp(machine)'
+          computed: 'computeShowCustomSizeForm(machine.cloud.provider)'
         },
-        plans: {
-          type: Array,
-          computed: 'computePlans(machine, clouds)'
-        },
+        plans: Array,
         selectedPlan: String
       },
       listeners: {
-        input: 'clearError'
+        input: 'clearError',
+        'iron-overlay-closed': 'clearSelection'
       },
       observers:[
-        'updateFormReadyOnapp(machine, current_cpus, current_memory, cpus, memory)',
-        'updateFormReady(machine, selectedPlan)',
-        'updateShowNotification(machine, memory)'
+        '_updateFormReadyOnapp(machine, current_cpus, current_memory, cpus, memory)',
+        '_updateFormReady(machine, selectedPlan)',
+        '_updateShowNotification(machine, memory)',
+        '_updatePlans(machine, clouds.*)',
+        '_selectedPlanChanged(selectedPlan)'
       ],
       ready: function() {},
       attached: function() {},
       resizeMachine: function() {
-        if (this.isOnapp){
+        if (this.showCustomSizeForm){
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
           this.$.resizeMachine.body = {"action": "resize", "cpus": this.cpus, "memory": this.memory };
           this.$.resizeMachine.generateRequest();
         }
-        else if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1){
+        else if (!this.showCustomSizeForm){
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
-          this.$.resizeMachine.body = {"action": "resize", "plan_id": parseInt(this.selectedPlan)};
+          this.$.resizeMachine.body = {"action": "resize", "plan_id": this.selectedPlan};
           this.$.resizeMachine.generateRequest();
         }
       },
-      updateShowNotification: function(machine, memory){
+      _updateShowNotification: function(machine, memory){
         if (this.machine.extra.hypervisor_type) {
           if (this.machine.extra.hypervisor_type == 'kvm' && this.current_memory >= this.memory){
             this.set('showNotification', false);
@@ -214,11 +214,12 @@
       },
       updateValues: function(machine){
         if (this.machine) {
-          if (this.isOnapp){
+          if (this.showCustomSizeForm){
             this.set('size', 'Current '+this.machine.extra.size);
           }
-          else if (this.machine.cloud.provider == 'linode'){ // TODO
-
+          else {
+            var currentSize = this.plans.find(function(p){return p.id == this.machine.size}.bind(this)).name;
+            this.set('size', 'Current '+ currentSize);
           }
         }
         this.clearError();
@@ -235,29 +236,31 @@
           return this.machine.extra.memory;
         }
       },
-      computeIsOnapp: function(cloud){
+      computeShowCustomSizeForm: function(provider){
         if (this.machine && this.machine.cloud && this.machine.cloud.provider)
-          return this.machine.cloud.provider == 'onapp';
+          return ['onapp'].indexOf(this.machine.cloud.provider) > -1;
       },
-      computePlans: function(machine, clouds){
-        if (this.machine) {
-          if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1){
-            var planId = this.machine.extra.PLANID;
-            return this.clouds[this.machine.cloud.id].sizesArray;
-          }
+      _updatePlans: function(machine, clouds){
+        if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.'+this.machine.cloud.id+'.sizesArray')) {
+            console.log('update plans', clouds.path);
+            this.set('plans', this.clouds[this.machine.cloud.id].sizesArray);
         }
+      },
+      _selectedPlanChanged: function(){
+        this.clearError();
       },
       clearError: function(){
         this.set('formError', false);
         this.$.errormsg.textContent = '';
+        this.$.dialogModal.refit();
       },
-      updateFormReadyOnapp: function(current_cpus, current_memory, cpus, memory){
-        if (this.isOnapp) {
+      _updateFormReadyOnapp: function(current_cpus, current_memory, cpus, memory){
+        if (this.showCustomSizeForm) {
           this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
         }
       },
-      updateFormReady: function(selectedPlan){
-        if (!this.isOnapp && ['linode'].indexOf(this.machine.cloud.provider) > -1 && this.selectedPlan != undefined){
+      _updateFormReady: function(machine, selectedPlan){
+        if (!this.showCustomSizeForm && this.selectedPlan != undefined){
           this.set('formReady', true);
         }
       },
@@ -268,6 +271,7 @@
       },
       _resizeMachineResponse: function(e) {
         this.$.dialogModal.close();
+        this.clearSelection();
         this.fire('action-finished', {success: true});
         this.fire('toast',{msg: 'Resize request sent successfully. Updating machine..', duration: 3000})
       },
@@ -275,10 +279,25 @@
         this.set('formError', true);
         console.log('error',e)
         this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+        this.$.dialogModal.refit();
       },
       _resizeMachineRequest: function(e) {},
       isCurrent: function(id){
-        return id == this.machine.extra.PLANID;
+        return id == this.machine.size;
+      },
+      clearSelection: function(){
+        this.set('selectedPlan', undefined);
+        this.set('formReady', false);
+      },
+      displayPrice: function(price){
+        if (typeof(price) == 'string')
+          return price;
+        else if (typeof(price) == 'object' && this.machine.os_type == 'windows' && price.mswin)
+          return price.mswin;
+        else if (price && typeof(price) == 'object' && price.linux) // && this.machine.os_type == 'unix' //show linux price for all other machines
+          return price.linux;
+        else
+          return JSON.stringify(price);
       },
       hotkeys: function(e) {
         console.log('hotkeys',e);
