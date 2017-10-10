@@ -414,9 +414,16 @@
                             var location_accounts = storage_accounts.filter(function(el){
                                 return el.extra.primaryLocation == location
                             })
-                            console.log(location_accounts);
                             var storageInd = this._fieldIndexByName('ex_storage_account');
                             this.set('machineFields.'+storageInd+'.options', location_accounts);
+
+                            //update networks
+                            var networks = this.model.clouds[cloudId].networksArray || [];
+                            var location_networks = networks.filter(function(el){
+                                return el.location == location
+                            })
+                            var networkInd = this._fieldIndexByName('networks');
+                            this.set('machineFields.'+networkInd+'.options', location_networks);
                         }
                         // let either script or script_id to pass in the from payload
                         if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'run_script'){
