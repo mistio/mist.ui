@@ -148,7 +148,7 @@
             <div class="tabs">
                 <div class="buttons">
                     <paper-button id="cloudsBtn" class="blue-link active" on-tap="changeTab">Monthly cost per cloud</paper-button>
-                    <paper-button id="tagsBtn" class="blue-link" on-tap="changeTab" hidden$="[[!tags.length]]">Top [[tags.length]] tags</paper-button>
+                    <paper-button id="tagsBtn" class="blue-link" on-tap="changeTab" hidden$="[[!tags.length]]">Top [[tags.length]] tag<span hidden$="[[!plural(tags.length)]]">s</span></paper-button>
                 </div>
                 <a href="http://docs.mist.io/article/103-cost-reporting-with-mist-io" target="new"> <iron-icon id="costdocs" icon="help" position="left"></iron-icon></a>
             </div>
@@ -202,8 +202,7 @@ Polymer({
             type: Array
         },
         tags: {
-            type: Array,
-            computed: '_computeTags(model.cloudsArray.*, model.machinesArray.*)'
+            type: Array
         },
         xsmallscreen: {
             type: Boolean,
@@ -214,6 +213,9 @@ Polymer({
             value: true
         }
     },
+    observers: [
+        '_computeTags(model.cloudsArray, model.machinesArray)'
+    ],
     attached: function() {
         var rows = this.parentNode.querySelectorAll('block');
         var index = Array.prototype.indexOf.call(rows, this);
@@ -286,7 +288,7 @@ Polymer({
     },
     _computeTags: function(clouds, machines) {
         var tagsArray = [];
-        if (machines.base.length > 0) {
+        if (this.model && this.model.machinesArray && this.model.machinesArray.length > 0) {
             this.model.machinesArray.forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && m.tags.length  && mcost){
@@ -315,8 +317,13 @@ Polymer({
             if (a.cost < b.cost) { return 1; }
             return 0;
         });
+
+        if (!tagsArray.length){
+            this.set('showClouds', true);
+        }
+
         // return all clouds instead of topCloudsArray.slice(0,3);
-        return tagsArray.slice(0,7);
+        this.set('tags', tagsArray.slice(0,7));
     },
     changeTab: function(e){
         console.log('changeTab', e)
@@ -328,6 +335,9 @@ Polymer({
                 this.$.cloudsBtn.classList.toggle('active');
             }
         }
+    },
+    plural: function(length){
+        return length > 1;
     },
     _formatMoney: function(cost) {
         return cost.formatMoney(2, '.', ',');
