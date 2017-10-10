@@ -29,14 +29,14 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'azure_arm',
     fields: [{
-        name: "networks",
-        label: "Networks *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: "create_resource_group",
+        label: "Create new resource group",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        helptext: "Create the machine in a new resource group",
         show: true,
-        required: false,
-        options: []
+        required: false
     }, {
         name: "ex_resource_group",
         label: "Resource Group",
@@ -46,6 +46,15 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: true,
         options: []
+    }, {
+        name: "new_resource_group",
+        label: "Resource Group name",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        helptext: ""
     }, {
         name: "create_storage_account",
         label: "Create new storage account",
@@ -72,6 +81,15 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: "",
         show: true,
         required: true,
+        options: []
+    }, {
+        name: "networks",
+        label: "Networks *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
         options: []
     }, {
         name: "machine_password",

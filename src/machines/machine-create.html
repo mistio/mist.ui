@@ -416,6 +416,11 @@
                             this._toggleStorageAccountFields(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
+                        // handle resource groups
+                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_resource_group'){
+                            this._toggleResourceGroupFields(this.get(changeRecord.path.replace('.value','')).value);
+                        }
+
                         if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path.endsWith('value')){
                             // if is onapp controll options based on location
                             if (this.get(changeRecord.path.replace('.value','')).name == 'location')
@@ -775,6 +780,29 @@
                         this.set('machineFields.'+ newInd +'.show', false);
                         this.set('machineFields.'+ oldInd +'.show', true);
                     }
+                },
+                _toggleResourceGroupFields: function(new_group){
+                    var newInd = this._fieldIndexByName('new_resource_group');
+                    var oldInd = this._fieldIndexByName('ex_resource_group');
+                    var toggleAccount = this._fieldIndexByName('create_storage_account');
+
+                    //if one, hide the other
+                    if (new_group == true){
+                        this.set('machineFields.'+ newInd +'.show', true);
+                        this.set('machineFields.'+ oldInd +'.show', false);
+                        //toggle new storage account
+                        this.set('machineFields.'+ toggleAccount +'.value', true);
+                        this._toggleStorageAccountFields(true);
+                        this.set('machineFields.'+ toggleAccount +'.show', false);
+                    }
+                    else if (new_group == false){
+                        this.set('machineFields.'+ newInd +'.show', false);
+                        this.set('machineFields.'+ oldInd +'.show', true);
+                        //toggle new storage account
+                        this._toggleStorageAccountFields(false);
+                        this.set('machineFields.'+ toggleAccount +'.show', true);
+                    }
+
                 },
                 _showPassword: function(value){
                     console.log('_showPassword', value);
