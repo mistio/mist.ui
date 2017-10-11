@@ -154,6 +154,11 @@
                 --paper-toggle-button-checked-button-color: #fff;*/
             }
 
+            paper-button.red {
+                --paper-button-checked-bar-color: #d96557;
+                --paper-toggle-button-checked-button-color: #fff;
+            }
+
             .head {
                 padding: 24px 24px 0 24px;
             }
@@ -173,14 +178,14 @@
                     <h2 class="title">Notification Overrides</h2>
                 </div>
                 <div class="summary xs12 m12 l12">
-                    <p>Notification overrides allow you to personalize delivery of notifications and recommendations regarding your infrastructure.</p>
+                    <p>Notification overrides allow you to personalize delivery of notifications and recommendations about your infrastructure.</p>
                 </div>
             </div>
             <div class="card-content">
                 <div class="info-list">
                     <div class="info-head flex-horizontal-with-ratios">
                         <div class="flexchild">Notification Type</div>
-                        <div class="flexchild text-right">Allow Delivery</div>
+                        <div class="flexchild text-right">Delivery</div>
                         <div class="flexchild text-right">&nbsp;</div>
                     </div>
                     <div class="info-body flex-horizontal-with-ratios">
@@ -193,7 +198,7 @@
                                     <paper-toggle-button checked="{{_computeAllowed(override)}}" on-change="_overrideChanged" index="[[index]]">[[_computeOverrideStateLabel(override, machines)]]</paper-toggle-button>
                                 </div> 
                                 <div class="flexchild plan-title text-right">
-                                    <paper-button class="red" on-tap="terminateSession">Delete</paper-button>
+                                    <paper-button class="red" on-tap="_deleteOverrideTapped">Delete</paper-button>
                                 </div>   
                             </paper-item>                        
                         </template>
@@ -204,7 +209,7 @@
             <div class="bottom-actions clearfix xs12">
                 <paper-button class="pull-right" 
                     disabled$="[[!formReady]]" 
-                    raised on-tap="_submitForm">Save Notifications Settings</paper-button>
+                    raised on-tap="_submitForm">Save Notification Overrides</paper-button>
             </div>
         </paper-card>
 
@@ -220,6 +225,13 @@
             method="PUT"
             on-response="_handleSetOverridesResponse"
             on-error="_handleSetOverridesError"
+            handle-as="json"></iron-ajax>
+
+        <iron-ajax id="deleteNotificationOverrideRequest"
+            url="/api/v1/notification_overrides"
+            method="DELETE"
+            on-response="_handleDeleteOverrideResponse"
+            on-error="_handleDeleteOverrideError"
             handle-as="json"></iron-ajax>
 
     </template>
@@ -327,6 +339,27 @@
 
             _handleGetOverridesError: function() {
                 this.set('overridesError', true);
+            },
+
+            _deleteOverrideTapped: function(e) {
+                var index = e.target.index;
+                var payload = {
+                    action: 'delete_notification_override',
+                    override_id: this.overrides[index].id
+                };
+                this.$.setNotificationOverridesRequest.headers["Content-Type"] = 'application/json';
+                this.$.setNotificationOverridesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.setNotificationOverridesRequest.body = payload;
+                this.$.setNotificationOverridesRequest.generateRequest();
+            },
+
+            _handleDeleteOverrideResponse: function(e) {
+                this.fire('toast',{msg:"Notification override deleted succesfully!",duration:3000});
+            },
+
+            _handleDeleteOverrideError: function() {
+                this.set('overridesError', true);
+                this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
             },
 
             _submitForm: function(e) {
