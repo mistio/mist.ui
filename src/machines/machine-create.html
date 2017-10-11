@@ -355,6 +355,11 @@
                             this._updateFieldsForDocker();
                         }
 
+                        // if is azure arm, change required values
+                        if (this.model.clouds[this.selectedCloud].provider == "azure_arm"){
+                            this._updateFieldsForAzureArm();
+                        }
+
                         // if is kvm, change helptexts
                         if (this.model.clouds[this.selectedCloud].provider == "libvirt"){
                             this._updateFieldsForKvm();
@@ -752,6 +757,10 @@
 
                     //fill in disk path using images_location
                     this.set('machineFields.'+ pathInd +'.value', this.model.clouds[this.selectedCloud].images_location);
+                },
+                _updateFieldsForAzureArm: function(){
+                    var hostnameInd = this._fieldIndexByName('create_hostname_machine');
+                    this.set('machineFields.'+ hostnameInd +'.show', false);
                 },
                 _updateKvmDiskPath: function(machinename){
                     var pathInd = this._fieldIndexByName('libvirt_disk_path');
