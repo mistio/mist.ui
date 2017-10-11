@@ -162,7 +162,7 @@
                 <div class="ips-section xs12 m12 l12">
                     <template is="dom-repeat" items="[[notificationOverrides]]" as="override">
                         <div class="row">
-                            <span class="overrideLabel">[[_computeOverrideLabel(override)]]</span>
+                            <span class="overrideLabel">[[_computeOverrideLabel(override, machines)]]</span>
                             <paper-toggle-button checked="{{_computeAllowed(override)}}" on-change="_overrideChanged" index="[[index]]">
                                 [[_computeOverrideStateLabel(override)]]
                             </paper-toggle-button>
@@ -198,6 +198,7 @@
         Polymer({
             is: 'notifications-settings',
             properties: {
+                machines: Object,
                 notificationOverrides: Array,
                 overridesError: Boolean
             },
@@ -206,7 +207,7 @@
                 return override.value == "ALLOW";
             },
 
-            _computeOverrideLabel: function(override) {
+            _computeOverrideLabel: function(override, machines) {
                 var lowerCase = (override.channel + " " + override.source).toLowerCase();
                 if (lowerCase.includes("inapp")) 
                 {
@@ -214,7 +215,16 @@
                     {
                         if (override.machine)
                         {
-                            return "Recommendations for machine " + override.machine._ref.$id;
+                            var machineName;
+                            if (machines && machines[override.machine._ref.$id])
+                            {
+                                machineName = machines[override.machine._ref.$id].name;
+                            }
+                            else
+                            {
+                                machineName = override.machine._ref.$id;
+                            }
+                            return "Recommendations for machine " + machineName;
                         }
                         else if (override.cloud)
                         {
@@ -233,7 +243,15 @@
                     {
                         if (override.machine)
                         {
-                            return "Notifications for machine " + override.machine._ref.$id;
+                            if (machines && machines[override.machine._ref.$id])
+                            {
+                                machineName = machines[override.machine._ref.$id].name;
+                            }
+                            else
+                            {
+                                machineName = override.machine._ref.$id;
+                            }
+                            return "Notifications for machine " + machineName;
                         }
                         else if (override.cloud)
                         {
