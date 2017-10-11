@@ -47,11 +47,11 @@
                     </div>
                 </div>
             </paper-material>
-            <paper-material hidden$="[[hasNetworkClouds]]">
+            <paper-material hidden$="[[hasOpenstackClouds]]">
                 <p>To add a network you need to have an enabled Openstack cloud in your account.<br/>
                 Add and enable an Openstack cloud using the <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
             </paper-material>
-            <paper-material hidden$="[[!hasNetworkClouds]]">
+            <paper-material hidden$="[[!hasOpenstackClouds]]">
                 <app-form fields="[[fields]]" form="[[network]]" url="/api/v1/clouds/[[cloud]]/networks" on-response="_handleAddNetworkResponse" on-error="_handleError"></app-form>
             </paper-material>
         </div>
@@ -234,7 +234,7 @@
                     }],
                     notify: true
                 },
-                hasNetworkClouds: {
+                hasOpenstackClouds: {
                     type: Boolean,
                     value: true
                 }
@@ -247,18 +247,18 @@
                 'iron-select': 'updateUrl'
             },
             _cloudsChanged: function(clouds) {
-                var networkClouds = this.model.cloudsArray.filter(function(cloud) {
-                    return (cloud.provider == 'openstack' || cloud.provider == 'azure_arm') && cloud.enabled;
+                var openstackClouds = this.model.cloudsArray.filter(function(cloud) {
+                    return cloud.provider == 'openstack' && cloud.enabled;
                 });
-                if (networkClouds.length > 0) {
-                    this.set('hasNetworkClouds', true);
+                if (openstackClouds.length > 0) {
+                    this.set('hasOpenstackClouds', true);
                     var index = this.fields.findIndex(function(field) {
                         return field.name == "cloud";
                     }, this);
-                    this.set('fields.' + index + '.options', networkClouds);
+                    this.set('fields.' + index + '.options', openstackClouds);
                 }
                 else {
-                    this.set('hasNetworkClouds', false);
+                    this.set('hasOpenstackClouds', false);
                 }
             },
             updateFields: function(e){
