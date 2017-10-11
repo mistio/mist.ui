@@ -1,19 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
-<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
-<link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
 
 <dom-module id="notifications-settings">
     <template>
-        <style is="custom-style" include="shared-styles forms">
+        <style is="custom-style" include="lists shared-styles forms">
             :host {
                 display: block;
             }
@@ -21,6 +16,16 @@
             :host paper-material {
                 display: block;
                 padding: 0;
+            }
+
+            .info-head {
+                padding: 8px 16px;
+                background: #eee;
+                border-bottom: 2px solid #ddd;
+            }
+
+            paper-item.row {
+                width: 100%;
             }
 
             .flex-horizontal-with-ratios {
@@ -37,12 +42,15 @@
             }
 
             .grid-row {
-                padding: 24px;
+                box-sizing: border-box;
+                margin-right: 0;
+                margin-left: 0;
             }
 
             .row {
                 margin-top: 6px;
                 margin-bottom: 6px;
+                width: 100%;
             }
 
             .head {
@@ -81,10 +89,7 @@
                 padding-bottom: 24px;
                 padding-left: 1rem;
             }
-            .separator {
-                border-top: 1px solid #ddd;
-                margin: 0 0 32px 0;
-            }
+
             .progress {
                 margin: 32px 0 8px 0;
                 width: 100%;
@@ -137,7 +142,7 @@
 
             .overrideLabel {
                 display: inline-flex;
-                width: 50%;
+                width: 60%;
                 vertical-align: top;
             }
 
@@ -148,36 +153,60 @@
                 /*--paper-toggle-button-checked-bar-color: #2196F3;
                 --paper-toggle-button-checked-button-color: #fff;*/
             }
+
+            .head {
+                padding: 24px 24px 0 24px;
+            }
+
+            .summary {
+                padding: 0 24px 0 24px;
+            }
+
+            .text-right {
+                text-align: right;
+            }
         </style>
-        <paper-material>
+
+        <paper-card>
             <div class="grid-row">
                 <div class="xs12 head">
-                    <h2 class="title">Notifications Settings</h2>
+                    <h2 class="title">Notification Overrides</h2>
                 </div>
-
-                <div class="ips-section xs12 m12 l12">
-                    <p>Adjust how you wish to be notified of important events and recommendations regarding your infrastructure.</p>
-                </div>
-                <div class="separator clearfix xs12 m12 l12"></div>
-                <div class="ips-section xs12 m12 l12">
-                    <template is="dom-repeat" items="[[notificationOverrides]]" as="override">
-                        <div class="row">
-                            <span class="overrideLabel">[[_computeOverrideLabel(override, machines)]]</span>
-                            <paper-toggle-button checked="{{_computeAllowed(override)}}" on-change="_overrideChanged" index="[[index]]">
-                                [[_computeOverrideStateLabel(override)]]
-                            </paper-toggle-button>
-                        </div>
-                    </template>
+                <div class="summary xs12 m12 l12">
+                    <p>Notification overrides allow you to personalize delivery of notifications and recommendations regarding your infrastructure.</p>
                 </div>
             </div>
+            <div class="card-content">
+                <div class="info-list">
+                    <div class="info-head flex-horizontal-with-ratios">
+                        <div class="flexchild">Notification Type</div>
+                        <div class="flexchild text-right">Allow Delivery</div>
+                        <div class="flexchild text-right">&nbsp;</div>
+                    </div>
+                    <div class="info-body flex-horizontal-with-ratios">
+                        <template is="dom-repeat" items="[[notificationOverrides]]" as="override">
+                            <paper-item class="row flex-horizontal-with-ratios plan-record">
+                                <div class="flexchild plan-date">
+                                    <span class="name">[[_computeOverrideLabel(override, machines)]]</span>
+                                </div>
+                                <div class="flexchild plan-action text-right">
+                                    <paper-toggle-button checked="{{_computeAllowed(override)}}" on-change="_overrideChanged" index="[[index]]">[[_computeOverrideStateLabel(override, machines)]]</paper-toggle-button>
+                                </div> 
+                                <div class="flexchild plan-title text-right">
+                                    <paper-button class="red" on-tap="terminateSession">Delete</paper-button>
+                                </div>   
+                            </paper-item>                        
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div id="error" class="error" hidden$="[[!hasError]]"></div>
             <div class="bottom-actions clearfix xs12">
-                <div class="separator clearfix xs12 m12 l12"></div>
                 <paper-button class="pull-right" 
                     disabled$="[[!formReady]]" 
                     raised on-tap="_submitForm">Save Notifications Settings</paper-button>
             </div>
-
-        </paper-material>
+        </paper-card>
 
         <iron-ajax auto id="getNotificationOverridesRequest" 
             method="GET" 
@@ -273,7 +302,7 @@
                 }
             },
 
-            _computeOverrideStateLabel: function(override) {
+            _computeOverrideStateLabel: function(override, machines) {
                 var valueString = override.value.toLowerCase();
                 return valueString.charAt(0).toUpperCase() + valueString.slice(1);
             },
