@@ -431,6 +431,11 @@
                             var networkInd = this._fieldIndexByName('networks');
                             this.set('machineFields.'+networkInd+'.options', location_networks);
                         }
+                        // if it is azure arm and machine name is changed
+                        if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' && changeRecord.path.endsWith('.value')  && this.get(changeRecord.path.replace('.value','')).name == 'name'){
+                            //autocomplete resource, storage, network fields
+                            this._updateAzureFields(this.get(changeRecord.path.replace('.value','')).value);
+                        }
                         // let either script or script_id to pass in the from payload
                         if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'run_script'){
                             console.log('changeRecord.path',changeRecord.path)
@@ -769,6 +774,14 @@
                     //fill in disk path using images_location and machine name
                     if (machinename.trim().length)
                     this.set('machineFields.'+ pathInd +'.value', this.model.clouds[this.selectedCloud].images_location +"/"+ machinename.trim() +".img");
+                },
+                _updateAzureFields: function(machinename){
+                    var networkInd = this._fieldIndexByName('new_network');
+                    this.set('machineFields.'+networkInd+'.value', machinename + '-vnet');
+                    var resourceInd = this._fieldIndexByName('new_resource_group');
+                    this.set('machineFields.'+resourceInd+'.value', machinename);
+                    var storageInd = this._fieldIndexByName('new_storage_account');
+                    this.set('machineFields.'+storageInd+'.value', machinename + 'disks');
                 },
                 _updateEc2Sizes: function(imageid) {
                     if (this.model.images[imageid] && this.model.images[imageid].extra && this.model.images[imageid].extra.virtualization_type){
