@@ -32,8 +32,7 @@ MACHINE_CREATE_FIELDS.push({
         name: "create_resource_group",
         label: "Create new resource group",
         type: "toggle",
-        value: false,
-        defaultValue: false,
+        defaultValue: true,
         helptext: "Create the machine in a new resource group",
         show: true,
         required: false
@@ -43,7 +42,7 @@ MACHINE_CREATE_FIELDS.push({
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
-        show: true,
+        show: false,
         required: true,
         options: []
     }, {
@@ -52,15 +51,14 @@ MACHINE_CREATE_FIELDS.push({
         type: "text",
         value: "",
         defaultValue: "",
-        show: false,
+        show: true,
         required: false,
         helptext: ""
     }, {
         name: "create_storage_account",
         label: "Create new storage account",
         type: "toggle",
-        value: false,
-        defaultValue: false,
+        defaultValue: true,
         helptext: "Create the machine in a new storage account",
         show: true,
         required: false
@@ -70,7 +68,7 @@ MACHINE_CREATE_FIELDS.push({
         type: "text",
         value: "",
         defaultValue: "",
-        show: false,
+        show: true,
         required: false,
         helptext: ""
     }, {
@@ -86,8 +84,7 @@ MACHINE_CREATE_FIELDS.push({
         name: "create_network",
         label: "Create new network",
         type: "toggle",
-        value: false,
-        defaultValue: false,
+        defaultValue: true,
         helptext: "Create the machine in a new network",
         show: true,
         required: false
