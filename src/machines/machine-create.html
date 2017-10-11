@@ -403,6 +403,7 @@
                         // if image and image is Windows, show password field
                         if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'image'){
                             this._showPassword(this.get(changeRecord.path.replace('.value','')).value);
+                            this._hideElementsforWin(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
                         // if its kvm
@@ -853,8 +854,25 @@
                     }
 
                 },
+                _hideElementsforWin: function(value){
+                    var scriptInd = this._fieldIndexByName('post_provision_script');
+                    var taskInd = this._fieldIndexByName('post_provision_scheduler');
+                    var monitoringInd = this._fieldIndexByName('monitoring');
+
+                    if (value.toLowerCase().indexOf('win') > -1){
+                        this.set('machineFields.'+ scriptInd +'.show', false);
+                        this.set('machineFields.'+ taskInd +'.show', false);
+                        this.set('machineFields.'+ monitoringInd +'.show', false);
+                        this.set('machineFields.'+ monitoringInd +'.value', false);
+                    }
+                    else {
+                        this.set('machineFields.'+ scriptInd +'.show', true);
+                        this.set('machineFields.'+ taskInd +'.show', true);
+                        this.set('machineFields.'+ monitoringInd +'.show', true);
+                        this.set('machineFields.'+ monitoringInd +'.value', true);
+                    }
+                },
                 _showPassword: function(value){
-                    console.log('_showPassword', value);
                     var passwordInd = this._fieldIndexByName('machine_password');
                     var keyInd = this._fieldIndexByName('key');
                     if (value.toLowerCase().indexOf('win') > -1){
