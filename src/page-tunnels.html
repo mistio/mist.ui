@@ -6,6 +6,7 @@
 <link rel="import" href="tunnels/tunnel-actions.html">
 <link rel="import" href="tunnels/tunnel-page.html">
 
+<link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-tunnels">
@@ -53,6 +54,9 @@
     Polymer({
 
       is: 'page-tunnels',
+      behaviors: [
+        mistListsBehavior
+      ],
 
       properties: {
         model: Object,
@@ -67,9 +71,8 @@
       },
 
       listeners: {
-        'select-action': 'selectAction'
+        'select-action': 'selectAction',
       },
-
       _isAddPageActive: function(path) {
           return path == '/+add';
       },
@@ -84,7 +87,7 @@
               return this.model.tunnels[id];
       },
       _addResource: function(e) {
-          document.querySelector('app-location').set('path', this.model.sections.tunnels.add)
+          this.fire('go-to', {url: this.model.sections.tunnels.add});
       },
       _getFrozenLogColumn: function(){
           return ['name'];

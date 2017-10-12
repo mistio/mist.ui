@@ -384,7 +384,9 @@
             </div> -->
             <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></machine-actions>
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
-                <span class="icon"><iron-icon class$=" machine-state-icon [[machine.state]]" icon="[[section.icon]]"></iron-icon></span>
+                <span class="icon">
+                    <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
+                </span>
                 <div class="title flex">
                     <h2>
                         [[machineName]]
@@ -405,8 +407,8 @@
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
                         <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
-                    <span hidden$="[[!_computeMachineSize(machine)]]" class="break"><span class="m-info-head">Size:</span>
-                        [[_computeMachineSize(machine)]]</span>
+                    <span hidden$="[[!machineSize]]" class="break"><span class="m-info-head">Size:</span>
+                        [[machineSize]]</span>
                     <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
                         [[machine.created]]</span>
                     <div hidden$="[[!probeData]]"> <span class="m-info-head">Probe Data:</span>
@@ -442,7 +444,7 @@
                         <h3 class="smallcaps">Associated Keys:</h3>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
-                                <div class="machine-key">
+                                <div class="machine-key" hidden$="[[!_visibleKey(model,key)]]">
                                     <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]"><iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
                                     <iron-icon data-keyid="[[key.keypair]]" data-keyname="[[_computeKeyName(key.keypair)]]" icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
@@ -470,6 +472,7 @@
                 <mist-monitoring
                     id="mistMonitoring"
                     resource="[[machine]]"
+                    state="[[machineState]]"
                     monitoring="[[model.monitoring]]"
                     section="[[section]]"
                     datasources="[[datasources]]"
@@ -503,10 +506,7 @@
                                 <td>[[machine.machine_id]]</td>
                             </tr>
                             <tr><td>Public IPs</td>
-                                <td><template is="dom-repeat" items="[[machine.public_ips]]">
-                                        [[item]]
-                                    </template>
-                                </td>
+                                <td>[[displayArray(machine.public_ips)]]</td>
                             </tr>
                             <tr>
                                 <td>Private IPs</td>
@@ -675,8 +675,7 @@ Polymer({
         },
         machine: {
             type: Object,
-            computed: '_getMachine(uuid, model.machines.*)',
-            notify: true
+            computed: '_getMachine(uuid, model.machines.*)'
         },
         sections: {
             type: Array
@@ -704,6 +703,10 @@ Polymer({
         machineState: {
             type: String,
             computed: "_computeMachineState(machine.*, model.machines.*)"
+        },
+        machineSize: {
+            type: String,
+            computed: "_computeMachineSize(machine, machine.*, model.machines.*)"
         },
         dashboard: {
             type: Object
@@ -799,7 +802,7 @@ Polymer({
         this.set('isPendingKeyRequest', false);
     },
     _getMachine: function(id, machines) {
-        if (id && this.model && this.model.machines && this.model.machines[id])
+        if (id && this.model && this.model.machines && this.model.machines[id]) 
             return this.model.machines[id];
     },
     _showRecommendationDialog: function(){
@@ -848,8 +851,13 @@ Polymer({
         if (this.machine)
             this.set('itemArray', [this.machine]);
     },
+    _visibleKey: function(model,key) {
+        if (model)
+            return this.model.keys && this.model.keys[key.keypair];
+    },
     _computeKeyName: function(keyid){
-        return this.model.keys[keyid].name || 'not found';
+        if (this.model.keys[keyid])
+            return this.model.keys[keyid].name || 'not found';
     },
     _computeThisItemUid: function(machine) {
         var itemUidInArray = [];
@@ -859,12 +867,13 @@ Polymer({
     _computeAssociatedKeys: function(machine, keys, keyLength, machineChangeRecord) {
         return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
     },
+    displayArray: function(array) {
+        if (array.length)
+            return array.join(', ');
+        return '';
+    },
     computeMachineIp: function(machineips) {
-        if (this.machine.public_ips) {
-            return this.machine.public_ips[0]
-        } else {
-            return ''
-        }
+        return this.machine.public_ips ? this.machine.public_ips[0] : '';
     },
     _isEqual: function(a, b) {
         return a === b;
@@ -1068,7 +1077,7 @@ Polymer({
         else
             return "not found";
     },
-    _computeMachineSize: function(item) {
+    _computeMachineSize: function(item, itemChangeRecord, machines) {
         // field could be in the 'extra' section, but should not be an object
         if (item) {
             var ret = item['size'];
@@ -1253,7 +1262,7 @@ Polymer({
         var ret = [], _this = this;
         if (this.machine && this.model.notificationsArray.length) {
             this.model.notificationsArray.forEach(function(i){
-                if (i.resource._ref.$id == _this.machine.id && i.resource._ref.$ref == 'machines' &&
+                if (i.machine._ref.$id == _this.machine.id && i.machine._ref.$ref == 'machines' &&
                     i._cls == 'Notification.InAppNotification.InAppRecommendation'){
                     ret.push(i);
                 }

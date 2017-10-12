@@ -6,8 +6,9 @@
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="../tags/tags-form.html">
+<link rel="import" href="../helpers/mist-lists-behavior.html">
 
-<dom-module id="key-actions">
+<dom-module id="record-actions">
   <template>
     <style include="shared-styles">
       :host {
@@ -16,8 +17,9 @@
       }
     </style>
     
-    <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+    <dialog-element id="confirm"></dialog-element>
+
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
@@ -26,18 +28,12 @@
 
   </template>
   <script>
-KEY_ACTIONS = {
+RECORD_ACTIONS = {
   'tag': {
     'name': 'tag',
     'icon': 'label',
     'confirm': true,
     'multi': true
-  },
-  'make_default': {
-    'name': 'make default',
-    'icon': 'communication:vpn-key',
-    'confirm': false,
-    'multi': false
   },
   'delete': {
     'name': 'delete',
@@ -47,7 +43,7 @@ KEY_ACTIONS = {
   }
 }
     Polymer({ 
-      is: 'key-actions',
+      is: 'record-actions',
       properties: {
         items: { 
           type: Array,
@@ -60,7 +56,7 @@ KEY_ACTIONS = {
         },
         type: {
           type: String,
-          value: 'key'
+          value: 'record'
         }
       },
       observers:[
@@ -74,12 +70,10 @@ KEY_ACTIONS = {
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(key) {
+      itemActions: function(record) {
+        // single record actions
         var arr = [];
-        if (key && !key.isDefault) {
-          arr.push('make_default');
-        }
-        if (key) {
+        if (record) {
           arr.push('tag');
           arr.push('delete');
         }
@@ -88,9 +82,28 @@ KEY_ACTIONS = {
       actionDetails: function (actions) {
         var ret = [];
         for (var i=0; i<actions.length; i++) {
-            ret.push(KEY_ACTIONS[actions[i]]);
+            ret.push(RECORD_ACTIONS[actions[i]]);
         }
         return ret;
+      },
+      _delete: function() {
+        //set up iron ajax
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "DELETE";
+
+        for (var i = 0; i < this.items.length; i++) {
+          this.$.request.url = "/api/v1/clouds/"+this.items[i].cloud_id+"/dns/zones/"+this.items[i].zone_id+"/records/"+ this.items[i].id
+          this.$.request.generateRequest();
+          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
+        }
+      },
+      _showDialog: function(info) {
+          var dialog = this.querySelector('dialog-element');
+          for (var i in info) {
+              dialog[i] = info[i];
+          }
+          dialog._openDialog();
       },
       confirmAction: function(e){
         if (e.detail.confirmed)
@@ -115,9 +128,6 @@ KEY_ACTIONS = {
                 reason: this.type + "." + this.action.name
             });
           }
-          else if (action.name == 'make default') {
-            this._makeDefault();
-          }
           else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
           }
@@ -126,50 +136,14 @@ KEY_ACTIONS = {
           }
         }
       },
-      _delete: function() {
-        //set up iron ajax
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "DELETE";
-
-        for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
-          this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
-        }
-      },
-      _makeDefault: function(){
-        //set up iron ajax
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
-
-        for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
-          this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Making key ' + this.items[i].name + " the default.", duration: 1000})
-        }
-
-      },
-      _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
-          for (var i in info) {
-              dialog[i] = info[i];
-          }
-          dialog._openDialog();
-      },
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
         }
       },
       handleResponse: function(e) {
-        this.fire('action-finished', {success: true});
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
-
-        // if (this.$.request.lastRequest)
-        console.log('handleResponse',this.$.request.lastRequest);
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection

@@ -912,9 +912,8 @@
                 _machineCreateResponse: function(e){
                     // console.log('creation resp', e);
                     var response = JSON.parse(e.detail.xhr.response);
-                    document.querySelector('app-location').set('path', '/machines');
-                    document.querySelector('page-machines').set('jobId', response.job_id);
-
+                    this.fire('go-to', {url: '/machines'})
+                    this.fire('set-job-id', {jobId: response.job_id});
                     this._resetForm();
                 },
                 _machineCreateError: function(e){
@@ -933,8 +932,7 @@
                         var qParams = {
                             'origin': origin
                         }
-                        document.querySelector('app-location').set('path', '/scripts/+add');
-                        document.querySelector('app-location').set('queryParams', qParams);
+                        this.fire('go-to',{url:'/machines', params: qParams});
                     }
                     else if (e.detail.fieldname == 'image')
                         this.querySelector("paper-dialog#addKvmImage").open();
