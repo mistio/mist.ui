@@ -104,7 +104,7 @@ MACHINE_CREATE_FIELDS.push({
         value: "",
         defaultValue: "",
         show: true,
-        required: false,
+        required: true,
         options: []
     }, {
         name: "machine_password",
