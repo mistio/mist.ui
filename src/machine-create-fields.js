@@ -29,80 +29,36 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'azure_arm',
     fields: [{
-        name: "create_resource_group",
-        label: "Create new resource group",
-        type: "toggle",
-        defaultValue: true,
-        helptext: "Create the machine in a new resource group",
-        show: true,
-        required: false
-    }, {
-        name: "ex_resource_group",
+        name: "resource_group",
         label: "Resource Group",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
-        show: false,
+        show: true,
         required: true,
-        options: []
-    }, {
-        name: "new_resource_group",
-        label: "Resource Group name",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: false,
-        helptext: ""
-    }, {
-        name: "create_storage_account",
-        label: "Create new storage account",
-        type: "toggle",
-        defaultValue: true,
-        helptext: "Create the machine in a new storage account",
-        show: true,
-        required: false
-    }, {
-        name: "new_storage_account",
-        label: "Storage Account name",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: false,
-        helptext: ""
-    }, {
-        name: "ex_storage_account",
+        options: [],
+        add: true
+    },{
+        name: "storage_account",
         label: "Storage Account",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
-        show: true,
-        required: true,
-        options: []
-    }, {
-        name: "create_network",
-        label: "Create new network",
-        type: "toggle",
-        defaultValue: true,
-        helptext: "Create the machine in a new network",
-        show: true,
-        required: false
-    }, {
-        name: "new_network",
-        label: "Network name",
-        type: "text",
-        value: "",
-        defaultValue: "",
         show: false,
-        required: false,
-        helptext: ""
-    }, {
+        required: true,
+        options: [],
+        add: true,
+        showIf: {
+            fieldName: "location",
+            fieldExists: true
+        }
+    },{
         name: "networks",
         label: "Networks *",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
+        add: true,
         show: true,
         required: true,
         options: []

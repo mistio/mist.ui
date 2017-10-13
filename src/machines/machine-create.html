@@ -64,13 +64,21 @@
             paper-dialog#addKvmImage {
                 width: 260px;
             }
-            paper-dialog#addKvmImage > paper-input {
+            paper-dialog#addKvmImage > paper-input,
+            paper-dialog#addInput > paper-input{
                 margin-top: 0;
                 margin-bottom: 20px;
             }
-            paper-dialog#addKvmImage .btn-group {
+            paper-dialog#addKvmImage .btn-group,
+            paper-dialog#addInput .btn-group {
                 display: flex;
                 justify-content: flex-end;
+            }
+            paper-dialog#addInput {
+                min-width: 300px; 
+            }
+            paper-dialog#addInput h2 {
+                text-transform: capitalize;
             }
         </style>
 
@@ -114,6 +122,15 @@
             <div class="btn-group">
                 <paper-button dialog-dismiss>Cancel</paper-button>
                 <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-dialog id="addInput" with-backdrop>
+            <h2>New [[newInput.name]]</h2>
+            <paper-input label="[[newInput.name]]" value="{{newInput.value}}"></paper-input>
+            <div class="btn-group">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="blue" on-tap="saveNewInput">Save</paper-button>
             </div>
         </paper-dialog>
     </template>
@@ -198,6 +215,7 @@
                         type: Array,
                         computed: '_computeActions(model.machinesArray)'
                     },
+                    newInput: Object
                 },
                 observers: [
                     '_cloudChanged(selectedCloud, machinesFields)',
@@ -307,10 +325,10 @@
                                 }
                                 // console.log('images', f.options);
                             }
-                            if (f.name.endsWith("ex_resource_group")) {
+                            if (f.name.endsWith("resource_group")) {
                                 f.options = this.model.clouds[cloudId].resourceGroupsArray || [];
                             }
-                            if (f.name.endsWith("ex_storage_account")) {
+                            if (f.name.endsWith("storage_account")) {
                                 f.options = this.model.clouds[cloudId].storageAccountsArray || [];
                             }
                             if (f.name.endsWith("size")) {
@@ -418,15 +436,15 @@
                             var storageAccounts = this.model.clouds[cloudId].storageAccountsArray || [];
                             var location = this.get(changeRecord.path.replace('.value','')).value
                             var locationAccounts = storageAccounts.filter(function(el){
-                                return el.extra.primaryLocation == location
+                                return el.extra && el.extra.primaryLocation == location;
                             })
-                            var storageInd = this._fieldIndexByName('ex_storage_account');
+                            var storageInd = this._fieldIndexByName('storage_account');
                             this.set('machineFields.'+storageInd+'.options', locationAccounts);
 
                             //update networks
                             var networks = this.model.clouds[cloudId].networksArray || [];
                             var locationNetworks = networks.filter(function(el){
-                                return el.location == location
+                                return el.location && el.location == location;
                             })
                             var networkInd = this._fieldIndexByName('networks');
                             this.set('machineFields.'+networkInd+'.options', locationNetworks);
@@ -440,21 +458,6 @@
                         if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'run_script'){
                             console.log('changeRecord.path',changeRecord.path)
                             this._toggleScriptFields(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // handle storage accounts
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_storage_account'){
-                            this._toggleStorageAccountFields(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // handle resource groups
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_resource_group'){
-                            this._toggleResourceGroupFields(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // handle networks for azure arm
-                        if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_network'){
-                            this._toggleNetworkFields(this.get(changeRecord.path.replace('.value','')).value);
                         }
 
                         if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path.endsWith('value')){
@@ -814,59 +817,6 @@
 
                     // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
                 },
-                _toggleStorageAccountFields: function(new_account){
-                    var newInd = this._fieldIndexByName('new_storage_account');
-                    var oldInd = this._fieldIndexByName('ex_storage_account');
-
-                    //if one, hide the other
-                    if (new_account == true){
-                        this.set('machineFields.'+ newInd +'.show', true);
-                        this.set('machineFields.'+ oldInd +'.show', false);
-
-                    }
-                    else if (new_account == false){
-                        this.set('machineFields.'+ newInd +'.show', false);
-                        this.set('machineFields.'+ oldInd +'.show', true);
-                    }
-                },
-                _toggleNetworkFields: function(new_network){
-                    var newInd = this._fieldIndexByName('new_network');
-                    var oldInd = this._fieldIndexByName('networks');
-
-                    //if one, hide the other
-                    if (new_network == true){
-                        this.set('machineFields.'+ newInd +'.show', true);
-                        this.set('machineFields.'+ oldInd +'.show', false);
-
-                    }
-                    else if (new_network == false){
-                        this.set('machineFields.'+ newInd +'.show', false);
-                        this.set('machineFields.'+ oldInd +'.show', true);
-                    }
-                },
-                _toggleResourceGroupFields: function(new_group){
-                    var newInd = this._fieldIndexByName('new_resource_group');
-                    var oldInd = this._fieldIndexByName('ex_resource_group');
-                    var toggleAccount = this._fieldIndexByName('create_storage_account');
-
-                    //if one, hide the other
-                    if (new_group == true){
-                        this.set('machineFields.'+ newInd +'.show', true);
-                        this.set('machineFields.'+ oldInd +'.show', false);
-                        //toggle new storage account
-                        this.set('machineFields.'+ toggleAccount +'.value', true);
-                        //this._toggleStorageAccountFields(true);
-                        this.set('machineFields.'+ toggleAccount +'.show', false);
-                    }
-                    else if (new_group == false){
-                        this.set('machineFields.'+ newInd +'.show', false);
-                        this.set('machineFields.'+ oldInd +'.show', true);
-                        //toggle new storage account
-                        //this._toggleStorageAccountFields(false);
-                        this.set('machineFields.'+ toggleAccount +'.show', true);
-                    }
-
-                },
                 _hideElementsforWin: function(value){
                     var scriptInd = this._fieldIndexByName('post_provision_script');
                     var taskInd = this._fieldIndexByName('post_provision_scheduler');
@@ -936,6 +886,19 @@
                     }
                     else if (e.detail.fieldname == 'image')
                         this.querySelector("paper-dialog#addKvmImage").open();
+
+                    else if (['resource_group', 'storage_account', 'networks'].indexOf(e.detail.fieldname) > -1) {
+                        this.set('newInput', {name: e.detail.fieldname.replace('_', " "), fieldname: e.detail.fieldname});
+                        this.querySelector("paper-dialog#addInput").open();
+                    }
+                },
+                saveNewInput: function(e){
+                    var fieldIndex = this._fieldIndexByName(this.newInput.fieldname);
+                    this.push('machineFields.'+ fieldIndex +'.options', {name: this.newInput.value, id: this.newInput.value});
+                    this.set('machineFields.'+ fieldIndex +'.value', this.newInput.value);
+
+                    this.querySelector("paper-dialog#addInput").close();
+                    this.set('newInput', {});
                 },
                 saveNewImage: function(e){
                     var imaInd = this._fieldIndexByName('image');
