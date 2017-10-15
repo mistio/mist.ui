@@ -30,16 +30,26 @@ MACHINE_CREATE_FIELDS.push({
     provider: 'azure_arm',
     fields: [{
         name: "create_resource_group",
-        label: "Create new resource group",
-        type: "toggle",
+        h3: "Resource group",
+        type: "radio",
+        value: true,
         defaultValue: true,
+        class: "bind-both",
         helptext: "Create the machine in a new resource group",
         show: true,
-        required: false
+        required: false,
+        options: [{
+            title: "Create new",
+            val: true
+        }, {
+            title: "Use existing",
+            val: false
+        }],
     }, {
         name: "ex_resource_group",
         label: "Resource Group",
         type: "mist_dropdown",
+        class: "margin-bottom",
         value: "",
         defaultValue: "",
         show: false,
@@ -50,23 +60,35 @@ MACHINE_CREATE_FIELDS.push({
         label: "Resource Group name",
         type: "text",
         value: "",
+        class: "margin-bottom",
         defaultValue: "",
         show: true,
         required: false,
         helptext: ""
     }, {
         name: "create_storage_account",
+        h3: "Storage account",
         label: "Create new storage account",
-        type: "toggle",
+        type: "radio",
+        value: true,
         defaultValue: true,
+        class: "bind-both",
         helptext: "Create the machine in a new storage account",
         show: true,
-        required: false
+        required: false,
+        options: [{
+            title: "Create new",
+            val: true
+        }, {
+            title: "Use existing",
+            val: false
+        }],
     }, {
         name: "new_storage_account",
         label: "Storage Account name",
         type: "text",
         value: "",
+        class: "margin-bottom",
         defaultValue: "",
         show: true,
         required: false,
@@ -76,24 +98,36 @@ MACHINE_CREATE_FIELDS.push({
         label: "Storage Account",
         type: "mist_dropdown",
         value: "",
+        class: "margin-bottom",
         defaultValue: "",
         show: true,
         required: true,
         options: []
     }, {
         name: "create_network",
+        h3: "Network",
         label: "Create new network",
-        type: "toggle",
+        type: "radio",
+        value: true,
         defaultValue: true,
+        class: "bind-both",
         helptext: "Create the machine in a new network",
         show: true,
-        required: false
+        required: false,
+        options: [{
+            title: "Create new",
+            val: true
+        }, {
+            title: "Use existing",
+            val: false
+        }],
     }, {
         name: "new_network",
         label: "Network name",
         type: "text",
         value: "",
         defaultValue: "",
+        class: "margin-bottom",
         show: false,
         required: false,
         helptext: ""
@@ -102,6 +136,7 @@ MACHINE_CREATE_FIELDS.push({
         label: "Networks *",
         type: "mist_dropdown",
         value: "",
+        class: "margin-bottom",
         defaultValue: "",
         show: true,
         required: true,
