@@ -143,6 +143,15 @@ MACHINE_CREATE_FIELDS.push({
         required: true,
         options: []
     }, {
+        name: "machine_username",
+        label: "Machine Username *",
+        type: "text",
+        value: "",
+        defaultValue: "Azureuser",
+        show: true,
+        required: true,
+        helptext: "Windows machine username."
+    }, {
         name: "machine_password",
         label: "Machine Password *",
         type: "password",
