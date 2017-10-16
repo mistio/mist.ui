@@ -24,10 +24,6 @@
                 border-bottom: 2px solid #ddd;
             }
 
-            paper-item.row {
-                width: 100%;
-            }
-
             .flex-horizontal-with-ratios {
                 @apply(--layout-horizontal);
             }
@@ -45,12 +41,6 @@
                 box-sizing: border-box;
                 margin-right: 0;
                 margin-left: 0;
-            }
-
-            .row {
-                margin-top: 6px;
-                margin-bottom: 6px;
-                width: 100%;
             }
 
             .head {
@@ -178,7 +168,7 @@
                     <h2 class="title">Notification Overrides</h2>
                 </div>
                 <div class="summary xs12 m12 l12">
-                    <p>Notification overrides allow you to personalize delivery of notifications and recommendations about your infrastructure.</p>
+                    <p>Overrides let you personalize delivery of notifications and recommendations for your infrastructure.</p>
                 </div>
             </div>
             <div class="card-content">
@@ -188,7 +178,7 @@
                         <div class="flexchild text-right">Delivery</div>
                         <div class="flexchild text-right">&nbsp;</div>
                     </div>
-                    <div class="info-body flex-horizontal-with-ratios">
+                    <div class="info-body">
                         <template is="dom-repeat" items="[[notificationOverrides]]" as="override">
                             <paper-item class="row flex-horizontal-with-ratios plan-record">
                                 <div class="flexchild plan-date">
@@ -198,7 +188,7 @@
                                     <paper-toggle-button checked="{{_computeAllowed(override)}}" on-change="_overrideChanged" index="[[index]]">[[_computeOverrideStateLabel(override, machines)]]</paper-toggle-button>
                                 </div> 
                                 <div class="flexchild plan-title text-right">
-                                    <paper-button class="red" on-tap="_deleteOverrideTapped">Delete</paper-button>
+                                    <paper-button class="red" index="[[index]]" on-tap="_deleteOverrideTapped">Delete</paper-button>
                                 </div>   
                             </paper-item>                        
                         </template>
@@ -207,9 +197,9 @@
             </div>
             <div id="error" class="error" hidden$="[[!hasError]]"></div>
             <div class="bottom-actions clearfix xs12">
-                <paper-button class="pull-right" 
-                    disabled$="[[!formReady]]" 
-                    raised on-tap="_submitForm">Save Notification Overrides</paper-button>
+                <paper-button class="pull-right"  
+                    raised on-tap="_submitForm" 
+                    disabled$="[[!hasOverrides]]">Save Notification Overrides</paper-button>
             </div>
         </paper-card>
 
@@ -241,6 +231,10 @@
             properties: {
                 machines: Object,
                 notificationOverrides: Array,
+                hasOverrides: {
+                    type: Boolean,
+                    computed: "_computeHasOverrides(notificationOverrides.length)"
+                },
                 overridesError: Boolean
             },
 
@@ -319,6 +313,10 @@
                 return valueString.charAt(0).toUpperCase() + valueString.slice(1);
             },
 
+            _computeHasOverrides: function(length) {
+                return length > 0;
+            },
+
             _overrideChanged: function(e) {
                 var checked = e.target.checked;
                 var index = e.target.index;
@@ -345,15 +343,16 @@
                 var index = e.target.index;
                 var payload = {
                     action: 'delete_notification_override',
-                    override_id: this.overrides[index].id
+                    override_id: this.notificationOverrides[index]._id
                 };
-                this.$.setNotificationOverridesRequest.headers["Content-Type"] = 'application/json';
-                this.$.setNotificationOverridesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.setNotificationOverridesRequest.body = payload;
-                this.$.setNotificationOverridesRequest.generateRequest();
+                this.$.deleteNotificationOverrideRequest.headers["Content-Type"] = 'application/json';
+                this.$.deleteNotificationOverrideRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.deleteNotificationOverrideRequest.body = payload;
+                this.$.deleteNotificationOverrideRequest.generateRequest();
             },
 
             _handleDeleteOverrideResponse: function(e) {
+                this.set('notificationOverrides', JSON.parse(e.detail.response));
                 this.fire('toast',{msg:"Notification override deleted succesfully!",duration:3000});
             },
 
