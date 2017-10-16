@@ -1,0 +1,138 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
+
+<dom-module id="other-cloud-machines">
+    <template>
+        <h3>Machines</h3>
+        <p>You can add or remove machines for this cloud.</p>
+        <mist-list id="otherServerMachinesList" class$="[[cloud.id]]"
+            selectable column-menu multi-sort
+            items="[[cloud.machines]]"
+            name="Machines"
+            selected-items="{{selectedMachineItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers()]]>
+            <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
+            <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}"></record-actions>
+        </mist-list>
+    </template>
+    <script>
+    Polymer({
+        is: 'other-cloud-machines',
+        properties: {
+            cloud:  Object,
+            fields: {
+                    type: Array,
+                    computed: "_computeFields(cloud.*)",
+                    notify: true
+            },
+            providers: {
+                type: Array,
+                value: PROVIDERS
+            }
+        },
+        observers: [
+        ],
+        _getFrozenLogColumn: function(){
+            return ['name'];
+        },
+
+        _getVisibleColumns: function(){
+            return ['machine_id', 'id', 'missing_since', 'public_ips', 'tags'];
+        },
+        _getRenderers: function() {
+            var _this = this;
+            return {
+                'name': {
+                    'body': function(item) {
+                        return '<strong class="name">'+ item + '</strong>';
+                    }
+                },
+                'missing_since': {
+                    'title': function(item, row){
+                    return 'missing since';
+                    },
+                    'body': function(item, row) {
+                    return item;
+                    }
+                },
+                'tags': {
+                    'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                        display += "<span class='tag'>"+tags[i].key;
+                        if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                        display += "</span>";
+                    }
+                    return display;
+                    }
+                }
+            }
+        },
+
+    //     _computeFields: function(cloud){
+    //         var providerFields = this.providers.filter(function(fields) {
+    //             if (this.cloud && this.cloud.provider)
+    //                 return fields.val == this.cloud.provider;
+    //         }, this);
+    //         // don't allow title and region in the fields
+    //         var fields = [];
+    //         if (providerFields[0] && providerFields[0].options) {
+    //             fields = providerFields[0].options.filter(function(f){
+    //                 return f.name != 'title' && f.name != 'region' && f.name != 'dns_enabled'
+    //             });
+
+    //             for (var i=0; i<fields.length; i++) {
+    //                 var name = fields[i].name;
+    //                 if(this.cloud[name]){
+    //                     fields[i].value = this.cloud[name]
+    //                 }
+    //                 //if docker_host, search for clouds host
+    //                 if (name == 'docker_host' && this.cloud['host']){
+    //                     fields[i].value = this.cloud['host']
+    //                 }
+    //                 //if docker_port, search for clouds host
+    //                 else if (name == 'docker_port' && this.cloud['port']){
+    //                     fields[i].value = this.cloud['port']
+    //                 }
+    //             }
+    //         }
+    //         return fields;
+    //     },
+    //     _fillInCreds: function(cloud){
+    //         if (cloud){
+    //             //reset form 
+    //             this.querySelector('app-form').form = {};
+    //             // if there is an apikey we can fill in
+    //             var apikey = this.cloud.apikey;
+    //             var index = this._fieldIndexByName('apikey', this.fields);
+    //             if (apikey && index>-1) {
+    //                 this.set('fields.'+index+'.value', apikey);
+    //                 // if there is apikey and an apisecret we can 'getsecretfromdb'
+    //                 var indexp = this._fieldIndexByName('apisecret');
+    //                 if (indexp) {
+    //                     this.set('fields.'+indexp+'.value', 'getsecretfromdb');
+    //                 }
+    //             }
+    //         }
+    //     },
+    //     _fieldIndexByName: function(name, fields){
+    //         var index;
+    //         if (this.fields){
+    //             var passField = this.fields.find(function(f, ind){
+    //                 index = ind;
+    //                 return f.name == name;
+    //             });
+    //         }
+    //         return index;
+    //     },
+    //     _editCloudRequest: function(){},
+    //     _editCloudsResponse: function(){},
+    });
+    </script>
+</dom-module>

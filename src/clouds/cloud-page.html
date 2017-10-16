@@ -10,6 +10,7 @@
 <link rel="import" href="cloud-info.html">
 <link rel="import" href="cloud-dns.html">
 <link rel="import" href="cloud-edit.html">
+<link rel="import" href="other-cloud-machines.html">
 
 <dom-module id="cloud-page">
     <template>
@@ -248,7 +249,12 @@
                 </paper-material>
             </template>
             <paper-material class="separator">
-                <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
+                <template is="dom-if" if="[[!_isBareMetal(cloud.provider)]]">                            
+                    <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
+                </template>
+                <template is="dom-if" if="[[_isBareMetal(cloud.provider)]]">
+                    <other-cloud-machines cloud="[[cloud]]"></cloud-edit>                        
+                </template>                
             </paper-material>
             <paper-material class="separator">
                 <h3>Delete Cloud: [[cloud.title]]</h3>
@@ -334,6 +340,9 @@
                     } else {
                         return false;
                     }
+                },
+                _isBareMetal: function(provider) {
+                    return provider == 'bare_metal';
                 },
                 _deleteCloudConfirmation:function(){
                   this._showDialog({
