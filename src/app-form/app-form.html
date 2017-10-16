@@ -670,6 +670,9 @@
                             else if (el.name == "schedule_entry") {
                                 return !el.excludeFromPayload ? el.value : true;
                             }
+                            else if (el.type == "password" && el.pattern) {
+                                return this._validatePatternedField(el);
+                            }
                             else {
                                 return el.show && el.required ? el.value : true;
                             }
@@ -677,6 +680,12 @@
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
+                },
+                _validatePatternedField: function(el) {
+                    if (this.querySelector("paper-input#"+el.name)){
+                        return el.value && !this.querySelector("paper-input#"+el.name).invalid;
+                    }
+                    return false;
                 },
                 _submitForm: function(e) {
                     var payload = {};
