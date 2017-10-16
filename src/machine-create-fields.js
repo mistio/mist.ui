@@ -135,6 +135,7 @@ MACHINE_CREATE_FIELDS.push({
         name: "networks",
         label: "Networks *",
         type: "mist_dropdown",
+        noPluralisation: true,
         value: "",
         class: "margin-bottom",
         defaultValue: "",
