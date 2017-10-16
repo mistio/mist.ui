@@ -148,11 +148,11 @@ MACHINE_CREATE_FIELDS.push({
         value: "",
         defaultValue: "",
         // http://regexlib.com/REDetails.aspx?regexp_id=887
-        pattern: "(?=^.{8,123}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+        pattern: "(?=^.{12,123}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
         errorMessage: "Invalid password!",
         show: false,
         required: false,
-        helptext: "Windows machine password is required. The password must be between 8-123 characters long and must contain an uppercase character, a lowercase character, a numeric digit and a special character."
+        helptext: "Windows machine password is required. The password must be between 12-123 characters long and must contain an uppercase character, a lowercase character, a numeric digit and a special character."
     }]
 });
 
