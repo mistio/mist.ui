@@ -147,7 +147,7 @@ MACHINE_CREATE_FIELDS.push({
         label: "Machine Username *",
         type: "text",
         value: "",
-        defaultValue: "Azureuser",
+        defaultValue: "",
         show: true,
         required: true,
         helptext: "Windows machine username."
