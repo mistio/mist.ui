@@ -1,0 +1,149 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+
+<link rel="import" href="../app-form/app-form.html">
+
+<dom-module id="other-cloud-add-machine">
+    <template>
+    <h3>Add Machine</h3>
+    <p>Add a new bare metal server on this cloud.</p>
+    <app-form fields="{{fields}}" url="/api/v1/clouds/[[cloud.id]]/machines" method="PUT" on-request="_addMachineRequest" on-response="_addMachineResponse" btncontent="Add Machine"></app-form>
+    
+    </template>
+    <script>
+    Polymer({
+        is: 'other-cloud-add-machine',
+        properties: {
+            cloud:  Object,
+            clouds: Object,
+            fields: {
+                type: Array,
+                value: [{
+                        name: "name",
+                        label: "Machine name *",
+                        type: "text",
+                        value: "",
+                        defaultValue: "",
+                        show: true,
+                        required: true,
+                        errorMessage: "Please enter title"
+                    }, {
+                        name: "machine_ip",
+                        label: "Hostname *",
+                        type: "text",
+                        placeholder: 'DNS or IP',
+                        show: true,
+                        required: true,
+                        helptext: 'The URL or IP adress that your server listens to',
+                        helpHref: 'http://docs.mist.io/article/28-adding-other-servers'
+                    }, {
+                        name: "operating_system",
+                        label: "Operating System",
+                        type: "dropdown",
+                        value: "unix",
+                        defaultValue: "unix",
+                        show: true,
+                        required: false,
+                        options: [{
+                            title: "Unix",
+                            val: "unix"
+                        }, {
+                            title: "Windows",
+                            val: "windows"
+                        }]
+                    }, {
+                        name: "machine_key",
+                        label: "SSH Key",
+                        type: "ssh_key",
+                        value: "",
+                        defaultValue: "",
+                        show: false,
+                        required: false,
+                        options: [],
+                        showIf: {
+                            fieldName: "operating_system",
+                            fieldValues: ["unix"]
+                        }
+                    }, {
+                        name: "machine_user",
+                        label: "User",
+                        type: "text",
+                        value: "root",
+                        defaultValue: "root",
+                        show: false,
+                        required: false,
+                        errorMessage: "Please enter user",
+                        showIf: {
+                            fieldName: "machine_key",
+                            fieldExists: true
+                        }
+                    }, {
+                        name: "machine_port",
+                        label: "Port",
+                        type: "text",
+                        value: 22,
+                        defaultValue: 22,
+                        show: false,
+                        required: false,
+                        errorMessage: "Please enter port",
+                        showIf: {
+                            fieldName: "machine_key",
+                            fieldExists: true
+                        }
+                    }, {
+                        name: "remote_desktop_port",
+                        label: "Remote Desktop Port",
+                        type: "text",
+                        value: 3389,
+                        defaultValue: 3389,
+                        errorMessage: "Please enter remote desktop's port",
+                        show: false,
+                        required: true,
+                        showIf: {
+                            fieldName: "operating_system",
+                            fieldValues: ["windows"]
+                        }
+                    }, {
+                        name: "monitoring",
+                        label: "Enable monitoring",
+                        type: "toggle",
+                        value: true,
+                        defaultValue: true,
+                        show: true,
+                        required: false
+                    }]
+            },
+            providers: {
+                type: Array,
+                value: PROVIDERS
+            }
+
+        },
+        listeners: {
+            'update-keys': 'updateKeys'
+        },
+        _fieldIndexByName: function(name, fields){
+            var index;
+            if (this.fields){
+                var passField = this.fields.find(function(f, ind){
+                    index = ind;
+                    return f.name == name;
+                });
+            }
+            return index;
+        },
+        _addMachineRequest: function(){},
+        _addMachineResponse: function(){},
+        updateKeys: function(e){
+            var keyFieldsIndexes = this.fieldsOfType('ssh_key');
+            this.async(function(){
+                for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                    this.set('fields.'+ keyFieldsIndexes[i] +'.options', this.keys);
+                    this.set('fields.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
+                }
+            }.bind(this), 1000);
+        },
+    });
+    </script>
+</dom-module>

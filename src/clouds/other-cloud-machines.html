@@ -3,20 +3,23 @@
 <link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
+<link rel="import" href="../mist-actions.html">
+<link rel="import" href="other-cloud-machine-actions.html">
+
 <dom-module id="other-cloud-machines">
     <template>
         <h3>Machines</h3>
         <p>You can add or remove machines for this cloud.</p>
         <mist-list id="otherServerMachinesList" class$="[[cloud.id]]"
             selectable column-menu multi-sort
-            items="[[cloud.machines]]"
+            items="[[cloud.machinesArray]]"
             name="Machines"
             selected-items="{{selectedMachineItems}}"
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
             renderers=[[_getRenderers()]]>
-            <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
-            <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}"></record-actions>
+            <mist-actions slot="action-buttons" actions="[[machineActions]]" type="Machine" items="[[selectedMachineItems]]" model="[[model]]"></mist-actions>
+            <other-cloud-machine-actions slot="actions" items="[[selectedMachineItems]]" actions="{{machineActions}}"></other-cloud-machine-actions>
         </mist-list>
     </template>
     <script>
@@ -24,14 +27,22 @@
         is: 'other-cloud-machines',
         properties: {
             cloud:  Object,
-            fields: {
-                    type: Array,
-                    computed: "_computeFields(cloud.*)",
-                    notify: true
+            // fields: {
+            //     type: Array,
+            //     computed: "_computeFields(cloud.*)",
+            //     notify: true
+            // },
+            machineActions: {
+                type: Array,
+                notify: true
             },
             providers: {
                 type: Array,
                 value: PROVIDERS
+            },
+            selectedMachineItems: {
+                type: Array,
+                notify: true
             }
         },
         observers: [
@@ -41,7 +52,7 @@
         },
 
         _getVisibleColumns: function(){
-            return ['machine_id', 'id', 'missing_since', 'public_ips', 'tags'];
+            return ['state', 'id', 'missing_since', 'public_ips', 'tags'];
         },
         _getRenderers: function() {
             var _this = this;
