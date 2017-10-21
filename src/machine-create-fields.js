@@ -24,10 +24,146 @@ MACHINE_CREATE_FIELDS.push({
     }]
 });
 
+
 // AZURE ARM
 MACHINE_CREATE_FIELDS.push({
     provider: 'azure_arm',
-    fields: []
+    fields: [{
+        name: "create_resource_group",
+        h3: "Resource group",
+        type: "radio",
+        value: true,
+        defaultValue: true,
+        class: "bind-both",
+        helptext: "Create the machine in a new resource group",
+        show: true,
+        required: false,
+        options: [{
+            title: "Create new",
+            val: true
+        }, {
+            title: "Use existing",
+            val: false
+        }],
+    }, {
+        name: "ex_resource_group",
+        label: "Resource Group",
+        type: "mist_dropdown",
+        class: "margin-bottom",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: true,
+        options: []
+    }, {
+        name: "new_resource_group",
+        label: "Resource Group name",
+        type: "text",
+        value: "",
+        class: "margin-bottom",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: ""
+    }, {
+        name: "create_storage_account",
+        h3: "Storage account",
+        label: "Create new storage account",
+        type: "radio",
+        value: true,
+        defaultValue: true,
+        class: "bind-both",
+        helptext: "Create the machine in a new storage account",
+        show: true,
+        required: false,
+        options: [{
+            title: "Create new",
+            val: true
+        }, {
+            title: "Use existing",
+            val: false
+        }],
+    }, {
+        name: "new_storage_account",
+        label: "Storage Account name",
+        type: "text",
+        value: "",
+        class: "margin-bottom",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: ""
+    }, {
+        name: "ex_storage_account",
+        label: "Storage Account",
+        type: "mist_dropdown",
+        value: "",
+        class: "margin-bottom",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: []
+    }, {
+        name: "create_network",
+        h3: "Network",
+        label: "Create new network",
+        type: "radio",
+        value: true,
+        defaultValue: true,
+        class: "bind-both",
+        helptext: "Create the machine in a new network",
+        show: true,
+        required: false,
+        options: [{
+            title: "Create new",
+            val: true
+        }, {
+            title: "Use existing",
+            val: false
+        }],
+    }, {
+        name: "new_network",
+        label: "Network name",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        class: "margin-bottom",
+        show: false,
+        required: false,
+        helptext: ""
+    }, {
+        name: "networks",
+        label: "Networks *",
+        type: "mist_dropdown",
+        noPluralisation: true,
+        value: "",
+        class: "margin-bottom",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: []
+    }, {
+        name: "machine_username",
+        label: "Machine Username *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: "Windows machine username."
+    }, {
+        name: "machine_password",
+        label: "Machine Password *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        // http://regexlib.com/REDetails.aspx?regexp_id=887
+        pattern: "(?=^.{12,123}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+        errorMessage: "Invalid password!",
+        show: false,
+        required: false,
+        helptext: "Windows machine password is required. The password must be between 12-123 characters long and must contain an uppercase character, a lowercase character, a numeric digit and a special character."
+    }]
 });
 
 
@@ -247,7 +383,16 @@ MACHINE_CREATE_FIELDS.push({
             required: false,
             helptext: "Whether the new server will be Cloud server, or Bare Metal"
 
-        }]
+        }, {
+        name: "machine_password",
+        label: "Machine Password *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        helptext: "Windows machine password is required."
+    }]
 });
 
 // VCLOUD
