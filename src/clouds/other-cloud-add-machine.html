@@ -16,11 +16,13 @@
         is: 'other-cloud-add-machine',
         properties: {
             cloud:  Object,
-            clouds: Object,
+            keys: {
+                type: Array
+            },
             fields: {
                 type: Array,
                 value: [{
-                        name: "name",
+                        name: "machine_name",
                         label: "Machine name *",
                         type: "text",
                         value: "",
@@ -120,6 +122,9 @@
             }
 
         },
+        observers: [
+            '_keysChanged(keys.*, fields)'
+        ],
         listeners: {
             'update-keys': 'updateKeys'
         },
@@ -135,6 +140,16 @@
         },
         _addMachineRequest: function(){},
         _addMachineResponse: function(){},
+        _keysChanged: function(keys, fields) {
+            // Set list of keys in providerFields when model keys change
+
+            var index = this.fields.findIndex(function(field) {
+                return field.type == "ssh_key";
+            }, this);
+
+            this.set('fields.' + index + '.options', this.keys);
+            this.set('fields.' + index + '.value', '');
+        },
         updateKeys: function(e){
             var keyFieldsIndexes = this.fieldsOfType('ssh_key');
             this.async(function(){

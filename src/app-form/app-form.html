@@ -20,6 +20,7 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="sub-form.html">
 
 <script src="../../bower_components/yaml.js/dist/yaml.min.js"></script>
 
@@ -346,6 +347,9 @@
                             <paper-icon-button icon="icons:close" on-tap="_clearDate" data-value="[[field.name]]" hidden$="{{!field.value.length}}"></paper-icon-button>
                         </div>
                     </template>
+                    <template is="dom-if" if="[[_computeFieldType(field, 'form', field.show)]]">
+                        <sub-form options="[[field.options]]" displayButton="{{displayButton}}" class$="xs12 m12 [[field.class]]"></sub-form>
+                    </template>
                     <div class$="field-helptext xs12 m6 [[field.class]]" hidden="[[field.hidden]]">[[field.helptext]]
                         <a hidden$="[[!field.helpHref]]" href$="[[field.helpHref]]" target="new" class="helpHref" on-tap="_helpTap">
                             <paper-icon-button icon="icons:help" alt="open docs" title="open docs" class="docs">
@@ -363,24 +367,27 @@
                 </template>
             </template>
 
-            <div class="progress">
-                <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
-                <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <hr class="appform"/>
-                <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-            </div>
+            <template is="dom-if" if="[[displayButtons]]">                            
+                    
+                <div class="progress">
+                    <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
+                    <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                    <hr class="appform"/>
+                    <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                </div>
 
-            <div class="clearfix bottom-actions xs12">
-                <paper-button id="appformsubmit" class="submit-btn pull-left blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">
-                    <template is="dom-if" if="[[btncontent]]">
-                        [[btncontent]]
-                    </template>
-                    <template is="dom-if" if="[[!btncontent]]">
-                        Add
-                    </template>
-                </paper-button>
-                <paper-button class="submit-btn pull-right" on-tap="_resetForm"><iron-icon icon="icons:refresh"></iron-icon>Reset Form</paper-button>
-            </div>
+                <div class="clearfix bottom-actions xs12">
+                    <paper-button id="appformsubmit" class="submit-btn pull-left blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">
+                        <template is="dom-if" if="[[btncontent]]">
+                            [[btncontent]]
+                        </template>
+                        <template is="dom-if" if="[[!btncontent]]">
+                            Add
+                        </template>
+                    </paper-button>
+                    <paper-button class="submit-btn pull-right" on-tap="_resetForm"><iron-icon icon="icons:refresh"></iron-icon>Reset Form</paper-button>
+                </div>
+            </template>
         </div>
 
         <paper-dialog id="dateTimePickers" with-backdrop>
@@ -456,6 +463,14 @@
                     },
                     url: {
                         type: String,
+                    },
+                    displayButtons: {
+                        type: Boolean,
+                        value: true
+                    },
+                    displayButton: {
+                        type: Boolean,
+                        value: false
                     },
                     sendingData: {
                         type: Boolean,

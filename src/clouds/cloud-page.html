@@ -258,10 +258,15 @@
                 </template>                
             </paper-material>
             <template is="dom-if" if="[[_isBareMetal(cloud.provider)]]">
-                <paper-material class="separator">
-                    <other-cloud-add-machine cloud="[[cloud]]" clouds="[[model.clouds]]"></other-cloud-add-machine>                                                
-                </paper-material>
-            </template>                
+                <paper-material class="separator">                            
+                    <paper-toggle-button checked="{{addMachine}}">
+                        <h3>Add a machine.</h3>
+                    </paper-toggle-button>
+                    <div hidden$="[[!addMachine]]">                        
+                        <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>                                                
+                    </div>
+                </paper-material>            
+            </template>                 
             <paper-material class="separator">
                 <h3>Delete Cloud: [[cloud.title]]</h3>
                 <p>Deleting clouds can not be undone. Alternatively you can disable the cloud temporarily by using the option on the top.</p>
@@ -306,10 +311,11 @@
                         computed: '_computeIsloading(cloud)',
                         value: true
                     },
-                    expectedState: Boolean
+                    expectedState: Boolean,
+                    addMachine: false,
                 },
                 listeners: {
-                    'confirmation': '_deleteCloud'
+                    'confirmation': '_deleteCloud',
                 },
                 ready: function() {
                 },

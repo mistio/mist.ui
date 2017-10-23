@@ -9,7 +9,7 @@
 <dom-module id="other-cloud-machines">
     <template>
         <h3>Machines</h3>
-        <p>You can add or remove machines for this cloud.</p>
+        <p>Select any machine to remove it from this cloud.</p>
         <mist-list id="otherServerMachinesList" class$="[[cloud.id]]"
             selectable column-menu multi-sort
             items="[[cloud.machinesArray]]"
@@ -18,7 +18,7 @@
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
             renderers=[[_getRenderers()]]>
-            <mist-actions slot="action-buttons" actions="[[machineActions]]" type="Machine" items="[[selectedMachineItems]]" model="[[model]]"></mist-actions>
+            <mist-actions slot="action-buttons" actions="[[machineActions]]" type="machine" items="[[selectedMachineItems]]" model="[[model]]"></mist-actions>
             <other-cloud-machine-actions slot="actions" items="[[selectedMachineItems]]" actions="{{machineActions}}"></other-cloud-machine-actions>
         </mist-list>
     </template>
@@ -27,11 +27,6 @@
         is: 'other-cloud-machines',
         properties: {
             cloud:  Object,
-            // fields: {
-            //     type: Array,
-            //     computed: "_computeFields(cloud.*)",
-            //     notify: true
-            // },
             machineActions: {
                 type: Array,
                 notify: true
@@ -45,8 +40,9 @@
                 notify: true
             }
         },
-        observers: [
-        ],
+        listeners: {
+            'select-action': 'selectAction'
+        },
         _getFrozenLogColumn: function(){
             return ['name'];
         },
@@ -70,6 +66,14 @@
                     return item;
                     }
                 },
+                'public_ips': {
+                    'title': function(item, row){
+                    return 'public IP';
+                    },
+                    'body': function(item, row) {
+                    return item[0];
+                    }
+                },
                 'tags': {
                     'body': function(item, row) {
                     var tags = item,
@@ -85,65 +89,13 @@
                 }
             }
         },
-
-    //     _computeFields: function(cloud){
-    //         var providerFields = this.providers.filter(function(fields) {
-    //             if (this.cloud && this.cloud.provider)
-    //                 return fields.val == this.cloud.provider;
-    //         }, this);
-    //         // don't allow title and region in the fields
-    //         var fields = [];
-    //         if (providerFields[0] && providerFields[0].options) {
-    //             fields = providerFields[0].options.filter(function(f){
-    //                 return f.name != 'title' && f.name != 'region' && f.name != 'dns_enabled'
-    //             });
-
-    //             for (var i=0; i<fields.length; i++) {
-    //                 var name = fields[i].name;
-    //                 if(this.cloud[name]){
-    //                     fields[i].value = this.cloud[name]
-    //                 }
-    //                 //if docker_host, search for clouds host
-    //                 if (name == 'docker_host' && this.cloud['host']){
-    //                     fields[i].value = this.cloud['host']
-    //                 }
-    //                 //if docker_port, search for clouds host
-    //                 else if (name == 'docker_port' && this.cloud['port']){
-    //                     fields[i].value = this.cloud['port']
-    //                 }
-    //             }
-    //         }
-    //         return fields;
-    //     },
-    //     _fillInCreds: function(cloud){
-    //         if (cloud){
-    //             //reset form 
-    //             this.querySelector('app-form').form = {};
-    //             // if there is an apikey we can fill in
-    //             var apikey = this.cloud.apikey;
-    //             var index = this._fieldIndexByName('apikey', this.fields);
-    //             if (apikey && index>-1) {
-    //                 this.set('fields.'+index+'.value', apikey);
-    //                 // if there is apikey and an apisecret we can 'getsecretfromdb'
-    //                 var indexp = this._fieldIndexByName('apisecret');
-    //                 if (indexp) {
-    //                     this.set('fields.'+indexp+'.value', 'getsecretfromdb');
-    //                 }
-    //             }
-    //         }
-    //     },
-    //     _fieldIndexByName: function(name, fields){
-    //         var index;
-    //         if (this.fields){
-    //             var passField = this.fields.find(function(f, ind){
-    //                 index = ind;
-    //                 return f.name == name;
-    //             });
-    //         }
-    //         return index;
-    //     },
-    //     _editCloudRequest: function(){},
-    //     _editCloudsResponse: function(){},
+        // redirect events
+        selectAction: function(e) {
+            e.stopImmediatePropagation();
+            if (this.querySelector('other-cloud-machine-actions')) {
+                this.querySelector('other-cloud-machine-actions').selectAction(e);
+            }
+        }
     });
     </script>
 </dom-module>

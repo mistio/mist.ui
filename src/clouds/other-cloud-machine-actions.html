@@ -27,7 +27,7 @@
   </template>
   <script>
 MACHINE_ACTIONS = {
-  'Remove': {
+  'remove': {
     'name': 'remove',
     'icon': 'remove',
     'confirm': true,
@@ -55,7 +55,8 @@ MACHINE_ACTIONS = {
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction'
+        'iron-overlay-closed': 'confirmAction',
+        'select-action': 'selectAction',
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -77,16 +78,18 @@ MACHINE_ACTIONS = {
         }
         return ret;
       },
-      _delete: function() {
+      _remove: function() {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "DELETE";
+        this.$.request.method = "POST";
+        payload = {'action': 'remove'};
+        this.$.request.body = payload;
 
         for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/clouds/"+this.items[i].cloud_id+"/dns/zones/"+this.items[i].zone_id+"/records/"+ this.items[i].id
+          this.$.request.url = "/api/v1/machines/"+this.items[i].id
           this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
+          this.fire('toast', {msg: 'Removing ' + this.items[i].name , duration: 1000})
         }
       },
       _showDialog: function(info) {
@@ -101,12 +104,13 @@ MACHINE_ACTIONS = {
           this.performAction(this.action, this.items);
       },
       selectAction: function(e){
+        console.error('blahblah');
         if (this.items.length) {
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
           if (action.confirm && action.name != 'tag') {
-            var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
+            var property = ['machine'].indexOf(this.type) == -1 ? "name" : "domain",
                 plural = this.items.length == 1 ? '' : 's',
                 count = this.items.length > 1 ? this.items.length+' ' : '';
             //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
@@ -119,17 +123,14 @@ MACHINE_ACTIONS = {
                 reason: this.type + "." + this.action.name
             });
           }
-          else if (action.name == "tag") {
-            this.$.tagsdialog._openDialog();
-          }
           else {
             this.performAction(this.action, this.items);
           }
         }
       },
       performAction: function(action, items) {
-        if (action.name == 'delete') {
-          this._delete();
+        if (action.name == 'remove') {
+          this._remove();
         }
       },
       handleResponse: function(e) {
@@ -145,7 +146,6 @@ MACHINE_ACTIONS = {
 
         if (this.items.length > 0) {
           actions.addItems(this.itemActions(this.items[0]) || []);
-
           for (var i=1; i<this.items.length; i++) {
               isection.clear()
               isection.addItems(actions.intersection(this.itemActions(this.items[i])));
@@ -154,7 +154,6 @@ MACHINE_ACTIONS = {
           }
 
           var multiActions;
-
           if (this.items.length > 1) {
               multiActions = this.actionDetails(actions.items()).filter(function(a){
                   return a.multi;
