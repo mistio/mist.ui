@@ -152,7 +152,8 @@
                         type: Boolean,
                         value: false
                     },
-                    clouds: Array
+                    clouds: Array,
+                    enableMonitoring: Boolean
                 },
                 observers: [
                     '_providerChanged(selectedProvider, providers)',
@@ -200,6 +201,13 @@
                             this._resetField(el, index);
                         }
                     }, this);
+
+                    if (selectedProvider && !this.enableMonitoring) {
+                        var indexm = this.fieldIndexByName('monitoring');
+                        if (indexm) {
+                            this.set('providerFields.'+indexm+'.show', false);
+                        }
+                    }
                     
                     this.fillInKnownData(selectedProvider, this.clouds);
                 },
@@ -278,7 +286,8 @@
                 fieldIndexByName: function(name){
                     var index;
                     var passField = this.providerFields.find(function(f, ind){
-                        index = ind;
+                        if (f.name == name)
+                            index = ind;
                         return f.name == name;
                     });
                     return index;
