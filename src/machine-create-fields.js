@@ -150,7 +150,7 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: "",
         show: true,
         required: true,
-        helptext: "Windows machine username."
+        helptext: "Machine username"
     }, {
         name: "machine_password",
         label: "Machine Password *",
