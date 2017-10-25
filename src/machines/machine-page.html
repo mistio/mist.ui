@@ -417,14 +417,14 @@
                     <span hidden$="[[!machineSize]]" class="break"><span class="m-info-head">Size:</span>
                         [[machineSize]]</span>
                     <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
-                        [[machine.created]]</span>
+                        [[_fromNow(machine.created)]]</span>
                     <div hidden$="[[!machine.probe.ssh.loadavg]]"> 
                         <span class="m-info-head" hidden$="[[!machine.probe.ssh.loadavg]]">Load:</span>
                         <span class$="probe-data [[itemProbeClasses(machine)]]"> </span>
                         <span class="smaller" hidden$="[[!machine.probe.ssh.loadavg]]"> [[machine.probe.ssh.loadavg]] - [[machine.probe.ssh.cores]] cores</span> <br/>
 
                         <span class="m-info-head" hidden$="[[!machine.probe.ssh.updated_at]]">Last probe:</span> 
-                        <span class="smaller" hidden$="[[!machine.probe.ssh.updated_at]]"> [[machine.probe.ssh.updated_at]] </span> <br/>
+                        <span class="smaller" hidden$="[[!machine.probe.ssh.updated_at]]"> [[_fromNow(machine.probe.ssh.updated_at)]] </span> <br/>
                     </div>
                     <div hidden$="[[!machine.probe.ping]]"> <span class="m-info-head">Ping Data:</span>
                         <span class="smaller">packets loss [[machine.probe.ping.packets_loss]], rx [[machine.probe.ping.packets_rx]], tx [[machine.probe.ping.packets_tx]]</span> <br/>
@@ -1008,6 +1008,9 @@ Polymer({
          if (this.machine.probe.ssh.dirty_cow)
              info += "Dirty COW vulnerability found. Update kernel.";
          return info.length ? info : '';
+    },
+    _fromNow: function(time){
+        return moment(time).fromNow();
     },
     itemProbeClasses: function(machine) {
         if (!machine.probe) {
