@@ -402,8 +402,8 @@
 
                         // if image and image is Windows, show password field
                         if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'image'){
-                            this._showPassword(this.get(changeRecord.path.replace('.value','')).value);
-                            this._hideElementsforWin(this.get(changeRecord.path.replace('.value','')).value);
+                            this._showPassword(this.get(changeRecord.path));
+                            this._hideElementsforWin(this.get(changeRecord.path));
                         }
 
                         // if its kvm
@@ -874,14 +874,20 @@
                     var monitoringInd = this._fieldIndexByName('monitoring');
 
                     if (value.toLowerCase().indexOf('win') > -1){
-                        this.set('machineFields.'+ scriptInd +'.show', false);
-                        this.set('machineFields.'+ monitoringInd +'.show', false);
-                        this.set('machineFields.'+ monitoringInd +'.value', false);
+                        if (scriptInd != undefined)
+                            this.set('machineFields.'+ scriptInd +'.show', false);
+                        if (monitoringInd != undefined){
+                            this.set('machineFields.'+ monitoringInd +'.show', false);
+                            this.set('machineFields.'+ monitoringInd +'.value', false);
+                        }
                     }
                     else {
-                        this.set('machineFields.'+ scriptInd +'.show', true);
-                        this.set('machineFields.'+ monitoringInd +'.show', true);
-                        this.set('machineFields.'+ monitoringInd +'.value', true);
+                        if (scriptInd != undefined)
+                            this.set('machineFields.'+ scriptInd +'.show', true);
+                        if (monitoringInd != undefined){
+                            this.set('machineFields.'+ monitoringInd +'.show', true);
+                            this.set('machineFields.'+ monitoringInd +'.value', this.get('machineFields.'+ monitoringInd +'.defaultValue'));
+                        }
                     }
                 },
                 _showPassword: function(value){
