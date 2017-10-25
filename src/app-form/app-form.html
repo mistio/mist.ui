@@ -133,6 +133,10 @@
             .date.bind-top {
                 padding-top: 24px !important;
             }
+            .margin-bottom {
+                margin-top: 0 !important;
+                margin-bottom: 20px !important;
+            }
             .background {
                 background-color: #eee;
             }
@@ -212,6 +216,11 @@
                 padding-left: 16px;
                 padding-right: 16px;
             }
+            h3 {
+                margin-top: 36px !important;
+                font-weight: 500;
+                font-size: 18px;
+            }
             @media (max-width: 991px) {
                 .field-helptext.background,
                 .field-helptext.bind-bottom {
@@ -228,6 +237,7 @@
         <div class="grid-row">
             <template is="dom-repeat" items="{{fields}}" as="field">
                 <template is="dom-if" if="[[field.show]]">
+                    <h3 class="xs12 s12 m12 l12" hidden$="[[!field.h3]]">[[field.h3]]</h3>
                     <template is="dom-if" if="[[_computeFieldType(field, 'text', field.show)]]">
                         <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate auto-validate pattern="[[field.pattern]]" required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" placeholder=[[field.placeholder]]>
                             <div suffix hidden$="[[!field.suffix]]">[[field.suffix]]</div>
@@ -235,7 +245,7 @@
                         </paper-input>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'password', field.show)]]">
-                        <paper-input  class$="xs12 m6 [[field.class]]" id="[[field.name]]" type="password" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]"></paper-input>
+                        <paper-input  class$="xs12 m6 [[field.class]]" id="[[field.name]]" type="password" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" pattern="[[field.pattern]]" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]"></paper-input>
                     </template>
                     <template is="dom-if" if="[[_computeFieldType(field, 'textarea', field.show)]]">
                         <paper-textarea class$="xs12 m6 [[field.class]]" id="[[field.name]]" label="[[field.label]]" rows="2" max-rows="10" value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-textarea>
@@ -265,7 +275,7 @@
                         <paper-dropdown-menu id="[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
                                 <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                    <paper-item disabled>No [[_replaceAsterisk(field.name)]]s found</paper-item>
+                                    <paper-item disabled>No [[_replaceAsterisk(field.name)]]<span hidden$="[[field.noPluralisation]]">s</span> found</paper-item>
                                 </template>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
                                     <paper-item value="[[option.val]]">[[option.title]]</paper-item>
@@ -278,7 +288,7 @@
                         <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]">
                             <paper-menu id="[[field.name]]" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
                                 <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                    <paper-item disabled>No [[_replaceAsterisk(field.name)]]s found</paper-item>
+                                    <paper-item disabled>No [[_replaceAsterisk(field.name)]]<span hidden$="[[field.noPluralisation]]">s</span> found</paper-item>
                                 </template>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
                                     <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
@@ -675,6 +685,9 @@
                             else if (el.name == "schedule_entry") {
                                 return !el.excludeFromPayload ? el.value : true;
                             }
+                            else if (el.type == "password" && el.pattern && el.required) {
+                                return this._validatePatternedField(el);
+                            }
                             else {
                                 return el.show && el.required ? el.value : true;
                             }
@@ -682,6 +695,12 @@
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
+                },
+                _validatePatternedField: function(el) {
+                    if (this.querySelector("paper-input#"+el.name)){
+                        return el.value && el.value.length && !this.querySelector("paper-input#"+el.name).invalid;
+                    }
+                    return false;
                 },
                 _submitForm: function(e) {
                     var payload = {};
