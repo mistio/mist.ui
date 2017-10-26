@@ -2,7 +2,6 @@
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-incidents">
   <template>
@@ -29,13 +28,9 @@
             combined-filter={{combinedFilter}}
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.incidents,model.clouds,model.machines)]]
-            route={{route}}
-            primary-field="machine_id"
+            renderers=[[_getRenderers()]]
             user-filter=[[model.sections.incidents.q]]>
           <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Incidents </h2>
-          <mist-actions slot="action-buttons" actions="[[actions]]" type="incident" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-          <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></key-actions>
           <p slot="no-items-found">Hooray! No Incidents found.</p>
       </mist-list>
     </template>
@@ -52,6 +47,17 @@
       properties: {
         model: Object
       },
+      listeners: {
+        click: 'resizeList'
+      },
+      observers: [
+        'incidentsChanged(model.incidents.*)'
+      ],
+      incidentsChanged: function(incidents){
+        if (incidents.path == 'model.incidents' && this.querySelector('mist-list')) {
+          this.querySelector('mist-list').fire('resize');
+        }
+      },
       _isListActive: function (path) {
         return !path;
       },
@@ -63,10 +69,13 @@
           return ['machine_id','cloud_id', 'id', 'error'];
       },
 
-      _getRenderers: function(incidents,clouds,machines) {
+      _getRenderers: function() {
           var _this = this;
           return {
               'started_at': {
+                  'title': function(item) {
+                    return item ? item.replace(/_/g, " ") : 'started at';
+                  },
                   'body': function(item, row) {
                       var active = '';
                       if (!row.finished_at) {
@@ -76,19 +85,23 @@
                   }
               },
               'machine_id': {
-                  'title': function(item, row) {
-                    return 'machine';
+                  'title': function(item) {
+                    return item ? item.replace(/_/g, " ") : 'machine';
                   },
                   'body': function(item, row) {
-                    return machines && clouds && clouds[row['cloud_id']] && clouds[row['cloud_id']].machines[row['machine_id']] ? clouds[row['cloud_id']].machines[row['machine_id']].name : item;
+                    var m = _this.model.clouds && _this.model.clouds[row['cloud_id']] && _this.model.clouds[row['cloud_id']].machines && _this.model.clouds[row['cloud_id']].machines[row['machine_id']] ? _this.model.clouds[row['cloud_id']].machines[row['machine_id']] : false;
+                    if (m)
+                      return '<a href="/machines/'+m.id+'" class="regular" style="color: #2196F3;">'+m.name+'</a>'
+                    else
+                      return item;
                   }
               },
               'cloud_id': {
-                  'title': function(item, row) {
-                    return 'cloud';
+                  'title': function(item) {
+                    return item ? item.replace(/_/g, " ") : 'cloud';
                   },
                   'body': function(item, row) {
-                    return clouds && clouds[item] ? clouds[item].title : item;
+                    return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[item].title : item;
                   }
               },
               'error': {
@@ -99,12 +112,9 @@
               }
           }
       },
-      // redirect events
-      selectAction: function(e) {
-          e.stopImmediatePropagation();
-          if (this.querySelector('key-actions')) {
-            this.querySelector('key-actions').selectAction(e);
-          }
+      resizeList: function(e){
+        if (e.path.indexOf(this.querySelector('mist-list')))
+          this.querySelector('mist-list').fire('resize');
       }
     });
   </script>

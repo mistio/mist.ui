@@ -9,9 +9,12 @@
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 <link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
-<link rel="import" href="../item-list/item-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../mist-actions.html">
+<link rel="import" href="../machines/machine-actions.html">
+<link rel="import" href="../helpers/machines-list-behavior.html">
 
 <link rel="import" href="schedule-edit.html">
 <link rel="import" href="schedule-edit-mrc.html">
@@ -20,10 +23,7 @@
 
 <dom-module id="schedule-page">
     <template>
-        <style is="custom-style" include="single-page"></style>
-        <style is="custom-style" include="tags-and-labels"></style>
-        <style is="custom-style" include="forms"></style>
-        <style include="shared-styles">
+        <style include="shared-styles single-page tags-and-labels forms">
             :host {
                 display: block;
             }
@@ -351,12 +351,28 @@
                     <span class="smaller" hidden$="[[!machineCost]]">and if MACHINE COST is more than $[[machineCost]]/month</span>
                     <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 </div>
-                <div class='missing-machines' hidden$="[[!missingMachines.length]]">
+                <div class='missing-machines'>
                     <template is="dom-repeat" items="[[missingMachines]]">
                         <div class="machine">1 Missing machine with id <code>[[item]]</code></div>
                     </template>
                 </div>
-                <item-list section="[[model.sections.machines]]" items="[[filteredItems]]" sort-by="{{sortBy}}" sort-order="{{sortOrder}}" org="[[model.org]]" model="[[model]]" hidden$="[[!filteredItems.length]]"></item-list>
+
+                <mist-list id="machinesList"
+                    selectable column-menu multi-sort
+                    items="[[filteredItems]]"
+                    name="Machines"
+                    selected-items="{{selectedItems}}"
+                    filtered-items-length="{{filteredItemsLength}}"
+                    frozen=[[_getFrozenLogColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                    route={{route}}
+                    primary-field-name="id" hidden$="[[!filteredItems]]">
+                    <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                    <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
+                    <p slot="no-items-found">No machines found.</p>
+              </mist-list>
+
             </paper-material>
         </div>
         <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
@@ -414,6 +430,9 @@
     <script>
         Polymer({
             is: 'schedule-page',
+            behaviors: [
+                machinesListBehavior
+            ],
 
             properties: {
                 model: Object,
@@ -506,7 +525,9 @@
                     type: Number,
                     value: false,
                     computed: '_computeMachineCost(schedule.conditions)'
-                }
+                },
+                selectedItems: Array,
+                actions: Array
             },
             observers: [
                 '_scheduleChanged(schedule)',
@@ -894,7 +915,14 @@
             },
             _hideRunNow: function(hasExpired, max_run_count, total_run_count) {
                 return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
-            }
+            },
+            // redirect events
+            selectAction: function(e) {
+                e.stopImmediatePropagation();
+                if (this.querySelector('machine-actions')) {
+                  this.querySelector('machine-actions').selectAction(e);
+                }
+            } 
         });
     </script>
 </dom-module>

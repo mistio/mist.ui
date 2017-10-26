@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 
-<link rel="import" href="page-items.html">
 <link rel="import" href="clouds/cloud-add.html">
 <link rel="import" href="clouds/cloud-page.html">
 
@@ -14,10 +14,18 @@
 
     <app-route route="{{route}}" pattern="/:cloud" data="{{data}}"></app-route>
 
-    <page-items name="clouds" class="clouds" model="[[model]]" items="[[model.cloudsArray]]" section="[[model.sections.clouds]]"
-      hidden$=[[!_isListActive(route.path)]]></page-items>
-    <cloud-add providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]"
-      hidden$=[[!_isAddPageActive(route.path)]]></cloud-add>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list 
+        selectable resizable column-menu multi-sort 
+        items="[[model.cloudsArray]]" 
+        selected-items="{{selectedItems}}"
+        hidden$=[[!_isListActive(route.path)]]
+        frozen=[[_getFrozenLogColumn()]]
+        visible=[[_getVisibleColumns()]]>
+          <p slot="no-items-found">No clouds found.</p>
+      </mist-list>
+    </template>
+    <cloud-add providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]" enable-monitoring="[[enableMonitoring]]" hidden$=[[!_isAddPageActive(route.path)]]></cloud-add>
     <cloud-page model="[[model]]" cloud="[[_getCloud(data.cloud, model.clouds)]]" section="[[model.sections.clouds]]"
       hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
 
@@ -31,6 +39,8 @@
       properties: {
         model: Object,
         data: Object,
+        selectedItems: Array,
+        enableMonitoring: Boolean,
         providers: {
           type: Object,
           value: PROVIDERS
@@ -39,6 +49,13 @@
 
       attached: function () {
 
+      },
+      _getFrozenLogColumn: function() {
+          return ['title'];
+      },
+
+      _getVisibleColumns: function(){
+          return ['title', 'id', 'provider'];
       },
 
       _isAddPageActive: function (path) {
