@@ -9,9 +9,7 @@
 
 <dom-module id="cloud-add">
     <template>
-        <style is="custom-style" include="forms"></style>
-        <style is="custom-style" include="single-page"></style>
-        <style include="shared-styles">
+        <style include="shared-styles forms single-page">
             :host {
                 display: block;
             }
@@ -154,20 +152,22 @@
                         type: Boolean,
                         value: false
                     },
-                    clouds: Array
+                    clouds: Array,
+                    enableMonitoring: Boolean
                 },
                 observers: [
                     '_providerChanged(selectedProvider, providers)',
                     '_keysChanged(keys.*, providerFields)'
                 ],
                 listeners: {
-                    'iron-select' : '_updateCloudTitle'
+                    'iron-select' : '_updateCloudTitle',
+                    'reset-form': '_resetProvider'
                 },
                 ready: function() {
 
                 },
                 _cloudAddAjaxResponse: function(response) {
-                    this._providerReset();
+                    this._unsetProvider();
                     this.fire('go-to', {url: '/'})
                     this.fire('toast', {msg:'Cloud added successfully!',duration:3000} );
                 },
@@ -180,10 +180,9 @@
                 _providerChanged: function(selectedProvider, providers) {
                     if (selectedProvider)
                         this.fire('user-action', 'select provider ' + selectedProvider);
-                    console.warn('_providerChanged', selectedProvider, providers);
                     this._resetForm();
-                    var selectedProviderDetails = providers
-                        .filter(function(fields) {
+                    var selectedProviderDetails = providers.
+                        filter(function(fields) {
                             return fields.val == selectedProvider;
                         });
                     var providerFields = selectedProviderDetails.length ? selectedProviderDetails.shift().options : [];
@@ -202,6 +201,13 @@
                             this._resetField(el, index);
                         }
                     }, this);
+
+                    if (selectedProvider && !this.enableMonitoring) {
+                        var indexm = this.fieldIndexByName('monitoring');
+                        if (indexm) {
+                            this.set('providerFields.'+indexm+'.show', false);
+                        }
+                    }
                     
                     this.fillInKnownData(selectedProvider, this.clouds);
                 },
@@ -215,7 +221,7 @@
                     this.set('providerFields.' + index + '.options', this.keys);
                     this.set('providerFields.' + index + '.value', '');
                 },
-                _providerReset: function() {
+                _unsetProvider: function() {
                     this.set('selectedProvider', false);
                 },
                 _resetForm: function(e) {
@@ -256,7 +262,6 @@
 
                 },
                 fillInKnownData: function(provider, clouds){
-                    console.log('fillInKnownData',provider);
                     if (provider){
                         var cloudInSameProvider = this.clouds.find(function(c){
                             return c.provider == provider
@@ -274,13 +279,19 @@
                                 }
                             }
                         }
-                        console.log(cloudInSameProvider);
+                    }
+                },
+                _resetProvider: function() {
+                    var indexp = this.fieldIndexByName('provider');
+                    if (indexp != undefined) {
+                        this.set('providerFields.' + indexp + '.value', this.selectedProvider);
                     }
                 },
                 fieldIndexByName: function(name){
                     var index;
                     var passField = this.providerFields.find(function(f, ind){
-                        index = ind;
+                        if (f.name == name)
+                            index = ind;
                         return f.name == name;
                     });
                     return index;

@@ -5,22 +5,11 @@
 
 <dom-module id="cloud-dns">
     <template>
-        <style is="custom-style" include="dialogs"></style>
-        <style include="shared-styles">
-            /*:root {
-                --primary-color: #fff;
-                --primary-text-color: rgba(255,255,255,0.87);
-                --secondary-text-color: rgba(255,255,255,0.54);
-                --primary-background-color: #424242;
-                --secondary-background-color: #424242;
-                --paper-input-container-input-color: rgba(255,255,255,0.87);
-                --paper-input-container-focus-color: rgba(255,255,255,0.54);
-            }*/
+        <style include="shared-styles dialogs">
             :host {
                 box-sizing: border-box;
                 width: 100%;
                 height: auto;
-                /*margin-top: 7px;*/
                 transition: 200ms all ease-in;
                 position: relative;
                 --paper-toggle-button-label-color: #121212;
@@ -53,17 +42,15 @@
             paper-toggle-button {
                 padding: 0.57em 0.57em;
             }
-            /*::selection,
-            :host >::content ::selection {
-                background-color: yellow;
-                color: black;
-            }*/
+            .default-rule {
+                display: inline-block;
+            }
         </style>
 
         <div class="cloud-block">
             <div class="cloud-overview flex">
                 <div class="default-rule">
-                    <paper-toggle-button id="DNS-enable-disable" checked$="[[_computeIsDNSEnabled(isToggleOn)]]" on-tap="_changeDNSenabled">
+                    <paper-toggle-button id="DNS-enable-disable" checked$="[[_computeIsDNSEnabled(isToggleOn)]]" on-tap="_changeDNSenabled" disabled="[[loading]]">
                             <span hidden$="[[!_computeIsDNSEnabled(isToggleOn)]]">Enabled</span>
                             <span hidden$="[[_computeIsDNSEnabled(isToggleOn)]]">Disabled</span>
                     </paper-toggle-button>
@@ -72,7 +59,7 @@
             </div>
         </div>
 
-        <iron-ajax id="cloudEditDNSAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" handle-as="xml" method="POST" on-response="_handleCloudEditDNSAjaxResponse" on-error="_handleCloudEditDNSAjaxError"></iron-ajax>
+        <iron-ajax id="cloudEditDNSAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" handle-as="xml" method="POST" on-response="_handleCloudEditDNSAjaxResponse" on-error="_handleCloudEditDNSAjaxError" loading="{{loading}}"></iron-ajax>
 
     </template>
 
@@ -88,10 +75,12 @@
                         type: Boolean,
                         computed: '_computeIsDNSEnabled(cloud.dns_enabled)'
                     },
+                    loading: {
+                        type: Boolean,
+                        value: false
+                    }
                 },
-                listeners: {
-                },
-                _changeDNSenabled: function() {
+                _changeDNSenabled: function(e) {
                     var dns_enabled = this.cloud.dns_enabled ? 0 : 1;
                     this.$.cloudEditDNSAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.cloudEditDNSAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -104,8 +93,7 @@
                     return enabled;
                 },
                 _handleCloudEditDNSAjaxResponse: function() {
-                    var message = this.cloud.dns_enabled ? 'Cloud ' + this.cloud.title + ' DNS support was disabled!':
-                    'Cloud ' + this.cloud.title + ' DNS support was enabled!' ;
+                    var message = this.cloud.dns_enabled ? 'DNS support for ' + this.cloud.title + ' disabled!' : 'DNS support for ' + this.cloud.title + ' enabled!' ;
                     this.fire('toast',{msg:message,duration:5000});
                 },
                 _handleCloudEditDNSAjaxError: function(e) {
