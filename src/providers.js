@@ -1064,7 +1064,7 @@ PROVIDERS.push({
         errorMessage: "Please enter title"
     }, 
     {   
-        name: 'Machines',
+        name: 'machines',
         label: 'Machines',
         show: true,
         required: true,        

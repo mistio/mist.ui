@@ -662,7 +662,13 @@
                             }
                         }, this);
 
-                        var valid = fields.base.every(function(el, index) {
+                        var valid = this._valid(this.fields);
+                        this.set('form', form);
+                        this.set('formReady', valid && !sendingData);
+                    });
+                },
+                _valid: function(fields) {
+                    return fields.every(function(el, index) {
                             if (el.type == "ip_textarea") {
                                 return el.show && el.required ? this.validatecidr(el.value, index) : true;
                             }
@@ -675,6 +681,9 @@
                             }
                             else if (el.type == "date") {
                                 return el.show && el.required ? moment(el.value).isValid()  : true;
+                            }
+                            else if (el.type == 'form') {
+                                return el.show && el.required ? this._valid(el.options) : true;
                             }
                             else if (el.name == "admin_state_up") {
                                 return true;
@@ -692,9 +701,6 @@
                                 return el.show && el.required ? el.value : true;
                             }
                         }, this);
-                        this.set('form', form);
-                        this.set('formReady', valid && !sendingData);
-                    });
                 },
                 _validatePatternedField: function(el) {
                     if (this.querySelector("paper-input#"+el.name)){
@@ -728,6 +734,18 @@
                             payload[p] = this.form[p]
                         }
 
+                        // if there's a form field remove the value from payload
+                        // and add it to a subfield
+                        this.fields.forEach(function(field) {
+                            if (field.type == 'form') {
+                                var subformPayload = {};
+                                field.options.forEach(function(subfield){
+                                    subformPayload[subfield['name']] = subfield['value'];
+                                });
+                                payload[field.name] = [subformPayload];
+                            }
+                        }, this);
+
                         // clean up form for payload
                         var excludeFields = this.fields.filter(function(el) {
                             return el.excludeFromPayload == true || (!el.show && el.showIf);
@@ -735,30 +753,6 @@
 
                         for (var i = 0; i < excludeFields.length; i++){
                             delete payload[excludeFields[i].name];
-                        }
-                        if (this.url == "/api/v1/clouds" && payload['provider'] == 'bare_metal') {
-                            var machine = {};
-                            machine['machine_ip'] = payload['machine_ip'];
-                            machine['operating_system'] = payload['operating_system'];
-                            delete payload['machine_ip'];
-                            delete payload['operating_system'];
-                            if ('machine_key' in payload) {
-                                machine['machine_key'] = payload['machine_key'];
-                                delete payload['machine_key'];
-                            }
-                            if ('machine_user' in payload) {
-                                machine['machine_user'] = payload['machine_user'];
-                                delete payload['machine_user'];
-                            }
-                            if ('machine_port' in payload) {
-                                machine['machine_port'] = payload['machine_port'];
-                                delete payload['machine_port'];
-                            }
-                            if ('remote_desktop_port' in payload) {
-                                machine['remote_desktop_port'] = payload['remote_desktop_port'];
-                                delete payload['remote_desktop_port'];
-                            }
-                            payload['machines'] = [machine];
                         }
                     }
                     console.log('Payload', payload, this.form);
