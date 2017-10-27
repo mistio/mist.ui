@@ -1,0 +1,116 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+
+<link rel="import" href="styles/shared-styles.html">
+<link rel="import" href="mist-icons.html">
+
+<dom-module id="not-found">
+  <template>
+    <style include="shared-styles">
+    :host {
+        top: 0;
+        left: 0;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        background-color: #eee;
+        display: none;
+    }
+
+    :host([show-message]){
+        display: block;
+    }
+    .is-loading {
+        top: 0;
+        left: 0;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        background-color: #eee;
+    }
+    .is-loading paper-spinner {
+        width: 80px;
+        height: 80px;
+    }
+    </style>
+
+    <div class="is-loading">
+        <paper-spinner active="[[isLoading]]"></paper-spinner>
+        <h1 class="text-center" hidden$="[[isLoading]]">404</h1>
+        <p class="not-found text-center">[[pageMessage]]</p>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+        is: 'not-found',
+        properties: {
+            resourceId: Object,
+            resources: Array,
+            type: String,
+            isLoading: {
+                type: Boolean,
+                value: true
+            },
+            pageMessage: {
+                type: String,
+                value: 'Loading data.'
+            },
+            showMessage: {
+                type: Boolean,
+                value: true,
+                reflectToAttribute: true,
+                notify: true
+            },
+            asyncID: Number,
+            found: Boolean
+        },
+
+        observers: [
+            "_computeState(resourceId, resources)"
+        ],
+
+        _computeState: function (resourceId, resources) {
+            if (!this.found) {
+                // if we are still loading the model of resources
+                if (!this.resources)
+                    this._isLoading();
+                // if we have loaded the resources but resource is still missing
+                else if (this.resources && !this.resources[this.resourceId])
+                    this._prepareToShow404();
+                // if we found and loaded the resource
+                else {
+                    if (this.asyncID){
+                        // cancel Async prepareToShow404
+                        this.cancelAsync(this.asyncID);
+                        this.set("asyncID", null);
+                    }
+                    this._resourceFound();
+                }
+            }
+        },
+        _prepareToShow404: function(){
+            // let 5s in case the model is still fetching resources
+            var asyncID = this.async(function(){
+                this.set("pageMessage", this.type[0].toUpperCase()+this.type.slice(1,this.type.length)+" "+this.resourceId+" could not be found.");
+                this.set("isLoading", false);
+            }.bind(this), 5000);
+            this.set("asyncID", asyncID);
+        },
+        _isLoading: function(){
+            this.set("isLoading", true);
+            this.set("pageMessage", "Loading data.");
+        },
+        _resourceFound: function(){
+            this.set("showMessage", false);
+            this.set("isLoading", false);
+            this.set("pageMessage", "");
+            // stop trying
+            this.set("found", true);
+        }
+    });
+  </script>
+
+</dom-module>
