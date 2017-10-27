@@ -3,6 +3,7 @@
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../tags/tags-list.html">
+<link rel="import" href="../not-found.html">
 
 <link rel="import" href="key-edit.html">
 
@@ -162,7 +163,7 @@
                 }
             }
         </style>
-        <div id="content">
+        <div id="content" hidden$="[[showNotFound]]">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
@@ -246,7 +247,7 @@
                 </paper-material>
             </div>
         </div>
-
+        <not-found show-message="{{showNotFound}}" resource-id="[[uuid]]" resources="[[model.keys]]" type="key"></not-found>
         <iron-ajax id="keyPublicRequest" url="/api/v1/keys/[[key.id]]/public" on-response="handlePublicResponse" on-error="handleError"></iron-ajax>
         <iron-ajax id="keyPrivateRequest" url="/api/v1/keys/[[key.id]]/private" on-response="handlePrivateResponse" on-error="handleError"></iron-ajax>
         <iron-ajax id="keyMakeDefaultAjaxRequest" url="/api/v1/keys/[[key.id]]" method="POST" on-response="_handleKeyMakeDefaultAjaxResponse" on-error="_handleMakeDefaultAjaxError"></iron-ajax>
@@ -263,6 +264,8 @@
                 is: 'key-page',
 
                 properties: {
+                    uuid: String,
+                    showNotFound: Boolean,
                     section: {
                         type: Object
                     },
