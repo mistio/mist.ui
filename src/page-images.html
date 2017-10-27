@@ -56,8 +56,10 @@
       <image-provider-search clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
     </template>
 
-    <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]>
-    </image-page>
+    <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
+      <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" uuid="[[_getImagePath(route)]]" section="[[model.sections.images]]">
+      </image-page>
+    </template>
 
   </template>
 
@@ -71,7 +73,8 @@
         model: Object,
         items: Array,
         filteredItems: Array,
-        combinedFilter: String
+        combinedFilter: String,
+        route: Object
       },
       listeners: {
         'select-action': 'selectAction',
@@ -85,7 +88,10 @@
       _getImage: function (route) {
         // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
         if (this.model.images)
-          return this.model.images[route.path.slice(1,route.path.length)];
+          return this.model.images[this._getImagePath(route)];
+      },
+      _getImagePath: function(route){
+        return route.path.slice(1,route.path.length);
       },
       _addResource: function(e) {
           //maybe a dialog to search images in providers
