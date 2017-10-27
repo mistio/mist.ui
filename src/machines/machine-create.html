@@ -9,9 +9,7 @@
 
 <dom-module id="machine-create">
     <template>
-        <style is="custom-style" include="forms"></style>
-        <style is="custom-style" include="single-page"></style>
-        <style include="shared-styles">
+        <style include="shared-styles forms single-page">
             :host {
                 display: block;
                 min-height: 1200px;
@@ -402,8 +400,8 @@
 
                         // if image and image is Windows, show password field
                         if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'image'){
-                            this._showPassword(this.get(changeRecord.path.replace('.value','')).value);
-                            this._hideElementsforWin(this.get(changeRecord.path.replace('.value','')).value);
+                            this._showPassword(this.get(changeRecord.path));
+                            this._hideElementsforWin(this.get(changeRecord.path));
                         }
 
                         // if its kvm
@@ -616,9 +614,9 @@
                     var indDep = this._fieldIndexByName('docker_exposed_ports');
                     var indDpb = this._fieldIndexByName('docker_port_bindings');
 
-                    if (indDep)
+                    if (indDep != undefined)
                         this.set('machineFields.'+indDep+'.value', docker_exposed_ports);
-                    if (indDpb)
+                    if (indDpb != undefined)
                         this.set('machineFields.'+indDpb+'.value', docker_port_bindings);
                 },
 
@@ -626,7 +624,7 @@
                     if (image) {
                         // save in fields
                         var indImEx = this._fieldIndexByName('image_extra');
-                        if (indImEx)
+                        if (indImEx != undefined)
                             this.set('machineFields.'+indImEx+'.value', this.model.clouds[this.selectedCloud].images[image].extra);
                     }
                 },
@@ -635,7 +633,7 @@
                     if (location) {
                         // save in fields
                         var indLocName = this._fieldIndexByName('location_name');
-                        if (indLocName)
+                        if (indLocName != undefined)
                             this.set('machineFields.'+indLocName+'.value', this.model.clouds[this.selectedCloud].locations[location].name);
                     }
                 },
@@ -874,14 +872,20 @@
                     var monitoringInd = this._fieldIndexByName('monitoring');
 
                     if (value.toLowerCase().indexOf('win') > -1){
-                        this.set('machineFields.'+ scriptInd +'.show', false);
-                        this.set('machineFields.'+ monitoringInd +'.show', false);
-                        this.set('machineFields.'+ monitoringInd +'.value', false);
+                        if (scriptInd != undefined)
+                            this.set('machineFields.'+ scriptInd +'.show', false);
+                        if (monitoringInd != undefined){
+                            this.set('machineFields.'+ monitoringInd +'.show', false);
+                            this.set('machineFields.'+ monitoringInd +'.value', false);
+                        }
                     }
                     else {
-                        this.set('machineFields.'+ scriptInd +'.show', true);
-                        this.set('machineFields.'+ monitoringInd +'.show', true);
-                        this.set('machineFields.'+ monitoringInd +'.value', true);
+                        if (scriptInd != undefined)
+                            this.set('machineFields.'+ scriptInd +'.show', true);
+                        if (monitoringInd != undefined){
+                            this.set('machineFields.'+ monitoringInd +'.show', true);
+                            this.set('machineFields.'+ monitoringInd +'.value', this.get('machineFields.'+ monitoringInd +'.defaultValue'));
+                        }
                     }
                 },
                 _showPassword: function(value){
