@@ -477,10 +477,6 @@
                         type: Boolean,
                         value: true
                     },
-                    displayButton: {
-                        type: Boolean,
-                        value: false
-                    },
                     sendingData: {
                         type: Boolean,
                         value: false
@@ -661,12 +657,12 @@
                             }
                         }, this);
 
-                        var valid = this._valid(this.fields);
+                        var valid = this._validateFields(this.fields);
                         this.set('form', form);
                         this.set('formReady', valid && !sendingData);
                     });
                 },
-                _valid: function(fields) {
+                _validateFields: function(fields) {
                     return fields.every(function(el, index) {
                             if (el.type == "ip_textarea") {
                                 return el.show && el.required ? this.validatecidr(el.value, index) : true;
@@ -682,7 +678,7 @@
                                 return el.show && el.required ? moment(el.value).isValid()  : true;
                             }
                             else if (el.type == 'form') {
-                                return el.show && el.required ? this._valid(el.options) : true;
+                                return el.show && el.required ? this._validateFields(el.options) : true;
                             }
                             else if (el.name == "admin_state_up") {
                                 return true;

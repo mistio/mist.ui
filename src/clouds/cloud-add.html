@@ -220,6 +220,17 @@
 
                     this.set('providerFields.' + index + '.options', this.keys);
                     this.set('providerFields.' + index + '.value', '');
+
+                    // Check for nested subforms and update ssh_key fields
+                    this.providerFields.forEach(function(field){
+                        if (field.type == 'form') {
+                            field.options.forEach(function(subfield){
+                                if (subfield.type == "ssh_key") {
+                                    subfield.options = this.keys;
+                                }
+                            }, this);
+                        }
+                    }, this);
                 },
                 _unsetProvider: function() {
                     this.set('selectedProvider', false);
