@@ -121,7 +121,7 @@
                 color: var(--orange-color) !important;
             }
 
-            .machine-state-icon.error {
+            .machine-state-icon.error, .packetloss {
                 color: var(--red-color) !important;
             }
 
@@ -132,13 +132,13 @@
             paper-material .smallcaps {
                 margin-top: 0;
             }
+            .cost,
             paper-material .tags-head {
-                margin-bottom: 8px;
+                margin-bottom: 16px;
             }
             :host .tag {
                 display: inline !important;
                 padding: 4px;
-                margin-bottom: : 4px;
                 margin-right: 4px;
             }
             polyana-dashboard ::content h3 {
@@ -206,15 +206,18 @@
             }
             span[class*="dc-"] {
                 padding-top: 16px;
-                display: inline-block;
+                display: none;
             }
             .dc-true {
+                display: inline-block;
                 color: #F57F17;
             }
             .dc-true iron-icon {
+                display: inline-block;
                 color: inherit;
             }
             .dc-false {
+                display: inline-block;
                 color: var(--green-color);
                 font-size: 0.9em;
                 font-weight: 500;
@@ -317,6 +320,9 @@
                 width: 80px;
                 opacity: 0.54;
             }
+            #rightcolumn .m-info-head {
+                width: 100%;
+            }
             .probe-button > * {
                 vertical-align: middle;
             }
@@ -373,6 +379,10 @@
                 font-size: 75%;
                 --row-height: 48px;
             }
+            .smaller {
+                font-size: 0.8em;
+                /*font-family: monospace;*/
+            }
         </style>
 
         <div id="content" hidden$="{{showNotFound}}">
@@ -404,38 +414,46 @@
                     <span hidden$="[[!machineSize]]" class="break"><span class="m-info-head">Size:</span>
                         [[machineSize]]</span>
                     <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
-                        [[machine.created]]</span>
-                    <div hidden$="[[!probeData]]"> <span class="m-info-head">Probe Data:</span>
-                        <span class$="probe-data [[itemProbeClasses(machine, model.probes)]]"> </span>
-                        <span hidden$="[[!probeData]]"> [[probeData]] </span> <br/>
-                        <span hidden$="[[!lastProbe]]"> [[lastProbe]] </span>
+                        [[_fromNow(machine.created)]]</span>
+                    <hr/>
+                    <div hidden$="[[!machine.probe.ssh.updated_at]]">
+                        <span class="m-info-head" hidden$="[[!machine.probe.ssh.loadavg]]">Load:</span>
+                        <span class$="probe-data [[itemProbeClasses(machine)]]"> </span>
+                        <span class="smaller" hidden$="[[!machine.probe.ssh.loadavg]]"> [[_listToString(machine.probe.ssh.loadavg)]] - [[machine.probe.ssh.cores]] vcpu cores</span> <br/>
                     </div>
-                    <div class="probe-button" hidden$="[[!machine.key_associations.length]]" >
-                        <paper-button id="probeButton" on-tap="_probeMachine" disabled="{{probeLoading}}">probe now</paper-button>
+                    <div hidden$="[[!machine.probe.ping.updated_at]]">
+                        <span class="m-info-head">RTT:</span>
+                        <span class="smaller">min/avg/max/std = [[machine.probe.ping.rtt_min]]/[[machine.probe.ping.rtt_avg]]/[[machine.probe.ping.rtt_max]]/[[machine.probe.ping.rtt_std]] ms</span>
+                        <span class="smaller packetloss" hidden$=[[!machine.probe.ping.packets_loss]]>-- [[_computePacketLossPercent(machine.probe.ping.packets_loss)]]% packet loss --</span>
+                    </div>
+                    <div class="probe-button">
+                        <span class="m-info-head">Probed:</span> 
+                        <span class="smaller"> [[_computeProbeString(machine.probe.ssh.updated_at, machine.probe.ping.updated_at)]]</span>
+                        <br /><paper-button id="probeButton" on-tap="_probeMachine" disabled="{{probeLoading}}" hidden$="[[!machine.key_associations.length]]">probe now</paper-button>
                         <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
                     </div>
                     <div hidden$="[[!kernelInfo]]">
                         [[kernelInfo]]
                     </div>
-                    <div hidden$="[[!probeObj]]">
-                        <span class$="dc-[[probeObj.dirty_cow]]" hidden$="[[probeObj.dirty_cow]]">
+                    <div hidden$="[[!machine.probe]]">
+                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[machine.probe.ssh.dirty_cow]]">
                             Dirty COW check passed.
                         </span>
-                        <span class$="dc-[[probeObj.dirty_cow]]" hidden$="[[!probeObj.dirty_cow]]">
-                            <iron-icon hidden$="[[!probeObj.dirty_cow]]" icon="icons:report-problem" on-tap="_showRecommendationDialog"></iron-icon> [[dirtyCowAlert]]
+                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[!machine.probe.ssh.dirty_cow]]">
+                            <iron-icon hidden$="[[!machine.probe.ssh.dirty_cow]]" icon="icons:report-problem" on-tap="_showRecommendationDialog"></iron-icon> [[dirtyCowAlert]]
                             <a class="regular blue-link" on-tap="_showRecommendationDialog">Show recommendation.</a>
                         </span>
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
-                    <div hidden$="[[!machine.cost]]">
-                        <h3 class="smallcaps">Monthly Cost:</h3>
-                        <div>
+                    <div hidden$="[[!machine.cost.monthly]]">
+                        <div class="m-info-head">Monthly Cost:</div>
+                        <div class="cost">
                             $[[_toFixed(machine.cost.monthly)]]
                         </div>
                     </div>
                     <div hidden$="[[!machineKeys.length]]">
-                        <h3 class="smallcaps">Associated Keys:</h3>
+                        <div class="m-info-head">Associated Keys:</div>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
                                 <div class="machine-key" hidden$="[[!_visibleKey(model,key)]]">
@@ -449,7 +467,7 @@
                         </div>
                     </div>
                     <div hidden$="[[!machine.tags.length]]">
-                        <h3 class="smallcaps tags-head">TAGS:</h3>
+                        <h3 class="m-info-head">TAGS:</h3>
                         <template is="dom-repeat" items="[[machine.tags]]">
                             <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
@@ -509,19 +527,19 @@
                                     </template>
                                 </td>
                             </tr>
-                            <tr hidden$="[[!probeObj.users]]">
+                            <tr hidden$="[[!machine.probe.ssh.users]]">
                                 <td>Users</td>
-                                <td>[[probeObj.users]]</td>
+                                <td>[[machine.probe.ssh.users]]</td>
                             </tr>
-                            <tr hidden$="[[!probeObj.uptime]]">
+                            <tr hidden$="[[!machine.probe.ssh.uptime]]">
                                 <td>Uptime</td>
-                                <td>[[probeObj.uptime]]</td>
+                                <td>[[machine.probe.ssh.uptime]]</td>
                             </tr>
-                            <tr class="change-dir" hidden$="[[!probeObj.df]]">
+                            <tr class="change-dir" hidden$="[[!machine.probe.ssh.df]]">
                                 <td class="change-dir">Filesystem Info</td>
                                 <td class="change-dir">
                                     <div class="probe-df">
-                                        <pre><code>[[probeObj.df]]</code></pre>
+                                        <pre><code>[[machine.probe.ssh.df]]</code></pre>
                                     </div>
                                 </td>
                             </tr>
@@ -739,21 +757,11 @@ Polymer({
             type: Array,
             computed: '_computeActions(machine, machine.*, model.machines.*)'
         },
-        probeData: {
-            type: String,
-            computed: '_computeProbeData(machine, model.probes.*)',
-            value: false
-        },
         dirtyCowAlert: {
              type: String,
-             computed: '_computeDirtyCowAlert(machine, model.probes.*)',
+             computed: '_computeDirtyCowAlert(machine)',
              value: false
          },
-        probeObj: {
-            type: Object,
-            computed: '_computeProbeObj(machine, model.probes.*)',
-            value: false
-        },
         hidden: {
             type: Boolean,
             value: false
@@ -984,27 +992,24 @@ Polymer({
             this.fire('toast',{msg:e.detail.errormsg,duration:3000});
         }
     },
-    _computeProbeData: function(machine, probes){
-        if (this.model && this.model.probes && this.model.probes[machine.id] && this.model.probes[machine.id].loadavg.length)
-            return this.model.probes[machine.id].loadavg[0]+", "+this.model.probes[machine.id].loadavg[1]+", "+this.model.probes[machine.id].loadavg[2]+" - "+this.model.probes[machine.id].cores+" cores. Last probe: "+moment(this.model.probes[machine.id].timestamp*1000).fromNow();
-    },
-    _computeDirtyCowAlert: function(machine, probes){
+    _computeDirtyCowAlert: function(machine){
          var info = "";
-         if (this.model && this.model.probes && this.model.probes[machine.machine_id]){
-             if (this.model.probes[machine.id].dirty_cow != undefined)
-                 info += "Dirty COW vulnerability found. Update kernel.";
-         }
+         if (this.machine.probe && this.machine.probe.ssh && this.machine.probe.ssh.dirty_cow)
+             info += "Dirty COW vulnerability detected. Update your kernel.";
          return info.length ? info : '';
     },
-    itemProbeClasses: function(item, probes) {
-        if (!probes) {
+    _fromNow: function(time){
+        return moment.utc(time).fromNow();
+    },
+    itemProbeClasses: function(machine) {
+        if (!machine.probe) {
             return false;
         } else {
-            if (!this.model || !this.model.probes || !this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
+            if (!machine.probe.ssh || !machine.probe.ssh.loadavg) {
                 return false;
             } else {
-                var probe = this.model.probes[item.id].loadavg;
-                var cores =  parseInt(this.model.probes[item.id].cores);
+                var probe = machine.probe.ssh.loadavg;
+                var cores =  parseInt(machine.probe.ssh.cores);
                 var classes = '';
                 var prefix = '';
 
@@ -1019,11 +1024,6 @@ Polymer({
                 return classes;
             }
         }
-    },
-    _computeProbeObj: function (machine, probes){
-        if (this.model && this.model.probes && this.model.probes[machine.id] && this.model.probes[machine.id])
-            return this.model.probes[machine.id];
-        return false;
     },
     loadToColor: function(load, prefix){
         if (load > 1.2)
@@ -1092,6 +1092,7 @@ Polymer({
             if (item.extra && item.extra.service_type)
                 return item.extra.service_type;
         }
+        return '';
     },
     _probeMachine: function(e){
         var payload = {
@@ -1100,6 +1101,9 @@ Polymer({
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.probeMachine.params = payload;
         this.$.probeMachine.generateRequest();
+        this.async(function(){
+            this.notifyPath('machine.probe.ssh')
+        }, 5000);
     },
     _probeError: function(e){
         this.fire('toast', { msg:'Error probing machine '+ e.detail.request.xhr.responseText, duration: 3000 });
@@ -1211,7 +1215,7 @@ Polymer({
     },
 
     _toFixed: function(inp) {
-        return inp.formatMoney() || '';
+        return inp && inp.formatMoney() || '';
     },
 
     _hasExtra: function(machine) {
@@ -1257,6 +1261,37 @@ Polymer({
         }
 
         return ret;
+    },
+
+    _listToString: function(l) {
+        return l && l.length && l.join(' ') || '';
+    },
+
+    _computePacketLossPercent: function(){
+        if (!this.machine || !this.machine.probe || !this.machine.probe.ping)
+            return 0;
+        return 100* (this.machine.probe.ping.packets_loss / this.machine.probe.ping.packets_tx);
+    },
+
+    _computeProbeString: function() {
+        var sshFrom = '',
+            icmpFrom = '';
+        if (!this.machine.probe)
+            return;
+        var sshLastUpdate = this.machine.probe.ssh && this.machine.probe.ssh.updated_at,
+            icmpLastUpdate = this.machine.probe.ping && this.machine.probe.ping.updated_at;
+        sshFrom = sshLastUpdate && moment.utc(sshLastUpdate).fromNow() || '';
+        icmpFrom = icmpLastUpdate && moment.utc(icmpLastUpdate).fromNow() || '';
+        if (!sshFrom && !icmpFrom)
+            return '';
+        if (sshFrom == icmpFrom)
+            return sshFrom + ' over ssh & icmp';
+        if (sshFrom && icmpFrom)
+            return sshFrom + ' over ssh, ' + icmpFrom + ' over icmp';
+        if (sshFrom)
+            return sshFrom + ' over ssh';
+        if (icmpFrom)
+            return icmpFrom + ' over icmp';
     }
 });
 </script>
