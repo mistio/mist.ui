@@ -1157,8 +1157,8 @@ PROVIDERS.push({
             name: "monitoring",
             label: "Enable monitoring",
             type: "toggle",
-            value: true,
-            defaultValue: true,
+            value: false,
+            defaultValue: false,
             show: true,
             required: false
         }
