@@ -10,9 +10,9 @@
     <template>
         <h3>Machines</h3>
         <p>Select any machine to remove it from this cloud.</p>
-        <mist-list id="otherServerMachinesList" class$="[[cloud.id]]"
+        <mist-list id="otherServerMachinesList"
             selectable column-menu multi-sort
-            items="[[cloud.machinesArray]]"
+            items="[[_filterMachines(cloud,machines)]]"
             name="Machines"
             selected-items="{{selectedMachineItems}}"
             frozen=[[_getFrozenLogColumn()]]
@@ -38,15 +38,28 @@
             selectedMachineItems: {
                 type: Array,
                 notify: true
-            }
+            },
+            machines: Array
         },
         listeners: {
             'select-action': 'selectAction'
         },
+        observers: [
+            'machinesChanged(cloud.*, machines.length)'
+        ],
+        _filterMachines: function(cloud,machines){
+            var ms = this.machines.filter(function(m){
+                return m.cloud.id == this.cloud.id;
+            }.bind(this));
+            return ms;
+        },
+        machinesChanged: function(c,m){
+            if(this.querySelector('mist-list'))
+                this.querySelector('mist-list').fire('resize');
+        },
         _getFrozenLogColumn: function(){
             return ['name'];
         },
-
         _getVisibleColumns: function(){
             return ['state', 'id', 'missing_since', 'public_ips', 'tags'];
         },
