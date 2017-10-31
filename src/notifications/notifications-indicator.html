@@ -156,9 +156,9 @@
                                         </paper-item>
                                         <paper-item class="notification-action context" 
                                             hidden$="[[!_computeIsMachineR12n(item)]]"
-                                            on-tap="_dismissNotificationsForMachine"
+                                            on-tap="_disableSimilarNotifications"
                                             _id="[[item._id]]">
-                                            Dismiss notifications for this machine
+                                            Disable notifications for this machine
                                         </paper-item>
                                     </paper-menu>
                                 </div>
@@ -177,6 +177,13 @@
             method="DELETE"
             handle-as="json"
             on-response="handleDismissResponse">
+        </iron-ajax>
+
+        <iron-ajax
+            id="requestDisableSimilar"
+            method="PUT"
+            handle-as="json"
+            on-response="handleDisableSimilarResponse">
         </iron-ajax>
 
     </template>
@@ -332,6 +339,16 @@
             },
             handleDismissResponse: function (event) {
                 console.log("Notifications: Received dismiss response");
+            },
+             _disableSimilarNotifications: function (event) {
+                var dismissURL = "/api/v1/notification-overrides/" + event.model.item._id;
+                this.$.requestDisableSimilar.url = dismissURL;
+                this.$.requestDisableSimilar.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.requestDisableSimilar.generateRequest();
+                event.stopPropagation();
+            },
+            handleDisableSimilarResponse: function (event) {
+                console.log("Notifications: Received disable similar response");
             }
         });
     </script>
