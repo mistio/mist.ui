@@ -6,11 +6,16 @@
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 
+<link rel="import" href="../card-form.html">
+
 <dom-module id="organization-add">
     <template>
         <style include="shared-styles dialogs">
             :host {
                 display: block;
+            }
+            :host paper-dialog {
+                width: 360px;
             }
             #errormsg {
                 padding: 0 24px 24px 24px;
@@ -23,6 +28,9 @@
                 --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
                 --paper-checkbox-checked-color: var(--mist-blue) !important;
             }
+            card-form {
+                margin-top: 8px;
+            }
         </style>
 
         <paper-dialog id="organizationAddModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
@@ -31,6 +39,8 @@
                 <div hidden$="[[success]]">
                     <p>
                         <paper-input id="name" label="Name" error-message="Please enter organization's name" value="{{newOrganization.name}}" on-keydown="_submitOnEnter" autofocus$=[[!success]]></paper-input><br/>
+                        <strong>Credid card required:</strong>[[isValid]]<br/>
+                        <card-form is-valid="{{isValid}}"></card-form><br/>
                         <div hidden$="[[!currentOrg.super_org]]">
                             <paper-checkbox id="superorg" label="super org" checked="{{newOrganization.super_org::change}}">
                                 Sub-organisation. <br/>
@@ -82,7 +92,8 @@
                     },
                     formReady: {
                         type: Boolean,
-                        computed: '_computeFormReady(newOrganization.name, sendingData)'
+                        computed: '_computeFormReady(newOrganization.name, sendingData, isValid)',
+                        value: false
                     },
                     success: {
                         type: Boolean,
@@ -93,20 +104,13 @@
                         type: Boolean,
                         value: false
                     },
-                    isSuperOrg: Boolean
+                    isSuperOrg: Boolean,
+                    isValid: Boolean
                 },
-                _computeFormReady: function(name, sendingData) {
-                    var formReady = false;
-
-                    if (name) {
-                        formReady = true;
+                _computeFormReady: function(name, sendingData, valid) {
+                    if (name && valid && !sendingData) {
+                        this.set('formReady', true);
                     }
-
-                    if (sendingData) {
-                        formReady = false;
-                    }
-
-                    return formReady;
                 },
                 _computeType: function(type, value) {
                     return type == value;
