@@ -1055,7 +1055,7 @@ PROVIDERS.push({
     className: 'provider-baremetal',
     options: [{
         name: "title",
-        label: "Cloud Title *",
+        label: "Title *",
         type: "text",
         value: "",
         defaultValue: "",
