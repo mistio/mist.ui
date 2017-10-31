@@ -23,6 +23,14 @@
                 cursor: pointer;
             }
 
+            paper-item.notification-action {
+                border-bottom: 1px solid #ccc;
+            }
+
+            paper-item.notification-action:last-of-type {
+                border-bottom: none;
+            }
+
             paper-icon-button ::content iron-icon {
                 color: inherit;
             }
@@ -142,11 +150,14 @@
                                 <paper-icon-button class="dismiss-icon dropdown-trigger" icon="icons:icons:more-horiz"></paper-icon-button>
                                 <div class="notification-actions dropdown-content">
                                     <paper-menu id="notification-actions-menu" selectable="none">
-                                        <paper-item class="context">
+                                        <paper-item class="notification-action context"
+                                         on-tap="_dismissNotification">
                                             Dismiss this notification
                                         </paper-item>
-                                        <paper-item class="context" 
-                                            hidden$="[[!_computeIsMachineR12n(item)">
+                                        <paper-item class="notification-action context" 
+                                            hidden$="[[!_computeIsMachineR12n(item)]]"
+                                            on-tap="_dismissNotificationsForMachine"
+                                            _id="[[item._id]]">
                                             Dismiss notifications for this machine
                                         </paper-item>
                                     </paper-menu>
@@ -298,10 +309,10 @@
                 if (event.model.item.machine) {
                     path = '/' + event.model.item.machine._ref.$ref + '/' + event.model.item.machine._ref.$id;
                 }
-                if (event.model.item.cloud) {
+                else if (event.model.item.cloud) {
                     path = '/' + event.model.item.cloud._ref.$ref + '/' + event.model.item.cloud._ref.$id;
                 }
-                if (event.model.item.tag) {
+                else if (event.model.item.tag) {
                     path = '/' + event.model.item.tag._ref.$ref + '/' + event.model.item.tag._ref.$id;
                 }
                 window.history.pushState({}, null, path);
@@ -312,7 +323,7 @@
             _handleRightButtonTap: function (event) {
                 event.stopPropagation();
             },
-            _dismiss: function (event) {
+            _dismissNotification: function (event) {
                 var dismissURL = "/api/v1/notifications/" + event.model.item._id;
                 this.$.requestDismiss.url = dismissURL;
                 this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
