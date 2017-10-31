@@ -19,6 +19,10 @@
                 outline: none;
             }
 
+            paper-item {
+                cursor: pointer;
+            }
+
             paper-icon-button ::content iron-icon {
                 color: inherit;
             }
@@ -134,14 +138,15 @@
                                 <div secondary inner-h-t-m-l="[[item.html_body]]" class="body"></div>
                                 <div secondary class="time">[[_computeRelativeTime(item, timestamp_counter)]]</div>
                             </paper-item-body>
-                            <paper-menu-button horizontal-align="right" vertical-offset="56" horizontal-offset="-36">
+                            <paper-menu-button horizontal-align="right" vertical-offset="56" horizontal-offset="-36" on-tap="_handleRightButtonTap">
                                 <paper-icon-button class="dismiss-icon dropdown-trigger" icon="icons:icons:more-horiz"></paper-icon-button>
                                 <div class="notification-actions dropdown-content">
                                     <paper-menu id="notification-actions-menu" selectable="none">
                                         <paper-item class="context">
                                             Dismiss this notification
                                         </paper-item>
-                                        <paper-item class="context">
+                                        <paper-item class="context" 
+                                            hidden$="[[!_computeIsMachineR12n(item)">
                                             Dismiss notifications for this machine
                                         </paper-item>
                                     </paper-menu>
@@ -232,6 +237,9 @@
                     return "notifications";
                 }
             },
+            _computeIsMachineR12n: function (notification) {
+                return typeof notification.machine !== 'undefined';
+            },
             _computeNotificationIcon: function (notification) {
                 if (notification._cls == "Notification.InAppNotification.InAppRecommendation" && 
                     notification.model_id == "autoscale_v1") {
@@ -286,10 +294,22 @@
                 return ntf + rec * 2;
             },
             _handleItemTap: function (event) {
-                var path = '/' + event.model.item.resource._ref.$ref + '/' + event.model.item.resource._ref.$id;
+                var path;
+                if (event.model.item.machine) {
+                    path = '/' + event.model.item.machine._ref.$ref + '/' + event.model.item.machine._ref.$id;
+                }
+                if (event.model.item.cloud) {
+                    path = '/' + event.model.item.cloud._ref.$ref + '/' + event.model.item.cloud._ref.$id;
+                }
+                if (event.model.item.tag) {
+                    path = '/' + event.model.item.tag._ref.$ref + '/' + event.model.item.tag._ref.$id;
+                }
                 window.history.pushState({}, null, path);
                 window.dispatchEvent(new CustomEvent('location-changed'));
                 this.opened = false;
+                event.stopPropagation();
+            },
+            _handleRightButtonTap: function (event) {
                 event.stopPropagation();
             },
             _dismiss: function (event) {
