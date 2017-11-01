@@ -41,8 +41,9 @@
         }
 
         paper-textarea#juicyScript ::content paper-input-container #inner-editor,
-        paper-textarea#juicyScript textarea {
+        paper-textarea#juicyScript ::content paper-input-container textarea#textarea {
             font-family: monospace !important;
+            font-size: 12px;
         }
 
         paper-textarea#juicyScript ::content .floated-label-placeholder {
@@ -170,7 +171,7 @@
                 </div>
                 <div>
                     <h2 class$="sshKey-[[sshKeyExists]] textarea-h2">Python script</h2>
-                    <paper-textarea id="juicyScript" value="{{metricScript}}" noLabelFloat hidden$=[[!sshKeyExists]]></paper-textarea>
+                    <paper-textarea id="juicyScript" value="{{metricScript}}" no-label-float hidden$=[[!sshKeyExists]]></paper-textarea>
                 </div>
                 <div>
                     <h2 class$="sshKey-[[sshKeyExists]]">Advance settings</h2>
@@ -262,6 +263,7 @@
         },
         observers: [
             '_computeplugidId(metric.name)',
+            '_metricScriptChanged(metricScript)'
         ],
         listeners: {
             'keyup': '_scriptValue',
@@ -417,6 +419,10 @@
             this.querySelector('#postCustomgraph').body = payload;
             this.querySelector('#postCustomgraph').generateRequest();
             this.set('sendingData', true);
+        },
+        _metricScriptChanged: function(m){
+            // make sure long scripts don't push buttons out of the screen
+            this.querySelector('#customOptions').refit();
         }
     });
     </script>
