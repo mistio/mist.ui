@@ -23,14 +23,6 @@
                 cursor: pointer;
             }
 
-            paper-item.notification-action {
-                border-bottom: 1px solid #ccc;
-            }
-
-            paper-item.notification-action:last-of-type {
-                border-bottom: none;
-            }
-
             paper-icon-button ::content iron-icon {
                 color: inherit;
             }
@@ -151,14 +143,26 @@
                                 <div class="notification-actions dropdown-content">
                                     <paper-menu id="notification-actions-menu" selectable="none">
                                         <paper-item class="notification-action context"
+                                         hidden$="[[!isNotification(item)]]"
                                          on-tap="_dismissNotification">
                                             Dismiss this notification
                                         </paper-item>
+                                        <paper-item class="notification-action context"
+                                         hidden$="[[!isR12n(item)]]"
+                                         on-tap="_dismissNotification">
+                                            Dismiss this recommendation
+                                        </paper-item>
                                         <paper-item class="notification-action context" 
-                                            hidden$="[[!_computeIsMachineR12n(item)]]"
-                                            on-tap="_disableSimilarNotifications"
+                                            hidden$="[[!isMachineR12n(item)]]"
+                                            on-tap="_disableNotificationsForMachine"
                                             _id="[[item._id]]">
-                                            Disable notifications for this machine
+                                            Disable recommendations for this machine
+                                        </paper-item>
+                                        <paper-item class="notification-action context"
+                                            hidden$="[[!isMachineNotification(item)]]"
+                                            on-tap="_disableNotificationsForMachine"
+                                            _id="[[item._id]]">
+                                            Disable all notifications for this machine
                                         </paper-item>
                                     </paper-menu>
                                 </div>
@@ -183,7 +187,7 @@
             id="requestDisableSimilar"
             method="PUT"
             handle-as="json"
-            on-response="handleDisableSimilarResponse">
+            on-response="handleDisableNotificationsForMachineResponse">
         </iron-ajax>
 
     </template>
@@ -255,8 +259,17 @@
                     return "notifications";
                 }
             },
-            _computeIsMachineR12n: function (notification) {
-                return typeof notification.machine !== 'undefined';
+            isNotification: function (notification) {
+                return notification._cls == "Notification.InAppNotification";
+            },
+            isR12n: function (notification) {
+                return notification._cls == "Notification.InAppNotification.InAppRecommendation";
+            },
+            isMachineNotification: function (notification) {
+                return typeof notification.machine !== 'undefined' && this.isNotification(notification);
+            },
+            isMachineR12n: function (notification) {
+                return typeof notification.machine !== 'undefined' && this.isR12n(notification);
             },
             _computeNotificationIcon: function (notification) {
                 if (notification._cls == "Notification.InAppNotification.InAppRecommendation" && 
@@ -340,15 +353,15 @@
             handleDismissResponse: function (event) {
                 console.log("Notifications: Received dismiss response");
             },
-             _disableSimilarNotifications: function (event) {
+            _disableNotificationsForMachine: function (event) {
                 var dismissURL = "/api/v1/notification-overrides/" + event.model.item._id;
                 this.$.requestDisableSimilar.url = dismissURL;
                 this.$.requestDisableSimilar.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.requestDisableSimilar.generateRequest();
                 event.stopPropagation();
             },
-            handleDisableSimilarResponse: function (event) {
-                console.log("Notifications: Received disable similar response");
+            handleDisableNotificationsForMachineResponse: function (event) {
+                console.log("Notifications: Received disable response");
             }
         });
     </script>
