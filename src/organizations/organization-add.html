@@ -18,7 +18,6 @@
                 width: 360px;
             }
             #errormsg {
-                padding: 0 24px 24px 24px;
                 color: var(--red-color);
             }
             .pad-bot {
@@ -128,16 +127,29 @@
                     this._formReset();
                 },
                 _submitForm: function() {
+                    var card = this.querySelector('card-form'),
+                        payload = { name: this.newOrganization.name,
+                                    super_org: this.newOrganization.super_org};
+                    this.set("fail", false);
 
+                    if (this.enableBilling && card.verify()) {
+                        payload['token'] = card.token;
+                        this._generateRequest(payload);
+                    }
+                    else if (!this.enableBilling){
+                        this._generateRequest(payload);
+                    }
+                    else {
+                        this.set("fail", true);
+                        this.$.errormsg.textContent = card.errors;
+                    }
 
+                },
+                _generateRequest: function(payload){
                     this.$.organizationAddAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.organizationAddAjaxRequest.body = {
-                        name: this.newOrganization.name,
-                        super_org: this.newOrganization.super_org
-                    };
+                    this.$.organizationAddAjaxRequest.body = payload;
                     this.$.organizationAddAjaxRequest.generateRequest();
-
                 },
                 _submitOnEnter: function (e) {
                     // check if 'enter' was pressed

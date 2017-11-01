@@ -82,6 +82,7 @@
             
                 <paper-input id="zipCode" label="Zip Code" type="text" allowed-pattern="[0-9]" error-message="Numbers only" data-stripe="address_zip" value="{{payload.address_zip::input}}" required auto-validate always-float-label></paper-input>
             </div>
+
         </div>
     </template>
     <script>
@@ -117,6 +118,14 @@
                     type: Boolean,
                     value: false,
                     notify: true
+                },
+                token: {
+                    type: String,
+                    reflectToAttribute: true
+                },
+                errors: {
+                    type: String,
+                    reflectToAttribute: true
                 }
             },
             keyBindings: {
@@ -133,7 +142,7 @@
                 //extra stripe validation
                 var isValid = Stripe.card.validateCardNumber(this.payload.number) &&
                     Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year) &&
-                    Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '';
+                    Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '' && this.payload.address_zip.length >= 4;
 
                 if (isValid){
                     Stripe.setPublishableKey(STRIPE_PUBLIC_APIKEY);
@@ -142,13 +151,14 @@
                     var that = this;
                     function stripeResponseHandler(status, response){
                         if (response.error) {
-                            console.log('stripeResponseHandler failed', response.error.message);
-                            that.showError(response.error.message);
+                            console.error('stripeResponseHandler failed', response.error.message);
+                            that._setError(response.error.message);
                         }
                         else {
-                            that.sumbmitPayment(status, response);
+                            that._setToken(status, response);
                         }
                     }
+                    return true;
                 }
                 else {
                     var errorText = 'There seems to be an error in';
@@ -161,40 +171,22 @@
                     if (!Stripe.card.validateCVC(this.payload.cvc))
                         errorText += ' cvc';
 
-                    if (this.payload.address_zip == '')
-                        errorText += ' zip code';
+                    if (this.payload.address_zip == '' || this.payload.address_zip.length < 4)
+                        errorText += ' zip code (must be 4 digits or longer)';
 
                     errorText += '.';
 
-                    this.showError(errorText);
+                    this._setError(errorText);
+
+                    return false;
                 }
             },
-            validateForm: function(error){
-                this.set('isValid', false);
-                this.$.errormsg.textContent = '';
-
-                if (this.valideNumber('Card-number',this.payload.number,0) && this.valideNumber('Expiration month',this.payload.exp_month,2) && this.valideNumber('Expiration year',this.payload.exp_year,2) && this.valideNumber('CVC',this.payload.cvc,3))
-                    this.set('isValid', true);
-
-                else
-                    this.set('isValid', false);
+            _setToken: function(status, response){
+                if (response.id)
+                    this.set('token', response.id);
             },
-            valideNumber: function(name, input, length){
-                if (!input || !input.length){
-                    //no input
-                    return false;
-                }
-                if (length !=0 && input.length > length){
-                    //input longer than constrain
-                    this.showHelp(name, length);
-                    return false;
-                }
-                if (!(/^[0-9 ]*$/.test(input))){
-                    //input is not number
-                    this.showHelp(name);
-                    return false;
-                }
-                return true;
+            _setError: function(error){
+                this.set('errors', error);
             },
             _dateChanged: function(month, year) {
                 if (year.length)
@@ -219,6 +211,7 @@
                 this.$.expirationYear.focus();
             },
             _assessValidity: function(payload){
+                this._setError('errors', '');
                 if (this._emptyProperty(this.payload) ||
                     this.$.cc.invalid ||
                     this.$.cvc.invalid ||
@@ -232,7 +225,6 @@
             },
             _emptyProperty: function(obj){
                 for (var p in obj){
-                    console.log(obj[p])
                     if (!obj[p] || !obj[p].trim().length)
                         return true;
                 }
