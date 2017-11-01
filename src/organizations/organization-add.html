@@ -67,7 +67,7 @@
             </paper-dialog-scrollable>
         </paper-dialog>
 
-        <iron-ajax id="organizationAddAjaxRequest" url="/api/v1/org" method="POST" on-response="_handleOrganizationAddAjaxResponse" handle-as="json" on-error="_handleOrganizationAddAjaxError"></iron-ajax>
+        <iron-ajax id="organizationAddAjaxRequest" url="/api/v1/org" method="POST" loading="{{loading}}" on-response="_handleOrganizationAddAjaxResponse" handle-as="json" on-error="_handleOrganizationAddAjaxError"></iron-ajax>
     </template>
 
     <script>
@@ -86,13 +86,13 @@
                         },
                     },
                     currentOrg: Object,
-                    sendingData: {
+                    loading: {
                         type: Boolean,
                         value: false
                     },
                     formReady: {
                         type: Boolean,
-                        computed: '_computeFormReady(newOrganization.name, sendingData, cardValid)',
+                        computed: '_computeFormReady(newOrganization.name, loading, cardValid)',
                         value: false
                     },
                     success: {
@@ -108,8 +108,8 @@
                     cardValid: Boolean,
                     enableBilling: Boolean
                 },
-                _computeFormReady: function(name, sendingData, valid) {
-                    if (name && !sendingData) {
+                _computeFormReady: function(name, loading, valid) {
+                    if (name && !loading) {
                         return this.enableBilling ? valid : true;
                     }
                 },
@@ -128,6 +128,8 @@
                     this._formReset();
                 },
                 _submitForm: function() {
+
+
                     this.$.organizationAddAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.organizationAddAjaxRequest.body = {
@@ -136,7 +138,6 @@
                     };
                     this.$.organizationAddAjaxRequest.generateRequest();
 
-                    this.set('sendingData', true);
                 },
                 _submitOnEnter: function (e) {
                     // check if 'enter' was pressed
@@ -145,7 +146,6 @@
                     }
                 },
                 _handleOrganizationAddAjaxResponse: function(e) {
-                    this.set('sendingData', false);
                     this._formReset();
                     this.set('newOrgId',e.detail.xhr.response.id);
                     this.set('success', true);
@@ -156,7 +156,6 @@
                 },
                 _handleOrganizationAddAjaxError: function(e){
                     this.set("fail", true);
-                    this.set('sendingData', false);
                     // TODO: should be e.detail.request.xhr.responseText which is more descriptive
                     // but only if handle-as="xml" which does not return newOrg id
                     var msg409 = '';
