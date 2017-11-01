@@ -157,22 +157,21 @@
                     return true;
                 }
                 else {
-                    var errorText = 'There seems to be an error in';
+                    var errors = [];
                     if (!Stripe.card.validateCardNumber(this.payload.number))
-                        errorText += ' card number';
+                        errors.push('card number');
 
                     if (!Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year))
-                        errorText += ' expiration';
+                        errors.push('expiration');
 
                     if (!Stripe.card.validateCVC(this.payload.cvc))
-                        errorText += ' cvc';
+                        errors.push('cvc');
 
-                    if (this.payload.address_zip == '' || this.payload.address_zip.length < 4)
-                        errorText += ' zip code (must be 4 digits or longer)';
+                    if (this.payload.address_zip == '' || this.payload.address_zip.length < 4){
+                        errors.push(this.payload.address_zip != '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
+                    }
 
-                    errorText += '.';
-
-                    this._setError(errorText);
+                    this._setError('There seems to be an error in '+errors.join(', ')+'.');
 
                     return false;
                 }
