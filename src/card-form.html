@@ -69,20 +69,19 @@
         </style>
         <div class="form-inputs" hidden$="[[hideCardFields]]">
 
-            <gold-cc-input card-type="{{cardType}}" data-stripe="number" value="{{payload.number::input}}" auto-validate always-float-label></gold-cc-input>
-            <gold-cc-cvc-input card-type="[[cardType]]" label="Card Verification Value" value="{{payload.cvc::input}}" auto-validate always-float-label></gold-cc-cvc-input>
+            <gold-cc-input id="cc" card-type="{{cardType}}" data-stripe="number" value="{{payload.number::input}}" required auto-validate always-float-label></gold-cc-input>
+            <gold-cc-cvc-input id="cvc" card-type="[[cardType]]" label="Card Verification Value" value="{{payload.cvc::input}}" required auto-validate always-float-label></gold-cc-cvc-input>
 
             <div class="align">
                 <div class="expiration">
                     <label>Expiration Date</label>
-                    <paper-input id="expirationMonth" type="text" data-stripe="exp_month" value="{{payload.exp_month::input}}" placeholder="MM" no-label-float></paper-input>
+                    <paper-input id="expirationMonth" type="text" pattern="[0-9]*" data-stripe="exp_month" value="{{payload.exp_month::input}}" placeholder="MM" no-label-float></paper-input>
                     <span>/</span>
-                    <paper-input id="expirationYear" type="text" data-stripe="exp_year" value="{{payload.exp_year::input}}" placeholder="YY" no-label-float></paper-input>
+                    <paper-input id="expirationYear" type="text" pattern="[0-9]*" data-stripe="exp_year" value="{{payload.exp_year::input}}" placeholder="YY" no-label-float></paper-input>
                 </div>
             
-                <paper-input id="zipCode" label="Zip Code" type="text" pattern="[0-9]*" data-stripe="address_zip" value="{{payload.address_zip::input}}" always-float-label></paper-input>
+                <paper-input id="zipCode" label="Zip Code" type="text" pattern="[0-9 ]*" data-stripe="address_zip" value="{{payload.address_zip::input}}" required auto-validate always-float-label></paper-input>
             </div>
-
         </div>
     </template>
     <script>
@@ -90,10 +89,8 @@
             is: 'card-form',
 
             properties: {
-                isOverUsing: Boolean,
                 user: Object,
                 org: Object,
-                plan: Object,
                 payload: {
                     type: Object,
                     value: function(){
@@ -112,29 +109,22 @@
                     value: false,
                     reflectToAttribute: true
                 },
-                sendingData: {
-                    type: Boolean,
-                    value: false
-                },
-                formError: {
+                hasCard: {
                     type: Boolean,
                     value: false
                 },
                 cardValid: {
                     type: Boolean,
-                    value: false
-                },
-                hasCard: {
-                    type: Boolean,
-                    value: false
-                },
-
+                    value: false,
+                    notify: true
+                }
             },
             keyBindings: {
               '/': '_selectYear'
             },
             observers: [
-              '_computeDate(month, year)'
+              '_dateChanged(payload.exp_month, payload.exp_year)',
+              '_assessValidity(payload.*)'
             ],
             ready: function(){
 
@@ -206,18 +196,48 @@
                 }
                 return true;
             },
+            _dateChanged: function(month, year) {
+                if (year.length)
+                    this.$.expirationYear.invalid = !this._validateDate(month, year);
+                if (month.length)
+                    this.$.expirationMonth.invalid = !this._validateDate(month, year);
+
+                if (month && month.length === 2) {
+                    this._selectYear();
+                }
+            },
+            _validateDate: function(month, year) {
+                if (!month.length || !year.length)
+                    return false;
+                if (month > 12 || month < 1)
+                    return false;
+                var then = new Date ('20' + year, month);
+                var now = new Date();
+                return (then > now);
+            },
             _selectYear: function() {
-              this.$.expirationYear.focus();
+                this.$.expirationYear.focus();
             },
-            _computeDate: function(month, year) {
-              // Months are 0-11.
-              this.date = {month: month, year: year};
-              this.fire('dateChanged', this.date);
-              // Advance cursor to year after month entry
-              if (month && month.length === 2) {
-                this._selectYear();
-              }
+            _assessValidity: function(payload){
+                if (this._emptyProperty(this.payload) ||
+                    this.$.cc.invalid ||
+                    this.$.cvc.invalid ||
+                    this.$.expirationYear.invalid ||
+                    this.$.expirationMonth.invalid ||
+                    this.$.zipCode.invalid)
+                    this.set('cardValid', false);
+                else {
+                    this.set('cardValid', true);
+                }
             },
+            _emptyProperty: function(obj){
+                for (var p in obj){
+                    console.log(obj[p])
+                    if (!obj[p] || !obj[p].trim().length)
+                        return true;
+                }
+                return false;
+            }
         });
     </script>
 </dom-module>
