@@ -113,6 +113,16 @@
             </paper-material>
         </div>
 
+        <paper-dialog id="ccRequired" with-backdrop modal opened>
+            <h2>Credit card required</h2>
+            <paper-dialog-scrollable>
+                <card-form card-valid="{{cardValid}}"></card-form>
+            </paper-dialog-scrollable>
+            <div class="buttons">
+                <paper-button class="blue" disabled$="[[!cardValid]]" on-tap="_submitForm">Add Card</paper-button>
+            </div>
+        </paper-dialog>
+
     </template>
     <script>
         (function() {
@@ -154,7 +164,7 @@
                     },
                     clouds: Array,
                     enableMonitoring: Boolean,
-                    enableBilling: Boolean
+                    enableAddCloud: Boolean
                 },
                 observers: [
                     '_providerChanged(selectedProvider, providers)',
@@ -162,10 +172,21 @@
                 ],
                 listeners: {
                     'iron-select' : '_updateCloudTitle',
-                    'reset-form': '_resetProvider'
+                    'reset-form': '_resetProvider',
+                    'open-cc-required': '_openCcRequired',
+                    'close-cc-required': '_closeCcRequired'
                 },
-                ready: function() {
-
+                attached: function() {
+                    if (!this.enableAddCloud)
+                        this._openCcRequired();
+                },
+                _openCcRequired: function() {
+                    console.log('opening cc req');
+                    this.querySelector('#ccRequired').open();
+                },
+                _closeCcRequired: function() {
+                    console.log('closing cc req');
+                    this.querySelector('#ccRequired').close();
                 },
                 _cloudAddAjaxResponse: function(response) {
                     this._unsetProvider();
