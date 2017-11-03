@@ -116,12 +116,14 @@
         <paper-dialog id="ccRequired" with-backdrop modal opened>
             <h2>Credit card required</h2>
             <paper-dialog-scrollable>
-                <card-form card-valid="{{cardValid}}"></card-form>
+                <card-form id="inAddCloud" card-valid="{{cardValid}}" errors='{{cardErrors}}' token="{{token}}"></card-form>
             </paper-dialog-scrollable>
             <div class="buttons">
-                <paper-button class="blue" disabled$="[[!cardValid]]" on-tap="_submitForm">Add Card</paper-button>
+                <paper-button class="blue" disabled$="[[!cardValid]]" on-tap="_submitCard">Add Card</paper-button>
             </div>
         </paper-dialog>
+
+        <iron-ajax id="addCard" url="/card" method="POST" loading="{{loading}}" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
 
     </template>
     <script>
@@ -154,10 +156,6 @@
                     keys: {
                         type: Array
                     },
-                    sendingData: {
-                        type: Boolean,
-                        value: false
-                    },
                     formReady: {
                         type: Boolean,
                         value: false
@@ -174,19 +172,38 @@
                     'iron-select' : '_updateCloudTitle',
                     'reset-form': '_resetProvider',
                     'open-cc-required': '_openCcRequired',
-                    'close-cc-required': '_closeCcRequired'
+                    'close-cc-required': '_closeCcRequired',
+                    'card-response': '_gotCardResponse'
                 },
                 attached: function() {
                     if (!this.enableAddCloud)
                         this._openCcRequired();
                 },
                 _openCcRequired: function() {
-                    console.log('opening cc req');
                     this.querySelector('#ccRequired').open();
                 },
                 _closeCcRequired: function() {
-                    console.log('closing cc req');
                     this.querySelector('#ccRequired').close();
+                },
+                _submitCard: function(e){
+                    var verify = this.querySelector('card-form#inAddCloud').verify();
+                    if (!verify)
+                        console.error(this.querySelector('card-form#inAddCloud').errors)
+                },
+                _gotCardResponse: function(e){
+                    console.log(e);
+                    if (e.detail.token) {
+                        this.$.addCard.headers["Content-Type"] = 'application/json';
+                        this.$.addCard.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.addCard.body = {token: e.detail.token};
+                        this.$.addCard.generateRequest();
+                    }
+                },
+                _handleCardResponse: function(e){
+                    console.log('response', e);
+                },
+                _handleCardError: function(e){
+                    console.log('error', e);
                 },
                 _cloudAddAjaxResponse: function(response) {
                     this._unsetProvider();

@@ -120,11 +120,13 @@
                 },
                 token: {
                     type: String,
-                    reflectToAttribute: true
+                    reflectToAttribute: true,
+                    notify: true
                 },
-                errors: {
+                formErrors: {
                     type: String,
-                    reflectToAttribute: true
+                    reflectToAttribute: true,
+                    notify: true
                 }
             },
             keyBindings: {
@@ -146,7 +148,6 @@
                 if (isValid){
                     Stripe.setPublishableKey(STRIPE_PUBLIC_APIKEY);
                     Stripe.card.createToken(this.payload, stripeResponseHandler);
-                    this.set('sendingData', true);
                     var that = this;
                     function stripeResponseHandler(status, response){
                         if (response.error) {
@@ -160,31 +161,34 @@
                     return true;
                 }
                 else {
-                    var errors = [];
+                    var errorsArray = [];
                     if (!Stripe.card.validateCardNumber(this.payload.number))
-                        errors.push('card number');
+                        errorsArray.push('card number');
 
                     if (!Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year))
-                        errors.push('expiration');
+                        errorsArray.push('expiration');
 
                     if (!Stripe.card.validateCVC(this.payload.cvc))
-                        errors.push('cvc');
+                        errorsArray.push('cvc');
 
                     if (this.payload.address_zip == '' || this.payload.address_zip.length < 4){
-                        errors.push(this.payload.address_zip != '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
+                        errorsArray.push(this.payload.address_zip != '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
                     }
 
-                    this._setError('There seems to be an error in '+errors.join(', ')+'.');
+                    this._setError('There seems to be an error in '+ errorsArray.join(', ') +'.');
 
                     return false;
                 }
             },
             _setToken: function(status, response){
-                if (response.id)
+                if (response.id){
                     this.set('token', response.id);
+                    this.fire('card-response', {token: response.id});
+                }
             },
-            _setError: function(error){
-                this.set('errors', error);
+            _setError: function(str){
+                this.set('formErrors', str);
+                this.fire('card-response');
             },
             _dateChanged: function(month, year) {
                 if (year.length)

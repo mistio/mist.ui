@@ -47,7 +47,7 @@
                             </paper-checkbox>
                         </div>
                         <strong hidden$="[[!enableBilling]]">Credit card required:</strong><br/>
-                        <card-form card-valid="{{cardValid}}" hidden$="[[!enableBilling]]"></card-form>
+                        <card-form id="inAddOrg" card-valid="{{cardValid}}" hidden$="[[!enableBilling]]"></card-form>
                     </p>
                     <div id="errormsg" hidden$="[[!fail]]"></div>
                     <div class="clearfix btn-group">
@@ -107,6 +107,9 @@
                     cardValid: Boolean,
                     enableBilling: Boolean
                 },
+                listeners: {
+                    'card-response': '_gotCardResponse'
+                },
                 _computeFormReady: function(name, loading, valid) {
                     if (name && !loading) {
                         return this.enableBilling ? valid : true;
@@ -127,25 +130,27 @@
                     this._formReset();
                 },
                 _submitForm: function() {
-                    var card = this.querySelector('card-form'),
-                        payload = { name: this.newOrganization.name,
-                                    super_org: this.newOrganization.super_org};
                     this.set("fail", false);
-
-                    if (this.enableBilling && card.verify()) {
-                        payload['token'] = card.token;
-                        this._generateRequest(payload);
-                    }
-                    else if (!this.enableBilling){
-                        this._generateRequest(payload);
-                    }
-                    else {
-                        this.set("fail", true);
-                        this.$.errormsg.textContent = card.errors;
-                    }
+                    if (this.enableBilling) 
+                        this.querySelector('card-form#inAddOrg').verify();
+                    else 
+                        this._generateRequest();
 
                 },
-                _generateRequest: function(payload){
+                _gotCardResponse: function(e){
+                    if (e.detail.token) 
+                        this._generateRequest(e.detail.token);
+                    else {
+                        this.set("fail", true);
+                        this.$.errormsg.textContent = this.querySelector('card-form#inAddOrg').formErrors;
+                    }
+                },
+                _generateRequest: function(tok){
+                    var payload = { name: this.newOrganization.name,
+                                    super_org: this.newOrganization.super_org };
+                    if (tok)
+                        payload['token'] = tok;
+                    
                     this.$.organizationAddAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.organizationAddAjaxRequest.body = payload;
