@@ -4,6 +4,8 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 
 <link rel="import" href="../app-form/app-form.html">
 
@@ -40,7 +42,31 @@
             paper-checkbox {
                 margin-top: 20px;
             }
-
+            .progress {
+                position: relative;
+                width: 100%;
+                left: 0;
+                right: 0;
+                margin-left: -24px;
+            }
+            paper-progress#progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: var(--red-color);
+                width: 300px;
+                padding-left: 20px;
+                font-size: 14px;
+            }
+            .errormsg-container iron-icon {
+                color: inherit;
+                margin-right: 8px;
+            }
+            paper-progress {
+                width: 100%;
+                left: 0;
+                right: 0;
+            }
             .dropdown-with-logos paper-item img {
                 margin-right: 16px;
             }
@@ -64,6 +90,9 @@
             }
             .help {
                 align-self: flex-end;
+            }
+            .mo {
+                font-size: .8em;
             }
             @media screen and (max-width: 870px) {
                 :host paper-menu.providers paper-item {
@@ -116,14 +145,28 @@
         <paper-dialog id="ccRequired" with-backdrop modal opened>
             <h2>Credit card required</h2>
             <paper-dialog-scrollable>
-                <card-form id="inAddCloud" card-valid="{{cardValid}}" errors='{{cardErrors}}' token="{{token}}"></card-form>
+                Select a plan <br/>
+                <paper-radio-group selected="{{plan}}">
+                    <paper-radio-button name="Payg"><strong>PAYG</strong> Pay as you go plan. Start for free.</paper-radio-button> <br/>
+                    <paper-radio-button name="Small"><strong>Small</strong> <br/> $150<span class="mo">/mo</span></paper-radio-button>
+                    <paper-radio-button name="Medium"><strong>Medium</strong> <br/> $400<span class="mo">/mo</span></paper-radio-button>
+                    <paper-radio-button name="Large"><strong>Large</strong> <br/> $750<span class="mo">/mo</span></paper-radio-button>
+                </paper-radio-group>
+                <br/>Payment information <br/><br/>
+                <card-form id="inAddCloud" card-valid="{{cardValid}}" token="{{token}}"></card-form>
             </paper-dialog-scrollable>
+            <div class="progress" hidden$="[[!showProgress]]">
+                <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
+                <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                <hr class="appform"/>
+                <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg">[[cardErrors]]</span></p>
+            </div>
             <div class="buttons">
                 <paper-button class="blue" disabled$="[[!cardValid]]" on-tap="_submitCard">Add Card</paper-button>
             </div>
         </paper-dialog>
 
-        <iron-ajax id="addCard" url="/card" method="POST" loading="{{loading}}" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
+        <iron-ajax id="addCard" url="/purchase" method="POST" loading="{{loading}}" handle-as="xml" on-response="_handleCardResponse" on-error="_handleCardError"></iron-ajax>
 
     </template>
     <script>
@@ -156,13 +199,31 @@
                     keys: {
                         type: Array
                     },
-                    formReady: {
+                    cardValid: {
+                        type: Boolean,
+                        value: false
+                    },
+                    formError: {
+                        type: Boolean,
+                        value: false
+                    },
+                    cardErrors: String,
+                    loading: {
                         type: Boolean,
                         value: false
                     },
                     clouds: Array,
                     enableMonitoring: Boolean,
-                    enableAddCloud: Boolean
+                    enableAddCloud: Boolean,
+                    plan: {
+                        type:String,
+                        value: 'Payg'
+                    },
+                    showProgress: {
+                        type: Boolean,
+                        value: false,
+                        computed: '_computeShowProgress(formError,loading)'
+                    },
                 },
                 observers: [
                     '_providerChanged(selectedProvider, providers)',
@@ -180,30 +241,49 @@
                         this._openCcRequired();
                 },
                 _openCcRequired: function() {
+                    this._clearErrors();
                     this.querySelector('#ccRequired').open();
                 },
                 _closeCcRequired: function() {
                     this.querySelector('#ccRequired').close();
+                    this.querySelector('card-form#inAddCloud').reset();
+                    this._clearErrors();
                 },
                 _submitCard: function(e){
-                    var verify = this.querySelector('card-form#inAddCloud').verify();
-                    if (!verify)
-                        console.error(this.querySelector('card-form#inAddCloud').errors)
+                    this._clearErrors();
+                    if (this.cardValid) {
+                        this.querySelector('card-form#inAddCloud').verify();
+                    }
                 },
                 _gotCardResponse: function(e){
-                    console.log(e);
-                    if (e.detail.token) {
-                        this.$.addCard.headers["Content-Type"] = 'application/json';
-                        this.$.addCard.headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.$.addCard.body = {token: e.detail.token};
-                        this.$.addCard.generateRequest();
+                    if (this.cardValid) {
+                        var card = this.querySelector('card-form#inAddCloud');
+                        if (e.detail.token) {
+                            this.$.addCard.headers["Content-Type"] = 'application/json';
+                            this.$.addCard.headers["Csrf-Token"] = CSRF_TOKEN;
+                            this.$.addCard.body = {plan: this.plan, token: e.detail.token};
+                            this.$.addCard.generateRequest();
+                        }
+                        else {
+                            this.set('formError', true);
+                            this.set('cardErrors', card.errors);
+                        }
                     }
                 },
                 _handleCardResponse: function(e){
-                    console.log('response', e);
+                    this._closeCcRequired();
+                    this.fire('toast', {msg:'Plan added.', duration: 3000});
                 },
-                _handleCardError: function(e){
-                    console.log('error', e);
+                _handleCardError: function(e){;
+                    this.set('cardErrors', e.detail.request.xhr.responseText);
+                    this.set('formError', true);
+                },
+                _computeShowProgress: function(formError,loading){
+                    return this.formError || this.loading;
+                },
+                _clearErrors: function(){
+                    this.set('formError', false);
+                    this.set('cardErrors', '');
                 },
                 _cloudAddAjaxResponse: function(response) {
                     this._unsetProvider();

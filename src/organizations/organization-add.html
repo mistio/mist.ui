@@ -108,12 +108,16 @@
                     enableBilling: Boolean
                 },
                 listeners: {
-                    'card-response': '_gotCardResponse'
+                    'card-response': '_gotCardResponse',
+                    'input': '_clearFail'
                 },
                 _computeFormReady: function(name, loading, valid) {
                     if (name && !loading) {
                         return this.enableBilling ? valid : true;
                     }
+                },
+                _clearFail: function(){
+                    this.set("fail", false);
                 },
                 _computeType: function(type, value) {
                     return type == value;
@@ -127,6 +131,7 @@
                 },
                 _closeDialog: function(e) {
                     this.querySelector('paper-dialog').close();
+                    this.querySelector('card-form#inAddOrg').reset();
                     this._formReset();
                 },
                 _submitForm: function() {
@@ -142,7 +147,7 @@
                         this._generateRequest(e.detail.token);
                     else {
                         this.set("fail", true);
-                        this.$.errormsg.textContent = this.querySelector('card-form#inAddOrg').formErrors;
+                        this.$.errormsg.textContent = this.querySelector('card-form#inAddOrg').errors;
                     }
                 },
                 _generateRequest: function(tok){

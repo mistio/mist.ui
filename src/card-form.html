@@ -120,13 +120,11 @@
                 },
                 token: {
                     type: String,
-                    reflectToAttribute: true,
-                    notify: true
+                    reflectToAttribute: true
                 },
-                formErrors: {
+                errors: {
                     type: String,
-                    reflectToAttribute: true,
-                    notify: true
+                    reflectToAttribute: true
                 }
             },
             keyBindings: {
@@ -139,56 +137,67 @@
             ready: function(){
 
             },
+            reset: function(){
+                this.set('errors', '');
+                this.set('token', null);
+                this.set('cardValid', false);
+                this.set('payload', {
+                            number: "",
+                            exp_month: "",
+                            exp_year: "",
+                            cvc: "",
+                            address_zip: ""
+                        });
+                this.$.cc.invalid = this.$.cvc.invalid = this.$.expirationYear.invalid = this.$.expirationMonth.invalid = this.$.zipCode.invalid = false;
+            },
             verify: function(){
                 //extra stripe validation
-                var isValid = Stripe.card.validateCardNumber(this.payload.number) &&
-                    Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year) &&
-                    Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '' && this.payload.address_zip.length >= 4;
+                if (this.cardValid) {
+                    var isValid = Stripe.card.validateCardNumber(this.payload.number) &&
+                        Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year) &&
+                        Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '' && this.payload.address_zip.length >= 4;
 
-                if (isValid){
-                    Stripe.setPublishableKey(STRIPE_PUBLIC_APIKEY);
-                    Stripe.card.createToken(this.payload, stripeResponseHandler);
-                    var that = this;
-                    function stripeResponseHandler(status, response){
-                        if (response.error) {
-                            console.error('stripeResponseHandler failed', response.error.message);
-                            that._setError(response.error.message);
-                        }
-                        else {
-                            that._setToken(status, response);
+                    if (isValid){
+                        Stripe.setPublishableKey(STRIPE_PUBLIC_APIKEY);
+                        Stripe.card.createToken(this.payload, stripeResponseHandler);
+                        var that = this;
+                        function stripeResponseHandler(status, response){
+                            if (response.error) {
+                                console.error('stripeResponseHandler failed', response.error.message);
+                                that._setError(response.error.message);
+                            }
+                            else {
+                                that._setToken(status, response);
+                            }
                         }
                     }
-                    return true;
-                }
-                else {
-                    var errorsArray = [];
-                    if (!Stripe.card.validateCardNumber(this.payload.number))
-                        errorsArray.push('card number');
+                    else {
+                        var errorsArray = [];
+                        if (!Stripe.card.validateCardNumber(this.payload.number))
+                            errorsArray.push('card number');
 
-                    if (!Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year))
-                        errorsArray.push('expiration');
+                        if (!Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year))
+                            errorsArray.push('expiration');
 
-                    if (!Stripe.card.validateCVC(this.payload.cvc))
-                        errorsArray.push('cvc');
+                        if (!Stripe.card.validateCVC(this.payload.cvc))
+                            errorsArray.push('cvc');
 
-                    if (this.payload.address_zip == '' || this.payload.address_zip.length < 4){
-                        errorsArray.push(this.payload.address_zip != '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
+                        if (this.payload.address_zip == '' || this.payload.address_zip.length < 4){
+                            errorsArray.push(this.payload.address_zip != '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
+                        }
+                        this._setError('There seems to be an error in '+ errorsArray.join(', ') +'.');
                     }
-
-                    this._setError('There seems to be an error in '+ errorsArray.join(', ') +'.');
-
-                    return false;
+                    this.fire('card-response')
                 }
             },
             _setToken: function(status, response){
-                if (response.id){
-                    this.set('token', response.id);
-                    this.fire('card-response', {token: response.id});
-                }
+                this.set('token', response.id);
+                this.set('errors', '');
+                this.fire('card-response', {token: this.token});
             },
             _setError: function(str){
-                this.set('formErrors', str);
-                this.fire('card-response');
+                this.set('errors', str);
+                this.set('token', null);
             },
             _dateChanged: function(month, year) {
                 if (year.length)
@@ -213,7 +222,7 @@
                 this.$.expirationYear.focus();
             },
             _assessValidity: function(payload){
-                this._setError('errors', '');
+                this._setError('');
                 if (this._emptyProperty(this.payload) ||
                     this.$.cc.invalid ||
                     this.$.cvc.invalid ||
