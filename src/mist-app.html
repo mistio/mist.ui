@@ -65,7 +65,7 @@
     iron-pages::content>* {
         background-color: #eee;
         position: relative;
-        min-height: 80vh;
+        min-height: 100vh;
     }
     iron-pages::content mist-list {
         font-size: 14px;
@@ -131,11 +131,11 @@
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
         <plan-overusage is-over-using="[[model.onboarding.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" hidden$=[[!enableBilling]]></plan-overusage>
-        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" class="paper-header" enable-billing="[[enableBilling]]" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
-          <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[enableMonitoring]]"></page-clouds>
+          <page-clouds name="clouds" enable-add-cloud="[[enableAddCloud]]" route="{{subroute}}" model="[[model]]" enable-monitoring="[[enableMonitoring]]"></page-clouds>
           <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[enableMonitoring]]></page-machines>
           <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
           <page-keys name="keys" route="{{subroute}}" model="[[model]]"></page-keys>
@@ -276,7 +276,12 @@
             enableMonitoring: {
                 type: Boolean,
                 value: false
-            }
+            },
+
+            enableAddCloud: {
+              type: Boolean,
+              value: false
+            },
         },
 
         listeners: {
@@ -298,11 +303,21 @@
         observers: [
             '_routePageChanged(routeData.page, subroute.path)',
             '_manageSearch(route.*)',
-            '_sizeChanged(smallscreen)'
+            '_sizeChanged(smallscreen)',
+            '_computeEnableAddCloud(model.org.*, enableBilling)'
         ],
 
         ready: function () {
 
+        },
+
+        _computeEnableAddCloud: function (org, billing) {
+            // TODO get org hasCard instead
+            this.set('enableAddCloud', this.enableBilling ? this._hasPlan() : true);
+        },
+
+        _hasPlan: function(){
+            return this.model.org.current_plan.title && this.model.org.current_plan.title.length > -1 ? true : false;
         },
 
         _sizeChanged: function(smallscreen) {
@@ -408,9 +423,18 @@
                         l.fire('resize');
                 }
             }
-            if (this.page == 'dashboard') {
+            if (this.page == 'dashboard')
                 this.clearSearch();
-            }
+
+            if (document.querySelector('cloud-add'))
+                this._manageCcRequiredOverlay(page, subpath);
+        },
+
+        _manageCcRequiredOverlay: function(page, subpath) {
+            if (!this.enableAddCloud && page == 'clouds' && subpath =="/+add")
+                document.querySelector('cloud-add').fire('open-cc-required');
+            else
+                document.querySelector('cloud-add').fire('close-cc-required');
         },
 
         _manageSearch: function(changeRecord) {
