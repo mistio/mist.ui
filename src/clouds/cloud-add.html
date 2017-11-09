@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 
+<link rel="import" href="../helpers/plan-selection-widget.html">
 <link rel="import" href="../app-form/app-form.html">
 <link rel="import" href="../card-form.html">
 
@@ -92,13 +93,8 @@
             .help {
                 align-self: flex-end;
             }
-            .mo {
-                font-size: .8em;
-            }
-            .help-icon {
-                width: 20px;
-                height: 20px;
-                float: right;
+            card-form {
+                margin: 4px 0;
             }
             @media screen and (max-width: 870px) {
                 :host paper-menu.providers paper-item {
@@ -149,16 +145,10 @@
         </div>
 
         <paper-dialog id="ccRequired" with-backdrop modal opened>
-            <h2>Credit card required <a href="/my-account/billing"><iron-icon icon="help" class="help-icon"></iron-icon></a></h2>
+            <h2>Credit card required</h2>
             <paper-dialog-scrollable>
-                Select a plan <br/>
-                <paper-radio-group selected="{{plan}}">
-                    <paper-radio-button name="Free"><strong>Free Tier</strong> Pay As You Go. Start for free.</paper-radio-button> <br/>
-                    <paper-radio-button name="Small"><strong>Small</strong> <br/> $200<span class="mo">/mo</span></paper-radio-button>
-                    <paper-radio-button name="Medium"><strong>Medium</strong> <br/> $900<span class="mo">/mo</span></paper-radio-button>
-                    <paper-radio-button name="Large"><strong>Large</strong> <br/> $3,000<span class="mo">/mo</span></paper-radio-button>
-                </paper-radio-group>
-                <br/>Payment information <br/><br/>
+                <plan-selection-widget selected="{{plan}}"></plan-selection-widget>
+                <br/>Payment information <br/>
                 <card-form id="inAddCloud" card-valid="{{cardValid}}" token="{{token}}"></card-form>
             </paper-dialog-scrollable>
             <div class="progress" hidden$="[[!showProgress]]">
@@ -222,8 +212,8 @@
                     enableMonitoring: Boolean,
                     enableAddCloud: Boolean,
                     plan: {
-                        type:String,
-                        value: 'Free'
+                        type: String,
+                        value: 'payg'
                     },
                     showProgress: {
                         type: Boolean,
@@ -240,11 +230,15 @@
                     'reset-form': '_resetProvider',
                     'open-cc-required': '_openCcRequired',
                     'close-cc-required': '_closeCcRequired',
-                    'card-response': '_gotCardResponse'
+                    'card-response': '_gotCardResponse',
+                    'refit': '_refit'
                 },
                 attached: function() {
                     if (!this.enableAddCloud)
                         this._openCcRequired();
+                },
+                _refit: function(e){
+                    this.$.ccRequired.refit();
                 },
                 _openCcRequired: function() {
                     this._clearErrors();
