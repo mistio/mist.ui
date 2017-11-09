@@ -22,6 +22,8 @@
             text-align: center;
             cursor: pointer;
             border-radius: 3px;
+            position: relative;
+            z-index: 1;
         }
         .plans-list .plan-item {
             margin: 4px;
@@ -41,7 +43,7 @@
             transition: transform 200ms ease-in;
         }
         .plan-item paper-icon-button.open::content iron-icon {
-            transform: rotate(-90deg);
+            transform: rotate(-180deg);
         }
         .plan-item.selected paper-icon-button::content iron-icon,
         .plan-item.selected iron-icon {
@@ -62,16 +64,22 @@
             text-transform: none;
             font-size: 0.9em;
             transform: translate(0, -10px);
-            transition: transform 0ms ease-in;
+            transition: opacity 100ms ease-in, height 100ms ease-in, transform 200ms ease-in;
             opacity: 0;
             height: 0;
+            z-index: -1;
         }
         .details.open {
-            padding: 4px 8px;
+            padding-bottom: 4px;
             opacity: 1;
-            height: auto;
+            height: 100px;
             transform: translate(0, 0);
-            transition: transform 200ms ease-in;
+            transition: opacity 100ms ease-in, height 200ms ease-in, transform 200ms ease-in;
+            overflow-y: scroll;
+        }
+        #paygDetails {
+            position: relative;
+            z-index: 0;
         }
         .view {
             height: auto;
@@ -104,6 +112,13 @@
                     <paper-icon-button id="paygIcon" icon="icons:expand-more" on-tap="_expand"></paper-icon-button>
                     <div id="paygDetails" class="details">
                         Free for up to 10 cpu cores, 100 datapoints/sec, 1000 rule checks/day, 10k API requests/day, 1 month retention
+                        </br>
+                        <strong>Over limits:</strong>
+                        </br>
+                        + $2 per cpu core/mo, 
+                        + $5 per 1k datapoints/sec, 
+                        + $5 per 100k rule checks/day, 
+                        + $5 per 1M API requests/day
                     </div>
                 </div>
                 <div class$="plan-item [[prepaidIsSelected]]" on-tap="_togglePrepaid"> 
@@ -120,19 +135,19 @@
                     <div class$="plan-item [[_computeIsSelected('Small',selected)]]" on-tap="selectSmall"> 
                         <div class="plan-title"> Small<br/><sub>$200/mo</sub></div>
                         <div class="details open">
-                            10 cpu cores<br/> 100 datapts/sec<br/> 1000 rule checks/day<br/> 1 month retention
+                            200 cpu cores<br/> 2k datapts/sec<br/> 100k rule checks/day<br/> 3 month retention
                         </div>
                     </div> 
                     <div class$="plan-item [[_computeIsSelected('Medium',selected)]]" on-tap="selectMedium"> 
                         <div class="plan-title"> Medium<br/><sub>$700/mo</sub></div>
                         <div class="details open">
-                            10 cpu cores<br/> 100 datapts/sec<br/> 1000 rule checks/day<br/> 1 month retention
+                            1k cpu cores<br/> 10k datapts/sec<br/> 1M rule checks/day<br/> 1 year retention
                         </div>
                     </div> 
                     <div class$="plan-item [[_computeIsSelected('Large',selected)]]" on-tap="selectLarge"> 
                         <div class="plan-title"> Large<br/><sub>$3,000/mo</sub></div>
                         <div class="details open">
-                            10 cpu cores<br/> 100 datapts/sec<br/> 1000 rule checks/day<br/> 1 month retention
+                            10k cpu cores<br/> 100k datapts/sec<br/> 10M rule checks/day<br/> 3 year retention
                         </div>
                     </div>
                 </div>
@@ -168,7 +183,7 @@
                 this.$.paygDetails.classList.toggle('open');
                 this.$.paygIcon.classList.toggle('open');
 
-                this.fire('refit');
+                // this.fire('refit');
             },
             _togglePrepaid: function(e){
                 this.$.viewMethod.classList.toggle('slideleft');
@@ -184,15 +199,15 @@
             },
             selectSmall: function(e){
                 this.set('selected', 'Small');
-                this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
+                // this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
             },
             selectMedium: function(e){
                 this.set('selected', 'Medium');
-                this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
+                // this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
             },
             selectLarge: function(e){
                 this.set('selected', 'Large');
-                this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
+                // this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
             },
             _computeIsSelected: function(name, selected){
                 return name === selected ? 'selected' : '';
