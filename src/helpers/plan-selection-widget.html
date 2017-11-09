@@ -106,7 +106,7 @@
 
             <div id="viewMethod" class="view">
                 Payment method:
-                <div class$="plan-item [[_computeIsSelected('payg',selected)]]" on-tap="selectPayg">
+                <div class$="plan-item [[_computeIsSelected('payg',selected)]]" on-tap="_selectPayg">
                     <span class="check"><iron-icon icon="icons:check"></iron-icon></span>
                     Pay as you go 
                     <paper-icon-button id="paygIcon" icon="icons:expand-more" on-tap="_expand"></paper-icon-button>
@@ -132,19 +132,19 @@
                 <paper-icon-button icon="icons:arrow-back" on-tap="_togglePrepaid"></paper-icon-button>
                 Prepaid Plans:
                 <div class="plans-list layout horizontal">
-                    <div class$="plan-item [[_computeIsSelected('Small',selected)]]" on-tap="selectSmall"> 
+                    <div class$="plan-item [[_computeIsSelected('Small',selected)]]" on-tap="_selectSmall"> 
                         <div class="plan-title"> Small<br/><sub>$200/mo</sub></div>
                         <div class="details open">
                             200 cpu cores<br/> 2k datapts/sec<br/> 100k rule checks/day<br/> 3 month retention
                         </div>
                     </div> 
-                    <div class$="plan-item [[_computeIsSelected('Medium',selected)]]" on-tap="selectMedium"> 
+                    <div class$="plan-item [[_computeIsSelected('Medium',selected)]]" on-tap="_selectMedium"> 
                         <div class="plan-title"> Medium<br/><sub>$700/mo</sub></div>
                         <div class="details open">
                             1k cpu cores<br/> 10k datapts/sec<br/> 1M rule checks/day<br/> 1 year retention
                         </div>
                     </div> 
-                    <div class$="plan-item [[_computeIsSelected('Large',selected)]]" on-tap="selectLarge"> 
+                    <div class$="plan-item [[_computeIsSelected('Large',selected)]]" on-tap="_selectLarge"> 
                         <div class="plan-title"> Large<br/><sub>$3,000/mo</sub></div>
                         <div class="details open">
                             10k cpu cores<br/> 100k datapts/sec<br/> 10M rule checks/day<br/> 3 year retention
@@ -165,18 +165,8 @@
                     type: Boolean,
                     computed: '_computePrepaidIsSelected(selected)'
                 },
-                plans: {
-                    type: Array
-                }
-            },
-            observers: [
+                plans: Array,
 
-            ],
-            listeners: {
-
-            },
-            attached: function () {
-                
             },
             _expand: function(e){
                 e.stopImmediatePropagation();
@@ -189,23 +179,20 @@
 
                 this.fire('refit');
             },
-            selectPayg: function(e){
+            _selectPayg: function(e){
                 this.set('selected', 'payg');
             },
             _computePrepaidIsSelected: function(selected){
                 return ['Small','Medium','Large'].indexOf(selected) > -1 ? 'selected' : '';
             },
-            selectSmall: function(e){
+            _selectSmall: function(e){
                 this.set('selected', 'Small');
-                // this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
             },
-            selectMedium: function(e){
+            _selectMedium: function(e){
                 this.set('selected', 'Medium');
-                // this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
             },
-            selectLarge: function(e){
+            _selectLarge: function(e){
                 this.set('selected', 'Large');
-                // this.async(function(){this._togglePrepaid(e)}.bind(this), 200);
             },
             _computeIsSelected: function(name, selected){
                 return name === selected ? 'selected' : '';
