@@ -52,8 +52,8 @@
             }
         </style>
 
-        <paper-dialog id="ccRequired" with-backdrop modal opened>
-            <h2>Credit card required</h2>
+        <paper-dialog id="ccRequired" with-backdrop modal>
+            <h2><span hidden$="[[title]]">Credit card required</span>[[title]]</h2>
             <paper-dialog-scrollable>
                 <plan-selection-widget selected="{{plan}}"></plan-selection-widget>
                 <br/>Payment information <br/>
@@ -66,6 +66,7 @@
                 <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg">[[cardErrors]]</span></p>
             </div>
             <div class="buttons">
+                <paper-button dialog-dismiss hidden$="[[!hasCancel]]">Cancel</paper-button>
                 <paper-button class="blue" disabled$="[[!cardValid]]" on-tap="_submitCard">Add Card</paper-button>
             </div>
         </paper-dialog>
@@ -94,9 +95,9 @@
                         type: Boolean,
                         value: false
                     },
-                    enableAddCloud: Boolean,
                     plan: {
                         type: String,
+                        value: 'payg',
                         notify: true
                     },
                     showProgress: {
@@ -104,25 +105,28 @@
                         value: false,
                         computed: '_computeShowProgress(formError,loading)'
                     },
+                    hasCancel: {
+                        type: Boolean,
+                        value: false
+                    },
+                    title: String
                 },
                 listeners: {
-                    'open-cc-required': '_openCcRequired',
-                    'close-cc-required': '_closeCcRequired',
+                    'open-cc-required': 'open',
+                    'close-cc-required': 'close',
                     'card-response': '_gotCardResponse',
                     'refit': '_refit'
                 },
                 attached: function() {
-                    if (!this.enableAddCloud)
-                        this._openCcRequired();
                 },
                 _refit: function(e){
                     this.$.ccRequired.refit();
                 },
-                _openCcRequired: function() {
+                open: function() {
                     this._clearErrors();
                     this.querySelector('#ccRequired').open();
                 },
-                _closeCcRequired: function() {
+                close: function() {
                     this.querySelector('#ccRequired').close();
                     this.querySelector('card-form#inAddCloud').reset();
                     this._clearErrors();
