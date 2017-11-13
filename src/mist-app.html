@@ -32,6 +32,7 @@
 <link rel="import" href="app-styles/app-styles.html">
 <link rel="import" href="app-icons/app-icons.html">
 <link rel="import" href="account/plan-overusage.html">
+<link rel="import" href="helpers/cc-required.html">
 
 <link rel="import" href="mist-socket.html">
 <link rel="import" href="mist-notice.html">
@@ -135,7 +136,7 @@
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
-          <page-clouds name="clouds" enable-add-cloud="[[enableAddCloud]]" route="{{subroute}}" model="[[model]]" enable-monitoring="[[enableMonitoring]]"></page-clouds>
+          <page-clouds name="clouds" enable-add-cloud="[[enableAddCloud]]" route="{{subroute}}" model="[[model]]" enable-monitoring="[[enableMonitoring]]" selected-plan="{{selectedPlan}}"></page-clouds>
           <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[enableMonitoring]]></page-machines>
           <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
           <page-keys name="keys" route="{{subroute}}" model="[[model]]"></page-keys>
@@ -165,6 +166,7 @@
     <mist-socket model="{{model}}"></mist-socket>
 
     <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
+    <cc-required id="completePurchase" plan="[[selectedPlan]]" title="Complete Purchase" has-cancel></cc-required>
 
   </template>
 
@@ -279,9 +281,15 @@
             },
 
             enableAddCloud: {
-              type: Boolean,
-              value: false
+                type: Boolean,
+                value: false
             },
+
+            selectedPlan: {
+                type: String,
+                readOnly: true,
+                value: 'Small'
+            }
         },
 
         listeners: {
@@ -304,11 +312,19 @@
             '_routePageChanged(routeData.page, subroute.path)',
             '_manageSearch(route.*)',
             '_sizeChanged(smallscreen)',
-            '_computeEnableAddCloud(model.org.*, enableBilling)'
+            '_computeEnableAddCloud(model.org.*, enableBilling)',
+            '_hasSelectedPlan(selectedPlan)'
         ],
 
         ready: function () {
 
+        },
+
+        _hasSelectedPlan: function(plan) {
+            console.warn('_hasSelectedPlan', plan)
+            if (plan) {
+                this.querySelector("cc-required").fire("open-cc-required");
+            }
         },
 
         _computeEnableAddCloud: function (org, billing) {
