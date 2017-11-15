@@ -65,7 +65,7 @@
     iron-pages::content>* {
         background-color: #eee;
         position: relative;
-        min-height: 80vh;
+        min-height: 90vh;
     }
     iron-pages::content mist-list {
         font-size: 14px;
@@ -131,7 +131,7 @@
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
         <plan-overusage is-over-using="[[model.onboarding.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" hidden$=[[!enableBilling]]></plan-overusage>
-        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" class="paper-header" count="[[count]]" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
@@ -276,7 +276,8 @@
             enableMonitoring: {
                 type: Boolean,
                 value: false
-            }
+            },
+            count: Number
         },
 
         listeners: {
@@ -292,7 +293,8 @@
             'update-scripts': 'updateScripts',
             'user-action': '_onUserAction',
             'add-new-images': 'addImages',
-            'go-to': 'setLocationPath'
+            'go-to': 'setLocationPath',
+            'mist-list-filtered-items-length-changed': 'setHeaderCount',
         },
 
         observers: [
@@ -315,6 +317,11 @@
 
         _computeCenterContent: function(sidebarIsClosed, smallscreen) {
             return this.sidebarIsClosed || this.smallscreen;
+        },
+
+        setHeaderCount: function(e) {
+            if (e.path[1].tagName.toLowerCase().split('-')[1] == this.page)
+                this.set('count', e.detail.length);
         },
 
 
@@ -411,6 +418,7 @@
             if (this.page == 'dashboard') {
                 this.clearSearch();
             }
+            this.set('count', null);
         },
 
         _manageSearch: function(changeRecord) {
