@@ -19,6 +19,10 @@
                 outline: none;
             }
 
+            paper-item {
+                cursor: pointer;
+            }
+
             paper-icon-button ::content iron-icon {
                 color: inherit;
             }
@@ -134,15 +138,31 @@
                                 <div secondary inner-h-t-m-l="[[item.html_body]]" class="body"></div>
                                 <div secondary class="time">[[_computeRelativeTime(item, timestamp_counter)]]</div>
                             </paper-item-body>
-                            <paper-menu-button horizontal-align="right" vertical-offset="56" horizontal-offset="-36">
+                            <paper-menu-button horizontal-align="right" vertical-offset="56" horizontal-offset="-36" on-tap="_handleRightButtonTap">
                                 <paper-icon-button class="dismiss-icon dropdown-trigger" icon="icons:icons:more-horiz"></paper-icon-button>
                                 <div class="notification-actions dropdown-content">
                                     <paper-menu id="notification-actions-menu" selectable="none">
-                                        <paper-item class="context">
+                                        <paper-item class="notification-action context"
+                                         hidden$="[[!isNotification(item)]]"
+                                         on-tap="_dismissNotification">
                                             Dismiss this notification
                                         </paper-item>
-                                        <paper-item class="context">
-                                            Dismiss notifications for this machine
+                                        <paper-item class="notification-action context"
+                                         hidden$="[[!isR12n(item)]]"
+                                         on-tap="_dismissNotification">
+                                            Dismiss this recommendation
+                                        </paper-item>
+                                        <paper-item class="notification-action context" 
+                                            hidden$="[[!isMachineR12n(item)]]"
+                                            on-tap="_disableNotificationsForMachine"
+                                            _id="[[item._id]]">
+                                            Disable recommendations for this machine
+                                        </paper-item>
+                                        <paper-item class="notification-action context"
+                                            hidden$="[[!isMachineNotification(item)]]"
+                                            on-tap="_disableNotificationsForMachine"
+                                            _id="[[item._id]]">
+                                            Disable all notifications for this machine
                                         </paper-item>
                                     </paper-menu>
                                 </div>
@@ -161,6 +181,13 @@
             method="DELETE"
             handle-as="json"
             on-response="handleDismissResponse">
+        </iron-ajax>
+
+        <iron-ajax
+            id="requestDisableSimilar"
+            method="PUT"
+            handle-as="json"
+            on-response="handleDisableNotificationsForMachineResponse">
         </iron-ajax>
 
     </template>
@@ -232,6 +259,18 @@
                     return "notifications";
                 }
             },
+            isNotification: function (notification) {
+                return notification._cls == "Notification.InAppNotification";
+            },
+            isR12n: function (notification) {
+                return notification._cls == "Notification.InAppNotification.InAppRecommendation";
+            },
+            isMachineNotification: function (notification) {
+                return typeof notification.machine !== 'undefined' && this.isNotification(notification);
+            },
+            isMachineR12n: function (notification) {
+                return typeof notification.machine !== 'undefined' && this.isR12n(notification);
+            },
             _computeNotificationIcon: function (notification) {
                 if (notification._cls == "Notification.InAppNotification.InAppRecommendation" && 
                     notification.model_id == "autoscale_v1") {
@@ -286,13 +325,25 @@
                 return ntf + rec * 2;
             },
             _handleItemTap: function (event) {
-                var path = '/' + event.model.item.resource._ref.$ref + '/' + event.model.item.resource._ref.$id;
+                var path;
+                if (event.model.item.machine) {
+                    path = '/' + event.model.item.machine._ref.$ref + '/' + event.model.item.machine._ref.$id;
+                }
+                else if (event.model.item.cloud) {
+                    path = '/' + event.model.item.cloud._ref.$ref + '/' + event.model.item.cloud._ref.$id;
+                }
+                else if (event.model.item.tag) {
+                    path = '/' + event.model.item.tag._ref.$ref + '/' + event.model.item.tag._ref.$id;
+                }
                 window.history.pushState({}, null, path);
                 window.dispatchEvent(new CustomEvent('location-changed'));
                 this.opened = false;
                 event.stopPropagation();
             },
-            _dismiss: function (event) {
+            _handleRightButtonTap: function (event) {
+                event.stopPropagation();
+            },
+            _dismissNotification: function (event) {
                 var dismissURL = "/api/v1/notifications/" + event.model.item._id;
                 this.$.requestDismiss.url = dismissURL;
                 this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -301,6 +352,16 @@
             },
             handleDismissResponse: function (event) {
                 console.log("Notifications: Received dismiss response");
+            },
+            _disableNotificationsForMachine: function (event) {
+                var dismissURL = "/api/v1/notification-overrides/" + event.model.item._id;
+                this.$.requestDisableSimilar.url = dismissURL;
+                this.$.requestDisableSimilar.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.requestDisableSimilar.generateRequest();
+                event.stopPropagation();
+            },
+            handleDisableNotificationsForMachineResponse: function (event) {
+                console.log("Notifications: Received disable response");
             }
         });
     </script>
