@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
@@ -123,6 +124,22 @@
                 background: none;
             }
 
+            #spinner {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                bottom: 0;
+                right: 0;
+                background-color: rgba(255,255,255,0.85);
+                height: inherit;
+            }
+
+            #spinner paper-spinner {
+                position: absolute;
+                top: 40%;
+                left: 40%
+            }
         </style>
 
         <!-- local DOM goes here -->
@@ -174,6 +191,7 @@
                             </div>
                         </paper-item>
                     </template>
+                    <div id="spinner" hidden$="[[!activeSpinner]]"><paper-spinner active="[[activeSpinner]]"></paper-spinner></div>
                 </paper-menu>
             </div>
         </paper-menu-button>
@@ -221,8 +239,15 @@
                 },
                 timestamp_counter: {
                     value: 0
+                },
+                activeSpinner: {
+                    type: Boolean,
+                    value: false
                 }
             },
+            observers: [
+                '_openedChanged(opened)'
+            ],
             attached: function() {
                 if (!this.timestamp_interval) {
                     var th1s = this;
@@ -266,14 +291,8 @@
             isNotification: function (notification) {
                 return notification._cls == "Notification.InAppNotification";
             },
-            isR12n: function (notification) {
-                return notification._cls == "Notification.InAppNotification.InAppRecommendation";
-            },
             isMachineNotification: function (notification) {
                 return typeof notification.machine !== 'undefined' && this.isNotification(notification);
-            },
-            isMachineR12n: function (notification) {
-                return typeof notification.machine !== 'undefined' && this.isR12n(notification);
             },
             _computeNotificationIcon: function (notification) {
                 if (notification._cls == "Notification.InAppNotification.InAppRecommendation" && 
@@ -339,11 +358,28 @@
                 else if (event.model.item.tag) {
                     path = '/' + event.model.item.tag._ref.$ref + '/' + event.model.item.tag._ref.$id;
                 }
-                window.history.pushState({}, null, path);
-                window.dispatchEvent(new CustomEvent('location-changed'));
-                this.opened = false;
+
+                console.log(location.pathname, path);
+                
+                if (location.pathname != path){
+                    this.set('activeSpinner', true);
+                    this.async(function(){
+                        window.history.pushState({}, null, path);
+                        window.dispatchEvent(new CustomEvent('location-changed'));
+                        this.set('opened', false);
+                    }.bind(this), 500)
+                }
+                else {
+                    this.set('opened', false);
+                }
                 event.stopPropagation();
             },
+
+            _openedChanged: function(opened) {
+                // deactivate spinner in any change
+                this.set('activeSpinner', false);
+            },
+
             _handleRightButtonTap: function (event) {
                 event.stopPropagation();
             },
