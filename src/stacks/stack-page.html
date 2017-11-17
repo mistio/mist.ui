@@ -405,11 +405,12 @@
             text-transform: none;
             font-size: 0.9em;
         }
-        #cfyshell {
-            width: 100%;            
+        paper-material#output {
+            position: relative;
         }
-        xterm-dialog::content .terminal .xterm-rows {
+        #cfyshell {
             width: 100%;
+            position: relative;
         }
         paper-button {
             line-height: 1em;
@@ -440,10 +441,8 @@
                 <div class="item-actions">
                     <paper-button on-tap="_editTags" class="simple">Tags</paper-button>
                     <paper-button on-tap="_deleteStack" class="simple">Delete</paper-button>
-                    <!-- buttons to show normally-->
-                    <paper-button id$="[[workflows.0.name]]" on-tap="_quickActionsNavigation" class="simple" disabled$="[[disabled]]">[[workflows.0.name]]</paper-button>
-                    <paper-button id$="[[workflows.1.name]]" on-tap="_quickActionsNavigation" class="simple" disabled$="[[disabled]]">[[workflows.1.name]]</paper-button>
                     <paper-menu-button horizontal-align="right">
+                        <!-- let all workflows in the dropdown menu -->
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="stack_actions" class="dropdown-content">
                             <template is="dom-repeat" items="[[workflows]]" as="workflow">
@@ -585,7 +584,7 @@
                     renderers=[[_getRenderers()]]
                     primary-field-name="time">
                     </mist-list>
-                <paper-material class="no-pad">
+                <paper-material id="output" class="no-pad">
                     <div class="output">
                         <paper-button toggles active={{showOutput}} hidden$="[[showOutput]]" class="blue">Show output</paper-button>
                         <paper-icon-button class="close" toggles active={{showOutput}} hidden$="[[!showOutput]]" icon="icons:close"></paper-icon-button>
@@ -817,6 +816,7 @@
                     xterm.target = {job_id: this.stack.job_id};
                     xterm.height = 500;
                     xterm.controls = false;
+                    xterm.classList.add('inparent');
                     var parent = this.querySelector("div#cfyshell");
                     parent.insertBefore(xterm, parent.firstChild);
                     console.warn('xterm open', xterm);
