@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
@@ -35,8 +36,12 @@
                 transform: rotate(180deg);             /* W3C compliant browsers */
             }
 
-            :host::content iron-dropdown {
-                width: 460px !important;
+            paper-menu-button#actions::content iron-dropdown {
+                width: 260px;
+            }
+
+            :host #notifications-menu {
+                width: 460px;
             }
 
             #indicatorBadge {
@@ -119,10 +124,26 @@
                 background: none;
             }
 
+            #spinner {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                bottom: 0;
+                right: 0;
+                background-color: rgba(255,255,255,0.85);
+                height: inherit;
+            }
+
+            #spinner paper-spinner {
+                position: absolute;
+                top: calc(50% - 14px);
+                left: calc(50% - 14px);
+            }
         </style>
 
         <!-- local DOM goes here -->
-        <paper-menu-button hidden="[[hidden]]" horizontal-align="right" vertical-offset="56" opened="{{opened}}" ignore-select="true">
+        <paper-menu-button id="notes" hidden="[[hidden]]" horizontal-align="right" vertical-offset="56" opened="{{opened}}" ignore-select="true">
             <paper-icon-button icon$="[[indicatorIcon]]" type$="[[indicatorType]]" class="notification-icon dropdown-trigger"></paper-icon-button>
             <div class="dropdown-content">
                 <div class="grid-row">
@@ -138,7 +159,7 @@
                                 <div secondary inner-h-t-m-l="[[item.html_body]]" class="body"></div>
                                 <div secondary class="time">[[_computeRelativeTime(item, timestamp_counter)]]</div>
                             </paper-item-body>
-                            <paper-menu-button horizontal-align="right" vertical-offset="56" horizontal-offset="-36" on-tap="_handleRightButtonTap">
+                            <paper-menu-button id="actions" horizontal-align="right" vertical-offset="56" horizontal-offset="-36" on-tap="_handleRightButtonTap">
                                 <paper-icon-button class="dismiss-icon dropdown-trigger" icon="icons:icons:more-horiz"></paper-icon-button>
                                 <div class="notification-actions dropdown-content">
                                     <paper-menu id="notification-actions-menu" selectable="none">
@@ -170,6 +191,7 @@
                             </div>
                         </paper-item>
                     </template>
+                    <div id="spinner" hidden$="[[!activeSpinner]]"><paper-spinner active="[[activeSpinner]]"></paper-spinner></div>
                 </paper-menu>
             </div>
         </paper-menu-button>
@@ -217,8 +239,15 @@
                 },
                 timestamp_counter: {
                     value: 0
+                },
+                activeSpinner: {
+                    type: Boolean,
+                    value: false
                 }
             },
+            observers: [
+                '_openedChanged(opened)'
+            ],
             attached: function() {
                 if (!this.timestamp_interval) {
                     var th1s = this;
@@ -262,14 +291,8 @@
             isNotification: function (notification) {
                 return notification._cls == "Notification.InAppNotification";
             },
-            isR12n: function (notification) {
-                return notification._cls == "Notification.InAppNotification.InAppRecommendation";
-            },
             isMachineNotification: function (notification) {
                 return typeof notification.machine !== 'undefined' && this.isNotification(notification);
-            },
-            isMachineR12n: function (notification) {
-                return typeof notification.machine !== 'undefined' && this.isR12n(notification);
             },
             _computeNotificationIcon: function (notification) {
                 if (notification._cls == "Notification.InAppNotification.InAppRecommendation" && 
@@ -335,11 +358,28 @@
                 else if (event.model.item.tag) {
                     path = '/' + event.model.item.tag._ref.$ref + '/' + event.model.item.tag._ref.$id;
                 }
-                window.history.pushState({}, null, path);
-                window.dispatchEvent(new CustomEvent('location-changed'));
-                this.opened = false;
+
+                console.log(location.pathname, path);
+                
+                if (location.pathname != path){
+                    this.set('activeSpinner', true);
+                    this.async(function(){
+                        window.history.pushState({}, null, path);
+                        window.dispatchEvent(new CustomEvent('location-changed'));
+                        this.set('opened', false);
+                    }.bind(this), 500)
+                }
+                else {
+                    this.set('opened', false);
+                }
                 event.stopPropagation();
             },
+
+            _openedChanged: function(opened) {
+                // deactivate spinner in any change
+                this.set('activeSpinner', false);
+            },
+
             _handleRightButtonTap: function (event) {
                 event.stopPropagation();
             },
