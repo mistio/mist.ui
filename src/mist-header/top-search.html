@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="search-suggestions.html">
 
@@ -8,9 +9,11 @@
     <style is="custom-style">
       :host * {
         box-sizing: border-box;
+        outline: none;
       }
 
       :host {
+        outline: none;
         max-width: 730px;
         display: block;
         align-items: center;
@@ -18,20 +21,25 @@
         height: 48px;
         border-radius: 4px;
         width: 100%;
+        min-width: 48px;
+        transition: all 10ms ease-in;
       }
 
       :host::content iron-icon {
         margin-right: 15px;
         cursor: pointer;
-      }
-      #search iron-icon {
         color: inherit;
+      }
+      
+      #search iron-icon {
         align-self: center;
       }
+      
       #search iron-icon[icon="search"] {
         margin-right: 0;
         margin-left: 8px;
       }
+
       #search iron-icon[icon="close"] {
         margin-right: 8px;
         margin-left: 0;
@@ -63,13 +71,76 @@
       ::-webkit-search-cancel-button {
         display: none;
       }
+      paper-icon-button {
+        display: none;
+      }
+
+      @media screen and (max-width: 650px) {
+        :host {
+            background-color: transparent;
+        }
+
+        :host([overflow]) {
+          background-color: rgba(255,255,255,1);
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 56px;
+          z-index: 9;
+          border-radius: 0;
+          transition: all 150ms ease-in;
+        }
+
+        paper-icon-button {
+            display: block;
+            margin: 4px;
+            float: right;
+        }
+
+        :host([overflow]) paper-icon-button {
+            display: none;
+            margin: 0;
+            float: none;
+        }
+
+        #search {
+          display: none;
+          color: rgba(0,0,0,0.87);
+          transform: translate(0,-30px);
+          transition: all 10ms ease-in;
+        }
+
+        #search input {
+          color: rgba(0,0,0,0.87); 
+        }
+
+        :host([overflow]) #search {
+          display: flex;
+          height: 56px;
+          line-height: 56px;
+          transition: all 150ms ease-in;
+          transform: translate(0,0);
+        }
+      }
+      @media screen and (min-width: 600px) and (max-width: 650px){
+        :host([overflow]) {
+          height: 64px;
+        }
+        :host([overflow]) #search {
+          height: 64px;
+          line-height: 64px;
+        }
+      }
     </style>
+    <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
     <div id="search" class="horizontal layout center">
       <iron-icon icon="search"></iron-icon>
       <form on-submit="performSearch" class="flex">
           <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
       </form>
-      <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!query.length]]"></iron-icon>
+      <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!showClear]]"></iron-icon>
     </div>
     <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]"></search-suggestions>
   </template>
@@ -87,11 +158,20 @@
         type: Object,
         notify: true
       },
-      viewingList: Boolean
+      viewingList: Boolean,
+      showClear: {
+        type: Boolean,
+        value: false
+      },
+      overflow: {
+        type: Boolean,
+        reflectToAttribute: true
+      }
     },
 
     observers: [
-      '_queryChanged(query)'
+      '_queryChanged(query)',
+      'overflowChanged(overflow)'
     ],
 
     listeners: {
@@ -104,7 +184,10 @@
     _queryChanged: function(q) {
       if (q && q.length) {
         this.$.query.focus();
+        this.set('showClear', true);
       }
+      else
+        this.set('showClear', this.overflow || false);
       this.async(function() {
         // make sure to force the cursor to the end of the
         // input. Only an issue in Firefox.
@@ -115,6 +198,7 @@
     clearSearch: function(e){
       this.set('query',"");
       this.$.query.blur();
+      this.set('overflow', false);
     },
     hotkeys: function(e) {
         // ESC
@@ -127,6 +211,13 @@
             this.set('query', '');
             this.set('query', a);
         }
+    },
+    revealSearch: function(e) {
+      this.set('overflow', true);
+      this.set('showClear', true);
+    },
+    overflowChanged: function(e) {
+      this.set('showClear', this.overflow);
     }
   });
   </script>
