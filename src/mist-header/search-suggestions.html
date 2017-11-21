@@ -7,8 +7,8 @@
       :host {
         display: none;
         background-color: #fff;
-        min-width: 320px;
-        max-width: 800px;
+        /*min-width: 320px;
+        max-width: 800px;*/
         position: absolute;
         height: auto;
         max-height: calc(100vh - 90px);
@@ -198,6 +198,10 @@
         Polymer({
             is: 'search-suggestions',
 
+            behaviors: [
+                Polymer.IronResizableBehavior
+            ],
+
             properties: {
                 query: String,
                 model: Object,
@@ -222,8 +226,19 @@
                 'viewingListsChanged(hide)'
             ],
 
-            attached: function() {
+            listeners: {
+                'iron-resize': 'updateWidth'
+            },
 
+            attached: function() {
+                this.updateWidth();
+            },
+
+            updateWidth: function() {
+                this.debounce('windowResize', function() {
+                    var width = this.parentNode.getBoundingClientRect().width;
+                    this.style.width = width + "px";
+                }, 200);
             },
 
             queryChanged: function(query) {
