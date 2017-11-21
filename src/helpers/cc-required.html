@@ -1,0 +1,185 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+
+<link rel="import" href="../helpers/plan-selection-widget.html">
+<link rel="import" href="../card-form.html">
+
+<dom-module id="cc-required">
+    <template>
+        <style include="shared-styles forms single-page">
+            :host {
+                display: block;
+            }
+            paper-material {
+                display: block;
+                padding: 24px;
+                transition: all 0.2 ease-in;
+            }
+            .progress {
+                position: relative;
+                width: 100%;
+                left: 0;
+                right: 0;
+                margin-left: -24px;
+            }
+            paper-progress#progresserror ::content #primaryProgress {
+                background-color: var(--red-color);
+            }
+            .errormsg-container {
+                color: var(--red-color);
+                width: 300px;
+                padding-left: 20px;
+                font-size: 14px;
+            }
+            .errormsg-container iron-icon {
+                color: inherit;
+                margin-right: 8px;
+            }
+            paper-progress {
+                width: 100%;
+                left: 0;
+                right: 0;
+            }
+            .help {
+                align-self: flex-end;
+            }
+            card-form {
+                margin: 4px 0;
+            }
+        </style>
+
+        <paper-dialog id="ccRequired" with-backdrop modal>
+            <h2><span hidden$="[[title]]">Credit card required</span>[[title]]</h2>
+            <paper-dialog-scrollable>
+                <plan-selection-widget selected="{{plan}}"></plan-selection-widget>
+                <br/>Payment information <br/>
+                <card-form id="inAddCloud" card-valid="{{cardValid}}" token="{{token}}"></card-form>
+            </paper-dialog-scrollable>
+            <div class="progress" hidden$="[[!showProgress]]">
+                <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
+                <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                <hr class="appform"/>
+                <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg">[[cardErrors]]</span></p>
+            </div>
+            <div class="buttons">
+                <paper-button dialog-dismiss hidden$="[[!hasCancel]]">Cancel</paper-button>
+                <paper-button class="blue" disabled$="[[!cardValid]]" on-tap="_submitCard">Add Card</paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="addCard" url="/purchase" method="POST" loading="{{loading}}" handle-as="xml" on-response="_handleCardResponse" on-error="_handleCardError"></iron-ajax>
+
+    </template>
+    <script>
+        (function() {
+            'use strict';
+
+            Polymer({
+                is: 'cc-required',
+
+                properties: {
+                    cardValid: {
+                        type: Boolean,
+                        value: false
+                    },
+                    formError: {
+                        type: Boolean,
+                        value: false
+                    },
+                    cardErrors: String,
+                    loading: {
+                        type: Boolean,
+                        value: false
+                    },
+                    plan: {
+                        type: String,
+                        value: 'payg',
+                        notify: true
+                    },
+                    showProgress: {
+                        type: Boolean,
+                        value: false,
+                        computed: '_computeShowProgress(formError,loading)'
+                    },
+                    hasCancel: {
+                        type: Boolean,
+                        value: false
+                    },
+                    title: String
+                },
+                listeners: {
+                    'open-cc-required': 'open',
+                    'close-cc-required': 'close',
+                    'card-response': '_gotCardResponse',
+                    'refit': '_refit'
+                },
+                attached: function() {
+                },
+                _refit: function(e){
+                    this.$.ccRequired.refit();
+                },
+                open: function() {
+                    this._clearErrors();
+                    this.querySelector('#ccRequired').open();
+                },
+                close: function() {
+                    this.querySelector('#ccRequired').close();
+                    this.querySelector('card-form#inAddCloud').reset();
+                    this._clearErrors();
+                },
+                _submitCard: function(e){
+                    this._clearErrors();
+                    if (this.cardValid) {
+                        this.querySelector('card-form#inAddCloud').verify();
+                    }
+                },
+                _gotCardResponse: function(e){
+                    if (this.cardValid) {
+                        var card = this.querySelector('card-form#inAddCloud');
+                        if (e.detail.token) {
+                            this.$.addCard.headers["Content-Type"] = 'application/json';
+                            this.$.addCard.headers["Csrf-Token"] = CSRF_TOKEN;
+                            this.$.addCard.body = {plan: this.plan, token: e.detail.token};
+                            this.$.addCard.generateRequest();
+                        }
+                        else if (card.errors) {
+                            this.set('formError', true);
+                            this.set('cardErrors', card.errors);
+                        }
+                        else {
+                            this.set('loading', true)
+                        }
+                    }
+                    this.querySelector('#ccRequired').refit();
+                },
+                _handleCardResponse: function(e){
+                    this._closeCcRequired();
+                    this.fire('toast', {msg:'Plan added.', duration: 3000});
+                },
+                _handleCardError: function(e){;
+                    this.set('cardErrors', e.detail.request.xhr.responseText);
+                    this.set('formError', true);
+                },
+                _computeShowProgress: function(formError,loading){
+                    return this.formError || this.loading;
+                },
+                _clearErrors: function(){
+                    this.set('formError', false);
+                    this.set('cardErrors', '');
+                },
+                _cloudAddAjaxResponse: function(response) {
+                    this._unsetProvider();
+                    this.fire('go-to', {url: '/'})
+                    this.fire('toast', {msg:'Cloud added successfully!',duration:3000} );
+                },
+                _cloudAddAjaxError: function(response) {
+                    console.error('add-cloud error', response);
+                }
+            });
+        })();
+    </script>
+</dom-module>
