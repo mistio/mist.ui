@@ -16,6 +16,7 @@
 <link rel="import" href="../machines/machine-actions.html">
 <link rel="import" href="../helpers/machines-list-behavior.html">
 
+<link rel="import" href="schedule-actions.html">
 <link rel="import" href="schedule-edit.html">
 <link rel="import" href="schedule-edit-mrc.html">
 <link rel="import" href="schedule-edit-condition.html">
@@ -262,6 +263,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active="[[isLoading]]"></paper-spinner>
             </div> -->
+            <schedule-actions actions="{{actions}}" items="[[itemArray]]" model="[[model]]" single></schedule-actions>
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -271,8 +273,9 @@
                         <span hidden$="[[!isCrontab]]">UTC time</span>
                     </div>
                 </div>
-                <div class="item-actions">
-                    <paper-button on-tap="_runOnceDialog" class="simple" hidden$="[[_hideRunNow(hasExpired, schedule.max_run_count, schedule.total_run_count)]]">run now
+                <mist-actions actions="{{actions}}" type="schedule" items="[[itemArray]]" model="[[model]]"></mist-actions>
+                <!-- <div class="item-actions">
+                    <paper-button on-tap="_runOnceDialog" class="simple">run now
                         <iron-icon icon="av:play-arrow"></iron-icon>
                     </paper-button>
                     <paper-button on-tap="_editSchedule" class="simple" hidden$="[[hasExpired]]">edit
@@ -281,7 +284,7 @@
                     <paper-button on-tap="_deleteSchedule" class="simple">delete
                         <iron-icon icon="delete"></iron-icon>
                     </paper-button>
-                </div>
+                </div> -->
             </paper-material>
             <paper-material>
                 <div class="layout horizontal">
@@ -368,8 +371,8 @@
                     renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
                     route={{route}}
                     primary-field-name="id" hidden$="[[!filteredItems]]">
-                    <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                    <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
+                    <mist-actions slot="action-buttons" actions="{{machineActions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                    <machine-actions slot="actions" actions="{{machineActions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
                     <p slot="no-items-found">No machines found.</p>
               </mist-list>
 
@@ -526,6 +529,7 @@
                     computed: '_computeMachineCost(schedule.conditions)'
                 },
                 selectedItems: Array,
+                machineActions: Array,
                 actions: Array
             },
             observers: [
@@ -534,6 +538,8 @@
             ],
             listeners: {
                 'confirmation': '_actionConfirmed',
+                'edit': '_editSchedule',
+                'run': '_runOnceDialog'
             },
             attached: function() {
                 this.isLoading = false;
@@ -543,6 +549,7 @@
                 if (this.schedule && this.schedule.id) {
                     this.exists = true;
                     this.set('conditions', this.schedule.conditions)
+                    this.set('itemArray', [schedule]);
                 }
                 else {
                     this.exists = false;
@@ -630,6 +637,7 @@
                 return machineAge +" "+ duration;
             },
             _editSchedule: function(e) {
+                e.stopImmediatePropagation();
                 this.$.editScheduleDialog._openEditScheduleModal();
             },
             _deleteSchedule: function(e) {
@@ -880,7 +888,8 @@
             _editTask: function() {
                 this.$.editScheduleTask._openEditScheduleModal();
             },
-            _runOnceDialog: function() {
+            _runOnceDialog: function(e) {
+                e.stopImmediatePropagation();
                 this._showDialog({
                     title: 'Run once now?',
                     body: "The schedule will execute once and then continue as planned." ,
@@ -913,7 +922,8 @@
                 this.$.editMaxRunCount._openEditScheduleModal();
             },
             _hideRunNow: function(hasExpired, max_run_count, total_run_count) {
-                return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
+                // return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
+                return true;
             },
             // redirect events
             selectAction: function(e) {

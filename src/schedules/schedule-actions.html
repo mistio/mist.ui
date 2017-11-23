@@ -28,6 +28,19 @@
   </template>
   <script>
 SCHEDULE_ACTIONS = {
+  'run': {
+    'name': 'run',
+    'icon': 'av:play-arrow',
+    'confirm': false,
+    'multi': false,
+    'single': true
+  },
+  'edit': {
+    'name': 'edit',
+    'icon': 'editor:mode-edit',
+    'confirm': false,
+    'multi': false
+  },
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -56,6 +69,10 @@ SCHEDULE_ACTIONS = {
         type: {
           type: String,
           value: 'schedule'
+        },
+        single: {
+          type: Boolean,
+          reflectToAttribute: true
         }
       },
       observers:[
@@ -73,6 +90,8 @@ SCHEDULE_ACTIONS = {
         // single schedule actions
         var arr = [];
         if (schedule) {
+          if (this.single)
+            arr.push('run');
           arr.push('tag');
           arr.push('delete');
         }
@@ -144,6 +163,9 @@ SCHEDULE_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'run') {
+          this.fire('run');
         }
       },
       handleResponse: function(e) {
