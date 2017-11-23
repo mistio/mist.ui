@@ -27,6 +27,13 @@
   </template>
   <script>
 KEY_ACTIONS = {
+  'rename': {
+    'name': 'rename',
+    'icon': 'editor:mode-edit',
+    'confirm': false,
+    'multi': false,
+    'single': true
+  },
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -61,6 +68,10 @@ KEY_ACTIONS = {
         type: {
           type: String,
           value: 'key'
+        },
+        single: {
+          type: Boolean,
+          reflectToAttribute: true
         }
       },
       observers:[
@@ -80,6 +91,8 @@ KEY_ACTIONS = {
           arr.push('make_default');
         }
         if (key) {
+          if (this.single)
+            arr.push('rename');
           arr.push('tag');
           arr.push('delete');
         }
@@ -161,6 +174,9 @@ KEY_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'rename') {
+          this.fire('rename');
         }
       },
       handleResponse: function(e) {
