@@ -118,6 +118,7 @@
             padding: 0;
             margin-top: 32px;
         }
+
         </style>
 
         <div id="content">
@@ -129,7 +130,7 @@
                         [[script.name]]
                     </h2>
                     <div class="subtitle">
-                        <span hidden$="[[!isInline]]">Inline Script</span>
+                        <span hidden$="[[!isInline]]">Inline Script. <a class="inherit" href$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download$="script-[[script.name]].sh.txt">Download</a></span>
                         <span hidden$="[[isInline]]">Script source <a class="regular" href$="[[_computeLink(script.location)]]" target="_blank"> [[_computeLink(script.location)]] <iron-icon icon="icons:link"></iron-icon></a>
                         </span>
                     </div>
@@ -241,7 +242,8 @@
 
         listeners: {
             'confirmation': '_actions',
-            'run': '_runScript'
+            'run': '_runScript',
+            'edit': '_editScript',
         },
 
         _getHeaderStyle: function(section) {
@@ -262,10 +264,12 @@
         },
 
         _runScript: function(e) {
+            e.stopImmediatePropagation();
             this.fire('go-to', {url: '/scripts/' + this.script.id + '/+run'})
         },
 
         _editScript: function(e) {
+            e.stopImmediatePropagation();
             var el = this.querySelector('script-edit');
             el._openEditScriptModal();
         },
