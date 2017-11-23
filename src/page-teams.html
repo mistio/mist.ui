@@ -43,7 +43,7 @@
             route={{route}}
             user-filter=[[model.sections.teams.q]]
             primary-field-name="id">
-            <mist-actions slot="action-buttons" actions="[[actions]]" type="tema" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+            <mist-actions slot="action-buttons" actions="[[actions]]" type="team" items="[[selectedItems]]" model="[[model]]"></mist-actions>
             <team-actions slot="actions" items="[[selectedItems]]" org="[[model.org.id]]" actions="{{actions}}"></team-actions>
             <p slot="no-items-found">No teams found.</p>
         </mist-list>
@@ -83,6 +83,8 @@
 
       listeners: {
         'select-action': 'selectAction',
+        'invite' : '_invite',
+        'edit': '_edit'
       },
       _isDetailsPageActive: function(path) {
           return path && !path.endsWith('+add');
@@ -139,6 +141,18 @@
                 }
             }
         };
+    },
+
+    _invite: function(e) {
+        e.stopImmediatePropagation();
+        this.fire('go-to', {url: '/teams/' + this.selectedItems[0].id});
+        this.querySelector('team-page').fire('invite');
+    },
+
+    _edit: function(e) {
+        e.stopImmediatePropagation();
+        this.fire('go-to', {url: '/teams/' + this.selectedItems[0].id});
+        this.querySelector('team-page').fire('edit');
     },
 
     _addTeam: function(e) {
