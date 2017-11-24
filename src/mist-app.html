@@ -178,6 +178,13 @@
 
     <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
+    <iron-ajax id="getCsv"
+        method="GET"
+        loading="{{loadingCSV}}"
+        on-request="_csvRequest"
+        on-response="_csvResponse"
+        on-error="_csvError"></iron-ajax>
+
   </template>
 
   <script>
@@ -307,6 +314,7 @@
             'add-new-images': 'addImages',
             'go-to': 'setLocationPath',
             'mist-list-filtered-items-length-changed': 'setHeaderCount',
+            'export-list-csv': '_exportCsv'
         },
 
         observers: [
@@ -828,6 +836,26 @@
 
         _computeViewingList: function (subroute) {
             return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
+        },
+        _exportCsv: function(e){
+            e.stopImmediatePropagation();
+            this.$.getCsv.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getCsv.headers["Accept"] = "text/csv";
+            this.$.getCsv.url = '/api/v1/'+this.page;
+            this.$.getCsv.body = e.detail.payload;
+            this.$.getCsv.generateRequest();
+        },
+
+        _csvRequest: function(e) {
+            this.fire('toast', {msg: 'Requesting CSV', duration: 3000})
+        },
+
+        _csvResponse: function(e) {
+            console.log('_csvResponse', e.detail);
+        },
+
+        _csvError: function() {
+            this.fire('toast', {msg: 'Error in exporting CSV', duration: 3000})
         }
     });
 
