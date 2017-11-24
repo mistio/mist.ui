@@ -277,9 +277,15 @@
                 display: block;
             }
 
-            @media (max-width: 1400px) {
+            @media screen and (max-width: 1400px) {
                 .wf-item {
                     margin: 0 auto;
+                }
+            }
+
+            @media screen and (max-width: 620px) {
+                #workflowsNavigation {
+                    display: none;
                 }
             }
             /**[narrow] .wf-item {
@@ -396,7 +402,6 @@
             font-size: 0.7em;
             padding-left: 8px;
         }
-        /* TODO: better */
         .tag {
             padding: 0.5em;
             display: inline;
@@ -426,6 +431,7 @@
         }
         </style>
         <div id="content">
+            <stack-actions items="[[itemArray]]" actions="{{actions}}" workflows="[[workflows]]" single deploy-now="[[!ok]]"></stack-actions>
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -438,11 +444,11 @@
                         <span hidden$="[[template.id]]"> missing template</span>
                     </div>
                 </div>
-                <div class="item-actions">
+                <mist-actions actions="[[actions]]" type="stack" items="[[itemArray]]" model="[[model]]"></mist-actions>
+                <!-- <div class="item-actions">
                     <paper-button on-tap="_editTags" class="simple">Tags</paper-button>
                     <paper-button on-tap="_deleteStack" class="simple">Delete</paper-button>
                     <paper-menu-button horizontal-align="right">
-                        <!-- let all workflows in the dropdown menu -->
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
                         <paper-menu id="stack_actions" class="dropdown-content">
                             <template is="dom-repeat" items="[[workflows]]" as="workflow">
@@ -454,7 +460,7 @@
                         <iron-icon style$="color: [[section.color]]" icon="av:play-arrow"></iron-icon>
                     </paper-button>
                     <paper-button on-tap="openWorkflows" class="simple white" style$="color: [[section.color]]" hidden$="[[hideWorkflows]]" disabled$="[[disabled]]">Workflows</paper-button>
-                </div>
+                </div> -->
             </paper-material>
 
             <paper-material>
@@ -468,7 +474,7 @@
                         <p>[[_computeReadableDate(stack.created_at)]]
                         </p>
                     </div>
-                    <div class="page-block" hidden$="[[!stack.tags]]">
+                    <div class="page-block" hidden$="[[isEmpty(stack.tags)]]">
                         <h3 class="smallcaps">Tags
                             <template is="dom-if" if="[[stack.tags]]">
                                 <span class="id">([[stack.tags.length]])</span>
@@ -486,67 +492,12 @@
                 </div>
             </paper-material>
 
-            <!-- If status undefined or ok -->
-            <paper-material id="deploynow" class="marg-b marg-t" hidden$="[[hideDeployNow]]">
-                <div class="parsing-loader">
-                    <h4>Stack is saved and ready to deploy</h4>
-                    <paper-button on-tap="deployNowWork">Deploy Now</paper-button>
-                </div>
-            </paper-material>
-
-            <!-- If stack status error-->
-            <template is="dom-if" if="[[error]]">
-                <paper-material>
-                    <div class="parsing-loader error">
-                        <h3>There seems to be an error</h3>
-                        <paper-progress id="stackpageprogress" value="100"></paper-progress>
-                        <h4>The process failed.<br/>
-                        <!-- <span class="retry regular blue-link" id="install" on-tap="doWorkflow">Try again </span>
-                        <p id="messages"></p> -->
-                        </h4>
-                    </div>
-                </paper-material>
-            </template>
-
-            <!-- If stack status start_creation-->
-            <template is="dom-if" if="[[start_creation]]">
-                <paper-material>
-                    <div class="parsing-loader">
-                        <h3>Creating stack [[stack.name]]</h3>
-                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
-                        <h4>This may take a while.</h4>
-                        <paper-button class="blue-link" on-tap="cancelWorkflow">Cancel</paper-button>
-                    </div>
-                </paper-material>
-            </template>
-
-            <!-- If stack status workflow_started-->
-            <template is="dom-if" if="[[workflow_started]]">
-                <paper-material>
-                    <div class="parsing-loader">
-                        <h3>Started workflow</h3>
-                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
-                        <paper-button class="blue-link" on-tap="cancelWorkflow">Cancel</paper-button>
-                    </div>
-                </paper-material>
-            </template>
-
-            <!-- If stack status workflow_started-->
-            <template is="dom-if" if="[[delete_request]]">
-                <paper-material>
-                    <div class="parsing-loader">
-                        <h3>Deleting Stack</h3>
-                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
-                    </div>
-                </paper-material>
-            </template>
-
             <paper-material id="workflows" class="no-pad closed" hidden$="[[hideWorkflows]]">
                 <paper-icon-button id="closeworkflows" icon="close" on-tap="_closeworkflows"></paper-icon-button>
                 <div id="workflows-panel">
                     <div id="workflowsNavigation">
                         <template is="dom-repeat" items="[[workflows]]" as="workflow">
-                            <paper-item id$="[[workflow.name]]" on-tap="_workflowNavigation">[[workflow.name]]</paper-item>
+                            <paper-item id$="[[workflow.name]]" on-tap="_quickActionsNavigation">[[workflow.name]]</paper-item>
                         </template>
                     </div>
 
@@ -574,6 +525,65 @@
                     </div>
                 </div>
             </paper-material>
+
+            <div hidden$="[[workflowsOpen]]">
+
+                <!-- If status undefined or ok -->
+                <paper-material id="deploynow" class="marg-b marg-t" hidden$="[[hideDeployNow]]">
+                    <div class="parsing-loader">
+                        <h4>Stack is saved and ready to deploy</h4>
+                        <paper-button on-tap="deployNowWork">Deploy Now</paper-button>
+                    </div>
+                </paper-material>
+
+                <!-- If stack status error-->
+                <template is="dom-if" if="[[error]]">
+                    <paper-material>
+                        <div class="parsing-loader error">
+                            <h3>There seems to be an error</h3>
+                            <paper-progress id="stackpageprogress" value="100"></paper-progress>
+                            <h4>The process failed.<br/>
+                            <!-- <span class="retry regular blue-link" id="install" on-tap="doWorkflow">Try again </span>
+                            <p id="messages"></p> -->
+                            </h4>
+                        </div>
+                    </paper-material>
+                </template>
+
+                <!-- If stack status start_creation-->
+                <template is="dom-if" if="[[start_creation]]">
+                    <paper-material>
+                        <div class="parsing-loader">
+                            <h3>Creating stack [[stack.name]]</h3>
+                            <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
+                            <h4>This may take a while.</h4>
+                            <paper-button class="blue-link" on-tap="cancelWorkflow">Cancel</paper-button>
+                        </div>
+                    </paper-material>
+                </template>
+
+                <!-- If stack status workflow_started-->
+                <template is="dom-if" if="[[workflow_started]]">
+                    <paper-material>
+                        <div class="parsing-loader">
+                            <h3>Started workflow</h3>
+                            <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
+                            <paper-button class="blue-link" on-tap="cancelWorkflow">Cancel</paper-button>
+                        </div>
+                    </paper-material>
+                </template>
+
+                <!-- If stack status workflow_started-->
+                <template is="dom-if" if="[[delete_request]]">
+                    <paper-material>
+                        <div class="parsing-loader">
+                            <h3>Deleting Stack</h3>
+                            <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
+                        </div>
+                    </paper-material>
+                </template>
+
+            </div>
 
             <div id="logs" class="page">
                 <mist-list timeseries expands id="stackLogs"
@@ -676,7 +686,8 @@
                     },
                     hideWorkflows: {
                         type: Boolean,
-                        computed: '_hideWorkflows(stack.status)'
+                        computed: '_hideWorkflows(stack.status)',
+                        value: true
                     },
                     hideDeployNow: {
                         type: Boolean,
@@ -783,7 +794,13 @@
                         computed: '_computeIsloading(stack)',
                         value: true
                     },
-                    delete_request: false
+                    delete_request: false,
+                    actions: Array,
+                    itemArray: Array,
+                    workflowsOpen: {
+                        type: Boolean,
+                        value: false
+                    }
                 },
                 observers: [
                     'newStackPage(stack.id)',
@@ -793,7 +810,10 @@
                 ],
                 listeners: {
                     'iron-activate': '_handleInterval',
-                    'confirmation': '_confirmAction'
+                    'confirmation': '_confirmAction',
+                    'show-workflows': 'openWorkflows',
+                    'workflow': '_quickActionsNavigation',
+                    'deploy-now': 'deployNowWork'
                 },
                 ready: function(){
                 },
@@ -958,10 +978,11 @@
                 },
                 _closeworkflows: function() {
                     this.$.workflows.classList.remove('open');
+                    this.set('workflowsOpen', false)
                 },
-                openWorkflows: function() {
+                openWorkflows: function(e) {
                     this.$.workflows.classList.toggle('open');
-
+                    this.set('workflowsOpen', !this.workflowsOpen);
                     var pages = this.querySelector('#workflowsView').children;
                     [].forEach.call(pages, function(p, index) {
                         if (index != 0) {
@@ -1204,26 +1225,25 @@
                     this.fire('toast', {msg: 'Deletion completed', duration: 3000})
                     document.querySelector('app-location').set('path', '/stacks');
                 },
-                _workflowNavigation: function(e) {
-                    var action = e.target.id;
+                _workflowNavigation: function(action) {
                     this.$.workflows.classList.add('open');
-
+                    this.set('workflowsOpen', true)
                     var pages = this.querySelector('#workflowsView').children;
                     [].forEach.call(pages, function(p, index) {
                         p.setAttribute("show", false);
                     });
-
                     var page = this.querySelector('#' + action + 'show');
                     page.setAttribute("show", true);
-
                 },
                 _quickActionsNavigation: function(e) {
+                    console.log(e);
                     this.selected = 1;
-                    this._workflowNavigation(e);
+                    this._workflowNavigation(e.detail.name || e.target.id);
                 },
                 doWorkflow: function(e) {
                     var action = e.target.id;
                     this.$.workflows.classList.add('open');
+                    this.set('workflowsOpen', true)
 
                     var workflow = this.workflows.find(function(workflow) {
                         return workflow.name == action;
@@ -1295,6 +1315,9 @@
                     this.set('showOutput', false);
                     this.set('delete_request', false);
                     // this.showLogs = false;
+
+                    if (this.stack)
+                        this.set('itemArray', [this.stack]);
                 },
                 _computeIsloading: function(stack) {
                     return !this.stack ? true : false;
@@ -1307,6 +1330,9 @@
                     if (id && this.model.scripts[id])
                         return this.model.scripts[id].name;
                 },
+                isEmpty: function(arr) {
+                    return !arr || arr.length == 0;
+                }
             });
         })();
     </script>
