@@ -5,10 +5,12 @@
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
+<link rel="import" href="../mist-actions.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-lists-behavior.html">
 
+<link rel="import" href="zone-actions.html">
 <link rel="import" href="record-add.html">
 <link rel="import" href="record-actions.html">
 
@@ -69,6 +71,7 @@
             }
         </style>
         <app-location route="{{route}}"></app-location>
+        <zone-actions items="[[itemArray]]" actions="{{actions}}"></zone-actions>
         <div id="content">
             <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active="[[isLoading]]"></paper-spinner>
@@ -84,12 +87,13 @@
                                 [[zoneCloud]]
                             </div>
                         </div>
-                        <div class="item-actions">
+                        <mist-actions actions="[[actions]]" type="zone" items="[[itemArray]]" model="[[model]]"></mist-actions>
+                        <!-- <div class="item-actions">
                             <paper-button on-tap="_editTags" class="simple">tags</paper-button>
                             <paper-button on-tap="_deleteZone" class="simple">delete
                                 <iron-icon icon="delete"></iron-icon>
                             </paper-button>
-                        </div>
+                        </div> -->
                     </paper-material>
                     <paper-material>
                         <h4 class="id">Zone ID:</h4><span class="id">[[zone.id]]</span>
@@ -217,6 +221,10 @@
                         type: Array,
                         computed: 'computeTagItems(zone)'
                     },
+                    actions: {
+                        type: Array,
+                        notify: true
+                    },
                     recordActions: {
                         type: Array,
                         notify: true
@@ -224,15 +232,23 @@
                     selectedRecordItems: {
                       type: Array,
                       notify: true
-                    }
+                    },
+                    itemArray: Array
                 },
+                observers: [
+                    '_changed(zone)'
+                ],
                 listeners: {
                     'confirmation': '_deleteZoneEventResponse',
                     'select-action': 'selectAction',
                     'action-finished': 'clearListSelection'
                 },
+                _changed: function(zone) {
+                    if (this.zone)
+                        this.set('itemArray', [this.zone])
+                },
                 clearListSelection: function(){
-                  this.set('selectedItems', []);
+                    this.set('selectedItems', []);
                 },
                 attached: function(){
                     this.async(function(){
@@ -252,30 +268,30 @@
                 _editZone: function(e) {
                     console.log(e);
                 },
-                _editTags: function() {
-                    var el = this.querySelector('tags-list'),
-                    items = [];
-                    items.push(itemUid(this.zone, this.section));
-                    el.items = items;
-                    el._openDialog();
-                },
-                _deleteZone: function(e) {
-                    if (['Route53','Google'].indexOf(this.zone.provider) > -1 && this.zone.records.length > 2) {
-                        this._showDialog({
-                            title: 'Zone can not be deleted.',
-                            body: "This zone cannot be deleted because it contains non-required (A, AAAA, CNAME, MX, TXT) records. Please delete these records in order to proceed.",
-                            type: 'not',
-                        })
-                    } else {
-                        this._showDialog({
-                            title: 'Delete Zone?',
-                            body: "Deleting zones cannot be undone. You are about to delete zone: '" + this.zone.domain + "'.",
-                            danger: true,
-                            type: 'isYesNo',
-                            reason: "zone.delete"
-                        });
-                    }
-                },
+                // _editTags: function() {
+                //     var el = this.querySelector('tags-list'),
+                //     items = [];
+                //     items.push(itemUid(this.zone, this.section));
+                //     el.items = items;
+                //     el._openDialog();
+                // },
+                // _deleteZone: function(e) {
+                //     if (['Route53','Google'].indexOf(this.zone.provider) > -1 && this.zone.records.length > 2) {
+                //         this._showDialog({
+                //             title: 'Zone can not be deleted.',
+                //             body: "This zone cannot be deleted because it contains non-required (A, AAAA, CNAME, MX, TXT) records. Please delete these records in order to proceed.",
+                //             type: 'not',
+                //         })
+                //     } else {
+                //         this._showDialog({
+                //             title: 'Delete Zone?',
+                //             body: "Deleting zones cannot be undone. You are about to delete zone: '" + this.zone.domain + "'.",
+                //             danger: true,
+                //             type: 'isYesNo',
+                //             reason: "zone.delete"
+                //         });
+                //     }
+                // },
                 _fabAction: function(e) {
                     console.debug('fabAction', e, this.section.add);
                     this.fire('go-to', {url:'zones/' + this.zone.id + '/+add'})
@@ -378,8 +394,12 @@
                 // redirect events
                 selectAction: function(e) {
                   e.stopImmediatePropagation();
-                  if (this.querySelector('record-actions')) {
+                  console.log('selectAction',e.target.attributes);
+                  if (this.querySelector('record-actions') && e.target.attributes.type.value == "record") {
                     this.querySelector('record-actions').selectAction(e);
+                  }
+                  else if (this.querySelector('zone-actions') && e.target.attributes.type.value == "zone" ) {
+                    this.querySelector('zone-actions').selectAction(e);
                   }
                 }
             });
