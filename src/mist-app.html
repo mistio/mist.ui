@@ -178,14 +178,6 @@
 
     <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
-    <iron-ajax id="getCsv"
-        method="GET"
-        loading="{{loadingCSV}}"
-        on-request="_csvRequest"
-        on-response="_csvResponse"
-        on-error="_csvError"
-        handle-as="txt"></iron-ajax>
-
   </template>
 
   <script>
@@ -315,7 +307,7 @@
             'add-new-images': 'addImages',
             'go-to': 'setLocationPath',
             'mist-list-filtered-items-length-changed': 'setHeaderCount',
-            'export-list-csv': '_exportCsv'
+            'export-list-csv': '_exportCsvMessage' 
         },
 
         observers: [
@@ -838,35 +830,9 @@
         _computeViewingList: function (subroute) {
             return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
         },
-        _exportCsv: function(e){
-            e.stopImmediatePropagation();
-            this.$.getCsv.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.getCsv.headers["Accept"] = "text/csv";
-            this.$.getCsv.url = '/api/v1/'+this.page;
-            // this.$.getCsv.body = e.detail.payload;
-            this.$.getCsv.generateRequest();
-        },
 
-        _csvRequest: function(e) {
-            this.fire('toast', {msg: 'Requesting CSV', duration: 1000})
-        },
-
-        _csvResponse: function(e) {
-            this.fire('toast', {msg: 'Downloading CSV', duration: 5000})
-            this._downloadFile(this.page+'s-list.csv', e.detail.xhr.response)
-        },
-
-        _downloadFile: function(name, data) {
-            a = document.createElement('a');
-            document.body.appendChild(a);
-            a.id = "download";
-            a.download = name;
-            a.href = "data:application/octet-stream;"+data;
-            a.click();
-        },
-
-        _csvError: function(e) {
-            this.fire('toast', {msg: 'Error in exporting CSV.', duration: 3000})
+        _exportCsvMessage: function(e) {
+            this.fire('toast', {msg: e.detail.message, duration: 3000});
         }
     });
 
