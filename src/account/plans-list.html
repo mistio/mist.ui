@@ -11,35 +11,32 @@
         :host {
             display: block;
         }
-
         :host paper-material {
             display: block;
             padding: 0;
         }
-
         .plans {
             padding-left: 8px;
             padding-right: 8px;
             @apply(--layout-horizontal);
             @apply(--layout-wrap);
         }
-
         .plan {
             @apply(--layout-flex);
             @apply(--shadow-elevation-2dp);
         }
+        .text-center {
+            text-align: center;
+        }
         .grid-row {
             padding: 24px;
         }
-
         .head {
             margin-bottom: 16px;
         }
-
         h2.title {
             font-weight: 500;
         }
-
         h2.title,
         h2.title~p {
             margin-top: 0;
@@ -48,33 +45,151 @@
         .add-card {
             cursor: pointer;
         }
+        .block-center {
+            margin: 0 auto;
+        }
+        .payg-rates {
+
+        }
+        .payg-rate {
+            justify-content: center;
+        }
+        .plus-rate > span {
+            background-color: #424242;
+            color: #fff;
+            border-radius: 50%;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            flex: none;
+            display: block;
+            margin: 0 auto;
+            width: 52px;
+            height: 52px;
+            line-height: 42px;
+        }
+        .plus-rate .plus {
+            font-weight: normal;
+            font-size: 0.8em;
+        }
+        .plus-per {
+            text-align: center;
+        }
+        span#vcpus, span#datapoints, span#rulechecks, span#apirequests, span#retention {
+            border-bottom: 1px dashed #999;
+        }
+        h2.title paper-button {
+            margin-left: 16px; 
+            font-size: 14px;
+            height: 2rem;
+            width: auto;
+        }
+        .selected {
+            background-color: var(--green-color);
+            color: #fff;
+            font-weight: 500;
+            text-transform: uppercase;
+            padding: 0.7em 0.57em;
+            border-radius: 3px;
+            font-size: .75em;
+        }
+        .selected iron-icon {
+            color: inherit;
+        }
+        p a {
+            cursor: pointer;
+        }
         </style>
-        <paper-material>
-            <div class="grid-row">
+        <paper-material hidden$="[[!hasCard]]">
+            <!-- <div class="grid-row">
                 <div class="xs12 head">
-                    <h2 class="title">Your plan</h2>
+                    <h2 class="title">Your current billing status</h2>
                     <p>Your current chosen plan, since [[_computeReadableDate(org.current_plan.started)]].</p>
                 </div>
                 <div class="plans xs12 l6">
-                    <plan-item plan="[[org.current_plan]]" is-current="true" index="0" class="plan" org="[[org]]"></plan-item>
+                    <plan-item plan="[[org.current_plan]]" is-current="true" index="0" class="plan" org="[[org]]" hidden$="[[!noCurrentPlan(org.current_plan)]]"></plan-item>
                 </div>
                 <div class="xs12 l6">
                     <p hidden$="[[!org.current_plan.promo_code.description]]">Your current plan offers you: [[org.current_plan.promo_code.description]]</p>
                     <p>For questions and other information contact us at <a href="mailto:sales@mist.io">sales@mist.io</a></p>
                     <span class="add-card blue-link" on-tap="addCard" hidden$=[[!org.current_plan.started]]>Update payment method.</span>
                 </div>
-            </div>
+            </div> -->
             <div class="grid-row">
                 <div class="xs12 head">
-                    <h2 class="title">Other plans</h2>
-                    <p>Other Mist.io available plans.</p>
+                    <h2 class="title">Billing Information</h2>
+                </div>
+                <div class="xs12">
+                    <p>Card: [[user.card]] ***4242 <br/>
+                        <a class="regular blue-link" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</a>
+                    </p>
+                </div>
+                <div class="xs12">
+                    <p>
+                        Current Plan: [[org.current_plan.title]]
+                    </p>
+                </div>
+            </div>
+        </paper-material>
+        <paper-material>
+            <div class="grid-row">
+                <div class="xs12 head">
+                    <h2 class="title">
+                        Pay as you Go Pricing
+                        <paper-button class="blue" raised on-tap="addCard" hidden$="[[isCurrent]]">Enable</paper-button>
+                        <span class="selected"><iron-icon icon="icons:check"></iron-icon> selected</span>
+                    </h2>
+                </div>
+                <div class="xs12">
+                    <p class="free"><strong>FREE</strong> for up to 10 <span id="vcpus">vCPUs</span>, 1M <span id="datapoints">datapoints/day</span>, 10k <span id="rulechecks">rule checks/day</span>, 10k <span id="apirequests">API requests/day</span>, 1 month <span id="retention">retention</span>.<br/>
+                    Below rates apply if free tier limits are exceeded. High watermark, pro-rated daily.</p>
+                    <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
+                    <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
+                    <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
+                    <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
+                    <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
+                </div>
+            </div>
+
+            <div class="grid-row payg-rates">
+                <div class="xs6 s3 m3 l3 margin-bottom payg-rate">
+                    <div class="plus-rate"><span><sup>$</sup>2<span class="plus"><sub>/mo</span></sub></span></div>
+                    <div class="plus-per"><sub>per additional</sub><br/>vCPU</div>
+                </div>
+                <div class="xs6 s3 m3 l3 margin-bottom payg-rate">
+                    <div class="plus-rate"><span><sup>$</sup>5<span class="plus"><sub>/mo</span></sub></span></div>
+                    <div class="plus-per"><sub>per additional</sub><br/>1M datapoints/day</div>
+                </div>
+                <div class="xs6 s3 m3 l3 margin-bottom payg-rate">
+                    <div class="plus-rate"><span><sup>$</sup>5<span class="plus"><sub>/mo</span></sub></span></div>
+                    <div class="plus-per"><sub>per additional</sub><br/>100k rule checks/day</div>
+                </div>
+                <div class="xs6 s3 m3 l3 margin-bottom payg-rate">
+                    <div class="plus-rate"><span><sup>$</sup>5<span class="plus"><sub>/mo</span></sub></span></div>
+                    <div class="plus-per"><sub>per additional</sub><br/>1M API requests/day</div>
+                </div>
+            </div>
+
+            <div class="grid-row">
+                <div class="xs12 head">
+                    <h2 class="title">Prepaid plans</h2>
                 </div>
                 <div class="plans xs12">
                     <template is="dom-repeat" items=[[plans]] as="plan">
                         <plan-item user="[[user]]" plan="[[plan]]" index="[[index]]" class="plan" org="[[org]]"></plan-item>
                     </template>
                 </div>
-                <div class="xs12 center">
+                <div class="xs12 text-center">
+                   <sub> * Pay As You Go rates apply if limits exceeded </sub>
+                </div>
+
+            </div>
+        </paper-material>
+        <paper-material>
+            <div class="grid-row">
+                <div class="xs12 head">
+                    <h2 class="title">Custom plan</h2>
                     <p>Don't see a plan that meets your requirements? <a href="mailto:sales@mist.io">Contact sales.</a></p>
                 </div>
             </div>
@@ -135,6 +250,12 @@
             },
             showErrorsOfCancel: function(errormessage){
 
+            },
+            noCurrentPlan: function(plan) {
+                return Object.keys(plan).length === 0;
+            },
+            _updatePaymentMethod: function() {
+                this.fire('update-payment-method');
             }
         });
     </script>
