@@ -57,12 +57,19 @@
             font-size: .6em;
             font-weight: 300;
         }
-
         .balance sub {
             vertical-align: baseline;
         }
+        .navigator {
+            display: flex;
+        }
         .navigator paper-button {
             font-size: .9em;
+            background-color: #eee !important;
+            margin: 8px !important;
+        }
+        .navigator paper-button.active{
+            color: var(--accent-color) !important;
         }
         </style>
         <paper-material>
@@ -73,32 +80,28 @@
                 <div class="plans xs12 l6">
                     <plan-item plan="[[org.current_plan]]" is-current="true" index="0" class="plan" org="[[org]]"></plan-item>
                 </div>
-                <div class="xs12 l6" hidden$="[[showBalance]]">
+                <div class="xs12 l6" hidden>
                     <p hidden$="[[!org.current_plan.promo_code.description]]">Your current plan offers you: [[org.current_plan.promo_code.description]]</p>
                     <p>For questions and other information contact us at <a href="mailto:sales@mist.io">sales@mist.io</a></p>
                 </div>
-                <!-- <div class="xs12 l6" hidden$="[[!showBalance]]">
-                    <div class="balance text-center">
-                        <h2>Current Balance</h2>
-                        <div class="balance-cost">
-                            <sup>$</sup>0
-                        </div>
-                    </div>
-                </div> -->
                 <div class="xs12 l6">
-                    <div class="rates">
+                    <!-- <rates-balance balance="org.balance"></rates-balance> -->
+                    <div class="navigator">
+                        <paper-button on-tap="_showRates" class="simple active">view your balance</paper-button>
+                        <paper-button on-tap="_showRates" class="simple">view rates</paper-button>
+                    </div>
+                    <div class="balance text-center" hidden$="[[showRates]]">
+                        <h2><strong>Current Balance <span class="balance-cost"><sup>$</sup>0</span></strong></h2>
+                    </div>
+                    <div class="rates" hidden$="[[!showRates]]">
                         <h2><strong>Pay As You Go Rates</strong></h2>
-                        <p>If free tier limits are exceeded. <br/>High watermark, pro-rated daily.</p>
+                        <p>Rates apply if free tier limits are exceeded. <br/>High watermark, pro-rated daily.</p>
                         <ul>
                             <li> <strong><sup>$</sup>2/mo</strong> per additional vCPU</li>
                             <li> <strong><sup>$</sup>5/mo</strong> per additional 1M datapoints/day </li>
                             <li> <strong><sup>$</sup>5/mo</strong> per additional 100k rule checks/day</li>
                             <li> <strong><sup>$</sup>5/mo</strong> per additional 1M API requests/day</li>
                         </ul>
-                    </div>
-                    <div class="navigator">
-                        <iron-icon icon="icons:arrow-back"></iron-icon> <paper-button on-tap="back" class="simple">view your balance</paper-button>
-                        <paper-button on-tap="back" class="simple">view rates</paper-button><iron-icon icon="icons:arrow-forward"></iron-icon>
                     </div>
                 </div>
             </div>
@@ -143,7 +146,11 @@
                 showBalance: {
                     type: Boolean,
                     computed: '_computeShowBalance(org.current_plan)'
-                }
+                },
+                showRates: {
+                    type: Boolean,
+                    value: true
+                },
             },
             listeners: {
                 'plan-selected': 'purchasePlan',
@@ -157,6 +164,9 @@
                 } else {
                     return false;
                 }
+            },
+            _showRates: function() {
+                this.set('showRates', !this.showRates);
             },
             _computeShowBalance: function(current_plan) {
                 // TEST
