@@ -58,10 +58,12 @@
                 <div class="plans xs12 l6">
                     <plan-item plan="[[org.current_plan]]" is-current="true" index="0" class="plan" org="[[org]]"></plan-item>
                 </div>
-                <div class="xs12 l6">
+                <div class="xs12 l6" hidden$="[[showBalance]]">
                     <p hidden$="[[!org.current_plan.promo_code.description]]">Your current plan offers you: [[org.current_plan.promo_code.description]]</p>
                     <p>For questions and other information contact us at <a href="mailto:sales@mist.io">sales@mist.io</a></p>
-                    <span class="add-card blue-link" on-tap="addCard" hidden$=[[!org.current_plan.started]]>Update payment method.</span>
+                </div>
+                <div class="xs12 l6" hidden$="[[!showBalance]]">
+                    
                 </div>
             </div>
             <div class="grid-row">
@@ -101,6 +103,10 @@
                 plans: {
                     type: Array,
                     computed: 'computePlans(user, org)'
+                },
+                showBalance: {
+                    type: Boolean,
+                    computed: '_computeShowBalance(current_plan)'
                 }
             },
             listeners: {
@@ -115,6 +121,9 @@
                 } else {
                     return false;
                 }
+            },
+            _computeShowBalance: function(current_plan) {
+                return this.org.current_plan.title && this.org.current_plan.id; //&& this.org.current_plan.balance ?
             },
             computePlans:  function(user, org){
                 if (!this.org.available_plans)

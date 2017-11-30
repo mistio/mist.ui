@@ -202,7 +202,6 @@
                     Canceling Plan <br/><br/>
                     <paper-spinner-lite class="white" active="{{loadingCancel}}"></paper-spinner-lite>
                 </div>
-                <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
             </div>
 
         </div>
@@ -297,12 +296,14 @@
                     'confirmation': '_cancelPlanConfirmed',
                 },
                 _computeClass: function(plan, current) {
-                    if (plan.title == "Small")
-                        return "bg-1";
-                    else if (plan.title == "Medium")
-                        return "bg-2";
-                    else if (plan.title == "Large")
-                        return "bg-3";
+                    if (!this.isCurrent) {
+                        if (plan.title == "Small")
+                            return "bg-1";
+                        else if (plan.title == "Medium")
+                            return "bg-2";
+                        else if (plan.title == "Large")
+                            return "bg-3";
+                    }
                 },
                 _computePriceText: function(price) {
                     return price != null ? '$' + price + '/mo' : '';
@@ -346,7 +347,7 @@
                 _cancelPlan: function(){
                     this._showDialog({
                         title: 'Cancel current plan',
-                        body: "Canceling your plan will significantly limit your account's visibility to only 5 machines, with monitoring to only one of them. After cancelation your plan will expire at the end of your monthly subscription." ,
+                        body: "Your plan will expire at the end of your monthly subscription." ,
                         danger: true,
                         reason: "plan.cancel",
                         action: "Cancel Your plan",
