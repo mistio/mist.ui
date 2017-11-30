@@ -27,6 +27,7 @@
         .plan {
             @apply(--layout-flex);
             @apply(--shadow-elevation-2dp);
+            margin: 8px;
         }
         .grid-row {
             padding: 24px;
@@ -52,8 +53,7 @@
         <paper-material>
             <div class="grid-row">
                 <div class="xs12 head">
-                    <h2 class="title">Your plan</h2>
-                    <p>Your current chosen plan, since [[_computeReadableDate(org.current_plan.started)]].</p>
+                    <h2 class="title">Your current billing status</h2>
                 </div>
                 <div class="plans xs12 l6">
                     <plan-item plan="[[org.current_plan]]" is-current="true" index="0" class="plan" org="[[org]]"></plan-item>
@@ -66,15 +66,19 @@
             </div>
             <div class="grid-row">
                 <div class="xs12 head">
-                    <h2 class="title">Other plans</h2>
-                    <p>Other Mist.io available plans.</p>
+                    <h2 class="title">Prepaid Plans</h2>
                 </div>
                 <div class="plans xs12">
                     <template is="dom-repeat" items=[[plans]] as="plan">
                         <plan-item user="[[user]]" plan="[[plan]]" index="[[index]]" class="plan" org="[[org]]"></plan-item>
                     </template>
                 </div>
-                <div class="xs12 center">
+            </div>
+        </paper-material>
+        <paper-material>
+            <div class="grid-row">
+                <div class="xs12 head">
+                    <h2 class="title">Custom plan</h2>
                     <p>Don't see a plan that meets your requirements? <a href="mailto:sales@mist.io">Contact sales.</a></p>
                 </div>
             </div>
@@ -102,6 +106,7 @@
             listeners: {
                 'plan-selected': 'purchasePlan',
                 'error-on-cancel-plan': 'showErrorsOfCancel',
+                'add-card': 'addCard',
                 'update-payment-method': 'addCard'
             },
             computeIsCurrent: function(plan, org) {
@@ -114,14 +119,7 @@
             computePlans:  function(user, org){
                 if (!this.org.available_plans)
                     return [];
-                return this.org.available_plans.filter(function(p){
-                    var showCurrent = true; // ommit current only if it has no expiration date
-                    console.log(p.title, this.org.current_plan.expiration)
-                    if (p.title == this.org.current_plan.title && !this.org.current_plan.expiration){
-                        showCurrent = false;
-                    }
-                    return p.visible && showCurrent;
-                }, this);
+                return this.org.available_plans;
             },
             _computeReadableDate: function(date) {
                 return date ? moment(date * 1000).format("MMMM Do YYYY") : '...';
