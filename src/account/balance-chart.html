@@ -296,7 +296,7 @@ BALANCE_GRAPH_OPTIONS = {
                 var timeToCost = this.balanceData.dtu.map(function(d){
                     return [d.date, d.cost]
                 });
-                var since = timeToCost[timeToCost.length-1][0];
+                var since = moment(timeToCost[timeToCost.length-1][0]).format('DD MMM');
                 var vcpus = this.balanceData.dtu.map(function(d){
                     return [d.date, d.usage.vcpus.extra]
                 });
@@ -334,13 +334,41 @@ BALANCE_GRAPH_OPTIONS = {
                 this.set('balanceGraphOptions.series.7.data', costrulescheck);
                 this.set('balanceGraphOptions.series.8.data', costapicalls);
 
-                this.set('balanceGraphOptions.title.text', '$'+this.balanceData.balance+' since '+this.balanceData.since);
+                this.set('balanceGraphOptions.title.text', '$'+this.balanceData.balance+' since '+since);
 
                 this.balanceGraph.setOption(this.balanceGraphOptions);
-                // var formatter = ""
-                // this.set('balanceGraphOptions.tooltip.formatter', formatter);
                 return timeToCost;
-            }
+            },
+            hideLines: function(){
+                var selected= {
+                    'cost': true,
+                    'vcpus': false,
+                    'datapoints': false,
+                    'rulescheck': false,
+                    'apicalls': false,
+                    'costvcpus': false,
+                    'costdatapoints': false,
+                    'costrulescheck': false,
+                    'costapicalls': false
+                }
+                this.set('balanceGraphOptions.legend.selected', selected);
+                this.balanceGraph.setOption(this.balanceGraphOptions);
+            },
+            showLines: function(){
+                var selected= {
+                    'cost': true,
+                    'vcpus': true,
+                    'datapoints': true,
+                    'rulescheck': true,
+                    'apicalls': true,
+                    'costvcpus': true,
+                    'costdatapoints': true,
+                    'costrulescheck': true,
+                    'costapicalls': true
+                }
+                this.set('balanceGraphOptions.legend.selected', selected);
+                this.balanceGraph.setOption(this.balanceGraphOptions);
+            },
         });
     </script>
 </dom-module>
