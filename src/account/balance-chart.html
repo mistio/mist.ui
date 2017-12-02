@@ -1,0 +1,345 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/3.8.5/echarts.min.js" integrity="sha256-7aRWxAaH0PFLbAt5oJLWIliWFHPZWuFbCGchtzd6njk=" crossorigin="anonymous"></script>
+
+<dom-module id="balance-chart">
+    <template>
+        <style is="custom-style" include="shared-styles">
+        :host {
+            display: block;
+        }
+
+        :host paper-material {
+            display: block;
+            padding: 0;
+        }
+        .balance {
+            font-size: 2em;
+        }
+        .balance sub,
+        .balance sup {
+            font-size: .6em;
+            font-weight: 300;
+        }
+        .balance sub {
+            vertical-align: baseline;
+        }
+        .navigator {
+            display: flex;
+        }
+        .navigator paper-button {
+            font-size: .9em;
+            background-color: #eee !important;
+            margin: 8px !important;
+        }
+        .navigator paper-button.active{
+            color: var(--accent-color) !important;
+        }
+        #balanceGraph {
+            width: 300px;
+            height: 300px;
+            margin-bottom: 40px;
+        }
+        </style>
+
+        <div id="balanceGraph" style="height:300px; width: 410px;"></div>
+                    
+    </template>
+    <script>
+BALANCE_GRAPH_OPTIONS = {
+    title: {
+        text: 'Balance'
+    },
+    tooltip: {
+        trigger: 'axis',
+        extraCssText: 'text-align: left',
+        // formatter: 'cost {b0}: {c0}<br/>{b1}: {c1}<br/>{b2}: {c2}<br/>',
+        // formatter: '{b0} {a0} on {c0} <br /> {c1} {a1} <br /> {c2} {a2} <br /> {c3} {a3} <br /> {c4} {a4}'
+        formatter: function (params, ticket, callback) {
+            var title = '<strong><sup>$</sup>'+params[0].data[1]+' on '+moment(params[0].data[0]).format('DD MMM')+ '</strong><br />',
+                vcpus = '<sup>$</sup>'+params[5].data[1]+' for '+params[1].data[1]+' extra '+params[1].seriesName+'<br />',
+                datapoints = '<sup>$</sup>'+params[6].data[1]+' for '+params[2].data[1]+' extra '+params[2].seriesName+'<br />',
+                rulescheck = '<sup>$</sup>'+params[7].data[1]+' for ' +params[3].data[1]+' extra '+params[3].seriesName+'<br />',
+                apicalls = '<sup>$</sup>'+params[8].data[1]+' for ' +params[4].data[1]+' for extra '+params[4].seriesName;
+            return title + vcpus + datapoints + rulescheck + apicalls;
+        }
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+    toolbox: {
+        show: true,
+        feature: {
+            saveAsImage: {
+                title: 'Save image'
+            }
+        },
+    },
+    legend: {
+        show: true,
+        // selected: {
+        //     // selected'series 1'
+        //     'cost': true,
+        //     // unselected'series 2'
+        //     'vcpus': false,
+        //     'datapoints': false,
+        //     'rulescheck': false,
+        //     'apicalls': false,
+        //     'costvcpus': false,
+        //     'costdatapoints': false,
+        //     'costrulescheck': false,
+        //     'costapicalls': false
+        // }
+    },
+    xAxis: {
+        type: 'time',
+        splitLine: {
+            show: false
+        },
+        data: []
+    },
+    yAxis: {
+        type: 'value'
+    },
+    series: [
+        {
+            name:'cost',
+            type:'line',
+            data:[]
+        },
+        {
+            name:'vcpus',
+            type:'line',
+            show: false,
+            data:[]
+        },
+        {
+            name:'datapoints',
+            type:'line',
+            show: false,
+            data:[]
+        },
+        {
+            name:'rulescheck',
+            type:'line',
+            data:[]
+        },
+        {
+            name:'apicalls',
+            type:'line',
+            data:[]
+        },
+        {
+            name:'costvcpus',
+            type:'line',
+            data:[]
+        },
+        {
+            name:'costdatapoints',
+            type:'line',
+            data:[]
+        },
+        {
+            name:'costrulescheck',
+            type:'line',
+            data:[]
+        },
+        {
+            name:'costapicalls',
+            type:'line',
+            data:[]
+        }
+    ]
+};
+
+        Polymer({
+            is: 'balance-chart',
+
+            properties: {
+                isOverUsing: Boolean,
+                user: {
+                    type: Object
+                },
+                org: {
+                    type: Object
+                },
+                plans: {
+                    type: Array,
+                    computed: 'computePlans(user, org)'
+                },
+                balanceGraph: Object,
+                balanceGraphOptions: {
+                    type: Object,
+                    value: function() {
+                        return BALANCE_GRAPH_OPTIONS;
+                    }
+                },
+                balanceData: Object,
+                data: {
+                    type: Array,
+                    computed: '_computeData(balanceData)'
+                },
+
+            },
+            listeners: {
+
+            },
+            attached: function(){
+                this.initCharts();
+                var balanceData = {
+                    balance: 134,
+                    since: '15-08-2017',
+                    dtu: [{  //datetime cost
+                            date: moment().subtract(1,'days').toDate(),
+                            cost: 10,
+                            usage: {
+                                vcpus: {total: 110, extra: 5, cost: 10},
+                                datapoints: {total: 110,  extra: 0, cost: 0},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                        {
+                            date: moment().subtract(2,'days').toDate(),
+                            cost: 0,
+                            usage: {
+                                vcpus: {total: 90, extra: 0, cost: 0},
+                                datapoints: {total: 110, extra: 0, cost: 0},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                        {
+                            date: moment().subtract(3,'days').toDate(),
+                            cost: 0,
+                            usage: {
+                                vcpus: {total: 90, extra: 0, cost: 0},
+                                datapoints: {total: 110, extra: 0, cost: 0},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                        {
+                            date: moment().subtract(4,'days').toDate(),
+                            cost: 57,
+                            usage: {
+                                vcpus: {total: 126, extra: 26, cost: 52},
+                                datapoints: {total: 110, extra: 135, cost: 5},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                        {  //datetime cost
+                            date: moment().subtract(5,'days').toDate(),
+                            cost: 10,
+                            usage: {
+                                vcpus: {total: 110, extra: 5, cost: 10},
+                                datapoints: {total: 110,  extra: 0, cost: 0},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                        {
+                            date: moment().subtract(6,'days').toDate(),
+                            cost: 0,
+                            usage: {
+                                vcpus: {total: 90, extra: 0, cost: 0},
+                                datapoints: {total: 110, extra: 0, cost: 0},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                        {
+                            date: moment().subtract(7,'days').toDate(),
+                            cost: 0,
+                            usage: {
+                                vcpus: {total: 90, extra: 0, cost: 0},
+                                datapoints: {total: 110, extra: 0, cost: 0},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                        {
+                            date: moment().subtract(8,'days').toDate(),
+                            cost: 57,
+                            usage: {
+                                vcpus: {total: 126, extra: 26, cost: 52},
+                                datapoints: {total: 110, extra: 135, cost: 5},
+                                rulescheck: {total: 110, extra: 0, cost: 0},
+                                apicalls: {total: 110, extra: 0, cost: 0},
+                            }
+                        },
+                    ]
+                };
+                this.set('balanceData', balanceData);
+            },
+            initCharts: function() {
+                var colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548', '#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
+                echarts.registerTheme('balance', {
+                    color: colorPalette,
+                    backgroundColor: 'transparent',
+                    graph: {
+                        color: colorPalette
+                    }
+                });
+                this.balanceGraph = echarts.init(this.$.balanceGraph, 'balance');
+                this.balanceGraph.setOption(this.balanceGraphOptions);
+                // this.updateChartWidth();
+                console.log('initialized charts');
+            },
+            _computeData: function(balanceData) {
+                var timeToCost = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.cost]
+                });
+                var since = timeToCost[timeToCost.length-1][0];
+                var vcpus = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.vcpus.extra]
+                });
+                var datapoints = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.datapoints.extra]
+                });
+                var rulescheck = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.rulescheck.extra]
+                });
+                var apicalls = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.apicalls.extra]
+                });
+                this.set('balanceGraphOptions.series.0.data', timeToCost);
+                this.set('balanceGraphOptions.series.1.data', vcpus);
+                this.set('balanceGraphOptions.series.2.data', datapoints);
+                this.set('balanceGraphOptions.series.3.data', rulescheck);
+                this.set('balanceGraphOptions.series.4.data', apicalls);
+
+                var costvcpus = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.vcpus.cost]
+                });
+                var costdatapoints = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.datapoints.cost]
+                });
+                var costrulescheck = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.rulescheck.cost]
+                });
+                var costapicalls = this.balanceData.dtu.map(function(d){
+                    return [d.date, d.usage.apicalls.cost]
+                });
+
+                //extras
+                this.set('balanceGraphOptions.series.5.data', costvcpus);
+                this.set('balanceGraphOptions.series.6.data', costdatapoints);
+                this.set('balanceGraphOptions.series.7.data', costrulescheck);
+                this.set('balanceGraphOptions.series.8.data', costapicalls);
+
+                this.set('balanceGraphOptions.title.text', '$'+this.balanceData.balance+' since '+this.balanceData.since);
+
+                this.balanceGraph.setOption(this.balanceGraphOptions);
+                // var formatter = ""
+                // this.set('balanceGraphOptions.tooltip.formatter', formatter);
+                return timeToCost;
+            }
+        });
+    </script>
+</dom-module>

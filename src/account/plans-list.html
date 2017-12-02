@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 
+<link rel="import" href="balance-chart.html">
 <link rel="import" href="plan-item.html">
 <link rel="import" href="plan-purchase.html">
 
@@ -49,6 +50,9 @@
         .add-card {
             cursor: pointer;
         }
+        .rates {
+            font-size: .9em;
+        }
         .balance {
             font-size: 2em;
         }
@@ -71,6 +75,9 @@
         .navigator paper-button.active{
             color: var(--accent-color) !important;
         }
+        balance-chart {
+            margin-top: 20px;
+        }
         </style>
         <paper-material>
             <div class="grid-row">
@@ -85,13 +92,12 @@
                     <p>For questions and other information contact us at <a href="mailto:sales@mist.io">sales@mist.io</a></p>
                 </div>
                 <div class="xs12 l6">
-                    <!-- <rates-balance balance="org.balance"></rates-balance> -->
                     <div class="navigator">
                         <paper-button on-tap="_showRates" class="simple">view your balance</paper-button>
                         <paper-button on-tap="_showRates" class="simple active">view rates</paper-button>
                     </div>
                     <div class="balance text-center" hidden$="[[showRates]]">
-                        <h2><strong><span class="balance-cost"><sup>$</sup>0</span> Current Balance</strong></h2>
+                        <balance-chart org="[[org]]" user="[[user]]" plans="[[plans]]"></balance-chart>
                     </div>
                     <div class="rates" hidden$="[[!showRates]]">
                         <h2><strong>Pay As You Go Rates</strong></h2>
@@ -150,13 +156,15 @@
                 showRates: {
                     type: Boolean,
                     value: false
-                },
+                }
             },
             listeners: {
                 'plan-selected': 'purchasePlan',
                 'error-on-cancel-plan': 'showErrorsOfCancel',
                 'add-card': 'addCard',
                 'update-payment-method': 'addCard'
+            },
+            attached: function(){
             },
             computeIsCurrent: function(plan, org) {
                 if (this.org.current_plan) {
