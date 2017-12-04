@@ -97,7 +97,6 @@ BALANCE_GRAPH_OPTIONS = {
         {
             name:'cost',
             type:'line',
-            smooth: true,
             data:[],
         }
     ]
@@ -238,8 +237,13 @@ BALANCE_GRAPH_OPTIONS = {
                 console.log('initialized charts');
             },
             _computeData: function(balanceData) {
+                // var plan = 'Small', 
+                //     price = 200, 
+                //     monthdays = moment(this.balanceData.data[this.balanceData.data.length-1][0]).daysInMonth();
+                var pricePerDay; // = (price/monthdays).toFixed();
                 var timeToCost = this.balanceData.data.map(function(d){
-                    return [d.date, d.cost, d.usage.vcpus.cost, d.usage.vcpus.extra, d.usage.datapoints.cost, d.usage.datapoints.extra, d.usage.checks.cost, d.usage.checks.extra, d.usage.requests.cost, d.usage.requests.extra]
+                    var cost = pricePerDay ? Math.max(pricePerDay, d.cost) : d.cost;
+                    return [d.date, cost, d.usage.vcpus.cost, d.usage.vcpus.extra, d.usage.datapoints.cost, d.usage.datapoints.extra, d.usage.checks.cost, d.usage.checks.extra, d.usage.requests.cost, d.usage.requests.extra]
                 });
                 var since = moment(timeToCost[timeToCost.length-1][0]).format('DD MMM');
                 // this.set('balanceGraphOptions.yAxis.min', (200/30).toFixed());
