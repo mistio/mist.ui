@@ -81,6 +81,7 @@
                 <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg">[[cardErrors]]</span></p>
             </div>
             <div class="buttons">
+                <paper-button on-tap="_goBack" hidden$="[[!hasBack]]">Back</paper-button>
                 <paper-button dialog-dismiss hidden$="[[!hasCancel]]">Cancel</paper-button>
                 <paper-button class="blue" disabled$="[[!cardValid]]" on-tap="_submitCard">Subscribe</paper-button>
             </div>
@@ -121,6 +122,10 @@
                         computed: '_computeShowProgress(formError,loading)'
                     },
                     hasCancel: {
+                        type: Boolean,
+                        value: false
+                    },
+                    hasBack: {
                         type: Boolean,
                         value: false
                     },
@@ -193,6 +198,13 @@
                 },
                 _cloudAddAjaxError: function(response) {
                     console.error('add-cloud error', response);
+                },
+                _goBack: function(e) {
+                    e.stopImmediatePropagation();
+                    if (history)
+                        history.back();
+                    else
+                        this.fire('go-to','/');
                 }
             });
         })();
