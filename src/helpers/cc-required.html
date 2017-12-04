@@ -64,14 +64,16 @@
         <paper-dialog id="ccRequired" with-backdrop modal>
             <h2><span hidden$="[[title]]">Credit card required</span>[[title]]</h2>
             <paper-dialog-scrollable>
-                <p class="free"><strong>FREE</strong> for up to 10 <span id="vcpus">vCPUs</span>, 1M <span id="datapoints">datapoints/day</span>, 10k <span id="rulechecks">rule checks/day</span>, 10k <span id="apirequests">API requests/day</span>, 1 month <span id="retention">retention</span>. <a class="regular blue-link" href="/my-account/billing">Prepaid plans</a> also available.</p>
+                <p class="free" hidden$="[[plan]]"><strong>FREE</strong> for up to 10 <span id="vcpus">vCPUs</span>, 1M <span id="datapoints">datapoints/day</span>, 10k <span id="rulechecks">rule checks/day</span>, 10k <span id="apirequests">API requests/day</span>, 1 month <span id="retention">retention</span>. <a class="regular blue-link" href="/my-account/billing">Prepaid plans</a> also available.</p>
                 <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
                 <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
                 <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
                 <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
                 <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
-                <!-- <plan-selection-widget selected="{{plan}}"></plan-selection-widget> -->
-                <!-- <br/>Payment information <br/> -->
+                <p hidden$="[[!plan]]">
+                    <strong>[[plan]] Plan</strong><br/>
+                    <a class="regular blue-link" href="/my-account/billing" dialog-dismiss>Other plans</a> also available.
+                </p>
                 <card-form id="inAddCloud" card-valid="{{cardValid}}" token="{{token}}"></card-form>
             </paper-dialog-scrollable>
             <div class="progress" hidden$="[[!showProgress]]">
@@ -113,8 +115,12 @@
                     },
                     plan: {
                         type: String,
-                        value: 'payg',
+                        value: false,
                         notify: true
+                    },
+                    planObject: {
+                        type: Object,
+                        computed: '_computePlanObject(plan)'
                     },
                     showProgress: {
                         type: Boolean,
@@ -198,6 +204,13 @@
                 },
                 _cloudAddAjaxError: function(response) {
                     console.error('add-cloud error', response);
+                },
+                _computePlanObject: function(plan){
+                    if (!plan)
+                        return {};
+                    else {
+                        // TODO get plan object from org
+                    }
                 },
                 _goBack: function(e) {
                     e.stopImmediatePropagation();
