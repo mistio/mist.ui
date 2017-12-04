@@ -59,10 +59,10 @@ BALANCE_GRAPH_OPTIONS = {
         formatter: function (params, ticket, callback) {
             console.log(params);
             var title = '<strong><sup>$</sup>'+params[0].data[1]+' on '+moment(params[0].data[0]).format('DD MMM')+ '</strong><br />',
-                vcpus = '<sup>$</sup>'+params[5].data[1]+' for '+params[1].data[1]+' extra '+params[1].seriesName+'<br />',
-                datapoints = '<sup>$</sup>'+params[6].data[1]+' for '+params[2].data[1]+' extra '+params[2].seriesName+'<br />',
-                rulescheck = '<sup>$</sup>'+params[7].data[1]+' for ' +params[3].data[1]+' extra '+params[3].seriesName+'<br />',
-                apicalls = '<sup>$</sup>'+params[8].data[1]+' for ' +params[4].data[1]+' for extra '+params[4].seriesName;
+                vcpus = '<sup>$</sup>'+params[0].data[2]+' for '+params[0].data[3]+' extra vcpus<br />',
+                datapoints = '<sup>$</sup>'+params[0].data[4]+' for '+params[0].data[5]+' extra datapoints<br />',
+                rulescheck = '<sup>$</sup>'+params[0].data[6]+' for ' +params[0].data[7]+' extra rulescheck<br />',
+                apicalls = '<sup>$</sup>'+params[0].data[8]+' for ' +params[0].data[9]+' for extra apicalls';
             return title + vcpus + datapoints + rulescheck + apicalls;
         }
     },
@@ -75,7 +75,6 @@ BALANCE_GRAPH_OPTIONS = {
     toolbox: {
         show: true,
         feature: {
-            magicType: {show: true, type: ['stack', 'tiled']},
             saveAsImage: {
                 title: 'Save image'
             }
@@ -83,17 +82,6 @@ BALANCE_GRAPH_OPTIONS = {
     },
     legend: {
         show: true,
-        selected: {
-            // 'cost': true,
-            // 'vcpus': false,
-            // 'datapoints': false,
-            // 'rulescheck': false,
-            // 'apicalls': false,
-            // 'costvcpus': false,
-            // 'costdatapoints': false,
-            // 'costrulescheck': false,
-            // 'costapicalls': false
-        }
     },
     xAxis: {
         type: 'time',
@@ -110,49 +98,7 @@ BALANCE_GRAPH_OPTIONS = {
             name:'cost',
             type:'line',
             smooth: true,
-            data:[]
-        },
-        {
-            name:'vcpus',
-            type:'line',
-            show: false,
-            data:[]
-        },
-        {
-            name:'datapoints',
-            type:'line',
-            show: false,
-            data:[]
-        },
-        {
-            name:'rulescheck',
-            type:'line',
-            data:[]
-        },
-        {
-            name:'apicalls',
-            type:'line',
-            data:[]
-        },
-        {
-            name:'costvcpus',
-            type:'line',
-            data:[]
-        },
-        {
-            name:'costdatapoints',
-            type:'line',
-            data:[]
-        },
-        {
-            name:'costrulescheck',
-            type:'line',
-            data:[]
-        },
-        {
-            name:'costapicalls',
-            type:'line',
-            data:[]
+            data:[],
         }
     ]
 };
@@ -193,7 +139,6 @@ BALANCE_GRAPH_OPTIONS = {
                 this.initCharts();
                 var balanceData = {
                     balance: 124,
-                    since: '15-08-2017',
                     dtu: [{  //datetime cost
                             date: moment().subtract(1,'days').toDate(),
                             cost: 10,
@@ -294,81 +239,14 @@ BALANCE_GRAPH_OPTIONS = {
             },
             _computeData: function(balanceData) {
                 var timeToCost = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.cost]
+                    return [d.date, d.cost, d.usage.vcpus.cost, d.usage.vcpus.extra, d.usage.datapoints.cost, d.usage.datapoints.extra, d.usage.rulescheck.cost, d.usage.rulescheck.extra, d.usage.apicalls.cost, d.usage.apicalls.extra]
                 });
                 var since = moment(timeToCost[timeToCost.length-1][0]).format('DD MMM');
-                var vcpus = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.vcpus.extra]
-                });
-                var datapoints = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.datapoints.extra]
-                });
-                var rulescheck = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.rulescheck.extra]
-                });
-                var apicalls = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.apicalls.extra]
-                });
                 this.set('balanceGraphOptions.series.0.data', timeToCost);
-                this.set('balanceGraphOptions.series.1.data', vcpus);
-                this.set('balanceGraphOptions.series.2.data', datapoints);
-                this.set('balanceGraphOptions.series.3.data', rulescheck);
-                this.set('balanceGraphOptions.series.4.data', apicalls);
-
-                var costvcpus = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.vcpus.cost]
-                });
-                var costdatapoints = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.datapoints.cost]
-                });
-                var costrulescheck = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.rulescheck.cost]
-                });
-                var costapicalls = this.balanceData.dtu.map(function(d){
-                    return [d.date, d.usage.apicalls.cost]
-                });
-
-                //extras
-                this.set('balanceGraphOptions.series.5.data', costvcpus);
-                this.set('balanceGraphOptions.series.6.data', costdatapoints);
-                this.set('balanceGraphOptions.series.7.data', costrulescheck);
-                this.set('balanceGraphOptions.series.8.data', costapicalls);
-
                 this.set('balanceGraphOptions.title.text', '$'+this.balanceData.balance+' since '+since);
-
                 this.balanceGraph.setOption(this.balanceGraphOptions);
                 return timeToCost;
-            },
-            hideLines: function(){
-                var selected= {
-                    'cost': true,
-                    'vcpus': false,
-                    'datapoints': false,
-                    'rulescheck': false,
-                    'apicalls': false,
-                    'costvcpus': false,
-                    'costdatapoints': false,
-                    'costrulescheck': false,
-                    'costapicalls': false
-                }
-                this.set('balanceGraphOptions.legend.selected', selected);
-                this.balanceGraph.setOption(this.balanceGraphOptions);
-            },
-            showLines: function(){
-                var selected= {
-                    'cost': true,
-                    'vcpus': true,
-                    'datapoints': true,
-                    'rulescheck': true,
-                    'apicalls': true,
-                    'costvcpus': true,
-                    'costdatapoints': true,
-                    'costrulescheck': true,
-                    'costapicalls': true
-                }
-                this.set('balanceGraphOptions.legend.selected', selected);
-                this.balanceGraph.setOption(this.balanceGraphOptions);
-            },
+            }
         });
     </script>
 </dom-module>
