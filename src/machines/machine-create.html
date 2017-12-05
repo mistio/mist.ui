@@ -281,6 +281,11 @@
                             this._updateFieldsForOnapp();
                         }
 
+                        // if is openstack do not require network/locations
+                        if (this.model.clouds[this.selectedCloud].provider == "openstack"){
+                            this._updateFieldsForOpenstack();
+                        }
+
                         this.machineFields.forEach(function(f, index) {
                             // clear options
                             if (f.type != 'radio' && f.options) 
@@ -659,6 +664,12 @@
                     this.set('machineFields.'+ keyInd +'.helptext', "Optional.");
                 },
 
+                _updateFieldsForOpenstack: function () {
+                    var locInd = this._fieldIndexByName('location');
+                    this.set('machineFields.'+ locInd +'.required', false);
+                    this.set('machineFields.'+ locInd +'.label', "Location");
+                },
+
                 _updateFieldMinsForOnapp: function(image) {
                     var image = this.model.clouds[this.selectedCloud].images[image];
 
@@ -930,7 +941,7 @@
                     // console.log('creation failed', e)
                 },
                 _computeProviders: function(model, clouds){
-                    //exclude bare metals and other from provider dropdown list
+                    // // exclude bare metals and other from provider dropdown list
                     return this.model.cloudsArray.filter(function(c){
                         return  ["bare_metal", "vsphere"].indexOf(c.provider) == -1;
                     });
