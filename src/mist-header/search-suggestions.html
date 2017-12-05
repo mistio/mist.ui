@@ -198,10 +198,6 @@
         Polymer({
             is: 'search-suggestions',
 
-            behaviors: [
-                Polymer.IronResizableBehavior
-            ],
-
             properties: {
                 query: String,
                 model: Object,
@@ -217,29 +213,23 @@
                     type: Boolean,
                     value: false
                 },
-                hide: Boolean
+                hide: Boolean,
+                width: Number
             },
 
             observers: [
                 'queryChanged(query)',
                 'resultsChanged(results)',
-                'viewingListsChanged(hide)'
+                'viewingListsChanged(hide)',
+                'widthChanged(width)'
             ],
-
-            listeners: {
-                'iron-resize': 'updateWidth'
-            },
 
             attached: function() {
                 this.style.width = "100%";
-                this.updateWidth();
             },
 
-            updateWidth: function() {
-                this.debounce('windowResize', function() {
-                    var width = this.parentNode.getBoundingClientRect().width;
-                    this.style.width = width + "px";
-                }, 200);
+            widthChanged: function(w) {
+                this.style.width = w+'px';
             },
 
             queryChanged: function(query) {

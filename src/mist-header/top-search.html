@@ -142,11 +142,15 @@
       </form>
       <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!showClear]]"></iron-icon>
     </div>
-    <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]"></search-suggestions>
+    <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]"></search-suggestions>
   </template>
   <script>
   Polymer({
     is: 'top-search',
+
+    behaviors: [
+      Polymer.IronResizableBehavior
+    ],
 
     properties: {
       query: {
@@ -166,6 +170,9 @@
       overflow: {
         type: Boolean,
         reflectToAttribute: true
+      },
+      width: {
+        type: Number
       }
     },
 
@@ -175,7 +182,15 @@
     ],
 
     listeners: {
-      keyup: 'hotkeys'
+      keyup: 'hotkeys',
+      'iron-resize': 'updateWidth'
+    },
+
+    updateWidth: function() {
+        this.debounce('windowResize', function() {
+            console.log('updateWidth', this, this.getBoundingClientRect().width);
+            this.set('width', this.getBoundingClientRect().width)
+        }, 100);
     },
 
     performSearch: function(e) {
@@ -223,8 +238,10 @@
       this.set('showClear', true);
     },
     overflowChanged: function(overflow) {
-      if (overflow)
+      if (overflow){
+        this.updateWidth();
         this.$.query.focus();
+      }
       else 
         this.$.query.blur();
       this.set('showClear', this.overflow);
