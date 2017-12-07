@@ -147,6 +147,7 @@
         'iron-resize': 'updateVisibleActions'
       },
       attached: function(){
+        console.log('updateVisibleActions attached')
         this.updateVisibleActions();
       },
       selectAction: function(e){
@@ -160,7 +161,9 @@
           return 'Deleting';
       },
       actionsChanged: function(actions){
-        this.updateVisibleActions();
+        if (actions){
+          this.updateVisibleActions();
+        }
       },
       _topActions: function (actions, visibleActions) {
         if (this.actions)
@@ -173,10 +176,10 @@
       updateVisibleActions: function(e){
         var parent = this.parentNode;
         // case of single page
-        if (parent.tagName == "PAPER-MATERIAL") 
+        if (parent.tagName == "PAPER-MATERIAL" && parent.offsetWidth)
           this.set('visibleActions', Math.floor((parent.offsetWidth/2)/200));
         // case of lists
-        else 
+        else if (parent.tagName == "DIV" && parent.offsetWidth)
           this.set('visibleActions', Math.floor((parent.offsetWidth)/200));
       }
     });
