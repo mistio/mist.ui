@@ -7,9 +7,11 @@
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../app-togglable/app-togglable-list.html">
 <link rel="import" href="../tags/tags-list.html">
+<link rel="import" href="../mist-actions.html">
 
 <link rel="import" href="template-edit.html">
 <link rel="import" href="template-stack-item.html">
+<link rel="import" href="template-actions.html">
 
 <dom-module id="template-page">
     <template>
@@ -201,7 +203,12 @@
                 margin: 10% auto;
                 display: block;
             }
-            /* TODO: better */
+            @media screen and (max-width: 425px) { 
+                .section > .smallcaps,
+                .section > p {
+                    padding: 0 14px
+                }
+            }
             .tag {
                 padding: 0.5em;
                 display: inline;
@@ -213,6 +220,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
+            <template-actions items="[[itemArray]]" actions="{{actions}}" in-single-view></template-actions>
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -226,8 +234,8 @@
                             </span>
                     </div>
                 </div>
-
-                <div class="item-actions">
+                <mist-actions actions="[[actions]]" type="template" items="[[itemArray]]" model="[[model]]"></mist-actions>
+                <!-- <div class="item-actions">
                     <paper-button on-tap="_editTags" class="simple">tags</paper-button>
                     <paper-menu-button horizontal-align="right">
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
@@ -237,7 +245,7 @@
                         </paper-menu>
                     </paper-menu-button>
                     <paper-button on-tap="_createStack" class="simple white right-icon" style$="color: [[section.color]]"> Create Stack <iron-icon icon="av:play-arrow" style$="color: [[section.color]]"></iron-icon></paper-button>
-                </div>
+                </div> -->
 
             </paper-material>
             <paper-material class="parsing-loader" hidden$="[[hideprogress]]">
@@ -441,11 +449,17 @@
                         computed: '_computeIsloading(template)',
                         value: true
                     },
-                    vpHeight: String
+                    vpHeight: String,
+                    itemArray: Array
                 },
+                observers: [
+                    '_changed(template)'
+                ],
                 listeners: {
                     'confirmation': '_deleteTemplateResponse',
-                    'updateSelectedTemplate': '_updateTemplate'
+                    'updateSelectedTemplate': '_updateTemplate',
+                    'create': '_createStack',
+                    'edit': '_editTemplate',
                 },
                 ready: function() {
                     var wh = window.innerHeight;
@@ -470,11 +484,11 @@
                     return isinline ? "command-container" : "";
                 },
                 _createStack: function(e) {
-                    // document.querySelector('app-location').set('queryParams.template', this.template._id);
-                    // document.querySelector('app-location').set('path', '/stacks/+create');
+                    e.stopImmediatePropagation();
                     this.fire('go-to', {url: '/stacks/+create', params: {template: this.template._id}})
                 },
                 _editTemplate: function(e) {
+                    e.stopImmediatePropagation();
                     var el = this.querySelector('template-edit');
                     el._openEditTemplateModal();
                 },
@@ -551,6 +565,10 @@
                 },
                 _computeIsloading: function(template) {
                     return !this.template ? true : false;
+                },
+                _changed: function(item) {
+                    if (this.template)
+                        this.set('itemArray', [this.template]);
                 }
             });
         })();

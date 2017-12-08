@@ -16,6 +16,7 @@
 <link rel="import" href="../machines/machine-actions.html">
 <link rel="import" href="../helpers/machines-list-behavior.html">
 
+<link rel="import" href="schedule-actions.html">
 <link rel="import" href="schedule-edit.html">
 <link rel="import" href="schedule-edit-mrc.html">
 <link rel="import" href="schedule-edit-condition.html">
@@ -253,6 +254,22 @@
                 padding: 2px 4px;
                 border-radius: 4px;
             }
+            paper-button#viewId {
+                min-width: auto;
+            }
+            span.id {
+                font-family: monospace;
+                padding: 2px;
+                background-color: #eee;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                font-size: .8em;
+            }
+            span.id iron-icon {
+                width: 14px;
+                height: 14px;
+                margin-left: 8px;
+            }
         </style>
         <div id="content" class="does-not-exist" hidden$="[[exists]]">
             <!-- <h1>404</h1>
@@ -262,6 +279,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active="[[isLoading]]"></paper-spinner>
             </div> -->
+            <schedule-actions actions="{{actions}}" items="[[itemArray]]" model="[[model]]" in-single-view></schedule-actions>
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -271,17 +289,7 @@
                         <span hidden$="[[!isCrontab]]">UTC time</span>
                     </div>
                 </div>
-                <div class="item-actions">
-                    <paper-button on-tap="_runOnceDialog" class="simple" hidden$="[[_hideRunNow(hasExpired, schedule.max_run_count, schedule.total_run_count)]]">run now
-                        <iron-icon icon="av:play-arrow"></iron-icon>
-                    </paper-button>
-                    <paper-button on-tap="_editSchedule" class="simple" hidden$="[[hasExpired]]">edit
-                        <iron-icon icon="editor:mode-edit"></iron-icon>
-                    </paper-button>
-                    <paper-button on-tap="_deleteSchedule" class="simple">delete
-                        <iron-icon icon="delete"></iron-icon>
-                    </paper-button>
-                </div>
+                <mist-actions actions="{{actions}}" type="schedule" items="[[itemArray]]" model="[[model]]"></mist-actions>
             </paper-material>
             <paper-material>
                 <div class="layout horizontal">
@@ -315,9 +323,18 @@
                     </div>
                 </div>
             </paper-material>
-            <paper-material>
-                <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.:</span> [[schedule.description]]</div>
-                <div><span class="m-info-head">ID:</span> [[schedule.id]]</div>
+            <paper-material class="resource-description">
+                <div><span class="m-info-head">ID: </span>
+                    <paper-button id="viewId" on-tap="_viewID" class="simple-button blue-link smaller" noink hidden$="[[showId]]">View Id</paper-button>
+                    <span class="id" hidden$="[[!showId]]">
+                        <span id="scheduleId">[[schedule.id]]</span>
+                        <!-- <paper-button id="copyId" on-tap="_copyID" class="simple-button blue-link smaller" noink>Copy</paper-button> -->
+                        <iron-icon icon="clear" on-tap="_hideID"></iron-icon>
+                    </span>
+                </div>
+                <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.: </span> 
+                    [[schedule.description]]
+                </div>
                 <div>
                     <span class="m-info-head">Starts:</span>
                     <span hidden$="[[!schedule.start_after]]">[[_computeAbsoluteDateText(schedule.start_after)]]</span>
@@ -357,21 +374,24 @@
                     </template>
                 </div>
 
-                <mist-list id="machinesList"
-                    selectable column-menu multi-sort
-                    items="[[filteredItems]]"
-                    name="Machines"
-                    selected-items="{{selectedItems}}"
-                    filtered-items-length="{{filteredItemsLength}}"
-                    frozen=[[_getFrozenLogColumn()]]
-                    visible=[[_getVisibleColumns()]]
-                    renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
-                    route={{route}}
-                    primary-field-name="id" hidden$="[[!filteredItems]]">
-                    <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                    <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
-                    <p slot="no-items-found">No machines found.</p>
-              </mist-list>
+                <template is="dom-if" if="[[filteredItems]]" restamp>
+                    <mist-list id="machinesList"
+                        selectable column-menu multi-sort
+                        items="[[filteredItems]]"
+                        name="Machines"
+                        selected-items="{{selectedItems}}"
+                        filtered-items-length="{{filteredItemsLength}}"
+                        apiurl="/api/v1/machines"
+                        frozen=[[_getFrozenLogColumn()]]
+                        visible=[[_getVisibleColumns()]]
+                        renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                        route={{route}}
+                        primary-field-name="id" hidden$="[[!filteredItems]]">
+                        <mist-actions slot="action-buttons" actions="{{machineActions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                        <machine-actions slot="actions" actions="{{machineActions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
+                        <p slot="no-items-found">No machines found.</p>
+                  </mist-list>
+              </template>
 
             </paper-material>
         </div>
@@ -526,7 +546,12 @@
                     computed: '_computeMachineCost(schedule.conditions)'
                 },
                 selectedItems: Array,
-                actions: Array
+                machineActions: Array,
+                actions: Array,
+                showId: {
+                    type: Boolean,
+                    value: false
+                }
             },
             observers: [
                 '_scheduleChanged(schedule)',
@@ -534,15 +559,33 @@
             ],
             listeners: {
                 'confirmation': '_actionConfirmed',
+                'edit': '_editSchedule',
+                'run': '_runOnceDialog'
             },
             attached: function() {
                 this.isLoading = false;
                 this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
             },
+            _viewID: function(e) {
+                this.set('showId', true);
+            },
+            _hideID: function(e) {
+                this.set('showId', false);
+            },
+            _copyId: function() {
+                console.log('copy');
+                this.clearSelection();
+                var el = this.querySelector('#scheduleId');
+                this.setSelection(el);
+                var successful = document.execCommand('copy');
+                var message = successful ? 'Copied to clipboard.' : 'There was an error copying to clipboard!';
+                this.fire('toast',{msg: message, duration: 3000});
+            },
             _scheduleChanged: function(schedule) {
                 if (this.schedule && this.schedule.id) {
                     this.exists = true;
                     this.set('conditions', this.schedule.conditions)
+                    this.set('itemArray', [schedule]);
                 }
                 else {
                     this.exists = false;
@@ -630,6 +673,7 @@
                 return machineAge +" "+ duration;
             },
             _editSchedule: function(e) {
+                e.stopImmediatePropagation();
                 this.$.editScheduleDialog._openEditScheduleModal();
             },
             _deleteSchedule: function(e) {
@@ -880,7 +924,8 @@
             _editTask: function() {
                 this.$.editScheduleTask._openEditScheduleModal();
             },
-            _runOnceDialog: function() {
+            _runOnceDialog: function(e) {
+                e.stopImmediatePropagation();
                 this._showDialog({
                     title: 'Run once now?',
                     body: "The schedule will execute once and then continue as planned." ,
@@ -913,7 +958,8 @@
                 this.$.editMaxRunCount._openEditScheduleModal();
             },
             _hideRunNow: function(hasExpired, max_run_count, total_run_count) {
-                return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
+                // return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
+                return true;
             },
             // redirect events
             selectAction: function(e) {

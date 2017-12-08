@@ -166,6 +166,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
+            <key-actions actions="{{actions}}" items="[[itemArray]]" in-single-view></key-actions>
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -182,14 +183,7 @@
                     </div>
 
                 </div>
-                <div class="item-actions">
-                <paper-button on-tap="_editKey" class="simple">rename key</paper-button>
-                    <paper-button on-tap="_makeDefaultKey" hidden$="[[isDefault]]" class="simple">make default</paper-button>
-                    <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                    <paper-button on-tap="_deleteKey" class="simple">delete
-                        <iron-icon icon="delete"></iron-icon>
-                    </paper-button>
-                </div>
+                <mist-actions actions="[[actions]]" type="key" items="[[itemArray]]" model="[[model]]"></mist-actions>
             </paper-material>
 
             <div class="key-info">
@@ -317,13 +311,16 @@
                     itemsfortags: {
                         type: Array,
                         computed: 'computeTagItems(key)'
-                    }
+                    },
+                    itemArray: Array,
+                    actions: Array
                 },
                 observers: [
                     'update(key)'
                 ],
                 listeners: {
-                    'confirmation': '_deleteKeyEventResponse'
+                    'confirmation': '_deleteKeyEventResponse',
+                    'rename': '_editKey'
                 },
                 update: function(key){
                     if (key){
@@ -331,6 +328,8 @@
                         this.$.keyPublicRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                         this.$.keyPublicRequest.body = {};
                         this.$.keyPublicRequest.generateRequest();
+
+                        this.set('itemArray', [this.key]);
                     }
                     this.set('visiblePrivateKey', false);
                 },
@@ -416,6 +415,7 @@
                     this.set('privateKey', data.detail.response);
                 },
                 _editKey: function(e) {
+                    e.stopImmediatePropagation();
                     var el = this.querySelector('key-edit');
                     el._openEditKeyModal();
                 },

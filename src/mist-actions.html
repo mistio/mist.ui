@@ -9,16 +9,16 @@
       :host {
           display: flex;
           color: rgba(255,255,255,0.87);
-          align-items: flex-start;
+          align-items: center;
           flex-wrap: nowrap;
       }
       paper-button.actions {
           display: inline-block;
           flex-wrap: nowrap;
           white-space: nowrap;
-          margin-left: 16px;
           width: auto;
           min-width: auto;
+          padding: 0.8em 1.57em 0.7em .57em; 
       }
       paper-button.more.actions {
           display: block;
@@ -63,7 +63,7 @@
           max-height: 200px;
       }
       div.dropdown-content {
-        color: rgba(0,0,0,0.87);
+          color: rgba(0,0,0,0.87);
       }
       div.dropdown-content paper-button {
           text-align: left;
@@ -73,12 +73,21 @@
       }
       paper-button.dropdown-trigger {
           min-width: auto !important;
+          padding: .8em;
+      }
+      @media screen and (max-width: 600px) {
+          paper-button#actionmenu ::content iron-icon {
+            margin: 0 !important;
+          }
+          paper-button.dropdown-trigger {
+            padding: 8px !important;
+          }
       }
     </style>
     
     <template is="dom-if" if="[[topActions.length]]" restamp>
       <template is="dom-repeat" items="[[topActions]]" as="action">
-          <paper-button on-tap="selectAction" class="actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
+          <paper-button on-tap="selectAction" class="visible actions"><iron-icon icon="[[action.icon]]"></iron-icon> <span>[[action.name]]</span></paper-button>
       </template>
     </template>
 
@@ -138,6 +147,7 @@
         'iron-resize': 'updateVisibleActions'
       },
       attached: function(){
+        console.log('updateVisibleActions attached')
         this.updateVisibleActions();
       },
       selectAction: function(e){
@@ -151,7 +161,9 @@
           return 'Deleting';
       },
       actionsChanged: function(actions){
-        this.updateVisibleActions();
+        if (actions){
+          this.updateVisibleActions();
+        }
       },
       _topActions: function (actions, visibleActions) {
         if (this.actions)
@@ -162,9 +174,13 @@
           return this.actions.slice(this.visibleActions);
       },
       updateVisibleActions: function(e){
-        // e.stopImmediatePropagation();
         var parent = this.parentNode;
-        this.set('visibleActions', Math.floor((parent.offsetWidth-300)/200));
+        // case of single page
+        if (parent.tagName == "PAPER-MATERIAL" && parent.offsetWidth)
+          this.set('visibleActions', Math.floor((parent.offsetWidth/2)/200));
+        // case of lists
+        else if (parent.tagName == "DIV" && parent.offsetWidth)
+          this.set('visibleActions', Math.floor((parent.offsetWidth)/200));
       }
     });
   </script>

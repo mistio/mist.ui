@@ -21,6 +21,7 @@
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="scriptsList"
             selectable resizable column-menu multi-sort
+            apiurl="/api/v1/scripts"
             items="[[model.scriptsArray]]"
             name="Scripts"
             selected-items="{{selectedItems}}"
@@ -66,6 +67,7 @@
       },
       listeners: {
           'select-action': 'selectAction',
+          'edit': '_editScript',
       },
       _isAddPageActive: function (path) {
         return path == '/+add';
@@ -84,6 +86,11 @@
       },
       _addResource: function(e) {
           this.fire('go-to', {url: this.model.sections.scripts.add});
+      },
+      _editScript: function(e) {
+        e.stopImmediatePropagation();
+        this.fire('go-to', {url: '/scripts/' + this.selectedItems[0].id});
+        this.querySelector('script-page').fire('edit');
       },
       _getFrozenLogColumn: function(){
           return ['name'];
