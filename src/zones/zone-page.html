@@ -156,18 +156,19 @@
                     </paper-material>
                     <paper-material hidden$="[[!hasRecords]]">
                         <h4 class="id">Records</h4>
-                        <mist-list id="recordsList" class$="[[zone.id]]"
-                            selectable column-menu multi-sort
-                            apiurl$="api/v1/zones/[[zone.id]]/records"
-                            items="[[zone.records]]"
-                            name="Records"
-                            selected-items="{{selectedRecordItems}}"
-                            frozen=[[_getFrozenLogColumn()]]
-                            visible=[[_getVisibleColumns()]]
-                            renderers=[[_getRenderers()]]>
-                            <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
-                            <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}"></record-actions>
-                      </mist-list>
+                        <template is="dom-if" if="[[renderRecordsList]]" restamp>
+                            <mist-list id="recordsList" class$="[[zone.id]]"
+                                selectable column-menu multi-sort
+                                items="[[zone.records]]"
+                                name="Records"
+                                selected-items="{{selectedRecordItems}}"
+                                frozen=[[_getFrozenLogColumn()]]
+                                visible=[[_getVisibleColumns()]]
+                                renderers=[[_getRenderers()]]>
+                                <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
+                                <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}"></record-actions>
+                          </mist-list>
+                      </template>
                     </paper-material>
                     <div class="absolute-bottom-right">
                         <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
@@ -246,10 +247,14 @@
                       type: Array,
                       notify: true
                     },
-                    itemArray: Array
+                    itemArray: Array,
+                    renderRecordsList: {
+                        type: Boolean,
+                        value: false
+                    }
                 },
                 observers: [
-                    '_changed(zone)'
+                    '_changed(zone.*)'
                 ],
                 listeners: {
                     'confirmation': '_deleteZoneEventResponse',
@@ -257,8 +262,10 @@
                     'action-finished': 'clearListSelection'
                 },
                 _changed: function(zone) {
-                    if (this.zone)
-                        this.set('itemArray', [this.zone])
+                    if (this.zone) {
+                        this.set('itemArray', [this.zone]);
+                        this.set('renderRecordsList', this.zone.id && this.zone.records)
+                    }
                 },
                 clearListSelection: function(){
                     this.set('selectedItems', []);
