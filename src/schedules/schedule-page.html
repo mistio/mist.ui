@@ -279,7 +279,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active="[[isLoading]]"></paper-spinner>
             </div> -->
-            <schedule-actions actions="{{actions}}" items="[[itemArray]]" model="[[model]]" single></schedule-actions>
+            <schedule-actions actions="{{actions}}" items="[[itemArray]]" model="[[model]]" in-single-view></schedule-actions>
             <paper-material class="single-head layout horizontal" style$="color:#fff;background-color: [[section.color]];">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -374,22 +374,24 @@
                     </template>
                 </div>
 
-                <mist-list id="machinesList"
-                    selectable column-menu multi-sort
-                    apiurl="/api/v1/machines"
-                    items="[[filteredItems]]"
-                    name="Machines"
-                    selected-items="{{selectedItems}}"
-                    filtered-items-length="{{filteredItemsLength}}"
-                    frozen=[[_getFrozenLogColumn()]]
-                    visible=[[_getVisibleColumns()]]
-                    renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
-                    route={{route}}
-                    primary-field-name="id" hidden$="[[!filteredItems]]">
-                    <mist-actions slot="action-buttons" actions="{{machineActions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                    <machine-actions slot="actions" actions="{{machineActions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
-                    <p slot="no-items-found">No machines found.</p>
-              </mist-list>
+                <template is="dom-if" if="[[filteredItems]]" restamp>
+                    <mist-list id="machinesList"
+                        selectable column-menu multi-sort
+                        items="[[filteredItems]]"
+                        name="Machines"
+                        selected-items="{{selectedItems}}"
+                        filtered-items-length="{{filteredItemsLength}}"
+                        apiurl="/api/v1/machines"
+                        frozen=[[_getFrozenLogColumn()]]
+                        visible=[[_getVisibleColumns()]]
+                        renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                        route={{route}}
+                        primary-field-name="id" hidden$="[[!filteredItems]]">
+                        <mist-actions slot="action-buttons" actions="{{machineActions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                        <machine-actions slot="actions" actions="{{machineActions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
+                        <p slot="no-items-found">No machines found.</p>
+                  </mist-list>
+              </template>
 
             </paper-material>
         </div>
