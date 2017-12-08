@@ -5,11 +5,13 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 
+<link rel="import" href="../mist-actions.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../tags/tags-list.html">
 
 <link rel="import" href="script-edit.html">
 <link rel="import" href="script-run.html">
+<link rel="import" href="script-actions.html">
 
 <dom-module id="script-page">
     <template>
@@ -116,9 +118,11 @@
             padding: 0;
             margin-top: 32px;
         }
+
         </style>
 
         <div id="content">
+            <script-actions items="[[itemArray]]" actions="{{actions}}"></script-actions>
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -126,23 +130,12 @@
                         [[script.name]]
                     </h2>
                     <div class="subtitle">
-                        <span hidden$="[[!isInline]]">Inline Script</span>
+                        <span hidden$="[[!isInline]]">Inline Script. <a class="inherit" href$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download$="script-[[script.name]].sh.txt">Download</a></span>
                         <span hidden$="[[isInline]]">Script source <a class="regular" href$="[[_computeLink(script.location)]]" target="_blank"> [[_computeLink(script.location)]] <iron-icon icon="icons:link"></iron-icon></a>
                         </span>
                     </div>
                 </div>
-                <div class="item-actions">
-                    <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                    <paper-button class="simple" hidden$="[[!isInline]]"><a class="inherit" href$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download$="script-[[script.name]].sh.txt">Download</a></paper-button>
-                    <paper-menu-button horizontal-align="right">
-                        <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
-                        <paper-menu id="machine_actions" class="dropdown-content">
-                            <paper-button on-tap="_editScript" class="simple">Edit Script</paper-button>
-                            <paper-button on-tap="_deleteScript" class="simple">Delete Script</paper-button>
-                        </paper-menu>
-                    </paper-menu-button>
-                    <paper-button on-tap="_runScript" class="simple white right-icon" style$="color: [[section.color]]"> run <iron-icon icon="av:play-arrow" style$="color: [[section.color]]"></iron-icon></paper-button>
-                </div>
+                <mist-actions actions="[[actions]]" type="script" items="[[script]]" model="[[model]]"></mist-actions>
             </paper-material>
             <div class="columns">
                 <div id="leftcolumn" class="left command-container" hidden$="[[!isInline]]">
@@ -238,11 +231,19 @@
                 type: Boolean,
                 computed: '_computeIsloading(script)',
                 value: true
-            }
+            },
+            actions: Array,
+            itemArray: Array
         },
+
+        observers: [
+            '_changed(script)'
+        ],
 
         listeners: {
             'confirmation': '_actions',
+            'run': '_runScript',
+            'edit': '_editScript',
         },
 
         _getHeaderStyle: function(section) {
@@ -263,10 +264,12 @@
         },
 
         _runScript: function(e) {
+            e.stopImmediatePropagation();
             this.fire('go-to', {url: '/scripts/' + this.script.id + '/+run'})
         },
 
         _editScript: function(e) {
+            e.stopImmediatePropagation();
             var el = this.querySelector('script-edit');
             el._openEditScriptModal();
         },
@@ -362,6 +365,11 @@
                     }
                 }
             };
+        },
+
+        _changed: function(item) {
+            if (this.script)
+                this.set('itemArray', [this.script]);
         }
     });
     </script>

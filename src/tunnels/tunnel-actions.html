@@ -27,7 +27,14 @@
 
   </template>
   <script>
+// in future also enable disable actions
 TUNNEL_ACTIONS = {
+  'edit': {
+    'name': 'edit',
+    'icon': 'editor:mode-edit',
+    'confirm': false,
+    'multi': false
+  },
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -56,6 +63,10 @@ TUNNEL_ACTIONS = {
         type: {
           type: String,
           value: 'tunnel'
+        },
+        single: {
+          type: Boolean,
+          reflectToAttribute: true
         }
       },
       observers:[
@@ -69,9 +80,11 @@ TUNNEL_ACTIONS = {
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(key) {
+      itemActions: function(tunnel) {
         var arr = [];
-        if (key) {
+        if (tunnel) {
+          if(this.single)
+            arr.push('edit');
           arr.push('tag');
           arr.push('delete');
         }
@@ -137,6 +150,9 @@ TUNNEL_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'edit') {
+          this.fire('edit');
         }
       },
       handleResponse: function(e) {

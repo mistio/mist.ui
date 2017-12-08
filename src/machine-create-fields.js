@@ -317,12 +317,12 @@ MACHINE_CREATE_FIELDS.push({
     provider: 'openstack',
     fields: [{
         name: "networks",
-        label: "Networks *",
+        label: "Networks",
         type: "checkboxes",
         value: "",
         defaultValue: "",
         show: true,
-        required: true,
+        required: false,
         options: []
     }, {
         name: "associate_floating_ip",

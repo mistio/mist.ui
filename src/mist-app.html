@@ -65,10 +65,15 @@
     iron-pages::content>* {
         background-color: #eee;
         position: relative;
-        min-height: 90vh;
+        min-height: calc(100vh - 64px);
     }
     iron-pages::content mist-list {
         font-size: 14px;
+    }
+    iron-pages::content mist-list paper-button[dialog-confirm] {
+        background-color: var(--mist-blue);
+        font-weight: 500;
+        color: #fff;
     }
     iron-pages::content mist-list::content .tag {
         display: inline;
@@ -91,7 +96,7 @@
         right: 0;
         bottom: 0;
         position: absolute;
-        height: 95%;
+        height: 94%;
         background-color: #eee;
         display: block;
         z-index: 0;
@@ -108,10 +113,17 @@
         margin: 20% auto;
         display: block;
     }
-    /* iphone 6 plus*/
-    @media screen and (max-width: 450px) {
+    @media screen and (max-width: 650px) {
+        iron-pages::content #content {
+            padding: 0;
+        }
+    }
+    @media screen and (max-width: 768px) {
         iron-pages {
-            padding: 0 0 1rem 0;
+            padding: 8px 0 0 0;
+        }
+        iron-pages::content .columns {
+            display: block;
         }
     }
     </style>
@@ -305,6 +317,7 @@
             'add-new-images': 'addImages',
             'go-to': 'setLocationPath',
             'mist-list-filtered-items-length-changed': 'setHeaderCount',
+            'export-list-csv': '_exportCsvMessage' 
         },
 
         observers: [
@@ -424,6 +437,9 @@
         },
 
         _routePageChanged: function (page, subpath) {
+            if (this.smallscreen) {
+                document.querySelector('mist-sidebar').closeSidebar();
+            }
             if (['index.html','sign-up','sign-in'].indexOf(page) > -1 )
                 page = 'dashboard';
             this.page = page || 'dashboard';
@@ -481,9 +497,6 @@
             // Load page import on demand. Show 404 page if fails
             var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
             this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-            if (this.smallscreen) {
-                document.querySelector('mist-sidebar').closeSidebar();
-            }
         },
 
         _hideLoader: function () {
@@ -659,9 +672,11 @@
 
             model.sectionsArray = [{
                 id: 'dashboard',
+                icon: 'icons:dashboard',
                 color: '#424242',
-                sidebar: false,
-                tile: false
+                sidebar: true,
+                tile: false,
+                hr: true,
             }, {
                 id: 'incidents',
                 color: '#d96557',
@@ -852,6 +867,10 @@
 
         _computeViewingList: function (subroute) {
             return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
+        },
+
+        _exportCsvMessage: function(e) {
+            this.fire('toast', {msg: e.detail.message, duration: 3000});
         }
     });
 

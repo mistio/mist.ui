@@ -22,6 +22,7 @@
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="templatesList"
             selectable resizable column-menu multi-sort
+            apiurl="/api/v1/templates"
             items="[[model.templatesArray]]"
             name="Templates"
             selected-items="{{selectedItems}}"
@@ -66,12 +67,17 @@
 
         listeners: {
             'select-action': 'selectAction',
-            'action-finished': 'clearListSelection'
+            'action-finished': 'clearListSelection',
+            'edit': '_edit'
         },
         clearListSelection: function(){
           this.set('selectedItems', []);
         },
-
+        _edit: function(e) {
+          e.stopImmediatePropagation();
+          this.fire('go-to', {url: '/templates/' + this.selectedItems[0].id});
+          this.querySelector('template-page').fire('edit');
+        },
         _isAddPageActive: function(path) {
             return path == '/+add';
         },

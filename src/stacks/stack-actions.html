@@ -27,6 +27,20 @@
   </template>
   <script>
 STACK_ACTIONS = {
+  'deploy': {
+    'name': 'deploy now',
+    'icon': 'av:play-arrow',
+    'confirm': false,
+    'multi': false,
+    'single': true
+  },
+  'workflows': {
+    'name': 'workflows panel',
+    'icon': 'icons:visibility',
+    'confirm': false,
+    'multi': false,
+    'single': true
+  },
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -55,7 +69,13 @@ STACK_ACTIONS = {
         type: {
           type: String,
           value: 'stack'
-        }
+        },
+        single: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+        workflows: Array,
+        deployNow: Boolean
       },
       observers:[
         '_mapPolicyToActions(items.*)'
@@ -71,6 +91,14 @@ STACK_ACTIONS = {
       itemActions: function(stack) {
         var arr = [];
         if (stack) {
+          if (this.single) {
+            if (this.deployNow){
+              arr.push('deploy');
+            }
+            if (stack.workflows){
+              arr.push('workflows');
+            }
+          }
           arr.push('tag');
           arr.push('delete');
         }
@@ -78,6 +106,17 @@ STACK_ACTIONS = {
       },
       actionDetails: function (actions) {
         var ret = [];
+        if (this.workflows) {
+          for (var i=0; i<this.workflows.length; i++) {
+            ret.push({
+              'name': this.workflows[i].name,
+              'icon': 'av:play-circle-outline',
+              'confirm': false,
+              'multi': false,
+              'single': true
+            });
+          }
+        }
         for (var i=0; i<actions.length; i++) {
             ret.push(STACK_ACTIONS[actions[i]]);
         }
@@ -136,6 +175,15 @@ STACK_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'workflows panel') {
+          this.fire('show-workflows');
+        }
+        else if (action.name == 'deploy now') {
+          this.fire('deploy-now');
+        }
+        else {
+          this.fire('workflow', {name: action.name})
         }
       },
       handleResponse: function(e) {

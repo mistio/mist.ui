@@ -127,13 +127,16 @@
                 text-transform: uppercase;
                 font-size: 0.9rem;
                 font-weight: 700;
-                margin-right: 16px;
+                margin-top: 8px;
+                margin-bottom: 8px;
             }
-            /* TODO: better */
-            h4.id.tags {
-                padding-left: 36px;
+            span.id {
+                word-break: break-all;
             }
-
+            .resource-info {
+                padding-right: 36px;
+                display: inline-block;
+            }
             .tag {
                 padding: 0.5em;
                 display: inline;
@@ -185,6 +188,22 @@
             .capitalize {
                 text-transform: capitalize;
             }
+            @media screen and (max-width: 366px) {
+                cloud-edit ::content paper-button#reset {
+                    float: none;
+                }
+            }
+            @media screen and (max-width: 600px) {
+                .item-actions {
+                    padding-top: 12px;
+                }
+                .single-head {
+                    flex-wrap: wrap;
+                }
+                .single-head .title {
+                    min-width: 30%;
+                }
+            }
         </style>
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
@@ -202,6 +221,7 @@
                         <span class="capitalize" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span><span hidden$="[[!cloud.enabled]]">, enabled.</span><span class="capitalize" hidden$="[[cloud.enabled]]">disabled</span>
                     </div>
                 </div>
+
                 <div class="item-actions">
                     <div class="head-toggle">
                         <paper-toggle-button id="enable-disable-cloud" checked$="[[cloud.enabled]]" on-tap="_changeState" disabled$="{{loading}}">
@@ -211,20 +231,27 @@
                     </div>
                     <paper-button id="edit-tags" on-tap="_editTags" class="simple">tags</paper-button>
                 </div>
+
             </paper-material>
             <template is="dom-if" if="[[cloud]]">
                 <paper-material>
-                    <h4 class="id">ID:</h4> <span class="id">[[cloud.id]] </span>
-                    <h4 class="id tags" hidden$="[[!cloud.region]]">Region:</h4> <span class="id">[[cloud.region]]</span>
-                    <h4 class="id tags" hidden$="[[!cloud.enabled]]">State:</h4> <span class="id" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span>
-                    <h4 class="id tags" hidden$="[[!cloud.tags.length]]">Tags
-                        <span class="id">([[cloud.tags.length]])</span>
-                    </h4>
-                    <span hidden$="[[!cloud.tags]]">
-                        <template is="dom-repeat" items="[[cloud.tags]]">
-                            <span class="id tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
-                        </template>
-                    </span>
+                    <div class="resource-info">
+                        <h4 class="id">ID:</h4> <span class="id">[[cloud.id]] </span>
+                    </div>
+                    <div class="resource-info">
+                        <h4 class="id tags" hidden$="[[!cloud.region]]">Region:</h4> <span class="id">[[cloud.region]]</span>
+                    </div>
+                    <div class="resource-info">
+                        <h4 class="id tags" hidden$="[[!cloud.enabled]]">State:</h4> <span class="id" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span>
+                    </div>
+                    <div class="resource-info">
+                    <h4 class="id tags" hidden$="[[!cloud.tags.length]]">Tags:</h4>
+                        <span hidden$="[[!cloud.tags]]">
+                            <template is="dom-repeat" items="[[cloud.tags]]">
+                                <span class="id tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
+                            </template>
+                        </span>
+                    </div>
                 </paper-material>
                 <paper-material class="no-pad">
                     <div class="info-table">

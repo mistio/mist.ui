@@ -4,10 +4,11 @@
 <dom-module id="search-suggestions">
     <template>
     <style is="custom-style">
-    :host {
+      :host {
         display: none;
         background-color: #fff;
-        width: 730px;
+        /*min-width: 320px;
+        max-width: 800px;*/
         position: absolute;
         height: auto;
         max-height: calc(100vh - 90px);
@@ -28,7 +29,7 @@
         margin-top: 8px;
       }
       .truncate {
-          width: inherit;
+        width: inherit;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -212,17 +213,23 @@
                     type: Boolean,
                     value: false
                 },
-                hide: Boolean
+                hide: Boolean,
+                width: Number
             },
 
             observers: [
                 'queryChanged(query)',
                 'resultsChanged(results)',
-                'viewingListsChanged(hide)'
+                'viewingListsChanged(hide)',
+                'widthChanged(width)'
             ],
 
             attached: function() {
+                this.style.width = "100%";
+            },
 
+            widthChanged: function(w) {
+                this.style.width = w+'px';
             },
 
             queryChanged: function(query) {
