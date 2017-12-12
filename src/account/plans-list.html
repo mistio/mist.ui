@@ -28,6 +28,7 @@
         .plan {
             @apply(--layout-flex);
             @apply(--shadow-elevation-2dp);
+            flex-basis: 200px;
             margin: 8px;
         }
         .grid-row {
@@ -78,21 +79,28 @@
         balance-chart {
             margin-top: 20px;
         }
+        @media (min-width: 767px) and (max-width: 800px) {
+            ul {
+                margin-left: 0;
+                padding-left: 0;
+                list-style: none;
+            }
+        }
         </style>
         <paper-material>
             <div class="grid-row">
                 <div class="xs12 head">
                     <h2 class="title">Your current billing status</h2>
                 </div>
-                <div class="plans xs12 l6">
+                <div class="plans xs12 s6 m6 l6">
                     <plan-item plan="[[org.current_plan]]" is-current="true" index="0" class="plan" org="[[org]]"></plan-item>
                 </div>
-                <div class="xs12 l6" hidden$="[[showBalance]]">
+                <div class="xs12 s6 m6 l6" hidden$="[[showBalance]]">
                     <p hidden$="[[!org.current_plan.promo_code.description]]">Your current plan offers you: [[org.current_plan.promo_code.description]]</p>
                     <p>For questions and other information contact us at <a href="mailto:sales@mist.io">sales@mist.io</a></p>
                 </div>
-                <div class="xs12 l6" hidden$="[[!showBalance]]">
-                    <div class="navigator">
+                <div class="xs12 s6 m6 l6" hidden$="[[!showBalance]]">
+                    <div class="navigator" hidden>
                         <paper-button id="viewBallanceBtn" on-tap="_showRates" class="simple">your balance</paper-button>
                         <paper-button id="viewRatesBtn" on-tap="_showRates" class="simple active">view rates</paper-button>
                     </div>
@@ -156,14 +164,14 @@
                 },
                 showRates: {
                     type: Boolean,
-                    value: false
+                    value: true
                 }
             },
             listeners: {
                 'plan-selected': 'purchasePlan',
                 'error-on-cancel-plan': 'showErrorsOfCancel',
                 'add-card': 'addCard',
-                'update-payment-method': 'addCard'
+                'update-payment-method': 'addCard',
             },
             attached: function(){
             },
@@ -194,7 +202,10 @@
                 return date ? moment(date * 1000).format("MMMM Do YYYY") : '...';
             },
             purchasePlan: function(e){
-                this.$.purchasePlan.plan = e.detail.plan;
+                if (e.detail.plan)
+                    this.$.purchasePlan.plan = e.detail.plan;
+                if (e.detail.plan)
+                    this.$.purchasePlan.plan = false;
                 this.$.purchasePlan.open();
             },
             addCard: function(e){

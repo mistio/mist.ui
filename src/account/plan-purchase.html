@@ -14,7 +14,7 @@
                 box-sizing: border-box;
             }
             #form {
-                width: 360px;
+                max-width: 400px;
                 font-size: inherit;
             }
             .logo {
@@ -101,10 +101,16 @@
         <paper-dialog id="form" with-backdrop>
             <img class="logo" src="../../assets/logos/logo-vertical-v2.svg" width="80" alt="Mist.io Logo" tabindex="0" on-tap="_goToDashboard"></a>
             <div class="head">
-                <p class="title" hidden$="[[addCard]]">[[plan.title]] plan</p>
+                <p class="title" hidden$="[[addCard]]">
+                    <span hidden$="[[plan]]">Pay As You Go</span>
+                    <span hidden$="[[!plan]]">[[plan.title]] plan</span>
+                </p>
                 <p class="title" hidden$="[[!addCard]]">Add Card</p>
                 <hr class="headhr"/>
-                <p class="desc" hidden$="[[addCard]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[plan.vcpu_limit]] vcpus</p>
+                <p class="desc" hidden$="[[addCard]]">
+                    <span hidden$="[[plan]]"><strong>Free</strong> for up to 10 vCPUs</span>
+                    <span hidden$="[[!plan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[plan.vcpu_limit]] vCPUs</span>
+                </p>
                 <p class="desc" hidden$="[[!addCard]]">Add a credit card to your account</p>
             </div>
             <paper-dialog-scrollable>
@@ -121,7 +127,7 @@
             <div class="buttons">
                 <paper-button dialog-dismis on-tap="_reset">Cancel</paper-button>
                 <paper-button autofocus on-tap="_submit" class="blue" disabled="[[!formReady]]">
-                    <span hidden$="[[addCard]]">[[buttonText]] </span>
+                    <span hidden$="[[addCard]]">[[buttonText]]</span>
                     <span hidden$="[[!addCard]]">Add Card </span>
                 </paper-button>
             </div>
@@ -141,7 +147,10 @@
             isOverUsing: Boolean,
             user: Object,
             org: Object,
-            plan: Object,
+            plan: {
+                type: Object,
+                value: false
+            },
             payload: {
                 type: Object,
                 value: function(){
@@ -228,9 +237,10 @@
                     else {
                         mistPayload = {
                             token: e.detail.token,
-                            plan: this.plan.title,
                             promo_code: ''
                         };
+                        if (plan)
+                            mistPayload.plan = this.plan.title,
                         this.$.purchasePlanRequest.url = "/purchase";
                     }
                     this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
@@ -290,15 +300,18 @@
             this.$.errormsg.textContent = e.detail.error;
         },
         _computeButtonText: function(plan, org){
-            if (this.org.current_plan.machine_limit > plan.machine_limit){
-                return 'Downgrade';
-            }
-            else if (this.org.current_plan.machine_limit < plan.machine_limit){
-                return 'Upgrade';
-            }
-            else {
-                return "Purchase";
-            }
+            // if (this.org.current_plan.vcpu_limit > plan.vcpu_limit){
+            //     return 'Downgrade';
+            // }
+            // else if (this.org.current_plan.vcpu_limit < plan.vcpu_limit){
+            //     return 'Upgrade';
+            // }
+            // else {
+            //     return "Purchase";
+            // }
+            if (!plan)
+                return "Subscribe";
+            return "Purchase";
         }
     });
     </script>

@@ -136,6 +136,16 @@
         .old {
             padding-bottom: 30px;
         }
+        .payg-info {
+            margin: 24px 24px 16px 24px;
+            display: block;
+        }
+        span#vcpus, span#datapoints, span#rulechecks, span#apirequests, span#retention {
+            border-bottom: 1px dashed #fff;
+        }
+        paper-tooltip::content #tooltip{
+            font-size: 14px;
+        }
         </style>
         <div class="plan old" hidden$="[[plan.vcpu_limit]]">
             <h2>[[plan.title]]
@@ -146,14 +156,25 @@
             <!-- regular plans -->
             <p>[[priceText]]
                 <!-- any plan but payg has title -->
-                <span hidden$="[[plan.title]]">
-                    <strong>FREE</strong> for up to 10 vCPUs, 1M datapoints/day, 10k rule checks/day, 10k API requests/day.
-                    <div>1 month retention.</div>
+                <span class="payg-info" hidden$="[[plan.title]]">
+                    <strong>FREE</strong> for up to
+
+                    10 <span id="vcpus">vCPUs</span>,
+                    1M <span id="datapoints">datapoints/day</span>,
+                    10k <span id="rulechecks">rule checks/day</span>,
+                    10k <span id="apirequests">API requests/day</span>.
+
+                    <div>1 month <span id="retention">retention</span></div>
+                    <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
+                    <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
+                    <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
+                    <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
+                    <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
                 </span>
                 <span hidden$="[[plan.title]]">
                     <br/>
                     <br/>
-                    <paper-button class="blue" raised on-tap="_addCard" hidden$="[[!hasCard]]">Add Card</paper-button>
+                    <paper-button class="blue" raised on-tap="_selectPayg" hidden$="[[!hasCard]]">Enable</paper-button>
                 </span>
             </p>
             <div hidden$="[[enterprise]]">
@@ -180,7 +201,7 @@
             </template>
 
             <template is="dom-if" if="[[showPurchase(plan, isCurrent)]]">
-                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPlan" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
+                <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPayg" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
             </template>
 
             <!-- is current plan, not cancelled-->
@@ -321,6 +342,9 @@
                 },
                 _addCard: function(e) {
                     this.fire('add-card');
+                },
+                _selectPayg: function(e) {
+                    this.fire('plan-selected');
                 },
                 _selectPlan: function(e) {
                     this.fire('plan-selected', {plan: this.plan});
