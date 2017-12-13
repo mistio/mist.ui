@@ -138,6 +138,10 @@
             value: function(){
               return []
             }
+        },
+        useHalfWidth: {
+          type: Boolean,
+          reflectToAttribute: true
         }
       },
       observers: [
@@ -174,13 +178,15 @@
           return this.actions.slice(this.visibleActions);
       },
       updateVisibleActions: function(e){
-        var parent = this.parentNode;
-        // case of single page
-        if (parent.tagName == "PAPER-MATERIAL" && parent.offsetWidth)
-          this.set('visibleActions', Math.floor((parent.offsetWidth/2)/200));
-        // case of lists
-        else if (parent.tagName == "DIV" && parent.offsetWidth)
-          this.set('visibleActions', Math.floor((parent.offsetWidth)/200));
+        if (this.useHalfWidth) {
+          this.set('visibleActions', Math.floor((this.parentNode.offsetWidth-50)/400));
+          console.log('updateVisibleActions',this.parentNode.offsetWidth, Math.floor(this.parentNode.offsetWidth/400))
+        }
+        else {
+          this.set('visibleActions', Math.floor((this.parentNode.offsetWidth-50)/200));
+          console.log('updateVisibleActions', Math.floor(this.parentNode.offsetWidth/200))
+        }
+        console.log('visible actions', this.visibleActions)
       }
     });
   </script>
