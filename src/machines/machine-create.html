@@ -206,6 +206,12 @@
                     // 'iron-select': '_updateFields',
                     'add-input': 'addInput'
                 },
+                ready: function() {
+                    var image = document.querySelector('app-location').queryParams.image,
+                        cloud = document.querySelector('app-location').queryParams.cloud;
+                    if (image && cloud)
+                        this._setOptions({cloud: cloud, image: image});
+                },
                 _computeActions: function(machinesArray) {
                     var ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; //'suspend', 'resume',
 
@@ -227,6 +233,17 @@
                 },
                 _isOnline: function(cloud, state, clouds){
                     return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
+                },
+                _setOptions: function(params) {
+                    for (var p in params) {
+                        if (p == 'cloud')
+                            this.set('selectedCloud', params[p])
+                        else {
+                            var ind = this._fieldIndexByName(p)
+                            if (ind)
+                                this.set('machineFields.'+ind+'.value', params[p]);
+                        }
+                    }
                 },
                 _computeFieldType: function(field, value, show) {
                     if (!(field.showIf && !field.show)) {
@@ -268,7 +285,6 @@
                         input.invalid = false;
                     }
                 },
-
                 _updateFields: function(selectedCloud){
                     if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this.selectedCloud]) {
                         var cloudId = this.selectedCloud;
