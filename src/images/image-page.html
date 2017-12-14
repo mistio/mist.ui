@@ -2,8 +2,11 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
+<link rel="import" href="../mist-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../tags/tags-list.html">
+
+<link rel="import" href="image-actions.html">
 
 <dom-module id="image-page">
     <template>
@@ -109,9 +112,9 @@
                 font-weight: 700;
                 margin-right: 16px;
             }
-            /* TODO: better */
-            h4.id.tags {
-                padding-left: 36px;
+            span.id {
+                padding-right: 36px;
+                word-break: break-all;
             }
 
             .tag {
@@ -139,36 +142,27 @@
             }
         </style>
         <div id="content">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
+                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
+            </div> -->
+            <image-actions actions="{{actions}}" items="[[itemArray]]"></image-actions>
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
-                        [[image.name]]
+                        [[_computeImageName(image.name)]]
                         <iron-icon icon="star" hidden$="{{!image.star}}"></iron-icon>
                     </h2>
                     <div class="subtitle">
                         on [[image.cloud.title]]
                     </div>
                 </div>
-                <div class="item-actions">
-                    <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                    <paper-button on-tap="_starImage" class="simple">
-                        <span hidden$="[[!image.star]]"> unstar </span>
-                        <span hidden$="[[image.star]]"> star <iron-icon icon="star"></iron-icon> </span>
-                    </paper-button>
-                </div>
+                <mist-actions actions="[[actions]]" type="image" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
             </paper-material>
             <template is="dom-if" if="[[image]]">
                 <paper-material>
                     <h4 class="id">Image ID:</h4><span class="id">[[image.id]]</span>
-                    <h4 class="id tags">Tags
-                        <template is="dom-if" if="[[image.tags]]">
-                            <span class="id">([[image.tags.length]])</span>
-                        </template>
-                        <template is="dom-if" if="[[!image.tags]]">
-                            <span class="id">(0)</span>
-                        </template>
-                        :
+                    <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:
                     </h4>
                     <template is="dom-if" if="[[image.tags]]">
                         <template is="dom-repeat" items="[[image.tags]]">
@@ -226,13 +220,23 @@
                         value: true
                     }
                 },
+                observers: [
+                  '_changed(image)'
+                ],
                 ready: function() {
+                },
+                _changed: function(image){
+                    if (image)
+                        this.set('itemArray', [this.image]);
                 },
                 _getHeaderStyle: function(section) {
                     return 'background-color: ' + section.color + '; color: #fff;';
                 },
                 _computeIsStarred: function(star) {
                     return star;
+                },
+                _computeImageName: function(name) {
+                    return name == "<none>:<none>" ? this.image.id : name;
                 },
                 _editTags: function() {
                     var el = this.querySelector('tags-list'),
@@ -265,6 +269,10 @@
 
                 _computeIsloading: function(image) {
                     return !this.image ? true : false;
+                },
+
+                _isEmpty: function(arr) {
+                    return !arr || arr.length == 0;
                 }
             });
         })();

@@ -31,7 +31,6 @@
 <link rel="import" href="mist-sidebar.html">
 <link rel="import" href="app-styles/app-styles.html">
 <link rel="import" href="app-icons/app-icons.html">
-<link rel="import" href="account/plan-overusage.html">
 
 <link rel="import" href="mist-socket.html">
 <link rel="import" href="mist-notice.html">
@@ -65,10 +64,15 @@
     iron-pages::content>* {
         background-color: #eee;
         position: relative;
-        min-height: 80vh;
+        min-height: calc(100vh - 64px);
     }
     iron-pages::content mist-list {
         font-size: 14px;
+    }
+    iron-pages::content mist-list paper-button[dialog-confirm] {
+        background-color: var(--mist-blue);
+        font-weight: 500;
+        color: #fff;
     }
     iron-pages::content mist-list::content .tag {
         display: inline;
@@ -91,7 +95,7 @@
         right: 0;
         bottom: 0;
         position: absolute;
-        height: 95%;
+        height: 94%;
         background-color: #eee;
         display: block;
         z-index: 0;
@@ -108,10 +112,17 @@
         margin: 20% auto;
         display: block;
     }
-    /* iphone 6 plus*/
-    @media screen and (max-width: 450px) {
+    @media screen and (max-width: 650px) {
+        iron-pages::content #content {
+            padding: 0;
+        }
+    }
+    @media screen and (max-width: 768px) {
         iron-pages {
-            padding: 0 0 1rem 0;
+            padding: 8px 0 0 0;
+        }
+        iron-pages::content .columns {
+            display: block;
         }
     }
     </style>
@@ -130,8 +141,7 @@
     <paper-header-panel mode="standard" class="fit">
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-        <plan-overusage is-over-using="[[model.onboarding.isOverUsing]]" plan="[[model.org.current_plan]]" class="paper-header" hidden$=[[!enableBilling]]></plan-overusage>
-        <mist-header model="[[model]]" title="[[page]]" class="paper-header" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" class="paper-header" count="[[count]]" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
@@ -276,7 +286,8 @@
             enableMonitoring: {
                 type: Boolean,
                 value: false
-            }
+            },
+            count: Number
         },
 
         listeners: {
@@ -292,7 +303,9 @@
             'update-scripts': 'updateScripts',
             'user-action': '_onUserAction',
             'add-new-images': 'addImages',
-            'go-to': 'setLocationPath'
+            'go-to': 'setLocationPath',
+            'mist-list-filtered-items-length-changed': 'setHeaderCount',
+            'export-list-csv': '_exportCsvMessage' 
         },
 
         observers: [
@@ -315,6 +328,11 @@
 
         _computeCenterContent: function(sidebarIsClosed, smallscreen) {
             return this.sidebarIsClosed || this.smallscreen;
+        },
+
+        setHeaderCount: function(e) {
+            if (e.path[1].tagName.toLowerCase().split('-')[1] == this.page)
+                this.set('count', e.detail.length);
         },
 
 
@@ -361,7 +379,7 @@
 
         openAndSelect: function (e) {
             document.addEventListener('open-and-select', function (e) {
-                this.querySelector('machine-page machine-actions mist-actions associate-key').openAndSelect(e);
+                this.querySelector('machine-page machine-actions associate-key').openAndSelect(e);
             }.bind(this));
         },
 
@@ -389,6 +407,9 @@
         },
 
         _routePageChanged: function (page, subpath) {
+            if (this.smallscreen) {
+                document.querySelector('mist-sidebar').closeSidebar();
+            }
             if (['index.html','sign-up','sign-in'].indexOf(page) > -1 )
                 page = 'dashboard';
             this.page = page || 'dashboard';
@@ -411,6 +432,7 @@
             if (this.page == 'dashboard') {
                 this.clearSearch();
             }
+            this.set('count', null);
         },
 
         _manageSearch: function(changeRecord) {
@@ -435,9 +457,6 @@
             // Load page import on demand. Show 404 page if fails
             var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
             this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-            if (this.smallscreen) {
-                document.querySelector('mist-sidebar').closeSidebar();
-            }
         },
 
         _hideLoader: function () {
@@ -613,9 +632,11 @@
 
             model.sectionsArray = [{
                 id: 'dashboard',
+                icon: 'icons:dashboard',
                 color: '#424242',
-                sidebar: false,
-                tile: false
+                sidebar: true,
+                tile: false,
+                hr: true,
             }, {
                 id: 'incidents',
                 color: '#d96557',
@@ -742,6 +763,11 @@
 
         _onUserAction: function (event) {
             console.log('user-action', event);
+            if (typeof gtag == 'function') {
+                gtag('event', event.detail, {
+                    'event_category': 'ui'
+                });
+            }
             if (!this.enableAb)
                 return;
             var xhr = new XMLHttpRequest();
@@ -801,6 +827,10 @@
 
         _computeViewingList: function (subroute) {
             return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
+        },
+
+        _exportCsvMessage: function(e) {
+            this.fire('toast', {msg: e.detail.message, duration: 3000});
         }
     });
 

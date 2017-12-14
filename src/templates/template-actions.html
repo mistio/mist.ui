@@ -28,6 +28,19 @@
   </template>
   <script>
 TEMPLATE_ACTIONS = {
+  'create': {
+    'name': 'create stack',
+    'icon': 'av:play-arrow',
+    'confirm': false,
+    'multi': false,
+    'single': true
+  },
+  'edit': {
+    'name': 'edit',
+    'icon': 'editor:mode-edit',
+    'confirm': false,
+    'multi': false
+  },
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -56,6 +69,10 @@ TEMPLATE_ACTIONS = {
         type: {
           type: String,
           value: 'template'
+        },
+        inSingleView: {
+          type: Boolean,
+          reflectToAttribute: true
         }
       },
       observers:[
@@ -73,6 +90,9 @@ TEMPLATE_ACTIONS = {
         // single template actions
         var arr = [];
         if (template) {
+          if (this.inSingleView)
+            arr.push('create');
+          arr.push('edit');
           arr.push('tag');
           arr.push('delete');
         }
@@ -127,9 +147,6 @@ TEMPLATE_ACTIONS = {
                 reason: this.type + "." + this.action.name
             });
           }
-          else if (action.name == 'make default') {
-            this._makeDefault();
-          }
           else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
           }
@@ -141,6 +158,12 @@ TEMPLATE_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'create stack') {
+          this.fire('create');
+        }
+        else if (action.name == 'edit') {
+          this.fire('edit');
         }
       },
       handleResponse: function(e) {

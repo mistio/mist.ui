@@ -16,15 +16,13 @@
        :host {
         display: block;
       }
-      h2[slot="header"] {
-          margin: 8px;
-      }
     </style>
 
     <app-route route="{{route}}" pattern="/:script" data="{{data}}"></app-route>
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
       <mist-list id="scriptsList"
             selectable resizable column-menu multi-sort
+            apiurl="/api/v1/scripts"
             items="[[model.scriptsArray]]"
             name="Scripts"
             selected-items="{{selectedItems}}"
@@ -36,7 +34,6 @@
             route={{route}}
             user-filter=[[model.sections.scripts.q]]
             primary-field-name="id">
-          <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Scripts </h2>
           <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
           <script-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></script-actions>
           <p slot="no-items-found">No scripts found.</p>
@@ -72,6 +69,7 @@
       },
       listeners: {
           'select-action': 'selectAction',
+          'edit': '_editScript',
       },
       _isAddPageActive: function (path) {
         return path == '/+add';
@@ -90,6 +88,11 @@
       },
       _addResource: function(e) {
           this.fire('go-to', {url: this.model.sections.scripts.add});
+      },
+      _editScript: function(e) {
+        e.stopImmediatePropagation();
+        this.fire('go-to', {url: '/scripts/' + this.selectedItems[0].id});
+        this.querySelector('script-page').fire('edit');
       },
       _getFrozenLogColumn: function(){
           return ['name'];
