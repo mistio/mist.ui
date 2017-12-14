@@ -5,7 +5,9 @@
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../mist-actions.html">
 
+<link rel="import" href="team-actions.html">
 <link rel="import" href="team-edit.html">
 <link rel="import" href="team-policy.html">
 
@@ -187,6 +189,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
+            <team-actions items="[[itemArray]]" actions="{{actions}}"></team-actions>
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -201,7 +204,8 @@
                         <span class="desc" hidden$="[[!hasPending]]"> [[pendingMembers.length]] pending</span>
                     </div>
                 </div>
-                <div class="item-actions">
+                <mist-actions slot="action-buttons" actions="[[actions]]" type="team" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <!-- <div class="item-actions">
                     <paper-button on-tap="_editTeam" class="simple">Edit Team</paper-button>
                     <paper-menu-button horizontal-align="right" hidden$="[[teamIsOwners]]">
                         <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
@@ -213,7 +217,7 @@
                     <paper-button on-tap="_addMember" class="simple white left-icon" style$="color: [[section.color]]">
                         <iron-icon icon="social:person-add" style$="color: [[section.color]]"></iron-icon> Invite Members
                     </paper-button>
-                </div>
+                </div> -->
             </paper-material>
             <paper-material>
                 <div class="flex-horizontal-with-ratios">
@@ -382,14 +386,24 @@
                     billing: {
                         type: Boolean,
                         value: false
-                    }
+                    },
+                    itemArray: Array
                 },
+                observers: [
+                    '_change(team)'
+                ],
                 listeners: {
-                    'confirmation': '_deleteResponse'
+                    'confirmation': '_deleteResponse',
+                    'edit': '_editTeam',
+                    'invite': '_addMember'
                 },
                 ready: function() {
                     var wh = window.innerHeight;
                     this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
+                },
+                _change: function(item) {
+                    if (item)
+                        this.set('itemArray', [this.team]);
                 },
                 _getFormattedTimestamp: function(team) {
                     if (team) {
@@ -445,9 +459,11 @@
                     return teamMembers;
                 },
                 _addMember: function(e) {
+                    e.stopImmediatePropagation();
                     this.fire('go-to', {url: '/teams/' + this.team.id + '/+add'})
                 },
                 _editTeam: function(e) {
+                    e.stopImmediatePropagation();
                     var el = this.querySelector('team-edit');
                     el._openEditTeamModal();
                 },

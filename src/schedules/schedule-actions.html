@@ -28,6 +28,19 @@
   </template>
   <script>
 SCHEDULE_ACTIONS = {
+  'run': {
+    'name': 'run',
+    'icon': 'av:play-arrow',
+    'confirm': false,
+    'multi': false,
+    'single': true
+  },
+  'edit': {
+    'name': 'edit',
+    'icon': 'editor:mode-edit',
+    'confirm': false,
+    'multi': false
+  },
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -56,6 +69,10 @@ SCHEDULE_ACTIONS = {
         type: {
           type: String,
           value: 'schedule'
+        },
+        inSingleView: {
+          type: Boolean,
+          reflectToAttribute: true
         }
       },
       observers:[
@@ -73,6 +90,11 @@ SCHEDULE_ACTIONS = {
         // single schedule actions
         var arr = [];
         if (schedule) {
+          if (this.inSingleView){
+            arr.push('run');
+            if (!this._hasExpired(schedule.expires))
+              arr.push('edit');
+          }
           arr.push('tag');
           arr.push('delete');
         }
@@ -83,6 +105,14 @@ SCHEDULE_ACTIONS = {
         //   arr.push('enable'); 
         // }
         return arr;
+      },
+      _hasExpired: function(expirydate) {
+          if (expirydate != undefined && expirydate != "" && expirydate.length > 0){
+              return moment().diff(moment.utc(expirydate).local()) > 0;
+          }
+          else {
+              return false;
+          }
       },
       actionDetails: function (actions) {
         var ret = [];
@@ -144,6 +174,12 @@ SCHEDULE_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'edit') {
+          this.fire('edit');
+        }
+        else if (action.name == 'run') {
+          this.fire('run');
         }
       },
       handleResponse: function(e) {

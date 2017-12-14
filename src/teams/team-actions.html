@@ -5,8 +5,6 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
-<link rel="import" href="../mist-actions.html">
-
 <dom-module id="team-actions">
   <template>
     <style include="shared-styles">
@@ -28,6 +26,18 @@
   </template>
   <script>
 TEAM_ACTIONS = {
+  'edit': {
+    'name': 'edit',
+    'icon': 'editor:mode-edit',
+    'confirm': false,
+    'multi': false
+  },
+  'invite': {
+    'name': 'invite',
+    'icon': 'social:person-add',
+    'confirm': false,
+    'multi': false
+  },
   'delete': {
     'name': 'delete',
     'icon': 'delete',
@@ -49,7 +59,7 @@ TEAM_ACTIONS = {
         },
         type: {
           type: String,
-          vslue: 'team'
+          value: 'team'
         },
         org: String
       },
@@ -65,11 +75,15 @@ TEAM_ACTIONS = {
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(org) {
+      itemActions: function(team) {
         // org policy for actions
         var arr = [];
-        if (org) {
-          arr.push('delete');
+        if (team) {
+          arr.push('invite');
+          if (team.name != 'Owners') {
+            arr.push('edit');
+            arr.push('delete');
+          }
         }
         return arr;
       },
@@ -133,6 +147,12 @@ TEAM_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
+        }
+        else if (action.name == 'edit') {
+          this.fire('edit');
+        }
+        else if (action.name == 'invite') {
+          this.fire('invite');
         }
       },
       handleResponse: function(e) {
