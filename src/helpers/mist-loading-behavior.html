@@ -1,0 +1,73 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script>
+ /**
+ * Behavior that asserts whether a resource is loading, missing or found
+ *
+ * @polymerBehavior
+ */
+mistLoadingBehavior = {
+    properties: {
+    	resourceId: String,
+        state: String,
+        asyncID: Number,
+        isMissing: {
+            type: Boolean,
+            value: false
+        }
+    },
+    observers: [
+        '_computeState(resourceId, section.count)',
+        '_updateClasses(state)'
+    ],
+    _computeState: function (resourceId, sectionCount) {
+        if (resourceId.indexOf('+add', '+create') == -1) {
+            // initial state
+            this.set('state', 'loading');
+            this.set('isMissing', false);
+
+            // if we are still loading the model of resources
+            if (!this.model[this.section.id]){
+                this.set('state', 'loading');
+                this.set('isMissing', false);
+                this._clearAsync();
+            }
+            // if we have loaded the resources but resource is still missing
+            else if (this.model[this.section.id] && !this.model[this.section.id][this.resourceId]){
+                var asyncID = this.async(function(){
+                    this.set('state', 'missing');
+                    this.set('isMissing', true);
+                }.bind(this), 1000);
+                this.set("asyncID", asyncID);
+            }
+            // if we found and loaded the resource
+            else if (this.model[this.section.id] && this.model[this.section.id][this.resourceId]) {
+                this.set('isMissing', false);
+                this.set('state', 'found');
+                this._clearAsync();
+            }
+        }
+    },
+    _clearAsync: function() {
+        if (this.asyncID){
+            // cancel Async
+            this.cancelAsync(this.asyncID);
+            this.set("asyncID", null);
+        }
+    },
+    _updateClasses: function(state) {
+        console.log('state', this.state);
+        if (state == 'loading')
+            this.classList.add('loadingResource');
+        else 
+            this.classList.remove('loadingResource');
+
+        if (state == 'missing')
+            this.classList.add('missingResource');
+        else 
+            this.classList.remove('missingResource');
+
+        if (state == 'found') 
+            this.classList.remove(['loadingResource', 'missingResource']);
+    }
+}
+</script>
