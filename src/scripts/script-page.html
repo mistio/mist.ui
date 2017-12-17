@@ -7,6 +7,7 @@
 
 <link rel="import" href="../mist-actions.html">
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../tags/tags-list.html">
 
 <link rel="import" href="script-edit.html">
@@ -131,7 +132,7 @@
                     </h2>
                     <div class="subtitle">
                         <span hidden$="[[!isInline]]">Inline Script. <a class="inherit" href$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download$="script-[[script.name]].sh.txt">Download</a></span>
-                        <span hidden$="[[isInline]]">Script source <a class="regular" href$="[[_computeLink(script.location)]]" target="_blank"> [[_computeLink(script.location)]] <iron-icon icon="icons:link"></iron-icon></a>
+                        <span hidden$="[[isInline]]">Script source <a class="regular" href$="[[_computeLink(script.location)]]" target="_blank"> [[_computeLink(script.location)]] <iron-icon icon="icons:link" hidden$="[[isMissing]]"></iron-icon></a>
                         </span>
                     </div>
                 </div>
@@ -144,45 +145,46 @@
                     </div>
                 </div>
                 <paper-material id="rightcolumn" class="right">
-                <div class="info-table">
-                    <div class="info-body info-group">
-                        <template is="dom-if" if="[[script.tags.length]]">
+                    <div class="missing" hidden$="[[!isMissing]]">Script not found.</div>
+                    <div class="info-table">
+                        <div class="info-body info-group">
+                            <template is="dom-if" if="[[script.tags.length]]">
+                                <div class="info-item flex-horizontal-with-ratios">
+                                    <h4 class="id tags">Tags</h4>
+                                    <template is="dom-repeat" items="[[script.tags]]">
+                                        <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
+                                    </template>
+                                </div>
+                            </template>
                             <div class="info-item flex-horizontal-with-ratios">
-                                <h4 class="id tags">Tags</h4>
-                                <template is="dom-repeat" items="[[script.tags]]">
-                                    <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
-                                </template>
+                                <div class="flexchild">ID</div>
+                                <div class="flexchild">[[script.id]]</div>
                             </div>
-                        </template>
-                        <div class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">ID</div>
-                            <div class="flexchild">[[script.id]]</div>
+                            <template is="dom-if" if="[[script.description]]">
+                                <div class="info-item flex-horizontal-with-ratios">
+                                    <div class="flexchild">Description</div>
+                                    <div class="flexchild">[[script.description]]</div>
+                                </div>
+                            </template>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Type</div>
+                                <div class="flexchild">[[script.exec_type]]</div>
+                            </div>
+                            <template is="dom-if" if="[[script.entrypoint]]">
+                                <div class="info-item flex-horizontal-with-ratios">
+                                    <div class="flexchild">Status</div>
+                                    <div class="flexchild">[[script.entrypoint]]</div>
+                                </div>
+                            </template>
+                            <template is="dom-if" if="[[!isInline]]">
+                                <div class="info-item flex-horizontal-with-ratios">
+                                    <div class="flexchild">Url</div>
+                                    <div class="flexchild"><a class="regular" href$="[[script.script]]" target="_blank"> [[script.script]] <iron-icon icon="icons:link" hidden$="[[isMissing]]"></iron-icon></a></div>
+                                </div>
+                            </template>
                         </div>
-                        <template is="dom-if" if="[[script.description]]">
-                            <div class="info-item flex-horizontal-with-ratios">
-                                <div class="flexchild">Description</div>
-                                <div class="flexchild">[[script.description]]</div>
-                            </div>
-                        </template>
-                        <div class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">Type</div>
-                            <div class="flexchild">[[script.exec_type]]</div>
-                        </div>
-                        <template is="dom-if" if="[[script.entrypoint]]">
-                            <div class="info-item flex-horizontal-with-ratios">
-                                <div class="flexchild">Status</div>
-                                <div class="flexchild">[[script.entrypoint]]</div>
-                            </div>
-                        </template>
-                        <template is="dom-if" if="[[!isInline]]">
-                            <div class="info-item flex-horizontal-with-ratios">
-                                <div class="flexchild">Url</div>
-                                <div class="flexchild"><a class="regular" href$="[[script.script]]" target="_blank"> [[script.script]] <iron-icon icon="icons:link"></iron-icon></a></div>
-                            </div>
-                        </template>
                     </div>
-                </div>
-            </paper-material>
+                </paper-material>
             </div>
             <template is="dom-if" if=[[script.id]] restamp>
                 <paper-material class="script-logs">
@@ -207,6 +209,9 @@
     <script>
     Polymer({
         is: 'script-page',
+        behaviors: [
+            mistLoadingBehavior
+        ],
 
         properties: {
             section: {
