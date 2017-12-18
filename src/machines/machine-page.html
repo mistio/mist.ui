@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../mist-monitoring.html">
@@ -398,7 +399,10 @@
                     <mist-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" use-half-width></mists-actions>
                 </template>
             </paper-material>
-            <div class="columns">
+            <paper-material hidden$="[[!isMissing]]">
+                <div class="missing">Machine not found.</div>
+            </paper-material>
+            <div class="columns" hidden$="[[isMissing]]">
                 <paper-material id="leftcolumn resource-description" class="left">
                     <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span>
                         <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
@@ -672,6 +676,9 @@ MACHINEACTIONS = {
 
 Polymer({
     is: 'machine-page',
+    behaviors: [
+        mistLoadingBehavior
+    ],
     properties: {
         model: {
             type: Object

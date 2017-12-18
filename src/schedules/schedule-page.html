@@ -12,6 +12,7 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../mist-actions.html">
 <link rel="import" href="../machines/machine-actions.html">
 <link rel="import" href="../helpers/machines-list-behavior.html">
@@ -271,11 +272,7 @@
                 margin-left: 8px;
             }
         </style>
-        <div id="content" class="does-not-exist" hidden$="[[exists]]">
-            <!-- <h1>404</h1>
-            <p>Schedule can not be found.</p> -->
-        </div>
-        <div id="content" hidden$="[[!exists]]">
+        <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active="[[isLoading]]"></paper-spinner>
             </div> -->
@@ -292,6 +289,7 @@
                 <mist-actions actions="{{actions}}" type="schedule" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
             </paper-material>
             <paper-material>
+                <div class="missing" hidden$="[[!isMissing]]">Schedule not found</div>
                 <div class="layout horizontal">
                     <div class="flex">
                         <h4 class="id">
@@ -451,7 +449,8 @@
         Polymer({
             is: 'schedule-page',
             behaviors: [
-                machinesListBehavior
+                machinesListBehavior,
+                mistLoadingBehavior
             ],
             properties: {
                 model: Object,
