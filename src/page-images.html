@@ -57,7 +57,7 @@
       <image-provider-search clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
     </template>
 
-    <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id$="[[_getImageId(route)]]" section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]></image-page>
+    <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]" section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]></image-page>
 
   </template>
 
@@ -77,23 +77,26 @@
         'select-action': 'selectAction',
       },
       _isDetailsPageActive: function (path) {
-        if (path) 
-          this.querySelector('image-page').computeState();
-        return path;
+          if (path && this.querySelector('image-page'))
+            this.querySelector('image-page').computeState();
+          return path;
       },
       _isListActive: function (path) {
-        return !path;
+          return !path;
       },
       _getImage: function (route) {
-        // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
-        if (this.model.images)
-          return this.model.images[route.path.slice(1,route.path.length)];
+          // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
+          if (this.model.images)
+            return this.model.images[route.path.slice(1,route.path.length)];
       },
       _getImageId: function(route){
-        return route.path.slice(1,route.path.length);
+        if (route.path.slice(1,route.path.length) && this.querySelector('image-page'))
+          this.querySelector('image-page').computeState();
+
+          return route.path.slice(1,route.path.length);
       },
       _addResource: function(e) {
-          //maybe a dialog to search images in providers
+          // maybe a dialog to search images in providers
           this.querySelector('image-provider-search')._openDialog();
       },
       _getFrozenLogColumn: function(){
