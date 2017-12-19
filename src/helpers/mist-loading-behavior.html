@@ -22,9 +22,10 @@ mistLoadingBehavior = {
     computeState: function() {
         this._computeState(this.resourceId, this.section.count);
     },
-    _computeState: function (resourceId, sectionCount) {
-        if (resourceId.indexOf('+add', '+create') == -1) {
-            // initial state
+    _computeState: function (resourceId, section) {
+        if (this.resourceId && this.resourceId.indexOf('+add', '+create') == -1) {
+            // console.log('state resourceId', resourceId, section);
+            // // initial state
             this.set('state', 'loading');
             this.set('isMissing', false);
 
@@ -39,7 +40,7 @@ mistLoadingBehavior = {
                 var asyncID = this.async(function(){
                     this.set('state', 'missing');
                     this.set('isMissing', true);
-                }.bind(this), 1000);
+                }.bind(this), 3000);
                 this.set("asyncID", asyncID);
             }
             // if we found and loaded the resource
@@ -58,7 +59,7 @@ mistLoadingBehavior = {
         }
     },
     _updateClasses: function(state) {
-        console.log('state', this.state);
+        // console.log('state', this.state);
         if (state == 'loading')
             this.classList.add('loadingResource');
         else 
