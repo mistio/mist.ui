@@ -2,9 +2,11 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../section-tile/section-tile.html">
 
 <link rel="import" href="cloud-info.html">
 <link rel="import" href="cloud-dns.html">
@@ -190,6 +192,16 @@
             .capitalize {
                 text-transform: capitalize;
             }
+            .tiles {
+                flex-wrap: wrap;
+                align-items: stretch;
+                justify-content: space-between;
+            }
+            section-tile {
+                margin: 16px 0;
+                min-width: 130px;
+                width: 32%;
+            }
             @media screen and (max-width: 366px) {
                 cloud-edit ::content paper-button#reset {
                     float: none;
@@ -235,7 +247,17 @@
                 </div>
 
             </paper-material>
-            <template is="dom-if" if="[[cloud]]">
+
+
+            <template is="dom-if" if="[[cloud.id]]" restamp>
+                <div class="tiles flex-horizontal-with-ratios">
+                    <section-tile name="machines" icon="hardware:computer" color="[[section.color]]" count="[[cloud.machinesArray.length]]"></section-tile>
+                    <section-tile name="images" icon="image:photo" color="[[section.color]]" count="[[cloud.imagesArray.length]]"></section-tile>
+                    <section-tile name="locations" icon="communication:location-on" color="[[section.color]]" count="[[cloud.locationsArray.length]]"></section-tile>
+                    <section-tile name="sizes" icon="hardware:computer" color="[[section.color]]" count="[[cloud.sizesArray.length]]"></section-tile>
+                    <section-tile name="zones" icon="icons:dns" color="[[section.color]]" count="[[cloud.zonesArray.length]]"></section-tile>
+                    <section-tile name="networks" icon="hardware:device-hub" color="[[section.color]]" count="[[cloud.networksArray.length]]"></section-tile>
+                </div>
                 <paper-material>
                     <div class="resource-info">
                         <h4 class="id">ID:</h4> <span class="id">[[cloud.id]] </span>
@@ -337,7 +359,25 @@
                 listeners: {
                     'confirmation': '_deleteCloud',
                 },
+                observers: [
+                    'cloudChanged(cloud.*)'
+                ],
                 ready: function() {
+                },
+                cloudChanged: function(cloud){
+                    if (this.cloud.machinesArray)
+                        console.log("mach",this.cloud.machinesArray.length)
+                    if (this.cloud.imagesArray)
+                        console.log("imag",this.cloud.imagesArray.length)
+                    if (this.cloud.locationsArray)
+                        console.log("loca",this.cloud.locationsArray.length)
+                    if (this.cloud.sizesArray)
+                        console.log("size",this.cloud.sizesArray.length)
+                    if (this.cloud.zonesArray)
+                        console.log("zone",this.cloud.zonesArray.length)
+                    if (this.cloud.networksArray)
+                        console.log("nets",this.cloud.networksArray.length)
+                    console.log("=====================")
                 },
                 _computeCloudTitle: function(cloud) {
                     if (cloud)
