@@ -8,6 +8,7 @@
 <link rel="import" href="../mist-actions.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../helpers/mist-lists-behavior.html">
 
 <link rel="import" href="zone-actions.html">
@@ -84,11 +85,11 @@
         <app-location route="{{route}}"></app-location>
         <zone-actions items="[[itemArray]]" actions="{{actions}}"></zone-actions>
         <div id="content">
-            <div class="is-loading" hidden$="[[!isLoading]]">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active="[[isLoading]]"></paper-spinner>
                 <div class="notify"> Retrieving details from the provider...</div>
-            </div>
-            <div hidden$="[[isLoading]]">
+            </div> -->
+            <!-- <div> -->
                 <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
                     <paper-material class="single-head layout horizontal">
                         <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
@@ -107,6 +108,7 @@
                         </div> -->
                     </paper-material>
                     <paper-material>
+                        <div class="missing" hidden$="[[!isMissing]]">Zone not found.</div>
                         <div class='resource-info'>
                             <h4 class="id">Zone ID:</h4><span class="id">[[zone.id]]</span>
                         </div>
@@ -177,7 +179,7 @@
                         <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
                     </div>
                 </div>
-            </div>
+            <!-- </div> -->
             <record-add model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-add>
         </div>
         <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
@@ -191,7 +193,8 @@
             Polymer({
                 is: 'zone-page',
                 behaviors: [
-                  mistListsBehavior
+                    mistListsBehavior,
+                    mistLoadingBehavior
                 ],
 
                 properties: {

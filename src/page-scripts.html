@@ -42,7 +42,7 @@
       </div>
     </template>
     <script-add model="[[model]]" section="[[model.sections.scripts]]" hidden$=[[!_isAddPageActive(route.path)]]></script-add>
-    <script-page model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
+    <script-page model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" resource-id="[[data.script]]" section="[[model.sections.scripts]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
     <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
 
   </template>
@@ -73,6 +73,8 @@
         return path == '/+add';
       },
       _isDetailsPageActive: function (path) {
+        if (path && path != '/+add' & !path.endsWith('+run') && this.querySelector('script-page'))
+              this.querySelector('script-page').computeState();
         return path && path != '/+add' & !path.endsWith('+run');
       },
       _isRunPageActive: function (path) {

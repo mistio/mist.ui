@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../tags/tags-list.html">
 
 <link rel="import" href="key-edit.html">
@@ -166,9 +167,6 @@
             }
         </style>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
             <key-actions actions="{{actions}}" items="[[itemArray]]" in-single-view></key-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
@@ -191,6 +189,7 @@
 
             <div class="key-info">
                 <paper-material>
+                    <div class="missing" hidden$="[[!isMissing]]">Key not found.</div>
                     <h4 class="id">Key ID:</h4><span class="id">[[key.id]]</span>
                     <template is="dom-if" if="[[tagsExist]]">
                         <h4 class="id tags">Tags </h4>
@@ -258,7 +257,9 @@
 
             Polymer({
                 is: 'key-page',
-
+                behaviors: [
+                    mistLoadingBehavior
+                ],
                 properties: {
                     section: {
                         type: Object
@@ -301,11 +302,6 @@
                         type: Boolean,
                         value: false
                     },
-                    isLoading: {
-                        type: Boolean,
-                        computed: '_computeIsloading(key)',
-                        value: true
-                    },
                     tagsExist: {
                         type: Boolean,
                         computed: '_computeTagsExist(key, key.tags.*)',
@@ -333,6 +329,10 @@
                         this.$.keyPublicRequest.generateRequest();
 
                         this.set('itemArray', [this.key]);
+                    }
+                    else {
+                        this.set('itemArray', []);
+                        this.set('publicKey', '');
                     }
                     this.set('visiblePrivateKey', false);
                 },
@@ -467,9 +467,9 @@
                     }
                     dialog._openDialog();
                 },
-                _computeIsloading: function(key) {
-                    return !key ? true : false;
-                },
+                // _computeIsloading: function(key) {
+                //     return !key ? true : false;
+                // },
                 clearSelection: function(){
                 if (window.getSelection) {
                         if (window.getSelection().empty) {  // Chrome
