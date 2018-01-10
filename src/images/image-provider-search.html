@@ -60,7 +60,7 @@
     <paper-dialog id="providerSearch" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
       <h2>Search and Import Images</h2>
       <paper-dialog-scrollable>
-          <paper-input value="{{queryTerm}}" label="search term"></paper-input>
+          <paper-input value="{{queryTerm}}" label="Search term" autofocus></paper-input>
           <!-- <div class="checkboxes">
             <p hidden$="[[!clouds]]">Search in </p>
             <template is="dom-repeat" items="[[clouds]]">
@@ -127,12 +127,10 @@
         'queryTermChanged(queryTerm)'
       ],
       listeners: {
+        'keyup': 'hotkeys',
         'change': 'toggleSelection'
       },
       attached: function() {
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
       },
       _openDialog: function() {
         this.$.providerSearch.open();
@@ -147,7 +145,7 @@
         console.log('handleResponse',e, newImages.length);
         if (newImages.length) {
           this.fire('toast',{msg: newImages.length+' new images in '+this.get('clouds.'+this.activeSearchIndex+'.title')+'. Updating..', duration: 3000})
-          this.fire('add-new-images', {images: newImages});
+          this.fire('add-new-images', {images: newImages, cloud: this.get('clouds.'+this.activeSearchIndex)});
         }
         else {
           this.fire('toast',{msg: 'No new images found in '+this.get('clouds.'+this.activeSearchIndex+'.title'), duration: 3000})
@@ -188,12 +186,21 @@
       },
       nextSearch: function(index){
         console.log('nextSearch', this.clouds.length, index)
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
         if (this.clouds && this.clouds.length && index < this.clouds.length) {
           this.$.request.url = "/api/v1/clouds/"+ this.get('clouds.'+index+'.id') +"/images";
           this.$.request.generateRequest();
         }
         else {
           this.set('activeSearchIndex', 0);
+        }
+      },
+      hotkeys: function(e) {
+        // ENTER
+        if (e.keyCode === 13 && this.queryTerm.length) {
+          this._submitForm(e)
         }
       }
     });

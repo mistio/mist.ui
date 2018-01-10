@@ -45,7 +45,7 @@
             user-filter=[[model.sections.images.q]]
             primary-field-name="id">
           <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Images
-            <paper-button class="search-on-providers blue-link" on-tap="searchOnProviders" hidden$="[[!combinedFilter]]">Search more images.</paper-button>
+            <paper-button class="search-on-providers blue-link" on-tap="searchOnProviders">Search more images.</paper-button>
           </h2>
           <mist-actions slot="action-buttons" actions="[[actions]]" type="image" items="[[selectedItems]]" model="[[model]]"></mist-actions>
           <image-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></image-actions>
@@ -76,12 +76,17 @@
       },
       listeners: {
         'select-action': 'selectAction',
+        'create_machine': '_createMachine'
       },
       _isDetailsPageActive: function (path) {
         return path;
       },
       _isListActive: function (path) {
         return !path;
+      },
+      _createMachine: function(e){
+        // console.log('_createMachine', e.detail);
+        this.fire("go-to", {url: '/machines/+create', params: {cloud:e.detail.cloud, image: e.detail.image}});
       },
       _getImage: function (route) {
         // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
