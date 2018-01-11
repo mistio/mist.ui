@@ -1068,7 +1068,7 @@ PROVIDERS.push({
         label: 'Add Machines',
         show: true,
         required: true,        
-        type: 'form',
+        type: 'list',
         min: '1',
         max: '5',
         options: [{
