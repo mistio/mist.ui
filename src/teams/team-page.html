@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../mist-actions.html">
 
 <link rel="import" href="team-actions.html">
@@ -183,6 +184,9 @@
         paper-button a {
             color: #fff;
         }
+        .single-head {
+            @apply(--team-page-head-mixin)
+        }
         </style>
 
         <div id="content">
@@ -190,7 +194,7 @@
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
             <team-actions items="[[itemArray]]" actions="{{actions}}"></team-actions>
-            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+            <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
@@ -220,7 +224,8 @@
                 </div> -->
             </paper-material>
             <paper-material>
-                <div class="flex-horizontal-with-ratios">
+                <div class="missing" hidden$="[[!isMissing]]">Team not found.</div>
+                <div class="flex-horizontal-with-ratios" hidden$="[[isMissing]]">
                     <div class="page-block" hidden$="[[!team.description]]">
                         <h3 class="smallcaps">Team Description</h3>
                         <p>[[team.description]]</p>
@@ -265,14 +270,14 @@
                                 <div class="text-center">
                                     <h3 class="smallcaps">Members</h3>
                                     <p>You have not yet added members in [[team.name]] team.</p>
-                                    <paper-button class="blue pad-left2 pad-right2" on-tap="_addMember"> Add Member </paper-button>
+                                    <paper-button class="blue pad-left2 pad-right2" on-tap="_addMember" disabled$="[[isMissing]]"> Add Member </paper-button>
                                 </div>
                             </paper-material>
                         </template>
                     </div>
                 </div>
                 <div class="flex-horizontal-with-ratios section" hidden$=[[!billing]]>
-                    <div class="width100">
+                    <div class="width100" hidden$="[[isMissing]]">
                         <paper-material class="no-pad" hidden$=[[!rbac]]>
                             <!-- TODO: make interactive add edit of rules -->
                             <h3 class="smallcaps resource-head">Team Policy</h3>
@@ -325,6 +330,9 @@
 
             Polymer({
                 is: 'team-page',
+                behaviors: [
+                    mistLoadingBehavior
+                ],
 
                 properties: {
                     section: {

@@ -24,12 +24,9 @@
 
 <script src="../bower_components/fingerprintjs2/fingerprint2.js"></script>
 
-<link rel="import" href="styles/app-theme.html">
 <link rel="import" href="styles/shared-styles.html">
-
 <link rel="import" href="mist-header/mist-header.html">
 <link rel="import" href="mist-sidebar.html">
-<link rel="import" href="app-styles/app-styles.html">
 <link rel="import" href="app-icons/app-icons.html">
 
 <link rel="import" href="mist-socket.html">
@@ -41,10 +38,13 @@
 <dom-module id="mist-app">
 
   <template>
-
-    <style>
+    <!-- styles/app-theme  -->
+    <slot name="theme">
+        <link rel="import" href="styles/app-theme.html">
+    </slot>
+    <style include="custom-style">
     paper-header-panel {
-        background-color: #eee;
+        background-color: var(--base-background-color);
     }
 
     iron-pages {
@@ -62,7 +62,7 @@
         padding: 0;
     }
     iron-pages::content>* {
-        background-color: #eee;
+        background-color: var(--base-background-color);
         position: relative;
         min-height: calc(100vh - 64px);
     }
@@ -96,7 +96,7 @@
         bottom: 0;
         position: absolute;
         height: 94%;
-        background-color: #eee;
+        background-color: var(--base-background-color);
         display: block;
         z-index: 0;
     }
@@ -141,7 +141,7 @@
     <paper-header-panel mode="standard" class="fit">
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-        <mist-header model="[[model]]" title="[[page]]" class="paper-header" count="[[count]]" style$="[[style]]" viewing-list="[[viewingList]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
@@ -219,12 +219,6 @@
             q: { // search query
                 type: String,
                 value: ''
-            },
-
-            style: {
-                computed: "_style(page, model)",
-                value: "background-color: #424242;",
-                notify: true
             },
 
             tag: String,
@@ -310,13 +304,8 @@
 
         observers: [
             '_routePageChanged(routeData.page, subroute.path)',
-            '_manageSearch(route.*)',
             '_sizeChanged(smallscreen)'
         ],
-
-        ready: function () {
-
-        },
 
         _sizeChanged: function(smallscreen) {
             console.log('updateResize');
@@ -372,6 +361,11 @@
         addImages: function(e){
             var images = e.detail.images;
             for (var i=0; i<images.length; i++) {
+                images[i].cloud = {
+                            'id': e.detail.cloud.id,
+                            'title': e.detail.cloud.title,
+                            'provider': e.detail.cloud.provider
+                        };
                 this.push('model.imagesArray', images[i]);
                 this.model.images[images[i].id] = images[i];
             }
@@ -399,13 +393,6 @@
                 this.querySelector('machine-create').updateScripts(e);
             if (this.querySelector('schedule-add'))
                 this.querySelector('schedule-add').updateScripts(e);
-        },
-
-        _style: function (page, model) {
-            if (page && this.model.sections[page]) {
-                return "background-color: " + this.model.sections[page].color;
-            }
-            return "background-color: " + this.model.sections['dashboard'].color;
         },
 
         _routePageChanged: function (page, subpath) {
@@ -439,6 +426,7 @@
 
         _manageSearch: function(changeRecord) {
             // console.log('_manageSearch',changeRecord)
+            // '_manageSearch(route.*)'
             if (changeRecord.path == 'route.path' && changeRecord.value.startsWith('/'+this.page+'/')){
                 this.clearSearch();
             }

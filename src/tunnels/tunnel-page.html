@@ -6,6 +6,7 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../mist-actions.html">
 
@@ -131,6 +132,9 @@
         #copyscript[show] {
             display: inline-block;
         }
+        .single-head {
+            @apply(--tunnel-page-head-mixin)
+        }
         </style>
 
         <div id="content">
@@ -138,7 +142,7 @@
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
             <tunnel-actions items="[[itemArray]]" actions="{{actions}}" in-single-view></tunnel-actions>
-            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+            <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
@@ -151,6 +155,7 @@
                 <mist-actions actions="[[actions]]" type="tunnel" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
             </paper-material>
             <div class="columns">
+                <div class="missing" hidden$="[[!isMissing]]">Key not found.</div>
                 <div id="leftcolumn" class="left command-container">
                     <div class="pad2">
                         <pre><code>
@@ -242,6 +247,9 @@ Script:</code></pre>
 
         Polymer({
             is: 'tunnel-page',
+            behaviors: [
+                mistLoadingBehavior
+            ],
 
             properties: {
                 sections: {

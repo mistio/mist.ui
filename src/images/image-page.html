@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../mist-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../tags/tags-list.html">
@@ -140,13 +141,16 @@
                 margin: 10% auto;
                 display: block;
             }
+            .single-head {
+                @apply(--image-page-head-mixin)
+            }
         </style>
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
             <image-actions actions="{{actions}}" items="[[itemArray]]"></image-actions>
-            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+            <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
@@ -159,26 +163,25 @@
                 </div>
                 <mist-actions actions="[[actions]]" type="image" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
             </paper-material>
-            <template is="dom-if" if="[[image]]">
-                <paper-material>
-                    <h4 class="id">Image ID:</h4><span class="id">[[image.id]]</span>
-                    <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:
-                    </h4>
-                    <template is="dom-if" if="[[image.tags]]">
-                        <template is="dom-repeat" items="[[image.tags]]">
-                            <span class="id tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
-                        </template>
+            <paper-material>
+                <div class="missing" hidden$="[[!isMissing]]">Image not found.</div>
+                <h4 class="id">Image ID:</h4><span class="id">[[image.id]]</span>
+                <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:
+                </h4>
+                <template is="dom-if" if="[[image.tags]]">
+                    <template is="dom-repeat" items="[[image.tags]]">
+                        <span class="id tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
                     </template>
-                </paper-material>
-                <paper-material class="no-pad">
-                    <div class="info-table">
-                        <div class="info-body info-group">
-                            <element-for-in content="[[image.extra]]"></element-for-in>
-                        </div>
+                </template>
+            </paper-material>
+            <paper-material class="no-pad">
+                <div class="info-table">
+                    <div class="info-body info-group">
+                        <element-for-in content="[[image.extra]]"></element-for-in>
                     </div>
-                </paper-material>
-            </template>
-            <div class="absolute-bottom-right">
+                </div>
+            </paper-material>
+            <div class="absolute-bottom-right" hidden$="[[isMissing]]">
                 <paper-fab icon="star-border" on-tap="_starImage" id="starImageFab" hidden$=[[!image.star]]></paper-fab>
                 <paper-fab icon="star" on-tap="_starImage" id="starImageFab" hidden$=[[image.star]]></paper-fab>
             </div>
@@ -192,6 +195,9 @@
 
             Polymer({
                 is: 'image-page',
+                behaviors: [
+                    mistLoadingBehavior
+                ],
 
                 properties: {
                     sections: {
@@ -221,9 +227,13 @@
                     }
                 },
                 observers: [
-                  '_changed(image)'
+                  '_changed(image)',
+                  '_count(section.count)'
                 ],
                 ready: function() {
+                },
+                _count: function(count){
+                    console.log('state count', count);
                 },
                 _changed: function(image){
                     if (image)

@@ -5,6 +5,7 @@
 
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../mist-actions.html">
 
 <link rel="import" href="network-actions.html">
@@ -114,6 +115,9 @@
             :host ::content .info-item {
                 word-break: break-all;
             }
+            .single-head {
+                @apply(--network-page-head-mixin)
+            }
         </style>
 
         <div id="content">
@@ -121,7 +125,7 @@
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
             <network-actions items="[[itemArray]]" actions="{{actions}}"></network-actions>
-            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+            <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>[[network.name]]</h2>
@@ -137,6 +141,7 @@
                 </div> -->
             </paper-material>
             <paper-material>
+                <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
                 <h4 class="id">Network ID:</h4><span class="id">[[network.id]]</span>
             </paper-material>
             <paper-material>
@@ -189,6 +194,9 @@
 
             Polymer({
                 is: 'network-page',
+                behaviors: [
+                    mistLoadingBehavior
+                ],
 
                 properties: {
                     model: {

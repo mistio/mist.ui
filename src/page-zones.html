@@ -43,7 +43,7 @@
       </div>
     </template>
     <zone-add model="[[model]]" section="[[model.sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></zone-add>
-    <zone-page model="[[model]]" zone="[[_getZone(data.zone, model.zones.*)]]" section="[[model.sections.zones]]" hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
+    <zone-page model="[[model]]" zone="[[_getZone(data.zone, model.zones.*)]]" resource-id="[[data.zone]]" section="[[model.sections.zones]]" hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
   </template>
 
   <script>
@@ -74,6 +74,8 @@
           return path == '/+add';
       },
       _isDetailsPageActive: function(path) {
+          if (path && path != '/+add' && this.querySelector('zone-page'))
+            this.querySelector('zone-page').computeState();
           return path && path != '/+add';
       },
       _isListActive: function(path) {

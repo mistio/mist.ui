@@ -7,6 +7,7 @@
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../section-tile/section-tile.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 
 <link rel="import" href="cloud-info.html">
 <link rel="import" href="cloud-dns.html">
@@ -218,14 +219,17 @@
                     min-width: 30%;
                 }
             }
+            .single-head {
+                @apply(--cloud-page-head-mixin)
+            }
         </style>
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
+            <paper-material class="single-head layout horizontal">
                 <span class="icon">
-                    <iron-icon src="[[_computeItemImage(cloud)]]">M</iron-icon>
+                    <iron-icon src="[[_computeItemImage(cloud)]]"></iron-icon>
                 </span>
                 <div class="title flex">
                     <h2>
@@ -259,6 +263,7 @@
                     <section-tile name="networks" icon="hardware:device-hub" color="[[section.color]]" count="[[cloud.networksArray.length]]"></section-tile>
                 </div>
                 <paper-material>
+                    <div class="missing" hidden$="[[!isMissing]]">Cloud not found.</div>
                     <div class="resource-info">
                         <h4 class="id">ID:</h4> <span class="id">[[cloud.id]] </span>
                     </div>
@@ -333,6 +338,9 @@
 
             Polymer({
                 is: 'cloud-page',
+                behaviors: [
+                    mistLoadingBehavior
+                ],
 
                 properties: {
                     section: {

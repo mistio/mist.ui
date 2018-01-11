@@ -45,7 +45,7 @@
             user-filter=[[model.sections.images.q]]
             primary-field-name="id">
           <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Images
-            <paper-button class="search-on-providers blue-link" on-tap="searchOnProviders" hidden$="[[!combinedFilter]]">Search more images.</paper-button>
+            <paper-button class="search-on-providers blue-link" on-tap="searchOnProviders">Search more images.</paper-button>
           </h2>
           <mist-actions slot="action-buttons" actions="[[actions]]" type="image" items="[[selectedItems]]" model="[[model]]"></mist-actions>
           <image-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></image-actions>
@@ -57,8 +57,7 @@
       <image-provider-search clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
     </template>
 
-    <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]>
-    </image-page>
+    <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]" section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]></image-page>
 
   </template>
 
@@ -76,20 +75,33 @@
       },
       listeners: {
         'select-action': 'selectAction',
+        'create_machine': '_createMachine'
       },
       _isDetailsPageActive: function (path) {
-        return path;
+          if (path && this.querySelector('image-page'))
+            this.querySelector('image-page').computeState();
+          return path;
       },
       _isListActive: function (path) {
-        return !path;
+          return !path;
+      },
+      _createMachine: function(e){
+        // console.log('_createMachine', e.detail);
+        this.fire("go-to", {url: '/machines/+create', params: {cloud:e.detail.cloud, image: e.detail.image}});
       },
       _getImage: function (route) {
-        // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
-        if (this.model.images)
-          return this.model.images[route.path.slice(1,route.path.length)];
+          // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
+          if (this.model.images)
+            return this.model.images[route.path.slice(1,route.path.length)];
+      },
+      _getImageId: function(route){
+        if (route.path.slice(1,route.path.length) && this.querySelector('image-page'))
+          this.querySelector('image-page').computeState();
+
+          return route.path.slice(1,route.path.length);
       },
       _addResource: function(e) {
-          //maybe a dialog to search images in providers
+          // maybe a dialog to search images in providers
           this.querySelector('image-provider-search')._openDialog();
       },
       _getFrozenLogColumn: function(){

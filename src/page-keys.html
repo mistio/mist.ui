@@ -46,7 +46,7 @@
       </div>
     </template>
     <key-add model="[[model]]" section="[[model.sections.keys]]" hidden$=[[!_isAddPageActive(route.path)]]></key-add>
-    <key-page model="[[model]]" key$="[[_getKeyPair(data.key, model.keys)]]" section="[[model.sections.keys]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
+    <key-page model="[[model]]" key$="[[_getKeyPair(data.key, model.keys)]]" resource-id="[[data.key]]" section="[[model.sections.keys]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
   </template>
 
   <script>
@@ -75,6 +75,8 @@
         return path == '/+add';
       },
       _isDetailsPageActive: function (path) {
+        if (path && path != '/+add' && this.querySelector('key-page'))
+          this.querySelector('key-page').computeState();
         return path && path != '/+add';
       },
       _isListActive: function (path) {

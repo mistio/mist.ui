@@ -8,13 +8,7 @@
 
 <dom-module id="mist-sidebar">
     <template>
-        <style is="custom-style" include="shared-styles"></style>
-        <style is="custom-style">
-        :root {
-            --mist-sidebar-width: 210px;
-        }
-        </style>
-        <style>
+        <style include="shared-styles">
         :host {
             width: 210px;
             box-sizing: border-box;
@@ -153,7 +147,6 @@
         #section-list .section[active] {
             background: rgba(0,0,0,0.03);
             border-left: 5px solid;
-            color: #444;
         }
 
         #section-list .section[active] ::content iron-icon {
@@ -232,18 +225,34 @@
                 display: none;
             }
         }
+        a#machines  {color: var(--machines-section-color);}
+        a#images    {color: var(--images-section-color);}
+        a#dashboard {color: var(--dashboard-section-color);}
+        a#stacks    {color: var(--stacks-section-color);}
+        a#keys      {color: var(--keys-section-color);}
+        a#networks  {color: var(--networks-section-color);}
+        a#tunnels   {color: var(--tunnels-section-color);}
+        a#zones     {color: var(--zones-section-color);}
+        a#scripts   {color: var(--scripts-section-color);}
+        a#schedules {color: var(--schedules-section-color);}
+        a#templates {color: var(--templates-section-color);}
+        a#incidents {color: var(--incidents-section-color);}
+        a#teams     {color: var(--teams-section-color);}
+        a#members   {color: var(--members-section-color);}
+        a#my-account{color: var(--my-account-section-color);}
+        a#insights  {color: var(--insights-section-color);}
         </style>
         <div class="content">
             <div id="section-list">
                 <nav>
                     <template is="dom-repeat" items="[[model.sectionsArray]]">
                         <template is="dom-if" if="[[item.sidebar]]">
-                            <a class="section" is="pushstate-anchor" on-tap="clearSearch"
-                                id$="[[item.id]]" href$="/[[item.id]]" href$="[[item.href]]"
+                            <a id="[[item.id]]" class="section" is="pushstate-anchor" on-tap="clearSearch"
+                                id$="[[item.id]]" href$="/[[item.id]]"
                                 hidden$="[[_isHidden(item.hideZero, item.count)]]"
-                                active$="[[_isEqual(current, item.id)]]" tabindex="1" style$="[[style(item.color)]]">
+                                active$="[[_isEqual(current, item.id)]]" tabindex="1">
                                 <div class="layout horizontal center">
-                                    <section-symbol aria-hidden="true" icon="[[item.icon]]" color="[[item.color]]"></section-symbol>
+                                    <section-symbol aria-hidden="true" icon="[[item.icon]]"></section-symbol>
                                     <span class="title flex">
                                         <span>[[item.id]]</span>
                                     <span class="count">[[item.count]]</span>
@@ -259,104 +268,103 @@
             </div>
         </div>
     </template>
-</dom-module>
-<script>
-Polymer({
-    is: 'mist-sidebar',
-    behaviors: [
-        Polymer.IronOverlayBehavior
-    ],
-    enableCustomStyleProperties: true,
-    properties: {
-        model: {
-            type: Object
+    <script>
+    Polymer({
+        is: 'mist-sidebar',
+        behaviors: [
+            Polymer.IronOverlayBehavior
+        ],
+        properties: {
+            model: {
+                type: Object
+            },
+            smallscreen: {
+                type: Boolean,
+                reflectToAttribute: true
+            },
+            xsmallscreen: {
+                type: Boolean,
+                reflectToAttribute: true
+            },
+            current: {
+                type: String,
+                value: "",
+                notify: true
+            },
+            tag: {
+                type: String,
+                value: ""
+            },
+            isclosed: {
+                type: Boolean,
+                reflectToAttribute: true,
+                notify: true,
+                value: false
+            },
+            hasStacks: {
+                type: Boolean,
+                computed: "_computeHasStacks(model.stacksArray)"
+            }
         },
-        smallscreen: {
-            type: Boolean,
-            reflectToAttribute: true
+        style: function(color) {
+            return "color: " + color + ";"
         },
-        xsmallscreen: {
-            type: Boolean,
-            reflectToAttribute: true
+        observers: [],
+        listeners: {
+            'iron-overlay-closed': 'closeSidebar', 
         },
-        current: {
-            type: String,
-            value: "",
-            notify: true
+        attached: function() {
+            this.updateResize();
         },
-        tag: {
-            type: String,
-            value: ""
+        updateResize: function(e){
+            console.log('updateResize');
+            var that = this;
+            if (this.smallscreen)
+                this.closeSidebar();
+            else 
+                this.openSidebar();
         },
-        isclosed: {
-            type: Boolean,
-            reflectToAttribute: true,
-            notify: true,
-            value: false
+        closeSidebar: function(){
+            // console.log('close sidebar');
+            if (this.smallscreen)
+                this.close(); //control brackdrop
+            this.set('isclosed', true);
         },
-        hasStacks: {
-            type: Boolean,
-            computed: "_computeHasStacks(model.stacksArray)"
+        openSidebar: function(){
+            // console.log('open sidebar')
+            if (this.smallscreen)
+                this.open(); //control brackdrop
+            this.set('isclosed', false);
+        },
+        toggleSidebar: function(){
+            console.log('toggle sidebar', this.isclosed, this.smallscreen);
+            if (this.smallscreen)
+                this.toggle(); //control brackdrop
+            this.set('isclosed', !this.isclosed);
+        },
+        _itemCount: function(item) {
+            return this.get('this.model.' + item + 'Array.length');
+        },
+        _sectionLink: function(name) {
+            return '/' + name;
+        },
+        _isEqual: function(a, b) {
+            return a === b;
+        },
+        _computeHasStacks: function(stacksArray) {
+            return stacksArray.length > 0;
+        },
+        _getSections: function(sections) {
+            return this.model.sectionsArray;
+        },
+        _isHidden: function(hideZero, count) {
+            if (hideZero && count == 0)
+                return true;
+            return false;
+        },
+        clearSearch: function(e){
+            this.fire('clear-search-on-nav');
         }
-    },
-    style: function(color) {
-        return "color: " + color + ";"
-    },
-    observers: [],
-    listeners: {
-        'iron-overlay-closed': 'closeSidebar', 
-    },
-    attached: function() {
-        this.updateResize();
-    },
-    updateResize: function(e){
-        console.log('updateResize');
-        var that = this;
-        if (this.smallscreen)
-            this.closeSidebar();
-        else 
-            this.openSidebar();
-    },
-    closeSidebar: function(){
-        // console.log('close sidebar');
-        if (this.smallscreen)
-            this.close(); //control brackdrop
-        this.set('isclosed', true);
-    },
-    openSidebar: function(){
-        // console.log('open sidebar')
-        if (this.smallscreen)
-            this.open(); //control brackdrop
-        this.set('isclosed', false);
-    },
-    toggleSidebar: function(){
-        console.log('toggle sidebar', this.isclosed, this.smallscreen);
-        if (this.smallscreen)
-            this.toggle(); //control brackdrop
-        this.set('isclosed', !this.isclosed);
-    },
-    _itemCount: function(item) {
-        return this.get('this.model.' + item + 'Array.length');
-    },
-    _sectionLink: function(name) {
-        return '/' + name;
-    },
-    _isEqual: function(a, b) {
-        return a === b;
-    },
-    _computeHasStacks: function(stacksArray) {
-        return stacksArray.length > 0;
-    },
-    _getSections: function(sections) {
-        return this.model.sectionsArray;
-    },
-    _isHidden: function(hideZero, count) {
-        if (hideZero && count == 0)
-            return true;
-        return false;
-    },
-    clearSearch: function(e){
-        this.fire('clear-search-on-nav');
-    }
-});
-</script>
+    });
+    </script>
+</dom-module>
