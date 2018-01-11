@@ -1055,7 +1055,7 @@ PROVIDERS.push({
     className: 'provider-baremetal',
     options: [{
         name: "title",
-        label: "Title *",
+        label: "Cloud Title *",
         type: "text",
         value: "",
         defaultValue: "",
@@ -1065,19 +1065,13 @@ PROVIDERS.push({
     }, 
     {   
         name: 'machines',
-        label: 'Machines',
+        label: 'Add Machines',
         show: true,
         required: true,        
         type: 'form',
+        min: '1',
+        max: '5',
         options: [{
-            name: "machine_name",
-            label: "Machine Name",
-            type: "text",
-            placeholder: '',
-            show: true,
-            required: false,
-            helptext: "Fill in the machine's name"
-       }, {
             name: "machine_ip",
             label: "Hostname",
             type: "text",
@@ -1086,6 +1080,14 @@ PROVIDERS.push({
             required: false,
             helptext: 'The URL or IP adress that your server listens to',
             helpHref: 'http://docs.mist.io/article/28-adding-other-servers'
+        }, {
+            name: "machine_name",
+            label: "Alias Machine Name (optional)",
+            type: "text",
+            placeholder: '',
+            show: true,
+            required: false,
+            helptext: "Fill in the machine's name"
         }, {
             name: "operating_system",
             label: "Operating System",
