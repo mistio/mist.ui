@@ -226,7 +226,7 @@
 
                     // Check for nested subforms and update ssh_key fields
                     this.providerFields.forEach(function(field){
-                        if (field.type == 'form') {
+                        if (field.type == 'list') {
                             field.options.forEach(function(subfield){
                                 if (subfield.type == "ssh_key") {
                                     subfield.options = this.keys;
@@ -310,9 +310,9 @@
                     });
                     return index;
                 },
-                fieldsOfType: function(type){
+                fieldsOfType: function(data,type){
                     var typeIndexes = [];
-                    var fieldsOfType = this.providerFields.filter(function(f, ind){
+                    var fieldsOfType = data.filter(function(f, ind){
                         if (f.type == type)
                             typeIndexes.push(ind);
                         return f.type == type;
@@ -320,14 +320,32 @@
                     return typeIndexes;
                 },
                 updateKeys: function(e){
-                    var keyFieldsIndexes = this.fieldsOfType('ssh_key');
+
+                    var keyFieldsIndexes = this.fieldsOfType(this.providerFields,'ssh_key');
+                    console.log('updateKeys', keyFieldsIndexes);
                     this.async(function(){
                         for (var i = 0; i < keyFieldsIndexes.length; i++) {
                             this.set('providerFields.'+ keyFieldsIndexes[i] +'.options', this.keys);
                             this.set('providerFields.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
                         }
+                        if (this.fieldsOfType(this.providerFields,'list')) {
+                            this.updateKeysInLists(e, this.fieldsOfType(this.providerFields,'list'));
+                        }
                     }.bind(this), 1000);
                 },
+                updateKeysInLists: function(e, lists){
+                    for (var j = 0; j<lists.length; j++){
+                        var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[i]].options,'ssh_key');
+                        console.log('updateKeys', this.providerFields[lists[i]].options);
+
+                        this.async(function(){
+                            for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                                this.set('providerFields.'+lists[i]+'.options.'+ keyFieldsIndexes[i] +'.options', this.keys);
+                                this.set('providerFields.'+lists[i]+'.options.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
+                            }
+                        }.bind(this), 500);
+                    }
+                }
             });
         })();
     </script>
