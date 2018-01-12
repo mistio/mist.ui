@@ -1065,6 +1065,7 @@ PROVIDERS.push({
     }, 
     {   
         name: 'machines',
+        itemName: 'Machine',
         label: 'Add Machines',
         show: true,
         required: true,        

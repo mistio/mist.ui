@@ -2,8 +2,34 @@
 
 <dom-module id="sub-form">
         <template>
-            <style is="custom-style" include="forms"></style>
+            <style is="custom-style" include="shared-styles forms">
+                :host app-form {
+                    border-left: 2px solid #eee;
+                    border-bottom: 2px solid #eee;
+                    padding-left: 16px;
+                }
+                .title {
+                    margin-top: 16px;
+                    margin-bottom: 8px;
+                }
+                paper-button.delete {
+                    margin-bottom: 16px;
+                    float: right;
+                    transform: scale(.8);
+                }
+                paper-button.add {
+                    margin-top: 16px !important;
+                }
+            </style>
+            <div class="title"><strong>[[itemName]] 1</strong></div>
             <app-form id="sub-form" fields="{{options}}" display-buttons="{{_calcDisplayButtons()}}"></app-form>
+            <template is="dom-repeat" items="[[items]]">
+                <div class="title"><strong>[[itemName]] [[indexPlusOne(index)]]</strong></div>
+                <app-form id="sub-form" fields="{{item.options}}" display-buttons="{{_calcDisplayButtons()}}"></app-form>
+                <paper-button class="red delete" on-tap="deleteItem">Delete [[itemName]]</paper-button>
+                <br/>
+            </template>
+            <paper-button class="blue add" on-tap="addItem">Add [[itemName]]</paper-button>
         </template>
         <script>
             (function() {
@@ -31,9 +57,43 @@
                             type: Array,
                             value: []
                         },
+                        itemName: String,
+                        items: {
+                            type: Array,
+                            value: []
+                        },
+                        fieldName: String,
+                        min: {
+                            type: Number,
+                            value: 1
+                        },
+                        max: Number
+                    },
+                    ready: function() {
                     },
                     _calcDisplayButtons: function() {
                         return false;
+                    },
+                    addItem: function () {
+                        if (!this.max || this.items.length < this.max-1) {
+                            var opts = this.options.slice(0);
+                            opts.forEach(function(o){
+                                o.value = o.defaultValue
+                            })
+                            this.push('items', {options: opts});
+                        }
+                        else {
+                            this.fire('toast', {msg: 'Only up to '+this.max+' '+this.itemName+'s are allowed.', duration: 3000})
+                            this.querySelector('.add').setAttribute('disabled', true);
+                        }
+                    },
+                    deleteItem: function (e) {
+                        console.log('deleteItem', e.model.__data__.index);
+                        this.splice('items', e.model.__data__.index, 1);
+                        this.querySelector('.add').removeAttribute('disabled');
+                    },
+                    indexPlusOne: function(i){
+                        return i+2;
                     }
                 });
             })();
