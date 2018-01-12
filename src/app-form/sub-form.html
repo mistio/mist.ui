@@ -16,17 +16,16 @@
                     margin-bottom: 16px;
                     float: right;
                     transform: scale(.8);
+                    margin-top: -6px;
                 }
                 paper-button.add {
                     margin-top: 16px !important;
                 }
             </style>
-            <div class="title"><strong>[[itemName]] 1</strong></div>
-            <app-form id="sub-form" fields="{{options}}" display-buttons="{{_calcDisplayButtons()}}"></app-form>
             <template is="dom-repeat" items="[[items]]">
                 <div class="title"><strong>[[itemName]] [[indexPlusOne(index)]]</strong></div>
                 <app-form id="sub-form" fields="{{item.options}}" display-buttons="{{_calcDisplayButtons()}}"></app-form>
-                <paper-button class="red delete" on-tap="deleteItem">Delete [[itemName]]</paper-button>
+                <paper-button class="red delete" on-tap="deleteItem" hidden$="[[_computeShowDelete(index)]]">Delete [[itemName]]</paper-button>
                 <br/>
             </template>
             <paper-button class="blue add" on-tap="addItem">Add [[itemName]]</paper-button>
@@ -60,7 +59,8 @@
                         itemName: String,
                         items: {
                             type: Array,
-                            value: []
+                            value: [],
+                            notify: true
                         },
                         fieldName: String,
                         min: {
@@ -69,7 +69,21 @@
                         },
                         max: Number
                     },
-                    ready: function() {
+                    observers: [
+                        '_itemsChanged(items.splices, items.*.options)',
+                        '_minChanged(min)'
+                    ],
+                    listeners: {
+                        'keyup': '_itemsChanged'
+                    },
+                    _minChanged: function(min) {
+                        for (var i=0; i<this.min; i++){
+                            this.addItem();
+                        }
+                    },
+                    _itemsChanged: function(){
+                        // console.log('_itemsChanged');
+                        this.fire('list-fields-changed');
                     },
                     _calcDisplayButtons: function() {
                         return false;
@@ -83,17 +97,29 @@
                             this.push('items', {options: opts});
                         }
                         else {
-                            this.fire('toast', {msg: 'Only up to '+this.max+' '+this.itemName+'s are allowed.', duration: 3000})
+                            this.fire('toast', {msg: 'Only up to '+this.max+' '+this.itemName+'s are allowed.', duration: 3000});
                             this.querySelector('.add').setAttribute('disabled', true);
                         }
+                        this.fire('list-fields-changed');
                     },
                     deleteItem: function (e) {
-                        console.log('deleteItem', e.model.__data__.index);
-                        this.splice('items', e.model.__data__.index, 1);
-                        this.querySelector('.add').removeAttribute('disabled');
+                        // console.log('deleteItem', e.model.__data__.index);
+                        if (!this.min || this.items.length > this.min) {
+                            this.splice('items', e.model.__data__.index, 1);
+                            this.querySelector('.add').removeAttribute('disabled');
+                            this.async(function(){
+                                this.fire('list-fields-changed');
+                            }.bind(this), 200)
+                        }
+                        else {
+                            this.fire('toast', {msg: 'Minimun '+this.max+' '+this.itemName+'s are required.', duration: 3000})
+                        }
                     },
                     indexPlusOne: function(i){
-                        return i+2;
+                        return i+1;
+                    },
+                    _computeShowDelete: function(index){
+                        return this.min ? index < this.min : true;
                     }
                 });
             })();

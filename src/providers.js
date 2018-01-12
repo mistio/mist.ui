@@ -1079,7 +1079,7 @@ PROVIDERS.push({
             type: "text",
             placeholder: 'DNS or IP',
             show: true,
-            required: false,
+            required: true,
             helptext: 'The URL or IP adress that your server listens to',
             helpHref: 'http://docs.mist.io/article/28-adding-other-servers'
         }, {

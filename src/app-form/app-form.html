@@ -525,7 +525,8 @@
                     '_fieldsChanged(fields.*, sendingData)'
                 ],
                 listeners: {
-                    'change': '_updateCheckboxesField' 
+                    'change': '_updateCheckboxesField',
+                    'list-fields-changed': 'runFieldsChanged'
                 },
                 ready: function(){
                     this.fields = [];
@@ -575,26 +576,23 @@
                     // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
                     this.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
                 },
+                runFieldsChanged: function(){
+                    this._fieldsChanged()
+                },
                 _fieldsChanged: function(fields, sendingData) {
                     if (this.formError){
                         this.set('formError', false);
                     }
-                    if (fields.path == 'fields'){
+                    if (fields && fields.path && fields.path == 'fields'){
                         this._updateForm();
                     }
                     this.async(function() {
                         var form = this.form,
                             show = true,
                             dependency, reset = true;
-                        var isLead = this.get(fields.path.replace("value", "isLead"))
-                        if (isLead == true) {
-                            this.fire("leadchange", {
-                                leadValue: this.get(fields.path)
-                            });
-                        }
 
                         // Update show field flag after calculating dependencies
-                        fields.base.forEach(function(el, index) {
+                        this.fields.forEach(function(el, index) {
                             // if field has a dependency
                             if (el.showIf) {
 
@@ -695,7 +693,7 @@
                                 return el.show && el.required ? moment(el.value).isValid()  : true;
                             }
                             else if (el.type == 'list') {
-                                return el.show && el.required ? this._validateFields(el.options) : true;
+                                return el.min && el.show && el.required ? this._allItemsValid(el) : true;
                             }
                             else if (el.name == "admin_state_up") {
                                 return true;
@@ -710,9 +708,24 @@
                                 return this._validatePatternedField(el);
                             }
                             else {
-                                return el.show && el.required ? el.value : true;
+                                return el.show && el.required ? el.value && el.value.length : true;
                             }
                         }, this);
+                },
+                _allItemsValid: function(el){
+                    var allItemsValid;
+                    console.log("validate list", el.items);
+                    for (var i=0; i<el.items.length; i++){
+                        // console.log("validate list", i, this._validateFields(el.items[i].options));
+                        if (!this._validateFields(el.items[i].options)) {
+                            allItemsValid = false;
+                            break;
+                        }
+                        else
+                            allItemsValid = true;
+                    }
+                    // console.log("validate list", allItemsValid);
+                    return allItemsValid;
                 },
                 _validatePatternedField: function(el) {
                     if (this.querySelector("paper-input#"+el.name)){
