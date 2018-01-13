@@ -20,6 +20,7 @@
       }
     </style>
     
+    <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse" on-error="_handleCloudDeletionAjaxError"></iron-ajax>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <iron-ajax id="request"
@@ -27,7 +28,6 @@
             loading="{{loadingData}}"
             on-response="handleResponse"
             on-error="handleError"></iron-ajax>
-
   </template>
   <script>
 CLOUD_ACTIONS = {
@@ -40,7 +40,7 @@ CLOUD_ACTIONS = {
   'rename': {
     'name': 'rename',
     'icon': 'editor:mode-edit',
-    'confirm': true,
+    'confirm': false,
     'multi': true
   },
   'edit_credentials': {
@@ -63,6 +63,7 @@ CLOUD_ACTIONS = {
           type: Array,
           value: []
         },
+        cloud: Object,
         actions: { 
           type: Array,
           value: [],
@@ -70,7 +71,7 @@ CLOUD_ACTIONS = {
         },
         type: {
           type: String,
-          value: 'key'
+          value: 'cloud'
         },
         inSingleView: {
           type: Boolean,
@@ -114,7 +115,15 @@ CLOUD_ACTIONS = {
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && action.name != 'tag') {
+          if (action.confirm && action.name == 'delete' && this.items.length == 1 ) {
+            this._showDialog({
+                title: 'Delete '+ this.cloud.title+'?',
+                body:  "Deleting a cloud can not be undone.",
+                danger: true,
+                reason: "cloud.delete"
+            });
+          }
+          else if (action.confirm && action.name != 'tag') {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
                 plural = this.items.length == 1 ? '' : 's',
                 count = this.items.length > 1 ? this.items.length+' ' : '';
@@ -128,38 +137,10 @@ CLOUD_ACTIONS = {
                 reason: this.type + "." + this.action.name
             });
           }
-          else if (action.name == 'make default') {
-            this._makeDefault();
-          }
           else {
             this.performAction(this.action, this.items);
           }
         }
-      },
-      _delete: function() {
-        //set up iron ajax
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "DELETE";
-
-        for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
-          this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
-        }
-      },
-      _makeDefault: function(){
-        //set up iron ajax
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
-
-        for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/keys/"+ this.items[i].id
-          this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Making key ' + this.items[i].name + " the default.", duration: 1000})
-        }
-
       },
       _showDialog: function(info) {
           var dialog = this.querySelector('dialog-element');
@@ -169,20 +150,22 @@ CLOUD_ACTIONS = {
           dialog._openDialog();
       },
       performAction: function(action, items) {
-        if (action.name == 'rename') {
-          this.fire('rename');
-        }
-        else if (action.name == 'delete') {
-          this._delete();
-        }
+          if (action.name == 'rename') {
+            this.fire('rename-cloud');
+          }
+          else if (action.name == 'delete') {
+            this._deleteCloud();
+          }
+      },
+      _deleteCloud: function(){
+          this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+          this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.cloudDeleteAjaxRequest.generateRequest();
       },
       handleResponse: function(e) {
         this.fire('action-finished', {success: true});
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
-
-        // if (this.$.request.lastRequest)
-        // console.log('handleResponse',this.$.request.lastRequest);
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection
@@ -190,6 +173,13 @@ CLOUD_ACTIONS = {
         this.set('actions', []);
         var actions = new swiftSet.Set(), 
             isection = new swiftSet.Set();
+
+        if (this.items.length == 1) {
+          this.set('cloud', this.items[0]);
+        }
+        else {
+          this.set('cloud', null); 
+        }
 
         if (this.items.length > 0) {
           actions.addItems(this.itemActions(this.items[0]) || []);
@@ -213,6 +203,18 @@ CLOUD_ACTIONS = {
           }
         }
         this.set('actions', multiActions);
+      },
+
+      _handleCloudDeletionAjaxResponse: function(e){
+          var title = '';
+          if (this.cloud && this.cloud.title)
+              title = this.cloud.title;
+          document.querySelector('paper-header-panel').scroller.scrollTop = 0;
+          this.fire('go-to', {url: '/'});
+          this.fire('toast',{msg:'Cloud ' + title + ' was deleted',duration:3000});
+      },
+      _handleCloudDeletionAjaxError: function(e){
+          this.fire('toast',{msg:'There was an error deleting ' + this.cloud.title + '.',duration:3000});
       },
 
       handleError: function(e) {
