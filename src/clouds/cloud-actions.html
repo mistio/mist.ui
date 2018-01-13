@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
 
+<link rel="import" href="cloud-info.html">
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -18,7 +19,15 @@
         display: inline;
         color: rgba(255,255,255,0.87);
       }
+      paper-dialog {
+        max-width: 350px;
+      }
     </style>
+
+    <paper-dialog id="renameDialog" with-backdrop>
+      <h3>Rename Cloud</h3>
+      <cloud-info cloud="[[cloud]]" opened></cloud-info>
+    </paper-dialog>
     
     <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse" on-error="_handleCloudDeletionAjaxError"></iron-ajax>
     <dialog-element id="confirm"></dialog-element>
@@ -82,12 +91,16 @@ CLOUD_ACTIONS = {
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction'
+        'iron-overlay-closed': 'confirmAction',
+        'close-rename-dialog': 'closeRenameDialog'
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
+      },
+      closeRenameDialog: function(e) {
+        this.$.renameDialog.close();
       },
       itemActions: function(cloud) {
         var arr = [];
@@ -154,7 +167,7 @@ CLOUD_ACTIONS = {
       },
       performAction: function(action, items) {
           if (action.name == 'rename') {
-            this.fire('rename-cloud');
+            this.$.renameDialog.open();
           }
           else if (action.name == 'delete') {
             this._deleteCloud();
