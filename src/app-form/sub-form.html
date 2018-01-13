@@ -89,18 +89,20 @@
                         return false;
                     },
                     addItem: function () {
-                        if (!this.max || this.items.length < this.max-1) {
-                            var opts = this.options.slice(0);
-                            opts.forEach(function(o){
-                                o.value = o.defaultValue;
-                            })
-                            this.push('items', {options: opts});
+                        if (this.options) {
+                            if (!this.max || this.items.length < this.max-1) {
+                                var opts = this.options.slice(0);
+                                opts.forEach(function(o){
+                                    o.value = o.defaultValue;
+                                })
+                                this.push('items', {options: opts});
+                            }
+                            else {
+                                this.fire('toast', {msg: 'Only up to '+this.max+' '+this.itemName+'s are allowed.', duration: 3000});
+                                this.querySelector('.add').setAttribute('disabled', true);
+                            }
+                            this.fire('list-fields-changed');
                         }
-                        else {
-                            this.fire('toast', {msg: 'Only up to '+this.max+' '+this.itemName+'s are allowed.', duration: 3000});
-                            this.querySelector('.add').setAttribute('disabled', true);
-                        }
-                        this.fire('list-fields-changed');
                     },
                     deleteItem: function (e) {
                         // console.log('deleteItem', e.model.__data__.index);
