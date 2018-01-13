@@ -224,7 +224,6 @@
                     </div>
                 </div>
                 <mist-actions actions="[[actions]]" type="cloud" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
-                <!-- <paper-button id="edit-tags" on-tap="_editTags" class="simple">tags</paper-button> -->
             </paper-material>
 
             <template is="dom-if" if="[[cloud.id]]" restamp>
@@ -279,17 +278,9 @@
                         <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>                                                
                     </div>
                 </paper-material>            
-            </template>                 
-            <paper-material class="separator">
-                <h3>Delete Cloud: [[cloud.title]]</h3>
-                <p>Deleting clouds can not be undone. Alternatively you can disable the cloud temporarily by using the option on the top.</p>
-                <div class="button">
-                    <paper-button id="delete-cloud" on-tap="_deleteCloudConfirmation" class="red">Delete Cloud</paper-button>
-                </div>
-            </paper-material>
+            </template>
         </div>
         <iron-ajax id="cloudStarAjaxRequest" url="/api/v1/clouds/{{cloud.cloud.id}}/clouds/{{cloud.id}}" method="POST" on-response="_handlecloudStarAjaxResponse" on-error="_handlecloudStarAjaxError"></iron-ajax>
-        <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse" on-error="_handleCloudDeletionAjaxError"></iron-ajax>
         <iron-ajax id="cloudStateAjaxRequest" loading="{{loading}}" handle-as="xml" url="/api/v1/clouds/[[cloud.id]]" method="POST" on-response="_handleCloudStateAjaxResponse" on-error="_handleCloudStateAjaxError"></iron-ajax>
         <tags-list model="[[model]]"></tags-list>
         <dialog-element id="confirm"></dialog-element>
@@ -330,6 +321,8 @@
                 },
                 listeners: {
                     'confirmation': '_deleteCloud',
+                    'delete-cloud': '_deleteCloudConfirmation',
+                    'select-action': 'selectAction'
                 },
                 observers: [
                     'cloudChanged(cloud.*)'
@@ -359,13 +352,6 @@
                     if (cloud)
                         return cloud.title;
                 },
-                _editTags: function() {
-                    var el = this.querySelector('tags-list'),
-                    items = [];
-                    items.push(itemUid(this.cloud, this.section));
-                    el.items = items;
-                    el._openDialog();
-                },
                 _computeIsloading: function(cloud) {
                     return !this.cloud ? true : false;
                 },
@@ -391,36 +377,7 @@
                 },
                 _isBareMetal: function(provider) {
                     return provider == 'bare_metal';
-                },
-                _deleteCloudConfirmation:function(){
-                  this._showDialog({
-                      title: 'Delete '+this.cloud.title+'?',
-                      body: "Deleting a cloud can not be undone. You are about to delete cloud '" + this.cloud.title + "'.",
-                      danger: true,
-                      reason: "cloud.delete"
-                  });
-                },
-                 _deleteCloud: function(e){
-                   var reason = e.detail.reason,
-                       response = e.detail.response;
-
-                   if (response.confirmed && reason == "cloud.delete") {
-                      this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                      this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                      this.$.cloudDeleteAjaxRequest.generateRequest();
-                   }
-                },
-                _handleCloudDeletionAjaxResponse: function(e){
-                    var title = '';
-                    if (this.cloud && this.cloud.title)
-                        title = this.cloud.title;
-                    document.querySelector('paper-header-panel').scroller.scrollTop = 0;
-                    this.fire('go-to', {url: '/'});
-                    this.fire('toast',{msg:'Cloud ' + title + ' was deleted',duration:3000});
-                },
-                _handleCloudDeletionAjaxError: function(e){
-                    this.fire('toast',{msg:'There was an error deleting ' + this.cloud.title + '.',duration:3000});
-                },
+                },                
                 _changeState: function(e) {
                     this.querySelector('#enable-disable-cloud').disabled=true;
                     this.$.cloudStateAjaxRequest.headers["Content-Type"] = 'application/json';
@@ -438,6 +395,13 @@
                 _handleCloudStateAjaxError:function(e){
                     this.querySelector('#enable-disable-cloud').checked=this.cloud.enabled;
                     this.fire('toast',{msg:e.detail.request.xhr.response,duration:10000});
+                },
+                // redirect events
+                selectAction: function(e) {
+                    e.stopImmediatePropagation();
+                    if (this.querySelector('cloud-actions')) {
+                      this.querySelector('cloud-actions').selectAction(e);
+                    }
                 },
             });
         })();
