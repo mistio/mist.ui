@@ -8,6 +8,7 @@
 <link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
 
 <link rel="import" href="cloud-info.html">
+<link rel="import" href="cloud-edit.html">
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -19,14 +20,25 @@
         display: inline;
         color: rgba(255,255,255,0.87);
       }
-      paper-dialog {
+      paper-dialog#renameDialog {
         max-width: 350px;
+      }
+      paper-dialog#credentialsDialog {
+        max-width: 650px;
       }
     </style>
 
     <paper-dialog id="renameDialog" with-backdrop>
       <h3>Rename Cloud</h3>
-      <cloud-info cloud="[[cloud]]" opened></cloud-info>
+      <paper-dialog-scrollable>
+        <cloud-info cloud="[[cloud]]" opened></cloud-info>
+      <paper-dialog-scrollable>
+    </paper-dialog>
+
+    <paper-dialog id="credentialsDialog" with-backdrop>
+      <paper-dialog-scrollable>
+        <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
+      </paper-dialog-scrollable>
     </paper-dialog>
     
     <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse" on-error="_handleCloudDeletionAjaxError"></iron-ajax>
@@ -107,11 +119,15 @@ CLOUD_ACTIONS = {
         if (cloud) {
           arr.push('tag');
           arr.push('rename');
-          arr.push('edit_credentials');
+          if (!this._isBareMetal(cloud.provider));
+              arr.push('edit_credentials');
           arr.push('delete');
         }
         return arr;
       },
+      _isBareMetal: function(provider) {
+          return provider == 'bare_metal';
+      },  
       actionDetails: function (actions) {
         var ret = [];
         for (var i=0; i<actions.length; i++) {
@@ -152,6 +168,9 @@ CLOUD_ACTIONS = {
           }
           else if (action.name == 'tag') {
             this.$.tagsdialog._openDialog();
+          }
+          else if (action.name == 'edit credentials') {
+            this.$.credentialsDialog.open();
           }
           else {
             this.performAction(this.action, this.items);
