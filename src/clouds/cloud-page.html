@@ -190,6 +190,9 @@
             .single-head {
                 @apply(--cloud-page-head-mixin)
             }
+            .view.blue-link {
+                font-size: .8em;
+            }
             .table {display: table;}
             .row {display: table-row;}
             .cell {display: table-cell;}
@@ -251,8 +254,10 @@
                             <div class="row">
                                 <div class="cell"><h4>Machines:</h4></div>
                                 <div class="cell">
-                                    <h4>Running</h4><span>[[runningMachinesArrayLength]]</span><br/>
+                                    <h4>Running</h4><span>[[runningMachinesArrayLength]] 
+                                    <paper-button class="simple blue-link view" on-tap="viewRunning" hidden$="[[!runningMachinesArrayLength]]">view</paper-button></span><br/>
                                     <h4>Stopped</h4><span>[[stoppedMachinesArrayLength]]</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewStopped" hidden$="[[!stoppedMachinesArrayLength]]">view</paper-button></span>
                                 </div>
                             </div>
                             <div class="row">
@@ -381,8 +386,17 @@
                 },
                 computeRunningMachines: function(machinesArray) {
                     return this.cloud.machinesArray.filter(function(m){
-                        return m.state == 'running'
+                        return m.state == 'running';
                     }).length;
+                },
+                viewRunning: function(){
+                    this.goToFilteredList('running')
+                },
+                viewStopped: function(){
+                    this.goToFilteredList('stopped')
+                },
+                goToFilteredList: function(state){
+                    this.fire('go-to', {url: '/machines', search: this.cloud.title +' '+state});
                 },
                 computeStoppedMachines: function(machinesArray) {
                     return this.cloud.machinesArray.filter(function(m){
