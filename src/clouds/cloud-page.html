@@ -132,25 +132,6 @@
             paper-icon-bottom.bottom {
                 padding-right: 8px;
             }
-            h4.id {
-                display: inline-block;
-                text-transform: uppercase;
-                font-size: 0.9rem;
-                font-weight: 700;
-                margin-top: 8px;
-                margin-bottom: 8px;
-            }
-            span.id {
-                word-break: break-all;
-            }
-            .resource-info {
-                padding-right: 36px;
-                display: inline-block;
-            }
-            .tag {
-                padding: 0.5em;
-                display: inline;
-            }
             paper-material.no-pad {
                 padding: 0;
             }
@@ -209,6 +190,27 @@
             .single-head {
                 @apply(--cloud-page-head-mixin)
             }
+            .table {display: table;}
+            .row {display: table-row;}
+            .cell {display: table-cell;}
+            .cell h4 {
+                text-transform: uppercase;
+                font-weight: bold;
+                font-size: 0.8em;
+                display: inline-block;
+                width: 80px;
+                opacity: 0.54;
+                margin: 0;
+            }
+            .resource-info {
+                padding-right: 36px;
+                display: inline-block;
+                vertical-align: top;
+            }
+            .tag {
+                padding: 2px 0.5em;
+                display: inline;
+            }
         </style>
         <div id="content">
             <cloud-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></cloud-actions>
@@ -232,23 +234,45 @@
 
             <template is="dom-if" if="[[cloud.id]]" restamp>
                 <paper-material>
-                    <div class="missing" hidden$="[[!isMissing]]">Cloud not found.</div>
                     <div class="resource-info">
-                        <h4 class="id">ID:</h4> <span class="id">[[cloud.id]] </span>
+                        <div class="table">
+                            <div class="row">
+                                <div class="cell"><h4>ID:</h4></div>
+                                <div class="cell"><span>[[cloud.id]] </span></div>
+                            </div>
+                            <div class="row" hidden$="[[!cloud.region]]">
+                                <div class="cell"><h4>Region:</h4></div>
+                                <div class="cell"><span>[[cloud.region]]</span></div>
+                            </div>
+                            <div class="row">
+                                <div class="cell"><h4>State:</h4></div>
+                                <div class="cell"><span>[[cloud.state]]</span></div>
+                            </div>
+                            <div class="row">
+                                <div class="cell"><h4>Images:</h4></div>
+                                <div class="cell"><span>[[imagesArrayLength]]</span></div>
+                            </div>
+                            <div class="row">
+                                <div class="cell"><h4>Locations:</h4></div>
+                                <div class="cell"><span>[[locationsArrayLength]]</span></div>
+                            </div>
+                            <div class="row">
+                                <div class="cell"><h4>Networks:</h4></div>
+                                <div class="cell"><span>[[networksArrayLength]]</span></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="resource-info">
-                        <h4 class="id tags" hidden$="[[!cloud.region]]">Region:</h4> <span class="id">[[cloud.region]]</span>
-                    </div>
-                    <div class="resource-info">
-                        <h4 class="id tags" hidden$="[[!cloud.enabled]]">State:</h4> <span class="id" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span>
-                    </div>
-                    <div class="resource-info">
-                    <h4 class="id tags" hidden$="[[!cloud.tags.length]]">Tags:</h4>
-                        <span hidden$="[[!cloud.tags]]">
-                            <template is="dom-repeat" items="[[cloud.tags]]">
-                                <span class="id tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
-                            </template>
-                        </span>
+                        <div class="table">
+                            <div class="row" hidden$="[[!cloud.tags.length]]">
+                                <div class="cell"><h4>Tags:</h4></div>
+                                <div class="cell">
+                                    <template is="dom-repeat" items="[[cloud.tags]]">
+                                        <span class="tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </paper-material>
                 <paper-material class="no-pad">
@@ -313,6 +337,9 @@
                         computed: '_computeIsloading(cloud)',
                         value: true
                     },
+                    imagesArrayLength: Number,
+                    locationsArrayLength: Number,
+                    networksArrayLength: Number,
                     expectedState: Boolean,
                     addMachine: false,
                     itemArray: Array,
@@ -329,22 +356,12 @@
                 ready: function() {
                 },
                 cloudChanged: function(cloud){
+                    console.log('cloudChanged',cloud.path);
                     if (this.cloud){
-                        if (this.cloud.machinesArray)
-                            console.log("mach",this.cloud.machinesArray.length)
-                        if (this.cloud.imagesArray)
-                            console.log("imag",this.cloud.imagesArray.length)
-                        if (this.cloud.locationsArray)
-                            console.log("loca",this.cloud.locationsArray.length)
-                        if (this.cloud.sizesArray)
-                            console.log("size",this.cloud.sizesArray.length)
-                        if (this.cloud.zonesArray)
-                            console.log("zone",this.cloud.zonesArray.length)
-                        if (this.cloud.networksArray)
-                            console.log("nets",this.cloud.networksArray.length)
-                        console.log("=====================")
-
                         this.set('itemArray',[this.cloud]);
+                        this.set('imagesArrayLength', this.cloud.imagesArray.length)
+                        this.set('locationsArrayLength', this.cloud.locationsArray.length)
+                        this.set('networksArrayLength', this.cloud.networksArray.length)
                     }
                 },
                 _computeCloudTitle: function(cloud) {
