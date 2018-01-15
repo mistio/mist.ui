@@ -192,9 +192,13 @@
             }
             .view.blue-link {
                 font-size: .8em;
+                padding: 0;
             }
             .table {display: table;}
-            .row {display: table-row;}
+            .row {
+                display: table-row;
+                padding: 8px 0;
+            }
             .cell {display: table-cell;}
             .cell h4 {
                 text-transform: uppercase;
@@ -262,7 +266,8 @@
                             </div>
                             <div class="row">
                                 <div class="cell"><h4>Images:</h4></div>
-                                <div class="cell"><span>[[imagesArrayLength]]</span></div>
+                                <div class="cell"><span>[[imagesArrayLength]]</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewImages" hidden$="[[!imagesArrayLength]]">view</paper-button></div>
                             </div>
                             <div class="row">
                                 <div class="cell"><h4>Locations:</h4></div>
@@ -270,7 +275,8 @@
                             </div>
                             <div class="row">
                                 <div class="cell"><h4>Networks:</h4></div>
-                                <div class="cell"><span>[[networksArrayLength]]</span></div>
+                                <div class="cell"><span>[[networksArrayLength]]</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewNetworks" hidden$="[[!networksArrayLength]]">view</paper-button></div>
                             </div>
                         </div>
                     </div>
@@ -390,13 +396,20 @@
                     }).length;
                 },
                 viewRunning: function(){
-                    this.goToFilteredList('running')
+                    this.goToFilteredList('machines','running')
                 },
                 viewStopped: function(){
-                    this.goToFilteredList('stopped')
+                    this.goToFilteredList('machines','stopped')
                 },
-                goToFilteredList: function(state){
-                    this.fire('go-to', {url: '/machines', search: this.cloud.title +' '+state});
+                viewImages: function(){
+                    this.goToFilteredList('images')
+                },
+                viewNetworks: function(){
+                    this.goToFilteredList('networks')
+                },
+                goToFilteredList: function(page,state){
+                    var search = state ? ' ' + state : '';
+                    this.fire('go-to', {url: '/'+page, search: this.cloud.title+search});
                 },
                 computeStoppedMachines: function(machinesArray) {
                     return this.cloud.machinesArray.filter(function(m){
