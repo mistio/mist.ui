@@ -161,6 +161,7 @@
                 padding: 0;
             }
             paper-toggle-button {
+                display: inline-flex;
                 cursor: pointer;
             }
             .capitalize {
@@ -358,11 +359,26 @@
                         computed: '_computeIsloading(cloud)',
                         value: true
                     },
-                    imagesArrayLength: Number,
-                    locationsArrayLength: Number,
-                    networksArrayLength: Number,
-                    runningMachinesArrayLength: Number,
-                    stoppedMachinesArrayLength: Number,
+                    imagesArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    locationsArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    networksArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    runningMachinesArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    stoppedMachinesArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
                     expectedState: Boolean,
                     addMachine: false,
                     itemArray: Array,
@@ -374,7 +390,8 @@
                     'select-action': 'selectAction'
                 },
                 observers: [
-                    'cloudChanged(cloud.*)'
+                    'cloudChanged(cloud.*)',
+                    'cloudArraysChanaged(cloud.*, cloud.imagesArray.length,cloud.locationsArray.length,cloud.networksArray.length,cloud.machinesArray.length)'
                 ],
                 ready: function() {
                 },
@@ -382,17 +399,16 @@
                     console.log('cloudChanged',cloud.path);
                     if (this.cloud){
                         this.set('itemArray',[this.cloud]);
-                        this.set('imagesArrayLength', this.cloud.imagesArray.length)
-                        this.set('locationsArrayLength', this.cloud.locationsArray.length)
-                        this.set('networksArrayLength', this.cloud.networksArray.length)
+                    }
+                },
+                cloudArraysChanaged: function(array){
+                    if (this.cloud){
+                        this.set('imagesArrayLength', this.cloud.imagesArray ? this.cloud.imagesArray.length : 0)
+                        this.set('locationsArrayLength', this.cloud.locationsArray ? this.cloud.locationsArray.length : 0)
+                        this.set('networksArrayLength', this.cloud.networksArray ? this.cloud.networksArray.length : 0)
                         this.set('runningMachinesArrayLength', this.computeRunningMachines(this.cloud.machinesArray))
                         this.set('stoppedMachinesArrayLength', this.computeStoppedMachines(this.cloud.machinesArray))
                     }
-                },
-                computeRunningMachines: function(machinesArray) {
-                    return this.cloud.machinesArray.filter(function(m){
-                        return m.state == 'running';
-                    }).length;
                 },
                 viewRunning: function(){
                     this.goToFilteredList('machines','running')
@@ -410,10 +426,15 @@
                     var search = state ? ' ' + state : '';
                     this.fire('go-to', {url: '/'+page, search: this.cloud.title+search});
                 },
+                computeRunningMachines: function(machinesArray) {
+                    return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function(m){
+                        return m.state == 'running';
+                    }).length : 0;
+                },
                 computeStoppedMachines: function(machinesArray) {
-                    return this.cloud.machinesArray.filter(function(m){
+                    return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function(m){
                         return m.state == 'stopped'
-                    }).length;
+                    }).length : 0;
                 },
                 _computeCloudTitle: function(cloud) {
                     if (cloud)
