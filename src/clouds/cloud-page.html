@@ -202,9 +202,12 @@
                 opacity: 0.54;
                 margin: 0;
             }
+            :host paper-material.info {
+                display: flex;
+                flex-direction: row;
+            }
             .resource-info {
                 padding-right: 36px;
-                display: inline-block;
                 vertical-align: top;
             }
             .tag {
@@ -233,7 +236,7 @@
             </paper-material>
 
             <template is="dom-if" if="[[cloud.id]]" restamp>
-                <paper-material>
+                <paper-material class="info">
                     <div class="resource-info">
                         <div class="table">
                             <div class="row">
@@ -245,8 +248,11 @@
                                 <div class="cell"><span>[[cloud.region]]</span></div>
                             </div>
                             <div class="row">
-                                <div class="cell"><h4>State:</h4></div>
-                                <div class="cell"><span>[[cloud.state]]</span></div>
+                                <div class="cell"><h4>Machines:</h4></div>
+                                <div class="cell">
+                                    <h4>Running</h4><span>[[runningMachinesArrayLength]]</span><br/>
+                                    <h4>Stopped</h4><span>[[stoppedMachinesArrayLength]]</span>
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="cell"><h4>Images:</h4></div>
@@ -264,6 +270,10 @@
                     </div>
                     <div class="resource-info">
                         <div class="table">
+                            <div class="row">
+                                <div class="cell"><h4>State:</h4></div>
+                                <div class="cell"><span>[[cloud.state]]</span></div>
+                            </div>
                             <div class="row" hidden$="[[!cloud.tags.length]]">
                                 <div class="cell"><h4>Tags:</h4></div>
                                 <div class="cell">
@@ -340,6 +350,8 @@
                     imagesArrayLength: Number,
                     locationsArrayLength: Number,
                     networksArrayLength: Number,
+                    runningMachinesArrayLength: Number,
+                    stoppedMachinesArrayLength: Number,
                     expectedState: Boolean,
                     addMachine: false,
                     itemArray: Array,
@@ -362,7 +374,19 @@
                         this.set('imagesArrayLength', this.cloud.imagesArray.length)
                         this.set('locationsArrayLength', this.cloud.locationsArray.length)
                         this.set('networksArrayLength', this.cloud.networksArray.length)
+                        this.set('runningMachinesArrayLength', this.computeRunningMachines(this.cloud.machinesArray))
+                        this.set('stoppedMachinesArrayLength', this.computeStoppedMachines(this.cloud.machinesArray))
                     }
+                },
+                computeRunningMachines: function(machinesArray) {
+                    return this.cloud.machinesArray.filter(function(m){
+                        return m.state == 'running'
+                    }).length;
+                },
+                computeStoppedMachines: function(machinesArray) {
+                    return this.cloud.machinesArray.filter(function(m){
+                        return m.state == 'stopped'
+                    }).length;
                 },
                 _computeCloudTitle: function(cloud) {
                     if (cloud)
