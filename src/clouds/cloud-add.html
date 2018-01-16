@@ -88,7 +88,7 @@
                         Add Cloud
                     </h2>
                     <div class="subtitle">
-                        Mist.io supports over 17 providers 
+                        Mist.io supports public &amp; private cloud platforms, hypervisors, containers and bare metal servers.
                     </div>
                 </div>
                 <!-- <span class="help" hidden$=[[!selectedProvider]]><iron-icon icon="help"></iron-icon></span> -->
@@ -110,7 +110,7 @@
                     <p><a href="http://docs.mist.io/category/75-adding-clouds-bare-metal-and-containers" target="new" class="regular blue-link">Need help with the process?</a></p>
                 </div>
                 <div hidden$=[[!selectedProvider]]>
-                    <h3 class="smallcaps">Adding cloud from [[selectedProvider]]</h3>
+                    <h3 class="smallcaps">Adding [[_computeTitle(selectedProvider)]] cloud</h3>
                     <app-form fields="[[providerFields]]" method="POST" url="/api/v1/clouds" on-response="_cloudAddAjaxResponse" on-error="_cloudAddAjaxError" btncontent="Add Cloud"></app-form>
                 </div>
             </paper-material>
@@ -179,6 +179,13 @@
                 },
                 _computeProviderLogo: function(className) {
                     return 'assets/providers/' + className + '.png';
+                },
+                _computeTitle: function(selectedProvider){
+                    if (this.providers)
+                        var p = this.providers.find(function(p){
+                            return p.val == selectedProvider
+                        });
+                    return p ? p.title : '';
                 },
                 _providerChanged: function(selectedProvider, providers) {
                     if (selectedProvider)
