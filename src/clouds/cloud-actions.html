@@ -37,7 +37,7 @@
 
     <paper-dialog id="credentialsDialog" with-backdrop>
       <paper-dialog-scrollable>
-        <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
+        <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]" keys="[[model.keysArray]]"></cloud-edit>
       </paper-dialog-scrollable>
     </paper-dialog>
     
@@ -80,6 +80,7 @@ CLOUD_ACTIONS = {
     Polymer({ 
       is: 'cloud-actions',
       properties: {
+        model: Object,
         items: { 
           type: Array,
           value: []
@@ -104,7 +105,8 @@ CLOUD_ACTIONS = {
       ],
       listeners: {
         'iron-overlay-closed': 'confirmAction',
-        'close-rename-dialog': 'closeRenameDialog'
+        'close-rename-dialog': 'closeRenameDialog',
+        'add-input': 'closeDialog'
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -119,7 +121,7 @@ CLOUD_ACTIONS = {
         if (cloud) {
           arr.push('tag');
           arr.push('rename');
-          if (!this._isBareMetal(cloud.provider))
+          // if (!this._isBareMetal(cloud.provider))
               arr.push('edit_credentials');
           arr.push('delete');
         }
@@ -176,6 +178,13 @@ CLOUD_ACTIONS = {
             this.performAction(this.action, this.items);
           }
         }
+      },
+      openEditDialog: function(){
+        this.$.credentialsDialog.open();
+      },
+      closeDialog: function(){
+        // console.log('closeDialog');
+        this.$.credentialsDialog.close()
       },
       _showDialog: function(info) {
           var dialog = this.querySelector('dialog-element');

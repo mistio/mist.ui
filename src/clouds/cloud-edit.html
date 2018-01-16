@@ -20,6 +20,7 @@
     Polymer({
         is: 'cloud-edit',
         properties: {
+            keys: Array,
             clouds: Object,
             cloud:  Object,
             fields: {
@@ -50,7 +51,7 @@
                 for (var i=0; i<fields.length; i++) {
                     var name = fields[i].name;
                     if(this.cloud[name]){
-                        fields[i].value = this.cloud[name]
+                        this.set('fields.'+i+'.value', this.cloud[name]);
                     }
                     //if docker_host, search for clouds host
                     if (name == 'docker_host' && this.cloud['host']){
@@ -59,6 +60,11 @@
                     //if docker_port, search for clouds host
                     else if (name == 'docker_port' && this.cloud['port']){
                         fields[i].value = this.cloud['port']
+                    }
+                    //if there is a key
+                    else if (fields[i].type == 'ssh_key'){
+                        // console.log('ssh_key');
+                        fields[i].options = this.keys;
                     }
                 }
             }
@@ -84,7 +90,10 @@
                     this._fillIn('username', 'machine_user');
 
                 if (this.cloud.host)
-                    this._fillIn('username', 'machine_hostname');
+                    this._fillIn('host', 'machine_hostname');
+
+                if (this.cloud.key)
+                    this._fillIn('key', 'machine_key');
 
             }
         },
@@ -106,6 +115,41 @@
                 });
             }
             return index;
+        },
+        fieldsOfType: function(data,type){
+            var typeIndexes = [];
+            var fieldsOfType = data.filter(function(f, ind){
+                if (f.type == type)
+                    typeIndexes.push(ind);
+                return f.type == type;
+            });
+            return typeIndexes;
+        },
+        updateKeys: function(e){
+            var keyFieldsIndexes = this.fieldsOfType(this.fields,'ssh_key');
+            console.log('updateKeys', keyFieldsIndexes);
+            this.async(function(){
+                for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                    this.set('fields.'+ keyFieldsIndexes[i] +'.options', this.keys);
+                    this.set('fields.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
+                }
+                if (this.fieldsOfType(this.fields,'list')) {
+                    this.updateKeysInLists(e, this.fieldsOfType(this.fields,'list'));
+                }
+            }.bind(this), 1000);
+        },
+        updateKeysInLists: function(e, lists){
+            for (var j = 0; j<lists.length; j++){
+                var keyFieldsIndexes = this.fieldsOfType(this.fields[lists[i]].options,'ssh_key');
+                console.log('updateKeys', this.fields[lists[i]].options);
+
+                this.async(function(){
+                    for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                        this.set('fields.'+lists[i]+'.options.'+ keyFieldsIndexes[i] +'.options', this.keys);
+                        this.set('fields.'+lists[i]+'.options.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
+                    }
+                }.bind(this), 500);
+            }
         },
         _editCloudRequest: function(){},
         _editCloudsResponse: function(){},
