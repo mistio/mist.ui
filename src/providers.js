@@ -1065,9 +1065,9 @@ PROVIDERS.push({
     }, 
     {   
         name: 'machines',
-        itemName: 'Machine',
+        itemName: '',
         items: [],
-        label: 'Add Machines',
+        label: '',
         show: true,
         required: true,        
         type: 'list',
@@ -1080,11 +1080,11 @@ PROVIDERS.push({
             placeholder: 'DNS or IP',
             show: true,
             required: true,
-            helptext: 'The URL or IP address that your server listens to',
+            helptext: 'The DNS name or IP address of the host that your server listens to',
             helpHref: 'http://docs.mist.io/article/28-adding-other-servers'
         }, {
             name: "machine_name",
-            label: "Alias Machine Name (optional)",
+            label: "Alias (optional)",
             type: "text",
             placeholder: '',
             show: true,

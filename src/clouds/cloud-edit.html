@@ -79,8 +79,23 @@
                         this.set('fields.'+indexp+'.value', 'getsecretfromdb');
                     }
                 }
+
+                if (this.cloud.username)
+                    this._fillIn('username', 'machine_user');
+
+                if (this.cloud.host)
+                    this._fillIn('username', 'machine_hostname');
+
             }
         },
+
+        _fillIn: function(cloudProperty, fieldName){
+            var index = this._fieldIndexByName(fieldName, this.fields);
+            if (this.cloud[cloudProperty] && index != undefined){
+                this.set('fields.'+index+'.value', this.cloud[cloudProperty]);
+            }
+        },
+
         _fieldIndexByName: function(name, fields){
             var index;
             if (this.fields){
