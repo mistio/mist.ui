@@ -9,6 +9,8 @@
 
 <link rel="import" href="cloud-info.html">
 <link rel="import" href="cloud-edit.html">
+<link rel="import" href="cloud-dns.html">
+<link rel="import" href="other-cloud-add-machine.html">
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -23,7 +25,9 @@
       paper-dialog#renameDialog {
         max-width: 350px;
       }
-      paper-dialog#credentialsDialog {
+      paper-dialog#credentialsDialog,
+      paper-dialog#addhostsDialog,
+      paper-dialog#dnsDialog {
         max-width: 650px;
       }
     </style>
@@ -38,6 +42,20 @@
     <paper-dialog id="credentialsDialog" with-backdrop>
       <paper-dialog-scrollable>
         <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]" keys="[[model.keysArray]]"></cloud-edit>
+      </paper-dialog-scrollable>
+    </paper-dialog>
+
+    <paper-dialog id="dnsDialog" with-backdrop>
+      <h3>DNS option</h3>
+      <paper-dialog-scrollable>
+        <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
+      </paper-dialog-scrollable>
+    </paper-dialog> 
+
+    <paper-dialog id="addhostsDialog" with-backdrop>
+      <h3>Add Host</h3>
+      <paper-dialog-scrollable>
+          <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>
       </paper-dialog-scrollable>
     </paper-dialog>
     
@@ -189,6 +207,12 @@ CLOUD_ACTIONS = {
           else if (action.name == 'edit credentials') {
             this.$.credentialsDialog.open();
           }
+          else if (action.name == 'add hosts') {
+            this.$.addhostsDialog.open();
+          }
+          else if (action.name == 'dns') {
+            this.$.dnsDialog.open();
+          }
           else {
             this.performAction(this.action, this.items);
           }
@@ -211,6 +235,9 @@ CLOUD_ACTIONS = {
       performAction: function(action, items) {
           if (action.name == 'rename') {
             this.$.renameDialog.open();
+          }
+          else if (action.name == 'add hosts') {
+            this._deleteCloud();
           }
           else if (action.name == 'delete') {
             this._deleteCloud();
