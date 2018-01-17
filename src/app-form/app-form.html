@@ -717,7 +717,7 @@
                     // console.log("validate list", el.items);
                     for (var i=0; i<el.items.length; i++){
                         // console.log("validate list", i, this._validateFields(el.items[i].options));
-                        if (!this._validateFields(el.items[i].options)) {
+                        if (!this._validateFields(el.items[i])) {
                             allItemsValid = false;
                             break;
                         }
@@ -762,8 +762,17 @@
                         // if there's a list field add it as a nested object under the subform title.
                         this.fields.forEach(function(field) {
                             if (field.type == 'list') {
-                                var subformPayload = {};
-                                payload[field.name] = field.items;
+                                var subformPayload = [];
+                                if (field.items && field.items.length){
+                                    for (var i=0; i<field.items.length; i++){
+                                        var o = {};
+                                        for (var j=0; j<field.items[i].length; j++){
+                                            o[field.items[i][j].name] = field.items[i][j].value;
+                                        }
+                                        subformPayload.push(o);
+                                    }
+                                }
+                                payload[field.name] = subformPayload;
                             }
                         }, this);
 

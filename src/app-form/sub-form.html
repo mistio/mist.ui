@@ -24,7 +24,7 @@
             </style>
             <template is="dom-repeat" items="[[items]]">
                 <div class="title"><strong>[[itemName]] [[indexPlusOne(index)]]</strong></div>
-                <app-form id="sub-form" fields="{{item.options}}" display-buttons="{{_calcDisplayButtons()}}"></app-form>
+                <app-form id="sub-form" fields="{{item}}" display-buttons="{{_calcDisplayButtons()}}"></app-form>
                 <paper-button class="red delete" on-tap="deleteItem" hidden$="[[_computeShowDelete(index)]]">Delete [[itemName]]</paper-button>
                 <br/>
             </template>
@@ -70,7 +70,7 @@
                         max: Number
                     },
                     observers: [
-                        '_itemsChanged(items.splices, items.*.options)',
+                        '_itemsChanged(items.splices, items.*)',
                         '_minChanged(min)'
                     ],
                     listeners: {
@@ -95,7 +95,7 @@
                                 opts.forEach(function(o){
                                     o.value = o.defaultValue;
                                 })
-                                this.push('items', {options: opts});
+                                this.push('items', opts);
                             }
                             else {
                                 this.fire('toast', {msg: 'Only up to '+this.max+' '+this.itemName+'s are allowed.', duration: 3000});

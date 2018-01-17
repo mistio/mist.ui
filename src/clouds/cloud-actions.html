@@ -70,6 +70,18 @@ CLOUD_ACTIONS = {
     'confirm': false,
     'multi': true
   },
+  'add_hosts': {
+    'name': 'add hosts',
+    'icon': 'hardware:computer',
+    'confirm': false,
+    'multi': false
+  },
+  'dns': {
+    'name': 'dns',
+    'icon': 'hardware:computer',
+    'confirm': false,
+    'multi': false
+  },
   'delete': {
     'name': 'delete',
     'icon': 'delete',
@@ -121,8 +133,11 @@ CLOUD_ACTIONS = {
         if (cloud) {
           arr.push('tag');
           arr.push('rename');
-          // if (!this._isBareMetal(cloud.provider))
-              arr.push('edit_credentials');
+          if (this._isBareMetal(cloud.provider))
+            arr.push('add_hosts');
+          if (['ec2','gce','digitalocean','linode','rackspace','softlayer','vultr'].indexOf(cloud.provider) > -1 )
+            arr.push('dns');
+          arr.push('edit_credentials');
           arr.push('delete');
         }
         return arr;
