@@ -767,7 +767,8 @@
                                     for (var i=0; i<field.items.length; i++){
                                         var o = {};
                                         for (var j=0; j<field.items[i].length; j++){
-                                            o[field.items[i][j].name] = field.items[i][j].value;
+                                            if (this._asssertToInclude(field.items[i], field.items[i][j]))
+                                                o[field.items[i][j].name] = field.items[i][j].value;
                                         }
                                         subformPayload.push(o);
                                     }
@@ -793,6 +794,19 @@
                     this.$.formAjax.generateRequest();
 
                     this.set('sendingData', true);
+                },
+                _asssertToInclude: function(list, field) {
+                    // console.log('_asssertToInclude', list, field);
+                    if (field.show) 
+                        return true;
+                    else if (field.showIf && ( field.fieldExists || field.fieldName )) {
+                        var d = list.find(function(f){
+                            f.name == field.fieldName;
+                        })
+                        if ((field.fieldExists && d.value) || (field.fieldValues && d.value.indexOf(field.fieldValues)))
+                            return true;
+                    }
+                    return false;
                 },
                 _resetForm: function(e) {
                     // Reset script
