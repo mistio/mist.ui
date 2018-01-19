@@ -262,17 +262,17 @@
                             <div class="row">
                                 <div class="cell"><h4>Machines:</h4></div>
                                 <div class="cell">
-                                    <span hidden$="[[runningMachinesArrayLength]]">[[runningMachinesArrayLength]] running</span>
+                                    <span hidden$="[[_computeShowCount(runningMachinesArrayLength)]]">[[runningMachinesArrayLength]] running</span>
                                     <paper-button class="simple blue-link view" on-tap="viewRunning" hidden$="[[!runningMachinesArrayLength]]">[[runningMachinesArrayLength]] running</paper-button>
                                     <br/>
-                                    <span hidden$="[[stoppedMachinesArrayLength]]">[[stoppedMachinesArrayLength]] stopped</span>
+                                    <span hidden$="[[_computeShowCount(stoppedMachinesArrayLength)]]">[[stoppedMachinesArrayLength]] stopped</span>
                                     <paper-button class="simple blue-link view" on-tap="viewStopped" hidden$="[[!stoppedMachinesArrayLength]]">[[stoppedMachinesArrayLength]] stopped</paper-button>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[_isBareMetal(cloud.provider)]]">
                                 <div class="cell"><h4>Images:</h4></div>
                                 <div class="cell">
-                                    <span hidden$="[[imagesArrayLength]]">[[imagesArrayLength]]</span>
+                                    <span hidden$="[[_computeShowCount(imagesArrayLength)]]">[[imagesArrayLength]]</span>
                                     <paper-button class="simple blue-link view" on-tap="viewImages" hidden$="[[!imagesArrayLength]]">[[imagesArrayLength]] images</paper-button></div>
                             </div>
                             <div class="row" hidden$="[[_isBareMetal(cloud.provider)]]">
@@ -282,7 +282,7 @@
                             <div class="row">
                                 <div class="cell"><h4>Networks:</h4></div>
                                 <div class="cell">
-                                    <span hidden$="[[networksArrayLength]]">[[networksArrayLength]]</span>
+                                    <span hidden$="[[_computeShowCount(networksArrayLength)]]">[[networksArrayLength]]</span>
                                     <paper-button class="simple blue-link view" on-tap="viewNetworks" hidden$="[[!networksArrayLength]]">[[networksArrayLength]] networks</paper-button></div>
                             </div>
                         </div>
@@ -397,16 +397,13 @@
                     'select-action': 'selectAction'
                 },
                 observers: [
-                    'cloudChanged(cloud.*)',
+                    'cloudChanged(cloud, cloud.*)',
                     'cloudArraysChanaged(cloud.*, cloud.imagesArray.length,cloud.locationsArray.length,cloud.networksArray.length,cloud.machinesArray.length)'
                 ],
                 ready: function() {
                 },
                 cloudChanged: function(cloud){
-                    console.log('cloudChanged',cloud.path);
-                    if (this.cloud){
-                        this.set('itemArray',[this.cloud]);
-                    }
+                    this.set('itemArray', this.cloud && this.cloud.enabled ? [this.cloud] : []);
                 },
                 cloudArraysChanaged: function(array){
                     if (this.cloud){
@@ -432,6 +429,10 @@
                 goToFilteredList: function(page,state){
                     var search = state ? ' ' + state : '';
                     this.fire('go-to', {url: '/'+page, search: this.cloud.title+search});
+                },
+                _computeShowCount: function(c){
+                    console.log('_computeShowCount',c);
+                    return c != 0 ? true : false;
                 },
                 computeRunningMachines: function(machinesArray) {
                     return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function(m){

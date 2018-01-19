@@ -252,41 +252,45 @@ CLOUD_ACTIONS = {
           this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
       },
       _mapPolicyToActions: function (items) {
-        // recompute the actions array property as the intersection
-        // of the available actions of the selected items
-        this.set('actions', []);
-        var actions = new swiftSet.Set(), 
-            isection = new swiftSet.Set();
+          // recompute the actions array property as the intersection
+          // of the available actions of the selected items
+          this.set('actions', []);
+          var actions = new swiftSet.Set(), 
+              isection = new swiftSet.Set();
 
-        if (this.items.length == 1) {
-          this.set('cloud', this.items[0]);
-        }
-        else {
-          this.set('cloud', null); 
-        }
-
-        if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
-
-          for (var i=1; i<this.items.length; i++) {
-              isection.clear()
-              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-              actions.clear();
-              actions.addItems(isection.items());
-          }
-
-          var multiActions;
-
-          if (this.items.length > 1) {
-              multiActions = this.actionDetails(actions.items()).filter(function(a){
-                  return a.multi;
-              });
+          if (this.items.length == 1) {
+            this.set('cloud', this.items[0]);
           }
           else {
-              multiActions = this.actionDetails(actions.items());
+            this.set('cloud', null); 
           }
-        }
-        this.set('actions', multiActions);
+
+          if (this.items.length > 0) {
+            actions.addItems(this.itemActions(this.items[0]) || []);
+
+            for (var i=1; i<this.items.length; i++) {
+                isection.clear()
+                isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+                actions.clear();
+                actions.addItems(isection.items());
+            }
+
+            var multiActions;
+
+            if (this.items.length > 1) {
+                multiActions = this.actionDetails(actions.items()).filter(function(a){
+                    return a.multi;
+                });
+            }
+            else {
+                multiActions = this.actionDetails(actions.items());
+            }
+          }
+          this.set('actions', multiActions);
+      },
+
+      recomputeActions: function(){
+          this._mapPolicyToActions(this.items);
       },
 
       _handleCloudDeletionAjaxResponse: function(e){
