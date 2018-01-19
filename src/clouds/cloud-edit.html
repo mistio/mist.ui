@@ -62,7 +62,6 @@
                     }
                     //if there is a key
                     else if (fields[i].type == 'ssh_key'){
-                        // console.log('ssh_key');
                         fields[i].options = this.keys;
                     }
                     else if (fields[i].type == 'list'){
@@ -101,6 +100,31 @@
 
                 if (this.cloud.key)
                     this._fillIn('key', 'machine_key');
+
+                if (this.cloud.provider == 'bare_metal' && this.cloud.machinesArray.length)
+                    this.async(function(){
+                        this._fillInHosts(this.cloud.machinesArray);
+                    }.bind(this), 200);
+
+            }
+        },
+
+        _fillInHosts: function(machines) {
+            var lindex = this._fieldIndexByName('machines');
+            this.set('fields.'+lindex+'.items',[]);
+
+            for (var i=0; i < machines.length; i++){
+                var opts = this.fields[lindex].options.slice(0);
+
+                this.push('fields.'+lindex+'.items',opts);
+                this.set('fields.'+lindex+'.items.'+i+'.'+0+'.value', machines[i].hostname);
+                this.set('fields.'+lindex+'.items.'+i+'.'+1+'.value', machines[i].name);
+                this.set('fields.'+lindex+'.items.'+i+'.'+2+'.value', machines[i].os_type);
+                this.set('fields.'+lindex+'.items.'+i+'.'+3+'.value', machines[i].key_associations[0].keypair);
+
+                this.set('fields.'+lindex+'.items.'+i+'.'+4+'.value', machines[i].key_associations[0].ssh_user);
+                this.set('fields.'+lindex+'.items.'+i+'.'+5+'.value', machines[i].key_associations[0].port);
+                this.set('fields.'+lindex+'.items.'+i+'.'+6+'.value', machines[i].rdp_port);
 
             }
         },
