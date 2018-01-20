@@ -430,48 +430,82 @@
             </paper-material>
             <div class="columns">
                 <paper-material id="leftcolumn resource-description" class="left">
-                    <!-- <div class="resource-info">
+                    <div class="resource-info">
                         <div class="table">
+                            <div class="row" hidden$="[[!machine.cloud.title]]">
+                                <div class="cell"><h4>Cloud:</h4></div>
+                                <div class="cell">
+                                    <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
+                                    [[machine.cloud.title]]
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!_existsImage(machine.extra)]]">
+                                <div class="cell"><h4>Image:</h4></div>
+                                <div class="cell">
+                                    <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
+                                    [[_computeMachineImage(machine)]]
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!machineSize]]">
+                                <div class="cell"><h4>Size:</h4></div>
+                                <div class="cell">
+                                    [[machineSize]]
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!machine.created]]">
+                                <div class="cell"><h4>Created:</h4></div>
+                                <div class="cell">
+                                    [[_fromNow(machine.created)]]
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!machine.probe.ssh.updated_at]]">
+                                <div class="cell" hidden$="[[!machine.probe.ssh.loadavg]]"><h4>Load:</h4></div>
+                                <div class="cell">
+                                    <span class$="probe-data [[itemProbeClasses(machine)]]"> </span>
+                                    <span class="smaller" hidden$="[[!machine.probe.ssh.loadavg]]"> [[_listToString(machine.probe.ssh.loadavg)]] - [[machine.probe.ssh.cores]] vcpu cores</span>
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!machine.probe.ping.updated_at]]">
+                                <div class="cell"><h4>RTT:</h4></div>
+                                <div class="cell">
+                                    <span class="smaller">min/avg/max/std = [[machine.probe.ping.rtt_min]]/[[machine.probe.ping.rtt_avg]]/[[machine.probe.ping.rtt_max]]/[[machine.probe.ping.rtt_std]] ms</span>
+                                    <span class="smaller packetloss" hidden$=[[!machine.probe.ping.packets_loss]]>-- [[_computePacketLossPercent(machine.probe.ping.packets_loss)]]% packet loss --</span>
+                                </div>
+                            </div>
                             <div class="row">
-                                <div class="cell"><h4>ID:</h4></div> -->
-                    <span hidden$="[[!machine.cloud.title]]"><span class="m-info-head">Cloud:</span>
-                        <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
-                        [[machine.cloud.title]]</span>
-                    <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
-                        <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
-                        [[_computeMachineImage(machine)]]</span>
-                    <span hidden$="[[!machineSize]]" class="break"><span class="m-info-head">Size:</span>
-                        [[machineSize]]</span>
-                    <span hidden$="[[!machine.created]]"><span class="m-info-head">Created:</span>
-                        [[_fromNow(machine.created)]]</span>
-                    <hr/>
-                    <div hidden$="[[!machine.probe.ssh.updated_at]]">
-                        <span class="m-info-head" hidden$="[[!machine.probe.ssh.loadavg]]">Load:</span>
-                        <span class$="probe-data [[itemProbeClasses(machine)]]"> </span>
-                        <span class="smaller" hidden$="[[!machine.probe.ssh.loadavg]]"> [[_listToString(machine.probe.ssh.loadavg)]] - [[machine.probe.ssh.cores]] vcpu cores</span> <br/>
-                    </div>
-                    <div hidden$="[[!machine.probe.ping.updated_at]]">
-                        <span class="m-info-head">RTT:</span>
-                        <span class="smaller">min/avg/max/std = [[machine.probe.ping.rtt_min]]/[[machine.probe.ping.rtt_avg]]/[[machine.probe.ping.rtt_max]]/[[machine.probe.ping.rtt_std]] ms</span>
-                        <span class="smaller packetloss" hidden$=[[!machine.probe.ping.packets_loss]]>-- [[_computePacketLossPercent(machine.probe.ping.packets_loss)]]% packet loss --</span>
-                    </div>
-                    <div class="probe-button">
-                        <span class="m-info-head">Probed:</span> 
-                        <span class="smaller"> [[_computeProbeString(machine.probe.ssh.updated_at, machine.probe.ping.updated_at)]]</span>
-                        <br /><paper-button id="probeButton" class="blue-link" on-tap="_probeMachine" disabled="{{probeLoading}}" hidden$="[[!machine.key_associations.length]]">probe now</paper-button>
-                        <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
-                    </div>
-                    <div hidden$="[[!kernelInfo]]">
-                        [[kernelInfo]]
-                    </div>
-                    <div hidden$="[[!machine.probe]]">
-                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[machine.probe.ssh.dirty_cow]]">
-                            Dirty COW check passed.
-                        </span>
-                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[!machine.probe.ssh.dirty_cow]]">
-                            <iron-icon hidden$="[[!machine.probe.ssh.dirty_cow]]" icon="icons:report-problem" on-tap="_showRecommendationDialog"></iron-icon> [[dirtyCowAlert]]
-                            <a class="regular blue-link" on-tap="_showRecommendationDialog">Show recommendation.</a>
-                        </span>
+                                <div class="cell"><h4>Probed:</h4></div>
+                                <div class="cell">
+                                    <span class="smaller"> [[_computeProbeString(machine.probe.ssh.updated_at, machine.probe.ping.updated_at)]]</span>
+                                    <br /><paper-button id="probeButton" class="blue-link" on-tap="_probeMachine" disabled="{{probeLoading}}" hidden$="[[!machine.key_associations.length]]">probe now</paper-button>
+                                    <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!kernelInfo]]">
+                                <div class="row">
+                                    <div class="cell">
+                                        [[kernelInfo]]
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!machine.probe]]">
+                                <div class="row">
+                                    <div class="cell">
+                                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[machine.probe.ssh.dirty_cow]]">
+                                            Dirty COW check passed.
+                                        </span>
+                                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[!machine.probe.ssh.dirty_cow]]">
+                                            <iron-icon hidden$="[[!machine.probe.ssh.dirty_cow]]" icon="icons:report-problem" on-tap="_showRecommendationDialog"></iron-icon> [[dirtyCowAlert]]
+                                            <a class="regular blue-link" on-tap="_showRecommendationDialog">Show recommendation.</a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <div hidden$="[[!machine.probe]]"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
