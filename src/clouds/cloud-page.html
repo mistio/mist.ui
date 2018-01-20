@@ -397,22 +397,26 @@
                     'select-action': 'selectAction'
                 },
                 observers: [
-                    'cloudChanged(cloud, cloud.*)',
-                    'cloudArraysChanaged(cloud.*, cloud.imagesArray.length,cloud.locationsArray.length,cloud.networksArray.length,cloud.machinesArray.length)'
+                    '_cloudChanged(cloud, cloud.*)',
+                    '_cloudArraysChanaged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networksArray,cloud.machinesArray)'
                 ],
                 ready: function() {
                 },
-                cloudChanged: function(cloud){
+                _cloudChanged: function(cloud){
                     // console.log(this.cloud, this.cloud.enabled, [this.cloud])
                     this.set('itemArray', this.cloud ? [this.cloud] : []);
+                    this._cloudArraysChanaged();
                 },
-                cloudArraysChanaged: function(array){
+                _cloudArraysChanaged: function(cloud, cloudchange, imagesArray,locationsArray,networksArray,machinesArray){
+                    // console.log('cloudArraysChanaged',cloud,cloudchange,imagesArray,locationsArray,networksArray,machinesArray);
                     if (this.cloud){
-                        this.set('imagesArrayLength', this.cloud.imagesArray ? this.cloud.imagesArray.length : 0)
-                        this.set('locationsArrayLength', this.cloud.locationsArray ? this.cloud.locationsArray.length : 0)
-                        this.set('networksArrayLength', this.cloud.networksArray ? this.cloud.networksArray.length : 0)
-                        this.set('runningMachinesArrayLength', this.computeRunningMachines(this.cloud.machinesArray))
-                        this.set('stoppedMachinesArrayLength', this.computeStoppedMachines(this.cloud.machinesArray))
+                        this.async(function(){
+                            this.set('imagesArrayLength', this.cloud.imagesArray ? this.cloud.imagesArray.length : 0);
+                            this.set('locationsArrayLength', this.cloud.locationsArray ? this.cloud.locationsArray.length : 0);
+                            this.set('networksArrayLength', this.cloud.networksArray ? this.cloud.networksArray.length : 0);
+                            this.set('runningMachinesArrayLength', this._computeRunningMachines(this.cloud.machinesArray));
+                            this.set('stoppedMachinesArrayLength', this._computeStoppedMachines(this.cloud.machinesArray));
+                        }.bind(this), 1000);
                     }
                 },
                 viewRunning: function(){
@@ -435,12 +439,12 @@
                     console.log('_computeShowCount',c);
                     return c != 0 ? true : false;
                 },
-                computeRunningMachines: function(machinesArray) {
+                _computeRunningMachines: function(machinesArray) {
                     return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function(m){
                         return m.state == 'running';
                     }).length : 0;
                 },
-                computeStoppedMachines: function(machinesArray) {
+                _computeStoppedMachines: function(machinesArray) {
                     return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function(m){
                         return m.state == 'stopped'
                     }).length : 0;
