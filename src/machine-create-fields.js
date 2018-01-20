@@ -262,6 +262,15 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'libvirt',
     fields: [{
+        name: "networks",
+        label: "Networks",
+        type: "checkboxes",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: []
+    },{
         name: "libvirt_disk_path",
         type: "text",
         label: "Path to create VM's disk",
