@@ -411,7 +411,7 @@
                         <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
                         [[machine.cloud.title]]</span>
                     <span hidden$="[[!_existsImage(machine.extra)]]" class="break"><span class="m-info-head">Image:</span>
-                        <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
+                        <iron-icon class="image icon" src$="[[_computeImageIcon(machine,machine.probe)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
                         [[_computeMachineImage(machine)]]</span>
                     <span hidden$="[[!machineSize]]" class="break"><span class="m-info-head">Size:</span>
                         [[machineSize]]</span>
@@ -1141,7 +1141,7 @@ Polymer({
             return './assets/providers/provider-' + cloud.replace(/_/g, "") + '.png';
         }
     },
-    _computeImageIcon: function(machine) {
+    _computeImageIcon: function(machine, probe) {
         if (!machine){
             return false;
         }
@@ -1150,7 +1150,9 @@ Polymer({
                 imageIcon = "";
                 image = image.toLowerCase();
 
-            if (image.indexOf('ubuntu') != -1)
+            if (machine.probe && machine.probe.ssh && machine.probe.ssh.distro && machine.probe.ssh.distro.toLowerCase().indexOf('clearos') != -1)
+                imageIcon = "clearos";
+            else if (image.indexOf('ubuntu') != -1)
                 imageIcon = "ubuntu";
             else if (image.indexOf('netbsd') != -1)
                 imageIcon = "netbsd";
