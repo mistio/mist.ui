@@ -348,10 +348,24 @@
                         return item.resource_id == resource_id
                     }
                 );
-                this.splice('model.clouds.'+cloud_id+'.'+resources+'Array',i, 1);
+                // update model Arrays
+                if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
+                    this.splice('model.clouds.'+cloud_id+'.'+resources+'Array',i, 1);
+                    var j = this.model[resources+'Array'].findIndex(
+                        function(item) {
+                            return item.resource_id == resource_id
+                        }
+                    );
+                    this.splice('model.'+resources+'Array',i, 1);
+                }
             }
             if (operation.op == 'add') {
-                this.push('model.clouds.'+cloud_id+'.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
+                this.push('model.clouds.'+cloud_id+'.'+resources+'Array', this.model.clouds[cloud_id][resources][
+                    resource_id])
+                // update model Arrays
+                if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
+                    this.push('model.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
+                }
             }
             // not sure if this is necessary
             if (operation.op == 'replace') {

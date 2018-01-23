@@ -304,8 +304,32 @@
 
         observers: [
             '_routePageChanged(routeData.page, subroute.path)',
-            '_sizeChanged(smallscreen)'
+            '_sizeChanged(smallscreen)',
+            '_modelArraysChanged(model.machinesArray.length, model.imagesArray.length, model.zonesArray.length, model.networksArray.length)'
         ],
+
+        _modelArraysChanged: function(machines, images, zones, networks) {
+            console.log('patch arrays changed', machines, images, zones, networks);
+            this.set('sections.machines.count', machines);
+            this.set('sections.images.count', images);
+            this.set('sections.zones.count', zones);
+            this.set('sections.networks.count', networks);
+
+            this.model.sectionsArray.forEach(function(s, i){
+                var count;
+                if (s.id == 'machines')
+                    count = machines;
+                else if (s.id == 'images')
+                    count = images;
+                else if (s.id == 'zones')
+                    count = zones;
+                else if (s.id == 'networks')
+                    count = networks;
+
+                if (count)
+                    this.set('model.sectionsArray.'+i+'.count', count);
+            }.bind(this));
+        },
 
         _sizeChanged: function(smallscreen) {
             console.log('updateResize');
