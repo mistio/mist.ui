@@ -50,6 +50,7 @@
             .grid-row > * {
                 margin-top: 8px;
                 margin-bottom: 8px;
+                max-width: 100%;
             }
 
             h2.title {
@@ -155,6 +156,9 @@
             #dateTimePickers .pickers {
                 
             }
+            .bottom-actions {
+                padding: 0;
+            }
             #dateTimePickers .bottom-actions {
                 display: flex;
                 justify-content: flex-end;
@@ -246,11 +250,29 @@
                     padding: 0.8em 0 0.7em 0;
                 }
             }
+            .horizontal-grid .grid-row {
+                flex-direction: column;
+                display: inline-flex;
+                padding: 1em;
+                width: 50%;
+            }
+            .horizontal-grid .field-helptext {
+                align-self: flex-start;
+            }
+            @media screen and (max-width: 800px) {
+                .horizontal-grid .grid-row {
+                    flex-direction: column;
+                    display: inline-flex;
+                    padding: 0 1em;
+                    width: 100%;
+                }
+            }
         </style>
 
-        <div class="grid-row">
+        <div class$="grid [[_computeLayoutClass(horizontalLayout)]]">
             <template is="dom-repeat" items="{{fields}}" as="field">
                 <template is="dom-if" if="[[field.show]]">
+                <div class="grid-row">
                     <h3 class="xs12 s12 m12 l12" hidden$="[[!field.h3]]">[[field.h3]]</h3>
                     <template is="dom-if" if="[[_computeFieldType(field, 'text', field.show)]]">
                         <paper-input class$="xs12 m6 [[field.class]]" id="[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" value="{{field.value}}" auto-validate auto-validate pattern="[[field.pattern]]" required="[[field.required]]" error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" placeholder=[[field.placeholder]]>
@@ -391,6 +413,7 @@
                     <template is="dom-if" if="[[field.isLead]]">
                         <hr class="xs12"/>
                     </template>
+                </div>
                 </template>
             </template>
 
@@ -524,6 +547,10 @@
                     showCancel: {
                         type: Boolean,
                         value: false
+                    },
+                    horizontalLayout: {
+                        type: Boolean,
+                        value: false
                     }
                 },
                 observers: [
@@ -538,6 +565,9 @@
                 },
                 attached: function(){
                     this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
+                },
+                _computeLayoutClass: function(layout){
+                    return this.horizontalLayout ? 'horizontal-grid' : '';
                 },
                 _updateForm: function(){
                     var uniqueFields = {};
