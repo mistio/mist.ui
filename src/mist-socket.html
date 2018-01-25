@@ -797,66 +797,73 @@
                     if (zone.id) {
                         zone['cloud_id'] = data.cloud_id;
                         zone['zone_type'] = zone['type'];
-                        zone.records.forEach(function(record) {
-                                record['record_type'] = record['type'];
-                                record['zone_id'] = zone['id'];
-                                record['cloud_id'] = zone['cloud_id'];
-                                delete record['type'];
-                            }
-                        )
+                        if (zone.records)
+                            zone.records.forEach(function(record) {
+                                    record['record_type'] = record['type'];
+                                    record['zone_id'] = zone['id'];
+                                    record['cloud_id'] = zone['cloud_id'];
+                                    delete record['type'];
+                                }
+                            )
                         delete zone['type'];
                         if (this.model.clouds[data.cloud_id].provider == 'gce'){
                             zone['provider'] = 'Google';
                         } else if (this.model.clouds[data.cloud_id].provider == 'ec2'){
                             zone['provider'] = 'Route53';
-                            zone.records.forEach(function(record) {
-                                if (record['name'].length == 0) {
-                                    record['name'] = zone.domain;
-                                } else {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
+                            if (zone.records)
+                                zone.records.forEach(function(record) {
+                                    if (record['name'].length == 0) {
+                                        record['name'] = zone.domain;
+                                    } else {
+                                        record['name'] += '.' + zone.domain;
+                                    }
+                                })
                         } else if (this.model.clouds[data.cloud_id].provider == 'digitalocean'){
                             zone['provider'] = 'Digital Ocean';
-                            zone.records.forEach(function(record) {
-                                if (record['name'] != '@') {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
+                            if (zone.records)
+                                zone.records.forEach(function(record) {
+                                    if (record['name'] != '@') {
+                                        record['name'] += '.' + zone.domain;
+                                    }
+                                })
 
                         } else if (this.model.clouds[data.cloud_id].provider == 'linode'){
                             zone['provider'] = 'Linode';
-                            zone.records.forEach(function(record) {
-                                record['name'] += '.' + zone.domain;
-                            })
+                            if (zone.records)
+                                zone.records.forEach(function(record) {
+                                    record['name'] += '.' + zone.domain;
+                                })
 
                         } else if (this.model.clouds[data.cloud_id].provider == 'softlayer'){
                             zone['provider'] = 'SoftLayer';
-                            zone.records.forEach(function(record) {
-                                if (record['name'] != '@') {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
+                            if (zone.records)
+                                zone.records.forEach(function(record) {
+                                    if (record['name'] != '@') {
+                                        record['name'] += '.' + zone.domain;
+                                    }
+                                })
 
                         }  else if (this.model.clouds[data.cloud_id].provider == 'rackspace'){
                             zone['provider'] = 'Rackspace';
-                            zone.records.forEach(function(record) {
-                                if (record['name'].length == 0) {
-                                    record['name'] = zone.domain;
-                                } else {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
+                            if (zone.records)
+                                zone.records.forEach(function(record) {
+                                    if (record['name'].length == 0) {
+                                        record['name'] = zone.domain;
+                                    } else {
+                                        record['name'] += '.' + zone.domain;
+                                    }
+                                })
 
                         } else if (this.model.clouds[data.cloud_id].provider == 'vultr'){
                             zone['provider'] = 'Vultr';
-                            zone.records.forEach(function(record) {
-                                if (record['name'].length == 0) {
-                                    record['name'] = zone.domain;
-                                } else {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
+                            if (zone.records)
+                                zone.records.forEach(function(record) {
+                                    if (record['name'].length == 0) {
+                                        record['name'] = zone.domain;
+                                    } else {
+                                        record['name'] += '.' + zone.domain;
+                                    }
+                                })
 
                         } else {
                             zone['provider'] = this.model.clouds[data.cloud_id].provider;
