@@ -312,33 +312,33 @@
                         path = operation.path.split('/locations/')[1].split('/');
                         location_id = path[0];
                     }
-                    else if (operation.path.indexOf('/sizes/')> -1){
-                        path = operation.path.split('/sizes/')[1].split('/');
-                        size_id = path[0];
-                    }
-                    else if (operation.path.indexOf('/images/')> -1){
-                        path = operation.path.split('/images/')[1].split('/');
-                        image_id = path[0];
-                    }
-                    else if (operation.path.indexOf('/zones/')> -1){
-                        path = operation.path.split('/zones/')[1].split('/');
-                        zone_id = path[0];
-                    }
+                    // else if (operation.path.indexOf('/sizes/')> -1){
+                    //     path = operation.path.split('/sizes/')[1].split('/');
+                    //     size_id = path[0];
+                    // }
+                    // else if (operation.path.indexOf('/images/')> -1){
+                    //     path = operation.path.split('/images/')[1].split('/');
+                    //     image_id = path[0];
+                    // }
+                    // else if (operation.path.indexOf('/zones/')> -1){
+                    //     path = operation.path.split('/zones/')[1].split('/');
+                    //     zone_id = path[0];
+                    // }
 
                     if (machine_id && path.length == 1)
                         _this._updateModelArray('machines', machine_id, cloud_id, operation);
 
-                    if (size_id && path.length == 1)
-                        _this._updateModelArray('sizes', size_id, cloud_id, operation);
-
                     if (location_id && path.length == 1)
                         _this._updateModelArray('locations', location_id, cloud_id, operation);
 
-                    if (image_id && path.length == 1)
-                        _this._updateModelArray('images', image_id, cloud_id, operation);
+                    // if (size_id && path.length == 1)
+                    //     _this._updateModelArray('sizes', size_id, cloud_id, operation);
 
-                    if (zone_id && path.length == 1)
-                        _this._updateModelArray('zones', zone_id, cloud_id, operation);
+                    // if (image_id && path.length == 1)
+                    //     _this._updateModelArray('images', image_id, cloud_id, operation);
+
+                    // if (zone_id && path.length == 1)
+                    //     _this._updateModelArray('zones', zone_id, cloud_id, operation);
                 }
             });
             this.debounce('updateAllMachines', function() {
@@ -347,39 +347,32 @@
         },
 
         _updateModelArray: function(resources, resource_id, cloud_id, operation) {
-            // console.log('patch', resources, resource_id, cloud_id, operation.op);
             if (operation.op == 'remove') {
-                // console.log('patch remove', resources, operation.path);
                 var i = this.model.clouds[cloud_id][resources+'Array'].findIndex(
                     function(item) {
                         return item.resource_id == resource_id
                     }
                 );
                 // update model Arrays
-                // console.log('patch remove updateArray', operation.path);
-                if (['machines', 'images', 'networks', 'zones'].indexOf(resources)>-1) {
-                    this.splice('model.clouds.'+cloud_id+'.'+resources+'Array',i, 1);
-                    var j = this.model[resources+'Array'].findIndex(
-                        function(item) {
-                            return item.resource_id == resource_id
-                        }
-                    );
-                    this.splice('model.'+resources+'Array',i, 1);
-                }
+                // if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
+                //     this.splice('model.clouds.'+cloud_id+'.'+resources+'Array',i, 1);
+                //     var j = this.model[resources+'Array'].findIndex(
+                //         function(item) {
+                //             return item.resource_id == resource_id
+                //         }
+                //     );
+                //     this.splice('model.'+resources+'Array',i, 1);
+                // }
             }
             if (operation.op == 'add') {
-                // console.log('patch add', resources, operation.path);
                 this.push('model.clouds.'+cloud_id+'.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
                 // update model Arrays
-                // console.log('patch add updateArray', operation.path);
-                if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
-                    this.push('model.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
-                }
-                // console.log('patch add', resources, this.model.clouds[cloud_id][resources][resource_id]);
+                // if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
+                //     this.push('model.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
+                // }
             }
             // not sure if this is necessary
             if (operation.op == 'replace') {
-                // console.log('patch replace', operation.path);
                 this.set('model' + operation.path.replace(/\//g , "."), operation.value);
             }
         },
