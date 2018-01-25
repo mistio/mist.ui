@@ -341,9 +341,6 @@
                     //     _this._updateModelArray('zones', zone_id, cloud_id, operation);
                 }
             });
-            this.debounce('updateAllMachines', function() {
-                this._updateAllMachines()
-            }, 300);
         },
 
         _updateModelArray: function(resources, resource_id, cloud_id, operation) {
@@ -375,6 +372,11 @@
             if (operation.op == 'replace') {
                 this.set('model' + operation.path.replace(/\//g , "."), operation.value);
             }
+
+            if (resources == "machines")
+                this.debounce('updateAllMachines', function() {
+                    this._updateAllMachines()
+                }, 300);
         },
 
         _updateModel: function (section, data, primaryField) {
