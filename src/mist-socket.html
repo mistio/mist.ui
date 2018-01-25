@@ -298,7 +298,7 @@
                 jsonpatch.applyOperation(_this.model, operation, true);
 
                 // let's also update the machinesArray if necessary
-                var cloud_id, machine_id, location_id, size_id, image_id, zone_id, resource_id;
+                var cloud_id, machine_id, location_id, size_id, image_id, zone_id, resource_id, path;
                 if (operation.path.indexOf('/clouds/') > -1) {
                     path = operation.path.split('/clouds/')[1].split('/');
                     cloud_id = path[0];
@@ -349,13 +349,14 @@
         _updateModelArray: function(resources, resource_id, cloud_id, operation) {
             // console.log('patch', resources, resource_id, cloud_id, operation.op);
             if (operation.op == 'remove') {
-                // console.log('remove', operation.path);
+                // console.log('patch remove', resources, operation.path);
                 var i = this.model.clouds[cloud_id][resources+'Array'].findIndex(
                     function(item) {
                         return item.resource_id == resource_id
                     }
                 );
                 // update model Arrays
+                // console.log('patch remove updateArray', operation.path);
                 if (['machines', 'images', 'networks', 'zones'].indexOf(resources)>-1) {
                     this.splice('model.clouds.'+cloud_id+'.'+resources+'Array',i, 1);
                     var j = this.model[resources+'Array'].findIndex(
@@ -367,15 +368,18 @@
                 }
             }
             if (operation.op == 'add') {
-                this.push('model.clouds.'+cloud_id+'.'+resources+'Array', this.model.clouds[cloud_id][resources][
-                    resource_id])
+                // console.log('patch add', resources, operation.path);
+                this.push('model.clouds.'+cloud_id+'.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
                 // update model Arrays
+                // console.log('patch add updateArray', operation.path);
                 if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
                     this.push('model.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
                 }
+                // console.log('patch add', resources, this.model.clouds[cloud_id][resources][resource_id]);
             }
             // not sure if this is necessary
             if (operation.op == 'replace') {
+                // console.log('patch replace', operation.path);
                 this.set('model' + operation.path.replace(/\//g , "."), operation.value);
             }
         },
