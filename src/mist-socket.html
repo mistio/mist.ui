@@ -351,32 +351,37 @@
                     }
                 );
                 // update model Arrays
-                // if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
-                //     this.splice('model.clouds.'+cloud_id+'.'+resources+'Array',i, 1);
-                //     var j = this.model[resources+'Array'].findIndex(
-                //         function(item) {
-                //             return item.resource_id == resource_id
-                //         }
-                //     );
-                //     this.splice('model.'+resources+'Array',i, 1);
-                // }
+                if (['machines','images', 'networks', 'zones'].indexOf(resources)>-1) {
+                    this.splice('model.clouds.'+cloud_id+'.'+resources+'Array',i, 1);
+                    var j = this.model[resources+'Array'].findIndex(
+                        function(item) {
+                            return item.resource_id == resource_id
+                        }
+                    );
+                    this.splice('model.'+resources+'Array',i, 1);
+                }
             }
             if (operation.op == 'add') {
-                this.push('model.clouds.'+cloud_id+'.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
+                var resource = this.model.clouds[cloud_id][resources][resource_id];
+                // complete machine object
+                if (resources == "machines") {
+                    resource.cloud = {
+                        'id': this.model.clouds[cloud_id].id,
+                        'title': this.model.clouds[cloud_id].title,
+                        'provider': this.model.clouds[cloud_id].provider
+                    };
+                    resource.rules = this._machineRules(resource.machine_id, resource.cloud.id);
+                }
+                this.push('model.clouds.'+cloud_id+'.'+resources+'Array', resource)
                 // update model Arrays
-                // if (['images', 'networks', 'zones'].indexOf(resources)>-1) {
-                //     this.push('model.'+resources+'Array', this.model.clouds[cloud_id][resources][resource_id])
-                // }
+                if (['machines','images', 'networks', 'zones'].indexOf(resources)>-1) {
+                    this.push('model.'+resources+'Array', resource)
+                }
             }
             // not sure if this is necessary
             if (operation.op == 'replace') {
                 this.set('model' + operation.path.replace(/\//g , "."), operation.value);
             }
-
-            if (resources == "machines")
-                this.debounce('updateAllMachines', function() {
-                    this._updateAllMachines()
-                }, 300);
         },
 
         _updateModel: function (section, data, primaryField) {
