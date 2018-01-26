@@ -298,14 +298,20 @@
                 jsonpatch.applyOperation(_this.model, operation, true);
 
                 // let's also update the machinesArray if necessary 
-                var cloud_id, machine_id, resource_id;
+                var path, cloud_id, machine_id, location_id, resource_id;
                 if (operation.path.indexOf('/clouds/') > -1) {
                     path = operation.path.split('/clouds/')[1].split('/');
                     cloud_id = path[0];
                 }
                 if (cloud_id) {
-                    path = operation.path.split('/machines/')[1].split('/');
-                    machine_id = path[0];
+                    if (operation.path.indexOf('/machines/')>-1) {
+                        path = operation.path.split('/machines/')[1].split('/');
+                        machine_id = path[0];
+                    }
+                    else if (operation.path.indexOf('/locations/')>-1) {
+                        path = operation.path.split('/locations/')[1].split('/');
+                        location_id = path[0];
+                    }
                 }
                 if (machine_id && path.length == 1){
                     if (operation.op == 'remove') {
@@ -320,6 +326,25 @@
                     if (operation.op == 'add') {
                         console.log('add', operation.path);
                         _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id].machines[machine_id])
+                    }
+                    // not sure if this is necessary
+                    if (operation.op == 'replace') {
+                        _this.set('model' + operation.path.replace(/\//g , "."), operation.value);
+                    }
+                }
+                if (location_id && path.length == 1){
+                    if (operation.op == 'remove') {
+                        console.log('remove', operation.path);
+                        var i = _this.model.clouds[cloud_id].locationsArray.findIndex(
+                            function(item) {
+                                return item.location_id == location_id
+                            }
+                        );
+                        _this.model.clouds[cloud_id].locationsArray.splice(i, 1);
+                    }
+                    if (operation.op == 'add') {
+                        console.log('add', operation.path);
+                        _this.model.clouds[cloud_id].locationsArray.push(_this.model.clouds[cloud_id].locations[machine_id])
                     }
                     // not sure if this is necessary
                     if (operation.op == 'replace') {
