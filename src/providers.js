@@ -177,6 +177,42 @@ PROVIDERS.push(
 );
 */
 
+// AZURE
+PROVIDERS.push({
+    title: 'ClearCenter',
+    val: 'clearcenter',
+    className: 'provider-clearcenter',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "ClearCenter",
+        defaultValue: "ClearCenter",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "api_key",
+        label: "API key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API key",
+        helptext: ""
+    }, {
+        name: "host",
+        label: "Host *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: ""
+    }]
+});
+
 // DIGITALOCEAN
 PROVIDERS.push({
     title: 'Digital Ocean',
