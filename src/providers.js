@@ -203,12 +203,12 @@ PROVIDERS.push({
         helptext: ""
     }, {
         name: "host",
-        label: "Host *",
+        label: "Host",
         type: "text",
         value: "",
-        defaultValue: "",
+        defaultValue: "https://api.clearsdn.com/api/v5/devices",
         show: true,
-        required: true,
+        required: false,
         helptext: ""
     }]
 });
