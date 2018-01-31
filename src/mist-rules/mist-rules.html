@@ -94,7 +94,7 @@
         </style>
         <paper-material elevation="0">
             <template is="dom-repeat" items="{{items}}">
-                <rules-item builtin-metrics="[[builtinMetrics]]" custom-metrics="[[customMetrics]]" rule="[[item]]" incidents="[[incidents]]" resource="[[resource]]"></rules-item>
+                <rules-item builtin-metrics="[[builtinMetrics]]" custom-metrics="[[customMetrics]]" rule="[[item]]" incidents="[[incidents]]" resource="[[resource]]" teams="[[teams]]" users="[[users]]"></rules-item>
             </template>
             
             <paper-button toggles active="{{editNew}}" hidden$="{{editNew}}"><iron-icon icon="icons:add-circle"></iron-icon> add new rule</paper-button>
@@ -158,6 +158,25 @@
 
                     <paper-input id="emails" placeholder="[[userEmail]]" value="{{newRule.emails}}" auto-validate></paper-input>
 
+                    and
+
+                    <paper-dropdown-menu id="users">
+                        <paper-menu id="metricAction" attr-for-selected="value" selected-items="{{newRule.users}}" class="dropdown-content" multi>
+                            <template is="dom-repeat" items="[[users]]" as="user">
+                                <paper-item value="[[user.id]]">[[user.name]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+
+                    and
+
+                    <paper-dropdown-menu id="teams">
+                        <paper-menu id="metricAction" attr-for-selected="value" selected-items="{{newRule.teams}}" class="dropdown-content" multi>
+                            <template is="dom-repeat" items="[[teams]]" as="team">
+                                <paper-item value="[[team.id]]">[[team.name]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
 
                 </div>
                 <div class="rule-actions layout horizontal">
@@ -226,7 +245,9 @@
                     type: Boolean,                    
                     value: false
                 },
-                userEmail: String
+                userEmail: String,
+                teams: Array,
+                users: Array
             },
             listeners: {
                 'iron-select':'userChanges',
