@@ -201,15 +201,6 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter the API key",
         helptext: ""
-    }, {
-        name: "host",
-        label: "Host",
-        type: "text",
-        value: "",
-        defaultValue: "https://api.clearsdn.com/api/v5/devices",
-        show: true,
-        required: false,
-        helptext: ""
     }]
 });
 
