@@ -6,11 +6,13 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
 <link rel="import" href="../app-form/app-form.html">
+<script type="text/javascript" src="../machine-create-fields.js" inline></script>
+
 
 <dom-module id="machine-create">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
+             :host {
                 display: block;
                 min-height: 1200px;
             }
@@ -20,9 +22,11 @@
                 padding: 24px;
                 transition: all 0.2 ease-in;
             }
+
             #content {
                 max-width: 900px;
             }
+
             paper-card,
             paper-checkbox {
                 display: block;
@@ -45,31 +49,39 @@
                 text-transform: capitalize;
                 opacity: 0.87;
             }
+
             paper-dropdown-menu ::content .dropdown-content {
                 max-height: 400px !important;
             }
-            :host app-form::content paper-radio-group {
+
+             :host app-form::content paper-radio-group {
                 margin-top: 24px;
             }
+
             app-form::content paper-radio-group {
                 margin-top: 36px !important;
                 margin-bottom: 0;
             }
+
             app-form::content .helptext-radio {
                 margin-top: 36px !important;
                 margin-bottom: 0;
             }
+
             paper-dialog#addKvmImage {
                 width: 260px;
             }
-            paper-dialog#addKvmImage > paper-input {
+
+            paper-dialog#addKvmImage>paper-input {
                 margin-top: 0;
                 margin-bottom: 20px;
             }
+
             paper-dialog#addKvmImage .btn-group {
                 display: flex;
                 justify-content: flex-end;
             }
+
             .machine-page-head {
                 @apply(--machine-page-head-mixin)
             }
@@ -78,7 +90,9 @@
         <app-location route="{{route}}"></app-location>
         <div id="content">
             <paper-material class="single-head layout horizontal machine-page-head">
-                <span class="icon"><iron-icon icon="hardware:computer"></iron-icon></span>
+                <span class="icon">
+                    <iron-icon icon="hardware:computer"></iron-icon>
+                </span>
                 <div class="title flex">
                     <h2>
                         Create machine
@@ -88,24 +102,31 @@
                     </div>
                 </div>
             </paper-material>
-            <paper-material>
+            <paper-material hidden$=[[_hasProviders(providers)]]>
+                <p>You don't have any clouds that support machine provisioning.
+                    <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add a cloud</a> to get started creating machines.</p>
+            </paper-material>
+            <paper-material hidden$=[[!_hasProviders(providers)]]>
                 <div class="grid-row">
                     <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
                         <paper-menu attr-for-selected="value" selected="{{selectedCloud::iron-select}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[providers]]" as="provider">
-                                <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"><img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
+                                <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]">
+                                    <img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
                 </div>
             </paper-material>
-            <paper-material class$="selected-[[!selectedCloud]]">
+            <paper-material class$="selected-[[!selectedCloud]]" hidden$=[[!_hasProviders(providers)]]>
                 <h3 class="smallcaps">Machine Setup</h3>
                 <div hidden$=[[selectedCloud]]>
-                    <p>Depending on the cloud there maybe needed different machine parameters. Choose a provider for the coresponding fields to appear.</p>
+                    <p>Depending on the cloud there maybe needed different machine parameters. Choose a provider for the coresponding
+                        fields to appear.</p>
                 </div>
                 <div hidden$=[[!selectedCloud]]>
-                    <app-form form="{{form}}" fields="{{machineFields}}" method="POST" url="/api/v1/clouds/[[selectedCloud]]/machines" on-response="_machineCreateResponse" on-error="_machineCreateError" btncontent="Launch"></app-form>
+                    <app-form id="createForm" fields="{{machineFields}}" method="POST" url="/api/v1/clouds/[[selectedCloud]]/machines" on-response="_machineCreateResponse"
+                        on-error="_machineCreateError" btncontent="Launch"></app-form>
                 </div>
             </paper-material>
         </div>
@@ -172,879 +193,994 @@
             }
         };
 
-        (function() {
-            'use strict';
+        Polymer({
+            is: 'machine-create',
 
-            Polymer({
-                is: 'machine-create',
-
-                properties: {
-                    model: Object,
-                    selectedCloud: {
-                        type: String,
-                        value: false
-                    },
-                    machineFields: {
-                        type: Array,
-                        value: [],
-                        notify: true
-                    },
-                    machinesFields: Array,
-                    providers: {
-                        type: Array,
-                        value: [],
-                        computed: "_computeProviders(model, model.cloudsArray)"
-                    },
-                    newImage: String,
-                    scheduleActions: {
-                        type: Array,
-                        computed: '_computeActions(model.machinesArray)'
-                    },
+            properties: {
+                model: Object,
+                selectedCloud: {
+                    type: String,
+                    value: false
                 },
-                observers: [
-                    '_cloudChanged(selectedCloud, machinesFields)',
-                    '_machineFieldsChanged(model, selectedCloud, machineFields.*)',
-                    '_prefillOptions(route.*)'
-                ],
-                listeners: {
-                    // 'change': '_updatePayload',
-                    // 'iron-select': '_updateFields',
-                    'add-input': 'addInput'
+                machineFields: {
+                    type: Array,
+                    value: function () {
+                        return []
+                    }
                 },
-                ready: function() {},
-                _prefillOptions: function(location) {
-                    console.log('location', location);
-                    if (this.querySelector('app-location').queryParams)
+                machinesFields: {
+                    type: Array,
+                    value: function () {
+                        return MACHINE_CREATE_FIELDS;
+                    }
+                },
+                providers: {
+                    type: Array,
+                    value: function () {
+                        return []
+                    },
+                    computed: "_computeProviders(model, model.cloudsArray)"
+                },
+                newImage: String,
+                scheduleActions: {
+                    type: Array,
+                    computed: '_computeActions(model.machinesArray)'
+                },
+            },
+            observers: [
+                '_cloudChanged(selectedCloud)',
+                '_machineFieldsChanged(machineFields.*)',
+                '_prefillOptions(route.*)'
+            ],
+            listeners: {
+                // 'change': '_updatePayload',
+                // 'iron-select': '_updateFields',
+                'add-input': 'addInput'
+            },
+            ready: function () {},
+            _prefillOptions: function (location) {
+                if (this.querySelector('app-location').queryParams)
                     var image = this.querySelector('app-location').queryParams.image,
                         cloud = this.querySelector('app-location').queryParams.cloud;
-                    if (image && cloud)
-                        this._setOptions({cloud: cloud, image: image});
-                },
-                _computeActions: function(machinesArray) {
-                    var ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; //'suspend', 'resume',
+                if (image && cloud)
+                    this._setOptions({
+                        cloud: cloud,
+                        image: image
+                    });
+            },
+            _computeActions: function (machinesArray) {
+                var ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; //'suspend', 'resume',
 
-                    var actions = [];
-                    for (var i = 0; i < ret.length; i++) {
-                        var act = SCHEDULEACTIONS[ret[i]];
-                        var transformRet = {
-                            title: act.name.toUpperCase(),
-                            val: act.name,
-                            icon: act.icon
-                        };
-                        actions.push(transformRet);
+                var actions = [];
+                for (var i = 0; i < ret.length; i++) {
+                    var act = SCHEDULEACTIONS[ret[i]];
+                    var transformRet = {
+                        title: act.name.toUpperCase(),
+                        val: act.name,
+                        icon: act.icon
+                    };
+                    actions.push(transformRet);
+                }
+                return actions;
+            },
+            _computeProviderLogo: function (className) {
+                var identifier = className.split('_')[0];
+                return 'assets/providers/provider-' + identifier + '.png';
+            },
+            _isOnline: function (cloud, state, clouds) {
+                return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
+            },
+            _setOptions: function (params) {
+                for (var p in params) {
+                    if (p == 'cloud')
+                        this.set('selectedCloud', params[p])
+                    else {
+                        var ind = this._fieldIndexByName(p)
+                        if (ind)
+                            this.set('machineFields.' + ind + '.value', params[p]);
                     }
-                    return actions;
-                },
-                _computeProviderLogo: function(className) {
-                    var identifier = className.split('_')[0];
-                    return 'assets/providers/provider-' + identifier + '.png';
-                },
-                _isOnline: function(cloud, state, clouds){
-                    return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
-                },
-                _setOptions: function(params) {
-                    for (var p in params) {
-                        if (p == 'cloud')
-                            this.set('selectedCloud', params[p])
-                        else {
-                            var ind = this._fieldIndexByName(p)
-                            if (ind)
-                                this.set('machineFields.'+ind+'.value', params[p]);
+                }
+            },
+            _computeFieldType: function (field, value, show) {
+                if (!(field.showIf && !field.show)) {
+                    return field.type == value;
+                }
+            },
+            _cloudChanged: function (selectedCloud) {
+                // clear to reset
+                this.set('machineFields', []);
+                var machineFields = [];
+                if (this.selectedCloud) {
+                    var cloudName = this.model.clouds[selectedCloud].provider;
+                    machineFields = this.machinesFields.find(function (c) {
+                        return c.provider == cloudName;
+                    });
+                }
+                // add cloud fields
+                if (machineFields.fields)
+                    this.set('machineFields', machineFields.fields);
+                // set values by provider
+                this._updateFields(selectedCloud);
+            },
+            _resetForm: function () {
+                // Reset Form Fields
+                this.set('selectedCloud', false)
+                this.machineFields.forEach(function (el, index) {
+                    if (el.showIf) {
+                        this.set('machineFields.' + index + '.show', false);
+                    }
+                    // Reset Form Fields Validation
+                    this._resetField(el, index);
+                }, this);
+            },
+            _resetField: function (el, index) {
+                this.set('machineFields.' + index + '.value', el.defaultValue);
+
+                var input = this.querySelector('#' + el.name);
+                if (input) {
+                    input.invalid = false;
+                }
+            },
+            _updateFields: function (selectedCloud) {
+                if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this
+                        .selectedCloud]) {
+                    var cloudId = this.selectedCloud;
+
+                    if (!this.monitoring) // hide enable monitoring field if monitoring is disabled
+                        this.set('machineFields.' + this._fieldIndexByName('monitoring') + '.show',
+                            false);
+
+                    // if is onapp change fields
+                    if (this.model.clouds[this.selectedCloud].provider == "onapp") {
+                        this._updateFieldsForOnapp();
+                    }
+
+                    // if is openstack do not require network/locations
+                    if (this.model.clouds[this.selectedCloud].provider == "openstack") {
+                        this._updateFieldsForOpenstack();
+                    }
+
+                    this.machineFields.forEach(function (f, index) {
+                        // clear options
+                        if (f.type != 'radio' && f.options)
+                            f.options = []
+
+                        if (f.name.endsWith("location")) {
+                            f.options = this.model.clouds[cloudId].locationsArray.slice() || [];
                         }
-                    }
-                },
-                _computeFieldType: function(field, value, show) {
-                    if (!(field.showIf && !field.show)) {
-                        return field.type == value;
-                    }
-                },
-                _cloudChanged: function(selectedCloud, machinesFields) {
-                    // clear to reset
-                    this.set('machineFields', []);
-                    var machineFields = [];
-                    if (this.selectedCloud){
-                        var cloudName =  this.model.clouds[selectedCloud].provider;
-                        machineFields = this.machinesFields.find(function(c){
-                            return c.provider == cloudName;
-                        });
-                    }
-                    // add cloud fields
-                    if (machineFields.fields)
-                        this.set('machineFields', machineFields.fields);
-                    // set values by provider
-                    this._updateFields(selectedCloud);
-                },
-                _resetForm: function() {
-                    // Reset Form Fields
-                    this.set('selectedCloud', false)
-                    this.machineFields.forEach(function(el, index) {
-                        if (el.showIf) {
-                            this.set('machineFields.' + index + '.show', false);
-                        }
-                        // Reset Form Fields Validation
-                        this._resetField(el, index);
-                    }, this);
-                },
-                _resetField: function(el, index) {
-                    this.set('machineFields.' + index + '.value', el.defaultValue);
-
-                    var input = this.querySelector('#' + el.name);
-                    if (input) {
-                        input.invalid = false;
-                    }
-                },
-                _updateFields: function(selectedCloud){
-                    if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this.selectedCloud]) {
-                        var cloudId = this.selectedCloud;
-
-                        if (!this.monitoring) // hide enable monitoring field if monitoring is disabled
-                            this.set('machineFields.' + this._fieldIndexByName('monitoring') + '.show', false);
-
-                        // if is onapp change fields
-                        if (this.model.clouds[this.selectedCloud].provider == "onapp"){
-                            this._updateFieldsForOnapp();
-                        }
-
-                        // if is openstack do not require network/locations
-                        if (this.model.clouds[this.selectedCloud].provider == "openstack"){
-                            this._updateFieldsForOpenstack();
-                        }
-
-                        this.machineFields.forEach(function(f, index) {
-                            // clear options
-                            if (f.type != 'radio' && f.options) 
-                                f.options = []
-
-                            if (f.name.endsWith("location")) {
-                                f.options = this.model.clouds[cloudId].locationsArray || [];
-                            }
-                            if (f.name.endsWith("image")) {
-                                f.options = this.model.clouds[cloudId].imagesArray ? this.model.clouds[cloudId].imagesArray.sort(function(ima, imb){
-                                    if (ima.star){
+                        if (f.name.endsWith("image")) {
+                            f.options = this.model.clouds[cloudId].imagesArray ? this.model
+                                .clouds[cloudId].imagesArray.sort(function (ima, imb) {
+                                    if (ima.star) {
                                         return -1;
                                     }
                                 }) : [];
-                                for (var i = 0; i < f.options.length; i++) {
-                                    if (f.options[i].star){
-                                        f.options[i].icon = 'icons:star';
-                                    }
-                                    else {
-                                        break;
-                                    }
-                                }
-                                // console.log('images', f.options);
-                            }
-                            if (f.name.endsWith("ex_resource_group")) {
-                                f.options = this.model.clouds[cloudId].resourceGroupsArray || [];
-                            }
-                            if (f.name.endsWith("ex_storage_account")) {
-                                f.options = this.model.clouds[cloudId].storageAccountsArray || [];
-                            }
-                            if (f.name.endsWith("size")) {
-                                f.options = this.model.clouds[cloudId].sizesArray || [];
-                                // allow custom size set
-                                if (this.model.clouds[this.selectedCloud].provider == "onapp") {
-                                    f.options = [{name:"Custom Size", id:"custom", button: true}].concat(f.options);
+                            for (var i = 0; i < f.options.length; i++) {
+                                if (f.options[i].star) {
+                                    f.options[i].icon = 'icons:star';
+                                } else {
+                                    break;
                                 }
                             }
-                            if (f.name.endsWith("key")) {
-                                f.options = this.model.keysArray || [];
-                            }
-
-                            if (f.name.startsWith("script") || f.name.startsWith("schedule_script")) {
-                                f.options = this.model.scriptsArray || [];
-                            }
-
-                            if (f.name == "action") {
-                               f.options = this.scheduleActions || [];
-                            }
-
-                            // for openstack this should be multi selection
-                            if (f.name.endsWith("networks")) {
-                                f.options = this.model.clouds[cloudId].networksArray || [];
-                            }
-
-                            if (f.required && f.options && f.options.length == 1){
-                                if (f.type == "dropdown")
-                                   this.set('machineFields.'+index+'.value', f.options[0].val);
-                                else
-                                   this.set('machineFields.'+index+'.value', f.options[0].id);
-                            }
-
-                            // update options
-                            if (f.options)
-                                this.set('machineFields.'+index+'.options', f.options);
-
-                        }, this);
-
-                        // if is docker, change required values
-                        if (this.model.clouds[this.selectedCloud].provider == "docker"){
-                            this._updateFieldsForDocker();
+                            // console.log('images', f.options);
                         }
-
-                        // if is azure arm, change required values
-                        if (this.model.clouds[this.selectedCloud].provider == "azure_arm"){
-                            this._updateFieldsForAzureArm();
+                        if (f.name.endsWith("ex_resource_group")) {
+                            f.options = this.model.clouds[cloudId].resourceGroupsArray || [];
                         }
-
-                        // if is kvm, change helptexts
-                        if (this.model.clouds[this.selectedCloud].provider == "libvirt"){
-                            this._updateFieldsForKvm();
+                        if (f.name.endsWith("ex_storage_account")) {
+                            f.options = this.model.clouds[cloudId].storageAccountsArray || [];
                         }
-
-                        // default values
-                        if (this.machineFields){
-                            this.machineFields.forEach(function(f, index){
-                                this.set('machineFields.'+index+'.value', this.get('machineFields.'+index+'.defaultValue'));
-                            }.bind(this));
-                        }
-
-                    }
-                },
-
-                _machineFieldsChanged: function(model, selectedCloud, changeRecord){
-                    // console.log('model, selected cloud or machine fields changed', this.selectedCloud, changeRecord);
-                    if (this.selectedCloud && this.model && this.model.clouds && this.model.clouds[this.selectedCloud]){
-                        // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
-                        if (this.model.clouds[this.selectedCloud].provider == "docker" && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'ports'){
-                            // TODO: remove _mapPortsToDockerPorts, when backend is ready to accept docker_port_bindings as string
-                            // Then also, replace field ports with docker_port_bindings as a textarea and remove docker_exposed_ports and ports altogether in machine-create-fields.js
-                            this._mapPortsToDockerPorts(changeRecord.value);
-                        }
-
-                        // if is gce/linode and image changed, include image extar in payload
-                        if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[this.selectedCloud].provider == "gce" ) && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'image'){
-                            this._includeImageExtra(changeRecord.value);
-                        }
-
-                        // if is gce/linode and image changed, include location name in payload
-                        if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[this.selectedCloud].provider == "gce" ) && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'location'){
-                            this._includeLocationName(changeRecord.value);
-                        }
-
-                        // if its ec2 and image changes update size to match the virtualization_type
-                        if (this.model.clouds[this.selectedCloud].provider == "ec2" && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'image'){
-                            this._updateEc2Sizes(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // if image and image is Windows, show password field
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'image'){
-                            this._showPassword(this.get(changeRecord.path));
-                            this._hideElementsforWin(this.get(changeRecord.path));
-                        }
-
-                        // if its kvm
-                        if (this.model.clouds[this.selectedCloud].provider == 'libvirt' && changeRecord.path.endsWith('.value')  && this.get(changeRecord.path.replace('.value','')).name == 'name') {
-                            this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // if it is azure arm and location is changed
-                        if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' && changeRecord.path.endsWith('.value')  && this.get(changeRecord.path.replace('.value','')).name == 'location'){
-                            //update storage accounts
-                            var cloudId = this.selectedCloud;
-                            var storageAccounts = this.model.clouds[cloudId].storageAccountsArray || [];
-                            var location = this.get(changeRecord.path.replace('.value','')).value
-                            var locationAccounts = storageAccounts.filter(function(el){
-                                return el.extra.primaryLocation == location
-                            })
-                            var storageInd = this._fieldIndexByName('ex_storage_account');
-                            this.set('machineFields.'+storageInd+'.options', locationAccounts);
-
-                            //update networks
-                            var networks = this.model.clouds[cloudId].networksArray || [];
-                            var locationNetworks = networks.filter(function(el){
-                                return el.location == location
-                            })
-                            var networkInd = this._fieldIndexByName('networks');
-                            this.set('machineFields.'+networkInd+'.options', locationNetworks);
-                        }
-                        // if it is azure arm and machine name is changed
-                        if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' && changeRecord.path.endsWith('.value')  && this.get(changeRecord.path.replace('.value','')).name == 'name'){
-                            //autocomplete resource, storage, network fields
-                            this._updateAzureFields(this.get(changeRecord.path));
-                        }
-                        // let either script or script_id to pass in the from payload
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'run_script'){
-                            console.log('changeRecord.path',changeRecord.path)
-                            this._toggleScriptFields(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // handle storage accounts
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_storage_account'){
-                            this._toggleStorageAccountFields(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // handle resource groups
-                        if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_resource_group'){
-                            this._toggleResourceGroupFields(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        // handle networks for azure arm
-                        if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name == 'create_network'){
-                            this._toggleNetworkFields(this.get(changeRecord.path.replace('.value','')).value);
-                        }
-
-                        if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path.endsWith('value')){
-                            // if is onapp controll options based on location
-                            if (this.get(changeRecord.path.replace('.value','')).name == 'location')
-                                this._updateFieldOptionsForOnapp(changeRecord.value);
-                            // if is onapp controll options based on image
-                            if (this.get(changeRecord.path.replace('.value','')).name == 'image')
-                                this._updateFieldMinsForOnapp(changeRecord.value);
-                            // if is onapp controll total size
-                            if (this.get(changeRecord.path.replace('.value','')).name == 'size_disk_primary')
-                                this._updateDiskMax('size_disk_swap', changeRecord.value);
-                            // if is onapp controll total size
-                            if (this.get(changeRecord.path.replace('.value','')).name == 'size_disk_swap')
-                                this._updateDiskMax('size_disk_primary', changeRecord.value);
-                        }
-
-                        // update scheduler fields
-                        if (changeRecord.path.endsWith('.value')) {
-                            var scheduleFields = ['action','schedule_script_id','params','schedule_type','schedule_entry','start_after','expires','max_run_count'];
-                            var scheduleFieldFalse = ['action','params', 'schedule_type','schedule_entry','start_after','expires','max_run_count']
-                            // toggling scehduler
-                            if (this.get(changeRecord.path.replace('.value','')).name == "post_provision_scheduler"){
-                                //console.log('schedule changed', changeRecord.value);
-                                if (changeRecord.value == true){
-                                    for (var i = 0; i < scheduleFieldFalse.length; i ++){
-                                        var index = this._fieldIndexByName(scheduleFieldFalse[i]);
-                                        this.set('machineFields.'+ index +'.excludeFromPayload', false);
-                                        //console.log('FALSE', scheduleFieldFalse[i])
-                                    }
-                                }
-                                else {
-                                    for (var i = 0; i < scheduleFields.length; i ++){
-                                        var index = this._fieldIndexByName(scheduleFields[i]);
-                                        this.set('machineFields.'+ index +'.excludeFromPayload', true);
-                                        //console.log('TRUE', scheduleFields[i])
-                                    }
-                                }
-                            }
-
-                            // selecting action or script
-                            if (this.get(changeRecord.path.replace('.value','')).name == "action"){
-                                var actionInd = this._fieldIndexByName("action");
-                                var scriptInd = this._fieldIndexByName("schedule_script_id");
-
-                                if (changeRecord.value == "run script"){
-                                    this.set('machineFields.'+ scriptInd +'.excludeFromPayload', false);
-                                    this.set('machineFields.'+ actionInd +'.excludeFromPayload', true);
-                                }
-
-                                if (changeRecord.value != "run script") {
-                                    this.set('machineFields.'+ scriptInd +'.excludeFromPayload', true);
-                                    this.set('machineFields.'+ actionInd +'.excludeFromPayload', false);
-                                }
-                            }
-
-
-                            // initial values in shedule entry
-                            if (this.get(changeRecord.path.replace('.value','')).name == "schedule_type"){
-                                var entryInd = this._fieldIndexByName("schedule_entry"),
-                                    expInd = this._fieldIndexByName("expires"),
-                                    entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab"),
-                                    maxcountInd = this._fieldIndexByName("max_run_count"),
-                                    entry;
-                                if (changeRecord.value == "interval") {
-                                    entry = this._processInterval();
-                                    this.set('machineFields.'+ expInd +'.disabled', false);
-                                    this.set('machineFields.'+ maxcountInd +'.disabled', false);
-                                    this.set('machineFields.'+ maxcountInd +'.value', "");
-                                }
-                                else if (changeRecord.value == "crontab") {
-                                    entry = this._processCrotab(this.get('machineFields.'+entryCronTabInd+'.value')) || this._processCrotab(this.get('machineFields.'+entryCronTabInd+'.defaultValue'));
-                                    this.set('machineFields.'+ expInd +'.disabled', false);
-                                    this.set('machineFields.'+ maxcountInd +'.disabled', false);
-                                    this.set('machineFields.'+ maxcountInd +'.value', "");
-                                }
-                                else if (changeRecord.value == "one_off") {
-                                    entry = document.getElementById("schedule_entry_one_off") && document.getElementById("schedule_entry_one_off").textContent && document.getElementById("schedule_entry_one_off").textContent.split(',')[1] ? document.getElementById("schedule_entry_one_off").textContent.split(',')[1].trim()+":00" : "";
-                                    this.set('machineFields.'+ expInd +'.disabled', true);
-                                    this.set('machineFields.'+ maxcountInd +'.value', 1);
-                                    this.set('machineFields.'+ maxcountInd +'.disabled', true);
-                                }
-                                this.set('machineFields.'+ entryInd +'.value', entry);
-                            }
-
-                            // date in shedule entry
-                            if (this.get(changeRecord.path.replace('.value','')).name == "schedule_entry_one_off"){
-                                var entryInd = this._fieldIndexByName("schedule_entry");
-                                this.set('machineFields.'+ entryInd +'.value', changeRecord.value);
-                            }
-
-                            // crontab in schedule entry
-                            if (this.get(changeRecord.path.replace('.value','')).name == "schedule_entry_crontab"){
-                                var entryInd = this._fieldIndexByName("schedule_entry");
-                                this.set('machineFields.'+ entryInd +'.value', this._processCrotab(changeRecord.value));
-                            }
-
-                            // interval changes in schedule entry
-                            if (this.get(changeRecord.path.replace('.value','')).name.startsWith("schedule_entry_interval_")) {
-                                var entryInd = this._fieldIndexByName("schedule_entry");
-                                this.set('machineFields.'+ entryInd +'.value', this._processInterval());
-                            }
-
-                            if (this.get(changeRecord.path.replace('.value','')).name == "expires"){
-                                var expiresInd = this._fieldIndexByName("expires");
-                                var include = changeRecord.value != "" ? false : true;
-                                this.set('machineFields.'+ expiresInd +'.excludeFromPayload', include);
-                            }
-
-                            if (this.get(changeRecord.path.replace('.value','')).name == "max_run_count"){
-                                var maxcountInd = this._fieldIndexByName("max_run_count");
-                                if (typeof(this.get('machineFields.'+ maxcountInd +'.value')) != 'number'){
-                                        if (parseInt(changeRecord.value) == NaN){
-                                            this.set('machineFields.'+ maxcountInd +'.excludeFromPayload', true);
-                                            this.set('machineFields.'+ maxcountInd +'.value', "");
-                                        }
-                                        else {
-                                            this.set('machineFields.'+ maxcountInd +'.excludeFromPayload', false);
-                                            this.set('machineFields.'+ maxcountInd +'.value', parseInt(changeRecord.value));
-                                        }
-                                }
+                        if (f.name.endsWith("size")) {
+                            f.options = this.model.clouds[cloudId].sizesArray || [];
+                            // allow custom size set
+                            if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[this.selectedCloud].provider) > -1) {
+                                f.options = [{
+                                    name: "Custom Size",
+                                    id: "custom",
+                                    button: true
+                                }].concat(f.options);
                             }
                         }
-                    }
-                },
-
-                _mapPortsToDockerPorts: function(input){
-                    var lines = input.split('\n');
-                    var docker_exposed_ports = {};
-                    var docker_port_bindings = {};
-
-                    for (var i = 0; i < lines.length; i++) {
-                        var ports = lines[i].split(':');
-
-                        var p1 = ports[0],
-                            p2 = ports[1];
-
-                        //sanitize
-                        if (p1)
-                            p1 = p1.trim();
-                        if (p2)
-                            p2 = p2.trim();
-
-                        //update docker_exposed_ports
-                        //update docker_port_bindings
-                        if (p1 && p1.length && p2 && p2.length ) {
-                            if (p1.indexOf('/') == -1) {
-                                docker_exposed_ports[p1+'/tcp'] = {};
-                                docker_port_bindings[p1+'/tcp'] = {"HostPort" : p2}
-                            }
-                            else {
-                                docker_exposed_ports[p1] = {};
-                                docker_port_bindings[p1] = [{"HostPort" : p2}]
-                            }
+                        if (f.name.endsWith("key")) {
+                            f.options = this.model.keysArray || [];
                         }
+
+                        if (f.name.startsWith("script") || f.name.startsWith(
+                                "schedule_script")) {
+                            f.options = this.model.scriptsArray || [];
+                        }
+
+                        if (f.name == "action") {
+                            f.options = this.scheduleActions || [];
+                        }
+
+                        // for openstack this should be multi selection
+                        if (f.name.endsWith("networks")) {
+                            f.options = this.model.clouds[cloudId].networksArray.slice() || [];
+                        }
+
+                        if (f.required && f.options && f.options.length == 1) {
+                            if (f.type == "dropdown")
+                                this.set('machineFields.' + index + '.value', f.options[0].val);
+                            else
+                                this.set('machineFields.' + index + '.value', f.options[0].id);
+                        }
+
+                        // update options
+                        if (f.options)
+                            this.set('machineFields.' + index + '.options', f.options);
+
+                    }, this);
+
+                    // if is docker, change required values
+                    if (this.model.clouds[this.selectedCloud].provider == "docker") {
+                        this._updateFieldsForDocker();
                     }
 
+                    // if is azure arm, change required values
+                    if (this.model.clouds[this.selectedCloud].provider == "azure_arm") {
+                        this._updateFieldsForAzureArm();
+                    }
+
+                    // if is kvm, change helptexts
+                    if (this.model.clouds[this.selectedCloud].provider == "libvirt") {
+                        this._updateFieldsForKvm();
+                    }
+
+                    // default values
+                    if (this.machineFields) {
+                        this.machineFields.forEach(function (f, index) {
+                            this.set('machineFields.' + index + '.value', this.get(
+                                'machineFields.' + index + '.defaultValue'));
+                        }.bind(this));
+                    }
+                }
+            },
+
+            _machineFieldsChanged: function (changeRecord) {
+                // console.log('model, selected cloud or machine fields changed', this.selectedCloud, changeRecord);
+                if (this.selectedCloud && this.model && this.model.clouds && this.model.clouds[this
+                        .selectedCloud]) {
+                    // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
+                    if (this.model.clouds[this.selectedCloud].provider == "docker" && changeRecord.path
+                        .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
+                        'ports') {
+                        // TODO: remove _mapPortsToDockerPorts, when backend is ready to accept docker_port_bindings as string
+                        // Then also, replace field ports with docker_port_bindings as a textarea and remove docker_exposed_ports and ports altogether in machine-create-fields.js
+                        this._mapPortsToDockerPorts(changeRecord.value);
+                    }
+
+                    // if is gce/linode and image changed, include image extar in payload
+                    if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[
+                            this.selectedCloud].provider == "gce") && changeRecord.path.endsWith(
+                            'value') && this.get(changeRecord.path.replace('.value', '')).name ==
+                        'image') {
+                        this._includeImageExtra(changeRecord.value);
+                    }
+
+                    // if is gce/linode and image changed, include location name in payload
+                    if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[
+                            this.selectedCloud].provider == "gce") && changeRecord.path.endsWith(
+                            'value') && this.get(changeRecord.path.replace('.value', '')).name ==
+                        'location') {
+                        this._includeLocationName(changeRecord.value);
+                    }
+
+                    // if its ec2 and image changes update size to match the virtualization_type
+                    if (this.model.clouds[this.selectedCloud].provider == "ec2" && changeRecord.path
+                        .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
+                        'image') {
+                        this._updateEc2Sizes(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
+
+                    // if image and image is Windows, show password field
+                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'image') {
+                        this._showPassword(this.get(changeRecord.path));
+                        this._hideElementsforWin(this.get(changeRecord.path));
+                    }
+
+                    // if its kvm
+                    if (this.model.clouds[this.selectedCloud].provider == 'libvirt' && changeRecord
+                        .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
+                        .name == 'name') {
+                        this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
+
+                    // if it is azure arm and location is changed
+                    if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
+                        changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'location') {
+                        //update storage accounts
+                        var cloudId = this.selectedCloud;
+                        var storageAccounts = this.model.clouds[cloudId].storageAccountsArray || [];
+                        var location = this.get(changeRecord.path.replace('.value', '')).value
+                        var locationAccounts = storageAccounts.filter(function (el) {
+                            return el.extra.primaryLocation == location
+                        })
+                        var storageInd = this._fieldIndexByName('ex_storage_account');
+                        this.set('machineFields.' + storageInd + '.options', locationAccounts);
+
+                        // update networks
+                        var networks = this.model.clouds[cloudId].networksArray.slice() || [];
+                        var locationNetworks = networks.filter(function (el) {
+                            return el.location == location
+                        })
+                        var networkInd = this._fieldIndexByName('networks');
+                        this.set('machineFields.' + networkInd + '.options', locationNetworks);
+                    }
+                    // if it is azure arm and machine name is changed
+                    if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
+                        changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'name') {
+                        //autocomplete resource, storage, network fields
+                        this._updateAzureFields(this.get(changeRecord.path));
+                    }
+                    // let either script or script_id to pass in the from payload
+                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'run_script') {
+                        this._toggleScriptFields(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
+
+                    // handle storage accounts
+                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'create_storage_account') {
+                        this._toggleStorageAccountFields(this.get(changeRecord.path.replace(
+                            '.value', '')).value);
+                    }
+
+                    // handle resource groups
+                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'create_resource_group') {
+                        this._toggleResourceGroupFields(this.get(changeRecord.path.replace('.value',
+                            '')).value);
+                    }
+
+                    // handle networks for azure arm
+                    if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
+                        changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'create_network') {
+                        this._toggleNetworkFields(this.get(changeRecord.path.replace('.value', ''))
+                            .value);
+                    }
+
+                    if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path
+                        .endsWith('value')) {
+                        // if is onapp controll options based on location
+                        if (this.get(changeRecord.path.replace('.value', '')).name == 'location')
+                            this._updateFieldOptionsForOnapp(changeRecord.value);
+                        // if is onapp controll options based on image
+                        if (this.get(changeRecord.path.replace('.value', '')).name == 'image')
+                            this._updateFieldMinsForOnapp(changeRecord.value);
+                        // if is onapp controll total size
+                        if (this.get(changeRecord.path.replace('.value', '')).name ==
+                            'size_disk_primary')
+                            this._updateDiskMax('size_disk_swap', changeRecord.value);
+                        // if is onapp controll total size
+                        if (this.get(changeRecord.path.replace('.value', '')).name ==
+                            'size_disk_swap')
+                            this._updateDiskMax('size_disk_primary', changeRecord.value);
+                    }
+
+                    // update scheduler fields
+                    if (changeRecord.path.endsWith('.value')) {
+                        var scheduleFields = ['action', 'schedule_script_id', 'params',
+                            'schedule_type', 'schedule_entry', 'start_after', 'expires',
+                            'max_run_count'
+                        ];
+                        var scheduleFieldFalse = ['action', 'params', 'schedule_type',
+                            'schedule_entry', 'start_after', 'expires', 'max_run_count'
+                        ];
+                        // toggling scehduler
+                        if (this.get(changeRecord.path.replace('.value', '')).name ==
+                            "post_provision_scheduler") {
+                            //console.log('schedule changed', changeRecord.value);
+                            if (changeRecord.value == true) {
+                                for (var i = 0; i < scheduleFieldFalse.length; i++) {
+                                    var index = this._fieldIndexByName(scheduleFieldFalse[i]);
+                                    this.set('machineFields.' + index + '.excludeFromPayload',
+                                        false);
+                                    //console.log('FALSE', scheduleFieldFalse[i])
+                                }
+                            } else {
+                                for (var i = 0; i < scheduleFields.length; i++) {
+                                    var index = this._fieldIndexByName(scheduleFields[i]);
+                                    this.set('machineFields.' + index + '.excludeFromPayload', true);
+                                    //console.log('TRUE', scheduleFields[i])
+                                }
+                            }
+                        }
+
+                        // selecting action or script
+                        if (this.get(changeRecord.path.replace('.value', '')).name == "action") {
+                            var actionInd = this._fieldIndexByName("action");
+                            var scriptInd = this._fieldIndexByName("schedule_script_id");
+
+                            if (changeRecord.value == "run script") {
+                                this.set('machineFields.' + scriptInd + '.excludeFromPayload',
+                                    false);
+                                this.set('machineFields.' + actionInd + '.excludeFromPayload', true);
+                            }
+
+                            if (changeRecord.value != "run script") {
+                                this.set('machineFields.' + scriptInd + '.excludeFromPayload', true);
+                                this.set('machineFields.' + actionInd + '.excludeFromPayload',
+                                    false);
+                            }
+                        }
+
+                        // initial values in shedule entry
+                        if (this.get(changeRecord.path.replace('.value', '')).name ==
+                            "schedule_type") {
+                            var entryInd = this._fieldIndexByName("schedule_entry"),
+                                expInd = this._fieldIndexByName("expires"),
+                                entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab"),
+                                maxcountInd = this._fieldIndexByName("max_run_count"),
+                                entry;
+                            if (changeRecord.value == "interval") {
+                                entry = this._processInterval();
+                                this.set('machineFields.' + expInd + '.disabled', false);
+                                this.set('machineFields.' + maxcountInd + '.disabled', false);
+                                this.set('machineFields.' + maxcountInd + '.value', "");
+                            } else if (changeRecord.value == "crontab") {
+                                entry = this._processCrotab(this.get('machineFields.' +
+                                    entryCronTabInd + '.value')) || this._processCrotab(this.get(
+                                    'machineFields.' + entryCronTabInd + '.defaultValue'));
+                                this.set('machineFields.' + expInd + '.disabled', false);
+                                this.set('machineFields.' + maxcountInd + '.disabled', false);
+                                this.set('machineFields.' + maxcountInd + '.value', "");
+                            } else if (changeRecord.value == "one_off") {
+                                entry = document.getElementById("schedule_entry_one_off") &&
+                                    document.getElementById("schedule_entry_one_off").textContent &&
+                                    document.getElementById("schedule_entry_one_off").textContent.split(
+                                        ',')[1] ? document.getElementById("schedule_entry_one_off")
+                                    .textContent.split(',')[1].trim() + ":00" : "";
+                                this.set('machineFields.' + expInd + '.disabled', true);
+                                this.set('machineFields.' + maxcountInd + '.value', 1);
+                                this.set('machineFields.' + maxcountInd + '.disabled', true);
+                            }
+                            this.set('machineFields.' + entryInd + '.value', entry);
+                        }
+
+                        // date in shedule entry
+                        if (this.get(changeRecord.path.replace('.value', '')).name ==
+                            "schedule_entry_one_off") {
+                            var entryInd = this._fieldIndexByName("schedule_entry");
+                            this.set('machineFields.' + entryInd + '.value', changeRecord.value);
+                        }
+
+                        // crontab in schedule entry
+                        if (this.get(changeRecord.path.replace('.value', '')).name ==
+                            "schedule_entry_crontab") {
+                            var entryInd = this._fieldIndexByName("schedule_entry");
+                            this.set('machineFields.' + entryInd + '.value', this._processCrotab(
+                                changeRecord.value));
+                        }
+
+                        // interval changes in schedule entry
+                        if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
+                                "schedule_entry_interval_")) {
+                            var entryInd = this._fieldIndexByName("schedule_entry");
+                            this.set('machineFields.' + entryInd + '.value', this._processInterval());
+                        }
+
+                        if (this.get(changeRecord.path.replace('.value', '')).name == "expires") {
+                            var expiresInd = this._fieldIndexByName("expires");
+                            var include = changeRecord.value != "" ? false : true;
+                            this.set('machineFields.' + expiresInd + '.excludeFromPayload', include);
+                        }
+
+                        if (this.get(changeRecord.path.replace('.value', '')).name ==
+                            "max_run_count") {
+                            var maxcountInd = this._fieldIndexByName("max_run_count");
+                            if (typeof (this.get('machineFields.' + maxcountInd + '.value')) !=
+                                'number') {
+                                if (parseInt(changeRecord.value) == NaN) {
+                                    this.set('machineFields.' + maxcountInd + '.excludeFromPayload',
+                                        true);
+                                    this.set('machineFields.' + maxcountInd + '.value', "");
+                                } else {
+                                    this.set('machineFields.' + maxcountInd + '.excludeFromPayload',
+                                        false);
+                                    this.set('machineFields.' + maxcountInd + '.value', parseInt(
+                                        changeRecord.value));
+                                }
+                            }
+                        }
+                    }
+                }
+                // if is vsphere change fields
+                if (this.model && this.model.clouds && this.model.clouds[this.selectedCloud] && this.model.clouds[this.selectedCloud].provider == "vsphere") {
+                    this._updateFieldsForVsphere();
+                }
+            },
+
+            _mapPortsToDockerPorts: function (input) {
+                var lines = input.split('\n');
+                var docker_exposed_ports = {};
+                var docker_port_bindings = {};
+
+                for (var i = 0; i < lines.length; i++) {
+                    var ports = lines[i].split(':');
+
+                    var p1 = ports[0],
+                        p2 = ports[1];
+
+                    //sanitize
+                    if (p1)
+                        p1 = p1.trim();
+                    if (p2)
+                        p2 = p2.trim();
+
+                    //update docker_exposed_ports
+                    //update docker_port_bindings
+                    if (p1 && p1.length && p2 && p2.length) {
+                        if (p1.indexOf('/') == -1) {
+                            docker_exposed_ports[p1 + '/tcp'] = {};
+                            docker_port_bindings[p1 + '/tcp'] = {
+                                "HostPort": p2
+                            }
+                        } else {
+                            docker_exposed_ports[p1] = {};
+                            docker_port_bindings[p1] = [{
+                                "HostPort": p2
+                            }]
+                        }
+                    }
+                }
+
+                // save in fields
+                var indDep = this._fieldIndexByName('docker_exposed_ports');
+                var indDpb = this._fieldIndexByName('docker_port_bindings');
+
+                if (indDep != undefined)
+                    this.set('machineFields.' + indDep + '.value', docker_exposed_ports);
+                if (indDpb != undefined)
+                    this.set('machineFields.' + indDpb + '.value', docker_port_bindings);
+            },
+
+            _includeImageExtra: function (image) {
+                if (image) {
                     // save in fields
-                    var indDep = this._fieldIndexByName('docker_exposed_ports');
-                    var indDpb = this._fieldIndexByName('docker_port_bindings');
+                    var indImEx = this._fieldIndexByName('image_extra');
+                    if (indImEx != undefined)
+                        this.set('machineFields.' + indImEx + '.value', this.model.clouds[this.selectedCloud]
+                            .images[image].extra);
+                }
+            },
 
-                    if (indDep != undefined)
-                        this.set('machineFields.'+indDep+'.value', docker_exposed_ports);
-                    if (indDpb != undefined)
-                        this.set('machineFields.'+indDpb+'.value', docker_port_bindings);
-                },
+            _includeLocationName: function (location) {
+                if (location) {
+                    // save in fields
+                    var indLocName = this._fieldIndexByName('location_name');
+                    if (indLocName != undefined)
+                        this.set('machineFields.' + indLocName + '.value', this.model.clouds[this.selectedCloud]
+                            .locations[location].name);
+                }
+            },
 
-                _includeImageExtra: function(image){
-                    if (image) {
-                        // save in fields
-                        var indImEx = this._fieldIndexByName('image_extra');
-                        if (indImEx != undefined)
-                            this.set('machineFields.'+indImEx+'.value', this.model.clouds[this.selectedCloud].images[image].extra);
-                    }
-                },
+            _updateDiskMax: function (name, value, total) {
+                var sizeInd = this._fieldIndexByName(name),
+                    location = this.model.clouds[this.selectedCloud].locations[this.get(
+                        'machineFields.' + this._fieldIndexByName('location') + '.value')];
 
-                _includeLocationName: function(location){
-                    if (location) {
-                        // save in fields
-                        var indLocName = this._fieldIndexByName('location_name');
-                        if (indLocName != undefined)
-                            this.set('machineFields.'+indLocName+'.value', this.model.clouds[this.selectedCloud].locations[location].name);
-                    }
-                },
+                if (!location)
+                    return;
 
-                _updateDiskMax: function(name, value, total){
-                    var sizeInd = this._fieldIndexByName(name),
-                        location = this.model.clouds[this.selectedCloud].locations[this.get('machineFields.'+this._fieldIndexByName('location')+'.value')];
+                if (!total)
+                    var total = location.extra.max_disk_size;
 
-                    if (!location)
-                        return;
+                if (total && total - value > 0)
+                    this.set('machineFields.' + sizeInd + '.max', total - value);
+            },
 
-                    if (!total)
-                        var total = location.extra.max_disk_size;
+            _updateFieldsForOnapp: function () {
+                var keyInd = this._fieldIndexByName('key');
+                this.set('machineFields.' + keyInd + '.required', false);
+                this.set('machineFields.' + keyInd + '.label', "Key");
+                this.set('machineFields.' + keyInd + '.helptext', "Optional.");
+            },
 
-                    if (total && total-value > 0)
-                        this.set('machineFields.'+ sizeInd +'.max', total-value);
-                },
 
-                _updateFieldsForOnapp: function () {
-                    var keyInd = this._fieldIndexByName('key');
-                    this.set('machineFields.'+ keyInd +'.required', false);
-                    this.set('machineFields.'+ keyInd +'.label', "Key");
-                    this.set('machineFields.'+ keyInd +'.helptext', "Optional.");
-                },
-
-                _updateFieldsForOpenstack: function () {
-                    var locInd = this._fieldIndexByName('location');
-                    this.set('machineFields.'+ locInd +'.required', false);
-                    this.set('machineFields.'+ locInd +'.label', "Location");
-                },
-
-                _updateFieldMinsForOnapp: function(image) {
-                    var image = this.model.clouds[this.selectedCloud].images[image];
-
-                    if (!image) {
-                        return;
-                    }
-
-                    var ramInd = this._fieldIndexByName('size_ram'),
-                        diskInd = this._fieldIndexByName('size_disk_primary');
-
-                    this.set('machineFields.'+ramInd+'.min', image.extra.min_memory_size);
-                    this.set('machineFields.'+diskInd+'.min', image.extra.min_disk_size);
-
-                    // console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
-                },
-                _updateFieldOptionsForOnapp: function(loc) {
-                    var location = this.model.clouds[this.selectedCloud].locations[loc];
-
-                    if (!location) {
-                        return;
-                    }
-
-                    var cpuInd = this._fieldIndexByName('size_cpu'),
-                        ramInd = this._fieldIndexByName('size_ram'),
-                        hgiInd = this._fieldIndexByName('hypervisor_group_id'),
-                        diskInd = this._fieldIndexByName('size_disk_primary'),
-                        swapInd = this._fieldIndexByName('size_disk_swap');
-
-                    // update mins maxs
-                    this.set('machineFields.'+cpuInd+'.max', location.extra.max_cpu);
-                    this.set('machineFields.'+ramInd+'.max', location.extra.max_memory);
-                    this.set('machineFields.'+hgiInd+'.value', location.extra.hypervisor_group_id);
-
-                    if (location.extra.max_disk_size){
-                        this._updateDiskMax('size_disk_primary', this.get('machineFields.'+this._fieldIndexByName('size_disk_swap')+'.value'), location.extra.max_disk_size);
-                        this._updateDiskMax('size_disk_swap', this.get('machineFields.'+this._fieldIndexByName('size_disk_primary')+'.value'), location.extra.max_disk_size);
-                    }
-                    else {
-                        this.set('machineFields.'+diskInd+'.max', 16);
-                        this.set('machineFields.'+swapInd+'.max', 16);
-                    }
-
-                    var imagesInd = this._fieldIndexByName('image'),
-                        networksInd = this._fieldIndexByName('networks');
-
-                    // update networks
-                    this.set('machineFields.'+networksInd+'.options', location.extra.networks);
-
-                    // filter images
-                    if (location.extra.federated == true)
-                        this.set('machineFields.'+imagesInd+'.options', this._filterImagesByLoc(location.extra.hypervisor_group_id));
-                    else
-                        this.set('machineFields.'+imagesInd+'.options', this._filterImagesWithNoHyp());
-
-                },
-                _filterImagesByLoc: function (location) {
-                    return this.model.clouds[this.selectedCloud].imagesArray.filter(function(im){
-                        return im.extra.hypervisor_group_id == location;
-                    });
-                },
-                _filterImagesWithNoHyp: function (location) {
-                    return this.model.clouds[this.selectedCloud].imagesArray.filter(function(im){
-                        return !im.extra.hypervisor_group_id;
-                    });
-                },
-                _updateFieldsForDocker: function(){
-                    var sizeInd = this._fieldIndexByName('size');
-                    var locInd = this._fieldIndexByName('location');
-                    var keyInd = this._fieldIndexByName('key');
-                    var monInd = this._fieldIndexByName('monitoring');
-
-                    //hide size and location
-                    this.set('machineFields.'+ sizeInd +'.show', false);
-                    this.set('machineFields.'+ locInd +'.show', false);
-
-                    // optional key
-                    this.set('machineFields.'+ keyInd +'.required', false);
-                    this.set('machineFields.'+ keyInd +'.label', 'Key');
-                    this.set('machineFields.'+ keyInd +'.helptext', "Optional. Keys are valid only for Mist.io images");
-
-                    // disable monitoring by default
-                    this.set('machineFields.'+ monInd +'.value', false);
-                },
-                _updateFieldsForKvm: function(){
-                    var imaInd = this._fieldIndexByName('image');
-                    var locInd = this._fieldIndexByName('location');
-                    var keyInd = this._fieldIndexByName('key');
-                    var pathInd = this._fieldIndexByName('libvirt_disk_path');
-
-                    //hide default image and location field
-                    this.set('machineFields.'+ imaInd +'.add', true);
-                    this.set('machineFields.'+ imaInd +'.required', true);
-                    this.set('machineFields.'+ locInd +'.show', false);
-                    this.set('machineFields.'+ locInd +'.required', false);
-                    this.set('machineFields.'+ locInd +'.excludeFromPayload', true);
-
-                    //change key helptexts
-                    this.set('machineFields.'+ keyInd +'.helptext', "Αn ssh key to deploy if using a cloudinit based Linux image");
-                    this.set('machineFields.'+ keyInd +'.helpHref', "http://docs.mist.io/article/99-managing-kvm-with-mist-io");
-
-                    //fill in disk path using images_location
-                    this.set('machineFields.'+ pathInd +'.value', this.model.clouds[this.selectedCloud].images_location);
-                },
-                _updateFieldsForAzureArm: function(){
-                    var hostnameInd = this._fieldIndexByName('create_hostname_machine');
-                    this.set('machineFields.'+ hostnameInd +'.show', false);
-                },
-                _updateKvmDiskPath: function(machinename){
-                    var pathInd = this._fieldIndexByName('libvirt_disk_path');
-
-                    //fill in disk path using images_location and machine name
-                    if (machinename.trim().length)
-                    this.set('machineFields.'+ pathInd +'.value', this.model.clouds[this.selectedCloud].images_location +"/"+ machinename.trim() +".img");
-                },
-                _updateAzureFields: function(machinename){
-                    var networkInd = this._fieldIndexByName('new_network');
-                    this.set('machineFields.'+networkInd+'.value', machinename + '-vnet');
-                    var resourceInd = this._fieldIndexByName('new_resource_group');
-                    this.set('machineFields.'+resourceInd+'.value', machinename);
-                    var storageInd = this._fieldIndexByName('new_storage_account');
-                    this.set('machineFields.'+storageInd+'.value', machinename + 'disks');
-                },
-                _updateEc2Sizes: function(imageid) {
-                    if (this.model.images[imageid] && this.model.images[imageid].extra && this.model.images[imageid].extra.virtualization_type){
-                        var virtualization_type = this.model.images[imageid].extra.virtualization_type;
-
-                        var sizeInd = this._fieldIndexByName('size');
-                        var sizesOptions = this.model.clouds[this.selectedCloud].sizesArray.filter(function(s){
-                            if (s.extra.virtualizationTypes){
-                                return s.extra.virtualizationTypes.indexOf(virtualization_type) > -1
-                            } else {return 1}
-                        });
-                        this.set('machineFields.' + sizeInd + '.options', sizesOptions);
-                        // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
-                    }
-
-                },
-                _toggleScriptFields: function(scripttype){
-                    var inlineInd = this._fieldIndexByName('script');
-                    var selectInd = this._fieldIndexByName('script_id');
-
-                    //if one, exclude the other
-                    if (scripttype == "inline"){
-                        this.set('machineFields.'+ inlineInd +'.excludeFromPayload', false);
-                        this.set('machineFields.'+ selectInd +'.excludeFromPayload', true);
-                    }
-                    else if (scripttype == "select"){
-                        this.set('machineFields.'+ selectInd +'.excludeFromPayload', false);
-                        this.set('machineFields.'+ inlineInd +'.excludeFromPayload', true);
-                    }
-
-                    // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
-                },
-                _toggleStorageAccountFields: function(new_account){
-                    var newInd = this._fieldIndexByName('new_storage_account');
-                    var oldInd = this._fieldIndexByName('ex_storage_account');
-
-                    //if one, hide the other
-                    if (new_account == true){
-                        this.set('machineFields.'+ newInd +'.show', true);
-                        this.set('machineFields.'+ oldInd +'.show', false);
-
-                    }
-                    else if (new_account == false){
-                        this.set('machineFields.'+ newInd +'.show', false);
-                        this.set('machineFields.'+ oldInd +'.show', true);
-                    }
-                },
-                _toggleNetworkFields: function(new_network){
-                    var newInd = this._fieldIndexByName('new_network');
-                    var oldInd = this._fieldIndexByName('networks');
-
-                    //if one, hide the other
-                    if (new_network == true){
-                        this.set('machineFields.'+ newInd +'.show', true);
-                        this.set('machineFields.'+ oldInd +'.show', false);
-
-                    }
-                    else if (new_network == false){
-                        this.set('machineFields.'+ newInd +'.show', false);
-                        this.set('machineFields.'+ oldInd +'.show', true);
-                    }
-                },
-                _toggleResourceGroupFields: function(new_group){
-                    var newInd = this._fieldIndexByName('new_resource_group');
-                    var oldInd = this._fieldIndexByName('ex_resource_group');
-                    var toggleAccount = this._fieldIndexByName('create_storage_account');
-
-                    //if one, hide the other
-                    if (new_group == true){
-                        this.set('machineFields.'+ newInd +'.show', true);
-                        this.set('machineFields.'+ oldInd +'.show', false);
-                        //toggle new storage account
-                        this.set('machineFields.'+ toggleAccount +'.value', true);
-                        this._toggleStorageAccountFields(true);
-                        // this.set('machineFields.'+ toggleAccount +'.show', false);
-                    }
-                    else if (new_group == false){
-                        this.set('machineFields.'+ newInd +'.show', false);
-                        this.set('machineFields.'+ oldInd +'.show', true);
-                        //toggle new storage account
-                        this.set('machineFields.'+ toggleAccount +'.value', false);
-                        this._toggleStorageAccountFields(false);
-                        // this.set('machineFields.'+ toggleAccount +'.show', true);
-                    }
-
-                },
-                _hideElementsforWin: function(value){
+            _updateFieldsForVsphere: function () {
+                var keyInd = this._fieldIndexByName('key');
+                if (this.get('machineFields.' + keyInd + '.required')) {
+                    this.set('machineFields.' + keyInd + '.required', false);
+                    this.set('machineFields.' + keyInd + '.show', false);
+                    this.set('machineFields.' + keyInd + '.hidden', true);
+                    this.set('machineFields.' + keyInd + '.label', "Key");
+                    this.set('machineFields.' + keyInd + '.excludeFromPayload', true);
                     var scriptInd = this._fieldIndexByName('post_provision_script');
-                    var taskInd = this._fieldIndexByName('post_provision_scheduler');
-                    var monitoringInd = this._fieldIndexByName('monitoring');
+                    this.set('machineFields.' + scriptInd + '.show', false);
+                    this.set('machineFields.' + scriptInd + '.hidden', true);
+                    var swapInd = this._fieldIndexByName('size_disk_swap');
+                    this.set('machineFields.' + swapInd + '.show', false);
+                    this.set('machineFields.' + swapInd + '.hidden', true);
+                }
+            },
 
-                    if (value.toLowerCase().indexOf('win') > -1){
-                        if (scriptInd != undefined)
-                            this.set('machineFields.'+ scriptInd +'.show', false);
-                        if (monitoringInd != undefined){
-                            this.set('machineFields.'+ monitoringInd +'.show', false);
-                            this.set('machineFields.'+ monitoringInd +'.value', false);
-                        }
-                    }
-                    else {
-                        if (scriptInd != undefined)
-                            this.set('machineFields.'+ scriptInd +'.show', true);
-                        if (monitoringInd != undefined){
-                            this.set('machineFields.'+ monitoringInd +'.show', true);
-                            this.set('machineFields.'+ monitoringInd +'.value', this.get('machineFields.'+ monitoringInd +'.defaultValue'));
-                        }
-                    }
-                },
-                _showPassword: function(value){
-                    var passwordInd = this._fieldIndexByName('machine_password');
-                    var keyInd = this._fieldIndexByName('key');
-                    if (value.toLowerCase().indexOf('win') > -1){
-                        this.set('machineFields.'+ passwordInd +'.show', true);
-                        this.set('machineFields.'+ passwordInd +'.required', true);
+            _updateFieldsForOpenstack: function () {
+                var locInd = this._fieldIndexByName('location');
+                this.set('machineFields.' + locInd + '.required', false);
+                this.set('machineFields.' + locInd + '.label', "Location");
+            },
 
-                        this.set('machineFields.'+ keyInd +'.show', false);
-                        this.set('machineFields.'+ keyInd +'.required', false);
-                    }
-                    else {
-                        this.set('machineFields.'+ passwordInd +'.show', false);
-                        this.set('machineFields.'+ passwordInd +'.required', false);
+            _updateFieldMinsForOnapp: function (image) {
+                var image = this.model.clouds[this.selectedCloud].images[image];
 
-                        this.set('machineFields.'+ keyInd +'.show', true);
-                        this.set('machineFields.'+ keyInd +'.required', true);
+                if (!image) {
+                    return;
+                }
+
+                var ramInd = this._fieldIndexByName('size_ram'),
+                    diskInd = this._fieldIndexByName('size_disk_primary');
+
+                this.set('machineFields.' + ramInd + '.min', image.extra.min_memory_size);
+                this.set('machineFields.' + diskInd + '.min', image.extra.min_disk_size);
+
+                // console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
+            },
+            _updateFieldOptionsForOnapp: function (loc) {
+                var location = this.model.clouds[this.selectedCloud].locations[loc];
+
+                if (!location) {
+                    return;
+                }
+
+                var cpuInd = this._fieldIndexByName('size_cpu'),
+                    ramInd = this._fieldIndexByName('size_ram'),
+                    hgiInd = this._fieldIndexByName('hypervisor_group_id'),
+                    diskInd = this._fieldIndexByName('size_disk_primary'),
+                    swapInd = this._fieldIndexByName('size_disk_swap');
+
+                // update mins maxs
+                this.set('machineFields.' + cpuInd + '.max', location.extra.max_cpu);
+                this.set('machineFields.' + ramInd + '.max', location.extra.max_memory);
+                this.set('machineFields.' + hgiInd + '.value', location.extra.hypervisor_group_id);
+
+                if (location.extra.max_disk_size) {
+                    this._updateDiskMax('size_disk_primary', this.get('machineFields.' + this._fieldIndexByName(
+                        'size_disk_swap') + '.value'), location.extra.max_disk_size);
+                    this._updateDiskMax('size_disk_swap', this.get('machineFields.' + this._fieldIndexByName(
+                        'size_disk_primary') + '.value'), location.extra.max_disk_size);
+                } else {
+                    this.set('machineFields.' + diskInd + '.max', 16);
+                    this.set('machineFields.' + swapInd + '.max', 16);
+                }
+
+                var imagesInd = this._fieldIndexByName('image'),
+                    networksInd = this._fieldIndexByName('networks');
+
+                // update networks
+                this.set('machineFields.' + networksInd + '.options', location.extra.networks);
+
+                // filter images
+                if (location.extra.federated == true)
+                    this.set('machineFields.' + imagesInd + '.options', this._filterImagesByLoc(
+                        location.extra.hypervisor_group_id));
+                else
+                    this.set('machineFields.' + imagesInd + '.options', this._filterImagesWithNoHyp());
+
+            },
+            _filterImagesByLoc: function (location) {
+                return this.model.clouds[this.selectedCloud].imagesArray.filter(function (im) {
+                    return im.extra.hypervisor_group_id == location;
+                });
+            },
+            _filterImagesWithNoHyp: function (location) {
+                return this.model.clouds[this.selectedCloud].imagesArray.filter(function (im) {
+                    return !im.extra.hypervisor_group_id;
+                });
+            },
+            _updateFieldsForDocker: function () {
+                var sizeInd = this._fieldIndexByName('size');
+                var locInd = this._fieldIndexByName('location');
+                var keyInd = this._fieldIndexByName('key');
+                var monInd = this._fieldIndexByName('monitoring');
+
+                //hide size and location
+                this.set('machineFields.' + sizeInd + '.show', false);
+                this.set('machineFields.' + locInd + '.show', false);
+
+                // optional key
+                this.set('machineFields.' + keyInd + '.required', false);
+                this.set('machineFields.' + keyInd + '.label', 'Key');
+                this.set('machineFields.' + keyInd + '.helptext',
+                    "Optional. Keys are valid only for Mist.io images");
+
+                // disable monitoring by default
+                this.set('machineFields.' + monInd + '.value', false);
+            },
+            _updateFieldsForKvm: function () {
+                var imaInd = this._fieldIndexByName('image');
+                var locInd = this._fieldIndexByName('location');
+                var keyInd = this._fieldIndexByName('key');
+                var pathInd = this._fieldIndexByName('libvirt_disk_path');
+
+                //hide default image and location field
+                this.set('machineFields.' + imaInd + '.add', true);
+                this.set('machineFields.' + imaInd + '.required', true);
+                this.set('machineFields.' + locInd + '.show', false);
+                this.set('machineFields.' + locInd + '.required', false);
+                this.set('machineFields.' + locInd + '.excludeFromPayload', true);
+
+                //change key helptexts
+                this.set('machineFields.' + keyInd + '.helptext',
+                    "Αn ssh key to deploy if using a cloudinit based Linux image");
+                this.set('machineFields.' + keyInd + '.helpHref',
+                    "http://docs.mist.io/article/99-managing-kvm-with-mist-io");
+
+                //fill in disk path using images_location
+                this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
+                    .images_location);
+            },
+            _updateFieldsForAzureArm: function () {
+                var hostnameInd = this._fieldIndexByName('create_hostname_machine');
+                this.set('machineFields.' + hostnameInd + '.show', false);
+            },
+            _updateKvmDiskPath: function (machinename) {
+                var pathInd = this._fieldIndexByName('libvirt_disk_path');
+
+                //fill in disk path using images_location and machine name
+                if (machinename.trim().length)
+                    this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
+                        .images_location + "/" + machinename.trim() + ".img");
+            },
+            _updateAzureFields: function (machinename) {
+                var networkInd = this._fieldIndexByName('new_network');
+                this.set('machineFields.' + networkInd + '.value', machinename + '-vnet');
+                var resourceInd = this._fieldIndexByName('new_resource_group');
+                this.set('machineFields.' + resourceInd + '.value', machinename);
+                var storageInd = this._fieldIndexByName('new_storage_account');
+                this.set('machineFields.' + storageInd + '.value', machinename + 'disks');
+            },
+            _updateEc2Sizes: function (imageid) {
+                if (this.model.images[imageid] && this.model.images[imageid].extra && this.model.images[
+                        imageid].extra.virtualization_type) {
+                    var virtualization_type = this.model.images[imageid].extra.virtualization_type;
+
+                    var sizeInd = this._fieldIndexByName('size');
+                    var sizesOptions = this.model.clouds[this.selectedCloud].sizesArray.filter(
+                        function (s) {
+                            if (s.extra.virtualizationTypes) {
+                                return s.extra.virtualizationTypes.indexOf(virtualization_type) >
+                                    -1
+                            } else {
+                                return 1
+                            }
+                        });
+                    this.set('machineFields.' + sizeInd + '.options', sizesOptions);
+                    // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
+                }
+
+            },
+            _toggleScriptFields: function (scripttype) {
+                var inlineInd = this._fieldIndexByName('script');
+                var selectInd = this._fieldIndexByName('script_id');
+
+                //if one, exclude the other
+                if (scripttype == "inline") {
+                    this.set('machineFields.' + inlineInd + '.excludeFromPayload', false);
+                    this.set('machineFields.' + selectInd + '.excludeFromPayload', true);
+                } else if (scripttype == "select") {
+                    this.set('machineFields.' + selectInd + '.excludeFromPayload', false);
+                    this.set('machineFields.' + inlineInd + '.excludeFromPayload', true);
+                }
+
+                // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
+            },
+            _toggleStorageAccountFields: function (new_account) {
+                var newInd = this._fieldIndexByName('new_storage_account');
+                var oldInd = this._fieldIndexByName('ex_storage_account');
+
+                //if one, hide the other
+                if (new_account == true) {
+                    this.set('machineFields.' + newInd + '.show', true);
+                    this.set('machineFields.' + oldInd + '.show', false);
+
+                } else if (new_account == false) {
+                    this.set('machineFields.' + newInd + '.show', false);
+                    this.set('machineFields.' + oldInd + '.show', true);
+                }
+            },
+            _toggleNetworkFields: function (new_network) {
+                var newInd = this._fieldIndexByName('new_network');
+                var oldInd = this._fieldIndexByName('networks');
+
+                //if one, hide the other
+                if (new_network == true) {
+                    this.set('machineFields.' + newInd + '.show', true);
+                    this.set('machineFields.' + oldInd + '.show', false);
+
+                } else if (new_network == false) {
+                    this.set('machineFields.' + newInd + '.show', false);
+                    this.set('machineFields.' + oldInd + '.show', true);
+                }
+            },
+            _toggleResourceGroupFields: function (new_group) {
+                var newInd = this._fieldIndexByName('new_resource_group');
+                var oldInd = this._fieldIndexByName('ex_resource_group');
+                var toggleAccount = this._fieldIndexByName('create_storage_account');
+
+                //if one, hide the other
+                if (new_group == true) {
+                    this.set('machineFields.' + newInd + '.show', true);
+                    this.set('machineFields.' + oldInd + '.show', false);
+                    //toggle new storage account
+                    this.set('machineFields.' + toggleAccount + '.value', true);
+                    this._toggleStorageAccountFields(true);
+                    // this.set('machineFields.'+ toggleAccount +'.show', false);
+                } else if (new_group == false) {
+                    this.set('machineFields.' + newInd + '.show', false);
+                    this.set('machineFields.' + oldInd + '.show', true);
+                    //toggle new storage account
+                    this.set('machineFields.' + toggleAccount + '.value', false);
+                    this._toggleStorageAccountFields(false);
+                    // this.set('machineFields.'+ toggleAccount +'.show', true);
+                }
+
+            },
+            _hideElementsforWin: function (value) {
+                var scriptInd = this._fieldIndexByName('post_provision_script');
+                var taskInd = this._fieldIndexByName('post_provision_scheduler');
+                var monitoringInd = this._fieldIndexByName('monitoring');
+
+                if (value.toLowerCase().indexOf('win') > -1) {
+                    if (scriptInd != undefined)
+                        this.set('machineFields.' + scriptInd + '.show', false);
+                    if (monitoringInd != undefined) {
+                        this.set('machineFields.' + monitoringInd + '.show', false);
+                        this.set('machineFields.' + monitoringInd + '.value', false);
                     }
-                    //if the provider is Docker, the key should not be required
-                    if (this.model.clouds[this.selectedCloud].provider == 'docker'){
-                        this.set('machineFields.'+ keyInd +'.required', false);
+                } else {
+                    if (scriptInd != undefined)
+                        this.set('machineFields.' + scriptInd + '.show', true);
+                    if (monitoringInd != undefined) {
+                        this.set('machineFields.' + monitoringInd + '.show', true);
+                        this.set('machineFields.' + monitoringInd + '.value', this.get(
+                            'machineFields.' + monitoringInd + '.defaultValue'));
                     }
-                },
-                _fieldIndexByName: function(name){
-                    var index;
-                    var passField = this.machineFields.find(function(f, ind){
-                        if (f.name == name)
-                            index = ind;
-                        return f.name == name;
+                }
+            },
+            _showPassword: function (value) {
+                var passwordInd = this._fieldIndexByName('machine_password');
+                var keyInd = this._fieldIndexByName('key');
+                if (value.toLowerCase().indexOf('win') > -1) {
+                    this.set('machineFields.' + passwordInd + '.show', true);
+                    this.set('machineFields.' + passwordInd + '.required', true);
+
+                    this.set('machineFields.' + keyInd + '.show', false);
+                    this.set('machineFields.' + keyInd + '.required', false);
+                } else {
+                    this.set('machineFields.' + passwordInd + '.show', false);
+                    this.set('machineFields.' + passwordInd + '.required', false);
+
+                    this.set('machineFields.' + keyInd + '.show', true);
+                    this.set('machineFields.' + keyInd + '.required', true);
+                }
+                //if the provider is Docker, the key should not be required
+                if (this.model.clouds[this.selectedCloud].provider == 'docker') {
+                    this.set('machineFields.' + keyInd + '.required', false);
+                }
+            },
+            _fieldIndexByName: function (name) {
+                var index;
+                var passField = this.machineFields.find(function (f, ind) {
+                    if (f.name == name)
+                        index = ind;
+                    return f.name == name;
+                });
+                return index;
+            },
+            _machineCreateResponse: function (e) {
+                // console.log('creation resp', e);
+                var response = JSON.parse(e.detail.xhr.response);
+                this.fire('go-to', {
+                    url: '/machines'
+                })
+                this.fire('set-job-id', {
+                    jobId: response.job_id
+                });
+                this._resetForm();
+            },
+            _machineCreateError: function (e) {
+                // console.log('creation failed', e)
+            },
+            _computeProviders: function (model, clouds) {
+                // // exclude bare metals and other from provider dropdown list
+                return this.model.cloudsArray.filter(function (c) {
+                    return ["bare_metal"].indexOf(c.provider) == -1;
+                });
+            },
+            addInput: function (e) {
+                if (e.detail.fieldname == 'schedule_script_id' || e.detail.fieldname == 'script_id') {
+                    //set attribute origin
+                    var origin = window.location.pathname;
+                    var qParams = {
+                        'origin': origin
+                    }
+                    this.fire('go-to', {
+                        url: '/machines',
+                        params: qParams
                     });
-                    return index;
-                },
-                _machineCreateResponse: function(e){
-                    // console.log('creation resp', e);
-                    var response = JSON.parse(e.detail.xhr.response);
-                    this.fire('go-to', {url: '/machines'})
-                    this.fire('set-job-id', {jobId: response.job_id});
-                    this._resetForm();
-                },
-                _machineCreateError: function(e){
-                    // console.log('creation failed', e)
-                },
-                _computeProviders: function(model, clouds){
-                    // // exclude bare metals and other from provider dropdown list
-                    return this.model.cloudsArray.filter(function(c){
-                        return  ["bare_metal", "vsphere"].indexOf(c.provider) == -1;
-                    });
-                },
-                addInput: function(e){
-                    if (e.detail.fieldname == 'schedule_script_id' || e.detail.fieldname == 'script_id'){
-                        //set attribute origin
-                        var origin = window.location.pathname;
-                        var qParams = {
-                            'origin': origin
-                        }
-                        this.fire('go-to',{url:'/machines', params: qParams});
-                    }
-                    else if (e.detail.fieldname == 'image')
-                        this.querySelector("paper-dialog#addKvmImage").open();
-                },
-                saveNewImage: function(e){
-                    var imaInd = this._fieldIndexByName('image');
-                    this.push('machineFields.'+ imaInd +'.options', {name: this.newImage, id: this.newImage});
-                    this.set('machineFields.'+ imaInd +'.value', this.newImage);
+                } else if (e.detail.fieldname == 'image')
+                    this.querySelector("paper-dialog#addKvmImage").open();
+            },
+            saveNewImage: function (e) {
+                var imaInd = this._fieldIndexByName('image');
+                this.push('machineFields.' + imaInd + '.options', {
+                    name: this.newImage,
+                    id: this.newImage
+                });
+                this.set('machineFields.' + imaInd + '.value', this.newImage);
 
-                    this.querySelector("paper-dialog#addKvmImage").close();
-                },
-                updateKeys: function(e){
-                    var keyInd = this._fieldIndexByName('key');
-                    this.async(function(){
-                        this.set('machineFields.'+ keyInd +'.options', this.model.keysArray);
-                        this.set('machineFields.'+ keyInd +'.value', e.detail.key);
-                    }.bind(this), 1000);
-                },
-                _goBack: function(){
-                    history.back();
-                },
-                _processInterval: function() {
-                    var everyInd = this._fieldIndexByName("schedule_entry_interval_every"),
-                        periodInd = this._fieldIndexByName("schedule_entry_interval_period");
-                    var every = this.get('machineFields.'+ everyInd +'.value').trim().length > 0 ? this.get('machineFields.'+ everyInd +'.value') : this.get('machineFields.'+ everyInd +'.defaultValue');
-                    var period = this.get('machineFields.'+ periodInd +'.value').trim().length > 0 ? this.get('machineFields.'+ periodInd +'.value') : this.get('machineFields.'+ periodInd +'.defaultValue');
-                    var interval = {
-                        'every': every,
-                        'period': period};
+                this.querySelector("paper-dialog#addKvmImage").close();
+            },
+            updateKeys: function (e) {
+                var keyInd = this._fieldIndexByName('key');
+                this.async(function () {
+                    this.set('machineFields.' + keyInd + '.options', this.model.keysArray);
+                    this.set('machineFields.' + keyInd + '.value', e.detail.key);
+                }.bind(this), 1000);
+            },
+            _goBack: function () {
+                history.back();
+            },
+            _processInterval: function () {
+                var everyInd = this._fieldIndexByName("schedule_entry_interval_every"),
+                    periodInd = this._fieldIndexByName("schedule_entry_interval_period");
+                var every = this.get('machineFields.' + everyInd + '.value').trim().length > 0 ?
+                    this.get('machineFields.' + everyInd + '.value') : this.get('machineFields.' +
+                        everyInd + '.defaultValue');
+                var period = this.get('machineFields.' + periodInd + '.value').trim().length > 0 ?
+                    this.get('machineFields.' + periodInd + '.value') : this.get('machineFields.' +
+                        periodInd + '.defaultValue');
+                var interval = {
+                    'every': every,
+                    'period': period
+                };
 
-                    return interval;
-                },
-                _processCrotab: function(entry) {
-                    var construct = {};
-                    if (entry) {
-                        var chunchs = entry.split(" ");
-                        // fill in missin
-                        for (var i = 0; i < 5; i++) {
+                return interval;
+            },
+            _processCrotab: function (entry) {
+                var construct = {};
+                if (entry) {
+                    var chunchs = entry.split(" ");
+                    // fill in missin
+                    for (var i = 0; i < 5; i++) {
                         if (!chunchs[i])
                             chunchs[i] = "*"
-                        }
-                        var diff =  moment().utcOffset() / 60;
-                        for (var i = 0; i < 5; i++) {
-                            if (!chunchs[i])
-                                chunchs[i] = "*"
-                        }
-                        var construct = {
-                                'minute': chunchs[0],
-                                'hour': chunchs[1],
-                                'day_of_month': chunchs[2],
-                                'month_of_year': chunchs[3],
-                                'day_of_week': chunchs[4],
-                            };
-                        if (construct.hour != "*" && parseInt(chunchs[1]) && diff){
-                            construct.hour = ((parseInt(chunchs[1]) - diff)%24).toString();
-                        }
                     }
-                    return construct;
-                },
-                updateScripts: function(e){
-                    var scheduleScriptInd = this._fieldIndexByName("schedule_script_id");
-                    this.async(function(){
-                        this.set('machineFields.'+ scheduleScriptInd +'.options', this.model.scriptsArray || []);
-                        this.set('machineFields.'+ scheduleScriptInd +'.value', e.detail.script);
-                    }.bind(this), 1000);
+                    var diff = moment().utcOffset() / 60;
+                    for (var i = 0; i < 5; i++) {
+                        if (!chunchs[i])
+                            chunchs[i] = "*"
+                    }
+                    var construct = {
+                        'minute': chunchs[0],
+                        'hour': chunchs[1],
+                        'day_of_month': chunchs[2],
+                        'month_of_year': chunchs[3],
+                        'day_of_week': chunchs[4],
+                    };
+                    if (construct.hour != "*" && parseInt(chunchs[1]) && diff) {
+                        construct.hour = ((parseInt(chunchs[1]) - diff) % 24).toString();
+                    }
                 }
-            });
-        })();
+                return construct;
+            },
+            updateScripts: function (e) {
+                var scheduleScriptInd = this._fieldIndexByName("schedule_script_id");
+                this.async(function () {
+                    this.set('machineFields.' + scheduleScriptInd + '.options', this.model.scriptsArray ||
+                        []);
+                    this.set('machineFields.' + scheduleScriptInd + '.value', e.detail.script);
+                }.bind(this), 1000);
+            },
+            _hasProviders: function (providers) {
+                if (providers && providers.length)
+                    return true;
+            }
+        });
     </script>
 </dom-module>
