@@ -10,7 +10,7 @@
 <dom-module id="cloud-add">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
+             :host {
                 display: block;
             }
 
@@ -23,10 +23,12 @@
             paper-material.selected-true {
                 padding-bottom: 120px;
             }
+
             #content {
                 max-width: 900px;
                 padding-bottom: 250px;
             }
+
             paper-card,
             paper-checkbox {
                 display: block;
@@ -49,32 +51,39 @@
                 text-transform: capitalize;
                 opacity: 0.87;
             }
+
             paper-dropdown-menu ::content .dropdown-content {
                 max-height: 400px !important;
             }
-            :host paper-menu.providers paper-item {
+
+             :host paper-menu.providers paper-item {
                 display: inline-block;
                 width: 20%;
                 min-width: 160px;
                 line-height: 48px;
             }
-            :host paper-menu.providers img {
+
+             :host paper-menu.providers img {
                 margin-right: 8px;
                 vertical-align: middle;
             }
+
             .help {
                 align-self: flex-end;
             }
+
             @media screen and (max-width: 870px) {
-                :host paper-menu.providers paper-item {
+                 :host paper-menu.providers paper-item {
                     width: 40%;
                 }
             }
+
             @media screen and (max-width: 1125px) and (min-width: 1024px) {
-                :host paper-menu.providers paper-item {
+                 :host paper-menu.providers paper-item {
                     width: 28%;
                 }
             }
+
             .single-head {
                 @apply(--cloud-page-head-mixin)
             }
@@ -82,7 +91,9 @@
 
         <div id="content">
             <paper-material class="single-head layout horizontal" style$="background-color: [[section.color]]">
-                <span class="icon"><iron-icon icon="cloud"></iron-icon></span>
+                <span class="icon">
+                    <iron-icon icon="cloud"></iron-icon>
+                </span>
                 <div class="title flex">
                     <h2>
                         Add Cloud
@@ -98,7 +109,10 @@
                     <h3 class="xs12 smallcaps">Choose a Provider</h3>
                     <paper-menu class="providers" attr-for-selected="value" selected="{{selectedProvider}}" class="dropdown-content">
                         <template is="dom-repeat" items="[[providers]]" as="provider">
-                            <paper-item value="[[provider.val]]"><img src="[[_computeProviderLogo(provider.className)]]" width="24px" /><span>[[provider.title]]</span></paper-item>
+                            <paper-item value="[[provider.val]]">
+                                <img src="[[_computeProviderLogo(provider.className)]]" width="24px" />
+                                <span>[[provider.title]]</span>
+                            </paper-item>
                         </template>
                     </paper-menu>
                 </div>
@@ -106,253 +120,265 @@
             <paper-material class$="selected-[[!selectedProvider]]">
                 <div hidden$=[[selectedProvider]]>
                     <!-- <h3 class="smallcaps">Adding your Cloud</h3> -->
-                    <p>After adding a cloud, you will be redirected to your dashboard where you can monitor your cost and usage statistics, enabling you to manage permissions and reduce costs.</p>
-                    <p><a href="http://docs.mist.io/category/75-adding-clouds-bare-metal-and-containers" target="new" class="regular blue-link">Need help with the process?</a></p>
+                    <p>After adding a cloud, you will be redirected to your dashboard where you can monitor your cost and usage
+                        statistics, enabling you to manage permissions and reduce costs.</p>
+                    <p>
+                        <a href="http://docs.mist.io/category/75-adding-clouds-bare-metal-and-containers" target="new" class="regular blue-link">Need help with the process?</a>
+                    </p>
                 </div>
                 <div hidden$=[[!selectedProvider]]>
                     <h3 class="smallcaps">Adding [[_computeTitle(selectedProvider)]] cloud</h3>
-                    <app-form fields="[[providerFields]]" method="POST" url="/api/v1/clouds" on-response="_cloudAddAjaxResponse" on-error="_cloudAddAjaxError" btncontent="Add Cloud"></app-form>
+                    <app-form fields="[[providerFields]]" method="POST" url="/api/v1/clouds" on-response="_cloudAddAjaxResponse" on-error="_cloudAddAjaxError"
+                        btncontent="Add Cloud"></app-form>
                 </div>
             </paper-material>
         </div>
 
     </template>
     <script>
-        (function() {
-            'use strict';
+        Polymer({
+            is: 'cloud-add',
 
-            Polymer({
-                is: 'cloud-add',
+            properties: {
+                section: {
+                    type: Object
+                },
+                color: {
+                    type: String,
+                    computed: '_getHeaderStyle(section)'
+                },
+                selectedProvider: {
+                    type: String,
+                    value: null,
+                    notify: true
+                },
+                providerFields: {
+                    type: Array,
+                    value: []
+                },
+                providers: {
+                    type: Array
+                },
+                keys: {
+                    type: Array
+                },
+                sendingData: {
+                    type: Boolean,
+                    value: false
+                },
+                formReady: {
+                    type: Boolean,
+                    value: false
+                },
+                clouds: Array,
+                enableMonitoring: Boolean
+            },
+            observers: [
+                '_providerChanged(selectedProvider, providers)',
+                '_keysChanged(keys.*, providerFields)'
+            ],
+            listeners: {
+                'iron-select': '_updateCloudTitle',
+                'reset-form': '_resetProvider'
+            },
+            ready: function () {
 
-                properties: {
-                    section: {
-                        type: Object
-                    },
-                    color: {
-                        type: String,
-                        computed: '_getHeaderStyle(section)'
-                    },
-                    selectedProvider: {
-                        type: String,
-                        value: null,
-                        notify: true
-                    },
-                    providerFields: {
-                        type: Array,
-                        value: []
-                    },
-                    providers: {
-                        type: Array
-                    },
-                    keys: {
-                        type: Array
-                    },
-                    sendingData: {
-                        type: Boolean,
-                        value: false
-                    },
-                    formReady: {
-                        type: Boolean,
-                        value: false
-                    },
-                    clouds: Array,
-                    enableMonitoring: Boolean
-                },
-                observers: [
-                    '_providerChanged(selectedProvider, providers)',
-                    '_keysChanged(keys.*, providerFields)'
-                ],
-                listeners: {
-                    'iron-select' : '_updateCloudTitle',
-                    'reset-form': '_resetProvider'
-                },
-                ready: function() {
+            },
+            _cloudAddAjaxResponse: function (response) {
+                this._unsetProvider();
+                this.fire('go-to', {
+                    url: '/'
+                })
+                this.fire('toast', {
+                    msg: 'Cloud added successfully!',
+                    duration: 3000
+                });
+            },
+            _cloudAddAjaxError: function (response) {
+                console.error('add-cloud error', response);
+            },
+            _computeProviderLogo: function (className) {
+                return 'assets/providers/' + className + '.png';
+            },
+            _computeTitle: function (selectedProvider) {
+                if (this.providers)
+                    var p = this.providers.find(function (p) {
+                        return p.val == selectedProvider
+                    });
+                return p ? p.title : '';
+            },
+            _providerChanged: function (selectedProvider, providers) {
+                if (selectedProvider)
+                    this.fire('user-action', 'select provider ' + selectedProvider);
+                this._resetForm();
+                var selectedProviderDetails = providers.
+                filter(function (fields) {
+                    return fields.val == selectedProvider;
+                });
+                var providerFields = selectedProviderDetails.length ? selectedProviderDetails.shift()
+                    .options : [];
+                this.set('providerFields', [{
+                    name: "provider",
+                    type: "text",
+                    show: false,
+                    value: selectedProvider
+                }].concat(providerFields));
 
-                },
-                _cloudAddAjaxResponse: function(response) {
-                    this._unsetProvider();
-                    this.fire('go-to', {url: '/'})
-                    this.fire('toast', {msg:'Cloud added successfully!',duration:3000} );
-                },
-                _cloudAddAjaxError: function(response) {
-                    console.error('add-cloud error', response);
-                },
-                _computeProviderLogo: function(className) {
-                    return 'assets/providers/' + className + '.png';
-                },
-                _computeTitle: function(selectedProvider){
-                    if (this.providers)
-                        var p = this.providers.find(function(p){
-                            return p.val == selectedProvider
-                        });
-                    return p ? p.title : '';
-                },
-                _providerChanged: function(selectedProvider, providers) {
-                    if (selectedProvider)
-                        this.fire('user-action', 'select provider ' + selectedProvider);
-                    this._resetForm();
-                    var selectedProviderDetails = providers.
-                        filter(function(fields) {
-                            return fields.val == selectedProvider;
-                        });
-                    var providerFields = selectedProviderDetails.length ? selectedProviderDetails.shift().options : [];
-                    this.set('providerFields', [{
-                          name: "provider",
-                          type: "text",
-                          show: false,
-                          value: selectedProvider
-                    }].concat(providerFields));
-
-                    // replaces _providerFieldsChanged observer and skips provider reset 
-                    // while reseting the other fields
-                    this.providerFields.forEach(function(el, index){
-                        if (el.name != "provider") {
-                            this.set('providerFields.' + index + '.show', el.show);
-                            this._resetField(el, index);
-                        }
-                    }, this);
-
-                    if (selectedProvider && !this.enableMonitoring) {
-                        var indexm = this.fieldIndexByName('monitoring');
-                        if (indexm) {
-                            this.set('providerFields.'+indexm+'.show', false);
-                        }
-                    }
-                    
-                    this.fillInKnownData(selectedProvider, this.clouds);
-                },
-                _keysChanged: function(keys, providerFields) {
-                    // Set list of keys in providerFields when model keys change
-
-                    var index = this.providerFields.findIndex(function(field) {
-                        return field.type == "ssh_key";
-                    }, this);
-
-                    this.set('providerFields.' + index + '.options', this.keys);
-                    this.set('providerFields.' + index + '.value', '');
-
-                    // Check for nested subforms and update ssh_key fields
-                    this.providerFields.forEach(function(field){
-                        if (field.type == 'list') {
-                            field.options.forEach(function(subfield){
-                                if (subfield.type == "ssh_key") {
-                                    subfield.options = this.keys;
-                                }
-                            }, this);
-                        }
-                    }, this);
-                },
-                _unsetProvider: function() {
-                    this.set('selectedProvider', false);
-                },
-                _resetForm: function(e) {
-                    // Reset Form Fields
-                    this.providerFields.forEach(function(el, index) {
-                        if (el.showIf) {
-                            this.set('providerFields.' + index + '.show', false);
-                        }
-
-                        // Reset Form Fields Validation
+                // replaces _providerFieldsChanged observer and skips provider reset 
+                // while reseting the other fields
+                this.providerFields.forEach(function (el, index) {
+                    if (el.name != "provider") {
+                        this.set('providerFields.' + index + '.show', el.show);
                         this._resetField(el, index);
-                    }, this);
-                },
-                _resetField: function(el, index) {
-                    this.set('providerFields.' + index + '.value', el.defaultValue);
+                    }
+                }, this);
 
-                    var input = this.querySelector('#' + el.name);
-                    if (input) {
-                        input.invalid = false;
-                    }
-                },
-                _goBack: function(){
-                    history.back();
-                },
-                _updateCloudTitle: function(e){
-                    var form = this.querySelector('app-form');
-                    if (e.target.id == 'region') {
-                        var region = e.detail.item.textContent.trim();
-                        var index;
-                        var title = '';
-                        var titleField = this.providerFields.find(function(f, ind){
-                            index = ind;
-                            title = f.defaultValue;
-                            return f.name == "title";
-                        });
-                        this.set('providerFields.'+index+'.value', title+' '+region);
-                    }
-
-                },
-                fillInKnownData: function(provider, clouds){
-                    if (provider){
-                        var cloudInSameProvider = this.clouds.find(function(c){
-                            return c.provider == provider
-                        });
-                        if (cloudInSameProvider) {
-                            // if there is an apikey we can fill in
-                            var apikey = cloudInSameProvider.apikey;
-                            var index = this.fieldIndexByName('apikey');
-                            if (apikey && index) {
-                                this.set('providerFields.'+index+'.value', apikey);
-                                // if there is apikey and an apisecret we can 'getsecretfromdb'
-                                var indexp = this.fieldIndexByName('apisecret');
-                                if (indexp) {
-                                    this.set('providerFields.'+indexp+'.value', 'getsecretfromdb');
-                                }
-                            }
-                        }
-                    }
-                },
-                _resetProvider: function() {
-                    var indexp = this.fieldIndexByName('provider');
-                    if (indexp != undefined) {
-                        this.set('providerFields.' + indexp + '.value', this.selectedProvider);
-                    }
-                },
-                fieldIndexByName: function(name){
-                    var index;
-                    var passField = this.providerFields.find(function(f, ind){
-                        if (f.name == name)
-                            index = ind;
-                        return f.name == name;
-                    });
-                    return index;
-                },
-                fieldsOfType: function(data,type){
-                    var typeIndexes = [];
-                    var fieldsOfType = data.filter(function(f, ind){
-                        if (f.type == type)
-                            typeIndexes.push(ind);
-                        return f.type == type;
-                    });
-                    return typeIndexes;
-                },
-                updateKeys: function(e){
-                    var keyFieldsIndexes = this.fieldsOfType(this.providerFields,'ssh_key');
-                    console.log('updateKeys', keyFieldsIndexes);
-                    this.async(function(){
-                        for (var i = 0; i < keyFieldsIndexes.length; i++) {
-                            this.set('providerFields.'+ keyFieldsIndexes[i] +'.options', this.keys);
-                            this.set('providerFields.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
-                        }
-                        if (this.fieldsOfType(this.providerFields,'list')) {
-                            this.updateKeysInLists(e, this.fieldsOfType(this.providerFields,'list'));
-                        }
-                    }.bind(this), 1000);
-                },
-                updateKeysInLists: function(e, lists){
-                    for (var j = 0; j<lists.length; j++){
-                        var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[i]].options,'ssh_key');
-                        console.log('updateKeys', this.providerFields[lists[i]].options);
-
-                        this.async(function(){
-                            for (var i = 0; i < keyFieldsIndexes.length; i++) {
-                                this.set('providerFields.'+lists[i]+'.options.'+ keyFieldsIndexes[i] +'.options', this.keys);
-                                this.set('providerFields.'+lists[i]+'.options.'+ keyFieldsIndexes[i] +'.value', e.detail.key);
-                            }
-                        }.bind(this), 500);
+                if (selectedProvider && !this.enableMonitoring) {
+                    var indexm = this.fieldIndexByName('monitoring');
+                    if (indexm) {
+                        this.set('providerFields.' + indexm + '.show', false);
                     }
                 }
-            });
-        })();
+
+                this.fillInKnownData(selectedProvider, this.clouds);
+            },
+            _keysChanged: function (keys, providerFields) {
+                // Set list of keys in providerFields when model keys change
+
+                var index = this.providerFields.findIndex(function (field) {
+                    return field.type == "ssh_key";
+                }, this);
+
+                this.set('providerFields.' + index + '.options', this.keys);
+                this.set('providerFields.' + index + '.value', '');
+
+                // Check for nested subforms and update ssh_key fields
+                this.providerFields.forEach(function (field) {
+                    if (field.type == 'list') {
+                        field.options.forEach(function (subfield) {
+                            if (subfield.type == "ssh_key") {
+                                subfield.options = this.keys;
+                            }
+                        }, this);
+                    }
+                }, this);
+            },
+            _unsetProvider: function () {
+                this.set('selectedProvider', false);
+            },
+            _resetForm: function (e) {
+                // Reset Form Fields
+                this.providerFields.forEach(function (el, index) {
+                    if (el.showIf) {
+                        this.set('providerFields.' + index + '.show', false);
+                    }
+
+                    // Reset Form Fields Validation
+                    this._resetField(el, index);
+                }, this);
+            },
+            _resetField: function (el, index) {
+                this.set('providerFields.' + index + '.value', el.defaultValue);
+
+                var input = this.querySelector('#' + el.name);
+                if (input) {
+                    input.invalid = false;
+                }
+            },
+            _goBack: function () {
+                history.back();
+            },
+            _updateCloudTitle: function (e) {
+                var form = this.querySelector('app-form');
+                if (e.target.id == 'region') {
+                    var region = e.detail.item.textContent.trim();
+                    var index;
+                    var title = '';
+                    var titleField = this.providerFields.find(function (f, ind) {
+                        index = ind;
+                        title = f.defaultValue;
+                        return f.name == "title";
+                    });
+                    this.set('providerFields.' + index + '.value', title + ' ' + region);
+                }
+
+            },
+            fillInKnownData: function (provider, clouds) {
+                if (provider) {
+                    var cloudInSameProvider = this.clouds.find(function (c) {
+                        return c.provider == provider
+                    });
+                    if (cloudInSameProvider) {
+                        // if there is an apikey we can fill in
+                        var apikey = cloudInSameProvider.apikey;
+                        var index = this.fieldIndexByName('apikey');
+                        if (apikey && index) {
+                            this.set('providerFields.' + index + '.value', apikey);
+                            // if there is apikey and an apisecret we can 'getsecretfromdb'
+                            var indexp = this.fieldIndexByName('apisecret');
+                            if (indexp) {
+                                this.set('providerFields.' + indexp + '.value', 'getsecretfromdb');
+                            }
+                        }
+                    }
+                }
+            },
+            _resetProvider: function () {
+                var indexp = this.fieldIndexByName('provider');
+                if (indexp != undefined) {
+                    this.set('providerFields.' + indexp + '.value', this.selectedProvider);
+                }
+            },
+            fieldIndexByName: function (name) {
+                var index;
+                var passField = this.providerFields.find(function (f, ind) {
+                    if (f.name == name)
+                        index = ind;
+                    return f.name == name;
+                });
+                return index;
+            },
+            fieldsOfType: function (data, type) {
+                var typeIndexes = [];
+                var fieldsOfType = data.filter(function (f, ind) {
+                    if (f.type == type)
+                        typeIndexes.push(ind);
+                    return f.type == type;
+                });
+                return typeIndexes;
+            },
+            updateKeys: function (e) {
+                var keyFieldsIndexes = this.fieldsOfType(this.providerFields, 'ssh_key');
+                console.log('updateKeys', keyFieldsIndexes);
+                this.async(function () {
+                    for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                        this.set('providerFields.' + keyFieldsIndexes[i] + '.options', this
+                            .keys);
+                        this.set('providerFields.' + keyFieldsIndexes[i] + '.value', e.detail
+                            .key);
+                    }
+                    if (this.fieldsOfType(this.providerFields, 'list')) {
+                        this.updateKeysInLists(e, this.fieldsOfType(this.providerFields,
+                            'list'));
+                    }
+                }.bind(this), 1000);
+            },
+            updateKeysInLists: function (e, lists) {
+                for (var j = 0; j < lists.length; j++) {
+                    var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[i]].options,
+                        'ssh_key');
+                    console.log('updateKeys', this.providerFields[lists[i]].options);
+
+                    this.async(function () {
+                        for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                            this.set('providerFields.' + lists[i] + '.options.' +
+                                keyFieldsIndexes[i] + '.options', this.keys);
+                            this.set('providerFields.' + lists[i] + '.options.' +
+                                keyFieldsIndexes[i] + '.value', e.detail.key);
+                        }
+                    }.bind(this), 500);
+                }
+            }
+        });
     </script>
 </dom-module>

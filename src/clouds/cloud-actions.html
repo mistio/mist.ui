@@ -18,13 +18,15 @@
 <dom-module id="cloud-actions">
   <template>
     <style include="shared-styles">
-      :host {
+       :host {
         display: inline;
-        color: rgba(255,255,255,0.87);
+        color: rgba(255, 255, 255, 0.87);
       }
+
       paper-dialog#renameDialog {
         max-width: 350px;
       }
+
       paper-dialog#credentialsDialog,
       paper-dialog#addhostsDialog,
       paper-dialog#dnsDialog {
@@ -36,7 +38,7 @@
       <h3>Rename Cloud</h3>
       <paper-dialog-scrollable>
         <cloud-info cloud="[[cloud]]" opened></cloud-info>
-      <paper-dialog-scrollable>
+        <paper-dialog-scrollable>
     </paper-dialog>
 
     <paper-dialog id="credentialsDialog" with-backdrop>
@@ -51,73 +53,70 @@
       <paper-dialog-scrollable>
         <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
       </paper-dialog-scrollable>
-    </paper-dialog> 
+    </paper-dialog>
 
     <paper-dialog id="addhostsDialog" with-backdrop>
       <h3>Add Host</h3>
       <paper-dialog-scrollable>
-          <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>
+        <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>
       </paper-dialog-scrollable>
     </paper-dialog>
-    
-    <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse" on-error="_handleCloudDeletionAjaxError"></iron-ajax>
+
+    <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse"
+      on-error="_handleCloudDeletionAjaxError"></iron-ajax>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
-    <iron-ajax id="request"
-            handle-as="json"
-            loading="{{loadingData}}"
-            on-response="handleResponse"
-            on-error="handleError"></iron-ajax>
+    <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
   </template>
   <script>
-CLOUD_ACTIONS = {
-  'tag': {
-    'name': 'tag',
-    'icon': 'label',
-    'confirm': true,
-    'multi': true
-  },
-  'rename': {
-    'name': 'rename',
-    'icon': 'editor:mode-edit',
-    'confirm': false,
-    'multi': true
-  },
-  'edit_credentials': {
-    'name': 'edit credentials',
-    'icon': 'icons:lock-outline',
-    'confirm': false,
-    'multi': true
-  },
-  'add_hosts': {
-    'name': 'add host',
-    'icon': 'hardware:computer',
-    'confirm': false,
-    'multi': false
-  },
-  'dns': {
-    'name': 'dns',
-    'icon': 'hardware:computer',
-    'confirm': false,
-    'multi': false
-  },
-  'delete': {
-    'name': 'delete',
-    'icon': 'delete',
-    'confirm': true,
-    'multi': true
-  }
-};
-    Polymer({ 
+    CLOUD_ACTIONS = {
+      'tag': {
+        'name': 'tag',
+        'icon': 'label',
+        'confirm': true,
+        'multi': true
+      },
+      'rename': {
+        'name': 'rename',
+        'icon': 'editor:mode-edit',
+        'confirm': false,
+        'multi': true
+      },
+      'edit_credentials': {
+        'name': 'edit credentials',
+        'icon': 'icons:lock-outline',
+        'confirm': false,
+        'multi': true
+      },
+      'add_hosts': {
+        'name': 'add host',
+        'icon': 'hardware:computer',
+        'confirm': false,
+        'multi': false
+      },
+      'dns': {
+        'name': 'dns',
+        'icon': 'hardware:computer',
+        'confirm': false,
+        'multi': false
+      },
+      'delete': {
+        'name': 'delete',
+        'icon': 'delete',
+        'confirm': true,
+        'multi': true
+      }
+    };
+    Polymer({
       is: 'cloud-actions',
       properties: {
         model: Object,
-        items: { 
+        items: {
           type: Array,
           value: []
         },
         cloud: Object,
-        actions: { 
+        actions: {
           type: Array,
           value: [],
           notify: true
@@ -131,7 +130,7 @@ CLOUD_ACTIONS = {
           reflectToAttribute: true
         }
       },
-      observers:[
+      observers: [
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
@@ -141,22 +140,23 @@ CLOUD_ACTIONS = {
         'response': 'closeDialogs',
         'cancel': 'closeDialogs'
       },
-      attached: function() {
+      attached: function () {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      closeRenameDialog: function(e) {
+      closeRenameDialog: function (e) {
         this.$.renameDialog.close();
       },
-      itemActions: function(cloud) {
+      itemActions: function (cloud) {
         var arr = [];
         if (cloud) {
           arr.push('tag');
           arr.push('rename');
           if (this._isBareMetal(cloud.provider))
             arr.push('add_hosts');
-          if (['ec2','gce','digitalocean','linode','rackspace','softlayer','vultr'].indexOf(cloud.provider) > -1 )
+          if (['ec2', 'gce', 'digitalocean', 'linode', 'rackspace', 'softlayer', 'vultr'].indexOf(cloud.provider) >
+            -1)
             arr.push('dns');
           if (!this._isBareMetal(cloud.provider))
             arr.push('edit_credentials');
@@ -164,163 +164,171 @@ CLOUD_ACTIONS = {
         }
         return arr;
       },
-      _isBareMetal: function(provider) {
-          return provider == 'bare_metal';
-      },  
+      _isBareMetal: function (provider) {
+        return provider == 'bare_metal';
+      },
       actionDetails: function (actions) {
         var ret = [];
-        for (var i=0; i<actions.length; i++) {
-            ret.push(CLOUD_ACTIONS[actions[i]]);
+        for (var i = 0; i < actions.length; i++) {
+          ret.push(CLOUD_ACTIONS[actions[i]]);
         }
         return ret;
       },
-      confirmAction: function(e){
+      confirmAction: function (e) {
         if (e.detail.confirmed)
           this.performAction(this.action, this.items);
       },
-      selectAction: function(e){
+      selectAction: function (e) {
         if (this.items.length) {
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && action.name == 'delete' && this.items.length == 1 ) {
+          if (action.confirm && action.name == 'delete' && this.items.length == 1) {
             this._showDialog({
-                title: 'Delete '+ this.cloud.title+'?',
-                body:  "Deleting a cloud can not be undone.",
-                danger: true,
-                reason: "cloud.delete"
+              title: 'Delete ' + this.cloud.title + '?',
+              body: "Deleting a cloud can not be undone.",
+              danger: true,
+              reason: "cloud.delete"
             });
-          }
-          else if (action.confirm && action.name != 'tag') {
+          } else if (action.confirm && action.name != 'tag') {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
-                plural = this.items.length == 1 ? '' : 's',
-                count = this.items.length > 1 ? this.items.length+' ' : '';
+              plural = this.items.length == 1 ? '' : 's',
+              count = this.items.length > 1 ? this.items.length + ' ' : '';
             //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
             this._showDialog({
-                title: this.action.name + ' ' + count + this.type + plural+'?',
-                body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
-                list: this._makeList(this.items, property),
-                action: action.name,
-                danger: true,
-                reason: this.type + "." + this.action.name
+              title: this.action.name + ' ' + count + this.type + plural + '?',
+              body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type +
+                plural + ".",
+              list: this._makeList(this.items, property),
+              action: action.name,
+              danger: true,
+              reason: this.type + "." + this.action.name
             });
-          }
-          else if (action.name == 'tag') {
+          } else if (action.name == 'tag') {
             this.$.tagsdialog._openDialog();
-          }
-          else if (action.name == 'edit credentials') {
+          } else if (action.name == 'edit credentials') {
             this.$.credentialsDialog.open();
-          }
-          else if (action.name == 'add host') {
+          } else if (action.name == 'add host') {
             this.$.addhostsDialog.open();
-          }
-          else if (action.name == 'dns') {
+          } else if (action.name == 'dns') {
             this.$.dnsDialog.open();
-          }
-          else {
+          } else {
             this.performAction(this.action, this.items);
           }
         }
       },
-      openEditDialog: function(){
+      openEditDialog: function () {
         this.$.credentialsDialog.open();
       },
-      closeDialog: function(){
+      closeDialog: function () {
         // console.log('closeDialog');
         this.$.credentialsDialog.close()
       },
-      closeDialogs: function(){
-        this.querySelectorAll('paper-dialog').forEach(function(d){
+      closeDialogs: function () {
+        this.querySelectorAll('paper-dialog').forEach(function (d) {
           d.close();
         })
       },
-      _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
-          for (var i in info) {
-              dialog[i] = info[i];
-          }
-          dialog._openDialog();
+      _showDialog: function (info) {
+        var dialog = this.querySelector('dialog-element');
+        for (var i in info) {
+          dialog[i] = info[i];
+        }
+        dialog._openDialog();
       },
-      performAction: function(action, items) {
-          if (action.name == 'rename') {
-            this.$.renameDialog.open();
-          }
-          else if (action.name == 'delete') {
-            this._deleteCloud();
-          }
+      performAction: function (action, items) {
+        if (action.name == 'rename') {
+          this.$.renameDialog.open();
+        } else if (action.name == 'delete') {
+          this._deleteCloud();
+        }
       },
-      _deleteCloud: function(){
-          this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-          this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-          this.$.cloudDeleteAjaxRequest.generateRequest();
+      _deleteCloud: function () {
+        this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+        this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.cloudDeleteAjaxRequest.generateRequest();
       },
-      handleResponse: function(e) {
-        this.fire('action-finished', {success: true});
+      handleResponse: function (e) {
+        this.fire('action-finished', {
+          success: true
+        });
         if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+          this.fire('toast', {
+            msg: 'Action: ' + this.$.request.body.action + ' successfull',
+            duration: 3000
+          })
       },
       _mapPolicyToActions: function (items) {
-          // recompute the actions array property as the intersection
-          // of the available actions of the selected items
-          this.set('actions', []);
-          var actions = new swiftSet.Set(), 
-              isection = new swiftSet.Set();
+        // recompute the actions array property as the intersection
+        // of the available actions of the selected items
+        this.set('actions', []);
+        var actions = new swiftSet.Set(),
+          isection = new swiftSet.Set();
 
-          if (this.items.length == 1) {
-            this.set('cloud', this.items[0]);
+        if (this.items.length == 1) {
+          this.set('cloud', this.items[0]);
+        } else {
+          this.set('cloud', null);
+        }
+
+        if (this.items.length > 0) {
+          actions.addItems(this.itemActions(this.items[0]) || []);
+
+          for (var i = 1; i < this.items.length; i++) {
+            isection.clear()
+            isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+            actions.clear();
+            actions.addItems(isection.items());
           }
-          else {
-            this.set('cloud', null); 
+
+          var multiActions;
+
+          if (this.items.length > 1) {
+            multiActions = this.actionDetails(actions.items()).filter(function (a) {
+              return a.multi;
+            });
+          } else {
+            multiActions = this.actionDetails(actions.items());
           }
-
-          if (this.items.length > 0) {
-            actions.addItems(this.itemActions(this.items[0]) || []);
-
-            for (var i=1; i<this.items.length; i++) {
-                isection.clear()
-                isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-                actions.clear();
-                actions.addItems(isection.items());
-            }
-
-            var multiActions;
-
-            if (this.items.length > 1) {
-                multiActions = this.actionDetails(actions.items()).filter(function(a){
-                    return a.multi;
-                });
-            }
-            else {
-                multiActions = this.actionDetails(actions.items());
-            }
-          }
-          this.set('actions', multiActions);
+        }
+        this.set('actions', multiActions);
       },
 
-      recomputeActions: function(){
-          this._mapPolicyToActions(this.items);
+      recomputeActions: function () {
+        this._mapPolicyToActions(this.items);
       },
 
-      _handleCloudDeletionAjaxResponse: function(e){
-          var title = '';
-          if (this.cloud && this.cloud.title)
-              title = this.cloud.title;
-          document.querySelector('paper-header-panel').scroller.scrollTop = 0;
-          this.fire('go-to', {url: '/'});
-          this.fire('toast',{msg:'Cloud ' + title + ' was deleted',duration:3000});
+      _handleCloudDeletionAjaxResponse: function (e) {
+        var title = '';
+        if (this.cloud && this.cloud.title)
+          title = this.cloud.title;
+        document.querySelector('paper-header-panel').scroller.scrollTop = 0;
+        this.fire('go-to', {
+          url: '/'
+        });
+        this.fire('toast', {
+          msg: 'Cloud ' + title + ' was deleted',
+          duration: 3000
+        });
       },
-      _handleCloudDeletionAjaxError: function(e){
-          this.fire('toast',{msg:'There was an error deleting ' + this.cloud.title + '.',duration:3000});
+      _handleCloudDeletionAjaxError: function (e) {
+        this.fire('toast', {
+          msg: 'There was an error deleting ' + this.cloud.title + '.',
+          duration: 3000
+        });
       },
 
-      handleError: function(e) {
+      handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
+        this.fire('toast', {
+          msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
+          duration: 5000
+        });
       },
 
-      _makeList: function(items, property){
+      _makeList: function (items, property) {
         if (items && items.length)
-          return items.map(function(item){
+          return items.map(function (item) {
             return item[property];
           });
       }
