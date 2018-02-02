@@ -980,6 +980,17 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter title"
     }, {
+        name: "host",
+        label: "Hostname *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter hostname",
+        helptext: 'The URL or IP vSphere listens to',
+        helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
+    }, {
         name: "username",
         label: "Username *",
         type: "text",
@@ -997,17 +1008,6 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password"
-    }, {
-        name: "host",
-        label: "Hostname *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter hostname",
-        helptext: 'The URL or IP vSphere listens to',
-        helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
     }]
 });
 
@@ -1061,11 +1061,12 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        errorMessage: "Please enter title"
+        errorMessage: "Please enter title",
+        helpHref: "http://docs.mist.io/article/28-adding-other-servers"
     }, 
     {   
         name: 'machines',
-        itemName: '',
+        itemName: 'host',
         items: [],
         label: '',
         show: true,
@@ -1080,8 +1081,8 @@ PROVIDERS.push({
             placeholder: 'DNS or IP',
             show: true,
             required: true,
-            helptext: 'The DNS name or IP address of the host that your server listens to',
-            helpHref: 'http://docs.mist.io/article/28-adding-other-servers'
+            helptext: '',
+            helpHref: ''
         }, {
             name: "machine_name",
             label: "Alias (optional)",
@@ -1089,7 +1090,7 @@ PROVIDERS.push({
             placeholder: '',
             show: true,
             required: false,
-            helptext: "Fill in the machine's name"
+            helptext: ""
         }, {
             name: "operating_system",
             label: "Operating System",
