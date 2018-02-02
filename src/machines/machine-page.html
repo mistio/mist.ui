@@ -439,6 +439,12 @@
                                     [[machine.cloud.title]]
                                 </div>
                             </div>
+                            <div class="row" hidden$="[[!cloud.tenant]]">
+                                <div class="cell"><h4>Tenant:</h4></div>
+                                <div class="cell">
+                                    [[cloud.tenant]]
+                                </div>
+                            </div>
                             <div class="row" hidden$="[[!_existsImage(machine.extra)]]">
                                 <div class="cell"><h4>Image:</h4></div>
                                 <div class="cell">
@@ -452,6 +458,12 @@
                                     [[machineSize]]
                                 </div>
                             </div>
+                            <div class="row" hidden$="[[!machine.location]]">
+                                <div class="cell"><h4>Location:</h4></div>
+                                <div class="cell">
+                                    [[_getLocationName(machine,cloud)]]
+                                </div>
+                            </div> 
                             <div class="row" hidden$="[[!machine.created]]">
                                 <div class="cell"><h4>Created:</h4></div>
                                 <div class="cell">
@@ -755,6 +767,10 @@ Polymer({
             type: Object,
             computed: '_getMachine(resourceId, model.machines.*)'
         },
+        cloud: {
+            type: Object,
+            computed: '_getMachineCloud(model.clouds.*, machine.cloud.id)'
+        },
         sections: {
             type: Array
         },
@@ -784,7 +800,7 @@ Polymer({
         },
         machineSize: {
             type: String,
-            computed: "_computeMachineSize(machine, machine.*, model.machines.*)"
+            computed: "_computeMachineSize(machine, machine.*, model.machines.*, cloud.*)"
         },
         dashboard: {
             type: Object
@@ -872,6 +888,9 @@ Polymer({
     _getMachine: function(id, machines) {
         if (id && this.model && this.model.machines && this.model.machines[id]) 
             return this.model.machines[id];
+    },
+    _getMachineCloud: function(clouds, id) {
+        return this.model.clouds[id];
     },
     _showRecommendationDialog: function(){
         this.fire("open-recommendation-dialog", {'item-type': 'machines', 'item': this.machine, 'caller': "machine_page"});
@@ -1120,7 +1139,7 @@ Polymer({
             return "";
 
     },
-    _computeMachineImage: function(img){
+    _computeMachineImage: function(machine){
         var item = this.machine;
         if (item && item.image && typeof(item.image) != "object"){
             return item.image;
@@ -1131,19 +1150,22 @@ Polymer({
         else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
             return item.extra.image.distribution + " " + item.extra.image.name;
         }
+        else if (item && item.extra && item.image_id && this.model.images[item.image_id]) {
+            return this.model.images[item.image_id].name;
+        }
         else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id || item.extra.image)){
             return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug || item.extra.image.name;
         }
         else
             return "not found";
     },
-    _computeMachineSize: function(item, itemChangeRecord, machines) {
+    _computeMachineSize: function(item, itemChangeRecord, machines, clouds) {
         // field could be in the 'extra' section, but should not be an object
         if (item) {
             var ret = item['size'];
 
             if (ret && typeof(ret) != 'object')
-                return ret;
+                return this._getSizeName(item,ret);
             if (!ret && item.extra && item.extra['size'] && typeof(item.extra['size']) != 'object')
                 ret = item.extra['size'];
             if (item.extra && item.extra.size && item.extra.size.vcpus)
@@ -1159,13 +1181,19 @@ Polymer({
             if (item.extra && item.extra.cpu && item.extra.memory)
                 return item.extra.cpu + 'cpu, ' + item.extra.memory + 'M ram';
             if (item.extra && item.extra.PLANID) {
-                var cloud = document.querySelector('mist-app').model.clouds[item.cloud.id];
+                var cloud = this.model.clouds[item.cloud.id];
                 return (cloud && cloud.sizes) ? cloud.sizes[item.extra.PLANID].name + ": " + cloud.sizes[item.extra.PLANID].ram + " ram, " + cloud.sizes[item.extra.PLANID].disk + " disk, " + cloud.sizes[item.extra.PLANID].bandwidth + " bandwidth": item.extra.PLANID
             }
             if (item.extra && item.extra.service_type)
                 return item.extra.service_type;
         }
         return '';
+    },
+    _getSizeName: function (machine, ret) {
+        return this.model.clouds[machine.cloud.id].sizes && this.model.clouds[machine.cloud.id].sizes[ret] && this.model.clouds[machine.cloud.id].sizes[ret].name ? this.model.clouds[machine.cloud.id].sizes[ret].name : ret;
+    },
+    _getLocationName: function (machine, cloud) {
+        return this.model.clouds[machine.cloud.id].locations && this.model.clouds[machine.cloud.id].locations[machine.location] && this.model.clouds[machine.cloud.id].locations[machine.location].name ? this.model.clouds[machine.cloud.id].locations[machine.location].name : machine.location;
     },
     _probeMachine: function(e){
         var payload = {
@@ -1190,7 +1218,7 @@ Polymer({
     },
     _existsImage: function(extra) {
         if (extra)
-            return extra.image || extra.image_id;
+            return extra.image || extra.image_id || extra.imageId;
         return false;
     },
     _computeCloudIcon: function(cloud) {
