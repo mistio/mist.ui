@@ -1,0 +1,206 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+
+<link rel="import" href="../app-form/app-form.html">
+
+<dom-module id="other-cloud-add-machine">
+    <template>
+        <app-form fields="{{fields}}" url="/api/v1/clouds/[[cloud.id]]/machines" method="PUT" on-request="_addMachineRequest" on-response="_addMachineResponse"
+            btncontent="Add Host" show-cancel></app-form>
+
+    </template>
+    <script>
+        ADD_MACHINES_FIELDS = [{
+            name: "machine_ip",
+            label: "Hostname",
+            type: "text",
+            placeholder: 'DNS or IP',
+            show: true,
+            required: true,
+            helptext: '',
+            helpHref: ''
+        }, {
+            name: "machine_name",
+            label: "Alias (optional)",
+            type: "text",
+            placeholder: '',
+            show: true,
+            required: false,
+            helptext: ""
+        }, {
+            name: "operating_system",
+            label: "Operating System",
+            type: "dropdown",
+            value: "unix",
+            defaultValue: "unix",
+            show: true,
+            required: false,
+            options: [{
+                title: "Unix",
+                val: "unix"
+            }, {
+                title: "Windows",
+                val: "windows"
+            }]
+        }, {
+            name: "machine_key",
+            label: "SSH Key",
+            type: "ssh_key",
+            value: "",
+            defaultValue: "",
+            show: false,
+            required: false,
+            options: [],
+            showIf: {
+                fieldName: "operating_system",
+                fieldValues: ["unix"]
+            }
+        }, {
+            name: "machine_user",
+            label: "User",
+            type: "text",
+            value: "root",
+            defaultValue: "root",
+            show: false,
+            required: false,
+            errorMessage: "Please enter user",
+            showIf: {
+                fieldName: "machine_key",
+                fieldExists: true
+            }
+        }, {
+            name: "machine_port",
+            label: "Port",
+            type: "text",
+            value: 22,
+            defaultValue: 22,
+            show: false,
+            required: false,
+            errorMessage: "Please enter port",
+            showIf: {
+                fieldName: "machine_key",
+                fieldExists: true
+            }
+        }, {
+            name: "remote_desktop_port",
+            label: "Remote Desktop Port",
+            type: "text",
+            value: 3389,
+            defaultValue: 3389,
+            errorMessage: "Please enter remote desktop's port",
+            show: false,
+            required: false,
+            showIf: {
+                fieldName: "operating_system",
+                fieldValues: ["windows"]
+            }
+        }, {
+            name: "monitoring",
+            label: "Enable monitoring",
+            type: "toggle",
+            value: false,
+            defaultValue: false,
+            show: true,
+            required: false
+        }];
+
+        Polymer({
+            is: 'other-cloud-add-machine',
+            properties: {
+                cloud: Object,
+                keys: {
+                    type: Array
+                },
+                fields: {
+                    type: Array,
+                    value: function () {
+                        return ADD_MACHINES_FIELDS;
+                    }
+
+                },
+                providers: {
+                    type: Array,
+                    value: PROVIDERS
+                }
+
+            },
+            observers: [
+                '_keysChanged(keys.*, fields)'
+            ],
+            listeners: {
+                'update-keys': 'updateKeys'
+            },
+            _fieldIndexByName: function (name, fields) {
+                var index;
+                if (this.fields) {
+                    var passField = this.fields.find(function (f, ind) {
+                        index = ind;
+                        return f.name == name;
+                    });
+                }
+                return index;
+            },
+            _addMachineRequest: function () {},
+            _addMachineResponse: function () {},
+            _keysChanged: function (keys, fields) {
+                // Set list of keys in providerFields when model keys change
+
+                var index = this.fields.findIndex(function (field) {
+                    return field.type == "ssh_key";
+                }, this);
+
+                this.set('fields.' + index + '.options', this.keys);
+                this.set('fields.' + index + '.value', '');
+
+                // Check for nested subforms and update ssh_key fields
+                this.fields.forEach(function (field) {
+                    if (field.type == 'list') {
+                        field.options.forEach(function (subfield) {
+                            if (subfield.type == "ssh_key") {
+                                subfield.options = this.keys;
+                            }
+                        }, this);
+                    }
+                }, this);
+            },
+            fieldsOfType: function (data, type) {
+                var typeIndexes = [];
+                var fieldsOfType = data.filter(function (f, ind) {
+                    if (f.type == type)
+                        typeIndexes.push(ind);
+                    return f.type == type;
+                });
+                return typeIndexes;
+            },
+            updateKeys: function (e) {
+                var keyFieldsIndexes = this.fieldsOfType(this.fields, 'ssh_key');
+                console.log('updateKeys', keyFieldsIndexes);
+                this.async(function () {
+                    for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                        this.set('fields.' + keyFieldsIndexes[i] + '.options', this.keys);
+                        this.set('fields.' + keyFieldsIndexes[i] + '.value', e.detail.key);
+                    }
+                    if (this.fieldsOfType(this.fields, 'list')) {
+                        this.updateKeysInLists(e, this.fieldsOfType(this.fields, 'list'));
+                    }
+                }.bind(this), 1000);
+            },
+            updateKeysInLists: function (e, lists) {
+                for (var j = 0; j < lists.length; j++) {
+                    var keyFieldsIndexes = this.fieldsOfType(this.fields[lists[i]].options, 'ssh_key');
+                    console.log('updateKeys', this.fields[lists[i]].options);
+
+                    this.async(function () {
+                        for (var i = 0; i < keyFieldsIndexes.length; i++) {
+                            this.set('fields.' + lists[i] + '.options.' + keyFieldsIndexes[i] +
+                                '.options', this.keys);
+                            this.set('fields.' + lists[i] + '.options.' + keyFieldsIndexes[i] +
+                                '.value', e.detail.key);
+                        }
+                    }.bind(this), 500);
+                }
+            }
+        });
+    </script>
+</dom-module>

@@ -64,7 +64,7 @@
     iron-pages::content>* {
         background-color: var(--base-background-color);
         position: relative;
-        min-height: calc(100vh - 64px);
+        min-height: calc(94vh - 64px);
     }
     iron-pages::content mist-list {
         font-size: 14px;
@@ -141,7 +141,7 @@
     <paper-header-panel mode="standard" class="fit">
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-        <mist-header model="[[model]]" title="[[page]]" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
@@ -293,6 +293,7 @@
             'clear-search-on-nav': 'clearSearch',
             'search': 'updateSearchQuery',
             'open-and-select': 'openAndSelect',
+            'cloud-edit-key': 'openCloudEdit',
             'update-keys': 'updateKeys',
             'update-scripts': 'updateScripts',
             'user-action': '_onUserAction',
@@ -320,8 +321,10 @@
         },
 
         setHeaderCount: function(e) {
-            if (e.path[1].tagName.toLowerCase().split('-')[1] == this.page)
+            if (e.path && e.path[1] && e.path[1].tagName.toLowerCase().split('-')[1] == this.page)
                 this.set('count', e.detail.length);
+            else if (this.querySelector('cloud-page'))
+                this.querySelector('cloud-page')._cloudArraysChanged();
         },
 
 
@@ -330,6 +333,12 @@
                 this.querySelector('app-location').set('path', e.detail.url);
                 if (e.detail.params)
                     this.querySelector('app-location').set('queryParams', e.detail.params);
+                if (e.detail.search){
+                    console.log('setLocationPath',e.detail.search)
+                    this.async(function(){
+                        this.fire('search', e.detail.search);
+                    }, 200);
+                }
             } else
                 console.error('redirect url could not be found');
         },
@@ -376,6 +385,11 @@
                 this.querySelector('machine-page machine-actions associate-key').openAndSelect(e);
             }.bind(this));
         },
+        openCloudEdit: function (e) {
+            document.addEventListener('cloud-edit-key', function (e) {
+                this.querySelector('cloud-page cloud-actions').openEditDialog(e);
+            }.bind(this));
+        },
 
         updateKeys: function (e) {
             if (this.querySelector('stack-create'))
@@ -384,6 +398,10 @@
                 this.querySelector('machine-create').updateKeys(e);
             if (this.querySelector('cloud-add'))
                 this.querySelector('cloud-add').updateKeys(e);
+            if (this.querySelector('cloud-edit'))
+                this.querySelector('cloud-edit').updateKeys(e);
+            if (this.querySelector('other-cloud-add-machine'))
+                this.querySelector('other-cloud-add-machine').updateKeys(e);
         },
 
         updateScripts: function (e) {
@@ -461,7 +479,7 @@
         },
 
         updateSearchQuery: function (e) {
-            if (e.detail){
+            if (e.detail != undefined){
                 this.set('q', e.detail);
                 this.set('model.sections.' + this.page + '.q', e.detail || '');
             }

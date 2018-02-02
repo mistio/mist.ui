@@ -1,0 +1,114 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
+
+<link rel="import" href="../mist-actions.html">
+<link rel="import" href="other-cloud-machine-actions.html">
+
+<dom-module id="other-cloud-machines">
+    <template>
+        <h3>Hosts</h3>
+        <p>Select any host to remove it from this cloud.</p>
+        <mist-list id="otherServerMachinesList"
+            selectable column-menu multi-sort
+            items="[[_filterMachines(cloud,machines)]]"
+            name="Machines"
+            selected-items="{{selectedMachineItems}}"
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers()]]>
+            <mist-actions slot="action-buttons" actions="[[machineActions]]" type="machine" items="[[selectedMachineItems]]" model="[[model]]"></mist-actions>
+            <other-cloud-machine-actions slot="actions" items="[[selectedMachineItems]]" actions="{{machineActions}}"></other-cloud-machine-actions>
+        </mist-list>
+    </template>
+    <script>
+    Polymer({
+        is: 'other-cloud-machines',
+        properties: {
+            cloud:  Object,
+            machineActions: {
+                type: Array,
+                notify: true
+            },
+            providers: {
+                type: Array,
+                value: PROVIDERS
+            },
+            selectedMachineItems: {
+                type: Array,
+                notify: true
+            },
+            machines: Array
+        },
+        listeners: {
+            'select-action': 'selectAction'
+        },
+        observers: [
+            'machinesChanged(cloud.*, machines.length)'
+        ],
+        _filterMachines: function(cloud,machines){
+            var ms = this.machines.filter(function(m){
+                return m.cloud.id == this.cloud.id;
+            }.bind(this));
+            return ms;
+        },
+        machinesChanged: function(c,m){
+            if (this.querySelector('mist-list'))
+                this.querySelector('mist-list').fire('resize');
+        },
+        _getFrozenLogColumn: function(){
+            return ['name'];
+        },
+        _getVisibleColumns: function(){
+            return ['state', 'id', 'missing_since', 'public_ips', 'tags'];
+        },
+        _getRenderers: function() {
+            var _this = this;
+            return {
+                'name': {
+                    'body': function(item) {
+                        return '<strong class="name">'+ item + '</strong>';
+                    }
+                },
+                'missing_since': {
+                    'title': function(item, row){
+                    return 'missing since';
+                    },
+                    'body': function(item, row) {
+                    return item;
+                    }
+                },
+                'public_ips': {
+                    'title': function(item, row){
+                    return 'public IP';
+                    },
+                    'body': function(item, row) {
+                    return item[0];
+                    }
+                },
+                'tags': {
+                    'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                        display += "<span class='tag'>"+tags[i].key;
+                        if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                        display += "</span>";
+                    }
+                    return display;
+                    }
+                }
+            }
+        },
+        // redirect events
+        selectAction: function(e) {
+            e.stopImmediatePropagation();
+            if (this.querySelector('other-cloud-machine-actions')) {
+                this.querySelector('other-cloud-machine-actions').selectAction(e);
+            }
+        }
+    });
+    </script>
+</dom-module>
