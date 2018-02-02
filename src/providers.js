@@ -980,6 +980,17 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter title"
     }, {
+        name: "host",
+        label: "Hostname *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter hostname",
+        helptext: 'The URL or IP vSphere listens to',
+        helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
+    }, {
         name: "username",
         label: "Username *",
         type: "text",
@@ -997,17 +1008,6 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password"
-    }, {
-        name: "host",
-        label: "Hostname *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter hostname",
-        helptext: 'The URL or IP vSphere listens to',
-        helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
     }]
 });
 
