@@ -380,7 +380,7 @@
             },
 
             _getVisibleColumns: function(){
-              return ['state', 'cloud', 'cost', 'created', 'tags', 'image_id', 'size', 'hostname', 'public_ips'];
+              return ['state', 'cloud', 'cost', 'created', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
             },
 
             _getRenderers: function(machines, clouds, incidents) {
@@ -517,6 +517,13 @@
                             if (im1.toLowerCase() > im2.toLowerCase())
                                 return 1;
                             return 0;
+                      }
+                  },
+                  'location': {
+                      'body': function(item, row) {
+                        if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud.id] && _this.model.clouds[row.cloud.id].locations)
+                          var location = _this.model.clouds[row.cloud.id].locations[item];
+                          return location ? location.name : item;
                       }
                   },
                   'tags': {
