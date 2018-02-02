@@ -133,7 +133,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: ""
     }, {
         name: "networks",
-        label: "Networks *",
+        label: "Networks",
         type: "mist_dropdown",
         noPluralisation: true,
         value: "",
@@ -373,26 +373,26 @@ MACHINE_CREATE_FIELDS.push({
         required: false,
         helptext: "Optional."
     }, {
-            name: "hourly",
-            label: "Hourly billing",
-            type: "toggle",
-            value: true,
-            defaultValue: true,
-            show: true,
-            required: false,
-            helptext: "If you don't select hourly billing, monthly billing will be applied"
+        name: "hourly",
+        label: "Hourly billing",
+        type: "toggle",
+        value: true,
+        defaultValue: true,
+        show: true,
+        required: false,
+        helptext: "If you don't select hourly billing, monthly billing will be applied"
 
-        }, {
-            name: "bare_metal",
-            label: "Bare Metal",
-            type: "toggle",
-            value: false,
-            defaultValue: false,
-            show: true,
-            required: false,
-            helptext: "Whether the new server will be Cloud server, or Bare Metal"
+    }, {
+        name: "bare_metal",
+        label: "Bare Metal",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: "Whether the new server will be Cloud server, or Bare Metal"
 
-        }, {
+    }, {
         name: "machine_password",
         label: "Machine Password *",
         type: "password",
@@ -422,7 +422,16 @@ MACHINE_CREATE_FIELDS.push({
 // VSPHERE
 MACHINE_CREATE_FIELDS.push({
     provider: 'vsphere',
-    fields: []
+    fields: [{
+        name: "networks",
+        label: "Networks *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: []
+    }]
 });
 
 // VULTR
@@ -1017,8 +1026,8 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         name: "async",
         label: "Async request",
         type: "toggle",
-        value: "true",
-        defaultValue: "true",
+        value: true,
+        defaultValue: true,
         show: false,
         required: false,
         helptext: ""
