@@ -177,7 +177,7 @@ PROVIDERS.push(
 );
 */
 
-// CLEAR CENTER
+// CLEARCENTER
 PROVIDERS.push({
     title: 'ClearCenter',
     val: 'clearcenter',
@@ -382,7 +382,49 @@ PROVIDERS.push({
         required: true,
         // SUPPORTED_PROVIDERS[3].regions.map(function(i){return {val:i.id, title: i.location}})
         //ec2_ap_northeast should be ap-northeast
-        options: [{'val': 'ap-northeast-1', 'title': 'Tokyo'}, {'val': 'ap-northeast-2', 'title': 'Seoul'}, {'val': 'ap-southeast-1', 'title': 'Singapore'}, {'val': 'ap-southeast-2', 'title': 'Sydney'}, {'val': 'eu-central-1', 'title': 'Frankfurt'}, {'val': 'eu-west-1', 'title': 'Ireland'}, {'val': 'eu-west-2', 'title': 'London'},  {'val': 'ca-central-1', 'title': 'Canada Central'}, {'val': 'sa-east-1', 'title': 'Sao Paulo'}, {'val': 'us-east-1', 'title': 'N. Virginia'}, {'val': 'us-west-1', 'title': 'N. California'}, {'val': 'us-west-2', 'title': 'Oregon'}, {'val': 'us-east-2', 'title': 'Ohio'}, {'val': 'ap-south-1', 'title': 'Mumbai'}]
+        options: [{
+            'val': 'ap-northeast-1',
+            'title': 'Tokyo'
+        }, {
+            'val': 'ap-northeast-2',
+            'title': 'Seoul'
+        }, {
+            'val': 'ap-southeast-1',
+            'title': 'Singapore'
+        }, {
+            'val': 'ap-southeast-2',
+            'title': 'Sydney'
+        }, {
+            'val': 'eu-central-1',
+            'title': 'Frankfurt'
+        }, {
+            'val': 'eu-west-1',
+            'title': 'Ireland'
+        }, {
+            'val': 'eu-west-2',
+            'title': 'London'
+        }, {
+            'val': 'ca-central-1',
+            'title': 'Canada Central'
+        }, {
+            'val': 'sa-east-1',
+            'title': 'Sao Paulo'
+        }, {
+            'val': 'us-east-1',
+            'title': 'N. Virginia'
+        }, {
+            'val': 'us-west-1',
+            'title': 'N. California'
+        }, {
+            'val': 'us-west-2',
+            'title': 'Oregon'
+        }, {
+            'val': 'us-east-2',
+            'title': 'Ohio'
+        }, {
+            'val': 'ap-south-1',
+            'title': 'Mumbai'
+        }]
     }, {
         name: "title",
         label: "Title *",
@@ -780,7 +822,31 @@ PROVIDERS.push({
         show: true,
         required: true,
         // SUPPORTED_PROVIDERS[9].regions.map(function(i){return {val:i.id, title: i.location}})
-        options: [{"val":"dfw","title":"Dallas"},{"val":"ord","title":"Chicago"},{"val":"iad","title":"N. Virginia"},{"val":"lon","title":"London"},{"val":"syd","title":"Sydney"},{"val":"hkg","title":"Hong Kong"},{"val":"rackspace_first_gen:us","title":"US-First Gen"},{"val":"rackspace_first_gen:uk","title":"UK-First Gen"}]
+        options: [{
+            "val": "dfw",
+            "title": "Dallas"
+        }, {
+            "val": "ord",
+            "title": "Chicago"
+        }, {
+            "val": "iad",
+            "title": "N. Virginia"
+        }, {
+            "val": "lon",
+            "title": "London"
+        }, {
+            "val": "syd",
+            "title": "Sydney"
+        }, {
+            "val": "hkg",
+            "title": "Hong Kong"
+        }, {
+            "val": "rackspace_first_gen:us",
+            "title": "US-First Gen"
+        }, {
+            "val": "rackspace_first_gen:uk",
+            "title": "UK-First Gen"
+        }]
     }, {
         name: "title",
         label: "Title *",
@@ -1081,119 +1147,119 @@ PROVIDERS.push({
     val: 'bare_metal',
     className: 'provider-baremetal',
     options: [{
-        name: "title",
-        label: "Cloud Title *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title",
-        helpHref: "http://docs.mist.io/article/28-adding-other-servers"
-    }, 
-    {   
-        name: 'machines',
-        itemName: 'host',
-        items: [],
-        label: '',
-        show: true,
-        required: true,        
-        type: 'list',
-        min: '1',
-        max: '5',
-        options: [{
-            name: "machine_ip",
-            label: "Hostname",
+            name: "title",
+            label: "Cloud Title *",
             type: "text",
-            placeholder: 'DNS or IP',
-            show: true,
-            required: true,
-            helptext: '',
-            helpHref: ''
-        }, {
-            name: "machine_name",
-            label: "Alias (optional)",
-            type: "text",
-            placeholder: '',
-            show: true,
-            required: false,
-            helptext: ""
-        }, {
-            name: "operating_system",
-            label: "Operating System",
-            type: "dropdown",
-            value: "unix",
-            defaultValue: "unix",
-            show: true,
-            required: false,
-            options: [{
-                title: "Unix",
-                val: "unix"
-            }, {
-                title: "Windows",
-                val: "windows"
-            }]
-        }, {
-            name: "machine_key",
-            label: "SSH Key",
-            type: "ssh_key",
             value: "",
             defaultValue: "",
-            show: false,
-            required: false,
-            options: [],
-            showIf: {
-                fieldName: "operating_system",
-                fieldValues: ["unix"]
-            }
-        }, {
-            name: "machine_user",
-            label: "User",
-            type: "text",
-            value: "root",
-            defaultValue: "root",
-            show: false,
-            required: false,
-            errorMessage: "Please enter user",
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "machine_port",
-            label: "Port",
-            type: "text",
-            value: 22,
-            defaultValue: 22,
-            show: false,
-            required: false,
-            errorMessage: "Please enter port",
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "remote_desktop_port",
-            label: "Remote Desktop Port",
-            type: "text",
-            value: 3389,
-            defaultValue: 3389,
-            errorMessage: "Please enter remote desktop's port",
-            show: false,
-            required: true,
-            showIf: {
-                fieldName: "operating_system",
-                fieldValues: ["windows"]
-            }
-        }, {
-            name: "monitoring",
-            label: "Enable monitoring",
-            type: "toggle",
-            value: false,
-            defaultValue: false,
             show: true,
-            required: false
-        }
-    ]},
+            required: true,
+            errorMessage: "Please enter title",
+            helpHref: "http://docs.mist.io/article/28-adding-other-servers"
+        },
+        {
+            name: 'machines',
+            itemName: 'host',
+            items: [],
+            label: '',
+            show: true,
+            required: true,
+            type: 'list',
+            min: '1',
+            max: '5',
+            options: [{
+                name: "machine_ip",
+                label: "Hostname",
+                type: "text",
+                placeholder: 'DNS or IP',
+                show: true,
+                required: true,
+                helptext: '',
+                helpHref: ''
+            }, {
+                name: "machine_name",
+                label: "Alias (optional)",
+                type: "text",
+                placeholder: '',
+                show: true,
+                required: false,
+                helptext: ""
+            }, {
+                name: "operating_system",
+                label: "Operating System",
+                type: "dropdown",
+                value: "unix",
+                defaultValue: "unix",
+                show: true,
+                required: false,
+                options: [{
+                    title: "Unix",
+                    val: "unix"
+                }, {
+                    title: "Windows",
+                    val: "windows"
+                }]
+            }, {
+                name: "machine_key",
+                label: "SSH Key",
+                type: "ssh_key",
+                value: "",
+                defaultValue: "",
+                show: false,
+                required: false,
+                options: [],
+                showIf: {
+                    fieldName: "operating_system",
+                    fieldValues: ["unix"]
+                }
+            }, {
+                name: "machine_user",
+                label: "User",
+                type: "text",
+                value: "root",
+                defaultValue: "root",
+                show: false,
+                required: false,
+                errorMessage: "Please enter user",
+                showIf: {
+                    fieldName: "machine_key",
+                    fieldExists: true
+                }
+            }, {
+                name: "machine_port",
+                label: "Port",
+                type: "text",
+                value: 22,
+                defaultValue: 22,
+                show: false,
+                required: false,
+                errorMessage: "Please enter port",
+                showIf: {
+                    fieldName: "machine_key",
+                    fieldExists: true
+                }
+            }, {
+                name: "remote_desktop_port",
+                label: "Remote Desktop Port",
+                type: "text",
+                value: 3389,
+                defaultValue: 3389,
+                errorMessage: "Please enter remote desktop's port",
+                show: false,
+                required: true,
+                showIf: {
+                    fieldName: "operating_system",
+                    fieldValues: ["windows"]
+                }
+            }, {
+                name: "monitoring",
+                label: "Enable monitoring",
+                type: "toggle",
+                value: false,
+                defaultValue: false,
+                show: true,
+                required: false
+            }]
+        },
     ]
 });
