@@ -550,7 +550,7 @@
                                     <h4>Image:</h4></div>
                                 <div class="cell">
                                     <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
-                                    [[_computeMachineImage(machine)]]
+                                    [[_computeMachineImage(machine,model.images)]]
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!machineSize]]">
@@ -1230,74 +1230,7 @@ Polymer({
             return "";
 
     },
-    _computeMachineImage: function(img) {
-        var item = this.machine;
-        if (item && item.image && typeof(item.image) != "object") {
-            return item.image;
-        } else if (item && item.extra.image && typeof(item.extra.image) == "string") {
-            return item.extra.image;
-        } else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
-            return item.extra.image.distribution + " " + item.extra.image.name;
-        } else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id ||
-                item.extra.image)) {
-            return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug ||
-                item.extra.image.name;
-        } else
-            return "not found";
-    },
-    _computeMachineSize: function(item, itemChangeRecord, machines) {
-        // field could be in the 'extra' section, but should not be an object
-        if (item) {
-            var ret = item['size'];
-
-            if (ret && typeof(ret) != 'object')
-                return ret;
-            if (!ret && item.extra && item.extra['size'] && typeof(item.extra['size']) != 'object')
-                ret = item.extra['size'];
-            if (item.extra && item.extra.size && item.extra.size.vcpus)
-                return item.extra.size.vcpus + 'vcpu, ' + item.extra.size.memory + 'M ram';;
-            if (item.extra && item.extra.size && typeof(item.extra.size) == 'string')
-                return item.extra.size;
-            if (item.extra && item.extra.instance_type)
-                return item.extra.instance_type;
-            if (item.extra && item.extra.instance_size)
-                return item.extra.instance_size;
-            if (item.extra && item.extra.maxCpu && item.extra.maxMemory)
-                return item.extra.maxCpu + 'cpu, ' + item.extra.maxMemory + 'M ram';
-            if (item.extra && item.extra.cpu && item.extra.memory)
-                return item.extra.cpu + 'cpu, ' + item.extra.memory + 'M ram';
-            if (item.extra && item.extra.PLANID) {
-                var cloud = document.querySelector('mist-app').model.clouds[item.cloud.id];
-                return (cloud && cloud.sizes) ? cloud.sizes[item.extra.PLANID].name + ": " + cloud.sizes[
-                        item.extra.PLANID].ram + " ram, " + cloud.sizes[item.extra.PLANID].disk +
-                    " disk, " + cloud.sizes[item.extra.PLANID].bandwidth + " bandwidth" : item.extra.PLANID
-            }
-            if (item.extra && item.extra.service_type)
-                return item.extra.service_type;
-        }
-    },
-    loadToColor: function(load, prefix) {
-        if (load > 1.2)
-            return prefix + "high ";
-        else if (load > 0.8)
-            return prefix + "medium ";
-        else if (load > 0.6)
-            return prefix + "eco ";
-        else if (load > 0.2)
-            return prefix + "low ";
-        else
-            return prefix + "low ";
-    },
-    readableUptime: function(str) {
-        if (str) {
-            var a = str.split(" ")[0],
-                b = str.split(" ")[1];
-            return "Up " + a + ". Idle:" + b;
-        } else
-            return "";
-
-    },
-    _computeMachineImage: function(machine) {
+    _computeMachineImage: function(machine, cloud) {
         var item = this.machine;
         if (item && item.image && typeof(item.image) != "object") {
             return item.image;
@@ -1361,40 +1294,6 @@ Polymer({
     },
     _probeError: function(e) {
         this.fire('toast', { msg: 'Error probing machine ' + e.detail.request.xhr.responseText, duration: 3000 });
-    },
-    _computeMachineLogFilter: function(machine) {
-        if (machine)
-            return {
-                "cloud_id": machine.cloud.id,
-                "machine_id": machine.machine_id
-            }
-    },
-    _existsImage: function(extra) {
-        if (extra)
-            return extra.image || extra.image_id || extra.imageId;
-        return false;
-    },
-    _computeCloudIcon: function(cloud) {
-        if (!cloud) {
-            return '';
-        }
-    },
-    _probeMachine: function(e) {
-        var payload = {
-            'key': this.machineKeys[0].keypair
-        };
-        this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.probeMachine.params = payload;
-        this.$.probeMachine.generateRequest();
-        this.async(function() {
-            this.notifyPath('machine.probe.ssh')
-        }, 5000);
-    },
-    _probeError: function(e) {
-        this.fire('toast', {
-            msg: 'Error probing machine ' + e.detail.request.xhr.responseText,
-            duration: 3000
-        });
     },
     _computeMachineLogFilter: function(machine) {
         if (machine)
