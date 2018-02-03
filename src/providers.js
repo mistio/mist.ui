@@ -177,7 +177,7 @@ PROVIDERS.push(
 );
 */
 
-// AZURE
+// CLEAR CENTER
 PROVIDERS.push({
     title: 'ClearCenter',
     val: 'clearcenter',
