@@ -980,6 +980,17 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter title"
     }, {
+        name: "host",
+        label: "Hostname *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter hostname",
+        helptext: 'The URL or IP vSphere listens to',
+        helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
+    }, {
         name: "username",
         label: "Username *",
         type: "text",
@@ -997,17 +1008,6 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password"
-    }, {
-        name: "host",
-        label: "Hostname *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter hostname",
-        helptext: 'The URL or IP vSphere listens to',
-        helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
     }]
 });
 
@@ -1055,96 +1055,118 @@ PROVIDERS.push({
     className: 'provider-baremetal',
     options: [{
         name: "title",
-        label: "Title *",
+        label: "Cloud Title *",
         type: "text",
         value: "",
         defaultValue: "",
         show: true,
         required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "machine_ip",
-        label: "Hostname",
-        type: "text",
-        placeholder: 'DNS or IP',
+        errorMessage: "Please enter title",
+        helpHref: "http://docs.mist.io/article/28-adding-other-servers"
+    }, 
+    {   
+        name: 'machines',
+        itemName: 'host',
+        items: [],
+        label: '',
         show: true,
-        required: false,
-        helptext: 'The URL or IP adress that your server listens to',
-        helpHref: 'http://docs.mist.io/article/28-adding-other-servers'
-    }, {
-        name: "operating_system",
-        label: "Operating System",
-        type: "dropdown",
-        value: "unix",
-        defaultValue: "unix",
-        show: true,
-        required: false,
+        required: true,        
+        type: 'list',
+        min: '1',
+        max: '5',
         options: [{
-            title: "Unix",
-            val: "unix"
+            name: "machine_ip",
+            label: "Hostname",
+            type: "text",
+            placeholder: 'DNS or IP',
+            show: true,
+            required: true,
+            helptext: '',
+            helpHref: ''
         }, {
-            title: "Windows",
-            val: "windows"
-        }]
-    }, {
-        name: "machine_key",
-        label: "SSH Key",
-        type: "ssh_key",
-        value: "",
-        defaultValue: "",
-        show: false,
-        required: false,
-        options: [],
-        showIf: {
-            fieldName: "operating_system",
-            fieldValues: ["unix"]
+            name: "machine_name",
+            label: "Alias (optional)",
+            type: "text",
+            placeholder: '',
+            show: true,
+            required: false,
+            helptext: ""
+        }, {
+            name: "operating_system",
+            label: "Operating System",
+            type: "dropdown",
+            value: "unix",
+            defaultValue: "unix",
+            show: true,
+            required: false,
+            options: [{
+                title: "Unix",
+                val: "unix"
+            }, {
+                title: "Windows",
+                val: "windows"
+            }]
+        }, {
+            name: "machine_key",
+            label: "SSH Key",
+            type: "ssh_key",
+            value: "",
+            defaultValue: "",
+            show: false,
+            required: false,
+            options: [],
+            showIf: {
+                fieldName: "operating_system",
+                fieldValues: ["unix"]
+            }
+        }, {
+            name: "machine_user",
+            label: "User",
+            type: "text",
+            value: "root",
+            defaultValue: "root",
+            show: false,
+            required: false,
+            errorMessage: "Please enter user",
+            showIf: {
+                fieldName: "machine_key",
+                fieldExists: true
+            }
+        }, {
+            name: "machine_port",
+            label: "Port",
+            type: "text",
+            value: 22,
+            defaultValue: 22,
+            show: false,
+            required: false,
+            errorMessage: "Please enter port",
+            showIf: {
+                fieldName: "machine_key",
+                fieldExists: true
+            }
+        }, {
+            name: "remote_desktop_port",
+            label: "Remote Desktop Port",
+            type: "text",
+            value: 3389,
+            defaultValue: 3389,
+            errorMessage: "Please enter remote desktop's port",
+            show: false,
+            required: true,
+            showIf: {
+                fieldName: "operating_system",
+                fieldValues: ["windows"]
+            }
+        }, {
+            name: "monitoring",
+            label: "Enable monitoring",
+            type: "toggle",
+            value: false,
+            defaultValue: false,
+            show: true,
+            required: false
         }
-    }, {
-        name: "machine_user",
-        label: "User",
-        type: "text",
-        value: "root",
-        defaultValue: "root",
-        show: false,
-        required: false,
-        errorMessage: "Please enter user",
-        showIf: {
-            fieldName: "machine_key",
-            fieldExists: true
-        }
-    }, {
-        name: "machine_port",
-        label: "Port",
-        type: "text",
-        value: 22,
-        defaultValue: 22,
-        show: false,
-        required: false,
-        errorMessage: "Please enter port",
-        showIf: {
-            fieldName: "machine_key",
-            fieldExists: true
-        }
-    }, {
-        name: "remote_desktop_port",
-        label: "Remote Desktop Port",
-        type: "text",
-        value: 3389,
-        defaultValue: 3389,
-        errorMessage: "Please enter remote desktop's port",
-        show: false,
-        required: true,
-        showIf: {
-            fieldName: "operating_system",
-            fieldValues: ["windows"]
-        }
-    }, {
-        name: "monitoring",
-        label: "Enable monitoring",
-        type: "toggle",
-        value: true,
-        defaultValue: true,
-        show: true,
-        required: false
-    }]
+    ]},
+    ]
 });
