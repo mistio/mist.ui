@@ -9,20 +9,8 @@
 <dom-module id="cloud-info">
     <template>
         <style include="shared-styles dialogs">
-            /*:root {
-                --primary-color: #fff;
-                --primary-text-color: rgba(255,255,255,0.87);
-                --secondary-text-color: rgba(255,255,255,0.54);
-                --primary-background-color: #424242;
-                --secondary-background-color: #424242;
-                --paper-input-container-input-color: rgba(255,255,255,0.87);
-                --paper-input-container-focus-color: rgba(255,255,255,0.54);
-            }*/
             :host {
                 box-sizing: border-box;
-                width: 100%;
-                height: auto;
-                /*margin-top: 7px;*/
                 transition: 200ms all ease-in;
                 position: relative;
             }
@@ -49,7 +37,9 @@
                 padding: 12px 0 16px 0;
             }
             .button {
-                align-self: center;
+                margin: 24px 0 0 0;
+                display: flex;
+                justify-content: flex-end;
             }
             paper-input {
                 padding-right: 16px;
@@ -57,28 +47,11 @@
             paper-button {
                 padding: 0.57em 0.57em;
             }
-            /*::selection,
-            :host >::content ::selection {
-                background-color: yellow;
-                color: black;
-            }*/
         </style>
 
-        <div class="cloud-block">
-            <div class="cloud-overview flex">
-                <div class="cloud-overview-item">
-                    <paper-input class="flex" label="Title" value="{{newCloud.title}}"></paper-input>
-                    <div class="button">
-                        <paper-button id="rename-cloud" disabled$="[[!formReady]]" on-tap="_changeTitle" class="blue">Save Title</paper-button>
-                    </div>
-                </div>
-                <!-- <div class="cloud-overview-item">
-                    <paper-input class="flex" id="cloudId" label="ID" value="[[cloud.id]]"></paper-input>
-                    <div class="button">
-                        <paper-button on-tap="_copyId" class="blue">Copy Id</paper-button>
-                    </div>
-                </div> -->
-            </div>
+        <paper-input label="Title" value="{{newCloud.title}}"></paper-input>
+        <div class="button">
+            <paper-button id="rename-cloud" disabled$="[[!formReady]]" on-tap="_changeTitle" class="blue">Save Title</paper-button>
         </div>
 
         <iron-ajax id="cloudEditAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="PUT" on-response="_handleCloudEditAjaxResponse" on-error="_handleCloudEditAjaxError"></iron-ajax>
@@ -162,6 +135,7 @@
                 },
                 _handleCloudEditAjaxResponse: function() {
                     this.set('sendingData', false);
+                    this.fire('close-rename-dialog');
                 },
                 _copyId: function() {
                     this.querySelector('#cloudId input').select();

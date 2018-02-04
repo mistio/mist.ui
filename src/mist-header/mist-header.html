@@ -138,6 +138,12 @@
                 margin-left: 0;
             }
         }
+        #logo-link.show-default-logo {
+            background-image: var(--logo-image);
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        :host  {background-color: var(--base-section-color);}
         :host[color="dashboard-section-color"]  {background-color: var(--dashboard-section-color);}
         :host[color="clouds-section-color"]     {background-color: var(--clouds-section-color);}
         :host[color="machines-section-color"]   {background-color: var(--machines-section-color);}
@@ -154,18 +160,18 @@
         :host[color="insights-section-color"]   {background-color: var(--insights-section-color);}
         :host[color="members-section-color"]    {background-color: var(--members-section-color);}
         :host[color="incidents-section-color"]  {background-color: var(--incidents-section-color);}
-        :host[color="my-account-section-color"] {background-color: var(--account-section-color);        }
+        :host[color="my-account-section-color"] {background-color: var(--account-section-color);}
         </style>
         <paper-toolbar id="header" class="dark">
             <paper-icon-button slot="top" class="top" icon="menu" paper-drawer-toggle on-tap="toggleSidebar" tabindex="0"></paper-icon-button>
             <div slot="top" class="logo-and-title top layout horizontal">
-                <a id="logo-link" class="regular" href="/" is="pushstate-anchor" on-tap="clearSearch">
-                    <iron-image class="logo" src$="[[_computeLogo(model.org)]]" sizing="contain" fade alt="Mist.io Logo" tabindex="0"></iron-image>
+                <a id="logo-link" class$="[[_showDefaultLogoClass(model.org,model.org.avatar)]] regular" href="/" is="pushstate-anchor" on-tap="clearSearch">
+                    <iron-image class="logo" src$="[[_computeLogo(model.org)]]" sizing="contain" fade alt="Mist.io Logo" tabindex="0" hidden$="[[!_computeLogo(model.org)]]"></iron-image>
                 </a>
                 <span class="page-title">[[count]] [[titleText]]</span>
             </div>
             <div class="search layout horizontal">
-                <top-search model="[[model]]" tabindex="3" viewing-list=[[viewingList]]></top-search>
+                <top-search model="[[model]]" tabindex="3" viewing-list=[[viewingList]] query="{{query}}"></top-search>
             </div>
             <notifications-indicator slot="top" class="top" id="mist-notifications" notifications="[[model.notificationsArray]]" tabindex="5"></notifications-indicator>
             <app-user-menu slot="top" class="top" user="[[model.user]]" org="[[model.org]]" teams="[[_computeUserTeams(model.user, model.teamsArray)]]" tabindex="6"></app-user-menu>
@@ -182,6 +188,9 @@
                 value: 'dashboard',
                 reflectToAttribute: true
             },
+            query: {
+                type: String
+            },
             viewingList: Boolean,
             titleText: {
                 type: String,
@@ -192,6 +201,11 @@
         observers: [
             '_pageChanged(title)'
         ],
+        _showDefaultLogoClass: function(org, avatar) {
+            if (!org || !org.avatar || !org.avatar.length)
+                return "show-default-logo";
+            return "";
+        },
         _pageChanged: function(page){
             this.set('color', page+'-section-color');
         },
@@ -208,14 +222,11 @@
                 if (t.members.indexOf(user.id) == -1)
                     return false;
                 return true;
-
             });
         },
         _computeLogo: function(org) {
-            if (!org)
-                return '/ui/assets/logos/logo.svg';
-            if (!org.avatar)
-                return '/ui/assets/logos/logo.svg';
+            if (!org || !org.avatar)
+                return false;
             return '/api/v1/avatars/' + org.avatar;
         },
         clearSearch: function(e){

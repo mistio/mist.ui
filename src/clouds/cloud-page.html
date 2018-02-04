@@ -3,14 +3,17 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 
+<link rel="import" href="../mist-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 
-<link rel="import" href="cloud-info.html">
 <link rel="import" href="cloud-dns.html">
 <link rel="import" href="cloud-edit.html">
+<link rel="import" href="cloud-actions.html">
+<link rel="import" href="other-cloud-machines.html">
+<link rel="import" href="other-cloud-add-machine.html">
 
 <dom-module id="cloud-page">
     <template>
@@ -57,6 +60,11 @@
             a {
                 color: black;
                 text-decoration: none;
+            }
+
+            h2 span {
+                font-size: .6em;
+                opacity: .54;
             }
 
             .icon iron-icon {
@@ -124,25 +132,6 @@
             paper-icon-bottom.bottom {
                 padding-right: 8px;
             }
-            h4.id {
-                display: inline-block;
-                text-transform: uppercase;
-                font-size: 0.9rem;
-                font-weight: 700;
-                margin-top: 8px;
-                margin-bottom: 8px;
-            }
-            span.id {
-                word-break: break-all;
-            }
-            .resource-info {
-                padding-right: 36px;
-                display: inline-block;
-            }
-            .tag {
-                padding: 0.5em;
-                display: inline;
-            }
             paper-material.no-pad {
                 padding: 0;
             }
@@ -171,24 +160,17 @@
             paper-material > p {
                 padding: 0;
             }
-            .head-toggle {
-                padding: 0.7em 0.57em;
-                display: inline-block;
-            }
-            .head-toggle, .head-toggle > *  {
-                font-weight: 500;
-                vertical-align: middle;
-                color: #fff !important;
-                line-height: 20px;
-            }
-            .head-toggle > *  {
-                display: flex;
-            }
             paper-toggle-button {
+                display: inline-flex;
                 cursor: pointer;
             }
             .capitalize {
                 text-transform: capitalize;
+            }
+            h3.dns-title {
+                margin: 0;
+                font-size: 20px;
+                letter-spacing: -.012em;
             }
             @media screen and (max-width: 366px) {
                 cloud-edit ::content paper-button#reset {
@@ -209,54 +191,117 @@
             .single-head {
                 @apply(--cloud-page-head-mixin)
             }
+            .view.blue-link {
+                /*font-size: .8em;*/
+                padding: 0;
+                margin: 0;
+                text-transform: none !important;
+                text-align: left !important;
+                justify-content: flex-start;
+            }
+            .table {display: table;}
+            .row {
+                display: table-row;
+            }
+            .cell {display: table-cell;}
+            .cell h4 {
+                text-transform: uppercase;
+                font-weight: bold;
+                font-size: 0.8em;
+                display: inline-block;
+                width: 80px;
+                opacity: 0.54;
+                margin: 0;
+            }
+            paper-material.info {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .resource-info {
+                padding-right: 36px;
+                vertical-align: top;
+            }
+            .tag {
+                padding: 2px 0.5em;
+                display: inline;
+            }
         </style>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
+            <cloud-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></cloud-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon src="[[_computeItemImage(cloud)]]"></iron-icon>
                 </span>
                 <div class="title flex">
                     <h2>
-                        [[cloudTitle]]
+                        [[cloudTitle]] <span class="capitalize" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span>
                     </h2>
                     <div class="subtitle">
-                        <span class="capitalize" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span><span hidden$="[[!cloud.enabled]]">, enabled.</span><span class="capitalize" hidden$="[[cloud.enabled]]">disabled</span>
-                    </div>
-                </div>
-
-                <div class="item-actions">
-                    <div class="head-toggle">
                         <paper-toggle-button id="enable-disable-cloud" checked$="[[cloud.enabled]]" on-tap="_changeState" disabled$="{{loading}}">
                             <span hidden$="[[!cloud.enabled]]">ENABLED</span>
                             <span hidden$="[[cloud.enabled]]">DISABLED</span>
                         </paper-toggle-button>
                     </div>
-                    <paper-button id="edit-tags" on-tap="_editTags" class="simple">tags</paper-button>
                 </div>
-
+                <mist-actions actions="[[actions]]" type="cloud" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
             </paper-material>
-            <template is="dom-if" if="[[cloud]]">
-                <paper-material>
-                    <div class="missing" hidden$="[[!isMissing]]">Cloud not found.</div>
+
+            <template is="dom-if" if="[[cloud.id]]" restamp>
+                <paper-material class="info">
                     <div class="resource-info">
-                        <h4 class="id">ID:</h4> <span class="id">[[cloud.id]] </span>
+                        <div class="table">
+                            <div class="row">
+                                <div class="cell"><h4>ID:</h4></div>
+                                <div class="cell"><span>[[cloud.id]] </span></div>
+                            </div>
+                            <div class="row" hidden$="[[!cloud.region]]">
+                                <div class="cell"><h4>Region:</h4></div>
+                                <div class="cell"><span>[[cloud.region]]</span></div>
+                            </div>
+                            <div class="row">
+                                <div class="cell"><h4>Machines:</h4></div>
+                                <div class="cell">
+                                    <span hidden$="[[_computeShowCount(runningMachinesArrayLength)]]">[[runningMachinesArrayLength]] running</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewRunning" hidden$="[[!runningMachinesArrayLength]]">[[runningMachinesArrayLength]] running</paper-button>
+                                    <br/>
+                                    <span hidden$="[[_computeShowCount(stoppedMachinesArrayLength)]]">[[stoppedMachinesArrayLength]] stopped</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewStopped" hidden$="[[!stoppedMachinesArrayLength]]">[[stoppedMachinesArrayLength]] stopped</paper-button>
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[_isBareMetal(cloud.provider)]]">
+                                <div class="cell"><h4>Images:</h4></div>
+                                <div class="cell">
+                                    <span hidden$="[[_computeShowCount(imagesArrayLength)]]">[[imagesArrayLength]]</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewImages" hidden$="[[!imagesArrayLength]]">[[imagesArrayLength]] images</paper-button></div>
+                            </div>
+                            <div class="row" hidden$="[[_isBareMetal(cloud.provider)]]">
+                                <div class="cell"><h4>Locations:</h4></div>
+                                <div class="cell"><span>[[locationsArrayLength]]</span></div>
+                            </div>
+                            <div class="row">
+                                <div class="cell"><h4>Networks:</h4></div>
+                                <div class="cell">
+                                    <span hidden$="[[_computeShowCount(networksArrayLength)]]">[[networksArrayLength]]</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewNetworks" hidden$="[[!networksArrayLength]]">[[networksArrayLength]] networks</paper-button></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="resource-info">
-                        <h4 class="id tags" hidden$="[[!cloud.region]]">Region:</h4> <span class="id">[[cloud.region]]</span>
-                    </div>
-                    <div class="resource-info">
-                        <h4 class="id tags" hidden$="[[!cloud.enabled]]">State:</h4> <span class="id" hidden$="[[!cloud.enabled]]">[[cloud.state]]</span>
-                    </div>
-                    <div class="resource-info">
-                    <h4 class="id tags" hidden$="[[!cloud.tags.length]]">Tags:</h4>
-                        <span hidden$="[[!cloud.tags]]">
-                            <template is="dom-repeat" items="[[cloud.tags]]">
-                                <span class="id tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
-                            </template>
-                        </span>
+                        <div class="table">
+                            <div class="row">
+                                <div class="cell"><h4>State:</h4></div>
+                                <div class="cell"><span>[[cloud.state]]</span></div>
+                            </div>
+                            <div class="row" hidden$="[[!cloud.tags.length]]">
+                                <div class="cell"><h4>Tags:</h4></div>
+                                <div class="cell">
+                                    <template is="dom-repeat" items="[[cloud.tags]]">
+                                        <span class="tag">[[item.key]] <span hidden="[[!item.value]]">= [[item.value]]</span></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </paper-material>
                 <paper-material class="no-pad">
@@ -267,36 +312,32 @@
                     </div>
                 </paper-material>
             </template>
-            <paper-material class="separator">
-                <h3>Rename Cloud</h3>
-                <cloud-info cloud="[[cloud]]" opened></cloud-info>
-            </paper-material>
-            <template is="dom-if" if="[[_isSupportedDNSProvider(cloud.provider)]]">
+            <!-- <template is="dom-if" if="[[_isSupportedDNSProvider(cloud.provider)]]">
                 <paper-material class="separator">
-                    <h3>Enable DNS</h3>
+                    <h3 class="dns-title">Enable DNS</h3>
                     <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
                 </paper-material>
+            </template> -->
+            <template is="dom-if" if="[[_isBareMetal(cloud.provider)]]" restamp>
+                <paper-material class="separator" hidden$="[[!_isBareMetal(cloud.provider)]]">
+                        <other-cloud-machines cloud="[[cloud]]" machines="[[model.machinesArray]]"></other-cloud-machines>
+                </paper-material>
             </template>
-            <paper-material class="separator">
-                <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]"></cloud-edit>
-            </paper-material>
-            <paper-material class="separator">
-                <h3>Delete Cloud: [[cloud.title]]</h3>
-                <p>Deleting clouds can not be undone. Alternatively you can disable the cloud temporarily by using the option on the top.</p>
-                <div class="button">
-                    <paper-button id="delete-cloud" on-tap="_deleteCloudConfirmation" class="red">Delete Cloud</paper-button>
-                </div>
-            </paper-material>
-            <!-- <div class="absolute-bottom-right">
-                <paper-fab icon="star-border" on-tap="_starcloud" id="starcloudFab" hidden$={{!isStarred}}></paper-fab>
-                <paper-fab icon="star" on-tap="_starcloud" id="starcloudFab" hidden$={{isStarred}}></paper-fab>
-            </div> -->
+            <!-- <template is="dom-if" if="[[_isBareMetal(cloud.provider)]]">
+                <paper-material class="separator">
+                    <paper-toggle-button checked="{{addMachine}}">
+                        <h4>Open add hosts form.</h4>
+                    </paper-toggle-button>
+                    <div hidden$="[[!addMachine]]">
+                        <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>
+                    </div>
+                </paper-material>
+            </template> -->
         </div>
         <iron-ajax id="cloudStarAjaxRequest" url="/api/v1/clouds/{{cloud.cloud.id}}/clouds/{{cloud.id}}" method="POST" on-response="_handlecloudStarAjaxResponse" on-error="_handlecloudStarAjaxError"></iron-ajax>
-        <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse" on-error="_handleCloudDeletionAjaxError"></iron-ajax>
         <iron-ajax id="cloudStateAjaxRequest" loading="{{loading}}" handle-as="xml" url="/api/v1/clouds/[[cloud.id]]" method="POST" on-response="_handleCloudStateAjaxResponse" on-error="_handleCloudStateAjaxError"></iron-ajax>
         <tags-list model="[[model]]"></tags-list>
-        <dialog-element></dialog-element>
+        <dialog-element id="confirm"></dialog-element>
     </template>
     <script>
         (function() {
@@ -327,23 +368,92 @@
                         computed: '_computeIsloading(cloud)',
                         value: true
                     },
-                    expectedState: Boolean
+                    imagesArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    locationsArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    networksArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    runningMachinesArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    stoppedMachinesArrayLength: {
+                        type: Number,
+                        value: 0
+                    },
+                    expectedState: Boolean,
+                    addMachine: false,
+                    itemArray: Array,
+                    actions: Array
                 },
                 listeners: {
-                    'confirmation': '_deleteCloud'
+                    'confirmation': '_deleteCloud',
+                    'delete-cloud': '_deleteCloudConfirmation',
+                    'select-action': 'selectAction'
                 },
+                observers: [
+                    '_cloudChanged(cloud, cloud.*)',
+                    '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networksArray,cloud.machinesArray)'
+                ],
                 ready: function() {
+                },
+                _cloudChanged: function(cloud){
+                    // console.log(this.cloud, this.cloud.enabled, [this.cloud])
+                    this.set('itemArray', this.cloud ? [this.cloud] : []);
+                    this._cloudArraysChanged();
+                },
+                _cloudArraysChanged: function(cloud, cloudchange, imagesArray,locationsArray,networksArray,machinesArray){
+                    // console.log('cloudArraysChanaged',cloud,cloudchange,imagesArray,locationsArray,networksArray,machinesArray);
+                    if (this.cloud){
+                        this.async(function(){
+                            this.set('imagesArrayLength', this.cloud.imagesArray ? this.cloud.imagesArray.length : 0);
+                            this.set('locationsArrayLength', this.cloud.locationsArray ? this.cloud.locationsArray.length : 0);
+                            this.set('networksArrayLength', this.cloud.networksArray ? this.cloud.networksArray.length : 0);
+                            this.set('runningMachinesArrayLength', this._computeRunningMachines(this.cloud.machinesArray));
+                            this.set('stoppedMachinesArrayLength', this._computeStoppedMachines(this.cloud.machinesArray));
+                        }.bind(this), 1000);
+                    }
+                },
+                viewRunning: function(){
+                    this.goToFilteredList('machines','running')
+                },
+                viewStopped: function(){
+                    this.goToFilteredList('machines','stopped')
+                },
+                viewImages: function(){
+                    this.goToFilteredList('images')
+                },
+                viewNetworks: function(){
+                    this.goToFilteredList('networks')
+                },
+                goToFilteredList: function(page,state){
+                    var search = state ? ' ' + state : '';
+                    this.fire('go-to', {url: '/'+page, search: this.cloud.title+search});
+                },
+                _computeShowCount: function(c){
+                    console.log('_computeShowCount',c);
+                    return c != 0 ? true : false;
+                },
+                _computeRunningMachines: function(machinesArray) {
+                    return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function(m){
+                        return m.state == 'running';
+                    }).length : 0;
+                },
+                _computeStoppedMachines: function(machinesArray) {
+                    return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function(m){
+                        return m.state == 'stopped'
+                    }).length : 0;
                 },
                 _computeCloudTitle: function(cloud) {
                     if (cloud)
                         return cloud.title;
-                },
-                _editTags: function() {
-                    var el = this.querySelector('tags-list'),
-                    items = [];
-                    items.push(itemUid(this.cloud, this.section));
-                    el.items = items;
-                    el._openDialog();
                 },
                 _computeIsloading: function(cloud) {
                     return !this.cloud ? true : false;
@@ -355,7 +465,7 @@
                     }
                 },
                 _showDialog: function(info) {
-                    var dialog = this.querySelector('dialog-element');
+                    var dialog = this.querySelector('dialog-element#confirm');
                     for (var i in info) {
                         dialog[i] = info[i];
                     }
@@ -368,35 +478,9 @@
                         return false;
                     }
                 },
-                _deleteCloudConfirmation:function(){
-                  this._showDialog({
-                      title: 'Delete '+this.cloud.title+'?',
-                      body: "Deleting a cloud can not be undone. You are about to delete cloud '" + this.cloud.title + "'.",
-                      danger: true,
-                      reason: "cloud.delete"
-                  });
-                },
-                 _deleteCloud: function(e){
-                   var reason = e.detail.reason,
-                       response = e.detail.response;
-
-                   if (response.confirmed && reason == "cloud.delete") {
-                      this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                      this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                      this.$.cloudDeleteAjaxRequest.generateRequest();
-                   }
-                },
-                _handleCloudDeletionAjaxResponse: function(e){
-                    var title = '';
-                    if (this.cloud && this.cloud.title)
-                        title = this.cloud.title;
-                    document.querySelector('paper-header-panel').scroller.scrollTop = 0;
-                    this.fire('go-to', {url: '/'});
-                    this.fire('toast',{msg:'Cloud ' + title + ' was deleted',duration:3000});
-                },
-                _handleCloudDeletionAjaxError: function(e){
-                    this.fire('toast',{msg:'There was an error deleting ' + this.cloud.title + '.',duration:3000});
-                },
+                _isBareMetal: function(provider) {
+                    return provider == 'bare_metal';
+                },                
                 _changeState: function(e) {
                     this.querySelector('#enable-disable-cloud').disabled=true;
                     this.$.cloudStateAjaxRequest.headers["Content-Type"] = 'application/json';
@@ -414,6 +498,13 @@
                 _handleCloudStateAjaxError:function(e){
                     this.querySelector('#enable-disable-cloud').checked=this.cloud.enabled;
                     this.fire('toast',{msg:e.detail.request.xhr.response,duration:10000});
+                },
+                // redirect events
+                selectAction: function(e) {
+                    e.stopImmediatePropagation();
+                    if (this.querySelector('cloud-actions')) {
+                      this.querySelector('cloud-actions').selectAction(e);
+                    }
                 },
             });
         })();
