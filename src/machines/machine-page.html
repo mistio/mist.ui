@@ -595,7 +595,8 @@
                                 </div>
                                 <div class="cell">
                                     <span class="smaller">min/avg/max/std = [[machine.probe.ping.rtt_min]]/[[machine.probe.ping.rtt_avg]]/[[machine.probe.ping.rtt_max]]/[[machine.probe.ping.rtt_std]]
-                                        ms</span>
+                                        ms
+                                    </span>
                                     <span class="smaller packetloss" hidden$=[[!machine.probe.ping.packets_loss]]>-- [[_computePacketLossPercent(machine.probe.ping.packets_loss)]]% packet loss --</span>
                                 </div>
                             </div>
@@ -1351,7 +1352,7 @@
                 return './assets/providers/provider-' + cloud.replace(/_/g, "") + '.png';
             }
         },
-        _computeImageIcon: function (machine) {
+        _computeImageIcon: function (machine, probe) {
             if (!machine) {
                 return false;
             } else {
@@ -1360,7 +1361,10 @@
                     imageIcon = "";
                 image = image.toLowerCase();
 
-                if (image.indexOf('ubuntu') != -1)
+                if (machine.probe && machine.probe.ssh && machine.probe.ssh.distro && machine.probe.ssh.distro
+                    .toLowerCase().indexOf('clearos') != -1)
+                    imageIcon = "clearos";
+                else if (image.indexOf('ubuntu') != -1)
                     imageIcon = "ubuntu";
                 else if (image.indexOf('netbsd') != -1)
                     imageIcon = "netbsd";
