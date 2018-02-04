@@ -564,11 +564,11 @@
                             return 'image';
                         },
                         'body': function (item, row) {
-                            return _this.computeImage(row);
+                            return _this._computeImage(row);
                         },
                         'cmp': function (item1, item2, row1, row2) {
-                            var im1 = _this.computeImage(row1),
-                                im2 = _this.computeImage(row2);
+                            var im1 = _this._computeImage(row1),
+                                im2 = _this._computeImage(row2);
 
                             if (!im1.length && !im2.length)
                                 return 0;
@@ -619,17 +619,24 @@
                     }
                 }
             },
-            computeImage: function (row) {
-                if (row.extra && row.extra.image) {
+            _computeImage: function (row, item) {
+                var image_id = item;
+
+                if (!image_id && row.extra && row.extra.image) {
                     if (row.extra.image.distribution && row.extra.image.name) {
                         return row.extra.image.distribution + " " + row.extra.image.name;
                     }
-                    return row.extra.image;
+                    image_id = row.extra.image;
                 }
-                if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)) {
-                    return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
+                if (!image_id && row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)) {
+                    image_id = row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
                 }
-                return "";
+
+                if (image_id && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud.id].images[image_id]) {
+                    return this.model.clouds[row.cloud.id].images[image_id].name
+                }
+
+                return image_id || "";
             },
             computeSize: function (row) {
 
