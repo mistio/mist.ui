@@ -8,6 +8,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
 <link rel="import" href="rules-item.html">
+<link rel="import" href="alert-receivers.html">
 
 <dom-module id="mist-rules">
     <template>
@@ -78,6 +79,7 @@
             .errormsg-container {
                 color: var(--red-color);
                 align-self: flex-start;
+                flex: 1;
             }
             .errormsg-container iron-icon {
                 color: inherit;
@@ -90,7 +92,9 @@
                 padding-left: 8px;
                 padding-right: 8px;
             }
-
+            paper-dropdown-menu::content #dropdown {
+                width: 200px !important;
+            }
         </style>
         <paper-material elevation="0">
             <template is="dom-repeat" items="{{items}}">
@@ -156,24 +160,24 @@
 
                     and email
 
-                    <paper-input id="emails" placeholder="[[userEmail]]" value="{{newRule.emails}}" auto-validate></paper-input>
+                    <paper-input id="emails" placeholder="ex. [[userEmail]]" value="{{newRule.emails}}" auto-validate></paper-input>
 
-                    and
+                    the members 
 
-                    <paper-dropdown-menu id="users">
-                        <paper-menu id="metricAction" attr-for-selected="value" selected-items="{{newRule.users}}" class="dropdown-content" multi>
+                    <paper-dropdown-menu>
+                        <paper-menu id="users" attr-for-selected="value" selected-items="{{selectedUsers}}" class="dropdown-content" multi>
                             <template is="dom-repeat" items="[[users]]" as="user">
-                                <paper-item value="[[user.id]]">[[user.name]]</paper-item>
+                                <paper-item value="[[user.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(user.id,newRule.users)]]"></iron-icon>[[user.name]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
 
-                    and
+                    the teams 
 
-                    <paper-dropdown-menu id="teams">
-                        <paper-menu id="metricAction" attr-for-selected="value" selected-items="{{newRule.teams}}" class="dropdown-content" multi>
+                    <paper-dropdown-menu>
+                        <paper-menu id="teams" attr-for-selected="value" selected-items="{{selectedTeams}}" class="dropdown-content" multi>
                             <template is="dom-repeat" items="[[teams]]" as="team">
-                                <paper-item value="[[team.id]]">[[team.name]]</paper-item>
+                                <paper-item value="[[team.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(team.id,newRule.teams)]]"></iron-icon>[[team.name]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
@@ -245,6 +249,14 @@
                     type: Boolean,                    
                     value: false
                 },
+                selectedUsers: {
+                    type: Array,
+                    observer: '_selectedUsersChanged'
+                },
+                selectedTeams: {
+                    type: Array,
+                    observer: '_selectedTeamsChanged'
+                },
                 userEmail: String,
                 teams: Array,
                 users: Array
@@ -266,7 +278,9 @@
                         value:5,
                         action: 'alert',
                         reminder_offset: '1',
-                        emails: ''
+                        emails: '',
+                        teams: [],
+                        users: []
                     }
                 this.set('newRule', new_rule);
             },
@@ -331,9 +345,33 @@
                 }
                 return metrics;
             },
+            _selectedUsersChanged: function(users) {
+                var users = [];
+                this.$.users.selectedItems.forEach(function(u){
+                    users.push(u.value)
+                });
+                console.log(users);
+                this.set('newRule.users', users);
+            },
+            _selectedTeamsChanged: function(teams) {
+                var teams = [];
+                this.$.teams.selectedItems.forEach(function(t){
+                    teams.push(t.value)
+                });
+                console.log(teams);
+                this.set('newRule.teams', teams);
+            },
             addRule: function(e){
                 var payload = {};
                     payload = this.newRule;
+
+                // var receivers = {
+                //     users: this.newRule.users,
+                //     teams: this.newRule.teams
+                // }
+
+                // delete payload.users;
+                // delete payload.teams;
 
                 payload.cloudId = this.resource.cloud.id;
                 payload.machineId = this.resource.machine_id;
@@ -350,6 +388,8 @@
                 }
 
                 this.$.addRuleRequest.params = payload;
+                // this.$.addRuleRequest.body = receivers;
+                // this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
                 this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.addRuleRequest.generateRequest();
             },
@@ -380,6 +420,10 @@
                     delete this.newRule.command;
                 }
                 this.set('showCommandTextarea',action == "command") ;
+            },
+            _isSelected: function (id,array) {
+                console.log('_isSelected',id,array);
+                return array.indexOf(id) > -1;
             }
         });
     </script>
