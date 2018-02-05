@@ -127,7 +127,15 @@
                     within [[computeTime(rule.reminder_offset)]]min, 
                 </span>then <span class="strong">[[rule.action]]</span>
                 <span class="command" hidden$="[[!showCommandTextarea]]"><code>[[rule.command]]</code></span>
-                <span hidden$="[[!rule.emails.length]]">and email <span class="command"><code>[[joinEmails(rule.emails)]]</code></span></span>
+                <span hidden$="[[!rule.emails.length]]">and email 
+                    <span class="command"><code>[[joinEmails(rule.emails)]]</code></span>
+                </span>
+                <span hidden$="[[!rule.teams.length]]">and teams
+                    <span class="command"><code>[[joinResources(rule.teams,'teams',model)]]</code></span>
+                </span>
+                <span hidden$="[[!rule.users.length]]">and users
+                    <span class="command"><code>[[joinResources(rule.users,'members',model)]]</code></span> 
+                </span>
             	<paper-icon-button icon="icons:create" toggles active={{editMode}}>edit</paper-icon-button>
             </div>
             <paper-spinner active$="{{sendingData}}"></paper-spinner>
@@ -188,11 +196,24 @@
 
                 and email
 
-                <paper-dropdown-menu id="users">
-                    <paper-menu id="metricAction" attr-for-selected="value" selected="{{newRule.users}}" class="dropdown-content" multi>
-                        <paper-input id="emails" value="{{joinEmails(newRule.emails)}}" auto-validate></paper-input>
-                        <template is="dom-repeat" items="[[users]]" as="user">
-                            <paper-item value="[[user.id]]">[[user.name]]</paper-item>
+                <paper-input id="emails" placeholder="ex. [[userEmail]]" value="{{newRule.emails}}" auto-validate></paper-input>
+
+                the members 
+
+                <paper-dropdown-menu>
+                    <paper-menu id="users" attr-for-selected="value" selected-items="{{selectedUsers}}" class="dropdown-content" multi>
+                        <template is="dom-repeat" items="[[model.membersArray]]" as="user">
+                            <paper-item value="[[user.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(user.id,rule.users)]]"></iron-icon>[[user.name]]</paper-item>
+                        </template>
+                    </paper-menu>
+                </paper-dropdown-menu>
+
+                the teams 
+
+                <paper-dropdown-menu>
+                    <paper-menu id="teams" attr-for-selected="value" selected-items="{{selectedTeams}}" class="dropdown-content" multi>
+                        <template is="dom-repeat" items="[[model.teamsArray]]" as="team">
+                            <paper-item value="[[team.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(team.id,rule.teams)]]"></iron-icon>[[team.name]]</paper-item>
                         </template>
                     </paper-menu>
                 </paper-dropdown-menu>
@@ -221,6 +242,7 @@
                     type: Array
                 },
                 resource: Object,  // machine, cloud or other later
+                model: Object,
                 rule: Object,
                 builtinMetrics:{
                     type: Object,
@@ -264,6 +286,14 @@
                 showCommandTextarea: {
                     type: Boolean,
                     value: false
+                },
+                selectedUsers: {
+                    type: Array,
+                    observer: '_selectedUsersChanged'
+                },
+                selectedTeams: {
+                    type: Array,
+                    observer: '_selectedTeamsChanged'
                 },
                 teams: Array,
                 users: Array
@@ -375,7 +405,8 @@
                 	payload["reminder_offset"] = (payload["reminder_offset"]-1 )*60;
 
                 console.log(payload);
-                this.$.updateRuleRequest.params = payload;
+                this.$.updateRuleRequest.body = payload;
+                this.$.updateRuleRequest.headers["Content-Type"] = 'application/json';
                 this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.updateRuleRequest.generateRequest();
                 this.set('formError', false);
@@ -390,6 +421,22 @@
             _handleUpdateError: function(e){
             	this.$.errormsg.textContent = e.detail.request.xhr.responseText;
             	this.set('formError', true);
+            },
+            _selectedUsersChanged: function(users) {
+                var users = [];
+                this.$.users.selectedItems.forEach(function(u){
+                    users.push(u.value)
+                });
+                // console.log(users);
+                this.set('newRule.users', users);
+            },
+            _selectedTeamsChanged: function(teams) {
+                var teams = [];
+                this.$.teams.selectedItems.forEach(function(t){
+                    teams.push(t.value)
+                });
+                // console.log(teams);
+                this.set('newRule.teams', teams);
             },
             ruleUpdates: function(e){
             	var changes = {};
@@ -418,6 +465,40 @@
             joinEmails: function(emails){
                 if (emails)
                     return emails.join(', ');
+            },
+            joinResources: function(array, type, model) {
+                if (array && array.length){
+                    var filteredArray = this.model[type+'Array'].filter(function(el){
+                        return array.indexOf(el.id) > -1;
+                    }.bind(this));
+                    // console.log('filteredArray', filteredArray);
+                    var names = filteredArray.map(function(r){
+                        return r.name || r.email;
+                    })
+                    return names.join(', ');
+                }
+                else
+                    return "not found";
+            },
+            _selectedUsersChanged: function(users) {
+                var users = [];
+                this.$.users.selectedItems.forEach(function(u){
+                    users.push(u.value)
+                });
+                // console.log(users);
+                this.set('rule.users', users);
+            },
+            _selectedTeamsChanged: function(teams) {
+                var teams = [];
+                this.$.teams.selectedItems.forEach(function(t){
+                    teams.push(t.value)
+                });
+                // console.log(teams);
+                this.set('rule.teams', teams);
+            },
+            _isSelected: function (id,array) {
+                // console.log('_isSelected',id,array);
+                return array.indexOf(id) > -1;
             }
         });
     </script>
