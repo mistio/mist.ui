@@ -12,211 +12,264 @@
 
 <dom-module id="page-machines">
     <template>
-    <style>
-        :host {
-            display: block;
-        }
-        #recommendationsDialog {
-            width: 400px;
-        }
-        #recommendationsDialog a.blue-link {
-            color: var(--blue-color) !important;
-        }
-        #recommendationsDialog iron-icon.orange {
-            color: #F57F17;
-        }
-        .logs {
-            max-width: 1450px;
-            margin: 8px auto;
-            line-height: 28px;
-            font-family: monospace;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 0 4px;
-            background-color: rgba(255,255,255,0.34);
-        }
-        paper-spinner {
-            margin: 4px 8px;
-        }
-        .logs > * {
-            vertical-align: middle;
-            display: inline-block;
-            font-size: 14px;
-        }
-        .error iron-icon {
-            opacity: 0.32;
-            cursor: pointer;
-        }
-        .error {
-            color: var(--red-color);
-        }
-        mist-list::content .recommendation-icon {
-            color: #F57F17;
-            width: 18px;
-            height: 18px;
-            display: inline-block;
-            margin-right: 10px;
-        }
-        mist-list::content .provider-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
-            box-sizing: border-box;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        mist-list::content .error {
-            color: var(--red-color);
-        }
-        mist-list::content .orange {
-            color: var(--orange-color);
-        }
-        mist-list::content .green {
-            color: var(--green-color);
-        }
-        /* probe classes */
-        mist-list::content .state {
-            position: relative;
-            display: inline-block;
-        }
-        mist-list::content .state.hasprobe {
-            overflow: visible;
-        }
-        mist-list::content .state.hasprobe:after {
-            content: " ";
-            position: relative;
-            display: inline-block;
-            height: 8px;
-            width: 4px;
-            margin-left: 10px;
-        }
-        /* midterm */
-        mist-list::content .state.midlow:after {
-            background: #42A5F5; /*cyan*/
-        }
-        mist-list::content .state.midmedium:after {
-            background: #FFCA28; /*orange*/
-        }
-        mist-list::content .state.midhigh:after {
-            background: #EF5350; /*red*/
-        }
-        mist-list::content .state.mideco:after {
-            background: #69b46c; /*green*/
-        }
-        /* shortlow + long */
-        mist-list::content .state.shortlow.longlow:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #42A5F5; /*cyan cyan*/
-        }
-        mist-list::content .state.shortlow.longmedium:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #FFCA28; /*cyan orange*/
-        }
-        mist-list::content .state.shortlow.longhigh:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #EF5350; /*cyan red*/
-        }
-        mist-list::content .state.shortlow.longeco:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #69b46c; /*cyan green*/
-        }
-        /* shortmedium + long */
-        mist-list::content .state.shortmedium.longlow:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #42A5F5; /*orange cyan*/
-        }
-        mist-list::content .state.shortmedium.longmedium:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #FFCA28; /*orange orange*/
-        }
-        mist-list::content .state.shortmedium.longhigh:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #EF5350; /*orange red*/
-        }
-        mist-list::content .state.shortmedium.longeco:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #69b46c; /*orange green*/
-        }
-        /* shorthigh + long */
-        mist-list::content .state.shorthigh.longlow:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #42A5F5; /*red cyan*/
-        }
-        mist-list::content .state.shorthigh.longmedium:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #FFCA28; /*red orange*/
-        }
-        mist-list::content .state.shorthigh.longhigh:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #EF5350; /*red red*/
-        }
-        mist-list::content .state.shorthigh.longeco:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #69b46c; /*red green*/
-        }
-        /* shorteco + long */
-        mist-list::content .state.shorteco.longlow:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #42A5F5; /*green cyan*/
-        }
-        mist-list::content .state.shorteco.longmedium:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #FFCA28; /*green orange*/
-        }
-        mist-list::content .state.shorteco.longhigh:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #EF5350; /*green red*/
-        }
-        mist-list::content .state.shorteco.longeco:after {
-            box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c; /*green green*/
-        }
-        h2[slot="header"] {
-            margin: 8px;
-        }
-    </style>
+        <style>
+             :host {
+                display: block;
+            }
 
-    <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
+            #recommendationsDialog {
+                width: 400px;
+            }
 
-    <div class="logs" hidden$="[[!jobId]]">
-        <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner>
-        <p> Creating machine: {{removeUnderscore(logItem.action)}}
-            <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]] <iron-icon icon="close" on-tap="clearLog"></iron-icon></span>
-        </p>
-    </div>
+            #recommendationsDialog a.blue-link {
+                color: var(--blue-color) !important;
+            }
 
-    <div class="logs" hidden$="[[!performingAction]]">
-        <paper-spinner active></paper-spinner>
-        <p id="actionLogs"></p>
-    </div>
+            #recommendationsDialog iron-icon.orange {
+                color: #F57F17;
+            }
 
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list id="machinesList"
-            selectable resizable column-menu multi-sort
-            apiurl="/api/v1/machines"
-            items="[[sortedMachines(model.machinesArray)]]"
-            name="Machines"
-            selected-items="{{selectedItems}}"
-            filtered-items-length="{{filteredItemsLength}}"
-            combined-filter={{combinedFilter}}
-            frozen=[[_getFrozenLogColumn()]]
-            visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
-            route={{route}}
-            user-filter=[[model.sections.machines.q]]
-            primary-field-name="id">
-            <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-            <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
-            <p slot="no-items-found">No machines found.</p>
-      </mist-list>
-      <div class="absolute-bottom-right">
-          <paper-fab id="machinesAdd" icon="add" on-tap="_addResource"></paper-fab>
-      </div>
-    </template>
+            .logs {
+                max-width: 1450px;
+                margin: 8px auto;
+                line-height: 28px;
+                font-family: monospace;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 0 4px;
+                background-color: rgba(255, 255, 255, 0.34);
+            }
 
-    <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]></machine-create>
-    <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-        <machine-page model="[[model]]" resource-id="[[data.machine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
-    </template>
-    <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
-        <h2>Recommendation</h2>
-        <p>
-            <iron-icon icon="icons:report-problem" class="orange"></iron-icon>
-            Your machine is vulnerable to Dirty COW. <br/><a href="https://dirtycow.ninja/" target="new" class="regular blue-link">Learn more.</a>
-        </p>
-        <p class="recommendation-text"></p>
-        <p>We recommend you follow the <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">guide</a> and update your server kernel. You can use mist.io shell to do it now.</p>
-        <div class="buttons">
-            <paper-button dialog-dismiss>Cancel</paper-button>
-            <paper-button class="blue" dialog-confirm on-tap="_shell">open machine shell</paper-button>
+            paper-spinner {
+                margin: 4px 8px;
+            }
+
+            .logs>* {
+                vertical-align: middle;
+                display: inline-block;
+                font-size: 14px;
+            }
+
+            .error iron-icon {
+                opacity: 0.32;
+                cursor: pointer;
+            }
+
+            .error {
+                color: var(--red-color);
+            }
+
+            mist-list::content .recommendation-icon {
+                color: #F57F17;
+                width: 18px;
+                height: 18px;
+                display: inline-block;
+                margin-right: 10px;
+            }
+
+            mist-list::content .provider-icon {
+                width: 24px;
+                height: 24px;
+                margin-right: 8px;
+                box-sizing: border-box;
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+            mist-list::content .error {
+                color: var(--red-color);
+            }
+
+            mist-list::content .orange {
+                color: var(--orange-color);
+            }
+
+            mist-list::content .green {
+                color: var(--green-color);
+            }
+            /* probe classes */
+
+            mist-list::content .state {
+                position: relative;
+                display: inline-block;
+            }
+
+            mist-list::content .state.hasprobe {
+                overflow: visible;
+            }
+
+            mist-list::content .state.hasprobe:after {
+                content: " ";
+                position: relative;
+                display: inline-block;
+                height: 8px;
+                width: 4px;
+                margin-left: 10px;
+            }
+            /* midterm */
+
+            mist-list::content .state.midlow:after {
+                background: #42A5F5;
+                /*cyan*/
+            }
+
+            mist-list::content .state.midmedium:after {
+                background: #FFCA28;
+                /*orange*/
+            }
+
+            mist-list::content .state.midhigh:after {
+                background: #EF5350;
+                /*red*/
+            }
+
+            mist-list::content .state.mideco:after {
+                background: #69b46c;
+                /*green*/
+            }
+            /* shortlow + long */
+
+            mist-list::content .state.shortlow.longlow:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #42A5F5;
+                /*cyan cyan*/
+            }
+
+            mist-list::content .state.shortlow.longmedium:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #FFCA28;
+                /*cyan orange*/
+            }
+
+            mist-list::content .state.shortlow.longhigh:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #EF5350;
+                /*cyan red*/
+            }
+
+            mist-list::content .state.shortlow.longeco:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #69b46c;
+                /*cyan green*/
+            }
+            /* shortmedium + long */
+
+            mist-list::content .state.shortmedium.longlow:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #42A5F5;
+                /*orange cyan*/
+            }
+
+            mist-list::content .state.shortmedium.longmedium:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #FFCA28;
+                /*orange orange*/
+            }
+
+            mist-list::content .state.shortmedium.longhigh:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #EF5350;
+                /*orange red*/
+            }
+
+            mist-list::content .state.shortmedium.longeco:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #69b46c;
+                /*orange green*/
+            }
+            /* shorthigh + long */
+
+            mist-list::content .state.shorthigh.longlow:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #42A5F5;
+                /*red cyan*/
+            }
+
+            mist-list::content .state.shorthigh.longmedium:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #FFCA28;
+                /*red orange*/
+            }
+
+            mist-list::content .state.shorthigh.longhigh:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #EF5350;
+                /*red red*/
+            }
+
+            mist-list::content .state.shorthigh.longeco:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #69b46c;
+                /*red green*/
+            }
+            /* shorteco + long */
+
+            mist-list::content .state.shorteco.longlow:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #42A5F5;
+                /*green cyan*/
+            }
+
+            mist-list::content .state.shorteco.longmedium:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #FFCA28;
+                /*green orange*/
+            }
+
+            mist-list::content .state.shorteco.longhigh:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #EF5350;
+                /*green red*/
+            }
+
+            mist-list::content .state.shorteco.longeco:after {
+                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c;
+                /*green green*/
+            }
+
+            h2[slot="header"] {
+                margin: 8px;
+            }
+        </style>
+
+        <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
+
+        <div class="logs" hidden$="[[!jobId]]">
+            <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner>
+            <p> Creating machine: {{removeUnderscore(logItem.action)}}
+                <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]]
+                    <iron-icon icon="close" on-tap="clearLog"></iron-icon>
+                </span>
+            </p>
         </div>
-    </paper-dialog>
 
-    <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
+        <div class="logs" hidden$="[[!performingAction]]">
+            <paper-spinner active></paper-spinner>
+            <p id="actionLogs"></p>
+        </div>
+
+        <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+            <mist-list id="machinesList" selectable resizable column-menu multi-sort apiurl="/api/v1/machines" items="[[sortedMachines(model.machinesArray)]]"
+                name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id">
+                <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
+                <p slot="no-items-found">No machines found.</p>
+            </mist-list>
+            <div class="absolute-bottom-right">
+                <paper-fab id="machinesAdd" icon="add" on-tap="_addResource"></paper-fab>
+            </div>
+        </template>
+
+        <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]></machine-create>
+        <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
+            <machine-page model="[[model]]" resource-id="[[data.machine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]]
+                hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
+        </template>
+        <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
+            <h2>Recommendation</h2>
+            <p>
+                <iron-icon icon="icons:report-problem" class="orange"></iron-icon>
+                Your machine is vulnerable to Dirty COW.
+                <br/>
+                <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">Learn more.</a>
+            </p>
+            <p class="recommendation-text"></p>
+            <p>We recommend you follow the
+                <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">guide</a> and update your server kernel. You can use mist.io shell to do it now.</p>
+            <div class="buttons">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="blue" dialog-confirm on-tap="_shell">open machine shell</paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
     <script>
         Polymer({
@@ -265,19 +318,19 @@
                 '_selectedItemsChanged(selectedItems.length)'
             ],
 
-            setJobId: function(e) {
+            setJobId: function (e) {
                 if (e.detail.jobId)
                     this.set('jobId', e.detail.jobId);
             },
 
-            _selectedItemsChanged: function(length){
+            _selectedItemsChanged: function (length) {
                 console.log('_selectedItemsChanged', length);
             },
 
-            _isAddPageActive: function(path) {
+            _isAddPageActive: function (path) {
                 return path == '/+create';
             },
-            _isDetailsPageActive: function(path) {
+            _isDetailsPageActive: function (path) {
                 if (path && path != '/+create' && this.querySelector('machine-page'))
                     this.querySelector('machine-page').updateState();
                 if (path && path != '/+create')
@@ -285,12 +338,12 @@
                 else
                     return false;
             },
-            _isListActive: function(path) {
+            _isListActive: function (path) {
                 if (path)
                     this.stopPolling();
                 return !path;
             },
-            openRecommendationsDialog: function(e) {
+            openRecommendationsDialog: function (e) {
                 var probe = this.model.probes[e.detail.item.id];
                 var text = 'Kernel ' + probe.kernel + ' OS ' + probe.os + ' ' + probe.os_version;
                 this.querySelector('.recommendation-text').textContent = text;
@@ -298,7 +351,7 @@
                 this.caller = e.detail.caller || 'list_machines';
                 this.set('itemOfRecommendation', e.detail.item);
             },
-            _shell: function(event) {
+            _shell: function (event) {
                 var e = Polymer.dom(event);
                 var action = {
                     'name': 'shell',
@@ -306,14 +359,13 @@
                     'confirm': false,
                     'multi': true
                 }
-                if (this.caller == 'machine_page'){
+                if (this.caller == 'machine_page') {
                     this.querySelector('#actions_machine')._performAction(action, [this.itemOfRecommendation]);
-                }
-                else {
+                } else {
                     this.querySelector('machine-actions').performMachineAction(action, [this.itemOfRecommendation]);
                 }
             },
-            _jobIdChanged: function(jobid) {
+            _jobIdChanged: function (jobid) {
                 if (!jobid) {
                     this.resetPolling();
                 } else {
@@ -321,22 +373,22 @@
                     document.querySelector('paper-header-panel').scroller.scrollTop = 0; // Scroll to topscroll(0, 0);
                 }
             },
-            startPolling: function(jobid) {
-                this.intervalID = setInterval(function() {
+            startPolling: function (jobid) {
+                this.intervalID = setInterval(function () {
                     this.$.getJobLog.generateRequest();
                 }.bind(this), 1000);
                 console.log('startpolling');
             },
-            stopPolling: function(logItems) {
+            stopPolling: function (logItems) {
                 if (this.logItem && this.logItem.action.endsWith('finished')) {
                     //let log finished show
                     if (!this.logItem.error)
-                        this.async(function() {
+                        this.async(function () {
                             this.resetPolling(this.logItem.error);
                         }.bind(this), 1000);
                 }
             },
-            resetPolling: function(error) {
+            resetPolling: function (error) {
                 if (!error) {
                     this.set('logItem', '');
                 }
@@ -344,166 +396,179 @@
                 window.clearInterval(this.intervalID);
                 this.set('intervalID', false);
             },
-            handleGetJobLog: function(e) {
+            handleGetJobLog: function (e) {
                 console.log('handleGetJobLog', e);
                 //save last log in logItem
                 this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
             },
-            removeUnderscore: function(action) {
+            removeUnderscore: function (action) {
                 if (action)
                     return action.replace(/_/g, " ");
             },
-            clearLog: function(e) {
+            clearLog: function (e) {
                 this.resetPolling();
                 this.set('logItem', '');
             },
-            updateActionLogs: function(e) {
+            updateActionLogs: function (e) {
                 this.set('performingAction', true);
                 this.$.actionLogs.textContent = e.detail.log;
             },
-            stopActionLogs: function(e) {
+            stopActionLogs: function (e) {
                 var success = e.detail.success;
                 this.$.actionLogs.textContent = '';
                 this.set('performingAction', false);
                 if (success)
                     this.clearListSelection();
             },
-            clearListSelection: function(){
+            clearListSelection: function () {
                 this.set('selectedItems', []);
             },
-            _addResource: function(e) {
-                this.fire('go-to', {url: this.model.sections.machines.add});
+            _addResource: function (e) {
+                this.fire('go-to', {
+                    url: this.model.sections.machines.add
+                });
             },
 
-            _getFrozenLogColumn: function(){
-              return ['name'];
+            _getFrozenLogColumn: function () {
+                return ['name'];
             },
 
-            _getVisibleColumns: function(){
-              return ['state', 'cloud', 'cost', 'created', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
+            _getVisibleColumns: function () {
+                return ['state', 'cloud', 'cost', 'created', 'tags', 'image_id', 'size', 'location',
+                    'hostname', 'public_ips'
+                ];
             },
 
-            _getRenderers: function(machines, clouds, incidents) {
-              var _this = this;
-              return {
-                  'indicator': {
-                      'body': function(item, row) {
-                        var green = "#69b46c",
-                            pending = "#eee",
-                            red = "#d96557",
-                            color = 'transparent';
-                        // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
-                        if (row.monitoring.hasmonitoring) {
-                            color = green;
-                            if (_this._machineHasIncidents(row,_this.model.incidentsArray))
-                                color = red;
-                            if (row.monitoring.installation_status == "installing" || !row.monitoring.installation_status == "installing" || !row.monitoring.installation_status.activated_at)
-                                color = pending;
-                            return 'border-left: 8px solid '+ color +'; padding-left: 8px;';
+            _getRenderers: function (machines, clouds, incidents) {
+                var _this = this;
+                return {
+                    'indicator': {
+                        'body': function (item, row) {
+                            var green = "#69b46c",
+                                pending = "#eee",
+                                red = "#d96557",
+                                color = 'transparent';
+                            // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
+                            if (row.monitoring.hasmonitoring) {
+                                color = green;
+                                if (_this._machineHasIncidents(row, _this.model.incidentsArray))
+                                    color = red;
+                                if (row.monitoring.installation_status == "installing" || !row.monitoring
+                                    .installation_status == "installing" || !row.monitoring.installation_status
+                                    .activated_at)
+                                    color = pending;
+                                return 'border-left: 8px solid ' + color + '; padding-left: 8px;';
+                            }
+                            return '';
                         }
-                        return '';
-                      }
-                  },
-                  'icon': {
-                      'body': function(item, row) {
-                          return './assets/providers/provider-' + row.cloud.provider.replace("_", "").replace(" ", "") + '.png';
-                      }
-                  },
-                  'name': {
-                      'body': function(item, row) {
-                          return '<strong class="name">' + item + '</strong>';
-                      }
-                  },
-                  'state': {
-                        'body': function(item,  row){
+                    },
+                    'icon': {
+                        'body': function (item, row) {
+                            return './assets/providers/provider-' + row.cloud.provider.replace("_", "")
+                                .replace(" ", "") + '.png';
+                        }
+                    },
+                    'name': {
+                        'body': function (item, row) {
+                            return '<strong class="name">' + item + '</strong>';
+                        }
+                    },
+                    'state': {
+                        'body': function (item, row) {
                             var ret = '',
                                 prefix = '';
                             if (_this.itemRecommendation(row)) {
-                                prefix = '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
+                                prefix =
+                                    '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
                             }
                             if (item == "running")
-                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='green'>"+item+"</span></div>";
+                                ret += "<div class='state " + _this.itemProbeClasses(row) +
+                                "'><span class='green'>" + item + "</span></div>";
                             else if (item == "error")
-                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='error'>"+item+"</span></div>";
+                                ret += "<div class='state " + _this.itemProbeClasses(row) +
+                                "'><span class='error'>" + item + "</span></div>";
                             else if (item == "stopped")
-                                ret += "<div class='state "+ _this.itemProbeClasses(row) +"'><span class='orange'>"+item+"</span></div>";
+                                ret += "<div class='state " + _this.itemProbeClasses(row) +
+                                "'><span class='orange'>" + item + "</span></div>";
                             else
-                                ret += "<div class='state'>"+ item +"</span>";
+                                ret += "<div class='state'>" + item + "</span>";
 
-                            return prefix+ret;
+                            return prefix + ret;
                         },
-                        'tap': function(item, row) {
+                        'tap': function (item, row) {
                             if (_this.itemRecommendation(row))
                                 return 'recommendation';
                             else
                                 return '';
                         }
-                  },
-                  'cloud': {
-                      'body': function(item, row) {
-                        if (_this.model && _this.model.clouds)
-                          return _this.model.clouds[item.id] ? _this.model.clouds[item.id].title : '';
-                      },
-                      'cmp': function(item1, item2, row1, row2) {
-                        if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] && _this.model.clouds[item2.id]) {
-                            if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
-                                return -1;
-                            if (_this.model.clouds[item1.id].title > _this.model.clouds[item2.id].title)
-                                return 1;
-                        }
+                    },
+                    'cloud': {
+                        'body': function (item, row) {
+                            if (_this.model && _this.model.clouds)
+                                return _this.model.clouds[item.id] ? _this.model.clouds[item.id].title :
+                                    '';
+                        },
+                        'cmp': function (item1, item2, row1, row2) {
+                            if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
+                                _this.model.clouds[item2.id]) {
+                                if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
+                                    return -1;
+                                if (_this.model.clouds[item1.id].title > _this.model.clouds[item2.id].title)
+                                    return 1;
+                            }
                             return 0;
-                      }
-                  },
-                  'cost': {
-                      'body': function(item, row) {
-                          return item.monthly && '$' + item.monthly.formatMoney(0) || '';
-                      },
-                      'cmp': function(item1, item2, row1, row2) {
+                        }
+                    },
+                    'cost': {
+                        'body': function (item, row) {
+                            return item.monthly && '$' + item.monthly.formatMoney(0) || '';
+                        },
+                        'cmp': function (item1, item2, row1, row2) {
                             if (item1.monthly < item2.monthly)
                                 return -1;
                             if (item1.monthly > item2.monthly)
                                 return 1;
                             return 0;
-                      }
-                  },
-                  'created': {
-                      'body': function(item, row) {
-                          return moment(item).isValid() ? moment.utc(item).fromNow() : "";
-                      }
-                  },
-                  'size': {
-                      'body': function(item, row) {
-                        return _this.computeSize(row);
-                      },
-                      'cmp': function(item1, item2, row1, row2){
-                        var s1 = _this.computeSize(row1),
-                            s2 = _this.computeSize(row2);
+                        }
+                    },
+                    'created': {
+                        'body': function (item, row) {
+                            return moment(item).isValid() ? moment.utc(item).fromNow() : "";
+                        }
+                    },
+                    'size': {
+                        'body': function (item, row) {
+                            return _this.computeSize(row);
+                        },
+                        'cmp': function (item1, item2, row1, row2) {
+                            var s1 = _this.computeSize(row1),
+                                s2 = _this.computeSize(row2);
 
-                        if (!s1.length && !s2.length)
+                            if (!s1.length && !s2.length)
+                                return 0;
+                            if (!s1.length)
+                                return 1;
+                            if (!s2.length)
+                                return -1;
+
+                            if (s1.toLowerCase() < s2.toLowerCase())
+                                return -1;
+                            if (s1.toLowerCase() > s2.toLowerCase())
+                                return 1;
                             return 0;
-                        if (!s1.length)
-                            return 1;
-                        if (!s2.length)
-                            return -1;
 
-                        if (s1.toLowerCase() < s2.toLowerCase())
-                            return -1;
-                        if (s1.toLowerCase() > s2.toLowerCase())
-                            return 1;
-                        return 0;
-
-                      }
-                  },
-                  'image_id': {
-                      'title': function(item, row) {
-                        return 'image';
-                      },
-                      'body': function(item, row) {
-                        return _this.computeImage(row);
-                      },
-                      'cmp': function(item1, item2, row1, row2){
-                            var im1 = _this.computeImage(row1),
-                                im2 = _this.computeImage(row2);
+                        }
+                    },
+                    'image_id': {
+                        'title': function (item, row) {
+                            return 'image';
+                        },
+                        'body': function (item, row) {
+                            return _this._computeImage(row);
+                        },
+                        'cmp': function (item1, item2, row1, row2) {
+                            var im1 = _this._computeImage(row1),
+                                im2 = _this._computeImage(row2);
 
                             if (!im1.length && !im2.length)
                                 return 0;
@@ -517,61 +582,69 @@
                             if (im1.toLowerCase() > im2.toLowerCase())
                                 return 1;
                             return 0;
-                      }
-                  },
-                  'location': {
-                      'body': function(item, row) {
-                        if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud.id] && _this.model.clouds[row.cloud.id].locations)
-                          var location = _this.model.clouds[row.cloud.id].locations[item];
-                          return location ? location.name : item;
-                      }
-                  },
-                  'tags': {
-                      'body': function(item, row) {
-                        var tags = item,
-                            display = "";
-                        for (var i=0; i < tags.length; i++) {
-                            display += "<span class='tag'>" + tags[i].key;
-                            if (tags[i].value != undefined && tags[i].value != "")
-                                display += "=" + tags[i].value;
-                            display += "</span>";
                         }
-                        return display;
-                      }
-                  },
-                  'machine_id': {
-                      'title': 'id (external)',
-                      'body': function(i){
-                          return i;
-                      }
-                  },
-                  'public_ips': {
-                      'title': 'public ip\'s',
-                      'body': function(ips) {
+                    },
+                    'location': {
+                        'body': function (item, row) {
+                            if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud.id] &&
+                                _this.model.clouds[row.cloud.id].locations)
+                                var location = _this.model.clouds[row.cloud.id].locations[item];
+                            return location ? location.name : item;
+                        }
+                    },
+                    'tags': {
+                        'body': function (item, row) {
+                            var tags = item,
+                                display = "";
+                            for (var i = 0; i < tags.length; i++) {
+                                display += "<span class='tag'>" + tags[i].key;
+                                if (tags[i].value != undefined && tags[i].value != "")
+                                    display += "=" + tags[i].value;
+                                display += "</span>";
+                            }
+                            return display;
+                        }
+                    },
+                    'machine_id': {
+                        'title': 'id (external)',
+                        'body': function (i) {
+                            return i;
+                        }
+                    },
+                    'public_ips': {
+                        'title': 'public ip\'s',
+                        'body': function (ips) {
                             return ips.join(', ');
-                      }
-                  }
-               }
+                        }
+                    }
+                }
             },
-            computeImage: function(row){
-                if (row.extra && row.extra.image) {
+            _computeImage: function (row, item) {
+                var image_id = item;
+
+                if (!image_id && row.extra && row.extra.image) {
                     if (row.extra.image.distribution && row.extra.image.name) {
                         return row.extra.image.distribution + " " + row.extra.image.name;
                     }
-                    return row.extra.image;
+                    image_id = row.extra.image;
                 }
-                if (row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)){
-                    return row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
+                if (!image_id && row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)) {
+                    image_id = row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
                 }
-                return "";
-            },
-            computeSize: function(row){
 
-                if (row.size && typeof(row.size) != 'object')
+                if (image_id && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud.id].images[image_id]) {
+                    return this.model.clouds[row.cloud.id].images[image_id].name
+                }
+
+                return image_id || "";
+            },
+            computeSize: function (row) {
+
+                if (row.size && typeof (row.size) != 'object')
                     return row.size;
                 if (row.extra && row.extra.size && row.extra.size.vcpus)
                     return row.extra.size.vcpus + 'vcpu, ' + row.extra.size.memory + 'M ram';;
-                if (row.extra && row.extra.size && typeof(row.extra.size) == 'string')
+                if (row.extra && row.extra.size && typeof (row.extra.size) == 'string')
                     return row.extra.size;
                 if (row.extra && row.extra.instance_type)
                     return row.extra.instance_type;
@@ -580,15 +653,16 @@
                 if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
                     return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
                 if (this.model && this.model.clouds && row.extra && row.extra.PLANID) {
-                    return (row.cloud && this.model.clouds[row.cloud.id].sizes) ? this.model.clouds[row.cloud.id].sizes[row.extra.PLANID].name  : row.extra.PLANID
+                    return (row.cloud && this.model.clouds[row.cloud.id].sizes) ? this.model.clouds[row.cloud
+                        .id].sizes[row.extra.PLANID].name : row.extra.PLANID
                 }
                 if (row.extra && row.extra.service_type)
                     return row.extra.service_type;
 
                 return "";
             },
-            sortedMachines: function(machines){
-                return this.model.machinesArray.sort(function(a, b){
+            sortedMachines: function (machines) {
+                return this.model.machinesArray.sort(function (a, b) {
                     //if both properties exist
                     var aW = this._getMachineWeight(a, this.model),
                         bW = this._getMachineWeight(b, this.model);
@@ -601,37 +675,40 @@
                     return 0;
                 }.bind(this));
             },
-            _getMachineWeight: function(machine, model){
+            _getMachineWeight: function (machine, model) {
                 var weight = 0;
                 var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
                     machineHasMonitor = this._machineHasMonitoring(machine),
                     machineHasrecommendations = this._machineHasrecommendations(machine),
                     machineHasProbe = this._machineHasProbe(machine);
-                    machineState = this._machineState(machine);
-                weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations + machineHasProbe + machineState;
+                machineState = this._machineState(machine);
+                weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations +
+                    machineHasProbe + machineState;
                 return weight != NaN ? weight : 0;
             },
 
-            _machineHasIncidents: function(machine, incidents){
-                var machineIncidents = incidents ? incidents.filter(function(inc){
+            _machineHasIncidents: function (machine, incidents) {
+                var machineIncidents = incidents ? incidents.filter(function (inc) {
                     return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud.id
                 }) : [];
                 return machineIncidents ? machineIncidents.length * 1000 : 0;
             },
 
-            _machineHasMonitoring: function(machine){
+            _machineHasMonitoring: function (machine) {
                 return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
             },
 
-            _machineHasrecommendations: function(machine, probes){
+            _machineHasrecommendations: function (machine, probes) {
                 return machine.probe && machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
             },
 
-            _machineHasProbe: function(machine){
-                return machine.probe && machine.probe.ssh && machine.probe.ssh.loadloadavg ? machine.probe.ssh.loadloadavg[0]+machine.probe.ssh.loadloadavg[1]+machine.probe.ssh.loadloadavg[2] : 1;
+            _machineHasProbe: function (machine) {
+                return machine.probe && machine.probe.ssh && machine.probe.ssh.loadloadavg ? machine.probe.ssh
+                    .loadloadavg[0] + machine.probe.ssh.loadloadavg[1] + machine.probe.ssh.loadloadavg[2] :
+                    1;
             },
 
-            _machineState: function(machine){
+            _machineState: function (machine) {
                 if (machine.state == 'running')
                     return 5;
                 if (machine.state == 'error')
@@ -644,34 +721,30 @@
                     return 0;
                 return 0;
             },
-            itemRecommendation: function(item) {
+            itemRecommendation: function (item) {
                 if (this.probes == {} || !item || !item.id) {
                     return false;
-                }
-                else {
+                } else {
                     if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
                         return false;
                     return true;
                 }
             },
-            itemProbeClasses: function(item) {
+            itemProbeClasses: function (item) {
                 if (this.probes == {}) {
                     return '';
-                }
-                else {
+                } else {
                     if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
                         return "";
-                    }
-
-                    else {
+                    } else {
                         var probe = this.model.probes[item.id].loadavg;
-                        var cores =  parseInt(this.model.probes[item.id].cores);
+                        var cores = parseInt(this.model.probes[item.id].cores);
                         var classes = '';
                         var prefix = '';
 
-                        classes += this.loadToColor(parseFloat(probe[0]/cores), "short");
-                        classes += this.loadToColor(parseFloat(probe[1]/cores), "mid");
-                        classes += this.loadToColor(parseFloat(probe[2]/cores), "long");
+                        classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
+                        classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
+                        classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
 
                         //has probe data
                         if (classes != "")
@@ -681,24 +754,24 @@
                     }
                 }
             },
-            loadToColor: function(load, prefix){
+            loadToColor: function (load, prefix) {
                 if (load > 1.2)
-                    return prefix+"high ";
+                    return prefix + "high ";
                 else if (load > 0.8)
-                    return prefix+"medium ";
+                    return prefix + "medium ";
                 else if (load > 0.6)
-                    return prefix+"eco ";
+                    return prefix + "eco ";
                 else if (load > 0.2)
-                    return prefix+"low ";
+                    return prefix + "low ";
                 else
-                    return prefix+"low ";
+                    return prefix + "low ";
             },
 
             // redirect events
-            selectAction: function(e) {
+            selectAction: function (e) {
                 e.stopImmediatePropagation();
                 if (this.querySelector('machine-actions')) {
-                  this.querySelector('machine-actions').selectAction(e);
+                    this.querySelector('machine-actions').selectAction(e);
                 }
             }
 
