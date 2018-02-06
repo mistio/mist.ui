@@ -495,6 +495,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         show: true,
         required: true,
         options: [],
+        displayDescription: true,
         custom: true
     }, {
         name: "size_ram",
