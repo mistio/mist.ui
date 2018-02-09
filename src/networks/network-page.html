@@ -14,7 +14,7 @@
 <dom-module id="network-page">
     <template>
         <style include="shared-styles single-page">
-            :host {
+             :host {
                 display: block;
             }
 
@@ -111,10 +111,12 @@
             paper-icon-bottom.bottom {
                 padding-right: 8px;
             }
-            :host .info-item,
-            :host ::content .info-item {
+
+             :host .info-item,
+             :host ::content .info-item {
                 word-break: break-all;
             }
+
             .single-head {
                 @apply(--network-page-head-mixin)
             }
@@ -126,7 +128,9 @@
             </div> -->
             <network-actions items="[[itemArray]]" actions="{{actions}}"></network-actions>
             <paper-material class="single-head layout horizontal">
-                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <span class="icon">
+                    <iron-icon icon="[[section.icon]]"></iron-icon>
+                </span>
                 <div class="title flex">
                     <h2>[[network.name]]</h2>
                     <div class="subtitle">
@@ -142,7 +146,8 @@
             </paper-material>
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
-                <h4 class="id">Network ID:</h4><span class="id">[[network.id]]</span>
+                <h4 class="id">Network ID:</h4>
+                <span class="id">[[network.id]]</span>
             </paper-material>
             <paper-material>
                 <h4 class="id">Network Info</h4>
@@ -185,99 +190,99 @@
                 </div>
             </paper-material>
         </div>
-        <iron-ajax id="networkDeleteAjaxRequest" url="/api/v1/clouds/[[network.cloud_id]]/networks/[[network.id]]" method="DELETE" on-response="_handleNetworDeletekAjaxResponse" on-error="_handleNetworDeletekAjaxError"></iron-ajax>
+        <iron-ajax id="networkDeleteAjaxRequest" url="/api/v1/clouds/[[network.cloud_id]]/networks/[[network.id]]" method="DELETE"
+            on-response="_handleNetworDeletekAjaxResponse" on-error="_handleNetworDeletekAjaxError"></iron-ajax>
         <dialog-element></dialog-element>
     </template>
     <script>
-        (function() {
-            'use strict';
+        Polymer({
+            is: 'network-page',
+            behaviors: [
+                mistLoadingBehavior
+            ],
 
-            Polymer({
-                is: 'network-page',
-                behaviors: [
-                    mistLoadingBehavior
-                ],
+            properties: {
+                model: {
+                    type: Object,
+                    notify: true
+                },
+                section: {
+                    type: Object
+                },
+                network: {
+                    type: Object
+                },
+                hasSubnets: {
+                    type: Boolean,
+                    computed: '_computeHasSubnets(network.subnets)'
+                },
+                isLoading: {
+                    type: Boolean,
+                    computed: '_computeIsloading(network)',
+                    value: true
+                },
+                networkCloud: {
+                    type: String,
+                    computed: '_computeNetworkCloud(network, model.clouds)'
+                },
+                itemArray: Array
+            },
+            observers: [
+                '_change(network)'
+            ],
+            listeners: {
+                'confirmation': '_deleteNetworkEventResponse'
+            },
+            _change: function (item) {
+                if (item)
+                    this.set('itemArray', [this.network]);
+            },
+            _computeHasSubnets: function (subnets) {
+                return subnets && subnets.length;
+            },
+            _computeNetworkCloud: function (network, clouds) {
+                if (network)
+                    return this.model.clouds[this.network.cloud_id].title
+            },
+            _editNetwork: function (e) {
+                console.log(e);
+            },
+            _deleteNetwork: function (e) {
+                this._showDialog({
+                    title: 'Delete Network?',
+                    body: "Deleting scripts cannot be undone. You are about to delete network: '" +
+                        this.network.name + "'.",
+                    danger: true,
+                    reason: "network.delete"
+                });
+            },
+            _deleteNetworkEventResponse: function (e) {
+                var reason = e.detail.reason,
+                    response = e.detail.response;
 
-                properties: {
-                    model: {
-                        type: Object,
-                        notify: true
-                    },
-                    section: {
-                        type: Object
-                    },
-                    network: {
-                        type: Object
-                    },
-                    hasSubnets: {
-                        type: Boolean,
-                        computed: '_computeHasSubnets(network.subnets)'
-                    },
-                    isLoading: {
-                        type: Boolean,
-                        computed: '_computeIsloading(network)',
-                        value: true
-                    },
-                    networkCloud: {
-                        type: String,
-                        computed: '_computeNetworkCloud(network, model.clouds)' 
-                    },
-                    itemArray: Array
-                },
-                observers: [
-                    '_change(network)'
-                ],
-                listeners: {
-                    'confirmation': '_deleteNetworkEventResponse'
-                },
-                _change: function(item) {
-                    if (item)
-                        this.set('itemArray', [this.network]);
-                },
-                _computeHasSubnets: function(subnets) {
-                    return subnets && subnets.length;
-                },
-                _computeNetworkCloud: function(network, clouds){
-                    if (network)
-                        return this.model.clouds[this.network.cloud_id].title
-                },
-                _editNetwork: function(e) {
-                    console.log(e);
-                },
-                _deleteNetwork: function(e) {
-                    this._showDialog({
-                        title: 'Delete Network?',
-                        body: "Deleting scripts cannot be undone. You are about to delete network: '" + this.network.name + "'.",
-                        danger: true,
-                        reason: "network.delete"
-                    });
-                },
-                _deleteNetworkEventResponse: function(e) {
-                    var reason = e.detail.reason,
-                        response = e.detail.response;
+                if (response.confirmed && reason == "network.delete") {
+                    this.$.networkDeleteAjaxRequest.body = {};
+                    this.$.networkDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+                    this.$.networkDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.networkDeleteAjaxRequest.generateRequest();
+                }
+            },
+            _handleNetworDeletekAjaxResponse: function (e) {
+                this.fire('go-to', {
+                    url: '/networks'
+                });
+            },
+            _showDialog: function (info) {
+                var dialog = this.querySelector('dialog-element');
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
+                dialog._openDialog();
+            },
+            _computeIsloading: function (network) {
+                return !this.network ? true : false;
+            },
 
-                    if (response.confirmed && reason == "network.delete") {
-                        this.$.networkDeleteAjaxRequest.body = {};
-                        this.$.networkDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                        this.$.networkDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.$.networkDeleteAjaxRequest.generateRequest();
-                    }
-                },
-                _handleNetworDeletekAjaxResponse: function(e) {
-                    this.fire('go-to', {url:'/networks'});
-                },
-                _showDialog: function(info) {
-                    var dialog = this.querySelector('dialog-element');
-                    for (var i in info) {
-                        dialog[i] = info[i];
-                    }
-                    dialog._openDialog();
-                },
-                _computeIsloading: function(network) {
-                    return !this.network ? true : false;
-                },
-
-            });
-        })();
+        });
     </script>
 </dom-module>
