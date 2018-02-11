@@ -538,11 +538,11 @@
                     },
                     'size': {
                         'body': function (item, row) {
-                            return _this.computeSize(row);
+                            return _this.computeSize(row, item);
                         },
                         'cmp': function (item1, item2, row1, row2) {
-                            var s1 = _this.computeSize(row1),
-                                s2 = _this.computeSize(row2);
+                            var s1 = _this.computeSize(row1, item1),
+                                s2 = _this.computeSize(row2, item2);
 
                             if (!s1.length && !s2.length)
                                 return 0;
@@ -564,11 +564,11 @@
                             return 'image';
                         },
                         'body': function (item, row) {
-                            return _this._computeImage(row);
+                            return _this._computeImage(row, item);
                         },
                         'cmp': function (item1, item2, row1, row2) {
-                            var im1 = _this._computeImage(row1),
-                                im2 = _this._computeImage(row2);
+                            var im1 = _this._computeImage(row1, item),
+                                im2 = _this._computeImage(row2, item);
 
                             if (!im1.length && !im2.length)
                                 return 0;
@@ -589,7 +589,7 @@
                             if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud.id] &&
                                 _this.model.clouds[row.cloud.id].locations)
                                 var location = _this.model.clouds[row.cloud.id].locations[item];
-                            return location ? location.name : item;
+                            return location ? location.name : item || '';
                         }
                     },
                     'tags': {
@@ -616,10 +616,22 @@
                         'body': function (ips) {
                             return ips.join(', ');
                         }
+                    },
+                    'private_ips': {
+                        'title': 'private ip\'s',
+                        'body': function (ips) {
+                            return ips.join(', ');
+                        }
+                    },
+                    'hostname': {
+                        'body': function (hostname) {
+                            return hostname || '';
+                        }
                     }
                 }
             },
             _computeImage: function (row, item) {
+                // FIXME This needs to be standarized in the backend to remove the cruft below
                 var image_id = item;
 
                 if (!image_id && row.extra && row.extra.image) {
@@ -628,38 +640,60 @@
                     }
                     image_id = row.extra.image;
                 }
-                if (!image_id && row.extra && (row.extra['image_id'] || row.imageId || row.extra.image)) {
-                    image_id = row.extra['image_id'] || row.imageId || row.extra.image.slug || row.extra.image.name;
+                if (!image_id && row.extra) {
+                    image_id = row.extra['image_id'] || row.imageId || (row.extra.image && (row.extra.image
+                        .slug || row.extra.image.name));
                 }
 
-                if (image_id && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud.id].images && this.model.clouds[row.cloud.id].images[image_id]) {
-                    return this.model.clouds[row.cloud.id].images[image_id].name;
+                if (image_id && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud
+                        .id].images && this.model.clouds[row.cloud.id].images[image_id]) {
+                    return this.model.clouds[row.cloud.id].images[image_id].name
                 }
 
                 return image_id || "";
             },
-            computeSize: function (row) {
+            computeSize: function (row, item) {
+                // FIXME This needs to be standarized in the backend to remove the cruft below
+                var size_id = item;
 
-                if (row.size && typeof (row.size) != 'object')
-                    return row.size;
-                if (row.extra && row.extra.size && row.extra.size.vcpus)
-                    return row.extra.size.vcpus + 'vcpu, ' + row.extra.size.memory + 'M ram';;
-                if (row.extra && row.extra.size && typeof (row.extra.size) == 'string')
-                    return row.extra.size;
-                if (row.extra && row.extra.instance_type)
-                    return row.extra.instance_type;
-                if (row.extra && row.extra.instance_size)
-                    return row.extra.instance_size;
-                if (row.extra && row.extra.maxCpu && row.extra.maxMemory)
-                    return row.extra.maxCpu + 'cpu, ' + row.extra.maxMemory + 'M ram';
-                if (this.model && this.model.clouds && row.extra && row.extra.PLANID) {
-                    return (row.cloud && this.model.clouds[row.cloud.id].sizes) ? this.model.clouds[row.cloud
-                        .id].sizes[row.extra.PLANID].name : row.extra.PLANID
+
+                // Try to figure out size_id
+                if (row.size && typeof (row.size) != 'object') {
+                    size_id = row.size || '';
                 }
-                if (row.extra && row.extra.service_type)
-                    return row.extra.service_type;
 
-                return "";
+                if (!size_id && row.extra) {
+                    if (row.extra.size && typeof (row.extra.size) == 'string') {
+                        size_id = row.extra.size;
+                    } else {
+                        size_id = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
+                            row.extra.PLANID;
+                    }
+                }
+
+                // Given size_id, try to figure out actual size name
+                if (size_id && this.model.clouds && this.model.clouds[row.cloud.id].sizes && this.model.clouds[
+                        row.cloud.id].sizes[size_id]) {
+                    var size = this.model.clouds[row.cloud.id].sizes[size_id];
+                    return size.name || size.id;
+                }
+
+                // If that fails look for size info in the extra metadata
+                if (row.extra) {
+                    if (row.extra.size && row.extra.size.vcpus) {
+                        var size_name = row.extra.size.vcpus + 'vCPU';
+                        if (row.extra.size.memory)
+                            size_name += ', ' + row.extra.size.memory + 'MB RAM';
+                        return size_name;
+                    } else if (row.extra.maxCpu) {
+                        size_name = row.extra.maxCpu + 'vCPU';
+                        if (row.extra.maxMemory)
+                            size_name += ', ' + row.extra.maxMemory + 'MB RAM';
+                        return size_name;
+                    }
+                }
+
+                return size_id || '';
             },
             sortedMachines: function (machines) {
                 return this.model.machinesArray.sort(function (a, b) {
