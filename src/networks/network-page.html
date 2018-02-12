@@ -230,9 +230,6 @@
             observers: [
                 '_change(network)'
             ],
-            listeners: {
-                'confirmation': '_deleteNetworkEventResponse'
-            },
             _change: function (item) {
                 if (item)
                     this.set('itemArray', [this.network]);
@@ -255,17 +252,6 @@
                     danger: true,
                     reason: "network.delete"
                 });
-            },
-            _deleteNetworkEventResponse: function (e) {
-                var reason = e.detail.reason,
-                    response = e.detail.response;
-
-                if (response.confirmed && reason == "network.delete") {
-                    this.$.networkDeleteAjaxRequest.body = {};
-                    this.$.networkDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.networkDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.networkDeleteAjaxRequest.generateRequest();
-                }
             },
             _handleNetworDeletekAjaxResponse: function (e) {
                 this.fire('go-to', {
