@@ -1,0 +1,336 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<dom-module id="rule-edit">
+    <template>
+		<style>
+        :host {
+            display: block;
+            position: relative;
+            background-color: #eee;
+            padding: 0 24px 16px 24px;
+            border-bottom: 1px solid #ccc;
+        }
+		paper-button {
+            padding: 0.8em 1.57em 0.7em 1.57em;
+            font-weight: 500;
+        }
+        paper-button[disabled] {
+            background-color: rgba(0,0,0,.13) !important;
+            color: rgba(0,0,0,0.32) !important;
+        }
+        paper-material {
+            border-top: 2px solid #ddd;
+        }
+        .metricOp  {
+            width: 50px;
+        }
+        .metricAggr,
+        .metricAction {
+            width: 100px;
+            margin-right: 10px;
+        }
+        paper-input#metricValue, 
+        paper-input#metricOffset {
+            width: 40px;
+            display: inline-block;
+        }
+        paper-input#metricAggr {
+            width: 120px;
+            display: inline-block;
+        }
+        .rule.incident-true {
+            color: var(--red-color);
+        }
+        .rule {
+            padding: 8px 0;
+        }
+        .rule-id {
+            position: absolute;
+            color: rgba(0,0,0,0.32);
+            font-size: 0.8em;
+            top: 16px;
+            left: 24px;
+        }
+        .rule-actions {
+            justify-content: flex-end;
+            font-size: 0.9em;
+            margin-top: 16px;
+        }
+        paper-button iron-icon {
+            opacity: 0.32;
+            padding: 4px;
+        }
+        .errormsg-container {
+            color: var(--red-color);
+            align-self: flex-start;
+            flex: 1;
+        }
+        .errormsg-container iron-icon {
+            color: inherit;
+        }
+        paper-input#emails {
+            max-width: 240px;
+            display: inline-block;
+        }
+        #newrule > * {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+        paper-dropdown-menu::content #dropdown {
+            width: inherit !important;
+        }
+        .add {
+        	cursor: pointer;
+        }
+	</style>
+
+    <div class="rule-edit">
+        <span class="rule-id">new rule</span>
+        <div id="newrule" class="rule">
+
+            If 
+
+            <paper-dropdown-menu class="dropdown-block metricName">
+                <paper-menu id="metricName" attr-for-selected="value" selected="{{rule.metric}}" class="dropdown-content">
+                    <template is="dom-repeat" items="[[availableMetrics]]" as="option">
+                        <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                    </template>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+            <paper-dropdown-menu class="dropdown-block metricOp">
+                <paper-menu id="metricOp" attr-for-selected="value" selected="{{rule.operator}}" class="dropdown-content">
+                    <paper-item value="gt"> &gt; </paper-item>
+                    <paper-item value="lt"> &lt; </paper-item>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+            <paper-input id="metricValue" value="{{rule.value}}" auto-validate></paper-input>
+
+            {{computeUnits(newMetric, builtinMetrics, customMetrics)}}
+
+            for 
+
+            <paper-dropdown-menu class="dropdown-block metricAggr">
+                <paper-menu id="metricAggr" attr-for-selected="value" selected="{{rule.aggregate}}" class="dropdown-content">
+                    <paper-item value="all"> every </paper-item>
+                    <paper-item value="any"> any </paper-item>
+                    <paper-item value="avg"> average </paper-item>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+            value within 
+
+            <paper-input id="metricOffset" value="{{rule.reminder_offset}}" auto-validate></paper-input>min,
+
+            then
+
+            <span id="actionsDropdown">
+                <paper-dropdown-menu class="dropdown-block metricAction">
+                    <paper-menu id="metricAction" attr-for-selected="value" selected="{{rule.action.0}}" class="dropdown-content">
+                        <paper-item value="alert"> alert </paper-item>
+                        <paper-item value="reboot"> reboot </paper-item>
+                        <paper-item value="destroy"> destroy </paper-item>
+                        <paper-item value="command"> command </paper-item>
+                        <paper-item value="launch" disabled> launch </paper-item>
+                    </paper-menu>
+                </paper-dropdown-menu>
+            </span>
+            
+            <span id="addAction" class="add"><iron-icon icon="icons:add" on-tap="_addActionDropdown"></iron-icon></span>
+
+            <template is="dom-if" if="{{showCommandTextarea}}">
+                <paper-textarea id="command" value="{{rule.command}}"></paper-textarea>
+            </template>
+
+            and email
+
+            <paper-input id="emails" placeholder="ex. [[userEmail]]" value="{{rule.emails}}" auto-validate></paper-input>
+
+            the members 
+
+            <paper-dropdown-menu>
+                <paper-menu id="users" attr-for-selected="value" selected-items="{{selectedUsers}}" class="dropdown-content" multi>
+                    <template is="dom-repeat" items="[[users]]" as="user">
+                        <paper-item value="[[user.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(user.id,rule.users)]]"></iron-icon>[[user.name]]</paper-item>
+                    </template>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+            the teams 
+
+            <paper-dropdown-menu>
+                <paper-menu id="teams" attr-for-selected="value" selected-items="{{selectedTeams}}" class="dropdown-content" multi>
+                    <template is="dom-repeat" items="[[teams]]" as="team">
+                        <paper-item value="[[team.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(team.id,rule.teams)]]"></iron-icon>[[team.name]]</paper-item>
+                    </template>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+        </div>
+        <div class="rule-actions layout horizontal">
+            <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+            <paper-spinner active$="{{sendingData}}"></paper-spinner>
+            <paper-button toggles active="{{editNew}}" class="link">cancel</paper-button>
+            <paper-button on-tap="addRule" class="blue">save rule</paper-button>
+        </div>
+    </div>
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'rule-edit',
+
+            properties: {
+            	rule: Object,
+            	resource: Object,  // machine, cloud or other later
+                model: Object,
+                builtinMetrics:{
+                    type: Object,
+                    notify: true,
+                    value: {}
+                },
+                customMetrics:{
+                    type: Object,
+                    notify: true,
+                    value: {}
+                },
+                availableMetrics: {
+                    type: Array,
+                    computed: "_computeMetrics(resource, builtinMetrics, customMetrics)"
+                },
+                editNew: {
+                    type: Boolean,
+                    value: false
+                },
+                formError: {
+                    type: Boolean,
+                    value: false
+                },
+                showCommandTextarea: {
+                    type: Boolean,                    
+                    value: false
+                },
+                selectedUsers: {
+                    type: Array,
+                    observer: '_selectedUsersChanged'
+                },
+                selectedTeams: {
+                    type: Array,
+                    observer: '_selectedTeamsChanged'
+                },
+                userEmail: String,
+                teams: Array,
+                users: Array
+            },
+            ready: function(){},
+            _showAdd: function(e){
+                this.rule.action.length > 1;
+            },
+            _addActionDropdown: function(e) {
+                var _this = this;
+                var container = this.$.actionsDropdown,
+                    newDropdown = document.createElement('paper-dropdown-menu'),
+                    newMenu = document.createElement('paper-menu'),
+                    actions = ['alert', 'reboot', 'destroy', 'command', 'launch'];
+
+                container.setAttribute('disabled','true');
+                newMenu.setAttribute('selected',"");
+                Polymer.dom(container).appendChild(newDropdown);
+                Polymer.dom(newDropdown).appendChild(newMenu);
+
+                newMenu.addEventListener("selected-changed", function(e){
+                    _this.push('rule.action',self.selected);
+                });
+
+                for (var i=0; i<actions.length; i++) {
+                    var item = document.createElement('paper-item');
+                    item.setAttribute('value',actions[i]);
+                    item.innerHTML = actions[i];  
+                    if(actions[i] == 'launch')
+                        item.setAttribute('disabled','true');
+                    Polymer.dom(newMenu).appendChild(item);
+                }
+
+                newDropdown.classList.add('dropdown-block','metricAction');
+                newMenu.classList.add('dropdown-content');
+                newMenu.setAttribute('attr-for-selected','value');
+                newMenu.setAttribute('selected','');
+            },
+            computeUnits: function(metric, builtinMetrics, customMetrics) {
+                var ref;
+                if (this.builtinMetrics || this.customMetrics)
+                    ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
+                return ref && ref.unit ? ref.unit : '';
+            },
+            computeTime: function(time){
+                return time/60 + 1;
+            },
+            computeAggregate: function(aggr){
+                if (aggr == "all")
+                    return "every";
+                else
+                    return aggr;
+            },
+            ruleCreatesIncident: function(rule, incidents){
+                var find = false;
+                    find = this.incidents.find(function(i){
+                    return !i.finished_at && i.rule_id == rule.id;
+                });
+                return !find ? false : true;
+            },
+            _computeMetrics: function(resource, builtinMetrics, customMetrics){
+                var metrics = [];
+                for (var p in this.builtinMetrics){
+                    metrics.push(this.builtinMetrics[p])
+                }
+                if (this.customMetrics) {
+                    for (var q in this.customMetrics){
+                        if (this.customMetrics[q].machines) {
+                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
+                                return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
+                            }, this);
+                            if (machineHasCustomMetric)
+                                metrics.push(this.customMetrics[q])
+                        }
+                    }
+                }
+                return metrics;
+            },
+            _selectedUsersChanged: function(users) {
+                var users = [];
+                this.$.users.selectedItems.forEach(function(u){
+                    users.push(u.value)
+                });
+                console.log(users);
+                this.set('rule.users', users);
+            },
+            _selectedTeamsChanged: function(teams) {
+                var teams = [];
+                this.$.teams.selectedItems.forEach(function(t){
+                    teams.push(t.value)
+                });
+                console.log(teams);
+                this.set('rule.teams', teams);
+            },
+            _computeShowCommandTextarea: function(action){
+                if(action != "command" && this.rule.command) {
+                    delete this.rule.command;
+                }
+                this.set('showCommandTextarea',action == "command") ;
+            },
+            _isSelected: function (id,array) {
+                console.log('_isSelected',id,array);
+                return array.indexOf(id) > -1;
+            }
+        })
+    </script>
+</dom-module>

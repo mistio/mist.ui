@@ -8,10 +8,11 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
 <link rel="import" href="rules-item.html">
+<link rel="import" href="rule-edit.html">
 
 <dom-module id="mist-rules">
     <template>
-        <style is="custom-style">
+        <style>
             paper-button {
                 padding: 0.8em 1.57em 0.7em 1.57em;
                 font-weight: 500;
@@ -23,10 +24,6 @@
             paper-material {
                 border-top: 2px solid #ddd;
             }
-        </style>
-        <!-- <style is="custom-style" include="shared-styles"></style>
-        <style is="custom-style" include="forms"></style> -->
-        <style is="custom-style">
             :host {
                 display: block;
             }
@@ -64,7 +61,6 @@
                 font-size: 0.8em;
                 top: 16px;
                 left: 24px;
-
             }
             .rule-actions {
                 justify-content: flex-end;
@@ -102,93 +98,15 @@
             
             <paper-button toggles active="{{editNew}}" hidden$="{{editNew}}"><iron-icon icon="icons:add-circle"></iron-icon> add new rule</paper-button>
 
-            <div class="rule-edit" hidden$="{{!editNew}}">
-                <span class="rule-id">new rule</span>
-                <div id="newrule" class="rule">
-
-                    If 
-
-                    <paper-dropdown-menu class="dropdown-block metricName">
-                        <paper-menu id="metricName" attr-for-selected="value" selected="{{newRule.metric}}" class="dropdown-content">
-                            <template is="dom-repeat" items="[[availableMetrics]]" as="option">
-                                <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-                            </template>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
-                    <paper-dropdown-menu class="dropdown-block metricOp">
-                        <paper-menu id="metricOp" attr-for-selected="value" selected="{{newRule.operator}}" class="dropdown-content">
-                            <paper-item value="gt"> &gt; </paper-item>
-                            <paper-item value="lt"> &lt; </paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
-                    <paper-input id="metricValue" value="{{newRule.value}}" auto-validate></paper-input>
-
-                    {{computeUnits(newMetric, builtinMetrics, customMetrics)}}
-
-                    for 
-
-                    <paper-dropdown-menu class="dropdown-block metricAggr">
-                        <paper-menu id="metricAggr" attr-for-selected="value" selected="{{newRule.aggregate}}" class="dropdown-content">
-                            <paper-item value="all"> every </paper-item>
-                            <paper-item value="any"> any </paper-item>
-                            <paper-item value="avg"> average </paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
-                    value within 
-
-                    <paper-input id="metricOffset" value="{{newRule.reminder_offset}}" auto-validate></paper-input>min,
-
-                    then
-
-                    <paper-dropdown-menu class="dropdown-block metricAction">
-                        <paper-menu id="metricAction" attr-for-selected="value" selected="{{newRule.action}}" class="dropdown-content">
-                            <paper-item value="alert"> alert </paper-item>
-                            <paper-item value="reboot"> reboot </paper-item>
-                            <paper-item value="destroy"> destroy </paper-item>
-                            <paper-item value="command"> command </paper-item>
-                            <paper-item value="launch" disabled> launch </paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
-                    <template is="dom-if" if="{{showCommandTextarea}}">
-                        <paper-textarea id="command" value="{{newRule.command}}"></paper-textarea>
-                    </template>
-
-                    and email
-
-                    <paper-input id="emails" placeholder="ex. [[userEmail]]" value="{{newRule.emails}}" auto-validate></paper-input>
-
-                    the members 
-
-                    <paper-dropdown-menu>
-                        <paper-menu id="users" attr-for-selected="value" selected-items="{{selectedUsers}}" class="dropdown-content" multi>
-                            <template is="dom-repeat" items="[[users]]" as="user">
-                                <paper-item value="[[user.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(user.id,newRule.users)]]"></iron-icon>[[user.name]]</paper-item>
-                            </template>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
-                    the teams 
-
-                    <paper-dropdown-menu>
-                        <paper-menu id="teams" attr-for-selected="value" selected-items="{{selectedTeams}}" class="dropdown-content" multi>
-                            <template is="dom-repeat" items="[[teams]]" as="team">
-                                <paper-item value="[[team.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(team.id,newRule.teams)]]"></iron-icon>[[team.name]]</paper-item>
-                            </template>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
-                </div>
-                <div class="rule-actions layout horizontal">
-                    <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-                    <paper-spinner active$="{{sendingData}}"></paper-spinner>
-                    <paper-button toggles active="{{editNew}}" class="link">cancel</paper-button>
-                    <paper-button on-tap="addRule" class="blue">save rule</paper-button>
-                </div>
-            </div>
+            <rule-edit  rule={{newRule}} 
+                        builtin-metrics={{builtinMetrics}}
+                        custom-metrics={{customMetrics}}
+                        available-metrics={{availableMetrics}}
+                        machine={{machine}}
+                        cloud={{cloud}}
+                        resource={{resource}}
+                        form-error={{formError}}
+                        hidden$="{{!editNew}}"></rule-edit>
 
         </paper-material>
 
@@ -239,14 +157,14 @@
                 newRule: Object,
                 editNew: {
                     type: Boolean,
-                    value: false
+                    value: true // TODO revert to false 
                 },
                 formError: {
                     type: Boolean,
                     value: false
                 },
                 showCommandTextarea: {
-                    type: Boolean,                    
+                    type: Boolean,
                     value: false
                 },
                 selectedUsers: {
@@ -276,7 +194,8 @@
                         metric:"load.shortterm",
                         operator:"gt",
                         value:5,
-                        action: 'alert',
+                        aggregate: 'any',
+                        action: [],
                         reminder_offset: '1',
                         emails: '',
                         teams: [],
@@ -307,12 +226,6 @@
             },
             computeTime: function(time){
                 return time/60 + 1;
-            },
-            computeOperator: function(op){
-                if (op == "gt")
-                    return ">";
-                if (op == "lt")
-                    return "<";
             },
             computeAggregate: function(aggr){
                 if (aggr == "all")
