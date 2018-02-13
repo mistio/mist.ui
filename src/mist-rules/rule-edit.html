@@ -7,6 +7,8 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
+<link rel="import" href="rule-action.html">
+
 <dom-module id="rule-edit">
     <template>
 		<style>
@@ -14,8 +16,6 @@
             display: block;
             position: relative;
             background-color: #eee;
-            padding: 0 24px 16px 24px;
-            border-bottom: 1px solid #ccc;
         }
 		paper-button {
             padding: 0.8em 1.57em 0.7em 1.57em;
@@ -92,7 +92,7 @@
 	</style>
 
     <div class="rule-edit">
-        <span class="rule-id">new rule</span>
+        <span class="rule-id">[[_computeId(rule.id)]]</span>
         <div id="newrule" class="rule">
 
             If 
@@ -133,49 +133,13 @@
             then
 
             <span id="actionsDropdown">
-                <paper-dropdown-menu class="dropdown-block metricAction">
-                    <paper-menu id="metricAction" attr-for-selected="value" selected="{{rule.action.0}}" class="dropdown-content">
-                        <paper-item value="alert"> alert </paper-item>
-                        <paper-item value="reboot"> reboot </paper-item>
-                        <paper-item value="destroy"> destroy </paper-item>
-                        <paper-item value="command"> command </paper-item>
-                        <paper-item value="launch" disabled> launch </paper-item>
-                    </paper-menu>
-                </paper-dropdown-menu>
+                <!-- <template is="dom-repeat" items="[[rule.actions]]"> -->
+                    <rule-action rule="{{rule}}" action="{{rule.action}}" user-email="[[userEmail]]" users="[[users]]" teams="[[teams]]"></rule-action>
+                <!-- </template> -->
             </span>
-            
-            <span id="addAction" class="add"><iron-icon icon="icons:add" on-tap="_addActionDropdown"></iron-icon></span>
-
-            <template is="dom-if" if="{{showCommandTextarea}}">
-                <paper-textarea id="command" value="{{rule.command}}"></paper-textarea>
-            </template>
-
-            and email
-
-            <paper-input id="emails" placeholder="ex. [[userEmail]]" value="{{rule.emails}}" auto-validate></paper-input>
-
-            the members 
-
-            <paper-dropdown-menu>
-                <paper-menu id="users" attr-for-selected="value" selected-items="{{selectedUsers}}" class="dropdown-content" multi>
-                    <template is="dom-repeat" items="[[users]]" as="user">
-                        <paper-item value="[[user.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(user.id,rule.users)]]"></iron-icon>[[user.name]]</paper-item>
-                    </template>
-                </paper-menu>
-            </paper-dropdown-menu>
-
-            the teams 
-
-            <paper-dropdown-menu>
-                <paper-menu id="teams" attr-for-selected="value" selected-items="{{selectedTeams}}" class="dropdown-content" multi>
-                    <template is="dom-repeat" items="[[teams]]" as="team">
-                        <paper-item value="[[team.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(team.id,rule.teams)]]"></iron-icon>[[team.name]]</paper-item>
-                    </template>
-                </paper-menu>
-            </paper-dropdown-menu>
 
         </div>
-        <div class="rule-actions layout horizontal">
+        <div class="rule-actions layout horizontal" hidden$="[[updateExistingRule]]">
             <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
             <paper-spinner active$="{{sendingData}}"></paper-spinner>
             <paper-button toggles active="{{editNew}}" class="link">cancel</paper-button>
@@ -192,6 +156,7 @@
             properties: {
             	rule: Object,
             	resource: Object,  // machine, cloud or other later
+                updateExistingRule: Boolean,
                 model: Object,
                 builtinMetrics:{
                     type: Object,
@@ -215,77 +180,44 @@
                     type: Boolean,
                     value: false
                 },
-                showCommandTextarea: {
-                    type: Boolean,                    
-                    value: false
-                },
-                selectedUsers: {
-                    type: Array,
-                    observer: '_selectedUsersChanged'
-                },
-                selectedTeams: {
-                    type: Array,
-                    observer: '_selectedTeamsChanged'
-                },
                 userEmail: String,
                 teams: Array,
-                users: Array
+                users: Array,
+                actions: {
+                    type: Array,
+                    value: ['alert', 'reboot', 'destroy', 'command', 'launch']
+                }
             },
-            ready: function(){},
+            ready: function(){
+                // this.set('rule.users', this.rule.users || []);
+                // this.set('rule.teams', this.rule.teams || []);
+            },
+            addRule: function() {
+                this.fire('add-rule');
+            },
             _showAdd: function(e){
                 this.rule.action.length > 1;
             },
-            _addActionDropdown: function(e) {
+            _computeId: function(id) {
+                return id || 'new rule';
+            },
+            _addAction: function(e) {
                 var _this = this;
                 var container = this.$.actionsDropdown,
-                    newDropdown = document.createElement('paper-dropdown-menu'),
-                    newMenu = document.createElement('paper-menu'),
-                    actions = ['alert', 'reboot', 'destroy', 'command', 'launch'];
-
-                container.setAttribute('disabled','true');
-                newMenu.setAttribute('selected',"");
-                Polymer.dom(container).appendChild(newDropdown);
-                Polymer.dom(newDropdown).appendChild(newMenu);
-
-                newMenu.addEventListener("selected-changed", function(e){
-                    _this.push('rule.action',self.selected);
-                });
-
-                for (var i=0; i<actions.length; i++) {
-                    var item = document.createElement('paper-item');
-                    item.setAttribute('value',actions[i]);
-                    item.innerHTML = actions[i];  
-                    if(actions[i] == 'launch')
-                        item.setAttribute('disabled','true');
-                    Polymer.dom(newMenu).appendChild(item);
-                }
-
-                newDropdown.classList.add('dropdown-block','metricAction');
-                newMenu.classList.add('dropdown-content');
-                newMenu.setAttribute('attr-for-selected','value');
-                newMenu.setAttribute('selected','');
+                    newAction = document.createElement('rule-action'),
+                    and = document.createTextNode(' AND ');
+                    
+                Polymer.dom(container).appendChild(and);
+                Polymer.dom(container).appendChild(newAction);
+                // newMenu.addEventListener("selected-changed", function(e){
+                //     _this.push('rule.action',self.selected);
+                // });
             },
             computeUnits: function(metric, builtinMetrics, customMetrics) {
                 var ref;
                 if (this.builtinMetrics || this.customMetrics)
                     ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
                 return ref && ref.unit ? ref.unit : '';
-            },
-            computeTime: function(time){
-                return time/60 + 1;
-            },
-            computeAggregate: function(aggr){
-                if (aggr == "all")
-                    return "every";
-                else
-                    return aggr;
-            },
-            ruleCreatesIncident: function(rule, incidents){
-                var find = false;
-                    find = this.incidents.find(function(i){
-                    return !i.finished_at && i.rule_id == rule.id;
-                });
-                return !find ? false : true;
             },
             _computeMetrics: function(resource, builtinMetrics, customMetrics){
                 var metrics = [];
@@ -304,32 +236,6 @@
                     }
                 }
                 return metrics;
-            },
-            _selectedUsersChanged: function(users) {
-                var users = [];
-                this.$.users.selectedItems.forEach(function(u){
-                    users.push(u.value)
-                });
-                console.log(users);
-                this.set('rule.users', users);
-            },
-            _selectedTeamsChanged: function(teams) {
-                var teams = [];
-                this.$.teams.selectedItems.forEach(function(t){
-                    teams.push(t.value)
-                });
-                console.log(teams);
-                this.set('rule.teams', teams);
-            },
-            _computeShowCommandTextarea: function(action){
-                if(action != "command" && this.rule.command) {
-                    delete this.rule.command;
-                }
-                this.set('showCommandTextarea',action == "command") ;
-            },
-            _isSelected: function (id,array) {
-                console.log('_isSelected',id,array);
-                return array.indexOf(id) > -1;
             }
         })
     </script>
