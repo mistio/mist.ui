@@ -142,83 +142,17 @@
             <iron-icon icon="close" data-attr="[[rule.id]]" on-tap="deleteRule"></iron-icon>
         </div>
         <div class="rule-edit" hidden$="{{!editMode}}">
-            <span class="rule-id">[[rule.id]]</span>
-            <div id="[[rule.id]]" class="rule">
-	            If 
-	            <paper-dropdown-menu class="dropdown-block metricName">
-	                <paper-menu id="metricName" attr-for-selected="value" selected="{{newRule.metric}}" class="dropdown-content">
-	                    <template is="dom-repeat" items="[[availableMetrics]]" as="option">
-	                        <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-	                    </template>
-	                </paper-menu>
-	            </paper-dropdown-menu>
-
-	            <paper-dropdown-menu class="dropdown-block metricOp">
-	                <paper-menu id="metricOp" attr-for-selected="value" selected="{{newRule.operator}}" class="dropdown-content">
-	                    <paper-item value="gt"> > </paper-item>
-	                    <paper-item value="lt"> < </paper-item>
-	                </paper-menu>
-	            </paper-dropdown-menu>
-
-	            <paper-input id="metricValue" value="{{newRule.value}}" auto-validate></paper-input>
-
-	            {{computeUnits(newRule.metric)}}
-
-	            for 
-
-	            <paper-dropdown-menu class="dropdown-block metricAggr">
-	                <paper-menu id="metricAggr" attr-for-selected="value" selected="{{newRule.aggregate}}" class="dropdown-content">
-	                    <paper-item value="all"> every </paper-item>
-	                    <paper-item value="any"> any </paper-item>
-	                    <paper-item value="avg"> average </paper-item>
-	                </paper-menu>
-	            </paper-dropdown-menu>
-
-	            value within 
-
-	            <paper-input id="metricOffset" value="{{newRule.reminder_offset}}" auto-validate></paper-input>min,
-
-	            then
-
-	            <paper-dropdown-menu class="dropdown-block metricAction">
-	                <paper-menu id="metricAction" attr-for-selected="value" selected="{{newRule.action}}" class="dropdown-content">
-	                    <paper-item value="alert"> alert </paper-item>
-	                    <paper-item value="reboot"> reboot </paper-item>
-	                    <paper-item value="destroy"> destroy </paper-item>
-	                    <paper-item value="command"> command </paper-item>
-	                    <paper-item value="launch" disabled> launch </paper-item>
-	                </paper-menu>
-	            </paper-dropdown-menu>
-
-                <template is="dom-if" if="{{showCommandTextarea}}">
-                    <paper-textarea id="command" value="{{newRule.command}}"></paper-textarea>
-                </template>
-
-                and email
-
-                <paper-input id="emails" placeholder="ex. [[userEmail]]" value="{{newRule.emails}}" auto-validate></paper-input>
-
-                the members 
-
-                <paper-dropdown-menu>
-                    <paper-menu id="users" attr-for-selected="value" selected-items="{{selectedUsers}}" class="dropdown-content" multi>
-                        <template is="dom-repeat" items="[[model.membersArray]]" as="user">
-                            <paper-item value="[[user.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(user.id,newRule.users)]]"></iron-icon>[[user.name]]</paper-item>
-                        </template>
-                    </paper-menu>
-                </paper-dropdown-menu>
-
-                the teams 
-
-                <paper-dropdown-menu>
-                    <paper-menu id="teams" attr-for-selected="value" selected-items="{{selectedTeams}}" class="dropdown-content" multi>
-                        <template is="dom-repeat" items="[[model.teamsArray]]" as="team">
-                            <paper-item value="[[team.id]]"><iron-icon icon="icons:done" hidden$="[[!_isSelected(team.id,newRule.teams)]]"></iron-icon>[[team.name]]</paper-item>
-                        </template>
-                    </paper-menu>
-                </paper-dropdown-menu>
-
-            </div>
+            <rule-edit  rule={{rule}} 
+                    builtin-metrics=[[builtinMetrics]]
+                    custom-metrics=[[customMetrics]]
+                    available-metrics=[[availableMetrics]]
+                    machine=[[machine]]
+                    cloud=[[cloud]]
+                    resource=[[resource]]
+                    form-error=[[formError]]
+                    users="[[users]]"
+                    teams="[[teams]]"
+                    hidden$="{{!editMode}}" update-existing-rule></rule-edit>
             <div class="rule-actions layout horizontal">
             	<p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
             	<paper-spinner active$="{{sendingData}}"></paper-spinner>
@@ -464,7 +398,7 @@
             },            
             joinEmails: function(emails){
                 if (emails)
-                    return emails.join(', ');
+                    return typeof(emails)=='array' ? emails.join(', ') : emails;
             },
             joinResources: function(array, type, model) {
                 if (array && array.length){
