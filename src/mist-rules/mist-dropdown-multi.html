@@ -1,0 +1,96 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<dom-module id="mist-dropdown-multi">
+    <template>
+        <style>
+            :host {
+                margin: 8px;
+            }
+            paper-checkbox {
+                padding:15px;
+            }
+            #dummy {
+                display:none;
+            }
+        </style>
+
+        <paper-dropdown-menu label="[[label]]" id="dropdownMenu" required='[[required]]' on-paper-dropdown-close='_closingWindow' on-paper-dropdown-open='_openingWindow' value={{value}}>
+            <div class="dropdown-content" slot="dropdown-content">
+                <template is="dom-repeat" items="[[selections]]">
+                    <div><paper-checkbox on-change='_updateValue'>[[item.name]]</paper-checkbox></div>
+                </template>
+                <iron-selector id="selected">
+                    <div id="dummy"></div>
+                </iron-selector>
+            </div>
+        </paper-dropdown-menu>
+    </template>
+
+        
+    <script>
+    
+    Polymer({
+        is: 'mist-dropdown-multi',
+        properties: {
+            label: {
+                type: String
+            },
+            required: {
+                type: Boolean
+            },
+            selections: {
+                type: Array,
+                observer: '_selectionChanged'
+            },
+            value: {
+                type: Array
+            },
+            _value: {
+                type: Array, 
+                value:[]
+            },
+            maxDisplay: {
+                type: Number, 
+                value: 5
+            }
+        },
+        _selectionChanged: function() {
+            this._value = [];
+            this.$.selected.selected=null;
+            this.$.dummy.textContent = '';
+            if(this.querySelectorAll('paper-checkbox').length > 0){
+                this.querySelectorAll('paper-checkbox').forEach(function(item){
+                    item.checked = false;
+                });
+            }
+        },
+        _openingWindow: function() {
+            this.$.selected.selected=null;
+        },
+        _closingWindow: function() {
+            this.$.dummy.textContent = this._value.length <= this.maxDisplay ? this._value.join(', ') : this._value.length+" selected";
+            this.$.selected.selected = '0';
+            this.value = this._value.map(function(item){
+                return this.selections.find(function(s){return s.name == item}.bind(this)).id;
+            }.bind(this));
+            this.dispatchEvent(new CustomEvent('value-changed',{detail:this.value}));
+        },
+        _updateValue: function(e){
+            let that = this;
+            this._value = [];
+            this.querySelectorAll('paper-checkbox').forEach(function(item){
+                if (item.checked){
+                    that._value.push(item.textContent.trim())
+                }
+            })
+        }
+    });
+</script>
+
+</dom-module>

@@ -1,0 +1,245 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<link rel="import" href="rule-action.html">
+
+<dom-module id="rule-edit">
+    <template>
+		<style>
+        :host {
+            display: block;
+            position: relative;
+            background-color: #eee;
+        }
+		paper-button {
+            padding: 0.8em 1.57em 0.7em 1.57em;
+            font-weight: 500;
+        }
+        paper-button[disabled] {
+            background-color: rgba(0,0,0,.13) !important;
+            color: rgba(0,0,0,0.32) !important;
+        }
+        paper-material {
+            border-top: 2px solid #ddd;
+        }
+        .metricOp  {
+            width: 50px;
+        }
+        .metricAggr,
+        .metricAction {
+            width: 100px;
+            margin-right: 10px;
+        }
+        paper-input#metricValue, 
+        paper-input#metricOffset {
+            width: 40px;
+            display: inline-block;
+        }
+        paper-input#metricAggr {
+            width: 120px;
+            display: inline-block;
+        }
+        .rule.incident-true {
+            color: var(--red-color);
+        }
+        .rule {
+            padding: 8px 0;
+        }
+        .rule-id {
+            position: absolute;
+            color: rgba(0,0,0,0.32);
+            font-size: 0.8em;
+            top: 16px;
+            left: 24px;
+        }
+        .rule-actions {
+            justify-content: flex-end;
+            font-size: 0.9em;
+            margin-top: 16px;
+        }
+        paper-button iron-icon {
+            opacity: 0.32;
+            padding: 4px;
+        }
+        .errormsg-container {
+            color: var(--red-color);
+            align-self: flex-start;
+            flex: 1;
+        }
+        .errormsg-container iron-icon {
+            color: inherit;
+        }
+        paper-input#emails {
+            max-width: 240px;
+            display: inline-block;
+        }
+        #newrule > * {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+        paper-dropdown-menu::content #dropdown {
+            width: inherit !important;
+        }
+        .add {
+        	cursor: pointer;
+        }
+	</style>
+
+    <div class="rule-edit">
+        <span class="rule-id">[[_computeId(rule.id)]]</span>
+        <div id="newrule" class="rule">
+
+            If 
+
+            <paper-dropdown-menu class="dropdown-block metricName">
+                <paper-menu id="metricName" attr-for-selected="value" selected="{{rule.metric}}" class="dropdown-content">
+                    <template is="dom-repeat" items="[[availableMetrics]]" as="option">
+                        <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                    </template>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+            <paper-dropdown-menu class="dropdown-block metricOp">
+                <paper-menu id="metricOp" attr-for-selected="value" selected="{{rule.operator}}" class="dropdown-content">
+                    <paper-item value="gt"> &gt; </paper-item>
+                    <paper-item value="lt"> &lt; </paper-item>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+            <paper-input id="metricValue" value="{{rule.value}}" auto-validate></paper-input>
+
+            {{computeUnits(newMetric, builtinMetrics, customMetrics)}}
+
+            for 
+
+            <paper-dropdown-menu class="dropdown-block metricAggr">
+                <paper-menu id="metricAggr" attr-for-selected="value" selected="{{rule.aggregate}}" class="dropdown-content">
+                    <paper-item value="all"> every </paper-item>
+                    <paper-item value="any"> any </paper-item>
+                    <paper-item value="avg"> average </paper-item>
+                </paper-menu>
+            </paper-dropdown-menu>
+
+            value within 
+
+            <paper-input id="metricOffset" value="{{rule.reminder_offset}}" auto-validate></paper-input>min,
+
+            then
+
+            <span id="actionsDropdown">
+                <!-- <template is="dom-repeat" items="[[rule.actions]]"> -->
+                    <rule-action rule="{{rule}}" user-email="[[userEmail]]" users="[[users]]" teams="[[teams]]"></rule-action>
+                <!-- </template> -->
+            </span>
+
+        </div>
+        <div class="rule-actions layout horizontal">
+            <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg">[[formMessage]]</span></p>
+            <paper-spinner active$="{{sendingData}}"></paper-spinner>
+            <paper-button toggles active="{{editNew}}" class="link">cancel</paper-button>
+            <paper-button on-tap="addRule" class="blue">save rule</paper-button>
+        </div>
+    </div>
+
+
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'rule-edit',
+
+            properties: {
+            	rule: Object,
+            	resource: Object,  // machine, cloud or other later
+                updateExistingRule: Boolean,
+                model: Object,
+                builtinMetrics:{
+                    type: Object,
+                    notify: true,
+                    value: {}
+                },
+                customMetrics:{
+                    type: Object,
+                    notify: true,
+                    value: {}
+                },
+                availableMetrics: {
+                    type: Array,
+                    computed: "_computeMetrics(resource, builtinMetrics, customMetrics)"
+                },
+                editNew: {
+                    type: Boolean,
+                    value: false
+                },
+                formError: {
+                    type: Boolean,
+                    value: false
+                },
+                formMessage: String,
+                userEmail: String,
+                teams: Array,
+                users: Array,
+                actions: {
+                    type: Array,
+                    value: ['alert', 'reboot', 'destroy', 'command', 'launch']
+                }
+            },
+            ready: function(){
+                // this.set('rule.users', this.rule.users || []);
+                // this.set('rule.teams', this.rule.teams || []);
+            },
+            addRule: function() {
+                this.fire('add-rule');
+            },
+            _showAdd: function(e){
+                this.rule.action.length > 1;
+            },
+            _computeId: function(id) {
+                return id || 'new rule';
+            },
+            _addAction: function(e) {
+                var _this = this;
+                var container = this.$.actionsDropdown,
+                    newAction = document.createElement('rule-action'),
+                    and = document.createTextNode(' AND ');
+                    
+                Polymer.dom(container).appendChild(and);
+                Polymer.dom(container).appendChild(newAction);
+                // newMenu.addEventListener("selected-changed", function(e){
+                //     _this.push('rule.action',self.selected);
+                // });
+            },
+            computeUnits: function(metric, builtinMetrics, customMetrics) {
+                var ref;
+                if (this.builtinMetrics || this.customMetrics)
+                    ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
+                return ref && ref.unit ? ref.unit : '';
+            },
+            _computeMetrics: function(resource, builtinMetrics, customMetrics){
+                var metrics = [];
+                for (var p in this.builtinMetrics){
+                    metrics.push(this.builtinMetrics[p])
+                }
+                if (this.customMetrics) {
+                    for (var q in this.customMetrics){
+                        if (this.customMetrics[q].machines) {
+                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
+                                return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
+                            }, this);
+                            if (machineHasCustomMetric)
+                                metrics.push(this.customMetrics[q])
+                        }
+                    }
+                }
+                return metrics;
+            }
+        })
+    </script>
+</dom-module>
