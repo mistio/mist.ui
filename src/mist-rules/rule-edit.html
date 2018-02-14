@@ -145,7 +145,7 @@
 
             <paper-spinner active$="{{sendingData}}"></paper-spinner>
             <paper-button toggles active="{{editNew}}" class="link">cancel</paper-button>
-            <paper-button on-tap="addRule" class="blue">save rule</paper-button>
+            <paper-button on-tap="addRule" class="blue" disabled$="[[!isValideRule]]">save rule</paper-button>
         </div>
     </div>
     </template>
@@ -189,8 +189,15 @@
                 actions: {
                     type: Array,
                     value: ['alert', 'reboot', 'destroy', 'command', 'launch']
+                },
+                isValideRule: {
+                    type: Boolean,
+                    value: false
                 }
             },
+            observers: [
+                'ruleChanged(rule.*)'
+            ],
             ready: function(){
             },
             addRule: function() {
@@ -237,6 +244,26 @@
                     }
                 }
                 return metrics;
+            },
+            ruleChanged: function(rule) {
+                var valid = true;
+                for (var p in this.rule) {
+                    if (this.rule[p] == undefined)
+                        valid = false;
+                }
+
+                if (this.rule.action == '')
+                    valid = false;
+
+                if (this.rule.action == 'alert')
+                    if (!this.rule.emails.length && !this.rule.teams.length && !this.rule.users.length)
+                        valid = false;
+
+                if (this.rule.action == 'command')
+                    if (!this.rule.command || !this.rule.command.length)
+                        valid = false;
+
+                this.set('isValideRule', valid);
             }
         })
     </script>
