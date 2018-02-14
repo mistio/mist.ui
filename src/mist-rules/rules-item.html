@@ -124,16 +124,20 @@
                 </span>
                 for [[computeAggregate(rule.aggregate)]] value 
                 <span hidden$="[[!rule.aggregate]]">
-                    within [[computeTime(rule.reminder_offset)]]min, 
+                    within [[computeTime(rule.reminder_offset)]]min,
                 </span>then <span class="strong">[[rule.action]]</span>
                 <span class="command" hidden$="[[!showCommandTextarea]]"><code>[[rule.command]]</code></span>
-                <span hidden$="[[!rule.emails.length]]">and email 
+                <span hidden$="[[!rule.emails.length]]">
                     <span class="command"><code>[[joinEmails(rule.emails)]]</code></span>
                 </span>
-                <span hidden$="[[!rule.teams.length]]">and teams
+                <span hidden$="[[!rule.teams.length]]">
+                    <span hidden$="[[!rule.emails.length]]"> and </span>
+                    team<span hidden$="[[!_isPlural(rule.teams.length)]]">s</span>
                     <span class="command"><code>[[joinResources(rule.teams,'teams',model)]]</code></span>
                 </span>
-                <span hidden$="[[!rule.users.length]]">and users
+                <span hidden$="[[!rule.users.length]]">
+                    <span hidden$="[[!rule.teams.length]]"> and </span>
+                    user<span hidden$="[[!_isPlural(rule.users.length)]]">s</span>
                     <span class="command"><code>[[joinResources(rule.users,'members',model)]]</code></span> 
                 </span>
             	<paper-icon-button icon="icons:create" toggles active={{editMode}}>edit</paper-icon-button>
@@ -433,6 +437,9 @@
             _isSelected: function (id,array) {
                 // console.log('_isSelected',id,array);
                 return array.indexOf(id) > -1;
+            },
+            _isPlural: function (int) {
+                return int > 1;
             }
         });
     </script>
