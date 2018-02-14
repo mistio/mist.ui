@@ -288,6 +288,7 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: "4",
         show: true,
         required: false,
+        pattern: "[0-9]*",
         helptext: "The VM's size will be the size of the image plus the number in GBs provided here",
         helpHref: "http://docs.mist.io/article/99-managing-kvm-with-mist-io"
     }]
