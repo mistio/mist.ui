@@ -31,6 +31,11 @@
             rule-edit {
                 padding: 0 24px 16px 24px;
             }
+            .rule-actions {
+                justify-content: flex-end;
+                font-size: 0.9em;
+                margin-top: 16px;
+            }
         </style>
         <paper-material elevation="0">
             <template is="dom-repeat" items="{{items}}">
@@ -51,7 +56,15 @@
                         users="[[model.membersArray]]"
                         teams="[[model.teamsArray]]"
                         edit-new="{{editNew}}"
-                        hidden$="{{!editNew}}"></rule-edit>
+                        hidden$="{{!editNew}}">
+                            <div slot="rule-actions" class="rule-actions layout horizontal" hidden$="[[updateExistingRule]]">
+                                <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg">[[formMessage]]</span></p>
+
+                                <paper-spinner active$="{{sendingData}}"></paper-spinner>
+                                <paper-button toggles active="{{editNew}}" class="link">cancel</paper-button>
+                                <paper-button on-tap="addRule" class="blue" disabled$="[[!isValideRule]]">save rule</paper-button>
+                            </div>
+                        </rule-edit>
 
         </paper-material>
         
