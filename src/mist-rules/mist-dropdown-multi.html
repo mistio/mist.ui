@@ -23,10 +23,10 @@
         <paper-dropdown-menu label="[[label]]" id="dropdownMenu" required='[[required]]' on-paper-dropdown-close='_closingWindow' on-paper-dropdown-open='_openingWindow' value={{value}}>
             <div class="dropdown-content" slot="dropdown-content">
                 <template is="dom-repeat" items="[[selections]]">
-                    <div><paper-checkbox on-change='_updateValue'>[[item.name]]</paper-checkbox></div>
+                    <div><paper-checkbox checked="[[computeChecked(item.id)]]" on-change='_updateValue'>[[item.name]]</paper-checkbox></div>
                 </template>
                 <iron-selector id="selected">
-                    <div id="dummy"></div>
+                    <div id="dummy">[[displayValue]]</div>
                 </iron-selector>
             </div>
         </paper-dropdown-menu>
@@ -49,7 +49,8 @@
                 observer: '_selectionChanged'
             },
             value: {
-                type: Array
+                type: Array,
+                value: []
             },
             _value: {
                 type: Array, 
@@ -58,37 +59,58 @@
             maxDisplay: {
                 type: Number, 
                 value: 5
+            },
+            displayValue: {
+                type: String,
+                value: ''
             }
         },
-        _selectionChanged: function() {
-            this._value = [];
-            this.$.selected.selected=null;
-            this.$.dummy.textContent = '';
-            if(this.querySelectorAll('paper-checkbox').length > 0){
-                this.querySelectorAll('paper-checkbox').forEach(function(item){
-                    item.checked = false;
-                });
+        attached: function() {
+            this.init();
+        },
+        init: function() {
+            if (this.value.length && this.selections.length) {
+                console.log('attached')
+                this.set('_value', this.value.map(function(item){
+                    return this.selections.find(function(s){return s.id == item}.bind(this)).name;
+                }.bind(this)));
+
+                this.setDisplayValue(this._value);
+                this.$.selected.selected = '0';
             }
+        },
+        setDisplayValue: function(arr) {
+            if (arr && arr.length)
+                var str = arr.length <= this.maxDisplay ? arr.join(', ') : arr.length+" selected";
+            this.set('displayValue', str || '');
+        },
+        _selectionChanged: function() {
+            this.init();
         },
         _openingWindow: function() {
             this.$.selected.selected=null;
         },
         _closingWindow: function() {
-            this.$.dummy.textContent = this._value.length <= this.maxDisplay ? this._value.join(', ') : this._value.length+" selected";
+            this.setDisplayValue(this._value);
             this.$.selected.selected = '0';
-            this.value = this._value.map(function(item){
-                return this.selections.find(function(s){return s.name == item}.bind(this)).id;
-            }.bind(this));
             this.dispatchEvent(new CustomEvent('value-changed',{detail:this.value}));
         },
         _updateValue: function(e){
-            let that = this;
-            this._value = [];
+            var that = this;
+            var val = [];
             this.querySelectorAll('paper-checkbox').forEach(function(item){
                 if (item.checked){
-                    that._value.push(item.textContent.trim())
+                    val.push(item.textContent.trim())
                 }
             })
+            this.set('_value', val);
+
+            this.set('value', this._value.map(function(item){
+                return this.selections.find(function(s){return s.name == item}.bind(this)).id;
+            }.bind(this)));
+        },
+        computeChecked: function(id) {
+            return this.value.indexOf(id) > -1;
         }
     });
 </script>
