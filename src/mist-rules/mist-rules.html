@@ -47,12 +47,13 @@
                         cloud=[[cloud]]
                         resource=[[resource]]
                         form-error=[[formError]]
+                        form-message=[[formMessage]]
                         users="[[model.membersArray]]"
                         teams="[[model.teamsArray]]"
                         hidden$="{{!editNew}}"></rule-edit>
 
         </paper-material>
-
+        
         <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" handle-as="xml" method="POST" on-request="_handleAddRequest" on-response="_handleAddResponse" on-error="_handleAddError" loading="{{sendingData}}"></iron-ajax>
 
     </template>
@@ -127,7 +128,7 @@
                         operator:"gt",
                         value:5,
                         aggregate: 'any',
-                        action: [],
+                        action: '',
                         reminder_offset: '1',
                         emails: '',
                         teams: [],
@@ -197,7 +198,7 @@
             },
             _handleAddError: function(e){
                 console.log(e.detail.request.xhr.responseText);
-                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+                this.set('formMessage',e.detail.request.xhr.responseText)
                 this.set('formError', true);
             },
             userChanges: function(){
