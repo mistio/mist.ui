@@ -141,7 +141,7 @@
     <paper-header-panel mode="standard" class="fit">
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-        <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" product="[[product]]"></mist-header>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
@@ -160,13 +160,13 @@
             <page-templates name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
             <page-stacks name="stacks" route="{{subroute}}" model="[[model]]"></page-stacks>
           </template>
-          <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac=[[enableRbac]] billing=[[enableBilling]]></page-teams>
+          <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac=[[enableRbac]] billing=[[enableBilling]] product="[[product]]"></page-teams>
           <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
           <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
           <template is="dom-if" if="[[enableInsights]]">
-            <page-insights name="insights" route="{{subroute}}" model="[[model]]"></page-insights>
+            <page-insights name="insights" route="{{subroute}}" model="[[model]]" product="[[product]]"></page-insights>
           </template>
-          <page-my-account name="my-account" route="{{subroute}}" billing=[[enableBilling]] is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" enable-monitoring="[[enableMonitoring]]"></page-my-account>
+          <page-my-account name="my-account" route="{{subroute}}" billing=[[enableBilling]] is-over-using="[[model.isOverUsing]]" user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" enable-monitoring="[[enableMonitoring]]" product="[[product]]"></page-my-account>
           <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
         </iron-pages>
         <paper-toast id="mist-toast"></paper-toast>
@@ -175,6 +175,12 @@
     <mist-socket model="{{model}}"></mist-socket>
 
     <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
+
+    <span id="productName" class="product-name" hidden></span>
+    <span id="infoEmail" class="info-email" hidden></span>
+    <span id="supportEmail" class="support-email" hidden></span>
+    <span id="salesEmail" class="sales-email" hidden></span>
+    <span id="saasUrl" class="saas-url" hidden></span>
 
   </template>
 
@@ -281,7 +287,10 @@
                 type: Boolean,
                 value: false
             },
-            count: Number
+            count: Number,
+            product: {
+                type: Object
+            }
         },
 
         listeners: {
@@ -307,6 +316,24 @@
             '_routePageChanged(routeData.page, subroute.path)',
             '_sizeChanged(smallscreen)'
         ],
+
+        attached: function() {
+            this.async(function(){
+                var name = window.getComputedStyle(this.querySelector('#productName'),':after').getPropertyValue('content').replace(/"/g,'');
+                var info = window.getComputedStyle(this.querySelector('#infoEmail'),':after').getPropertyValue('content').replace(/"/g,'');
+                var sales = window.getComputedStyle(this.querySelector('#salesEmail'),':after').getPropertyValue('content').replace(/"/g,'');
+                var support = window.getComputedStyle(this.querySelector('#supportEmail'),':after').getPropertyValue('content').replace(/"/g,'');
+                var saas = window.getComputedStyle(this.querySelector('#saasUrl'),':after').getPropertyValue('content').replace(/"/g,'');
+                var product = {
+                    name: name,
+                    info: info,
+                    support: support,
+                    sales: sales,
+                    saas: saas
+                }
+                this.set('product', product);
+            }.bind(this),1000);
+        },
 
         _sizeChanged: function(smallscreen) {
             console.log('updateResize');
