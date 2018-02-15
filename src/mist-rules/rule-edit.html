@@ -187,14 +187,9 @@
                 actions: {
                     type: Array,
                     value: ['alert', 'reboot', 'destroy', 'command', 'launch']
-                },
-                isValideRule: {
-                    type: Boolean,
-                    value: false
                 }
             },
             observers: [
-                'ruleChanged(rule.*)',
                 'editNewChanged(editNew)'
             ],
             ready: function(){
@@ -243,26 +238,6 @@
                     }
                 }
                 return metrics;
-            },
-            ruleChanged: function(rule) {
-                var valid = true;
-                for (var p in this.rule) {
-                    if (this.rule[p] == undefined)
-                        valid = false;
-                }
-
-                if (this.rule.action == '')
-                    valid = false;
-
-                if (this.rule.action == 'alert')
-                    if (!this.rule.emails.length && !this.rule.teams.length && !this.rule.users.length)
-                        valid = false;
-
-                if (this.rule.action == 'command')
-                    if (!this.rule.command || !this.rule.command.length)
-                        valid = false;
-
-                this.set('isValideRule', valid);
             },
             editNewChanged: function(editNew) {
                 console.log('editNew',editNew);

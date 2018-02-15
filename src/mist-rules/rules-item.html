@@ -339,16 +339,24 @@
                 	payload["id"] = this.rule.id;
 
                     delete payload._id;
+                    
                     // clean up command
-                    if(payload.action != "command" && payload.command) {
+                    if (payload.action != "command") {
                         delete payload.command;
                     }
-                    //parse string to array
-                    if (this.querySelector("#emails").value && this.querySelector("#emails").value != "") {
-                        payload["emails"] = this.querySelector("#emails").value;
+                    // clean up recipients
+                    if (payload.action != "alert") {
+                        delete payload.emails;
+                        delete payload.teams;
+                        delete payload.users;
                     }
-                    else {
-                        payload.emails = ' ';
+                    //parse string to array
+                    if (this.newRule.emails && this.newRule.emails != this.rule.emails) {
+                        var emails = this.newRule.emails.split(',');
+                        payload["emails"] = [];
+                        for (var i=0; i<emails.length; i++) {
+                            payload["emails"].push(emails[i].trim());
+                        }
                     }
                     //patch. backend misses the value if updates dont include it
                     payload["value"] = this.newRule.value;

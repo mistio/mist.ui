@@ -122,7 +122,12 @@
                 },
                 userEmail: String,
                 teams: Array,
-                users: Array
+                users: Array,
+                isValideRule: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                }
             },
             listeners: {
                 'iron-select':'userChanges',
@@ -131,8 +136,8 @@
                 'add-rule': 'addRule'
             },
             observers: [
-                "_computeShowCommandTextarea(newRule.action)",
-                "_computeRules(rules.*, machine, cloud)"
+                "_computeRules(rules.*, machine, cloud)",
+                "ruleChanged(newRule.*)"
             ],
             ready: function() {
                 this.init();
@@ -146,6 +151,7 @@
                         aggregate: 'any',
                         action: '',
                         reminder_offset: '1',
+                        command: '',
                         emails: '',
                         teams: [],
                         users: []
@@ -195,14 +201,24 @@
                 if (payload["reminder_offset"])
                     payload["reminder_offset"] = (payload["reminder_offset"]-1 )*60;
                 // clean up command
-                if(payload.action != "command") {
+                if (payload.action != "command") {
                     delete payload.command;
                 }
-                //error on empty string
-                if (payload["emails"] == "") {
+                // clean up recipients
+                if (payload.action != "alert") {
                     delete payload.emails;
+                    delete payload.teams;
+                    delete payload.users;
                 }
 
+                if (this.newRule.emails.length) {
+                    var emails = this.newRule.emails.split(',');
+                    payload["emails"] = [];
+                    for (var i=0; i<emails.length; i++) {
+                        payload["emails"].push(emails[i].trim());
+                    }
+                }
+                //error on empty string
                 this.$.addRuleRequest.body = payload;
                 this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
                 this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -230,7 +246,28 @@
                         el.set('editMode', false);
                     }
                 });
-            }
+            },
+            ruleChanged: function(rule) {
+                var valid = true;
+                for (var p in this.newRule) {
+                    if (this.newRule[p] == undefined)
+                        valid = false;
+                }
+
+                if (this.newRule.action == '')
+                    valid = false;
+
+                if (this.newRule.action == 'alert'){
+                    if (!this.newRule.emails.length && !this.newRule.teams.length && !this.newRule.users.length)
+                        valid = false;
+                }
+
+                if (this.newRule.action == 'command')
+                    if (!this.newRule.command || !this.newRule.command.length)
+                        valid = false;
+
+                this.set('isValideRule', valid);
+            },
         });
     </script>
 </dom-module>
