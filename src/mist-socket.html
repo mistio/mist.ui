@@ -29,10 +29,6 @@
             }
         },
 
-        observers: [
-            "_updateIsOverusing(model.user, model.org, model.machinesArray)"
-        ],
-
         ready: function () {
             // Create the socket if it does not exist
             console.warn('ready');
@@ -82,7 +78,9 @@
             this.handlers = {
                 main: {
                     patch_model: function (data) {
-                        that._patchModel(data);
+                        requestIdleCallback(function(){
+                            that._patchModel(data);
+                        }, { timeout: 5000 });
                     },
                     list_clouds: function (data) {
                         that._updateClouds(data);
@@ -329,7 +327,7 @@
             });
             this.debounce('updateAllMachines', function() {
                 this._updateAllMachines()
-            }, 300);
+            }, 1000);
         },
 
         _updateModel: function (section, data, primaryField) {
@@ -886,21 +884,6 @@
 
         _updateTags: function (data) {
             console.warn('_updateTags not implemented. Got data', data);
-        },
-
-        _updateIsOverusing: function (user, org, machines) {
-            var isOverUsing = false;
-            // console.log('_updateIsOverusing', user, machines);
-            if (this.model.user && this.model.machinesArray) {
-                var isOverUsing = false;
-                // user has free plan and more than 5 machines
-                if ((!this.model.org.current_plan || !this.model.org.current_plan.title) && this.model.machinesArray.length > 5)
-                    isOverUsing = true;
-                // user has a paid plan and more than allowed machines
-                else if (this.model.org.current_plan && this.model.org.current_plan.title && this.model.machinesArray.length > this.model.org.current_plan.machine_limit)
-                    isOverUsing = true;
-            }
-            this.set('model.onboarding.isOverUsing', isOverUsing);
         },
 
         _loadNotifications: function(data) {
