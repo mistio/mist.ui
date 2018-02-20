@@ -15,6 +15,8 @@ COPY bower.json /ui/bower.json
 
 RUN bower install
 
+RUN cp bower.json /opt/bower.json
+
 COPY . /ui
 
 RUN node --max_old_space_size=4096 /usr/local/bin/polymer build && cp bower_components/echarts/dist/echarts.common.min.js build/bundled/bower_components/echarts/dist/
