@@ -105,11 +105,11 @@
 
             by email
 
-            <mist-dropdown-multi label="members" selections="[[users]]" value="{{rule.users}}"></mist-dropdown-multi>
+            <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{rule.teams}}"></mist-dropdown-multi>
 
-            <mist-dropdown-multi label="teams" selections="[[teams]]" value="{{rule.teams}}"></mist-dropdown-multi>        
+            <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{rule.users}}"></mist-dropdown-multi>
 
-            <paper-input id="emails" placeholder="other emails" value="{{rule.emails}}" auto-validate></paper-input>
+            <paper-input id="emails" label="other emails" value="{{rule.emails}}" auto-validate></paper-input>
 
         </template>
 
@@ -126,12 +126,23 @@
                 teams: Array,
                 users: Array
             },
+            observers: [
+                'actionChanged(rule.action)'
+            ],
             ready: function(){},
-            _showRecipients: function(action){
+            _showCommand: function(action){
                 return this.rule.action == 'command';
             },
             _showRecipients: function(action){
                 return this.rule.action == 'alert';
+            },
+            actionChanged: function(ruleaction) {
+                if (this.rule.action != 'alert') {
+                    this.initDropdowns();
+                }
+            },
+            initDropdowns: function() {
+                this.querySelectorAll('mist-dropdown-multi').forEach(function(el){el.clear()});
             }
         })
     </script>

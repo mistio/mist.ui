@@ -91,7 +91,7 @@
             .errormsg-container iron-icon {
                 color: inherit;
             }
-            .command {
+            .monospace {
                 max-width: 160px;
                 white-space: nowrap;
                 overflow: hidden;
@@ -103,6 +103,18 @@
                 padding: 2px 4px;
                 display: inline-block;
                 border-radius: 2px;
+            }
+            .command {
+                max-width: 160px;
+            }
+            .emails {
+                max-width: 260px;
+            }
+            .teams {
+                max-width: 260px;
+            }
+            .members {
+                max-width: 360px;
             }
             paper-input#emails {
                 max-width: 240px;
@@ -124,17 +136,21 @@
                 </span>
                 for [[computeAggregate(rule.aggregate)]] value 
                 <span hidden$="[[!rule.aggregate]]">
-                    within [[computeTime(rule.reminder_offset)]]min, 
+                    within [[computeTime(rule.reminder_offset)]]min,
                 </span>then <span class="strong">[[rule.action]]</span>
-                <span class="command" hidden$="[[!showCommandTextarea]]"><code>[[rule.command]]</code></span>
-                <span hidden$="[[!rule.emails.length]]">and email 
-                    <span class="command"><code>[[joinEmails(rule.emails)]]</code></span>
+                <span class="monospace command" hidden$="[[!showCommandTextarea]]"><code>[[rule.command]]</code></span>
+                <span hidden$="[[!rule.emails.length]]">
+                    <span class="monospace emails"><code>[[joinEmails(rule.emails)]]</code></span>
                 </span>
-                <span hidden$="[[!rule.teams.length]]">and teams
-                    <span class="command"><code>[[joinResources(rule.teams,'teams',model)]]</code></span>
+                <span hidden$="[[!rule.teams.length]]">
+                    <span hidden$="[[!rule.emails.length]]"> and </span>
+                    team<span hidden$="[[!_isPlural(rule.teams.length)]]">s</span>
+                    <span class="monospace teams"><code>[[joinResources(rule.teams,'teams',model)]]</code></span>
                 </span>
-                <span hidden$="[[!rule.users.length]]">and users
-                    <span class="command"><code>[[joinResources(rule.users,'members',model)]]</code></span> 
+                <span hidden$="[[!rule.users.length]]">
+                    <span hidden$="[[!rule.teams.length]]"> and </span>
+                    user<span hidden$="[[!_isPlural(rule.users.length)]]">s</span>
+                    <span class="monospace members"><code>[[joinResources(rule.users,'members',model)]]</code></span>
                 </span>
             	<paper-icon-button icon="icons:create" toggles active={{editMode}}>edit</paper-icon-button>
             </div>
@@ -142,7 +158,7 @@
             <iron-icon icon="close" data-attr="[[rule.id]]" on-tap="deleteRule"></iron-icon>
         </div>
         <div class="rule-edit" hidden$="{{!editMode}}">
-            <rule-edit  rule={{rule}} 
+            <rule-edit  rule={{newRule}}
                     builtin-metrics=[[builtinMetrics]]
                     custom-metrics=[[customMetrics]]
                     available-metrics=[[availableMetrics]]
@@ -152,13 +168,14 @@
                     form-error=[[formError]]
                     users="[[users]]"
                     teams="[[teams]]"
-                    hidden$="{{!editMode}}" update-existing-rule></rule-edit>
-            <div class="rule-actions layout horizontal">
-            	<p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-            	<paper-spinner active$="{{sendingData}}"></paper-spinner>
-            	<paper-button toggles active={{!editMode}}>cancel</paper-button>
-            	<paper-button on-tap="updateRule" class="blue" disabled$="{{!noChanges}}">update rule</paper-button>
-            </div>
+                    hidden$="{{!editMode}}" update-existing-rule>
+                        <div slot="rule-actions" class="rule-actions layout horizontal">
+                            <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                            <paper-spinner active$="{{sendingData}}"></paper-spinner>
+                            <paper-button toggles active={{!editMode}}>cancel</paper-button>
+                            <paper-button on-tap="updateRule" class="blue" disabled$="{{!noChanges}}">update rule</paper-button>
+                        </div>
+                    </rule-edit>
         </div>
         <iron-ajax id="deleteRuleRequest" contentType="application/json" handle-as="json" method="DELETE" on-request="_handleDeleteRequest" on-response="_handleDeleteResponse" on-error="_handleDeleteError" loading="{{sendingData}}"></iron-ajax>
 
@@ -322,16 +339,24 @@
                 	payload["id"] = this.rule.id;
 
                     delete payload._id;
+                    
                     // clean up command
-                    if(payload.action != "command" && payload.command) {
+                    if (payload.action != "command") {
                         delete payload.command;
                     }
-                    //parse string to array
-                    if (this.querySelector("#emails").value && this.querySelector("#emails").value != "") {
-                        payload["emails"] = this.querySelector("#emails").value;
+                    // clean up recipients
+                    if (payload.action != "alert") {
+                        delete payload.emails;
+                        delete payload.teams;
+                        delete payload.users;
                     }
-                    else {
-                        payload.emails = ' ';
+                    //parse string to array
+                    if (this.newRule.emails && this.newRule.emails != this.rule.emails) {
+                        var emails = this.newRule.emails.split(',');
+                        payload["emails"] = [];
+                        for (var i=0; i<emails.length; i++) {
+                            payload["emails"].push(emails[i].trim());
+                        }
                     }
                     //patch. backend misses the value if updates dont include it
                     payload["value"] = this.newRule.value;
@@ -433,6 +458,9 @@
             _isSelected: function (id,array) {
                 // console.log('_isSelected',id,array);
                 return array.indexOf(id) > -1;
+            },
+            _isPlural: function (int) {
+                return int > 1;
             }
         });
     </script>
