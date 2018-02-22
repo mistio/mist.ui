@@ -30,7 +30,7 @@
             combined-filter={{combinedFilter}}
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.networks)]]
+            renderers=[[_getRenderers(model.networks,model.clouds)]]
             route={{route}}
             user-filter=[[model.sections.networks.q]]
             primary-field-name="id">
@@ -96,7 +96,7 @@
           return ['provider', 'network_type', 'state', 'subnets'];
       },
 
-      _getRenderers: function(networks) {
+      _getRenderers: function(networks,clouds) {
           var _this = this;
           return {
               'name': {
@@ -109,7 +109,7 @@
                       return 'cloud';
                   },
                   'body': function(item, row) {
-                      return item;
+                      return _this.model && _this.model.clouds && _this.model.clouds[row.cloud_id] ? _this.model.clouds[row.cloud_id].title : item;
                   }
               },
               'network_type': {
