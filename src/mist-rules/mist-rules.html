@@ -38,7 +38,7 @@
             }
         </style>
         <paper-material elevation="0">
-            <template is="dom-repeat" items="{{items}}">
+            <template is="dom-repeat" items="[[rulesArray]]">
                 <rules-item builtin-metrics="[[builtinMetrics]]" custom-metrics="[[customMetrics]]" rule="[[item]]" incidents="[[incidents]]" resource="[[resource]]" model="[[model]]" teams="[[teams]]" users="[[users]]"></rules-item>
             </template>
             
@@ -93,7 +93,7 @@
                     type: Object,
                     notify: true
                 },
-                items: {
+                rulesArray: {
                     type: Array,
                     value: []
                 },
@@ -143,54 +143,34 @@
             },
             init: function() {
                 var new_rule = {
-                        actions:[{
-                            target: 'load', 
-                            operator: 'gt',
-                            threshold: 5,
-                            aggregation: 'any'
-                        }],
-                        conditions:[],
-                        queries:[{
+                    actions:[{
+                        type: 'machine_action',
+                        action: 'reboot'
+                    },{
+                        type: 'notification',
+                        emails: ['m@m.com']
+                    }],
+                    queries: [{
+                        target: 'memory.nonfree_percent',
+                        operator: 'gt',
+                        threshold: 5,
+                        aggregation: 'any',
+                    }],
+                    window: {
+                        start: 60,
+                        period: 'seconds',
+                    },
+                    frequency: {
+                        every: 60,
+                        period: 'seconds',
+                    },
+                    conditions: [
+                        {
                             type: 'machines',
-                            ids: [this.machine]
-                        }],
-                        frequency:{every: 60, period: "seconds"},
-                        window:{start: 60, stop: 0, period: "seconds"},
-                    }
-                new_rule = {                                                                  
-                    'queries': [{                                                           
-                        'target': 'memory.nonfree_percent',                                                   
-                        'operator': 'gt',                                 
-                        'threshold': 5,                                                 
-                        'aggregation': 'any',                      
-                    }],                                                                     
-                    'window': {                                                             
-                        'start': 60,                                      
-                        'period': 'seconds',                                                
-                    },                                                                      
-                    'frequency': {                                                          
-                        'every': 60,                                      
-                        'period': 'seconds',                                                
-                    },                                                                      
-                    'conditions': [                                                         
-                        {                                                                   
-                            'type': 'machines',                                             
-                            'ids': ["751b94e1a68f4af5bdddc63603b2aa41"],                                            
-                        },                                                                  
-                    ],                                                                      
+                            ids: ["751b94e1a68f4af5bdddc63603b2aa41"],
+                        },
+                    ],
                 }
-                // {
-                //     metric:"load.shortterm",
-                //     operator:"gt",
-                //     value:5,
-                //     aggregate: 'any',
-                //     action: '',
-                //     reminder_offset: '1',
-                //     command: '',
-                //     emails: '',
-                //     teams: [],
-                //     users: []
-                // }
                 this.set('newRule', new_rule);
             },
             _computeRules: function (rules, resource) {
@@ -206,7 +186,7 @@
                 thisMachineRules = rulesArray.filter(function(r){
                     return that._ruleAppliesOnResource(r,resource);
                 }).reverse();
-                this.set('items', thisMachineRules);
+                this.set('rulesArray', thisMachineRules);
             },
             _ruleAppliesOnResource: function (r,resource) {
                 var type = 'machines',
@@ -235,33 +215,7 @@
                 return metrics;
             },
             addRule: function(e){
-                var payload = {};
-                    payload = this.newRule;
-
-                payload.cloudId = this.resource.cloud.id;
-                payload.machineId = this.resource.machine_id;
-
-                if (payload["reminder_offset"])
-                    payload["reminder_offset"] = (payload["reminder_offset"]-1 )*60;
-                // clean up command
-                if (payload.action != "command") {
-                    delete payload.command;
-                }
-                // clean up recipients
-                if (payload.action != "alert") {
-                    delete payload.emails;
-                    delete payload.teams;
-                    delete payload.users;
-                }
-
-                if (this.newRule.emails.length) {
-                    var emails = this.newRule.emails.split(',');
-                    payload["emails"] = [];
-                    for (var i=0; i<emails.length; i++) {
-                        payload["emails"].push(emails[i].trim());
-                    }
-                }
-                //error on empty string
+                var payload = this.newRule;
                 this.$.addRuleRequest.body = payload;
                 this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
                 this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;

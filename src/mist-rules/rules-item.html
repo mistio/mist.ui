@@ -91,6 +91,9 @@
             .errormsg-container iron-icon {
                 color: inherit;
             }
+            .uppercase {
+                text-transform: uppercase;
+            }
             .monospace {
                 max-width: 160px;
                 white-space: nowrap;
@@ -131,30 +134,36 @@
                 <span class="rule-id">[[rule.title]]</span>
                 <iron-icon id="alert" icon="icons:warning" hidden$="{{!ruleCreatesIncident(rule,incidents)}}"></iron-icon>
                 <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                    <span hidden$="[[!index]]"> AND </span> 
                     If 
                     <span class="strong">
                     	[[computeName(query.target, builtinMetrics, customMetrics)]] [[computeOperator(query.operator)]] [[query.threshold]][[computeUnits(query.target, builtinMetrics, customMetrics)]] 
                     </span>
                     for [[computeAggregate(query.aggregation)]] value
                     <span hidden$="[[!query.aggregation]]">
-                        within [[computeTime(rule.window)]]min,
+                        within [[rule.window.start]] [[rule.window.period]],
                     </span>
                 </template>
-                then <span class="strong">[[rule.action]]</span>
-                <span class="monospace command" hidden$="[[!showCommandTextarea]]"><code>[[rule.command]]</code></span>
-                <span hidden$="[[!rule.emails.length]]">
-                    <span class="monospace emails"><code>[[joinEmails(rule.emails)]]</code></span>
-                </span>
-                <span hidden$="[[!rule.teams.length]]">
-                    <span hidden$="[[!rule.emails.length]]"> and </span>
-                    team<span hidden$="[[!_isPlural(rule.teams.length)]]">s</span>
-                    <span class="monospace teams"><code>[[joinResources(rule.teams,'teams',model)]]</code></span>
-                </span>
-                <span hidden$="[[!rule.users.length]]">
-                    <span hidden$="[[!rule.teams.length]]"> and </span>
-                    user<span hidden$="[[!_isPlural(rule.users.length)]]">s</span>
-                    <span class="monospace members"><code>[[joinResources(rule.users,'members',model)]]</code></span>
-                </span>
+                then
+                <template is="dom-repeat" items="[[rule.actions]]" as="action">
+                    <span hidden$="[[!index]]"> AND </span>
+                    <span class="strong">[[_phrase(action.type)]]</span>
+                    <span class="monospace command" hidden$="[[!_showCommandTextarea(action.type)]]"><code>[[action.command]]</code></span>
+                    <span class="uppercase">[[action.action]]</span>
+                    <span hidden$="[[!action.emails.length]]">
+                        <span class="monospace emails"><code>[[joinEmails(action.emails)]]</code></span>
+                    </span>
+                    <span hidden$="[[!action.teams.length]]">
+                        <span hidden$="[[!action.emails.length]]"> and </span>
+                        team<span hidden$="[[!_isPlural(action.teams.length)]]">s</span>
+                        <span class="monospace teams"><code>[[joinResources(action.teams,'teams',model)]]</code></span>
+                    </span>
+                    <span hidden$="[[!action.users.length]]">
+                        <span hidden$="[[!action.teams.length]]"> and </span>
+                        user<span hidden$="[[!_isPlural(action.users.length)]]">s</span>
+                        <span class="monospace members"><code>[[joinResources(action.users,'members',model)]]</code></span>
+                    </span>
+                </template>
             	<paper-icon-button icon="icons:create" toggles active={{editMode}}>edit</paper-icon-button>
             </div>
             <paper-spinner active$="{{sendingData}}"></paper-spinner>
@@ -237,10 +246,6 @@
                     type: Boolean,
                     value: false
                 },
-                showCommandTextarea: {
-                    type: Boolean,
-                    value: false
-                },
                 selectedUsers: {
                     type: Array,
                     observer: '_selectedUsersChanged'
@@ -257,8 +262,7 @@
             	'input':'ruleUpdates'            
             },
             observers: [
-            	'editModeChanged(editMode)',
-                '_computeShowCommandTextarea(newRule.action)',
+            	'editModeChanged(editMode)'
             ],
             ready: function() {
             },
@@ -292,10 +296,6 @@
                     ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
                 return ref && ref.name ? ref.name : '';
             },
-            computeTime: function(timeWindow){
-                var timeSpan = timeWindow.start - timeWindow.stop;
-                return timeSpan/60;
-            },
             computeOperator: function(op){
                 if (op == "gt")
                     return ">";
@@ -314,6 +314,10 @@
                     return !i.finished_at && i.rule_id == rule.id;
                 });
                 return !find ? false : true;
+            },
+            _phrase: function(action) {
+                var verb = action=='notification' ? 'send' : 'execute';
+                return verb +' '+ action.replace(/_/g,' ');
             },
             _computeMetrics: function(resource, builtinMetrics, customMetrics){
                 var metrics = [];
@@ -419,11 +423,8 @@
             		this.fire('edit-request', {rule: this.rule.id})
             	}
             },
-            _computeShowCommandTextarea: function(action){
-                if(action != "command" && this.newRule.command) {
-                    delete this.newRule.command;
-                }
-                this.set('showCommandTextarea',action == "command") ;
+            _showCommandTextarea: function(action){
+                return action == "command" ;
             },            
             joinEmails: function(emails){
                 if (emails)
