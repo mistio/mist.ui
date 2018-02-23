@@ -135,42 +135,86 @@
                 'add-rule': 'addRule'
             },
             observers: [
-                "_computeRules(rules.*, machine, cloud)",
+                "_computeRules(rules.*, resource)",
                 "ruleChanged(newRule.*)"
             ],
             ready: function() {
                 this.init();
             },
             init: function() {
-                this.set("emails","");
                 var new_rule = {
-                        metric:"load.shortterm",
-                        operator:"gt",
-                        value:5,
-                        aggregate: 'any',
-                        action: '',
-                        reminder_offset: '1',
-                        command: '',
-                        emails: '',
-                        teams: [],
-                        users: []
+                        actions:[{
+                            target: 'load', 
+                            operator: 'gt',
+                            threshold: 5,
+                            aggregation: 'any'
+                        }],
+                        conditions:[],
+                        queries:[{
+                            type: 'machines',
+                            ids: [this.machine]
+                        }],
+                        frequency:{every: 60, period: "seconds"},
+                        window:{start: 60, stop: 0, period: "seconds"},
                     }
+                new_rule = {                                                                  
+                    'queries': [{                                                           
+                        'target': 'memory.nonfree_percent',                                                   
+                        'operator': 'gt',                                 
+                        'threshold': 5,                                                 
+                        'aggregation': 'any',                      
+                    }],                                                                     
+                    'window': {                                                             
+                        'start': 60,                                      
+                        'period': 'seconds',                                                
+                    },                                                                      
+                    'frequency': {                                                          
+                        'every': 60,                                      
+                        'period': 'seconds',                                                
+                    },                                                                      
+                    'conditions': [                                                         
+                        {                                                                   
+                            'type': 'machines',                                             
+                            'ids': ["751b94e1a68f4af5bdddc63603b2aa41"],                                            
+                        },                                                                  
+                    ],                                                                      
+                }
+                // {
+                //     metric:"load.shortterm",
+                //     operator:"gt",
+                //     value:5,
+                //     aggregate: 'any',
+                //     action: '',
+                //     reminder_offset: '1',
+                //     command: '',
+                //     emails: '',
+                //     teams: [],
+                //     users: []
+                // }
                 this.set('newRule', new_rule);
             },
-            _computeRules: function (rules, machine, cloud) {
+            _computeRules: function (rules, resource) {
                 var rulesArray = [],
-                    thisMachineRules = [];
+                    thisMachineRules = [],
+                    resource = resource,
+                    that = this;
                 if (this.rules) {
                     for (var rule in this.rules) {
                         rulesArray.push(this.rules[rule]);
                     }
                 }
                 thisMachineRules = rulesArray.filter(function(r){
-                    console.log('r.machine',r.machine == machine, 'r.cloud', r.cloud == cloud);
-                    return (r.machine == machine && r.cloud == cloud);
+                    return that._ruleAppliesOnResource(r,resource);
                 }).reverse();
-
                 this.set('items', thisMachineRules);
+            },
+            _ruleAppliesOnResource: function (r,resource) {
+                var type = 'machines',
+                    that = this;
+                var m = r.conditions.find(function(c){
+                    return c.type == type && c.ids.indexOf(that.resource.id) > -1
+                });
+                return m ? true : false;
             },
             _computeMetrics: function(resource, builtinMetrics, customMetrics){
                 var metrics = [];

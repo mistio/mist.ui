@@ -128,16 +128,19 @@
 
 		<div class="rule-item layout horizontal"  hidden$="{{editMode}}">
             <div id="[[rule.id]]" class$="rule flex incident-[[ruleCreatesIncident(rule,incidents)]]">
-                <span class="rule-id">[[rule.id]]</span>
+                <span class="rule-id">[[rule.title]]</span>
                 <iron-icon id="alert" icon="icons:warning" hidden$="{{!ruleCreatesIncident(rule,incidents)}}"></iron-icon>
-                If 
-                <span class="strong">
-                	[[computeName(rule.metric, builtinMetrics, customMetrics)]] [[computeOperator(rule.operator)]] [[rule.value]][[computeUnits(rule.metric, builtinMetrics, customMetrics)]] 
-                </span>
-                for [[computeAggregate(rule.aggregate)]] value 
-                <span hidden$="[[!rule.aggregate]]">
-                    within [[computeTime(rule.reminder_offset)]]min,
-                </span>then <span class="strong">[[rule.action]]</span>
+                <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                    If 
+                    <span class="strong">
+                    	[[computeName(query.target, builtinMetrics, customMetrics)]] [[computeOperator(query.operator)]] [[query.threshold]][[computeUnits(query.target, builtinMetrics, customMetrics)]] 
+                    </span>
+                    for [[computeAggregate(query.aggregation)]] value
+                    <span hidden$="[[!query.aggregation]]">
+                        within [[computeTime(rule.window)]]min,
+                    </span>
+                </template>
+                then <span class="strong">[[rule.action]]</span>
                 <span class="monospace command" hidden$="[[!showCommandTextarea]]"><code>[[rule.command]]</code></span>
                 <span hidden$="[[!rule.emails.length]]">
                     <span class="monospace emails"><code>[[joinEmails(rule.emails)]]</code></span>
@@ -289,8 +292,9 @@
                     ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
                 return ref && ref.name ? ref.name : '';
             },
-            computeTime: function(time){
-                return time/60 + 1;
+            computeTime: function(timeWindow){
+                var timeSpan = timeWindow.start - timeWindow.stop;
+                return timeSpan/60;
             },
             computeOperator: function(op){
                 if (op == "gt")
