@@ -78,9 +78,11 @@
             this.handlers = {
                 main: {
                     patch_model: function (data) {
-                        requestIdleCallback(function(){
+                        requestIdleCallback(function () {
                             that._patchModel(data);
-                        }, { timeout: 5000 });
+                        }, {
+                            timeout: 5000
+                        });
                     },
                     list_clouds: function (data) {
                         that._updateClouds(data);
@@ -164,14 +166,20 @@
                         }
                     },
                     notifications: function (data) {
-                        that.debounce(that._loadNotifications(data), function () {
-                            console.debug('Loaded notifications list data');
-                        }, 250);
+                        that.debounce(
+                            'loadNotifications',
+                            function () {
+                                that._loadNotifications(data)
+                            },
+                            function () {
+                                console.debug('Loaded notifications list data');
+                            },
+                            250
+                        );
                     },
                     patch_notifications: function (data) {
-                        that.debounce(that._patchNotifications(data), function () {
-                            console.debug('Applied notifications patch');
-                        }, 250);
+                        that._patchNotifications(data);
+                        console.debug('Applied notifications patch');
                     }
                 },
                 shell: {
@@ -197,31 +205,35 @@
                             console.warn('No log-list found in DOM to consume log event');
                             return
                         }
-                        logLists.forEach(function(l){
+                        logLists.forEach(function (l) {
                             l.fire('receive-log', data);
                         });
                     },
-                    open_incidents: function (data) {
+                    incidents: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got incidents', data);
                         that.debounce(that._updateIncidents(data), function () {
                             console.debug('Loaded incidents data');
                         }, 250);
                     },
-                    open_jobs: function (data) {
+                    jobs: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got jobs', data);
-                        that.set('model.jobs', data);
+                        that.set('model.jobs', _generateMap(data, 'story_id'));
                     },
-                    open_sessions: function (data) {
+                    sessions: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got sessions', data);
-                        that.set('model.sessions', data);
+                        that.set('model.sessions', _generateMap(data, 'story_id'));
                     },
-                    open_shells: function (data) {
+                    shells: function (data) {
                         if (DEBUG_SOCKET)
                             console.debug('got shells', data);
-                        that.set('model.shells', data);
+                        that.set('model.shells', _generateMap(data, 'story_id'));
+                    },
+                    patch_stories: function (data) {
+                        that._patchStories(data);
+                        console.warn('Applied stories patch');
                     }
                 }
             };
@@ -288,10 +300,10 @@
             document.location.reload();
         },
 
-        _patchModel: function(patch) {
+        _patchModel: function (patch) {
             console.debug('patch_model', patch);
             var _this = this;
-            patch.forEach(function(operation){
+            patch.forEach(function (operation) {
                 // apply patch to the model
                 jsonpatch.applyOperation(_this.model, operation, true);
 
@@ -305,11 +317,11 @@
                     path = operation.path.split('/machines/')[1].split('/');
                     machine_id = path[0];
                 }
-                if (machine_id && path.length == 1){
+                if (machine_id && path.length == 1) {
                     if (operation.op == 'remove') {
                         console.log('remove', operation.path);
                         var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
-                            function(item) {
+                            function (item) {
                                 return item.machine_id == machine_id
                             }
                         );
@@ -317,17 +329,18 @@
                     }
                     if (operation.op == 'add') {
                         console.log('add', operation.path);
-                        _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id].machines[machine_id])
+                        _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id]
+                            .machines[machine_id])
                     }
                     // not sure if this is necessary
                     if (operation.op == 'replace') {
-                        _this.set('model' + operation.path.replace(/\//g , "."), operation.value);
+                        _this.set('model' + operation.path.replace(/\//g, "."), operation.value);
                     }
                 }
             });
-            this.debounce('updateAllMachines', function() {
+            this.debounce('updateAllMachines', function () {
                 var _this = this;
-                requestIdleCallback(function() {
+                requestIdleCallback(function () {
                     _this._updateAllMachines();
                 });
             }, 500);
@@ -402,8 +415,10 @@
                 this.set('model.' + section + 'Array', data);
 
                 // update section count, necessary for propagating changes to sidebar & dashboard counters
-                var i = this.model.sectionsArray.findIndex(function(i){return i.id == section});
-                if (i != -1){
+                var i = this.model.sectionsArray.findIndex(function (i) {
+                    return i.id == section
+                });
+                if (i != -1) {
                     this.set('model.sectionsArray.' + i + '.count', data.length || 0);
                     this.set('model.sections.' + section + '.count', data.length || 0);
                 }
@@ -516,27 +531,32 @@
                                 sudo = m[4],
                                 port = m[5];
                             if (this.model.clouds && this.model.clouds[cloud] &&
-                                this.model.clouds[cloud].machines && 
+                                this.model.clouds[cloud].machines &&
                                 this.model.clouds[cloud].machines[machine]) {
                                 // check if machine has this key, if not add
-                                var keyIndex = this.model.clouds[cloud].machines[machine].key_associations.findIndex(
-                                    function (k) {
-                                        return k.keypair == key.id && k.ssh_user == user && k.port == port;
-                                    });
+                                var keyIndex = this.model.clouds[cloud].machines[machine].key_associations
+                                    .findIndex(
+                                        function (k) {
+                                            return k.keypair == key.id && k.ssh_user == user && k.port ==
+                                                port;
+                                        });
                                 if (keyIndex > -1) {
-                                    this.set('model.clouds.' + cloud + '.machines.' + machine + '.key_associations.' + keyIndex,
-                                             {'keypair': key.id,
-                                              'last_used': last_used,
-                                              'port': port,
-                                              'ssh_user': user});
-                                    } else {
+                                    this.set('model.clouds.' + cloud + '.machines.' + machine +
+                                        '.key_associations.' + keyIndex, {
+                                            'keypair': key.id,
+                                            'last_used': last_used,
+                                            'port': port,
+                                            'ssh_user': user
+                                        });
+                                } else {
                                     var mid = this.model.clouds[cloud].machines[machine].id;
                                     this.push(
-                                        'model.machines.' + mid + '.key_associations',
-                                        {'keypair': key.id,
-                                         'last_used': last_used,
-                                         'port': port,
-                                         'ssh_user': user}
+                                        'model.machines.' + mid + '.key_associations', {
+                                            'keypair': key.id,
+                                            'last_used': last_used,
+                                            'port': port,
+                                            'ssh_user': user
+                                        }
                                     )
                                 }
                             }
@@ -544,17 +564,20 @@
                     }
 
                     // remove disassociated keys from machines
-                    this.model.machinesArray.forEach(function(m, index){
+                    this.model.machinesArray.forEach(function (m, index) {
                         var associationIndexMachine, associationIndexKey;
-                        associationIndexMachine = m.key_associations.findIndex(function(k){
+                        associationIndexMachine = m.key_associations.findIndex(function (k) {
                             return k.keypair == key.id;
                         });
                         if (associationIndexMachine > -1) {
-                            associationIndexKey = key.machines.findIndex(function(ka){
-                                return ka[0] == m.cloud.id && ka[1] == m.machine_id && ka[3] == m.key_associations[associationIndexMachine].ssh_user && ka[5] == m.key_associations[associationIndexMachine].port;
+                            associationIndexKey = key.machines.findIndex(function (ka) {
+                                return ka[0] == m.cloud.id && ka[1] == m.machine_id && ka[3] ==
+                                    m.key_associations[associationIndexMachine].ssh_user &&
+                                    ka[5] == m.key_associations[associationIndexMachine].port;
                             });
                             if (associationIndexKey == -1) {
-                                _this.model.machines[m.id].key_associations.splice(associationIndexMachine, 1);
+                                _this.model.machines[m.id].key_associations.splice(
+                                    associationIndexMachine, 1);
                             }
                         }
                     });
@@ -624,24 +647,27 @@
             this.set('model.imagesArray', allImages);
             this.set('model.images', _generateMap(allImages));
             // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function(i){return i.id == 'images'});
-            if (i != -1){
+            var i = this.model.sectionsArray.findIndex(function (i) {
+                return i.id == 'images'
+            });
+            if (i != -1) {
                 this.set('model.sectionsArray.' + i + '.count', allImages.length);
                 this.set('model.sections.images.count', allImages.length);
             }
         },
 
         _updateMachines: function (data) {
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines, 'machine_id');
+            var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines,
+                'machine_id');
             // console.log('machines',data.machines);
             if (!changed)
                 return false;
-            this.debounce('updateAllMachines', function() {
+            this.debounce('updateAllMachines', function () {
                 this._updateAllMachines();
             }, 300);
         },
 
-        _updateAllMachines: function() {
+        _updateAllMachines: function () {
             var allMachines = [];
             if (this.model != undefined && this.model.cloudsArray.length > 0) {
                 this.model.cloudsArray.forEach(
@@ -654,7 +680,8 @@
                                     'provider': cloud.provider
                                 };
                                 // machine.keys = this._machineKeys(machine.machine_id, machine.cloud.id) || [];
-                                machine.rules = this._machineRules(machine.machine_id, machine.cloud.id);
+                                machine.rules = this._machineRules(machine.machine_id, machine.cloud
+                                    .id);
                             }, this);
 
                             return allMachines = allMachines.concat(cloud.machinesArray != undefined ?
@@ -670,8 +697,10 @@
             this.set('model.machinesArray', allMachines);
             this.set('model.machines', _generateMap(allMachines));
             // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function(i){return i.id == 'machines'});
-            if (i != -1){
+            var i = this.model.sectionsArray.findIndex(function (i) {
+                return i.id == 'machines'
+            });
+            if (i != -1) {
                 this.set('model.sectionsArray.' + i + '.count', allMachines.length);
                 this.set('model.sections.machines.count', allMachines.length);
             }
@@ -733,8 +762,10 @@
             this.set('model.networksArray', allNetworks);
             this.set('model.networks', _generateMap(allNetworks));
             // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function(i){return i.id == 'networks'});
-            if (i != -1){
+            var i = this.model.sectionsArray.findIndex(function (i) {
+                return i.id == 'networks'
+            });
+            if (i != -1) {
                 this.set('model.sectionsArray.' + i + '.count', allNetworks.length);
                 this.set('model.sections.networks.count', allNetworks.length);
             }
@@ -750,50 +781,49 @@
                     if (zone.id) {
                         zone['cloud_id'] = data.cloud_id;
                         zone['zone_type'] = zone['type'];
-                        zone.records.forEach(function(record) {
-                                record['record_type'] = record['type'];
-                                record['zone_id'] = zone['id'];
-                                record['cloud_id'] = zone['cloud_id'];
-                                delete record['type'];
-                            }
-                        )
+                        zone.records.forEach(function (record) {
+                            record['record_type'] = record['type'];
+                            record['zone_id'] = zone['id'];
+                            record['cloud_id'] = zone['cloud_id'];
+                            delete record['type'];
+                        })
                         delete zone['type'];
-                        if (this.model.clouds[data.cloud_id].provider == 'gce'){
+                        if (this.model.clouds[data.cloud_id].provider == 'gce') {
                             zone['provider'] = 'Google';
-                        } else if (this.model.clouds[data.cloud_id].provider == 'ec2'){
+                        } else if (this.model.clouds[data.cloud_id].provider == 'ec2') {
                             zone['provider'] = 'Route53';
-                            zone.records.forEach(function(record) {
+                            zone.records.forEach(function (record) {
                                 if (record['name'].length == 0) {
                                     record['name'] = zone.domain;
                                 } else {
                                     record['name'] += '.' + zone.domain;
                                 }
                             })
-                        } else if (this.model.clouds[data.cloud_id].provider == 'digitalocean'){
+                        } else if (this.model.clouds[data.cloud_id].provider == 'digitalocean') {
                             zone['provider'] = 'Digital Ocean';
-                            zone.records.forEach(function(record) {
+                            zone.records.forEach(function (record) {
                                 if (record['name'] != '@') {
                                     record['name'] += '.' + zone.domain;
                                 }
                             })
 
-                        } else if (this.model.clouds[data.cloud_id].provider == 'linode'){
+                        } else if (this.model.clouds[data.cloud_id].provider == 'linode') {
                             zone['provider'] = 'Linode';
-                            zone.records.forEach(function(record) {
+                            zone.records.forEach(function (record) {
                                 record['name'] += '.' + zone.domain;
                             })
 
-                        } else if (this.model.clouds[data.cloud_id].provider == 'softlayer'){
+                        } else if (this.model.clouds[data.cloud_id].provider == 'softlayer') {
                             zone['provider'] = 'SoftLayer';
-                            zone.records.forEach(function(record) {
+                            zone.records.forEach(function (record) {
                                 if (record['name'] != '@') {
                                     record['name'] += '.' + zone.domain;
                                 }
                             })
 
-                        }  else if (this.model.clouds[data.cloud_id].provider == 'rackspace'){
+                        } else if (this.model.clouds[data.cloud_id].provider == 'rackspace') {
                             zone['provider'] = 'Rackspace';
-                            zone.records.forEach(function(record) {
+                            zone.records.forEach(function (record) {
                                 if (record['name'].length == 0) {
                                     record['name'] = zone.domain;
                                 } else {
@@ -801,9 +831,9 @@
                                 }
                             })
 
-                        } else if (this.model.clouds[data.cloud_id].provider == 'vultr'){
+                        } else if (this.model.clouds[data.cloud_id].provider == 'vultr') {
                             zone['provider'] = 'Vultr';
-                            zone.records.forEach(function(record) {
+                            zone.records.forEach(function (record) {
                                 if (record['name'].length == 0) {
                                     record['name'] = zone.domain;
                                 } else {
@@ -834,11 +864,11 @@
             if (this.model != undefined) {
                 this.model.cloudsArray.forEach(function (cloud) {
                     if (cloud.zonesArray != undefined && cloud.enabled) {
-                        cloud.zonesArray.forEach(function(zone) {
+                        cloud.zonesArray.forEach(function (zone) {
                             allZones.push(zone);
-                            zone.records.forEach(function(record){
+                            zone.records.forEach(function (record) {
                                 allRecords.push(record);
-                            }) 
+                            })
                         })
                     }
                 });
@@ -847,8 +877,10 @@
             this.set('model.zones', _generateMap(allZones));
             this.set('model.records', _generateMap(allRecords));
             // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function(i){return i.id == 'zones'});
-            if (i != -1){
+            var i = this.model.sectionsArray.findIndex(function (i) {
+                return i.id == 'zones'
+            });
+            if (i != -1) {
                 this.set('model.sectionsArray.' + i + '.count', allZones.length);
                 this.set('model.sections.zones.count', allZones.length);
             }
@@ -861,13 +893,7 @@
 
         _updateIncidents: function (data) {
             this.set('model.onboarding.isLoadingIncidents', false);
-            if (data) {
-                for (var i = 0; i < data.length; i++) {
-                    var inc = data[i];
-                    inc.id = inc.incident_id
-                }
-            }
-            return this._updateModel('incidents', data);
+            return this.set('model.incidents', _generateMap(data, 'incident_id'));
         },
 
         _updateProjects: function (data) {
@@ -886,55 +912,76 @@
         },
 
         _updateTags: function (data) {
-            console.warn('_updateTags not implemented. Got data', data);
+            if (Object.keys(data).length)
+                console.warn('_updateTags not implemented. Got data', data);
         },
 
-        _loadNotifications: function(data) {
-            json_data = JSON.parse(data);
+        _loadNotifications: function (data) {
             // Reverse the array here to display more recent first
-            this.set('model.notificationsArray', json_data.reverse());
+            this.set('model.notificationsArray', data.reverse());
         },
 
-        _patchNotifications: function(data) {
-            var obj = JSON.parse(data);
+        _patchNotifications: function (data) {
             var _this = this;
 
             // TODO: Do not replace the entire array. Also take care
             // of reversing the array in a more elegant way.
             var newArray = _this.model.notificationsArray.slice().reverse();
-            obj.patch.forEach(function(operation) {
-
+            data.patch.forEach(function (operation) {
                 // apply patch to model
                 jsonpatch.applyOperation(newArray, operation, true);
 
                 // display toast and desktop notification if adding
-                if (operation.op == "add") {
-                    //if (operation.value._cls == "Notification.InAppNotification") {
-                        _this.fire('toast', {msg:operation.value.summary, duration:3000} );
-                        var url;
-                        if (operation.value.resource) {
-                            url = '/' + operation.value.resource._ref.$ref + '/' + operation.value.resource._ref.$id;
-                        }
-                        _this.fire('desktop-notification', {
-                            "title":operation.value.summary,
-                            "body":operation.value.body,
-                            "url":url} );
-                    //}
+                if (operation.op == "add" && operation.value.summary) {
+                    _this.fire('toast', {
+                        msg: operation.value.summary,
+                        duration: 3000
+                    });
+                    var url;
+                    if (operation.value.resource) {
+                        url = '/' + operation.value.resource._ref.$ref + '/' + operation.value.resource
+                            ._ref.$id;
+                    }
+                    _this.fire('desktop-notification', {
+                        "title": operation.value.summary,
+                        "body": operation.value.body,
+                        "url": url
+                    });
                 }
             });
             _this.set('model.notificationsArray', newArray.reverse());
         },
 
+        _patchStories: function (data) {
+            var _this = this;
+
+            // TODO: Do not replace the entire array. Also take care
+            // of reversing the array in a more elegant way.
+            var target = {
+                incidents: this.model.incidents,
+                sessions: this.model.sessions,
+                jobs: this.model.jobs,
+                shells: this.model.shells
+            };
+            data.forEach(function (operation) {
+                // apply patches to model
+                jsonpatch.applyOperation(target, operation, true);
+            });
+            this.set('model.incidentsArray', Object.values(target.incidents));
+        },
+
+
         _probe: function (data) {
             if (!this.model.probes)
                 this.set('model.probes', {})
-            console.log('probe',data);
+            console.log('probe', data);
             try {
                 var cloud = this.model.clouds[data.cloud_id],
                     machine = cloud.machines[data.machine_id];
                 this.set('model.probes.' + machine.id, data.result);
             } catch (e) {
-                console.log('cannot find id for machine with cloud_id ', data.cloud_id, ' and machine_id', data.machine_id);
+                console.log('cannot find id for machine with cloud_id ', data.cloud_id, ' and machine_id',
+                    data.machine_id);
             }
         },
 
@@ -1024,7 +1071,7 @@
         }
     });
 
-    function _generateMap (list, field) {
+    function _generateMap(list, field) {
         var out = {};
         if (field == undefined)
             field = 'id';
