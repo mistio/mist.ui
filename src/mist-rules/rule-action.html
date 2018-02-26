@@ -88,28 +88,35 @@
     <span class="rule-action">        
         
         <paper-dropdown-menu class="dropdown-block metricAction">
-            <paper-menu id="metricAction" attr-for-selected="value" selected="{{rule.action}}" class="dropdown-content">
+            <paper-menu id="metricAction" attr-for-selected="value" selected="{{action.type}}" class="dropdown-content">
                 <paper-item value="notification"> notification </paper-item>
-                <paper-item value="reboot"> reboot </paper-item>
-                <paper-item value="destroy"> destroy </paper-item>
+                <paper-item value="machine_action"> machine action </paper-item>
                 <paper-item value="command"> command </paper-item>
-                <paper-item value="launch" disabled> launch </paper-item>
             </paper-menu>
         </paper-dropdown-menu>
         
-        <template is="dom-if" if="[[_showCommand(rule.action)]]">
-            <paper-textarea id="command" placeholder="command input" value="{{rule.command}}"></paper-textarea>
+        <template is="dom-if" if="[[_showMachineActions(action.type)]]">
+            <paper-dropdown-menu class="dropdown-block">
+                <paper-menu id="machineAction" attr-for-selected="value" selected="{{action.action}}" class="dropdown-content">
+                    <paper-item value="reboot"> reboot </paper-item>
+                    <paper-item value="destroy"> destroy </paper-item>
+                </paper-menu>
+            </paper-dropdown-menu>
         </template>
 
-        <template is="dom-if" if="[[_showRecipients(rule.action)]]">
+        <template is="dom-if" if="[[_showCommand(action.type)]]">
+            <paper-textarea id="command" placeholder="command input" value="{{action.command}}"></paper-textarea>
+        </template>
+
+        <template is="dom-if" if="[[_showRecipients(action.type)]]">
 
             by email
 
-            <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{rule.teams}}"></mist-dropdown-multi>
+            <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{action.teams}}"></mist-dropdown-multi>
 
-            <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{rule.users}}"></mist-dropdown-multi>
+            <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{action.users}}"></mist-dropdown-multi>
 
-            <paper-input id="emails" label="other emails" value="{{rule.emails}}" auto-validate></paper-input>
+            <paper-input id="emails" label="other emails" value="{{action.emails}}" auto-validate></paper-input>
 
         </template>
 
@@ -122,22 +129,25 @@
             is: 'rule-action',
 
             properties: {
-                rule: Object,
+                action: Object,
                 teams: Array,
                 users: Array
             },
             observers: [
-                'actionChanged(rule.action)'
+                'actionChanged(action)'
             ],
             ready: function(){},
+            _showMachineActions: function(action) {
+                return this.action.type == 'machine_action';
+            },
             _showCommand: function(action){
-                return this.rule.action == 'command';
+                return this.action.type == 'command';
             },
             _showRecipients: function(action){
-                return this.rule.action == 'notification';
+                return this.action.type == 'notification';
             },
             actionChanged: function(ruleaction) {
-                if (this.rule.action != 'notification') {
+                if (this.action.type != 'notification') {
                     this.initDropdowns();
                 }
             },
