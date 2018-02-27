@@ -214,29 +214,16 @@
                 </div>
             </div>
             <div id="error" class="error" hidden$="[[!hasError]]"></div>
-            <!--<div class="bottom-actions clearfix xs12">
-                <paper-button class="pull-right"  
-                    raised on-tap="_submitForm" 
-                    hidden$="[[!hasOverrides]]">Save Notification Preferences</paper-button>
-            </div>-->
         </paper-card>
 
         <iron-ajax auto id="getNotificationOverridesRequest" 
             method="GET" 
             url="/api/v1/notification-overrides"
-            on-response="_handleGetOverridesResponse" 
+            last-response="{{notificationOverrides}}"
             on-error="_handleGetOverridesError" 
             handle-as="json"></iron-ajax>
 
-       <iron-ajax id="setNotificationOverridesRequest"
-            url="/api/v1/notification-overrides"
-            method="PUT"
-            on-response="_handleSetOverridesResponse"
-            on-error="_handleSetOverridesError"
-            handle-as="json"></iron-ajax>
-
         <iron-ajax id="deleteNotificationOverrideRequest"
-            url="/api/v1/notification-overrides"
             method="DELETE"
             on-response="_handleDeleteOverrideResponse"
             on-error="_handleDeleteOverrideError"
@@ -329,45 +316,26 @@
                 this.$.getNotificationOverridesRequest.generateRequest();
             },
 
-            _handleGetOverridesResponse: function(e) {
-                this.set('notificationOverrides', JSON.parse(e.detail.response));
-            },
-
             _handleGetOverridesError: function() {
                 this.set('overridesError', true);
             },
 
             _deleteOverrideTapped: function(e) {
-                var index = e.target.index;
-                var payload = {
-                    action: 'delete_notification_override',
-                    override_id: this.notificationOverrides[index]._id
-                };
+                var override_id = this.notificationOverrides[e.target.index]._id.$oid;
                 this.$.deleteNotificationOverrideRequest.headers["Content-Type"] = 'application/json';
                 this.$.deleteNotificationOverrideRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.deleteNotificationOverrideRequest.body = payload;
+                this.$.deleteNotificationOverrideRequest.url = '/api/v1/notification-overrides/' + override_id;
                 this.$.deleteNotificationOverrideRequest.generateRequest();
             },
 
             _handleDeleteOverrideResponse: function(e) {
-                this.set('notificationOverrides', JSON.parse(e.detail.response));
+                this.$.getNotificationOverridesRequest.generateRequest();
                 this.fire('toast',{msg:"Notification override deleted succesfully!",duration:3000});
             },
 
             _handleDeleteOverrideError: function() {
                 this.set('overridesError', true);
                 this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
-            },
-
-            _submitForm: function(e) {
-                var payload = {
-                    action: 'update_notification_overrides',
-                    overrides: this.notificationOverrides
-                };
-                this.$.setNotificationOverridesRequest.headers["Content-Type"] = 'application/json';
-                this.$.setNotificationOverridesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.setNotificationOverridesRequest.body = payload;
-                this.$.setNotificationOverridesRequest.generateRequest();
             },
 
             _handleSetOverridesResponse: function(e) {

@@ -346,7 +346,14 @@
                             f.options = []
 
                         if (f.name.endsWith("location")) {
-                            f.options = this.model.clouds[cloudId].locationsArray.slice() || [];
+                            var locations = this.model.clouds[cloudId].locationsArray.slice();
+                            if (locations.length == 1 && locations[0].name == '') {
+                                // If there's a single location preselct it and hide the field
+                                f.value = locations[0].id;
+                                f.show = false;
+                                locations = [];
+                            }
+                            f.options = locations;
                         }
                         if (f.name.endsWith("image")) {
                             f.options = this.model.clouds[cloudId].imagesArray ? this.model
@@ -928,7 +935,6 @@
             },
             _updateKvmDiskPath: function (machinename) {
                 var pathInd = this._fieldIndexByName('libvirt_disk_path');
-
                 //fill in disk path using images_location and machine name
                 if (machinename.trim().length)
                     this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]

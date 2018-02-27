@@ -422,11 +422,6 @@
             this.async(function() {
                 that.cloudLayoutMatrix(that.model.clouds, that.sidebarIsOpen);
             }, 50);
-
-            // reset page title since this is the default page
-            this.fire('page-meta', {
-                title: null
-            });
         },
         isOnline: function(cloud) {
             return cloud.state == 'online' && 'online';
@@ -436,13 +431,10 @@
         },
         _computeHasIncidents: function(incidents) {
             // incidents must be unresolved to count
-            if (incidents.base) {
-                return incidents.base.filter(function(inc) {
-                    return !inc.finished_at || inc.finished_at == 0;
-                }).length > 0 ? true : false;
-            } else {
-                return false;
-            }
+            return this.model.incidents && Object.values(
+                this.model.incidents).filter(function (incident) {
+                    return !incident.finished_at;
+                }, this).length ? true : false;
         },
         _computeshowDashboard: function(cloudslength, isLoadingClouds) {
             var show;
