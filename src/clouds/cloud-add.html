@@ -243,24 +243,23 @@
             },
             _keysChanged: function (keys, providerFields) {
                 // Set list of keys in providerFields when model keys change
-
-                var index = this.providerFields.findIndex(function (field) {
+                var indexSshKey = this.providerFields.findIndex(function (field) {
                     return field.type == "ssh_key";
                 }, this);
 
-                this.set('providerFields.' + index + '.options', this.keys);
-                this.set('providerFields.' + index + '.value', '');
+                if (indexSshKey)
+                    this.set('providerFields.' + indexSshKey + '.options', this.keys);
 
                 // Check for nested subforms and update ssh_key fields
-                this.providerFields.forEach(function (field) {
+                this.providerFields.forEach(function (field, index) {
                     if (field.type == 'list') {
-                        field.options.forEach(function (subfield) {
+                        field.options.forEach(function (subfield, subindex) {
                             if (subfield.type == "ssh_key") {
-                                subfield.options = this.keys;
+                                this.set('providerFields.'+index+'.options.'+subindex+'.options',this.keys);
                             }
-                        }, this);
+                        }.bind(this));
                     }
-                }, this);
+                }.bind(this));
             },
             _unsetProvider: function () {
                 this.set('selectedProvider', false);
@@ -289,15 +288,16 @@
             },
             _updateCloudTitle: function (e) {
                 var form = this.querySelector('app-form');
-                if (e.target.id == 'region') {
+                console.log('_updateCloudTitle',e);
+                if (e.target.id.startsWith('app-form-') && e.target.id.endsWith('-region')) {
                     var region = e.detail.item.textContent.trim();
                     var index;
                     var title = '';
                     var titleField = this.providerFields.find(function (f, ind) {
                         index = ind;
-                        title = f.defaultValue;
                         return f.name == "title";
                     });
+                    title = titleField.defaultValue;
                     this.set('providerFields.' + index + '.value', title + ' ' + region);
                 }
 
@@ -348,7 +348,6 @@
             },
             updateKeys: function (e) {
                 var keyFieldsIndexes = this.fieldsOfType(this.providerFields, 'ssh_key');
-                console.log('updateKeys', keyFieldsIndexes);
                 this.async(function () {
                     for (var i = 0; i < keyFieldsIndexes.length; i++) {
                         this.set('providerFields.' + keyFieldsIndexes[i] + '.options', this
@@ -360,13 +359,12 @@
                         this.updateKeysInLists(e, this.fieldsOfType(this.providerFields,
                             'list'));
                     }
-                }.bind(this), 1000);
+                }.bind(this), 500);
             },
             updateKeysInLists: function (e, lists) {
                 for (var j = 0; j < lists.length; j++) {
                     var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[i]].options,
                         'ssh_key');
-                    console.log('updateKeys', this.providerFields[lists[i]].options);
 
                     this.async(function () {
                         for (var i = 0; i < keyFieldsIndexes.length; i++) {
@@ -375,7 +373,7 @@
                             this.set('providerFields.' + lists[i] + '.options.' +
                                 keyFieldsIndexes[i] + '.value', e.detail.key);
                         }
-                    }.bind(this), 500);
+                    }.bind(this), 10);
                 }
             }
         });

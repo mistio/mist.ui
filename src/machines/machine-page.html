@@ -564,7 +564,7 @@
                                     [[machineSize]]
                                 </div>
                             </div>
-                            <div class="row" hidden$="[[!machine.location]]">
+                            <div class="row" hidden$="[[!_getLocationName(machine,cloud)]]">
                                 <div class="cell">
                                     <h4>Location:</h4>
                                 </div>
@@ -676,11 +676,29 @@
             </paper-material>
             <template is="dom-if" if=[[monitoring]]>
                 <paper-material id="monitoringBlock" class="info-card">
-                    <mist-monitoring id="mistMonitoring" resource="[[machine]]" state="[[machineState]]" monitoring="[[model.monitoring]]" section="[[section]]"
-                        datasources="[[datasources]]" hidden$="[[hidden]]" machine-keys="[[machineKeys]]" incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"></mist-monitoring>
-                    <mist-rules id="monitoringRules" machine="[[machine.machine_id]]" cloud="[[machine.cloud.id]]" builtin-metrics="[[model.monitoring.builtin_metrics]]"
-                        custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[model.monitoring.rules]]"
-                        resource="[[machine]]" user-email="[[model.user.email]]" hidden$="[[!isActivated]]"></mist-rules>
+                    <mist-monitoring
+                        id="mistMonitoring"
+                        resource="[[machine]]"
+                        state="[[machineState]]"
+                        monitoring="[[model.monitoring]]"
+                        section="[[section]]"
+                        datasources="[[datasources]]"
+                        hidden$="[[hidden]]"
+                        machine-keys="[[machineKeys]]"
+                        incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"></mist-monitoring>
+                    <mist-rules
+                        id="monitoringRules"
+                        machine="[[machine.machine_id]]"
+                        cloud="[[machine.cloud.id]]"
+                        builtin-metrics="[[model.monitoring.builtin_metrics]]"
+                        custom-metrics="[[model.monitoring.custom_metrics]]"
+                        incidents="[[model.incidentsArray]]"
+                        model="[[model]]"
+                        rules="[[model.monitoring.rules]]"
+                        teams="[[model.teamsArray]]"
+                        users="[[model.membersArray]]"
+                        resource="[[machine]]"
+                        hidden$="[[!isActivated]]"></mist-rules>
                 </paper-material>
             </template>
             <paper-material class="info-card">
@@ -1027,7 +1045,7 @@
             return actions;
         },
         _machineChanged: function (machine) {
-            console.log('perform action machine changed', machine);
+            // console.log('perform action machine changed', machine);
             if (this.machine)
                 this.set('itemArray', [this.machine]);
         },
@@ -1316,7 +1334,7 @@
         },
         _getLocationName: function (machine, cloud) {
             return this.model.clouds[machine.cloud.id].locations && this.model.clouds[machine.cloud.id].locations[
-                    machine.location] && this.model.clouds[machine.cloud.id].locations[machine.location].name ?
+                    machine.location] && this.model.clouds[machine.cloud.id].locations[machine.location].name != undefined ?
                 this.model.clouds[machine.cloud.id].locations[machine.location].name : machine.location;
         },
         _probeMachine: function (e) {

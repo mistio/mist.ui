@@ -255,14 +255,14 @@
                         name: null,
                         unit: null,
                         type: "gauge",
-                        script: "import random \n \ndef read(): \n    # return random value \n    return random.random() \n",
+                        script: "#!/usr/bin/env python\nimport random \n \ndef read(): \n    # return random value \n    return random.random() \n",
                         pluginId: null
                     }
                 }
             }
         },
         observers: [
-            '_computeplugidId(metric.name)',
+            '_computepluginId(metric.name)',
             '_metricScriptChanged(metricScript)'
         ],
         listeners: {
@@ -289,7 +289,7 @@
             var errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
             this.$.errormsg.textContent = errorMessage;
         },
-        _computeplugidId: function(name) {
+        _computepluginId: function(name) {
             if (!this.metric.name) return;
             var newPluginId = this.metric.name
                 .toLowerCase() // Remove upper case letters
@@ -299,6 +299,13 @@
                 .replace(/_$/, ''); // trim trailing underscore
             this.set('metric.pluginId', newPluginId);
             this.set('metric.name', name);
+            if (this.metric.script) {
+                this.debounce('_updateMetricScript', function() {
+                    var lines = this.metricScript.trim().split('\n');
+                    lines[lines.length-1] = 'print "' + this.metric.name + ' value=%s" % read()';
+                    this.set('metricScript', lines.join('\n'));
+                }, 500);
+            }
         },
         _computeMetricsUri: function(machineId) {
             return "/api/v1/machines/" + machineId + "/metrics";

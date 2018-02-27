@@ -9,109 +9,114 @@
     <template>
         <style is="custom-style" include="headings"></style>
         <style>
-        :host {
-            display: flex;
-            transition: var(--material-curve-320);
-            transform: translate(0, 60px);
-            opacity: 0;
-            padding: 0;
-            margin: 0;
-            height: 0;
-        }
+            :host {
+                display: flex;
+                transition: var(--material-curve-320);
+                transform: translate(0, 60px);
+                opacity: 0;
+                padding: 0;
+                margin: 0;
+                height: 0;
+            }
 
-        :host(.active) {
-            transform: translate(0, 0);
-            opacity: 1;
-            height: auto;
-        }
+            :host(.active) {
+                transform: translate(0, 0);
+                opacity: 1;
+                height: auto;
+            }
 
-        :host[xsmallscreen] {
-            flex-wrap: wrap;
-        }
+            :host[xsmallscreen] {
+                flex-wrap: wrap;
+            }
 
-        :host[xsmallscreen] > paper-material {
-            flex-basis: 100%;
-        }
+            :host[xsmallscreen] > paper-material {
+                flex-basis: 100%;
+            }
 
-        h3 {
-            text-transform: uppercase;
-            font-size: 13px;
-            color: rgba(0, 0, 0, 0.54);
-            padding: 0 10px;
-            border-bottom: 1px solid #eee;
-        }
-        :host(.active) paper-material {
-            overflow: hidden !important;
-        }
+            h3 {
+                text-transform: uppercase;
+                font-size: 13px;
+                color: rgba(0, 0, 0, 0.54);
+                padding: 0 10px;
+                border-bottom: 1px solid #eee;
+            }
 
-        .list {
-            border-bottom: 1px solid #eee;
-        }
+            :host(.active) paper-material {
+                overflow: hidden !important;
+            }
 
-        .list-item {
-            padding: 8px;
-        }
+            .list {
+                border-bottom: 1px solid #eee;
+            }
 
-        .list-item:last-child {
-            border-bottom: 0 none;
-            padding-top: 16px;
-        }
+            .list-item {
+                padding: 8px;
+            }
 
-        .list-item.red .machine {
-            color: var(--red-color);
-        }
-        .list-item .expression > iron-icon {
-            color: rgba(0,0,0,0.32);
-            margin-right: 4px;
-        }
+            .list-item:last-child {
+                border-bottom: 0 none;
+                padding-top: 16px;
+            }
 
-        .list-item.red .expression > iron-icon {
-            color: var(--red-color);
-        }
+            .list-item.red .machine {
+                color: var(--red-color);
+            }
 
-        .list-item.green .expression > iron-icon {
-            color: green;
-        }
+            .list-item .expression>iron-icon {
+                color: rgba(0, 0, 0, 0.32);
+                margin-right: 4px;
+            }
 
-        .flexchild {
-            @apply(--layout-flex);
-        }
-        .flex3child {
-            @apply(--layout-flex-3);
-        }
+            .list-item.red .expression>iron-icon {
+                color: var(--red-color);
+            }
 
-        .block {
-            transform: translate(0, 50px);
-            opacity: 0;
-            transition: all 700ms 320ms;
-            transition-timing-function: var(--material-curve-320);
-            display: flex;
-            flex-direction: column;
-            flex: 1 100%;
-            height: inherit;
-        }
+            .list-item.green .expression>iron-icon {
+                color: green;
+            }
 
-        :host(.active) .block {
-            transform: translate(0, 0);
-            opacity: 1;
-        }
+            .flexchild {
+                @apply(--layout-flex);
+            }
 
-        span.rule-condition {
-            font-weight: normal;
-            color: rgba(0,0,0,0.54);
-        }
+            .flex3child {
+                @apply(--layout-flex-3);
+            }
 
-        span.time {
-            float: right;
-        }
-        a.main-section {
-            min-width: 150px;
-        }
-        .delBtn iron-icon {
-            margin: 8px;
-            opacity: 0.32;
-            cursor: pointer;
-        }
+            .block {
+                transform: translate(0, 50px);
+                opacity: 0;
+                transition: all 700ms 320ms;
+                transition-timing-function: var(--material-curve-320);
+                display: flex;
+                flex-direction: column;
+                flex: 1 100%;
+                height: inherit;
+            }
+
+            :host(.active) .block {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+
+            span.rule-condition {
+                font-weight: normal;
+                color: rgba(0, 0, 0, 0.54);
+            }
+
+            span.time {
+                float: right;
+            }
+
+            a.main-section {
+                min-width: 150px;
+            }
+
+            .delBtn iron-icon {
+                margin: 8px;
+                opacity: 0.32;
+                cursor: pointer;
+            }
         </style>
 
         <template is="dom-if" if="[[incidents.length]]">
@@ -124,20 +129,17 @@
                 <h3>Happening Now</h3>
                 <div class="block">
                     <template is="dom-repeat" items="{{incidents}}">
-                        <!-- Only red incidents sould count and show. keep it temp/ly due to lacj of data -->
-                        <!-- [[incidentColor(item)]] -->
                         <div class="list layout horizontal wrap">
-                            <a class="list-item red flexchild layout horizontal" href$="[[machineUri(item, model.cloudsArray, model.machinesArray)]]">
+                            <a class="list-item red flexchild layout horizontal" href$="[[_computeMachineUri(item, model.cloudsArray, model.machinesArray)]]">
                                 <div class="flexchild expression">
                                     <iron-icon icon="[[model.sections.machines.icon]]"></iron-icon>
-                                    <span class="machine flexchild">[[machineName(item, model.cloudsArray, model.machinesArray)]]</span>
-                                    <span class="rule-condition">[[ruleCondition(item)]]</span>
+                                    <span class="machine flexchild">[[_computeMachineName(item, model.cloudsArray, model.machinesArray)]]</span>
+                                    <span class="rule-condition">[[_computeRuleCondition(item)]]</span>
                                 </div>
                                 <span class="time">
                                     <template is="dom-if" if="[[!item.finished_at]]">
-                                        <iron-timeago datetime="[[incidentDuration(item)]]"></iron-timeago>
+                                        <iron-timeago datetime="[[_computeIncidentDuration(item)]]"></iron-timeago>
                                     </template>
-                                    <!-- [[incidentTime(item)]] -->
                                 </span>
                             </a>
                             <div class="delBtn">
@@ -157,102 +159,82 @@
                     </a>
                 </div>
             </paper-material>
-            <iron-ajax id="delInc" url="/api/v1/stories/[[selectedInc]]" contentType="application/json" handle-as="xml" method="DELETE" on-request="_handleRequest" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
         </template>
+        <iron-ajax id="deleteIncidentAjax" contentType="application/json" method="DELETE"></iron-ajax>
     </template>
 </dom-module>
 <script>
-Polymer({
-    is: 'app-incidents',
-    properties: {
-        model: {
-            type: Object
+    Polymer({
+        is: 'app-incidents',
+        properties: {
+            model: {
+                type: Object
+            },
+            incidents: {
+                type: Array,
+                computed: '_computeOpenIncidents(model.incidentsArray.*)'
+            },
+            resolvedCount: {
+                type: Number,
+                computed: '_computeResolvedIncidentCount(model.incidentsArray.*)'
+            },
+            xsmallscreen: {
+                type: Boolean
+            }
         },
-        incidents: {
-            type: Array,
-            value: []
+        attached: function () {
+            var rows = this.parentNode.querySelectorAll('block');
+            var index = Array.prototype.indexOf.call(rows, this);
+            setTimeout(function () {
+                this.classList.add('active');
+            }.bind(this), (index + 1) * 50);
         },
-        resolvedCount: {
-            type: Number,
-            notify: true
+        _computeOpenIncidents: function (incidents) {
+            var all = Object.values(this.model.incidents);
+            return all.filter(function (incident) {
+                return !incident.finished_at;
+            }, this);
         },
-        xsmallscreen: {
-            type: Boolean,
-            reflectToAttribute: true
+        _computeResolvedIncidentCount: function (incidents) {
+            var all = Object.values(this.model.incidents);
+            var resolved = all.filter(function (incident) {
+                return incident.finished_at;
+            }, this);
+            return resolved.length;
         },
-        selectedInc: String
-    },
-    observers: [
-        '_incidents(model.incidentsArray.*)'
-    ],
-    attached: function() {
-        var rows = this.parentNode.querySelectorAll('block');
-        var index = Array.prototype.indexOf.call(rows, this);
-        setTimeout(function() {
-            this.classList.add('active');
-        }.bind(this), (index + 1) * 50);
-    },
-    _incidents: function (incidents){
-        var arr = incidents.base ? incidents.base : [];
-        this.incidents = arr.filter(function(inc){
-            return !inc.finished_at //&& this.model.clouds[inc.cloud_id] && this.model.clouds[inc.cloud_id].machines[inc.machine_id];
-        }, this);
-        this.resolvedCount = incidents.base ? incidents.base.length - 1 : 0;
-    },
-    incidentColor: function(item){
-        if (!item.finished_at)
-            return 'red';
-        return 'green';
-    },
-    incidentIcon: function(item) {
-        if (!item.finished_at)
-            return 'icons:report-problem';
-        return 'icons:check';
-    },
-    machineName: function(item, clouds, machines) {
-        if (this.model && this.model.clouds && item.logs.length && item.cloud_id && item.machine_id){
-            return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id] ? item.logs[0].machine_name : item.logs[0].machine_name +': Machine is missing';
+        _computeMachineName: function (item, clouds, machines) {
+            if (this.model && this.model.clouds && item.logs.length && item.cloud_id && item.machine_id) {
+                return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines &&
+                    this.model.clouds[item.cloud_id].machines[item.machine_id] ? item.logs[0].machine_name :
+                    item.logs[0].machine_name + ': Machine is missing';
+            }
+            return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id]
+                .name || 'Machine is missing';
+        },
+        _computeMachineUri: function (item, clouds, machines) {
+            // give machine url only if machine axists
+            if (this.model && this.model.clouds && this.model.clouds[item.cloud_id] && this.model.clouds[
+                    item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id]) {
+                return '/machines/' + this.model.clouds[item.cloud_id].machines[item.machine_id].id;
+            } else {
+                console.log('incident for missing machine ' + [item.machine_id] + ' in cloud ' + [item.cloud_id]);
+                return '/machines'
+            }
+        },
+        _computeRuleCondition: function (item) {
+            return item.logs.length && item.logs[0].condition;
+        },
+        _computeIncidentDuration: function (item) {
+            if (!item.finished_at)
+                return new Date(item.started_at * 1000)
+            return new Date(item.started_at * 1000)
+            //return Date.now()-(item.finished_at-item.started_at)*1000;
+        },
+        deleteIncident: function (e) {
+            this.$.deleteIncidentAjax.headers["Content-Type"] = 'application/json';
+            this.$.deleteIncidentAjax.url = "/api/v1/stories/" + e.target.dataAttr;
+            this.$.deleteIncidentAjax.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.deleteIncidentAjax.generateRequest();
         }
-        return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id].name || 'Machine is missing';
-    },
-    machineUri: function(item, clouds, machines) {
-        // give machine url only if machine axists
-        if (this.model && this.model.clouds && this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id]){
-            return '/machines/'  + this.model.clouds[item.cloud_id].machines[item.machine_id].id;
-        }
-        else {
-            console.log('incident for missing machine '+[item.machine_id]+' in cloud '+[item.cloud_id]);
-            return '/machines'
-        }
-    },
-    ruleCondition: function(item) {
-        return item.logs.length && item.logs[0].condition;
-    },
-    incidentDuration: function(item) {
-        if (!item.finished_at)
-            return new Date(item.started_at*1000)
-        return new Date(item.started_at*1000)
-        //return Date.now()-(item.finished_at-item.started_at)*1000;
-    },
-    incidentTime: function(item) {
-        if (!item.finished_at)
-            return 'for '
-        return ''
-    },
-    deleteIncident: function(e){
-        this.set('selectedInc', e.target.dataAttr);
-        this.querySelector('#delInc').headers["Content-Type"] = 'application/json';
-        this.querySelector('#delInc').headers["Csrf-Token"] = CSRF_TOKEN;
-        this.querySelector('#delInc').generateRequest();
-    },
-    _handleRequest: function(e){
-
-    },
-    _handleResponse: function(e){
-        this.set('selectedInc','')
-    },
-    _handleError:  function(e){
-        this.set('selectedInc','');
-    }
-});
+    });
 </script>

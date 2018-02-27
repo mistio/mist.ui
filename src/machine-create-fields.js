@@ -284,8 +284,8 @@ MACHINE_CREATE_FIELDS.push({
         name: "libvirt_disk_size",
         type: "text",
         label: "Disc size (GB)",
-        value: "4",
-        defaultValue: "4",
+        value: 4,
+        defaultValue: 4,
         show: true,
         required: false,
         pattern: "[0-9]*",
@@ -332,7 +332,7 @@ MACHINE_CREATE_FIELDS.push({
         value: "",
         defaultValue: "",
         show: true,
-        required: false,
+        required: true,
         options: []
     }, {
         name: "associate_floating_ip",
