@@ -1,13 +1,13 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/app-layout/app-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
@@ -43,14 +43,16 @@
   </slot>
   <template>
     <style include="custom-style">
-    paper-header-panel {
+    :host {
+        background-color: var(--base-background-color);
+    }
+    app-header-layout {
         background-color: var(--base-background-color);
     }
 
     iron-pages {
         padding: 24px 24px 0 24px;
         margin-left: 210px;
-        overflow: hidden;
         transition: margin-left 350ms ease-in-out;
     }
 
@@ -90,8 +92,8 @@
         text-overflow: ellipsis;
     }
     .is-loading-html {
-        top: 15px;
-        left: 200px;
+        top: 65px;
+        left: 234px;
         right: 0;
         bottom: 0;
         position: absolute;
@@ -138,10 +140,12 @@
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 
-    <paper-header-panel mode="standard" class="fit">
-        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
+    <app-header-layout mode="standard" class="fit" fullbleed has-scrolling-region>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-        <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
+        <app-header slot="header" fixed condenses>
+            <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
+        </app-header>
+        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
@@ -170,7 +174,7 @@
           <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
         </iron-pages>
         <paper-toast id="mist-toast"></paper-toast>
-    </paper-header-panel>
+    </app-header-layout>
 
     <mist-socket model="{{model}}"></mist-socket>
 
