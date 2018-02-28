@@ -346,7 +346,14 @@
                             f.options = []
 
                         if (f.name.endsWith("location")) {
-                            f.options = this.model.clouds[cloudId].locationsArray.slice() || [];
+                            var locations = this.model.clouds[cloudId].locationsArray.slice();
+                            if (locations.length == 1 && locations[0].name == '') {
+                                // If there's a single location preselct it and hide the field
+                                f.value = locations[0].id;
+                                f.show = false;
+                                locations = [];
+                            }
+                            f.options = locations;
                         }
                         if (f.name.endsWith("image")) {
                             f.options = this.model.clouds[cloudId].imagesArray ? this.model
@@ -397,6 +404,8 @@
                         // for openstack this should be multi selection
                         if (f.name.endsWith("networks")) {
                             f.options = this.model.clouds[cloudId].networksArray.slice() || [];
+                            if (f.options.length<2)
+                                this.set('machineFields.' + index + '.required', false);
                         }
 
                         if (f.required && f.options && f.options.length == 1) {

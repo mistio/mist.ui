@@ -564,7 +564,7 @@
                                     [[machineSize]]
                                 </div>
                             </div>
-                            <div class="row" hidden$="[[!machine.location]]">
+                            <div class="row" hidden$="[[!_getLocationName(machine,cloud)]]">
                                 <div class="cell">
                                     <h4>Location:</h4>
                                 </div>
@@ -676,11 +676,29 @@
             </paper-material>
             <template is="dom-if" if=[[monitoring]]>
                 <paper-material id="monitoringBlock" class="info-card">
-                    <mist-monitoring id="mistMonitoring" resource="[[machine]]" state="[[machineState]]" monitoring="[[model.monitoring]]" section="[[section]]"
-                        datasources="[[datasources]]" hidden$="[[hidden]]" machine-keys="[[machineKeys]]" incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"></mist-monitoring>
-                    <mist-rules id="monitoringRules" machine="[[machine.machine_id]]" cloud="[[machine.cloud.id]]" builtin-metrics="[[model.monitoring.builtin_metrics]]"
-                        custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[model.monitoring.rules]]"
-                        resource="[[machine]]" user-email="[[model.user.email]]" hidden$="[[!isActivated]]"></mist-rules>
+                    <mist-monitoring
+                        id="mistMonitoring"
+                        resource="[[machine]]"
+                        state="[[machineState]]"
+                        monitoring="[[model.monitoring]]"
+                        section="[[section]]"
+                        datasources="[[datasources]]"
+                        hidden$="[[hidden]]"
+                        machine-keys="[[machineKeys]]"
+                        incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"></mist-monitoring>
+                    <mist-rules
+                        id="monitoringRules"
+                        machine="[[machine.machine_id]]"
+                        cloud="[[machine.cloud.id]]"
+                        builtin-metrics="[[model.monitoring.builtin_metrics]]"
+                        custom-metrics="[[model.monitoring.custom_metrics]]"
+                        incidents="[[model.incidentsArray]]"
+                        model="[[model]]"
+                        rules="[[model.monitoring.rules]]"
+                        teams="[[model.teamsArray]]"
+                        users="[[model.membersArray]]"
+                        resource="[[machine]]"
+                        hidden$="[[!isActivated]]"></mist-rules>
                 </paper-material>
             </template>
             <paper-material class="info-card">
@@ -698,15 +716,11 @@
                             </tr>
                             <tr>
                                 <td>Public IPs</td>
-                                <td>[[displayArray(machine.public_ips)]]</td>
+                                <td>[[_renderArray(machine.public_ips)]]</td>
                             </tr>
                             <tr>
                                 <td>Private IPs</td>
-                                <td>
-                                    <template is="dom-repeat" items="[[machine.private_ips]]">
-                                        [[item]]
-                                    </template>
-                                </td>
+                                <td>[[_renderArray(machine.private_ips)]]</td>
                             </tr>
                             <tr hidden$="[[!machine.probe.ssh.users]]">
                                 <td>Users</td>
@@ -819,6 +833,12 @@
             'icon': 'image:panorama-fish-eye',
             'confirm': true,
             'multi': true
+        },
+        'webconfig': {
+            'name': 'webconfig',
+            'icon': 'image:panorama-fish-eye',
+            'confirm': false,
+            'multi': false
         },
         'destroy': {
             'name': 'destroy',
@@ -1010,6 +1030,8 @@
                     ret.push('resume');
                 if (item.actions.rename)
                     ret.push('rename');
+                if (item.actions.webconfig)
+                    ret.push('webconfig');
                 if (item.actions.destroy)
                     ret.push('destroy');
                 if (item.actions.undefine)
@@ -1023,7 +1045,7 @@
             return actions;
         },
         _machineChanged: function (machine) {
-            console.log('perform action machine changed', machine);
+            // console.log('perform action machine changed', machine);
             if (this.machine)
                 this.set('itemArray', [this.machine]);
         },
@@ -1043,7 +1065,7 @@
         _computeAssociatedKeys: function (machine, keys, keyLength, machineChangeRecord) {
             return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
         },
-        displayArray: function (array) {
+        _renderArray: function (array) {
             if (array && array.length)
                 return array.join(', ');
             return '';
@@ -1312,7 +1334,7 @@
         },
         _getLocationName: function (machine, cloud) {
             return this.model.clouds[machine.cloud.id].locations && this.model.clouds[machine.cloud.id].locations[
-                    machine.location] && this.model.clouds[machine.cloud.id].locations[machine.location].name ?
+                    machine.location] && this.model.clouds[machine.cloud.id].locations[machine.location].name != undefined ?
                 this.model.clouds[machine.cloud.id].locations[machine.location].name : machine.location;
         },
         _probeMachine: function (e) {
@@ -1362,8 +1384,10 @@
                 image = image.toLowerCase();
 
                 if (machine.probe && machine.probe.ssh && machine.probe.ssh.distro && machine.probe.ssh.distro
-                    .toLowerCase().indexOf('clearos') != -1)
+                    .toLowerCase().indexOf('clearos') != -1){
                     imageIcon = "clearos";
+                    this.enableWebconfig();
+                }
                 else if (image.indexOf('ubuntu') != -1)
                     imageIcon = "ubuntu";
                 else if (image.indexOf('netbsd') != -1)
@@ -1384,8 +1408,10 @@
                     imageIcon = "coreos";
                 else if (image.indexOf('mongo') != -1)
                     imageIcon = "mongo";
-                else if (image.indexOf('clearos') != -1)
+                else if (image.indexOf('clearos') != -1){
                     imageIcon = "clearos";
+                    this.enableWebconfig();
+                }
                 else if (image.indexOf('ami-') != -1)
                     imageIcon = "aws";
                 else if (image.indexOf('centos') != -1)
@@ -1406,6 +1432,11 @@
                 else
                     return false;
             }
+        },
+
+        enableWebconfig: function() {
+            this.set('machine.actions.webconfig', true);
+            this._computeActions(this.machine);
         },
 
         _getVisibleColumns: function () {

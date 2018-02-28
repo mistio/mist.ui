@@ -780,30 +780,27 @@
                         this.set('formReady', valid && !sendingData);
                     });
                 },
-                _validateFields: function (fields) {
-                    return fields.every(function (el, index) {
+                _validateFields: function(fields) {
+                    return fields.every(function(el, index) {
                         if (el.type == "ip_textarea") {
-                            return el.show && el.required ? this.validatecidr(el.value, index) :
-                                true;
+                            return el.show && el.required ? this.validatecidr(el.value, index) : true;
                         } else if (el.type == "checkboxes") {
-                            return el.show && el.required ? this._constructCheckboxValue(el.name)
-                                .length : true;
+                            return el.show && el.required ? this._constructCheckboxValue(el.name).length : true;
                         } else if (el.type == "machines_tags") {
                             var textToArray = el.value.split(',');
-                            return el.show && el.required ? JSON.stringify(this._constructTagsValue(
-                                textToArray)).length > 2 : true;
+                            return el.show && el.required ? JSON.stringify(this._constructTagsValue(textToArray)).length > 2 : true;
                         } else if (el.type == "date") {
-                            return el.show && el.required ? moment(el.value).isValid() : true;
+                            return el.show && el.required ? moment(el.value).isValid()  : true;
                         } else if (el.type == 'list') {
-                            return el.min && el.show && el.required ? this._allItemsValid(el) :
-                                true;
+                            return el.min && el.show && el.required ? this._allItemsValid(el) : true;
                         } else if (el.name == "admin_state_up") {
                             return true;
                         } else if (el.name == "cloud_init") {
-                            return el.value.startsWith("#!/bin/bash") || el.value.startsWith(
-                                "#cloud-config") || el.value.trim() == "";
+                            return el.value.startsWith("#!/bin/bash") || el.value.startsWith("#cloud-config") || el.value.trim() == "";
                         } else if (el.name == "schedule_entry") {
                             return !el.excludeFromPayload ? el.value : true;
+                        } else if (el.name == "libvirt_disk_size" && el.pattern) {
+                            return this._validatePatternedField(el);
                         } else if (el.type == "password" && el.pattern && el.required) {
                             return this._validatePatternedField(el);
                         } else {
@@ -1019,11 +1016,12 @@
                     return str.replace(/_/g, " ").replace("*", "").replace("id", "").trim();
                 },
                 _selectDate: function (e) {
-                    var event = Polymer.dom(e);
+                    var event = Polymer.dom(e),
+                        field = this._getFieldNameById(event.rootTarget.id);
                     // save the triggering field
-                    this.set('dateTriggerField', event.rootTarget.id);
-                    if (moment(this.form[event.rootTarget.id]).isValid())
-                        this.$.pickDate.date = moment(this.form[event.rootTarget.id]).toDate();
+                    this.set('dateTriggerField', field);
+                    if (moment(this.form[field]).isValid())
+                        this.$.pickDate.date = moment(this.form[field]).toDate();
 
                     this.$.pickTime.time = moment().format('hh:mm a');
                     this.$.dateTimePickers.open();
@@ -1139,6 +1137,9 @@
                 },
                 _hasHelptext: function (field) {
                     return !field.hidden && field.helptext;
+                },
+                _getFieldNameById: function (str) {
+                    return this.id ? str.split('app-form-'+this.id+'-')[1] : str.split('app-form--')[1];
                 }
             });
         })();

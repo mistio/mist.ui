@@ -32,7 +32,7 @@
             <app-form id$="sub-form-[[index]]" fields="{{item}}" display-buttons="[[_calcDisplayButtons()]]" horizontal-layout></app-form>
             <br/>
         </template>
-        <paper-icon-button icon="add" on-tap="addItem">+</paper-icon-button>
+        <paper-icon-button class="add" icon="add" on-tap="addItem">+</paper-icon-button>
     </template>
     <script>
         Polymer({
@@ -53,6 +53,7 @@
              * @event leadchange
              */
             properties: {
+                id: String,
                 options: {
                     type: Array,
                     value: function () {
@@ -72,23 +73,50 @@
                     type: Number,
                     value: 1
                 },
-                max: Number
+                max: Number,
+                activeItem: Number
             },
             observers: [
+                '_optionsChanged(options.*)',
                 '_itemsChanged(items.splices, items.*)',
                 '_minChanged(min)'
             ],
             listeners: {
-                'keyup': '_itemsChanged'
+                'keyup': '_itemsChanged',
+                'tap': '_setActiveItem'
             },
             _minChanged: function (min) {
                 for (var i = 1; i <= this.min; i++) {
                     this.addItem();
                 }
             },
+            _setActiveItem: function (e) {
+                //set changing item
+                var parent = e.path.find(function(p){
+                    return p.tagName == 'APP-FORM';
+                });
+                if (parent && parent.id)
+                    this.set('activeItem', parent.id.split('sub-form-')[1]);
+                else
+                    this.set('activeItem', null);
+            },
             _itemsChanged: function () {
-                // console.log('_itemsChanged');
                 this.fire('list-fields-changed');
+            },
+            _optionsChanged: function (options) {
+                var index = options.path.split('.')[1];
+                if (this.activeItem && index) {
+                    // update specific item value
+                    if (options.path.endsWith('value')){
+                        this.set('items.'+this.activeItem+'.'+index.replace('#','')+'.value', options.value);
+                    }
+                    // update all items options
+                    else if (options.path.endsWith('options')) {
+                        for (var i=0; i<this.items.length; i++){
+                            this.set('items.'+i+'.'+index.replace('#','')+'.options', options.value);
+                        }
+                    }
+                }
             },
             _calcDisplayButtons: function () {
                 return false;

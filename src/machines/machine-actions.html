@@ -10,6 +10,7 @@
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../mist-icons.html">
 
 <link rel="import" href="associate-key.html">
 <link rel="import" href="run-script-on-machine.html">
@@ -19,7 +20,7 @@
 <dom-module id="machine-actions">
   <template>
     <style include="shared-styles">
-       :host {
+      :host {
         display: inline;
         color: rgba(255, 255, 255, 0.87);
       }
@@ -133,6 +134,12 @@
         'confirm': true,
         'multi': true
       },
+      'webconfig': {
+        'name': 'webconfig',
+        'icon': 'mist-icons:menu',
+        'confirm': true,
+        'multi': false
+      },
       'delete': {
         'name': 'delete',
         'icon': 'delete',
@@ -243,7 +250,7 @@
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize'].indexOf(action.name) ==
+          if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', "webconfig"].indexOf(action.name) ==
             -1) {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
               plural = this.items.length == 1 ? '' : 's',
@@ -266,6 +273,8 @@
             this.$.tagsdialog._openDialog();
           } else if (action.name == 'rename') {
             this.$['renamedialog']._openDialog();
+          } else if (action.name == 'webconfig') {
+            this._openWebconfig(this.items);
           } else if (action.name == 'run script') {
             this.$['runscriptdialog']._openDialog();
           } else if (action.name == 'associate key') {
@@ -274,6 +283,11 @@
             this.performMachineAction(action, this.items);
           }
         }
+      },
+      _openWebconfig: function(items) {
+        var machine = this.items[0];
+        var url = 'https://'+machine.public_ips[0]+':81';
+        window.open(url, "view");
       },
       confirmAction: function (e) {
         if (e.detail.confirmed)
@@ -338,7 +352,7 @@
             form.setAttribute("target", "view");
             var hiddenField = document.createElement("input");
             hiddenField.setAttribute("type", "hidden");
-            hiddenField.setAttribute("name", "Csrf-Token", );
+            hiddenField.setAttribute("name", "Csrf-Token");
             hiddenField.setAttribute("value", CSRF_TOKEN);
             form.appendChild(hiddenField);
             document.body.appendChild(form);

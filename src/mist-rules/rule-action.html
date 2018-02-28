@@ -1,0 +1,149 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<link rel="import" href="mist-dropdown-multi.html">
+
+<dom-module id="rule-action">
+    <template>
+		<style>
+		paper-button {
+            padding: 0.8em 1.57em 0.7em 1.57em;
+            font-weight: 500;
+        }
+        paper-button[disabled] {
+            background-color: rgba(0,0,0,.13) !important;
+            color: rgba(0,0,0,0.32) !important;
+        }
+        paper-material {
+            border-top: 2px solid #ddd;
+        }
+        .metricOp  {
+            width: 50px;
+        }
+        .metricAggr,
+        .metricAction {
+            width: 100px;
+            margin-right: 10px;
+        }
+        paper-input#metricValue, 
+        paper-input#metricOffset {
+            width: 40px;
+            display: inline-block;
+        }
+        paper-input#metricAggr {
+            width: 120px;
+            display: inline-block;
+        }
+        .rule.incident-true {
+            color: var(--red-color);
+        }
+        .rule {
+            padding: 8px 0;
+        }
+        .rule-id {
+            position: absolute;
+            color: rgba(0,0,0,0.32);
+            font-size: 0.8em;
+            top: 16px;
+            left: 24px;
+        }
+        .rule-actions {
+            justify-content: flex-end;
+            font-size: 0.9em;
+            margin-top: 16px;
+        }
+        paper-button iron-icon {
+            opacity: 0.32;
+            padding: 4px;
+        }
+        .errormsg-container {
+            color: var(--red-color);
+            align-self: flex-start;
+            flex: 1;
+        }
+        .errormsg-container iron-icon {
+            color: inherit;
+        }
+        paper-input#emails {
+            max-width: 240px;
+            display: inline-block;
+        }
+        #newrule > * {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+        paper-dropdown-menu::content #dropdown {
+            width: inherit !important;
+        }
+        .add {
+        	cursor: pointer;
+        }
+	</style>
+
+    <span class="rule-action">        
+        
+        <paper-dropdown-menu class="dropdown-block metricAction">
+            <paper-menu id="metricAction" attr-for-selected="value" selected="{{rule.action}}" class="dropdown-content">
+                <paper-item value="alert"> alert </paper-item>
+                <paper-item value="reboot"> reboot </paper-item>
+                <paper-item value="destroy"> destroy </paper-item>
+                <paper-item value="command"> command </paper-item>
+                <paper-item value="launch" disabled> launch </paper-item>
+            </paper-menu>
+        </paper-dropdown-menu>
+        
+        <template is="dom-if" if="[[_showCommand(rule.action)]]">
+            <paper-textarea id="command" placeholder="command input" value="{{rule.command}}"></paper-textarea>
+        </template>
+
+        <template is="dom-if" if="[[_showRecipients(rule.action)]]">
+
+            by email
+
+            <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{rule.teams}}"></mist-dropdown-multi>
+
+            <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{rule.users}}"></mist-dropdown-multi>
+
+            <paper-input id="emails" label="other emails" value="{{rule.emails}}" auto-validate></paper-input>
+
+        </template>
+
+    </span>
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'rule-action',
+
+            properties: {
+                rule: Object,
+                teams: Array,
+                users: Array
+            },
+            observers: [
+                'actionChanged(rule.action)'
+            ],
+            ready: function(){},
+            _showCommand: function(action){
+                return this.rule.action == 'command';
+            },
+            _showRecipients: function(action){
+                return this.rule.action == 'alert';
+            },
+            actionChanged: function(ruleaction) {
+                if (this.rule.action != 'alert') {
+                    this.initDropdowns();
+                }
+            },
+            initDropdowns: function() {
+                this.querySelectorAll('mist-dropdown-multi').forEach(function(el){el.clear()});
+            }
+        })
+    </script>
+</dom-module>
