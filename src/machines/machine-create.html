@@ -408,13 +408,6 @@
                                 this.set('machineFields.' + index + '.required', false);
                         }
 
-                        if (f.required && f.options && f.options.length == 1) {
-                            if (f.type == "dropdown")
-                                this.set('machineFields.' + index + '.value', f.options[0].val);
-                            else
-                                this.set('machineFields.' + index + '.value', f.options[0].id);
-                        }
-
                         // update options
                         if (f.options)
                             this.set('machineFields.' + index + '.options', f.options);
@@ -436,11 +429,22 @@
                         this._updateFieldsForKvm();
                     }
 
-                    // default values
+                    // default values, hide empty non required, fill in single options
                     if (this.machineFields) {
                         this.machineFields.forEach(function (f, index) {
                             this.set('machineFields.' + index + '.value', this.get(
                                 'machineFields.' + index + '.defaultValue'));
+
+                            if (f.required && f.options && f.options.length == 1) {
+                                if (f.type == "dropdown")
+                                    this.set('machineFields.' + index + '.value', f.options[0].val);
+                                else
+                                    this.set('machineFields.' + index + '.value', f.options[0].id);
+                            }
+
+                            if (!f.required && f.options && f.options.length == 0) {
+                                this.set('machineFields.' + index + '.show', false);
+                            }
                         }.bind(this));
                     }
                 }
@@ -450,6 +454,9 @@
                 // console.log('model, selected cloud or machine fields changed', this.selectedCloud, changeRecord);
                 if (this.selectedCloud && this.model && this.model.clouds && this.model.clouds[this
                         .selectedCloud]) {
+                    // if (changeRecord.path.endsWith('options') && this.get(changeRecord.path).length == 1)
+                    //     this.set(changeRecord.path.replace('.options', '.value'), changeRecord.path+'.0.id')
+
                     // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
                     if (this.model.clouds[this.selectedCloud].provider == "docker" && changeRecord.path
                         .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
