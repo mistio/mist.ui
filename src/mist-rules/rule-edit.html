@@ -132,7 +132,7 @@
 
                 value within 
 
-                <paper-input id="metricOffset" value="{{rule.window.start}}" auto-validate></paper-input>
+                <paper-input id="metricOffset" value="{{rule.window.start}}" type="number" auto-validate></paper-input>
 
                 <paper-dropdown-menu class="dropdown-block metricAction">
                     <paper-menu id="windowPeriod" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
@@ -150,9 +150,10 @@
                 <template is="dom-repeat" items="[[rule.actions]]" as="action">
                     <span hidden$="[[!index]]"> AND </span>
                     <rule-action id="[[rule.id]]" action="{{action}}" users="[[users]]" teams="[[teams]]"></rule-action>
-                    <span hidden$="[[!index]]" on-tap="_removeAction"> remove </span>
+                    <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
                 </template>
             </span>
+            <iron-icon icon="add" on-tap="_addAction"></iron-icon>
 
         </div>
 
@@ -216,19 +217,15 @@
                 return title || 'new rule';
             },
             _removeAction: function(e) {
-
+                console.log('_removeAction', e.model.index, e);
+                if (e.model.index)
+                    this.splice('rule.actions', e.model.index, 1);
             },
             _addAction: function(e) {
-                var _this = this;
-                var container = this.$.actionsDropdown,
-                    newAction = document.createElement('rule-action'),
-                    and = document.createTextNode(' AND ');
-                    
-                Polymer.dom(container).appendChild(and);
-                Polymer.dom(container).appendChild(newAction);
-                // newMenu.addEventListener("selected-changed", function(e){
-                //     _this.push('rule.action',self.selected);
-                // });
+                this.push('rule.actions', {
+                        type: 'machine_action',
+                        action: null
+                    })
             },
             computeUnits: function(metric, builtinMetrics, customMetrics) {
                 var ref;
