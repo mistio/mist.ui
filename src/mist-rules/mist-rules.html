@@ -36,6 +36,14 @@
                 font-size: 0.9em;
                 margin-top: 16px;
             }
+            .errormsg-container {
+                color: var(--red-color);
+                align-self: flex-start;
+                flex: 1;
+            }
+            .errormsg-container iron-icon {
+                color: inherit;
+            }
         </style>
         <paper-material elevation="0">
             <template is="dom-repeat" items="[[rulesArray]]">
@@ -131,12 +139,14 @@
             listeners: {
                 'iron-select':'userChanges',
                 'input':'userChanges',
+                'change':'userChanges',
                 'edit-request': 'editRequest',
-                'add-rule': 'addRule'
+                'add-rule': 'addRule',
+                'rule-changed': '_validateRule'
             },
             observers: [
                 "_computeRules(rules.*, resource)",
-                "ruleChanged(newRule.*)"
+                "_validateRule(newRule.*, newRule.actions.*, newRule.queries.*, newRule.conditions.*)"
             ],
             ready: function() {
                 this.init();
@@ -144,8 +154,7 @@
             init: function() {
                 var new_rule = {
                     actions:[{
-                        type: 'notification',
-                        emails: ['m@m.com']
+                        type: 'notification'
                     }],
                     queries: [{
                         target: 'load.shortterm',
@@ -161,12 +170,10 @@
                         every: 60,
                         period: 'seconds',
                     },
-                    conditions: [
-                        {
+                    conditions: [{
                             type: 'machines',
-                            ids: ["c770779194034535a4ed7cd259f00847"],
-                        },
-                    ],
+                            ids: ["c770779194034535a4ed7cd259f00847"]
+                        }],
                 }
                 this.set('newRule', new_rule);
             },
@@ -216,6 +223,19 @@
                 payload.window.start = parseInt(payload.window.start);
                 payload['frequency']['every'] = payload.window.start;
                 payload['frequency']['period'] = payload.window.period;
+                // emails should be sent as Arrays
+                for (var i=0; i<payload.actions.length; i++){
+                    if (payload.actions[i].type == 'notification' &&
+                        payload.actions[i].emails &&
+                        payload.actions[i].emails.length &&
+                        typeof(payload.actions[i].emails) == "string"){
+                        var emails = payload.actions[i].emails.split(',');
+                            for (var j=0; j<emails.length; j++){
+                                emails[j] = emails[j].trim();
+                            }
+                        payload.actions[i].emails = emails;
+                    }
+                }
                 this.$.addRuleRequest.body = payload;
                 this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
                 this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -232,6 +252,7 @@
                 this.set('formError', true);
             },
             userChanges: function(){
+                this._validateRule();
                 this.set('formError', false);
             },
             editRequest: function(e){
@@ -244,26 +265,74 @@
                     }
                 });
             },
-            ruleChanged: function(rule) {
-                var valid = true;
+            _validateRule: function(rule, actions, queries, conditions) {
+                console.log('validate rule');
+                var valid = true,
+                    validActions = true, 
+                    validQueries = true,
+                    validConditions = true; 
                 for (var p in this.newRule) {
-                    if (this.newRule[p] == undefined)
+                    console.log(p);
+                    if (this.newRule[p] == undefined){
                         valid = false;
+                        break;
+                    }
                 }
-
-                if (this.newRule.action == '')
+                for (var i=0; i<this.newRule.actions.length; i++) {
+                    validActions = this._validateActions(this.newRule.actions[i]);
+                    console.log(validActions, this.newRule.actions[i].type);
+                    if (!validActions)
+                        break;
+                }
+                for (var i=0; i<this.newRule.queries.length; i++) {
+                    validQueries = this._validateQueries(this.newRule.queries[i]);
+                    console.log(validQueries, this.newRule.queries[i]);
+                    if (!validQueries)
+                        break;
+                }
+                for (var i=0; i<this.newRule.conditions.length; i++) {
+                    validConditions = this._validateConditions(this.newRule.conditions[i]);
+                    console.log(validConditions, this.newRule.conditions[i].type);
+                    if (!validConditions)
+                        break;
+                }
+                this.set('isValidRule', valid & validActions && validQueries && validConditions);
+            },
+            _validateActions: function(action) {
+                var valid = true;
+                if (action.type == ''){
                     valid = false;
-
-                if (this.newRule.action == 'alert'){
-                    if (!this.newRule.emails.length && !this.newRule.teams.length && !this.newRule.users.length)
-                        valid = false;
                 }
 
-                if (this.newRule.action == 'command')
-                    if (!this.newRule.command || !this.newRule.command.length)
+                if (action.type == 'machine_action')
+                    if (!action.action || !action.action.length){
                         valid = false;
+                    }
 
-                this.set('isValidRule', valid);
+                if (action.type == 'notification')
+                    if ((!action.emails || !action.emails.length) && 
+                        (!action.teams || !action.teams.length) && 
+                        (!action.users || !action.users.length)){
+                        valid = false;
+                    }
+
+                if (action.type == 'command')
+                    if (!action.command || !action.command.length){
+                        valid = false;
+                    }
+                return valid;
+            },
+            _validateQueries: function(query) {
+                var valid = true;
+                if (!query.target || !query.operator || !query.threshold || !query.aggregation)
+                    valid = false
+                return valid;
+            },
+            _validateConditions: function(condition) {
+                var valid = true;
+                if (!condition.type || !condition.ids || !condition.ids.length)
+                    valid = false;
+                return valid;
             },
         });
     </script>
