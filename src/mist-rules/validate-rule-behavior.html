@@ -7,14 +7,40 @@
  * @polymerBehavior
  */
  validateRuleBehavior = {
+        _cleanAction: function(action) {
+            var template = {};
+                template['type'] = action.type;
+            if (action.type == 'command')
+                template['command'] = action.command;
+            else if (action.type == 'machine_action')
+                template['action'] = action.action;
+            else if (action.type == 'notification'){
+                if (action.teams && action.teams.length)
+                    template['teams'] = action.teams;
+                if (action.users && action.users.length)
+                    template['users'] = action.users;
+                if (action.emails && action.emails.length){
+                    var emails = action.emails
+                    if (typeof(emails) == "string"){
+                        emails = emails.split(',');
+                        for (var j=0; j<emails.length; j++){
+                            emails[j] = emails[j].trim();
+                        }
+                    }
+                    template['emails'] = emails;
+                }
+            }
+            console.log('payload template', template);
+            return template;
+        },
         _validateRule: function(rule, actions, queries, conditions) {
-            console.log('validate rule');
+            // console.log('validate rule');
             var valid = true,
                 validActions = true, 
                 validQueries = true,
                 validConditions = true; 
             for (var p in this.newRule) {
-                console.log(p);
+                // console.log(p);
                 if (this.newRule[p] == undefined){
                     valid = false;
                     break;
@@ -22,19 +48,19 @@
             }
             for (var i=0; i<this.newRule.actions.length; i++) {
                 validActions = this._validateActions(this.newRule.actions[i]);
-                console.log(validActions, this.newRule.actions[i].type);
+                // console.log(validActions, this.newRule.actions[i].type);
                 if (!validActions)
                     break;
             }
             for (var i=0; i<this.newRule.queries.length; i++) {
                 validQueries = this._validateQueries(this.newRule.queries[i]);
-                console.log(validQueries, this.newRule.queries[i]);
+                // console.log(validQueries, this.newRule.queries[i]);
                 if (!validQueries)
                     break;
             }
             for (var i=0; i<this.newRule.conditions.length; i++) {
                 validConditions = this._validateConditions(this.newRule.conditions[i]);
-                console.log(validConditions, this.newRule.conditions[i].type);
+                // console.log(validConditions, this.newRule.conditions[i].type);
                 if (!validConditions)
                     break;
             }

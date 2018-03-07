@@ -235,31 +235,10 @@
                 payload.window.start = parseInt(payload.window.start);
                 payload['frequency']['every'] = payload.window.start;
                 payload['frequency']['period'] = payload.window.period;
-                // emails should be sent as Arrays
+
+                // clean payload, format emails
                 for (var i=0; i<payload.actions.length; i++){
-                    var action = payload.actions[i];
-                    // clear properties
-                    if (action.type != 'machine_action') {
-                        delete payload.actions[i].action;
-                    }
-                    else if (action.type != 'command') {
-                        delete payload.actions[i].command;
-                    }
-                    else if (action.type != 'notification') {
-                        delete payload.actions[i].teams;
-                        delete payload.actions[i].users;
-                        delete payload.actions[i].emails;
-                    }
-                    if (payload.actions[i].type == 'notification' &&
-                        payload.actions[i].emails &&
-                        payload.actions[i].emails.length &&
-                        typeof(payload.actions[i].emails) == "string"){
-                        var emails = payload.actions[i].emails.split(',');
-                            for (var j=0; j<emails.length; j++){
-                                emails[j] = emails[j].trim();
-                            }
-                        payload.actions[i].emails = emails;
-                    }                    
+                    payload.actions[i] = this._cleanAction(payload.actions[i]);
                 }
                 this.$.addRuleRequest.body = payload;
                 this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
