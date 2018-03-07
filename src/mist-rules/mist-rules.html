@@ -154,6 +154,7 @@
             },
             observers: [
                 "_computeRules(rules.*, resource)",
+                "_updateConditionsIds(resource.*)",
                 "_validateRule(newRule.*, newRule.actions.*, newRule.queries.*, newRule.conditions.*)"
             ],
             ready: function () {
@@ -180,10 +181,15 @@
                     },
                     conditions: [{
                             type: 'machines',
-                            ids: ["c770779194034535a4ed7cd259f00847"]
+                            ids: []
                         }],
                 }
                 this.set('newRule', new_rule);
+            },
+            _updateConditionsIds: function(resource) {
+                console.log('_updateConditionsIds', resource);
+                if (this.resource)
+                    this.set('newRule.conditions.0.ids', [this.resource.id])
             },
             _computeRules: function (rules, resource) {
                 var rulesArray = [],
