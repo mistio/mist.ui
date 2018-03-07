@@ -13,14 +13,41 @@
 
 <dom-module id="network-page">
     <template>
-        <style include="shared-styles single-page">
-             :host {
+        <style include="shared-styles tags-and-labels single-page">
+            :host {
                 display: block;
             }
 
             paper-material {
                 display: block;
                 padding: 20px;
+            }
+
+            .columns {
+                @apply(--layout-horizontal);
+                flex: 1 100%;
+                margin-bottom: 16px;
+            }
+
+            .columns paper-material>.break {
+                word-break: break-all;
+            }
+
+            .left {
+                line-height: 1.6em;
+            }
+
+            .left,
+            .right {
+                @apply(--layout-vertical);
+                align-items: flex-start;
+                flex-direction: column;
+                flex: 1 100%;
+            }
+
+            .left h3,
+            .right h3 {
+                margin-bottom: 0;
             }
 
             paper-menu-button paper-button {
@@ -100,20 +127,26 @@
                 color: #D48900 !important;
             }
 
-            h4.id {
-                display: inline-block;
+
+            .n-info-head {
                 text-transform: uppercase;
-                font-size: 0.9rem;
-                font-weight: 700;
-                margin-right: 16px;
+                font-weight: bold;
+                font-size: 0.8em;
+                display: inline-block;
+                width: 80px;
+                opacity: 0.54;
+            }
+
+            #rightcolumn .n-info-head {
+                width: 100%;
             }
 
             paper-icon-bottom.bottom {
                 padding-right: 8px;
             }
 
-             :host .info-item,
-             :host ::content .info-item {
+            :host .info-item,
+            :host ::content .info-item {
                 word-break: break-all;
             }
 
@@ -139,11 +172,22 @@
                 </div>
                 <mist-actions actions="[[actions]]" type="network" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
             </paper-material>
-            <paper-material>
-                <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
-                <h4 class="id">Network ID:</h4>
-                <span class="id">[[network.id]]</span>
-            </paper-material>
+            <div class="columns">
+                <paper-material id="leftcolumn resource-description" class="left">
+                    <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
+                    <h4 class="id n-info-head">Network ID:</h4>
+                    <span class="id">[[network.id]]</span>
+                </paper-material>
+                <paper-material id="rightcolumn" class="right">
+                    <div hidden$="[[!network.tags.length]]">
+                        <h3 class="n-info-head">TAGS:</h3>
+                        <template is="dom-repeat" items="[[network.tags]]">
+                            <span class="tag">[[item.key]]
+                                <span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
+                        </template>
+                    </div>
+                </paper-material>
+            </div>
             <paper-material>
                 <h4 class="id">Network Info</h4>
                 <div class="info-table">
