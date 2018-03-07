@@ -14,24 +14,30 @@
             :host {
                 display: block;
             }
+
             paper-button {
                 padding: 0.8em 1.57em 0.7em 1.57em;
                 font-weight: 500;
             }
+
             paper-button[disabled] {
-                background-color: rgba(0,0,0,.13) !important;
-                color: rgba(0,0,0,0.32) !important;
+                background-color: rgba(0, 0, 0, .13) !important;
+                color: rgba(0, 0, 0, 0.32) !important;
             }
+
             paper-material {
                 border-top: 2px solid #ddd;
             }
+
             paper-button iron-icon {
                 opacity: 0.32;
                 padding: 4px;
             }
+
             rule-edit {
                 padding: 0 24px 16px 24px;
             }
+
             .rule-actions {
                 justify-content: flex-end;
                 font-size: 0.9em;
@@ -50,8 +56,6 @@
             <template is="dom-repeat" items="[[rulesArray]]">
                 <rules-item builtin-metrics="[[builtinMetrics]]" custom-metrics="[[customMetrics]]" rule="[[item]]" incidents="[[incidents]]" resource="[[resource]]" model="[[model]]" teams="[[teams]]" users="[[users]]"></rules-item>
             </template>
-            
-            <paper-button toggles active="{{editNew}}" hidden$="{{editNew}}"><iron-icon icon="icons:add-circle"></iron-icon> add new rule</paper-button>
 
             <rule-edit  rule={{newRule}}
                         builtin-metrics=[[builtinMetrics]]
@@ -73,10 +77,10 @@
                                 <paper-button on-tap="addRule" class="blue" disabled$="[[!isValidRule]]">save rule</paper-button>
                             </div>
                         </rule-edit>
-
         </paper-material>
-        
-        <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" handle-as="xml" method="POST" on-request="_handleAddRequest" on-response="_handleAddResponse" on-error="_handleAddError" loading="{{sendingData}}"></iron-ajax>
+
+        <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest"
+            on-response="_handleAddResponse" on-error="_handleAddError" loading="{{sendingData}}"></iron-ajax>
 
     </template>
 
@@ -97,7 +101,7 @@
                     type: String,
                     value: ''
                 },
-                resource: Object,  // machine, cloud or other later
+                resource: Object, // machine, cloud or other later
                 model: Object,
                 rules: {
                     type: Object,
@@ -107,12 +111,12 @@
                     type: Array,
                     value: []
                 },
-                builtinMetrics:{
+                builtinMetrics: {
                     type: Object,
                     notify: true,
                     value: {}
                 },
-                customMetrics:{
+                customMetrics: {
                     type: Object,
                     notify: true,
                     value: {}
@@ -150,7 +154,7 @@
                 "_computeRules(rules.*, resource)",
                 "_validateRule(newRule.*, newRule.actions.*, newRule.queries.*, newRule.conditions.*)"
             ],
-            ready: function() {
+            ready: function () {
                 this.init();
             },
             init: function() {
@@ -202,15 +206,15 @@
                 });
                 return m ? true : false;
             },
-            _computeMetrics: function(resource, builtinMetrics, customMetrics){
+            _computeMetrics: function (resource, builtinMetrics, customMetrics) {
                 var metrics = [];
-                for (var p in this.builtinMetrics){
+                for (var p in this.builtinMetrics) {
                     metrics.push(this.builtinMetrics[p])
                 }
                 if (this.customMetrics) {
-                    for (var q in this.customMetrics){
+                    for (var q in this.customMetrics) {
                         if (this.customMetrics[q].machines) {
-                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
+                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function (m) {
                                 return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
                             }, this);
                             if (machineHasCustomMetric)
@@ -245,25 +249,25 @@
                 this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.addRuleRequest.generateRequest();
             },
-            _handleAddResponse: function(){
+            _handleAddResponse: function () {
                 this.set('editNew', false);
                 this.set('formError', false);
                 this.init();
             },
-            _handleAddError: function(e){
+            _handleAddError: function (e) {
                 console.log(e.detail.request.xhr.responseText);
-                this.set('formMessage',e.detail.request.xhr.responseText)
+                this.set('formMessage', e.detail.request.xhr.responseText)
                 this.set('formError', true);
             },
             userChanges: function(){
                 this._validateRule();
                 this.set('formError', false);
             },
-            editRequest: function(e){
+            editRequest: function (e) {
                 // handling of edit area
                 var id = e.detail.rule;
                 var els = this.querySelectorAll('rules-item');
-                [].forEach.call(els, function(el, index) {
+                [].forEach.call(els, function (el, index) {
                     if (el.rule.id != id) {
                         el.set('editMode', false);
                     }
