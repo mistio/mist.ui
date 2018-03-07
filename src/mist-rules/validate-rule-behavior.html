@@ -1,0 +1,80 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<script>
+/**
+ * Behavior that validates a rule.
+ *
+ * @polymerBehavior
+ */
+ validateRuleBehavior = {
+        _validateRule: function(rule, actions, queries, conditions) {
+            console.log('validate rule');
+            var valid = true,
+                validActions = true, 
+                validQueries = true,
+                validConditions = true; 
+            for (var p in this.newRule) {
+                console.log(p);
+                if (this.newRule[p] == undefined){
+                    valid = false;
+                    break;
+                }
+            }
+            for (var i=0; i<this.newRule.actions.length; i++) {
+                validActions = this._validateActions(this.newRule.actions[i]);
+                console.log(validActions, this.newRule.actions[i].type);
+                if (!validActions)
+                    break;
+            }
+            for (var i=0; i<this.newRule.queries.length; i++) {
+                validQueries = this._validateQueries(this.newRule.queries[i]);
+                console.log(validQueries, this.newRule.queries[i]);
+                if (!validQueries)
+                    break;
+            }
+            for (var i=0; i<this.newRule.conditions.length; i++) {
+                validConditions = this._validateConditions(this.newRule.conditions[i]);
+                console.log(validConditions, this.newRule.conditions[i].type);
+                if (!validConditions)
+                    break;
+            }
+            this.set('isValidRule', valid & validActions && validQueries && validConditions);
+        },
+        _validateActions: function(action) {
+            var valid = true;
+            if (action.type == ''){
+                valid = false;
+            }
+
+            if (action.type == 'machine_action')
+                if (!action.action || !action.action.length){
+                    valid = false;
+                }
+
+            if (action.type == 'notification')
+                if ((!action.emails || !action.emails.length) && 
+                    (!action.teams || !action.teams.length) && 
+                    (!action.users || !action.users.length)){
+                    valid = false;
+                }
+
+            if (action.type == 'command')
+                if (!action.command || !action.command.length){
+                    valid = false;
+                }
+            return valid;
+        },
+        _validateQueries: function(query) {
+            var valid = true;
+            if (!query.target || !query.operator || !query.threshold || !query.aggregation)
+                valid = false
+            return valid;
+        },
+        _validateConditions: function(condition) {
+            var valid = true;
+            if (!condition.type || !condition.ids || !condition.ids.length)
+                valid = false;
+            return valid;
+        }
+    }
+</script>

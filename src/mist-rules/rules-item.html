@@ -7,6 +7,8 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
+<link rel="import" href="validate-rule-behavior.html">
+
 <dom-module id="rules-item">
     <template>
     	<style is="custom-style">
@@ -188,13 +190,13 @@
                             <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
                             <paper-spinner active$="{{sendingData}}"></paper-spinner>
                             <paper-button toggles active={{!editMode}}>cancel</paper-button>
-                            <paper-button on-tap="updateRule" class="blue" disabled$="{{!noChanges}}">update rule</paper-button>
+                            <paper-button on-tap="updateRule" class="blue" disabled$="{{disable}}">update rule</paper-button>
                         </div>
                     </rule-edit>
         </div>
         <iron-ajax id="deleteRuleRequest" contentType="application/json" handle-as="json" method="DELETE" on-request="_handleDeleteRequest" on-response="_handleDeleteResponse" on-error="_handleDeleteError" loading="{{sendingData}}"></iron-ajax>
 
-        <iron-ajax id="updateRuleRequest" url="/api/v1/rules" contentType="application/json" handle-as="xml" method="POST" on-request="_handleUpdateRequest" on-response="_handleUpdateResponse" on-error="_handleUpdateError" loading="{{sendingData}}"></iron-ajax>
+        <iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" handle-as="xml" method="POST" on-request="_handleUpdateRequest" on-response="_handleUpdateResponse" on-error="_handleUpdateError" loading="{{sendingData}}"></iron-ajax>
 
         <!-- get metrics: http://localhost/api/v1/clouds/[[cloud.id]]/machines/[[machine.id]]/metrics -->
     </template>
@@ -202,6 +204,7 @@
     <script>
         Polymer({
             is: 'rules-item',
+            behaviors: [validateRuleBehavior],
 
             properties: {
                 incidents: {
@@ -229,11 +232,7 @@
                     computed: "_computeNewRule(rule)",
                     notify: true
                 },
-                diff: {
-                    type: Object,
-                    notify: true
-                },
-                noChanges: {
+                disable: {
                     type: Boolean,
                     value: true
                 },
@@ -258,17 +257,18 @@
                     observer: '_selectedTeamsChanged'
                 },
                 teams: Array,
-                users: Array
+                users: Array,
+                isValidRule: Boolean
             },
             listeners: {
             	'iron-select':'ruleUpdates',
-            	'input':'ruleUpdates'            
+            	'input':'ruleUpdates',
+                'change':'ruleUpdates'
             },
             observers: [
             	'editModeChanged(editMode)'
             ],
-            ready: function() {
-            },
+            ready: function() {},
             _computeNewRule: function(rule){
                 var newRule = {};
                 for (var p in rule) {
@@ -278,12 +278,10 @@
                         newRule[p] = rule[p].toString().slice(0);
                     if (typeof(rule[p]) == 'number' && p == 'reminder_offset')
                         newRule[p] = (rule[p]/60+1).toString().slice(0);
-                    if (typeof(rule[p]) == 'object'){
+                    if (typeof(rule[p]) == 'object')
                         newRule[p] = rule[p];
-                    }
-                    if (typeof(rule[p]) == 'array'){
+                    if (typeof(rule[p]) == 'array')
                         newRule[p] = rule[p];
-                    }
             	}
             	return newRule;
             },
@@ -346,36 +344,50 @@
                 this.$.deleteRuleRequest.generateRequest();
             },
             updateRule: function(e){
-            	var payload = {};
-                	payload = this.newRule;
-                	payload["id"] = this.rule.id;
+                function copy(o) { // deep copy an array of objects
+                    var output, v, key;
+                    output = Array.isArray(o) ? [] : {};
+                    for (key in o) {
+                        v = o[key];
+                        output[key] = (typeof v === "object") ? copy(v) : v;
+                    }
+                    return output;
+                }
 
-                    delete payload._id;
-                    
-                    // clean up command
-                    if (payload.action != "command") {
-                        delete payload.command;
-                    }
-                    // clean up recipients
-                    if (payload.action != "alert") {
-                        delete payload.emails;
-                        delete payload.teams;
-                        delete payload.users;
-                    }
-                    //parse string to array
-                    if (this.newRule.emails && this.newRule.emails != this.rule.emails) {
-                        var emails = this.newRule.emails.split(',');
-                        payload["emails"] = [];
-                        for (var i=0; i<emails.length; i++) {
-                            payload["emails"].push(emails[i].trim());
-                        }
-                    }
-                    //patch. backend misses the value if updates dont include it
-                    payload["value"] = this.newRule.value;
-                if (payload["reminder_offset"])
-                	payload["reminder_offset"] = (payload["reminder_offset"]-1 )*60;
+                var payload = copy(this.newRule);
+                var ruleid = e.target.dataAttr;
+                delete payload.title;
+                delete payload.id;
 
-                console.log(payload);
+                payload.window.start = parseInt(payload.window.start);
+                payload['frequency']['every'] = payload.window.start;
+                payload['frequency']['period'] = payload.window.period;
+                // emails should be sent as Arrays
+                for (var i=0; i<payload.actions.length; i++){
+                    var action = payload.actions[i];
+                    // clear properties
+                    if (action.type != 'machine_action') {
+                        delete payload.actions[i].action;
+                    }
+                    else if (action.type != 'command') {
+                        delete payload.actions[i].command;
+                    }
+                    else if (action.type != 'notification') {
+                        delete payload.actions[i].teams;
+                        delete payload.actions[i].users;
+                        delete payload.actions[i].emails;
+                    }
+                    if (payload.actions[i].type == 'notification' &&
+                        payload.actions[i].emails &&
+                        payload.actions[i].emails.length &&
+                        typeof(payload.actions[i].emails) == "string"){
+                        var emails = payload.actions[i].emails.split(',');
+                            for (var j=0; j<emails.length; j++){
+                                emails[j] = emails[j].trim();
+                            }
+                        payload.actions[i].emails = emails;
+                    }
+                }
                 this.$.updateRuleRequest.body = payload;
                 this.$.updateRuleRequest.headers["Content-Type"] = 'application/json';
                 this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -386,7 +398,6 @@
             	this.set('formError', false);
             },
             _handleUpdateResponse: function(e){
-            	this.set('diff', {});
             	this.set('editMode', false);
             },
             _handleUpdateError: function(e){
@@ -410,16 +421,8 @@
                 this.set('newRule.teams', teams);
             },
             ruleUpdates: function(e){
-            	var changes = {};
-            	var count = 0;
-            	for (var p in this.newRule){
-            		if (this.rule[p] != this.newRule[p]){
-            			count ++;
-            			changes[p] = this.newRule[p];
-            		}
-            	}
-            	this.set('diff', changes);
-            	this.set('noChanges', count);
+                this._validateRule();
+            	this.set('disable', JSON.stringify(this.rule) == JSON.stringify(this.newRule) || !this.isValidRule);
             	this.set('formError', false);
             },
             editModeChanged: function(editMode) {
@@ -429,7 +432,7 @@
             },
             _showCommandTextarea: function(action){
                 return action == "command" ;
-            },            
+            },
             joinEmails: function(emails){
                 if (emails)
                     return typeof(emails)=='array' ? emails.join(', ') : emails;

@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
+<link rel="import" href="validate-rule-behavior.html">
 <link rel="import" href="rules-item.html">
 <link rel="import" href="rule-edit.html">
 
@@ -82,6 +83,7 @@
     <script>
         Polymer({
             is: 'mist-rules',
+            behaviors: [validateRuleBehavior],
 
             properties: {
                 incidents: {
@@ -219,12 +221,35 @@
                 return metrics;
             },
             addRule: function(e){
-                var payload = this.newRule;
+                function copy(o) { // deep copy an array of objects
+                    var output, v, key;
+                    output = Array.isArray(o) ? [] : {};
+                    for (key in o) {
+                        v = o[key];
+                        output[key] = (typeof v === "object") ? copy(v) : v;
+                    }
+                    return output;
+                }
+
+                var payload = copy(this.newRule);
                 payload.window.start = parseInt(payload.window.start);
                 payload['frequency']['every'] = payload.window.start;
                 payload['frequency']['period'] = payload.window.period;
                 // emails should be sent as Arrays
                 for (var i=0; i<payload.actions.length; i++){
+                    var action = payload.actions[i];
+                    // clear properties
+                    if (action.type != 'machine_action') {
+                        delete payload.actions[i].action;
+                    }
+                    else if (action.type != 'command') {
+                        delete payload.actions[i].command;
+                    }
+                    else if (action.type != 'notification') {
+                        delete payload.actions[i].teams;
+                        delete payload.actions[i].users;
+                        delete payload.actions[i].emails;
+                    }
                     if (payload.actions[i].type == 'notification' &&
                         payload.actions[i].emails &&
                         payload.actions[i].emails.length &&
@@ -234,7 +259,7 @@
                                 emails[j] = emails[j].trim();
                             }
                         payload.actions[i].emails = emails;
-                    }
+                    }                    
                 }
                 this.$.addRuleRequest.body = payload;
                 this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
@@ -264,76 +289,7 @@
                         el.set('editMode', false);
                     }
                 });
-            },
-            _validateRule: function(rule, actions, queries, conditions) {
-                console.log('validate rule');
-                var valid = true,
-                    validActions = true, 
-                    validQueries = true,
-                    validConditions = true; 
-                for (var p in this.newRule) {
-                    console.log(p);
-                    if (this.newRule[p] == undefined){
-                        valid = false;
-                        break;
-                    }
-                }
-                for (var i=0; i<this.newRule.actions.length; i++) {
-                    validActions = this._validateActions(this.newRule.actions[i]);
-                    console.log(validActions, this.newRule.actions[i].type);
-                    if (!validActions)
-                        break;
-                }
-                for (var i=0; i<this.newRule.queries.length; i++) {
-                    validQueries = this._validateQueries(this.newRule.queries[i]);
-                    console.log(validQueries, this.newRule.queries[i]);
-                    if (!validQueries)
-                        break;
-                }
-                for (var i=0; i<this.newRule.conditions.length; i++) {
-                    validConditions = this._validateConditions(this.newRule.conditions[i]);
-                    console.log(validConditions, this.newRule.conditions[i].type);
-                    if (!validConditions)
-                        break;
-                }
-                this.set('isValidRule', valid & validActions && validQueries && validConditions);
-            },
-            _validateActions: function(action) {
-                var valid = true;
-                if (action.type == ''){
-                    valid = false;
-                }
-
-                if (action.type == 'machine_action')
-                    if (!action.action || !action.action.length){
-                        valid = false;
-                    }
-
-                if (action.type == 'notification')
-                    if ((!action.emails || !action.emails.length) && 
-                        (!action.teams || !action.teams.length) && 
-                        (!action.users || !action.users.length)){
-                        valid = false;
-                    }
-
-                if (action.type == 'command')
-                    if (!action.command || !action.command.length){
-                        valid = false;
-                    }
-                return valid;
-            },
-            _validateQueries: function(query) {
-                var valid = true;
-                if (!query.target || !query.operator || !query.threshold || !query.aggregation)
-                    valid = false
-                return valid;
-            },
-            _validateConditions: function(condition) {
-                var valid = true;
-                if (!condition.type || !condition.ids || !condition.ids.length)
-                    valid = false;
-                return valid;
-            },
+            }
         });
     </script>
 </dom-module>
