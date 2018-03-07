@@ -169,7 +169,7 @@
                         <span class="monospace members"><code>[[joinResources(action.users,'members',model)]]</code></span>
                     </span>
                 </template>
-            	<paper-icon-button icon="icons:create" toggles active={{editMode}}>edit</paper-icon-button>
+                <paper-icon-button icon="icons:create" toggles active={{editMode}} hidden$="[[!canEdit]]">edit</paper-icon-button>
             </div>
             <paper-spinner active$="{{sendingData}}"></paper-spinner>
             <iron-icon icon="close" data-attr="[[rule.id]]" on-tap="deleteRule"></iron-icon>
@@ -258,7 +258,11 @@
                 },
                 teams: Array,
                 users: Array,
-                isValidRule: Boolean
+                isValidRule: Boolean,
+                canEdit: {
+                    type: Boolean,
+                    computed: '_computedCanEdit(rule)'
+                }
             },
             listeners: {
             	'iron-select':'ruleUpdates',
@@ -269,6 +273,9 @@
             	'editModeChanged(editMode)'
             ],
             ready: function() {},
+            _computedCanEdit: function(rule) {
+                return this.rule && this.rule.conditions.filter(function(c){return c.type == "machines" && c.ids.length > 1}).length == 0;
+            },
             _computeNewRule: function(rule){
                 var newRule = {};
                 for (var p in rule) {
