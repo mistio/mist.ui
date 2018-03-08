@@ -15,32 +15,24 @@
     <app-route route="{{route}}" pattern="/:cloud" data="{{data}}"></app-route>
 
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list 
-        apiurl="/api/v1/clouds"
-        selectable resizable column-menu multi-sort 
-        items="[[model.cloudsArray]]" 
-        selected-items="{{selectedItems}}"
-        hidden$=[[!_isListActive(route.path)]]
-        frozen=[[_getFrozenLogColumn()]]
-        visible=[[_getVisibleColumns()]]>
-          <p slot="no-items-found">No clouds found.</p>
+      <mist-list apiurl="/api/v1/clouds" selectable resizable column-menu multi-sort items="[[model.cloudsArray]]" selected-items="{{selectedItems}}"
+        hidden$=[[!_isListActive(route.path)]] frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]>
+        <p slot="no-items-found">No clouds found.</p>
       </mist-list>
     </template>
-    <cloud-add product="product" providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]" enable-monitoring="[[enableMonitoring]]" hidden$=[[!_isAddPageActive(route.path)]]></cloud-add>
-    <cloud-page model="[[model]]" cloud="[[cloud]]" resource-id="[[data.cloud]]" section="[[model.sections.clouds]]"
-      hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
+    <cloud-add providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]"
+      enable-monitoring="[[enableMonitoring]]" hidden$=[[!_isAddPageActive(route.path)]] portal-name=[[portalName]]></cloud-add>
+    <cloud-page model="[[model]]" cloud="[[cloud]]" resource-id="[[data.cloud]]" section="[[model.sections.clouds]]" hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
 
   </template>
 
   <script>
     Polymer({
-
       is: 'page-clouds',
 
       properties: {
         model: Object,
         data: Object,
-        product: Object,
         selectedItems: Array,
         enableMonitoring: Boolean,
         providers: {
@@ -56,12 +48,12 @@
       attached: function () {
 
       },
-      _getFrozenLogColumn: function() {
-          return ['title'];
+      _getFrozenLogColumn: function () {
+        return ['title'];
       },
 
-      _getVisibleColumns: function(){
-          return ['title', 'id', 'provider'];
+      _getVisibleColumns: function () {
+        return ['title', 'id', 'provider'];
       },
 
       _isAddPageActive: function (path) {

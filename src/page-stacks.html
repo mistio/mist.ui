@@ -10,143 +10,134 @@
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-stacks">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-      mist-list::content .error {
-        color: var(--red-color);
-      }
-    </style>
-    <app-route route="{{route}}"
-                pattern="/:stack"
-                data="{{data}}"></app-route>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list id="stacksList"
-            selectable resizable column-menu multi-sort
-            apiurl="/api/v1/stacks"
-            items="[[model.stacksArray]]"
-            name="Stacks"
-            selected-items="{{selectedItems}}"
-            filtered-items-length="{{filteredItemsLength}}"
-            combined-filter={{combinedFilter}}
-            frozen=[[_getFrozenLogColumn()]]
-            visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.stacks,model.templates)]]
-            route={{route}}
-            user-filter=[[model.sections.stacks.q]]
-            primary-field-name="id">
-            <mist-actions slot="action-buttons" actions="[[actions]]" type="stack" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-            <stack-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></stack-actions>
-            <p slot="no-items-found">No stacks found.</p>
-      </mist-list>
-      <div class="absolute-bottom-right">
-          <paper-fab id="stackAdd" icon="add" on-tap="_addResource"></paper-fab>
-      </div>
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            mist-list::content .error {
+                color: var(--red-color);
+            }
+        </style>
+        <app-route route="{{route}}" pattern="/:stack" data="{{data}}"></app-route>
+        <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+            <mist-list id="stacksList" selectable resizable column-menu multi-sort apiurl="/api/v1/stacks" items="[[model.stacksArray]]"
+                name="Stacks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.stacks,model.templates)]]
+                route={{route}} user-filter=[[model.sections.stacks.q]] primary-field-name="id">
+                <mist-actions slot="action-buttons" actions="[[actions]]" type="stack" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                <stack-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></stack-actions>
+                <p slot="no-items-found">No stacks found.</p>
+            </mist-list>
+            <div class="absolute-bottom-right">
+                <paper-fab id="stackAdd" icon="add" on-tap="_addResource"></paper-fab>
+            </div>
+        </template>
+        <stack-create model="[[model]]" section="[[model.sections.stacks]]" params="[[route.__queryParams]]" hidden$=[[!_isAddPageActive(route.path)]]></stack-create>
+        <stack-page model="[[model]]" stack$="[[_getStack(data.stack, model.stacks)]]" resource-id="[[data.stack]]" section="[[model.sections.stacks]]"
+            hidden$=[[!_isDetailsPageActive(route.path)]]></stack-page>
     </template>
-    <stack-create product="product" model="[[model]]" section="[[model.sections.stacks]]" params="[[route.__queryParams]]" hidden$=[[!_isAddPageActive(route.path)]]></stack-create>
-    <stack-page model="[[model]]" stack$="[[_getStack(data.stack, model.stacks)]]" resource-id="[[data.stack]]"  section="[[model.sections.stacks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></stack-page>
-  </template>
 
-  <script>
-    Polymer({
+    <script>
+        Polymer({
+            is: 'page-stacks',
+            behaviors: [
+                mistListsBehavior
+            ],
 
-      is: 'page-stacks',
-      behaviors: [
-        mistListsBehavior
-      ],
+            properties: {
+                model: Object,
+                actions: {
+                    type: Array,
+                    notify: true
+                },
+                selectedItems: {
+                    type: Array,
+                    notify: true
+                }
+            },
 
-      properties: {
-        model: Object,
-        product: Object,
-        actions: {
-            type: Array,
-            notify: true
-        },
-        selectedItems: {
-          type: Array,
-          notify: true
-        }
-      },
+            listeners: {
+                'select-action': 'selectAction',
+            },
+            _isAddPageActive: function (path) {
+                return path.split('?')[0] == '/+create';
+            },
+            _isDetailsPageActive: function (path) {
+                if (path && path.split('?')[0] != '/+create' && this.querySelector('stack-page'))
+                    this.querySelector('stack-page').updateState();
+                return path && path.split('?')[0] != '/+create';
+            },
+            _isListActive: function (path) {
+                return !path;
+            },
+            _getStack: function (id) {
+                if (this.model.stacks)
+                    return this.model.stacks[id];
+            },
+            _addResource: function (e) {
+                this.fire('go-to', {
+                    url: this.model.sections.stacks.add
+                });
+            },
+            _getFrozenLogColumn: function () {
+                return ['name'];
+            },
 
-      listeners: {
-        'select-action': 'selectAction',
-      },
-      _isAddPageActive: function(path) {
-          return path.split('?')[0] == '/+create';
-      },
-      _isDetailsPageActive: function(path) {
-          if (path && path.split('?')[0] != '/+create' && this.querySelector('stack-page'))
-              this.querySelector('stack-page').updateState();
-          return path && path.split('?')[0] != '/+create';
-      },
-      _isListActive: function(path) {
-          return !path;
-      },
-      _getStack: function(id) {
-          if (this.model.stacks)
-              return this.model.stacks[id];
-      },
-      _addResource: function(e) {
-          this.fire('go-to', {url: this.model.sections.stacks.add});
-      },
-      _getFrozenLogColumn: function(){
-          return ['name'];
-      },
+            _getVisibleColumns: function () {
+                return ['template', 'status', 'tags'];
+            },
 
-      _getVisibleColumns: function(){
-          return ['template', 'status', 'tags'];
-      },
-
-      _getRenderers: function(stacks, templates) {
-          var _this = this;
-          return {
-              'name': {
-                  'body': function(item, row) {
-                      return '<strong class="name">'+ item + '</strong>';
-                  }
-              },
-              'template': {
-                  'body': function(item, row) {
-                      if (_this.model && _this.model.templates)
-                        return  _this.model.templates[item] ? _this.model.templates[item].name : 'missing template';
-                      else
-                        return '';
-                  }
-              },
-              'status': {
-                  'body': function(item, row) {
-                      if (item == "error"){
-                        return "<span class='error'>"+item.charAt(0).toUpperCase() + item.slice(1);+"</span>";
-                      }
-                      else {
-                        return item ? item.replace(/_/g, " ") : '';
-                      }
-                  }
-              },
-              'tags': {
-                  'body': function(item, row) {
-                    var tags = item,
-                        display = "";
-                    for (var i=0; i<tags.length; i++){
-                      display += "<span class='tag'>"+tags[i].key;
-                      if (tags[i].value != undefined && tags[i].value != "")
-                        display += "=" + tags[i].value;
-                      display += "</span>";
+            _getRenderers: function (stacks, templates) {
+                var _this = this;
+                return {
+                    'name': {
+                        'body': function (item, row) {
+                            return '<strong class="name">' + item + '</strong>';
+                        }
+                    },
+                    'template': {
+                        'body': function (item, row) {
+                            if (_this.model && _this.model.templates)
+                                return _this.model.templates[item] ? _this.model.templates[item].name :
+                                    'missing template';
+                            else
+                                return '';
+                        }
+                    },
+                    'status': {
+                        'body': function (item, row) {
+                            if (item == "error") {
+                                return "<span class='error'>" + item.charAt(0).toUpperCase() + item.slice(
+                                    1); + "</span>";
+                            } else {
+                                return item ? item.replace(/_/g, " ") : '';
+                            }
+                        }
+                    },
+                    'tags': {
+                        'body': function (item, row) {
+                            var tags = item,
+                                display = "";
+                            for (var i = 0; i < tags.length; i++) {
+                                display += "<span class='tag'>" + tags[i].key;
+                                if (tags[i].value != undefined && tags[i].value != "")
+                                    display += "=" + tags[i].value;
+                                display += "</span>";
+                            }
+                            return display;
+                        }
                     }
-                    return display;
-                  }
-              }
-          }
-      },
-      // redirect events
-      selectAction: function(e) {
-          e.stopImmediatePropagation();
-          if (this.querySelector('stack-actions')) {
-            this.querySelector('stack-actions').selectAction(e);
-          }
-      }
-    });
-  </script>
+                }
+            },
+            // redirect events
+            selectAction: function (e) {
+                e.stopImmediatePropagation();
+                if (this.querySelector('stack-actions')) {
+                    this.querySelector('stack-actions').selectAction(e);
+                }
+            }
+        });
+    </script>
 </dom-module>

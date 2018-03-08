@@ -12,40 +12,30 @@
 <dom-module id="page-schedules">
   <template>
     <style include="shared-styles">
-       :host {
+      :host {
         display: block;
       }
     </style>
     <app-route route="{{route}}" pattern="/:schedule" data="{{data}}"></app-route>
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list id="schedulesList"
-            selectable resizable column-menu multi-sort
-            apiurl="/api/v1/schedules"
-            items="[[model.schedulesArray]]"
-            name="Schedules"
-            selected-items="{{selectedItems}}"
-            filtered-items-length="{{filteredItemsLength}}"
-            combined-filter={{combinedFilter}}
-            frozen=[[_getFrozenLogColumn()]]
-            visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.schedules)]]
-            route={{route}}
-            user-filter=[[model.sections.schedules.q]]
-            primary-field-name="id">
-            <mist-actions slot="action-buttons" actions="[[actions]]" type="schedule" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-            <schedule-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></schedule-actions>
-            <p slot="no-items-found">No schedules found.</p>
+      <mist-list id="schedulesList" selectable resizable column-menu multi-sort apiurl="/api/v1/schedules" items="[[model.schedulesArray]]"
+        name="Schedules" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
+        frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.schedules)]] route={{route}}
+        user-filter=[[model.sections.schedules.q]] primary-field-name="id">
+        <mist-actions slot="action-buttons" actions="[[actions]]" type="schedule" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+        <schedule-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></schedule-actions>
+        <p slot="no-items-found">No schedules found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
-          <paper-fab id="scheduleAdd" icon="add" on-tap="_addResource"></paper-fab>
+        <paper-fab id="scheduleAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
     </template>
-    <schedule-add product="[[product]]" model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]]></schedule-add>
-    <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules)]]" resource-id="[[data.schedule]]" section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]]></schedule-page>
+    <schedule-add model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]]></schedule-add>
+    <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules)]]" resource-id="[[data.schedule]]"
+      section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]]></schedule-page>
   </template>
   <script>
     Polymer({
-
       is: 'page-schedules',
       behaviors: [
         mistListsBehavior
@@ -53,10 +43,9 @@
 
       properties: {
         model: Object,
-        product: Object,
         actions: {
-            type: Array,
-            notify: true
+          type: Array,
+          notify: true
         },
         selectedItems: {
           type: Array,
@@ -71,7 +60,7 @@
       },
       _isDetailsPageActive: function (path) {
         if (path && path != '/+add' && this.querySelector('schedule-page'))
-            this.querySelector('schedule-page').updateState();
+          this.querySelector('schedule-page').updateState();
         return path && path != '/+add';
       },
       _isListActive: function (path) {
@@ -81,133 +70,131 @@
         if (this.model.schedules)
           return this.model.schedules[id];
       },
-      _addResource: function(e) {
-          this.fire('go-to', {url: this.model.sections.schedules.add});
+      _addResource: function (e) {
+        this.fire('go-to', {
+          url: this.model.sections.schedules.add
+        });
       },
-      _getFrozenLogColumn: function(){
+      _getFrozenLogColumn: function () {
         return ['name'];
       },
 
-      _getVisibleColumns: function(){
+      _getVisibleColumns: function () {
         return ['task_type', 'schedule', 'conditions', 'total_run_count', 'tags'];
       },
 
-      _getRenderers: function(schedules) {
+      _getRenderers: function (schedules) {
         var _this = this;
         return {
-            'name': {
-              'body': function(item, row) {
-                return '<strong class="name">'+ item + '</strong>';
+          'name': {
+            'body': function (item, row) {
+              return '<strong class="name">' + item + '</strong>';
+            }
+          },
+          'task_type': {
+            'title': function (item, row) {
+              return 'task';
+            },
+            'body': function (item, row) {
+              if (item.startsWith("Action"))
+                return item.replace("Action: ", "").toUpperCase();
+              else if (item.startsWith("Run")) {
+                var scriptId = item.replace("Run script: ", ""),
+                  scriptName = _this.model.scripts[scriptId] ? _this.model.scripts[scriptId].name :
+                  "missing script";
+                return item.replace("Run script:", "RUN").replace(scriptId, scriptName);
               }
-            },
-            'task_type': {
-                'title': function(item, row) {
-                  return 'task';
-                },
-                'body': function(item, row) {
-                  if (item.startsWith("Action"))
-                    return item.replace("Action: ", "").toUpperCase();
-                  else if (item.startsWith("Run")) {
-                    var scriptId = item.replace("Run script: ", ""),
-                        scriptName = _this.model.scripts[scriptId] ? _this.model.scripts[scriptId].name : "missing script";
-                    return item.replace("Run script:", "RUN").replace(scriptId, scriptName);
+            }
+          },
+          'tags': {
+            'body': function (item, row) {
+              var tags = item,
+                display = "";
+              for (var i = 0; i < tags.length; i++) {
+                display += "<span class='tag'>" + tags[i].key;
+                if (tags[i].value != undefined && tags[i].value != "")
+                  display += "=" + tags[i].value;
+                display += "</span>";
+              }
+              return display;
+            }
+          },
+          'schedule': {
+            'body': function (item, row) {
+              if (item.startsWith("Interval")) {
+                return item.replace("Interval ", "")
+              } else if (item.startsWith("OneOff")) {
+                var isValid = moment().isValid(item.replace("OneOff date to run ", ""));
+                var time;
+                if (isValid)
+                  time = moment(item.replace("OneOff date to run ", "")).local().fromNow();
+                return time ? time : item;
+              } else if (item.startsWith("Crontab")) {
+                return item.replace("Crontab ", "").replace("(m/h/d/dM/MY)", "");
+              } else
+                return item;
+            }
+          },
+          'conditions': {
+            'body': function (item, row) {
+              var conditions = item;
+              var display = '';
+
+              for (var i = 0; i < conditions.length; i++) {
+                var missingLength = 0;
+                if (i == conditions.length - 1 && i > 0)
+                  display += "and ";
+                if (conditions[i].type == "machines" && conditions[i].ids.length > 0 && _this.model.machines) {
+                  display += "on ";
+                  for (var j = 0; j < conditions[i].ids.length; j++) {
+                    if (_this.model.machines[conditions[i].ids[j]]) {
+                      if (j == conditions[i].ids.length - 1 && j > 0 && !missingLength)
+                        display += "and ";
+                      display += _this.model.machines[conditions[i].ids[j]].name;
+                      if (j < conditions[i].ids.length - 2)
+                        display += ",";
+                      display += " ";
+                    } else {
+                      missingLength++;
+                    }
                   }
-                }
-            },
-            'tags': {
-                'body': function(item, row) {
-                  var tags = item,
-                      display = "";
-                  for (var i=0; i<tags.length; i++){
-                    display += "<span class='tag'>"+tags[i].key;
-                    if (tags[i].value != undefined && tags[i].value != "")
-                      display += "=" + tags[i].value;
+                  if (missingLength) {
+                    if (missingLength < conditions[i].ids.length)
+                      display += " and "
+                    display += missingLength + " missing machine"
+                    if (missingLength > 1)
+                      display += "s "
+                    else
+                      display += " "
+                  }
+                } else if (conditions[i].type == "tags") {
+                  display += "on tags ";
+                  for (var p in conditions[i].tags) {
+                    display += "<span class='tag'>" + p;
+                    if (conditions[i].tags.p != undefined && conditions[i].tags.p != "")
+                      display += "=" + conditions[i].tags.p;
                     display += "</span>";
                   }
-                  return display;
                 }
-            },
-            'schedule': {
-                'body': function(item, row) {
-                  if (item.startsWith("Interval")){
-                    return item.replace("Interval ", "")
-                  }
-                  else if (item.startsWith("OneOff")) {
-                    var isValid = moment().isValid(item.replace("OneOff date to run ",""));
-                    var time;
-                    if (isValid) 
-                      time = moment(item.replace("OneOff date to run ","")).local().fromNow();
-                    return time ? time : item;
-                  }
-                  else if (item.startsWith("Crontab")) {
-                    return item.replace("Crontab ", "").replace("(m/h/d/dM/MY)", "");
-                  }
-                  else
-                    return item;
-                }
-            },
-            'conditions': {
-                'body': function(item, row) {
-                  var conditions = item;
-                  var display = '';
+                if (conditions[i].type == "age")
+                  display += "older than " + conditions[i].minutes + "min ";
+                else if (conditions[i].type == "field" && conditions[i].field == "cost__monthly")
+                  display += "cost more than $" + conditions[i].value + "/month ";
+                else if (conditions[i].type == "field")
+                  display += conditions[i].field + " " + conditions[i].value + " ";
+              }
 
-                  for (var i=0; i<conditions.length; i++){
-                    var missingLength = 0; 
-                    if (i == conditions.length-1 && i > 0)
-                      display += "and ";
-                    if (conditions[i].type == "machines" && conditions[i].ids.length > 0 && _this.model.machines) {
-                      display += "on ";
-                      for (var j=0; j<conditions[i].ids.length; j++){
-                        if (_this.model.machines[conditions[i].ids[j]]) {
-                          if (j == conditions[i].ids.length-1 && j > 0 && !missingLength)
-                            display += "and ";
-                          display += _this.model.machines[conditions[i].ids[j]].name;
-                          if (j < conditions[i].ids.length-2)
-                            display += ",";
-                          display += " ";
-                        }
-                        else {
-                          missingLength ++;
-                        }
-                      }
-                      if (missingLength){
-                        if (missingLength < conditions[i].ids.length)
-                          display += " and "
-                        display += missingLength + " missing machine"
-                        if (missingLength > 1)
-                          display += "s "
-                        else
-                          display += " "
-                      }
-                    }
-                    else if (conditions[i].type == "tags") {
-                      display += "on tags ";
-                      for (var p in conditions[i].tags) {
-                        display += "<span class='tag'>"+p;
-                        if (conditions[i].tags.p != undefined && conditions[i].tags.p != "")
-                          display += "=" + conditions[i].tags.p;
-                        display += "</span>";
-                      }
-                    }
-                    if (conditions[i].type == "age") 
-                      display += "older than " + conditions[i].minutes+"min ";
-                    else if (conditions[i].type == "field" && conditions[i].field == "cost__monthly")
-                      display += "cost more than $" + conditions[i].value+"/month ";
-                    else if (conditions[i].type == "field")
-                      display += conditions[i].field + " " + conditions[i].value +" ";
-                  }
-                  
-                  return display;
-                }
+              return display;
             }
           }
+        }
       },
       // redirect events
-      selectAction: function(e) {
-          e.stopImmediatePropagation();
-          if (this.querySelector('schedule-actions')) {
-            this.querySelector('schedule-actions').selectAction(e);
-          }
+      selectAction: function (e) {
+        e.stopImmediatePropagation();
+        if (this.querySelector('schedule-actions')) {
+          this.querySelector('schedule-actions').selectAction(e);
+        }
       }
 
     });
