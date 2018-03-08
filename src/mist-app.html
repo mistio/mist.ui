@@ -141,32 +141,32 @@
     <paper-header-panel mode="standard" class="fit">
         <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
         <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-        <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" product="[[product]]"></mist-header>
+        <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" portal-name="[[config.portal_name]]" docs-uri="[[config.features.docs]]" support-uri="[[config.features.support]]"></mist-header>
         <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
         <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
           <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
-          <page-clouds product="[[product]]" name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[enableMonitoring]]"></page-clouds>
-          <page-machines product="[[product]]" name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[enableMonitoring]]></page-machines>
+          <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]"></page-clouds>
+          <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]]></page-machines>
           <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
-          <page-keys product="[[product]]" name="keys" route="{{subroute}}" model="[[model]]"></page-keys>
-          <page-networks product="[[product]]"  name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
-          <page-zones product="[[product]]" name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
-          <template is="dom-if" if="[[enableTunnels]]">
-            <page-tunnels product="[[product]]" name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
+          <page-keys name="keys" route="{{subroute}}" model="[[model]]"></page-keys>
+          <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
+          <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
+          <template is="dom-if" if="[[config.features.tunnels]]">
+            <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
           </template>
-          <page-scripts product="[[product]]" name="scripts" route="{{subroute}}" model="[[model]]"></page-scripts>
-          <page-schedules product="[[product]]"  name="schedules" route="{{subroute}}" model="[[model]]"></page-schedules>
-          <template is="dom-if" if="[[enableOrchestration]]">
-            <page-templates product="[[product]]" name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
-            <page-stacks product="[[product]]" name="stacks" route="{{subroute}}" model="[[model]]"></page-stacks>
+          <page-scripts name="scripts" route="{{subroute}}" model="[[model]]"></page-scripts>
+          <page-schedules name="schedules" route="{{subroute}}" model="[[model]]"></page-schedules>
+          <template is="dom-if" if="[[config.features.orchestration]]">
+            <page-templates name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
+            <page-stacks name="stacks" route="{{subroute}}" model="[[model]]"></page-stacks>
           </template>
-          <page-teams product="[[product]]" name="teams" route="{{subroute}}" model="[[model]]" rbac=[[enableRbac]] billing=[[enableBilling]] product="[[product]]"></page-teams>
+          <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac=[[config.features.rbac]] billing=[[config.features.billing]] cta=[[config.cta.rbac]] email=[[config.email]]></page-teams>
           <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
           <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
-          <template is="dom-if" if="[[enableInsights]]">
-            <page-insights name="insights" route="{{subroute}}" model="[[model]]" product="[[product]]"></page-insights>
+          <template is="dom-if" if="[[config.features.insights]]">
+            <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]"></page-insights>
           </template>
-          <page-my-account name="my-account" route="{{subroute}}" billing=[[enableBilling]] user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" enable-monitoring="[[enableMonitoring]]" product="[[product]]"></page-my-account>
+          <page-my-account name="my-account" route="{{subroute}}" user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" config="[[config]]"></page-my-account>
           <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
         </iron-pages>
         <paper-toast id="mist-toast"></paper-toast>
@@ -175,13 +175,6 @@
     <mist-socket model="{{model}}"></mist-socket>
 
     <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
-
-    <span id="productName" class="product-name" hidden></span>
-    <span id="infoEmail" class="info-email" hidden></span>
-    <span id="supportEmail" class="support-email" hidden></span>
-    <span id="salesEmail" class="sales-email" hidden></span>
-    <span id="saasUrl" class="saas-url" hidden></span>
-    <span id="docsLinks" class="docs-links" hidden></span>
 
   </template>
 
@@ -249,49 +242,8 @@
                 value: true
             },
 
-            enableRbac: {
-                type: Boolean,
-                value: false
-            },
-
-            enableTunnels: {
-                type: Boolean,
-                value: false
-            },
-
-            enableInsights: {
-                type: Boolean,
-                value: false
-            },
-
-            enableOrchestration: {
-                type: Boolean,
-                value: false
-            },
-
-            enableInsights: {
-                type: Boolean,
-                value: false
-            },
-
-            enableAb: {
-                type: Boolean,
-                value: false
-            },
-
-            enableBilling: {
-                type: Boolean,
-                value: false
-            },
-
-            enableMonitoring: {
-                type: Boolean,
-                value: false
-            },
             count: Number,
-            product: {
-                type: Object
-            }
+            config: Object
         },
 
         listeners: {
@@ -314,28 +266,11 @@
 
         observers: [
             '_routePageChanged(routeData.page, subroute.path)',
-            '_sizeChanged(smallscreen)'
+            '_sizeChanged(smallscreen)',
+            '_configUpdated(config)'
         ],
 
         attached: function() {
-            this.async(function(){
-                var name = window.getComputedStyle(this.querySelector('#productName'),':after').getPropertyValue('content').replace(/"/g,'');
-                var info = window.getComputedStyle(this.querySelector('#infoEmail'),':after').getPropertyValue('content').replace(/"/g,'');
-                var sales = window.getComputedStyle(this.querySelector('#salesEmail'),':after').getPropertyValue('content').replace(/"/g,'');
-                var support = window.getComputedStyle(this.querySelector('#supportEmail'),':after').getPropertyValue('content').replace(/"/g,'');
-                var saas = window.getComputedStyle(this.querySelector('#saasUrl'),':after').getPropertyValue('content').replace(/"/g,'');
-                var docs = window.getComputedStyle(this.querySelector('#docsLinks'),':after').getPropertyValue('content').replace(/"/g,'');
-
-                var product = {
-                    name: name,
-                    info: info,
-                    support: support,
-                    sales: sales,
-                    saas: saas,
-                    docs: docs
-                }
-                this.set('product', product);
-            }.bind(this),1000);
         },
 
         _sizeChanged: function(smallscreen) {
@@ -516,6 +451,11 @@
         },
 
         ready: function () {
+
+        },
+
+        _configUpdated: function(config) {
+            console.log('Config updated');
             var model = {
                 cloudsArray: [],
                 machinesArray: [],
@@ -696,8 +636,8 @@
                 id: 'stacks',
                 color: '#0277BD',
                 icon: 'maps:layers',
-                sidebar: this.enableOrchestration,
-                tile: this.enableOrchestration,
+                sidebar: this.config.features.orchestration,
+                tile: this.config.features.orchestration,
                 count: 0,
                 hideZero: true
             }, {
@@ -747,15 +687,15 @@
                 add: '/scripts/+add',
                 sidebar: true,
                 tile: true,
-                hr: !this.enableOrchestration,
+                hr: !this.config.features.orchestration,
                 count: 0
             }, {
                 id: 'templates',
                 color: '#0097A7',
                 icon: 'av:art-track',
                 add: '/templates/+add',
-                sidebar: this.enableOrchestration,
-                tile: this.enableOrchestration,
+                sidebar: this.config.features.orchestration,
+                tile: this.config.features.orchestration,
                 hr: true,
                 count: 0
             }, {
@@ -763,7 +703,7 @@
                 color: '#795548',
                 icon: 'editor:merge-type',
                 add: '/tunnels/+add',
-                sidebar: this.enableTunnels,
+                sidebar: this.config.features.tunnels,
                 tile: false,
                 count: 0
             }, {
@@ -781,7 +721,7 @@
                 sidebar: true,
                 tile: true,
                 count: 0,
-                hr: this.enableInsights
+                hr: this.config.features.insights
             }, {
                 id: 'my-account',
                 color: '#2F2F3E',
@@ -801,7 +741,7 @@
                 id: 'insights',
                 color: '#2F2F3E',
                 icon: 'icons:trending-up',
-                sidebar: this.enableInsights,
+                sidebar: this.config.features.insights,
                 tile: false
             }];
 
@@ -817,7 +757,7 @@
                     'event_category': 'ui'
                 });
             }
-            if (!this.enableAb)
+            if (!this.config.features.ab)
                 return;
             var xhr = new XMLHttpRequest();
             if (!this.fingerprint) {
