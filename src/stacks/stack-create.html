@@ -116,10 +116,6 @@
                 section: {
                     type: Object
                 },
-                color: {
-                    type: String,
-                    computed: '_getHeaderStyle(section)'
-                },
                 stack: {
                     type: Object
                 },
@@ -140,20 +136,16 @@
                     notify: true
                 },
                 keys: {
-                    type: Array,
-                    computed: "_keys(model)"
+                    type: Array
                 },
                 clouds: {
-                    type: Array,
-                    computed: "_clouds(model)"
+                    type: Array
                 },
                 images: {
-                    type: Array,
-                    computed: "_images(model)"
+                    type: Array
                 },
                 uri: {
-                    type: String,
-                    computed: "_uri(model)"
+                    type: String
                 },
                 yaml_inputs: {
                     type: String,
@@ -310,6 +302,18 @@
                                 }
                             }
 
+                            // make network dropdown & dependent on cloud
+                            if (inp.name.startsWith("mist_networks")) {
+                                var xid = inp.name.split("mist_networks")[1];
+                                inp.show = false;
+                                inp.type = 'mist_dropdown';
+                                inp.helptext = 'Select network';
+                                inp.showIf = {
+                                    fieldName: "mist_cloud" + xid,
+                                    fieldExists: true
+                                }
+                            }
+
                             // make image location & dependent on cloud
                             if (inp.name.startsWith("mist_location")) {
                                 var xid = inp.name.split("mist_location")[1];
@@ -445,6 +449,15 @@
                                 var cloudId = fieldCloud.value;
                                 if (this.model && cloudId)
                                     inp.options = this.model.clouds[cloudId].imagesArray;
+                            }
+                            if (inp.name.startsWith("mist_networks")) {
+                                var xid = inp.name.split("mist_networks")[0];
+                                fieldCloud = this.fields.find(function(f) {
+                                    return f.name.startsWith("mist_cloud" + xid);
+                                }) || cloud;
+                                var cloudId = fieldCloud.value;
+                                if (this.model && cloudId)
+                                    inp.options = this.model.clouds[cloudId].networksArray;
                             }
                             if (inp.name.startsWith("mist_size")) {
                                 console.warn('mist_size');
