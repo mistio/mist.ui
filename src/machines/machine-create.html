@@ -126,7 +126,7 @@
                 </div>
                 <div hidden$=[[!selectedCloud]]>
                     <app-form id="createForm" fields="{{machineFields}}" method="POST" url="/api/v1/clouds/[[selectedCloud]]/machines" on-response="_machineCreateResponse"
-                        on-error="_machineCreateError" btncontent="Launch"></app-form>
+                        on-error="_machineCreateError" btncontent="Launch" no-fields-text="[[noFieldsText]]"></app-form>
                 </div>
             </paper-material>
         </div>
@@ -226,6 +226,7 @@
                     type: Array,
                     computed: '_computeActions(model.machinesArray)'
                 },
+                noFieldsText: String
             },
             observers: [
                 '_cloudChanged(selectedCloud)',
@@ -310,8 +311,15 @@
                 // add cloud fields
                 if (machineFields.fields)
                     this.set('machineFields', machineFields.fields);
+
                 // set values by provider
-                this._updateFields(selectedCloud);
+                if (this.machineFields)
+                    this._updateFields(selectedCloud);
+                else {
+                    if (machineFields.noFieldsText) {
+                        this.set('noFieldsText', machineFields.noFieldsText);
+                    }
+                }
             },
             _resetForm: function () {
                 // Reset Form Fields
