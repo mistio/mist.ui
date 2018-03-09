@@ -237,7 +237,9 @@
                 // 'iron-select': '_updateFields',
                 'add-input': 'addInput'
             },
-            ready: function () {},
+            ready: function () {
+
+            },
             _prefillOptions: function (location) {
                 if (this.querySelector('app-location').queryParams)
                     var image = this.querySelector('app-location').queryParams.image,
@@ -287,6 +289,15 @@
                 }
             },
             _cloudChanged: function (selectedCloud) {
+                if (!this.docs && this.machinesFields) {
+                    for (var i=0; i < this.machinesFields.length; i++) {
+                        if (this.machinesFields[i].fields) {
+                            for (var j=0; j < this.machinesFields[i].fields.length; j++) {
+                                this.machinesFields[i].fields[j].helpHref = '';
+                            }
+                        }
+                    }
+                }
                 // clear to reset
                 this.set('machineFields', []);
                 var machineFields = [];
@@ -922,8 +933,9 @@
                 //change key helptexts
                 this.set('machineFields.' + keyInd + '.helptext',
                     "Αn ssh key to deploy if using a cloudinit based Linux image");
-                this.set('machineFields.' + keyInd + '.helpHref',
-                    "http://docs.mist.io/article/99-managing-kvm-with-mist-io");
+                if (this.docs)
+                    this.set('machineFields.' + keyInd + '.helpHref',
+                        "http://docs.mist.io/article/99-managing-kvm-with-mist-io");
 
                 //fill in disk path using images_location
                 this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]

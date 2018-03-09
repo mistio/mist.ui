@@ -137,7 +137,7 @@
                 <paper-input class="xs12 l6" id="lastName" label="Last Name" required error-message="Please enter your last name" value="{{lastName}}" auto-validate></paper-input>
 
                 <paper-input class="xs12 l6" id="email" label="Email *" required error-message="Please enter your email" value="[[user.email]]" auto-validate disabled></paper-input>
-                <p class="xs12 l12">* Currently you cannot change your account's email for security reasons. Please contact us at <a href="mailto:support@mist.io">support@mist.io</a>, if you wish to do so.</p>
+                <p class="xs12 l12">* Currently you cannot change your account's email for security reasons. Please contact us at <a href$="mailto:[[email.support]]">[[email.support]]</a>, if you wish to do so.</p>
 
                 <div class="progress">
                     <paper-progress id="userProgress" indeterminate hidden$="[[!loadingUser]]"></paper-progress>
@@ -166,9 +166,9 @@
                 </div>
                 <paper-input class="dropdown-block xs12 l6" id="orgName" label="Organization Name" required error-message="Please enter your company's name" value="{{orgName}}" auto-validate disabled$="[[!org.is_owner]]"></paper-input>
 
-                <paper-textarea class="xs12 l6" id="org-email" label="Organisation Alert Email *" error-message="Please enter your email" value="{{orgAlertEmails}}" auto-validate hidden$="[[!enableMonitoring]]"></paper-textarea>
+                <paper-textarea class="xs12 l6" id="org-email" label="Organisation Alert Email *" error-message="Please enter your email" value="{{orgAlertEmails}}" auto-validate hidden$="[[!config.features.monitoring]]"></paper-textarea>
 
-                <p class="xs12 l12" hidden$="[[!enableMonitoring]]">* In your organisation's alert email, you can specify the email you want your incidents' alerts to be sent to. This can be overriden when you add rules in your monitored machines.</p>
+                <p class="xs12 l12" hidden$="[[!config.features.monitoring]]">* In your organisation's alert email, you can specify the email you want your incidents' alerts to be sent to. This can be overriden when you add rules in your monitored machines.</p>
 
                 <div class="xs12 head">
                     <div hidden$="[[!org.avatar]]" class="existing-org-logo">
@@ -186,7 +186,7 @@
                             Enable custom logo.
                         </paper-toggle-button>
                         <div hidden$="[[!customLogo]]">
-                            <p class="xs12 l12">Upload an image that will override the default mist.io logo</p>
+                            <p class="xs12 l12">Upload an image that will override the default logo</p>
                             <vaadin-upload id="orgAvatarUpload" max-files="1" accept="image/png" max-file-size="262144"
                                 headers="[[_computeUploadHeaders()]]"
                                 target="/api/v1/avatars">
@@ -201,12 +201,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="xs12" hidden$="[[!enableMonitoring]]">
+                <div class="xs12" hidden$="[[!config.features.r12ns]]">
                     <div hidden$="[[!org.is_owner]]">
                         <paper-toggle-button checked="{{enableR12ns}}">
                             Enable Recommendations
                         </paper-toggle-button>
-                        <p>Allow Mist.io to offer cost and performance recommendations for your monitored infrastructure.</p>
+                        <p>Generate cost and performance recommendations for your monitored infrastructure.</p>
                     </div>
                 </div>
 
@@ -246,6 +246,7 @@
                 is: 'details-page',
 
                 properties: {
+                    config: Object,
                     org: {
                         type: Object
                     },
@@ -263,9 +264,6 @@
                     },
                     orgAlertEmails: {
                         type: String
-                    },
-                    enableMonitoring: {
-                        type: Boolean
                     },
                     userFormReady: {
                         type: Boolean,
