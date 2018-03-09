@@ -230,9 +230,9 @@ MACHINE_CREATE_FIELDS.push({
     fields: []
 });
 
-// CLEARGLASS
+// CLEARCENTER
 MACHINE_CREATE_FIELDS.push({
-    provider: 'clearglass',
+    provider: 'clearcenter',
     noFieldsText: "Virtual and physical machines under ClearCenter management are created manually. Please register your ClearOS system in the ClearOS wizard in order to add them to this management interface."
 });
 
