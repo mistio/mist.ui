@@ -10,130 +10,120 @@
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-zones">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
 
-    <app-route route="{{route}}"
-                pattern="/:zone"
-                data="{{data}}"></app-route>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list id="zonesList"
-            selectable resizable column-menu multi-sort
-            apiurl="/api/v1/zones"
-            items="[[model.zonesArray]]"
-            name="Zones"
-            selected-items="{{selectedItems}}"
-            filtered-items-length="{{filteredItemsLength}}"
-            frozen=[[_getFrozenLogColumn()]]
-            visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers(model.zones)]]
-            route={{route}}
-            user-filter=[[model.sections.zones.q]]
-            primary-field-name="id">
-            <mist-actions slot="action-buttons" actions="[[actions]]" type="zone" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-            <zone-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></zone-actions>
-            <p slot="no-items-found">No zones found.</p>
-      </mist-list>
-      <div class="absolute-bottom-right">
-          <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
-      </div>
+        <app-route route="{{route}}" pattern="/:zone" data="{{data}}"></app-route>
+        <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+            <mist-list id="zonesList" selectable resizable column-menu multi-sort apiurl="/api/v1/zones" items="[[model.zonesArray]]"
+                name="Zones" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]]
+                visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.zones)]] route={{route}} user-filter=[[model.sections.zones.q]]
+                primary-field-name="id">
+                <mist-actions slot="action-buttons" actions="[[actions]]" type="zone" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                <zone-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></zone-actions>
+                <p slot="no-items-found">No zones found.</p>
+            </mist-list>
+            <div class="absolute-bottom-right">
+                <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
+            </div>
+        </template>
+        <zone-add model="[[model]]" section="[[model.sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></zone-add>
+        <zone-page model="[[model]]" zone="[[_getZone(data.zone, model.zones.*)]]" resource-id="[[data.zone]]" section="[[model.sections.zones]]"
+            hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
     </template>
-    <zone-add model="[[model]]" section="[[model.sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></zone-add>
-    <zone-page model="[[model]]" zone="[[_getZone(data.zone, model.zones.*)]]" resource-id="[[data.zone]]" section="[[model.sections.zones]]" hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
-  </template>
 
-  <script>
-    Polymer({
+    <script>
+        Polymer({
+            is: 'page-zones',
+            behaviors: [
+                mistListsBehavior
+            ],
 
-      is: 'page-zones',
-      behaviors: [
-        mistListsBehavior
-      ],
+            properties: {
+                model: Object,
+                actions: {
+                    type: Array,
+                    notify: true
+                },
+                selectedItems: {
+                    type: Array,
+                    notify: true
+                }
+            },
 
-      properties: {
-        model: Object,
-        actions: {
-            type: Array,
-            notify: true
-        },
-        selectedItems: {
-          type: Array,
-          notify: true
-        }
-      },
+            listeners: {
+                'select-action': 'selectAction',
+            },
 
-      listeners: {
-        'select-action': 'selectAction',
-      },
+            _isAddPageActive: function (path) {
+                return path == '/+add';
+            },
+            _isDetailsPageActive: function (path) {
+                if (path && path != '/+add' && this.querySelector('zone-page'))
+                    this.querySelector('zone-page').updateState();
+                return path && path != '/+add';
+            },
+            _isListActive: function (path) {
+                return !path;
+            },
+            _getZone: function (id) {
+                if (this.model.zones)
+                    return this.model.zones[id];
+            },
+            _addResource: function (e) {
+                this.fire('go-to', {
+                    url: this.model.sections.zones.add
+                });
+            },
+            _getFrozenLogColumn: function () {
+                return ['domain'];
+            },
 
-      _isAddPageActive: function(path) {
-          return path == '/+add';
-      },
-      _isDetailsPageActive: function(path) {
-          if (path && path != '/+add' && this.querySelector('zone-page'))
-            this.querySelector('zone-page').updateState();
-          return path && path != '/+add';
-      },
-      _isListActive: function(path) {
-          return !path;
-      },
-      _getZone: function(id) {
-          if (this.model.zones)
-              return this.model.zones[id];
-      },
-      _addResource: function(e) {
-          this.fire('go-to',{url: this.model.sections.zones.add});
-      },
-      _getFrozenLogColumn: function(){
-          return ['domain'];
-      },
+            _getVisibleColumns: function () {
+                return ['provider', 'zone_type', 'id', 'ttl', 'records', 'tags'];
+            },
 
-      _getVisibleColumns: function(){
-          return ['provider','zone_type', 'id', 'ttl', 'records', 'tags'];
-      },
-
-      _getRenderers: function(zones) {
-          var _this = this;
-          return {
-              'domain': {
-                  'body': function(item, row) {
-                      return '<strong class="name">'+ item + '</strong>';
-                  }
-              },
-              'records': {
-                  'body': function(item, row) {
-                      return item ? item.length : '';
-                  }
-              },
-              'tags': {
-                  'body': function(item, row) {
-                    var tags = item,
-                        display = "";
-                    if (item != undefined) {
-                      for (var i=0; i<tags.length; i++){
-                        display += "<span class='tag'>"+tags[i].key;
-                        if (tags[i].value != undefined && tags[i].value != "")
-                          display += "=" + tags[i].value;
-                        display += "</span>";
-                      }
+            _getRenderers: function (zones) {
+                var _this = this;
+                return {
+                    'domain': {
+                        'body': function (item, row) {
+                            return '<strong class="name">' + item + '</strong>';
+                        }
+                    },
+                    'records': {
+                        'body': function (item, row) {
+                            return item ? item.length : '';
+                        }
+                    },
+                    'tags': {
+                        'body': function (item, row) {
+                            var tags = item,
+                                display = "";
+                            if (item != undefined) {
+                                for (var i = 0; i < tags.length; i++) {
+                                    display += "<span class='tag'>" + tags[i].key;
+                                    if (tags[i].value != undefined && tags[i].value != "")
+                                        display += "=" + tags[i].value;
+                                    display += "</span>";
+                                }
+                            }
+                            return display;
+                        }
                     }
-                    return display;
-                  }
-              }
-          }
-      },
-      // redirect events
-      selectAction: function(e) {
-          e.stopImmediatePropagation();
-          if (this.querySelector('zone-actions')) {
-            this.querySelector('zone-actions').selectAction(e);
-          }
-      }
-
-    });
-  </script>
+                }
+            },
+            // redirect events
+            selectAction: function (e) {
+                e.stopImmediatePropagation();
+                if (this.querySelector('zone-actions')) {
+                    this.querySelector('zone-actions').selectAction(e);
+                }
+            }
+        });
+    </script>
 </dom-module>

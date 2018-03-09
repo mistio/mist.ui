@@ -37,841 +37,846 @@
 
 <dom-module id="mist-app">
 
-  <!-- styles/app-theme  -->
-  <slot name="theme">
-    <link rel="import" href="styles/app-theme.html">
-  </slot>
-  <template>
-    <style include="custom-style">
-    paper-header-panel {
-        background-color: var(--base-background-color);
-    }
-
-    iron-pages {
-        padding: 24px 24px 0 24px;
-        margin-left: 210px;
-        overflow: hidden;
-        transition: margin-left 350ms ease-in-out;
-    }
-
-    :host[center-content] iron-pages {
-        margin-left: 0;
-    }
-
-    :host[center-content] iron-pages::content #content {
-        padding: 0;
-    }
-    iron-pages::content>* {
-        background-color: var(--base-background-color);
-        position: relative;
-        min-height: calc(94vh - 64px);
-    }
-    iron-pages::content mist-list {
-        font-size: 14px;
-    }
-    iron-pages::content mist-list paper-button[dialog-confirm] {
-        background-color: var(--mist-blue);
-        font-weight: 500;
-        color: #fff;
-    }
-    iron-pages::content mist-list::content .tag {
-        display: inline;
-        background-color: #888;
-        color: #fff;
-        padding: 2px 0.5em;
-        margin: 0 1px;
-        border-radius: 2px;
-        letter-spacing: .4px;
-        font-weight: 500 !important;
-        word-break: break-all;
-        max-width: 250px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .is-loading-html {
-        top: 15px;
-        left: 200px;
-        right: 0;
-        bottom: 0;
-        position: absolute;
-        height: 94%;
-        background-color: var(--base-background-color);
-        display: block;
-        z-index: 0;
-    }
-    :host[center-content] #main-loader.is-loading-html {
-        left: 0;
-    }
-    #main-loader {
-        overflow: hidden;
-    }
-    paper-spinner {
-        width: 80px;
-        height: 80px;
-        margin: 20% auto;
-        display: block;
-    }
-    @media screen and (max-width: 650px) {
-        iron-pages::content #content {
-            padding: 0;
-        }
-    }
-    @media screen and (max-width: 768px) {
-        iron-pages {
-            padding: 8px 0 0 0;
-        }
-        iron-pages::content .columns {
-            display: block;
-        }
-    }
-    </style>
-
-    <style is="custom-style" include="shared-styles"></style>
-    <iron-media-query query="(max-width: 1024px)" query-matches="{{smallscreen}}"></iron-media-query>
-    <iron-media-query query="(max-width: 600px)" query-matches="{{xsmallscreen}}"></iron-media-query>
-
-    <app-location route="{{route}}"></app-location>
-    <app-route
-        route="{{route}}"
-        pattern="/:page"
-        data="{{routeData}}"
-        tail="{{subroute}}"></app-route>
-
-    <paper-header-panel mode="standard" class="fit">
-        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]"  xsmallscreen="[[xsmallscreen]]" with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
-        <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-        <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
-        <div id="main-loader" class="is-loading-html"><paper-spinner active="[[loading]]"></paper-spinner></div>
-        <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
-          <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"></page-dashboard>
-          <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[enableMonitoring]]"></page-clouds>
-          <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[enableMonitoring]]></page-machines>
-          <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
-          <page-keys name="keys" route="{{subroute}}" model="[[model]]"></page-keys>
-          <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
-          <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
-          <template is="dom-if" if="[[enableTunnels]]">
-            <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
-          </template>
-          <page-scripts name="scripts" route="{{subroute}}" model="[[model]]"></page-scripts>
-          <page-schedules name="schedules" route="{{subroute}}" model="[[model]]"></page-schedules>
-          <template is="dom-if" if="[[enableOrchestration]]">
-            <page-templates name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
-            <page-stacks name="stacks" route="{{subroute}}" model="[[model]]"></page-stacks>
-          </template>
-          <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac=[[enableRbac]] billing=[[enableBilling]]></page-teams>
-          <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
-          <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
-          <template is="dom-if" if="[[enableInsights]]">
-            <page-insights name="insights" route="{{subroute}}" model="[[model]]"></page-insights>
-          </template>
-          <page-my-account name="my-account" route="{{subroute}}" billing=[[enableBilling]] user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" enable-monitoring="[[enableMonitoring]]"></page-my-account>
-          <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
-        </iron-pages>
-        <paper-toast id="mist-toast"></paper-toast>
-    </paper-header-panel>
-
-    <mist-socket model="{{model}}"></mist-socket>
-
-    <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
-
-  </template>
-
-  <script>
-    Polymer({
-
-        is: 'mist-app',
-        behaviors: [
-            Polymer.ironResizableBehavior
-        ],
-
-        properties: {
-
-            page: {
-                type: String,
-                reflectToAttribute: true,
-                observer: '_pageChanged'
-            },
-
-            smallscreen: Boolean,
-
-            xsmallscreen: Boolean,
-
-            sidebarIsClosed: Boolean,
-
-            centerContent: {
-                type: Boolean,
-                value: false,
-                computed: '_computeCenterContent(sidebarIsClosed, smallscreen)',
-                reflectToAttribute: true
-            },
-
-            model: {
-                type: Object
-            },
-
-            title: {
-                type: String,
-                value: "",
-            },
-
-            q: { // search query
-                type: String,
-                value: ''
-            },
-
-            tag: String,
-
-            routeData: Object,
-
-            subroute: Object,
-
-            viewingList: {
-                type: Boolean,
-                computed: '_computeViewingList(subroute)'
-            },
-
-            fingerprint: {
-                type: String,
-                value: ''
-            },
-
-            loading: {
-                type: Boolean,
-                value: true
-            },
-
-            enableRbac: {
-                type: Boolean,
-                value: false
-            },
-
-            enableTunnels: {
-                type: Boolean,
-                value: false
-            },
-
-            enableInsights: {
-                type: Boolean,
-                value: false
-            },
-
-            enableOrchestration: {
-                type: Boolean,
-                value: false
-            },
-
-            enableInsights: {
-                type: Boolean,
-                value: false
-            },
-
-            enableAb: {
-                type: Boolean,
-                value: false
-            },
-
-            enableBilling: {
-                type: Boolean,
-                value: false
-            },
-
-            enableMonitoring: {
-                type: Boolean,
-                value: false
-            },
-            count: Number
-        },
-
-        listeners: {
-            'iron-navigate': 'scrollToTop',
-            'toast': 'showToast',
-            'desktop-notification': 'showDesktopNotification',
-            'subscribeLogEvents': 'subscribeLogEvents',
-            'clear-search-on-nav': 'clearSearch',
-            'search': 'updateSearchQuery',
-            'open-and-select': 'openAndSelect',
-            'cloud-edit-key': 'openCloudEdit',
-            'update-keys': 'updateKeys',
-            'update-scripts': 'updateScripts',
-            'user-action': '_onUserAction',
-            'add-new-images': 'addImages',
-            'go-to': 'setLocationPath',
-            'mist-list-filtered-items-length-changed': 'setHeaderCount',
-            'export-list-csv': '_exportCsvMessage' 
-        },
-
-        observers: [
-            '_routePageChanged(routeData.page, subroute.path)',
-            '_sizeChanged(smallscreen)'
-        ],
-
-        _sizeChanged: function(smallscreen) {
-            console.log('updateResize');
-            if (this.smallscreen)
-                this.querySelector('mist-sidebar').closeSidebar();
-            else
-                this.querySelector('mist-sidebar').openSidebar();
-        },
-
-        _computeCenterContent: function(sidebarIsClosed, smallscreen) {
-            return this.sidebarIsClosed || this.smallscreen;
-        },
-
-        setHeaderCount: function(e) {
-            if (e.path && e.path[1] && e.path[1].tagName.toLowerCase().split('-')[1] == this.page)
-                this.set('count', e.detail.length);
-            else if (this.querySelector('cloud-page'))
-                this.querySelector('cloud-page')._cloudArraysChanged();
-        },
-
-
-        setLocationPath: function(e) {
-            if (e.detail.url && this.querySelector('app-location')){
-                this.querySelector('app-location').set('path', e.detail.url);
-                if (e.detail.params)
-                    this.querySelector('app-location').set('queryParams', e.detail.params);
-                if (e.detail.search){
-                    console.log('setLocationPath',e.detail.search)
-                    this.async(function(){
-                        this.fire('search', e.detail.search);
-                    }, 200);
-                }
-            } else
-                console.error('redirect url could not be found');
-        },
-
-        showDesktopNotification: function (e) {
-            var notifier = document.getElementById('desktop-notifier');
-            notifier.show(e.detail.title, { 
-                "body":e.detail.body, 
-                "data": {"url":e.detail.url}
-            });
-        },
-
-        handleDesktopNotificationClick: function (e) {
-            if (e.detail.data.url) {
-                window.history.pushState({}, null, e.detail.data.url);
-                window.dispatchEvent(new CustomEvent('location-changed'));
-                e.stopPropagation();
+    <!-- styles/app-theme  -->
+    <slot name="theme">
+        <link rel="import" href="styles/app-theme.html">
+    </slot>
+    <template>
+        <style include="custom-style">
+            paper-header-panel {
+                background-color: var(--base-background-color);
             }
-        },
 
-        showToast: function (e) {
-            var toast = this.querySelector('paper-toast#mist-toast')
-            toast.show({
-                text: e.detail.msg,
-                duration: e.detail.duration
-            });
-        },
-
-        addImages: function(e){
-            var images = e.detail.images;
-            for (var i=0; i<images.length; i++) {
-                images[i].cloud = {
-                            'id': e.detail.cloud.id,
-                            'title': e.detail.cloud.title,
-                            'provider': e.detail.cloud.provider
-                        };
-                this.push('model.imagesArray', images[i]);
-                this.model.images[images[i].id] = images[i];
+            iron-pages {
+                padding: 24px 24px 0 24px;
+                margin-left: 210px;
+                overflow: hidden;
+                transition: margin-left 350ms ease-in-out;
             }
-        },
 
-        openAndSelect: function (e) {
-            document.addEventListener('open-and-select', function (e) {
-                this.querySelector('machine-page machine-actions associate-key').openAndSelect(e);
-            }.bind(this));
-        },
-        openCloudEdit: function (e) {
-            document.addEventListener('cloud-edit-key', function (e) {
-                this.querySelector('cloud-page cloud-actions').openEditDialog(e);
-            }.bind(this));
-        },
-
-        updateKeys: function (e) {
-            if (this.querySelector('stack-create'))
-                this.querySelector('stack-create').updateKeys(e);
-            if (this.querySelector('machine-create'))
-                this.querySelector('machine-create').updateKeys(e);
-            if (this.querySelector('cloud-add'))
-                this.querySelector('cloud-add').updateKeys(e);
-            if (this.querySelector('cloud-edit'))
-                this.querySelector('cloud-edit').updateKeys(e);
-            if (this.querySelector('other-cloud-add-machine'))
-                this.querySelector('other-cloud-add-machine').updateKeys(e);
-        },
-
-        updateScripts: function (e) {
-            if (this.querySelector('machine-create'))
-                this.querySelector('machine-create').updateScripts(e);
-            if (this.querySelector('schedule-add'))
-                this.querySelector('schedule-add').updateScripts(e);
-        },
-
-        _routePageChanged: function (page, subpath) {
-            if (this.smallscreen) {
-                document.querySelector('mist-sidebar').closeSidebar();
+            :host[center-content] iron-pages {
+                margin-left: 0;
             }
-            if (['index.html','sign-up','sign-in'].indexOf(page) > -1 )
-                page = 'dashboard';
-            this.page = page || 'dashboard';
-            if (subpath == '') { // Update iron-list
-                var p = page != '' && page != undefined ? '#' + page : '',
-                    i = this.querySelector('iron-list' + p),
-                    l = this.querySelector('mist-list' + p+"List");
-                if (i) {
-                    i.fire('iron-resize');
-                } else if (l) {
-                    l.fire('resize');
-                }
-            } else {
-                if (page == 'zones') {
-                    var l = this.querySelector('mist-list#recordsList');
-                    if (l)
-                        l.fire('resize');
+
+            :host[center-content] iron-pages::content #content {
+                padding: 0;
+            }
+
+            iron-pages::content>* {
+                background-color: var(--base-background-color);
+                position: relative;
+                min-height: calc(94vh - 64px);
+            }
+
+            iron-pages::content mist-list {
+                font-size: 14px;
+            }
+
+            iron-pages::content mist-list paper-button[dialog-confirm] {
+                background-color: var(--mist-blue);
+                font-weight: 500;
+                color: #fff;
+            }
+
+            iron-pages::content mist-list::content .tag {
+                display: inline;
+                background-color: #888;
+                color: #fff;
+                padding: 2px 0.5em;
+                margin: 0 1px;
+                border-radius: 2px;
+                letter-spacing: .4px;
+                font-weight: 500 !important;
+                word-break: break-all;
+                max-width: 250px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .is-loading-html {
+                top: 15px;
+                left: 200px;
+                right: 0;
+                bottom: 0;
+                position: absolute;
+                height: 94%;
+                background-color: var(--base-background-color);
+                display: block;
+                z-index: 0;
+            }
+
+            :host[center-content] #main-loader.is-loading-html {
+                left: 0;
+            }
+
+            #main-loader {
+                overflow: hidden;
+            }
+
+            paper-spinner {
+                width: 80px;
+                height: 80px;
+                margin: 20% auto;
+                display: block;
+            }
+
+            @media screen and (max-width: 650px) {
+                iron-pages::content #content {
+                    padding: 0;
                 }
             }
-            if (this.page == 'dashboard') {
-                this.clearSearch();
-            }
-            this.set('count', null);
-        },
 
-        _manageSearch: function(changeRecord) {
-            // console.log('_manageSearch',changeRecord)
-            // '_manageSearch(route.*)'
-            if (changeRecord.path == 'route.path' && changeRecord.value.startsWith('/'+this.page+'/')){
-                this.clearSearch();
-            }
-        },
-
-        clearSearch: function(){
-            document.querySelector('top-search').clearSearch();
-            this.set('q', '');
-            if (this.model) {
-                for (var sec in this.model.sections) {
-                    this.set('model.sections.'+sec+'.q', '');
+            @media screen and (max-width: 768px) {
+                iron-pages {
+                    padding: 8px 0 0 0;
+                }
+                iron-pages::content .columns {
+                    display: block;
                 }
             }
-        },
+        </style>
 
-        _pageChanged: function (page) {
-            this.set('loading', true);
-            // Load page import on demand. Show 404 page if fails
-            var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
-            this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-        },
+        <style is="custom-style" include="shared-styles"></style>
+        <iron-media-query query="(max-width: 1024px)" query-matches="{{smallscreen}}"></iron-media-query>
+        <iron-media-query query="(max-width: 600px)" query-matches="{{xsmallscreen}}"></iron-media-query>
 
-        _hideLoader: function () {
-            this.set('loading', false);
-        },
+        <app-location route="{{route}}"></app-location>
+        <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
 
-        _showPage404: function () {
-            this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
-            this.page = 'not-found';
-        },
+        <paper-header-panel mode="standard" class="fit">
+            <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]"
+                with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
+            <mist-notice model="[[model]]" class="paper-header"></mist-notice>
+            <mist-header model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"
+                portal-name="[[config.portal_name]]" docs-uri="[[config.features.docs]]" support-uri="[[config.features.support]]"></mist-header>
+            <div id="main-loader" class="is-loading-html">
+                <paper-spinner active="[[loading]]"></paper-spinner>
+            </div>
+            <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
+                <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}" docs=[[config.features.docs]]></page-dashboard>
+                <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]"></page-clouds>
+                <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]] docs=[[config.features.docs]] portal-name="[[config.portal_name]]"></page-machines>
+                <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
+                <page-keys name="keys" route="{{subroute}}" model="[[model]]" config=[[config]]></page-keys>
+                <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
+                <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
+                <template is="dom-if" if="[[config.features.tunnels]]">
+                    <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
+                </template>
+                <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]]></page-scripts>
+                <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]]></page-schedules>
+                <template is="dom-if" if="[[config.features.orchestration]]">
+                    <page-templates name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
+                    <page-stacks name="stacks" route="{{subroute}}" model="[[model]]"></page-stacks>
+                </template>
+                <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac=[[config.features.rbac]] billing=[[config.features.billing]]
+                    cta=[[config.cta.rbac]] email=[[config.email]] docs=[[config.features.docs]]></page-teams>
+                <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
+                <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
+                <template is="dom-if" if="[[config.features.insights]]">
+                    <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]"></page-insights>
+                </template>
+                <page-my-account name="my-account" route="{{subroute}}" user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]"
+                    tokens="[[model.tokens]]" sessions="[[model.sessions]]" config="[[config]]"></page-my-account>
+                <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
+            </iron-pages>
+            <paper-toast id="mist-toast"></paper-toast>
+        </paper-header-panel>
 
-        computeIsViewing: function (page) {
-            return this.page == page;
-        },
+        <mist-socket model="{{model}}"></mist-socket>
 
-        updateSearchQuery: function (e) {
-            if (e.detail != undefined){
-                this.set('q', e.detail);
-                this.set('model.sections.' + this.page + '.q', e.detail || '');
-            }
-        },
+        <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
-        ready: function () {
-            var model = {
-                cloudsArray: [],
-                machinesArray: [],
-                imagesArray: [],
-                keysArray: [],
-                networksArray: [],
-                zonesArray: [],
-                tunnelsArray: [],
-                scriptsArray: [],
-                schedulesArray: [],
-                stacksArray: [],
-                templatesArray: [],
-                teamsArray: [],
-                teams: [],
-                incidents: {},
-                incidentsArray: [],
-                jobs: {},
-                shells: {},
-                sessions: {},
-                notificationsArray: [],
-                pending: {
-                    clouds: true,
-                    monitoring: true
+    </template>
+
+    <script>
+        Polymer({
+            is: 'mist-app',
+            behaviors: [
+                Polymer.ironResizableBehavior
+            ],
+
+            properties: {
+
+                page: {
+                    type: String,
+                    reflectToAttribute: true,
+                    observer: '_pageChanged'
                 },
-                probes: {},
-                monitoring: {},
-                sections: {},
-                sectionsArray: [],
-                onboarding: {
-                    isLoadingClouds: true,
-                    isLoadingMachines: true,
-                    isLoadingImages: true,
-                    isLoadingKeys: true,
-                    isLoadingNetworks: true,
-                    isLoadingZones: true,
-                    isLoadingTunnels: true,
-                    isLoadingScripts: true,
-                    isLoadingSchedules: true,
-                    isLoadingTemplates: true,
-                    isLoadingStacks: true,
-                    isLoadingTeams: true,
-                    isLoadingIncidents: true
+
+                smallscreen: Boolean,
+
+                xsmallscreen: Boolean,
+
+                sidebarIsClosed: Boolean,
+
+                centerContent: {
+                    type: Boolean,
+                    value: false,
+                    computed: '_computeCenterContent(sidebarIsClosed, smallscreen)',
+                    reflectToAttribute: true
                 },
-                permissions: {
-                    'cloud': [
-                        'add',
-                        'read',
-                        'edit',
-                        'remove',
-                        'create_resources',
-                        'edit_tags',
-                        'read_logs',
-                    ],
-                    'machine': [
-                        'read',
-                        'edit',
-                        'create',
-                        'edit_tags',
-                        'edit_rules',
-                        'edit_graphs',
-                        'edit_custom_metrics',
-                        'start',
-                        'stop',
-                        'reboot',
-                        'destroy',
-                        'resize',
-                        'run_script',
-                        'open_shell',
-                        'associate_key',
-                        'disassociate_key',
-                        'read_logs',
-                    ],
-                    'script': [
-                        'add',
-                        'read',
-                        'edit',
-                        'run',
-                        'remove',
-                        'edit_tags',
-                        'read_logs',
-                    ],
-                    'key': [
-                        'add',
-                        'read',
-                        'read_private',
-                        'edit',
-                        'remove',
-                        'edit_tags',
-                        'read_logs',
-                    ],
-                    'template': [
-                        'add',
-                        'read',
-                        'edit',
-                        'remove',
-                        'apply',
-                        'edit_tags',
-                        'read_logs',
-                    ],
-                    'stack': [
-                        'create',
-                        'read',
-                        'edit',
-                        'remove',
-                        'run_workflow',
-                        'edit_tags',
-                        'read_logs',
-                    ],
-                    'zone': [
-                        'add',
-                        'read',
-                        'remove',
-                        'edit_tags',
-                        'create_records',
-                        'read_logs',
-                    ],
-                    'record': [
-                        'add',
-                        'read',
-                        'remove',
-                        'edit_tags',
-                        'read_logs',
-                    ],
-                    'tunnel': [
-                        'add',
-                        'remove',
-                        'edit',
-                        'read',
-                        'edit_tags',
-                        'read_logs',
-                    ],
-                    'schedule': [
-                        'add',
-                        'read',
-                        'edit',
-                        'run',
-                        'remove',
-                        'edit_tags',
-                        'read_logs',
-                    ]
-                    // 'team': [
-                    //     'add',
-                    //     'read',
-                    //     'edit',
-                    //     'remove',
-                    //     'edit_tags',
-                    //     'read_logs',
-                    // ],
-                }
-            };
 
-            for (i = 1; i <= model.teamsArray.length; i++) {
-                model.teams = model.teamsArray[i].teams[i].id;
-            };
+                model: {
+                    type: Object
+                },
 
-            model.sectionsArray = [{
-                id: 'dashboard',
-                icon: 'icons:dashboard',
-                color: '#424242',
-                sidebar: true,
-                tile: false,
-                hr: true,
-            }, {
-                id: 'incidents',
-                color: '#d96557',
-                sidebar: false,
-                tile: false,
-                count: 0
-            }, {
-                id: 'stacks',
-                color: '#0277BD',
-                icon: 'maps:layers',
-                sidebar: this.enableOrchestration,
-                tile: this.enableOrchestration,
-                count: 0,
-                hideZero: true
-            }, {
-                id: 'machines',
-                color: '#8c76d1',
-                icon: 'hardware:computer',
-                add: '/machines/+create',
-                sidebar: true,
-                tile: true,
-                count: 0
-            }, {
-                id: 'networks',
-                color: '#795548',
-                icon: 'hardware:device-hub',
-                add: '/networks/+add',
-                sidebar: true,
-                tile: true,
-                count: 0
-            }, {
-                id: 'zones',
-                color: '#3F51B5',
-                icon: 'icons:dns',
-                add: '/zones/+add',
-                sidebar: true,
-                tile: true,
-                count: 0
-            }, {
-                id: 'keys',
-                color: '#009688',
-                icon: 'communication:vpn-key',
-                add: '/keys/+add',
-                sidebar: true,
-                tile: true,
-                hr: true,
-                count: 0
-            }, {
-                id: 'images',
-                color: '#0099cc',
-                icon: 'image:photo',
-                sidebar: true,
-                tile: false,
-                count: 0
-            }, {
-                id: 'scripts',
-                color: '#D48900',
-                icon: 'image:movie-creation',
-                add: '/scripts/+add',
-                sidebar: true,
-                tile: true,
-                hr: !this.enableOrchestration,
-                count: 0
-            }, {
-                id: 'templates',
-                color: '#0097A7',
-                icon: 'av:art-track',
-                add: '/templates/+add',
-                sidebar: this.enableOrchestration,
-                tile: this.enableOrchestration,
-                hr: true,
-                count: 0
-            }, {
-                id: 'tunnels',
-                color: '#795548',
-                icon: 'editor:merge-type',
-                add: '/tunnels/+add',
-                sidebar: this.enableTunnels,
-                tile: false,
-                count: 0
-            }, {
-                id: 'schedules',
-                color: '#43A047',
-                icon: 'event',
-                add: '/schedules/+add',
-                sidebar: true,
-                tile: true,
-                count: 0
-            }, {
-                id: 'teams',
-                color: '#607D8B',
-                icon: 'social:people',
-                sidebar: true,
-                tile: true,
-                count: 0,
-                hr: this.enableInsights
-            }, {
-                id: 'my-account',
-                color: '#2F2F3E',
-                icon: 'account-circle',
-                count: null
-            }, {
-                id: 'clouds',
-                color: '#424242',
-                icon: 'cloud',
-                count: 0
-            }, {
-                id: 'members',
-                color: '#607D8B',
-                icon: 'social:people',
-                count: 0
-            }, {
-                id: 'insights',
-                color: '#2F2F3E',
-                icon: 'icons:trending-up',
-                sidebar: this.enableInsights,
-                tile: false
-            }];
+                title: {
+                    type: String,
+                    value: "",
+                },
 
-            model.sections = _generateMap(model.sectionsArray);
+                q: { // search query
+                    type: String,
+                    value: ''
+                },
 
-            this.set('model', model);
-        },
+                tag: String,
 
-        _onUserAction: function (event) {
-            console.log('user-action', event);
-            if (typeof gtag == 'function') {
-                gtag('event', event.detail, {
-                    'event_category': 'ui'
+                routeData: Object,
+
+                subroute: Object,
+
+                viewingList: {
+                    type: Boolean,
+                    computed: '_computeViewingList(subroute)'
+                },
+
+                fingerprint: {
+                    type: String,
+                    value: ''
+                },
+
+                loading: {
+                    type: Boolean,
+                    value: true
+                },
+
+                count: Number,
+                config: Object
+            },
+
+            listeners: {
+                'iron-navigate': 'scrollToTop',
+                'toast': 'showToast',
+                'desktop-notification': 'showDesktopNotification',
+                'subscribeLogEvents': 'subscribeLogEvents',
+                'clear-search-on-nav': 'clearSearch',
+                'search': 'updateSearchQuery',
+                'open-and-select': 'openAndSelect',
+                'cloud-edit-key': 'openCloudEdit',
+                'update-keys': 'updateKeys',
+                'update-scripts': 'updateScripts',
+                'user-action': '_onUserAction',
+                'add-new-images': 'addImages',
+                'go-to': 'setLocationPath',
+                'mist-list-filtered-items-length-changed': 'setHeaderCount',
+                'export-list-csv': '_exportCsvMessage'
+            },
+
+            observers: [
+                '_routePageChanged(routeData.page, subroute.path)',
+                '_sizeChanged(smallscreen)',
+                '_configUpdated(config)'
+            ],
+
+            attached: function () {},
+
+            _sizeChanged: function (smallscreen) {
+                console.log('updateResize');
+                if (this.smallscreen)
+                    this.querySelector('mist-sidebar').closeSidebar();
+                else
+                    this.querySelector('mist-sidebar').openSidebar();
+            },
+
+            _computeCenterContent: function (sidebarIsClosed, smallscreen) {
+                return this.sidebarIsClosed || this.smallscreen;
+            },
+
+            setHeaderCount: function (e) {
+                if (e.path && e.path[1] && e.path[1].tagName.toLowerCase().split('-')[1] == this.page)
+                    this.set('count', e.detail.length);
+                else if (this.querySelector('cloud-page'))
+                    this.querySelector('cloud-page')._cloudArraysChanged();
+            },
+
+
+            setLocationPath: function (e) {
+                if (e.detail.url && this.querySelector('app-location')) {
+                    this.querySelector('app-location').set('path', e.detail.url);
+                    if (e.detail.params)
+                        this.querySelector('app-location').set('queryParams', e.detail.params);
+                    if (e.detail.search) {
+                        console.log('setLocationPath', e.detail.search)
+                        this.async(function () {
+                            this.fire('search', e.detail.search);
+                        }, 200);
+                    }
+                } else
+                    console.error('redirect url could not be found');
+            },
+
+            showDesktopNotification: function (e) {
+                var notifier = document.getElementById('desktop-notifier');
+                notifier.show(e.detail.title, {
+                    "body": e.detail.body,
+                    "data": {
+                        "url": e.detail.url
+                    }
                 });
-            }
-            if (!this.enableAb)
-                return;
-            var xhr = new XMLHttpRequest();
-            if (!this.fingerprint) {
-                var that = this;
-                new Fingerprint2().get(function (result, components) {
-                    // this will use all available fingerprinting sources
-                    that.fingerprint = result;
-                    var componentMap = {};
-                    components.forEach(function (e) {
-                        componentMap[e.key] = e.value
+            },
+
+            handleDesktopNotificationClick: function (e) {
+                if (e.detail.data.url) {
+                    window.history.pushState({}, null, e.detail.data.url);
+                    window.dispatchEvent(new CustomEvent('location-changed'));
+                    e.stopPropagation();
+                }
+            },
+
+            showToast: function (e) {
+                var toast = this.querySelector('paper-toast#mist-toast')
+                toast.show({
+                    text: e.detail.msg,
+                    duration: e.detail.duration
+                });
+            },
+
+            addImages: function (e) {
+                var images = e.detail.images;
+                for (var i = 0; i < images.length; i++) {
+                    images[i].cloud = {
+                        'id': e.detail.cloud.id,
+                        'title': e.detail.cloud.title,
+                        'provider': e.detail.cloud.provider
+                    };
+                    this.push('model.imagesArray', images[i]);
+                    this.model.images[images[i].id] = images[i];
+                }
+            },
+
+            openAndSelect: function (e) {
+                document.addEventListener('open-and-select', function (e) {
+                    this.querySelector('machine-page machine-actions associate-key').openAndSelect(
+                        e);
+                }.bind(this));
+            },
+            openCloudEdit: function (e) {
+                document.addEventListener('cloud-edit-key', function (e) {
+                    this.querySelector('cloud-page cloud-actions').openEditDialog(e);
+                }.bind(this));
+            },
+
+            updateKeys: function (e) {
+                if (this.querySelector('stack-create'))
+                    this.querySelector('stack-create').updateKeys(e);
+                if (this.querySelector('machine-create'))
+                    this.querySelector('machine-create').updateKeys(e);
+                if (this.querySelector('cloud-add'))
+                    this.querySelector('cloud-add').updateKeys(e);
+                if (this.querySelector('cloud-edit'))
+                    this.querySelector('cloud-edit').updateKeys(e);
+                if (this.querySelector('other-cloud-add-machine'))
+                    this.querySelector('other-cloud-add-machine').updateKeys(e);
+            },
+
+            updateScripts: function (e) {
+                if (this.querySelector('machine-create'))
+                    this.querySelector('machine-create').updateScripts(e);
+                if (this.querySelector('schedule-add'))
+                    this.querySelector('schedule-add').updateScripts(e);
+            },
+
+            _routePageChanged: function (page, subpath) {
+                if (this.smallscreen) {
+                    document.querySelector('mist-sidebar').closeSidebar();
+                }
+                if (['index.html', 'sign-up', 'sign-in'].indexOf(page) > -1)
+                    page = 'dashboard';
+                this.page = page || 'dashboard';
+                if (subpath == '') { // Update iron-list
+                    var p = page != '' && page != undefined ? '#' + page : '',
+                        i = this.querySelector('iron-list' + p),
+                        l = this.querySelector('mist-list' + p + "List");
+                    if (i) {
+                        i.fire('iron-resize');
+                    } else if (l) {
+                        l.fire('resize');
+                    }
+                } else {
+                    if (page == 'zones') {
+                        var l = this.querySelector('mist-list#recordsList');
+                        if (l)
+                            l.fire('resize');
+                    }
+                }
+                if (this.page == 'dashboard') {
+                    this.clearSearch();
+                }
+                this.set('count', null);
+            },
+
+            _manageSearch: function (changeRecord) {
+                // console.log('_manageSearch',changeRecord)
+                // '_manageSearch(route.*)'
+                if (changeRecord.path == 'route.path' && changeRecord.value.startsWith('/' + this.page +
+                        '/')) {
+                    this.clearSearch();
+                }
+            },
+
+            clearSearch: function () {
+                document.querySelector('top-search').clearSearch();
+                this.set('q', '');
+                if (this.model) {
+                    for (var sec in this.model.sections) {
+                        this.set('model.sections.' + sec + '.q', '');
+                    }
+                }
+            },
+
+            _pageChanged: function (page) {
+                this.set('loading', true);
+                // Load page import on demand. Show 404 page if fails
+                var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
+                this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
+            },
+
+            _hideLoader: function () {
+                this.set('loading', false);
+            },
+
+            _showPage404: function () {
+                this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
+                this.page = 'not-found';
+            },
+
+            computeIsViewing: function (page) {
+                return this.page == page;
+            },
+
+            updateSearchQuery: function (e) {
+                if (e.detail != undefined) {
+                    this.set('q', e.detail);
+                    this.set('model.sections.' + this.page + '.q', e.detail || '');
+                }
+            },
+
+            ready: function () {
+
+            },
+
+            _configUpdated: function (config) {
+                console.log('Config updated');
+                var model = {
+                    cloudsArray: [],
+                    machinesArray: [],
+                    imagesArray: [],
+                    keysArray: [],
+                    networksArray: [],
+                    zonesArray: [],
+                    tunnelsArray: [],
+                    scriptsArray: [],
+                    schedulesArray: [],
+                    stacksArray: [],
+                    templatesArray: [],
+                    teamsArray: [],
+                    teams: [],
+                    incidents: {},
+                    incidentsArray: [],
+                    jobs: {},
+                    shells: {},
+                    sessions: {},
+                    notificationsArray: [],
+                    pending: {
+                        clouds: true,
+                        monitoring: true
+                    },
+                    probes: {},
+                    monitoring: {},
+                    sections: {},
+                    sectionsArray: [],
+                    onboarding: {
+                        isLoadingClouds: true,
+                        isLoadingMachines: true,
+                        isLoadingImages: true,
+                        isLoadingKeys: true,
+                        isLoadingNetworks: true,
+                        isLoadingZones: true,
+                        isLoadingTunnels: true,
+                        isLoadingScripts: true,
+                        isLoadingSchedules: true,
+                        isLoadingTemplates: true,
+                        isLoadingStacks: true,
+                        isLoadingTeams: true,
+                        isLoadingIncidents: true
+                    },
+                    permissions: {
+                        'cloud': [
+                            'add',
+                            'read',
+                            'edit',
+                            'remove',
+                            'create_resources',
+                            'edit_tags',
+                            'read_logs',
+                        ],
+                        'machine': [
+                            'read',
+                            'edit',
+                            'create',
+                            'edit_tags',
+                            'edit_rules',
+                            'edit_graphs',
+                            'edit_custom_metrics',
+                            'start',
+                            'stop',
+                            'reboot',
+                            'destroy',
+                            'resize',
+                            'run_script',
+                            'open_shell',
+                            'associate_key',
+                            'disassociate_key',
+                            'read_logs',
+                        ],
+                        'network': [
+                            'add',
+                            'read',
+                            'remove',
+                            'edit_tags',
+                            'edit_subnets',
+                            'read_logs',
+                        ],
+                        'script': [
+                            'add',
+                            'read',
+                            'edit',
+                            'run',
+                            'remove',
+                            'edit_tags',
+                            'read_logs',
+                        ],
+                        'key': [
+                            'add',
+                            'read',
+                            'read_private',
+                            'edit',
+                            'remove',
+                            'edit_tags',
+                            'read_logs',
+                        ],
+                        'template': [
+                            'add',
+                            'read',
+                            'edit',
+                            'remove',
+                            'apply',
+                            'edit_tags',
+                            'read_logs',
+                        ],
+                        'stack': [
+                            'create',
+                            'read',
+                            'edit',
+                            'remove',
+                            'run_workflow',
+                            'edit_tags',
+                            'read_logs',
+                        ],
+                        'zone': [
+                            'add',
+                            'read',
+                            'remove',
+                            'edit_tags',
+                            'create_records',
+                            'read_logs',
+                        ],
+                        'record': [
+                            'add',
+                            'read',
+                            'remove',
+                            'edit_tags',
+                            'read_logs',
+                        ],
+                        'tunnel': [
+                            'add',
+                            'remove',
+                            'edit',
+                            'read',
+                            'edit_tags',
+                            'read_logs',
+                        ],
+                        'schedule': [
+                            'add',
+                            'read',
+                            'edit',
+                            'run',
+                            'remove',
+                            'edit_tags',
+                            'read_logs',
+                        ]
+                        // 'team': [
+                        //     'add',
+                        //     'read',
+                        //     'edit',
+                        //     'remove',
+                        //     'edit_tags',
+                        //     'read_logs',
+                        // ],
+                    }
+                };
+
+                for (i = 1; i <= model.teamsArray.length; i++) {
+                    model.teams = model.teamsArray[i].teams[i].id;
+                };
+
+                model.sectionsArray = [{
+                    id: 'dashboard',
+                    icon: 'icons:dashboard',
+                    color: '#424242',
+                    sidebar: true,
+                    tile: false,
+                    hr: true,
+                }, {
+                    id: 'incidents',
+                    color: '#d96557',
+                    sidebar: false,
+                    tile: false,
+                    count: 0
+                }, {
+                    id: 'stacks',
+                    color: '#0277BD',
+                    icon: 'maps:layers',
+                    sidebar: this.config.features.orchestration,
+                    tile: this.config.features.orchestration,
+                    count: 0,
+                    hideZero: true
+                }, {
+                    id: 'machines',
+                    color: '#8c76d1',
+                    icon: 'hardware:computer',
+                    add: '/machines/+create',
+                    sidebar: true,
+                    tile: true,
+                    count: 0
+                }, {
+                    id: 'networks',
+                    color: '#795548',
+                    icon: 'hardware:device-hub',
+                    add: '/networks/+add',
+                    sidebar: true,
+                    tile: true,
+                    count: 0
+                }, {
+                    id: 'zones',
+                    color: '#3F51B5',
+                    icon: 'icons:dns',
+                    add: '/zones/+add',
+                    sidebar: true,
+                    tile: true,
+                    count: 0
+                }, {
+                    id: 'keys',
+                    color: '#009688',
+                    icon: 'communication:vpn-key',
+                    add: '/keys/+add',
+                    sidebar: true,
+                    tile: true,
+                    hr: true,
+                    count: 0
+                }, {
+                    id: 'images',
+                    color: '#0099cc',
+                    icon: 'image:photo',
+                    sidebar: true,
+                    tile: false,
+                    count: 0
+                }, {
+                    id: 'scripts',
+                    color: '#D48900',
+                    icon: 'image:movie-creation',
+                    add: '/scripts/+add',
+                    sidebar: true,
+                    tile: true,
+                    hr: !this.config.features.orchestration,
+                    count: 0
+                }, {
+                    id: 'templates',
+                    color: '#0097A7',
+                    icon: 'av:art-track',
+                    add: '/templates/+add',
+                    sidebar: this.config.features.orchestration,
+                    tile: this.config.features.orchestration,
+                    hr: true,
+                    count: 0
+                }, {
+                    id: 'tunnels',
+                    color: '#795548',
+                    icon: 'editor:merge-type',
+                    add: '/tunnels/+add',
+                    sidebar: this.config.features.tunnels,
+                    tile: false,
+                    count: 0
+                }, {
+                    id: 'schedules',
+                    color: '#43A047',
+                    icon: 'event',
+                    add: '/schedules/+add',
+                    sidebar: true,
+                    tile: true,
+                    count: 0
+                }, {
+                    id: 'teams',
+                    color: '#607D8B',
+                    icon: 'social:people',
+                    sidebar: true,
+                    tile: true,
+                    count: 0,
+                    hr: this.config.features.insights
+                }, {
+                    id: 'my-account',
+                    color: '#2F2F3E',
+                    icon: 'account-circle',
+                    count: null
+                }, {
+                    id: 'clouds',
+                    color: '#424242',
+                    icon: 'cloud',
+                    count: 0
+                }, {
+                    id: 'members',
+                    color: '#607D8B',
+                    icon: 'social:people',
+                    count: 0
+                }, {
+                    id: 'insights',
+                    color: '#2F2F3E',
+                    icon: 'icons:trending-up',
+                    sidebar: this.config.features.insights,
+                    tile: false
+                }];
+
+                model.sections = _generateMap(model.sectionsArray);
+
+                this.set('model', model);
+                if (!this.config.features.docs) {
+                    for (var i=0; i < PROVIDERS.length; i++) {
+                        for (var j=0; j < PROVIDERS[i].options.length; j++) {
+                            PROVIDERS[i].options[j].helpHref = '';
+                        }
+                    }
+                }
+            },
+
+            _onUserAction: function (event) {
+                console.log('user-action', event);
+                if (typeof gtag == 'function') {
+                    gtag('event', event.detail, {
+                        'event_category': 'ui'
                     });
+                }
+                if (!this.config.features.ab)
+                    return;
+                var xhr = new XMLHttpRequest();
+                if (!this.fingerprint) {
+                    var that = this;
+                    new Fingerprint2().get(function (result, components) {
+                        // this will use all available fingerprinting sources
+                        that.fingerprint = result;
+                        var componentMap = {};
+                        components.forEach(function (e) {
+                            componentMap[e.key] = e.value
+                        });
+                        var payload = {
+                            'action': event.detail,
+                            'fingerprint': result,
+                            'resolution': componentMap.resolution,
+                            'platform': componentMap.navigator_platform,
+                            'browser': that._getBrowser(),
+                            'tz': componentMap.timezone_offset
+                        };
+                        if (document.referrer)
+                            payload['referrer'] = document.referrer;
+                        xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+                        xhr.send();
+                    });
+                } else {
                     var payload = {
                         'action': event.detail,
-                        'fingerprint': result,
-                        'resolution': componentMap.resolution,
-                        'platform': componentMap.navigator_platform,
-                        'browser': that._getBrowser(),
-                        'tz': componentMap.timezone_offset
+                        'fingerprint': this.fingerprint
                     };
-                    if (document.referrer)
-                        payload['referrer'] = document.referrer;
                     xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
                     xhr.send();
+                }
+            },
+
+            _getBrowser: function () {
+                var userAgent = navigator.userAgent.toLowerCase();
+                var productSub = navigator.productSub;
+
+                //we extract the browser from the user agent (respect the order of the tests)
+                var browser;
+                if (userAgent.indexOf("firefox") >= 0) {
+                    browser = "Firefox";
+                } else if (userAgent.indexOf("opera") >= 0 || userAgent.indexOf("opr") >= 0) {
+                    browser = "Opera";
+                } else if (userAgent.indexOf("chrome") >= 0) {
+                    browser = "Chrome";
+                } else if (userAgent.indexOf("safari") >= 0) {
+                    browser = "Safari";
+                } else if (userAgent.indexOf("trident") >= 0) {
+                    browser = "Internet Explorer";
+                } else {
+                    browser = "Other";
+                }
+                return browser;
+            },
+
+            _computeViewingList: function (subroute) {
+                return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 &&
+                    subroute.path == "";
+            },
+
+            _exportCsvMessage: function (e) {
+                this.fire('toast', {
+                    msg: e.detail.message,
+                    duration: 3000
                 });
-            } else {
-                var payload = {
-                    'action': event.detail,
-                    'fingerprint': this.fingerprint
-                };
-                xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
-                xhr.send();
             }
-        },
+        });
 
-        _getBrowser: function () {
-            var userAgent = navigator.userAgent.toLowerCase();
-            var productSub = navigator.productSub;
+        function itemUid(item, section) {
+            // Returns a universal resource id of the form
+            //      resourceType:[cloudId]:itemId
+            // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
+            //      key::MnhLdx9u22YjVJ
+            //
+            // TODO replace with mist uuids
 
-            //we extract the browser from the user agent (respect the order of the tests)
-            var browser;
-            if (userAgent.indexOf("firefox") >= 0) {
-                browser = "Firefox";
-            } else if (userAgent.indexOf("opera") >= 0 || userAgent.indexOf("opr") >= 0) {
-                browser = "Opera";
-            } else if (userAgent.indexOf("chrome") >= 0) {
-                browser = "Chrome";
-            } else if (userAgent.indexOf("safari") >= 0) {
-                browser = "Safari";
-            } else if (userAgent.indexOf("trident") >= 0) {
-                browser = "Internet Explorer";
-            } else {
-                browser = "Other";
-            }
-            return browser;
-        },
-
-        _computeViewingList: function (subroute) {
-            return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 && subroute.path == "";
-        },
-
-        _exportCsvMessage: function(e) {
-            this.fire('toast', {msg: e.detail.message, duration: 3000});
+            // if item type is not defined derive it fro the current section id
+            var item_type = item && item.type ? item.type : (section && section.id.slice(0, -1));
+            var cloudId = item && section && section.id != 'machines' && item.cloud && item.cloud.id ? item.cloud.id :
+                '';
+            var itemId = item && item.id ? item.id : '';
+            if (item_type == 'incident')
+                itemId = item.incident_id
+            return item_type + ':' + cloudId + ':' + itemId;
         }
-    });
 
-    function itemUid(item, section) {
-        // Returns a universal resource id of the form
-        //      resourceType:[cloudId]:itemId
-        // e.g. machine:3tm7aaHHZcMxpZ:bf04f27e924fa67023582,
-        //      key::MnhLdx9u22YjVJ
-        //
-        // TODO replace with mist uuids
-
-        // if item type is not defined derive it fro the current section id
-        var item_type = item && item.type ? item.type : (section && section.id.slice(0, -1));
-        var cloudId = item && section && section.id != 'machines' && item.cloud && item.cloud.id ? item.cloud.id : '';
-        var itemId = item && item.id ? item.id : '';
-        if (item_type == 'incident')
-            itemId = item.incident_id
-        return item_type + ':' + cloudId + ':' + itemId;
-    }
-
-    Number.prototype.formatMoney = function(c, d, t) {
-        var n = this,
-            c = isNaN(c = Math.abs(c)) ? 2 : c,
-            d = d == undefined ? "." : d,
-            t = t == undefined ? "," : t,
-            s = n < 0 ? "-" : "",
-            i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
-            j = (j = i.length) > 3 ? j % 3 : 0;
-           return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
-    };
-
-  </script>
+        Number.prototype.formatMoney = function (c, d, t) {
+            var n = this,
+                c = isNaN(c = Math.abs(c)) ? 2 : c,
+                d = d == undefined ? "." : d,
+                t = t == undefined ? "," : t,
+                s = n < 0 ? "-" : "",
+                i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
+                j = (j = i.length) > 3 ? j % 3 : 0;
+            return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d +
+                Math.abs(n - i).toFixed(c).slice(2) : "");
+        };
+    </script>
 
 </dom-module>

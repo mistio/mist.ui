@@ -12,43 +12,39 @@
     <style include="shared-styles">
       :host {
         display: inline;
-        color: rgba(255,255,255,0.87);
+        color: rgba(255, 255, 255, 0.87);
       }
     </style>
-    
+
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
 
-    <iron-ajax id="request"
-            handle-as="json"
-            loading="{{loadingData}}"
-            on-response="handleResponse"
-            on-error="handleError"></iron-ajax>
+    <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
 
   </template>
   <script>
-NETWORK_ACTIONS = {
-  'tag': {
-    'name': 'tag',
-    'icon': 'label',
-    'confirm': true,
-    'multi': true
-  },
-  'delete': {
-    'name': 'delete',
-    'icon': 'delete',
-    'confirm': true,
-    'multi': true
-  }
-}
-    Polymer({ 
+    NETWORK_ACTIONS = {
+      'tag': {
+        'name': 'tag',
+        'icon': 'label',
+        'confirm': true,
+        'multi': true
+      },
+      'delete': {
+        'name': 'delete',
+        'icon': 'delete',
+        'confirm': true,
+        'multi': true
+      }
+    }
+    Polymer({
       is: 'network-actions',
       properties: {
-        items: { 
+        items: {
           type: Array,
           value: []
         },
-        actions: { 
+        actions: {
           type: Array,
           value: [],
           notify: true
@@ -58,129 +54,136 @@ NETWORK_ACTIONS = {
           value: 'network'
         }
       },
-      observers:[
+      observers: [
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
         'iron-overlay-closed': 'confirmAction'
       },
-      ready: function() {},
-      attached: function() {
+      ready: function () {},
+      attached: function () {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(network) {
+      itemActions: function (network) {
         var arr = [];
         if (network) {
           arr.push('delete');
-          // arr.push('tag');
+          arr.push('tag');
         }
         return arr;
       },
       actionDetails: function (actions) {
         var ret = [];
-        for (var i=0; i<actions.length; i++) {
-            ret.push(NETWORK_ACTIONS[actions[i]]);
+        for (var i = 0; i < actions.length; i++) {
+          ret.push(NETWORK_ACTIONS[actions[i]]);
         }
         return ret;
       },
-      _delete: function() {
+      _delete: function () {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "DELETE";
 
         for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/clouds/"+ this.items[i].cloud +"/networks/"+ this.items[i].id
+          this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/networks/" + this.items[i].id
           this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
+          this.fire('toast', {
+            msg: 'Deleting ' + this.items[i].name,
+            duration: 1000
+          })
         }
       },
-      _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
-          for (var i in info) {
-              dialog[i] = info[i];
-          }
-          dialog._openDialog();
+      _showDialog: function (info) {
+        var dialog = this.querySelector('dialog-element');
+        for (var i in info) {
+          dialog[i] = info[i];
+        }
+        dialog._openDialog();
       },
-      confirmAction: function(e){
+      confirmAction: function (e) {
         if (e.detail.confirmed)
           this.performAction(this.action, this.items);
       },
-      selectAction: function(e){
+      selectAction: function (e) {
         if (this.items.length) {
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
           if (action.confirm && action.name != 'tag') {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
-                plural = this.items.length == 1 ? '' : 's',
-                count = this.items.length > 1 ? this.items.length+' ' : '';
+              plural = this.items.length == 1 ? '' : 's',
+              count = this.items.length > 1 ? this.items.length + ' ' : '';
             //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
             this._showDialog({
-                title: this.action.name + ' ' + count + this.type + plural+'?',
-                body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
-                list: this._makeList(this.items, property),
-                action: action.name,
-                danger: true,
-                reason: this.type + "." + this.action.name
+              title: this.action.name + ' ' + count + this.type + plural + '?',
+              body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type +
+                plural + ".",
+              list: this._makeList(this.items, property),
+              action: action.name,
+              danger: true,
+              reason: this.type + "." + this.action.name
             });
-          }
-          else if (action.name == "tag") {
+          } else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
-          }
-          else {
+          } else {
             this.performAction(this.action, this.items);
           }
         }
       },
-      performAction: function(action, items) {
+      performAction: function (action, items) {
         if (action.name == 'delete') {
           this._delete();
         }
       },
-      handleResponse: function(e) {
+      handleResponse: function (e) {
         if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+          this.fire('toast', {
+            msg: 'Action: ' + this.$.request.body.action + ' successfull',
+            duration: 3000
+          })
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection
         // of the available actions of the selected items
         this.set('actions', []);
-        var actions = new swiftSet.Set(), 
-            isection = new swiftSet.Set();
+        var actions = new swiftSet.Set(),
+          isection = new swiftSet.Set();
 
         if (this.items.length > 0) {
           actions.addItems(this.itemActions(this.items[0]) || []);
 
-          for (var i=1; i<this.items.length; i++) {
-              isection.clear()
-              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-              actions.clear();
-              actions.addItems(isection.items());
+          for (var i = 1; i < this.items.length; i++) {
+            isection.clear()
+            isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+            actions.clear();
+            actions.addItems(isection.items());
           }
 
           var multiActions;
 
           if (this.items.length > 1) {
-              multiActions = this.actionDetails(actions.items()).filter(function(a){
-                  return a.multi;
-              });
-          }
-          else {
-              multiActions = this.actionDetails(actions.items());
+            multiActions = this.actionDetails(actions.items()).filter(function (a) {
+              return a.multi;
+            });
+          } else {
+            multiActions = this.actionDetails(actions.items());
           }
         }
         this.set('actions', multiActions);
       },
-      handleError: function(e) {
+      handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
+        this.fire('toast', {
+          msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
+          duration: 5000
+        });
       },
-      _makeList: function(items, property){
+      _makeList: function (items, property) {
         if (items && items.length)
-          return items.map(function(item){
+          return items.map(function (item) {
             return item[property];
           });
       }

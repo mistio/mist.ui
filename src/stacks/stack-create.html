@@ -9,81 +9,84 @@
 <dom-module id="stack-create">
     <template>
         <style include="shared-styles forms single-page">
-        :host {
-            display: block;
-        }
+            :host {
+                display: block;
+            }
 
-        paper-material {
-            display: block;
-            padding: 24px;
-        }
+            paper-material {
+                display: block;
+                padding: 24px;
+            }
 
-        #content {
-            max-width: 900px;
-        }
+            #content {
+                max-width: 900px;
+            }
 
-        paper-progress {
-            position: absolute;
-            bottom: 87px;
-            width: 100%;
-            left: 0;
-            right: 0;
-        }
+            paper-progress {
+                position: absolute;
+                bottom: 87px;
+                width: 100%;
+                left: 0;
+                right: 0;
+            }
 
-        :host >::content paper-input-container {
-            padding-top: 16px;
-            padding-bottom: 16px;
-        }
+            :host>::content paper-input-container {
+                padding-top: 16px;
+                padding-bottom: 16px;
+            }
 
-        paper-item.lead {
-            font-size: 2em;
-        }
+            paper-item.lead {
+                font-size: 2em;
+            }
 
-        paper-toggle-button[disabled]::content {
-            color: rgba(0, 0, 0, 0.32);
-        }
+            paper-toggle-button[disabled]::content {
+                color: rgba(0, 0, 0, 0.32);
+            }
 
-        paper-toggle-button::content paper-input-container input {
-            color: color: rgba(0, 0, 0, 0.54);
-        }
+            paper-toggle-button::content paper-input-container input {
+                color: color: rgba(0, 0, 0, 0.54);
+            }
 
-        .spacer {
-            display: block;
-            height: 24px;
-            width: 100%;
-        }
+            .spacer {
+                display: block;
+                height: 24px;
+                width: 100%;
+            }
 
-        .bottom-actions {
-            padding-left: 20px;
-        }
+            .bottom-actions {
+                padding-left: 20px;
+            }
 
-        *:not(paper-button)[disabled] {
-            display: none;
-        }
-
-        paper-radio-group {
-            padding: 16px 8px;
-        }
-
-        @media (max-width: 800px) {
-            .desc {
+            *:not(paper-button)[disabled] {
                 display: none;
             }
-        }
 
-        .desc {
-            width: 250px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .single-head {
-            @apply(--stack-page-head-mixin)
-        }
+            paper-radio-group {
+                padding: 16px 8px;
+            }
+
+            @media (max-width: 800px) {
+                .desc {
+                    display: none;
+                }
+            }
+
+            .desc {
+                width: 250px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .single-head {
+                @apply(--stack-page-head-mixin)
+            }
         </style>
         <div id="content">
             <paper-material class="single-head layout horizontal">
-                <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                <span class="icon">
+                    <iron-icon icon="[[section.icon]]"></iron-icon>
+                </span>
                 <div class="title flex">
                     <h2>
                         Create Stack
@@ -98,14 +101,12 @@
                 </div>
             </paper-material>
             <paper-material>
-                <app-form fields="{{fields}}" templateid="{{template.id}}" workflow="install" url="/api/v1/stacks" on-request="_handleRequest" on-response="_handleResponse" on-error="_handleError" btncontent="create stack"></app-form>
+                <app-form fields="{{fields}}" templateid="{{template.id}}" workflow="install" url="/api/v1/stacks" on-request="_handleRequest"
+                    on-response="_handleResponse" on-error="_handleError" btncontent="create stack"></app-form>
             </paper-material>
         </div>
     </template>
     <script>
-    (function() {
-        'use strict';
-
         Polymer({
             is: 'stack-create',
 
@@ -115,10 +116,6 @@
                 },
                 section: {
                     type: Object
-                },
-                color: {
-                    type: String,
-                    computed: '_getHeaderStyle(section)'
                 },
                 stack: {
                     type: Object
@@ -140,20 +137,16 @@
                     notify: true
                 },
                 keys: {
-                    type: Array,
-                    computed: "_keys(model)"
+                    type: Array
                 },
                 clouds: {
-                    type: Array,
-                    computed: "_clouds(model)"
+                    type: Array
                 },
                 images: {
-                    type: Array,
-                    computed: "_images(model)"
+                    type: Array
                 },
                 uri: {
-                    type: String,
-                    computed: "_uri(model)"
+                    type: String
                 },
                 yaml_inputs: {
                     type: String,
@@ -170,11 +163,11 @@
                 'iron-select': '_updateFields',
                 'update-keys': 'updateKeys'
             },
-            ready: function() {},
-            _fromTemplate: function(params, templates) {
+            ready: function () {},
+            _fromTemplate: function (params, templates) {
                 if (params.template && this.model.templates) {
                     var yaml_inputs = '';
-                    this.model.templates[params.template].inputs.forEach(function(inp) {
+                    this.model.templates[params.template].inputs.forEach(function (inp) {
                         yaml_inputs += inp.name + ': ';
                         var val = inp.value = !undefined ? inp.value : inp.defaultValue || inp.default;
                         yaml_inputs += val + '\n';
@@ -182,7 +175,7 @@
                     this.set('yaml_inputs', yaml_inputs);
                     // pass values into form's stackinputs default value
                     var ind;
-                    var stackinputsField = this.fields.find(function(f, index) {
+                    var stackinputsField = this.fields.find(function (f, index) {
                         ind = index;
                         return f.name == "stackinputs";
                     });
@@ -195,7 +188,7 @@
                     console.log('Computing Fields started');
 
                     if (this.fields) {
-                        var yf = this.fields.find(function(f) {
+                        var yf = this.fields.find(function (f) {
                             return f.name == 'yaml_or_form'
                         });
                         if (yf && yf.value)
@@ -261,7 +254,7 @@
                     }];
 
                     if (template && template.inputs) {
-                        template.inputs.forEach(function(inp) {
+                        template.inputs.forEach(function (inp) {
                             inp['showIf'] = {
                                 fieldName: "yaml_or_form",
                                 fieldValues: ["form"]
@@ -293,7 +286,7 @@
                                 inp.helptext = 'Select cloud';
                                 inp.options = []; //this.model.cloudsArray;
 
-                                inp.options.forEach(function(o) {
+                                inp.options.forEach(function (o) {
                                     o.disabled = !o.enabled;
                                 });
                             }
@@ -304,6 +297,18 @@
                                 inp.show = false;
                                 inp.type = 'mist_dropdown';
                                 inp.helptext = 'Select image';
+                                inp.showIf = {
+                                    fieldName: "mist_cloud" + xid,
+                                    fieldExists: true
+                                }
+                            }
+
+                            // make network dropdown & dependent on cloud
+                            if (inp.name.startsWith("mist_networks")) {
+                                var xid = inp.name.split("mist_networks")[1];
+                                inp.show = false;
+                                inp.type = 'mist_dropdown';
+                                inp.helptext = 'Select network';
                                 inp.showIf = {
                                     fieldName: "mist_cloud" + xid,
                                     fieldExists: true
@@ -335,7 +340,8 @@
                             }
 
                             // hide mist api credential inputs
-                            if (inp.name == "mist_token" || inp.name == "mist_uri" || inp.name == "mist_username" || inp.name == "mist_password") {
+                            if (inp.name == "mist_token" || inp.name == "mist_uri" || inp.name ==
+                                "mist_username" || inp.name == "mist_password") {
                                 inp.hidden = true;
                                 inp.required = false;
                             }
@@ -368,41 +374,43 @@
                 }
             },
 
-            _computeFields: function(template, templateInps, templateInputs, modelTemplates, clouds, keys, params) {
-                this.fields.forEach(function(inp, index) {
-                    if (inp.name.startsWith('mist_key')){
+            _computeFields: function (template, templateInps, templateInputs, modelTemplates, clouds, keys,
+                params) {
+                this.fields.forEach(function (inp, index) {
+                    if (inp.name.startsWith('mist_key')) {
                         this.set('fields.' + index + '.options', this.model.keysArray);
                     }
 
-                    if (inp.name.startsWith('mist_cloud')){
+                    if (inp.name.startsWith('mist_cloud')) {
                         this.set('fields.' + index + '.options', this.model.cloudsArray);
-                        this.fields[index].options.forEach(function(o){
+                        this.fields[index].options.forEach(function (o) {
                             o.disabled = !o.enabled;
                         })
                     }
 
-                    if (inp.name.startsWith('mist_tags')){
+                    if (inp.name.startsWith('mist_tags')) {
                         this.set('fields.' + index + '.value', '');
                     }
 
-                    if (inp.options && inp.options.length == 1){
+                    if (inp.options && inp.options.length == 1) {
                         if (inp.type == "dropdown")
-                           this.set('fields.'+index+'.value', inp.options[0].val);
+                            this.set('fields.' + index + '.value', inp.options[0].val);
                         else
-                           this.set('fields.'+index+'.value', inp.options[0].id);
+                            this.set('fields.' + index + '.value', inp.options[0].id);
                     }
                 }, this);
 
             },
 
-            _updateFields: function(event) {
+            _updateFields: function (event) {
                 var e = Polymer.dom(event);
-                var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) > -1
+                var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) > -
+                    1
                 if (changeInYaml) {
                     var yaml = document.querySelector("paper-textarea#stackinputs").value;
                     var yaml_array = yaml.split('\n');
                     var inputs = [];
-                    yaml_array.forEach(function(line) {
+                    yaml_array.forEach(function (line) {
                         var name = line.split(':')[0].trim();
                         var value = line.split(':')[1];
                         if (value)
@@ -410,19 +418,20 @@
                         inputs[name] = value;
                     });
 
-                    this.fields.forEach(function(f, index) {
+                    this.fields.forEach(function (f, index) {
                         if (inputs[f.name])
                             this.set('fields.' + index + '.value', inputs[f.name])
                     }, this)
                 } else {
-                    var cloud = this.fields.find(function(f) {
+                    var cloud = this.fields.find(function (f) {
                         return f.name.startsWith("mist_cloud");
                     });
                     var yaml_inputs = '';
-                    this.fields.forEach(function(inp) {
+                    this.fields.forEach(function (inp) {
                         var fieldCloud;
 
-                        if (['name', 'description', 'yaml_or_form', 'stackinputs', 'deploy'].indexOf(inp.name) == -1) {
+                        if (['name', 'description', 'yaml_or_form', 'stackinputs', 'deploy'].indexOf(
+                                inp.name) == -1) {
                             yaml_inputs += inp.name + ': ';
                             var val = inp.value || inp.defaultValue;
                             yaml_inputs += val + '\n';
@@ -430,7 +439,7 @@
                         if (cloud && cloud.value) {
                             if (inp.name.startsWith("mist_location")) {
                                 var xid = inp.name.split("mist_location")[0];
-                                fieldCloud = this.fields.find(function(f) {
+                                fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
                                 var cloudId = fieldCloud.value;
@@ -439,17 +448,26 @@
                             }
                             if (inp.name.startsWith("mist_image")) {
                                 var xid = inp.name.split("mist_image")[0];
-                                fieldCloud = this.fields.find(function(f) {
+                                fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
                                 var cloudId = fieldCloud.value;
                                 if (this.model && cloudId)
                                     inp.options = this.model.clouds[cloudId].imagesArray;
                             }
+                            if (inp.name.startsWith("mist_networks")) {
+                                var xid = inp.name.split("mist_networks")[0];
+                                fieldCloud = this.fields.find(function (f) {
+                                    return f.name.startsWith("mist_cloud" + xid);
+                                }) || cloud;
+                                var cloudId = fieldCloud.value;
+                                if (this.model && cloudId)
+                                    inp.options = this.model.clouds[cloudId].networksArray;
+                            }
                             if (inp.name.startsWith("mist_size")) {
                                 console.warn('mist_size');
                                 var xid = inp.name.split("mist_size")[0];
-                                fieldCloud = this.fields.find(function(f) {
+                                fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
                                 var cloudId = fieldCloud.value;
@@ -458,12 +476,14 @@
                                     inp.options = this.model.clouds[cloudId].sizesArray;
                             }
 
-                            this.fields.forEach(function(f, index){
-                                if (f.options && f.options.length == 1){
+                            this.fields.forEach(function (f, index) {
+                                if (f.options && f.options.length == 1) {
                                     if (f.type == "dropdown")
-                                       this.set('fields.'+index+'.value', f.options[0].val);
+                                        this.set('fields.' + index + '.value', f.options[0]
+                                            .val);
                                     else
-                                       this.set('fields.'+index+'.value', f.options[0].id);
+                                        this.set('fields.' + index + '.value', f.options[0]
+                                            .id);
                                 }
                             }, this);
                         }
@@ -473,7 +493,7 @@
 
                     // pass values into form's stackinputs value
                     var ind;
-                    var stackinputsField = this.fields.find(function(f, index) {
+                    var stackinputsField = this.fields.find(function (f, index) {
                         ind = index;
                         return f.name == "stackinputs";
                     });
@@ -482,46 +502,48 @@
                 }
             },
 
-            updateKeys: function(e){
+            updateKeys: function (e) {
                 console.log('_updateKeys', e);
-                this.async(function(){
+                this.async(function () {
                     console.log(this.template);
                     if (this.fields)
-                        this.fields.forEach(function(f, index) {
-                        // make key dropdown && select newly created key
-                        if (f.name.startsWith('mist_key')) {
-                            f.options = this.model.keysArray;
-                            this.set('fields.'+index+'.value', e.detail.key);
-                        }
-                    }, this);
+                        this.fields.forEach(function (f, index) {
+                            // make key dropdown && select newly created key
+                            if (f.name.startsWith('mist_key')) {
+                                f.options = this.model.keysArray;
+                                this.set('fields.' + index + '.value', e.detail.key);
+                            }
+                        }, this);
                 }.bind(this), 1000);
             },
 
-            _handleRequest: function(e) {
+            _handleRequest: function (e) {
 
             },
 
-            _handleResponse: function(e) {
+            _handleResponse: function (e) {
                 // console.log('create stack ', e);
                 var response = YAML.parse(e.detail.xhr.response);
                 var sid = response.id;
-                this.fire('go-to', {url: '/stacks/' + sid});
-                this.debounce('resetForm', function() {
+                this.fire('go-to', {
+                    url: '/stacks/' + sid
+                });
+                this.debounce('resetForm', function () {
                     this._resetForm();
                 }, 500);
             },
 
-            _handleError: function(e) {
+            _handleError: function (e) {
 
             },
 
-            _resetForm: function(e) {
+            _resetForm: function (e) {
                 // Reset form
                 for (var attr in this.form) {
                     this.set('form.' + attr, '');
                 }
                 // Reset Form Fields
-                this.fields.forEach(function(el, index) {
+                this.fields.forEach(function (el, index) {
                     if (el.showIf) {
                         this.set('fields.' + index + '.show', false);
                     }
@@ -529,15 +551,13 @@
                     this._resetField(el, index);
                 }, this);
             },
-            _resetField: function(el, index) {
+            _resetField: function (el, index) {
                 // this.set('fields.' + index + '.value', el.defaultValue);
                 // var input = this.querySelector('#' + el.name);
                 // if (input) {
                 //     input.invalid = false;
                 // }
-            },
-
+            }
         });
-    })();
     </script>
 </dom-module>

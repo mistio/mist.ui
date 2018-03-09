@@ -13,7 +13,7 @@
 <dom-module id="page-machines">
     <template>
         <style>
-             :host {
+            :host {
                 display: block;
             }
 
@@ -87,6 +87,7 @@
             mist-list::content .green {
                 color: var(--green-color);
             }
+
             /* probe classes */
 
             mist-list::content .state {
@@ -106,6 +107,7 @@
                 width: 4px;
                 margin-left: 10px;
             }
+
             /* midterm */
 
             mist-list::content .state.midlow:after {
@@ -127,6 +129,7 @@
                 background: #69b46c;
                 /*green*/
             }
+
             /* shortlow + long */
 
             mist-list::content .state.shortlow.longlow:after {
@@ -148,6 +151,7 @@
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #69b46c;
                 /*cyan green*/
             }
+
             /* shortmedium + long */
 
             mist-list::content .state.shortmedium.longlow:after {
@@ -169,6 +173,7 @@
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #69b46c;
                 /*orange green*/
             }
+
             /* shorthigh + long */
 
             mist-list::content .state.shorthigh.longlow:after {
@@ -190,6 +195,7 @@
                 box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #69b46c;
                 /*red green*/
             }
+
             /* shorteco + long */
 
             mist-list::content .state.shorteco.longlow:after {
@@ -247,10 +253,10 @@
             </div>
         </template>
 
-        <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]></machine-create>
+        <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]] docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
             <machine-page model="[[model]]" resource-id="[[data.machine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]]
-                hidden$=[[!_isDetailsPageActive(route.path)]]></machine-page>
+                hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
         </template>
         <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
             <h2>Recommendation</h2>
@@ -262,7 +268,7 @@
             </p>
             <p class="recommendation-text"></p>
             <p>We recommend you follow the
-                <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">guide</a> and update your server kernel. You can use mist.io shell to do it now.</p>
+                <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">guide</a> and update your server kernel. You can use the shell to do it now.</p>
             <div class="buttons">
                 <paper-button dialog-dismiss>Cancel</paper-button>
                 <paper-button class="blue" dialog-confirm on-tap="_shell">open machine shell</paper-button>
@@ -672,7 +678,8 @@
                 }
 
                 // Given size_id, try to figure out actual size name
-                if (size_id && this.model.clouds && this.model.clouds[row.cloud.id].sizes && this.model.clouds[
+                if (size_id && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
+                        row.cloud.id].sizes && this.model.clouds[
                         row.cloud.id].sizes[size_id]) {
                     var size = this.model.clouds[row.cloud.id].sizes[size_id];
                     return size.name || size.id;
