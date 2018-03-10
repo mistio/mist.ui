@@ -1,0 +1,180 @@
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+
+<link rel="import" href="images/image-page.html">
+<link rel="import" href="images/image-actions.html">
+<link rel="import" href="images/image-provider-search.html">
+
+<link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="mist-actions.html">
+
+<dom-module id="page-images">
+  <template>
+    <style>
+       :host {
+        display: block;
+      }
+      paper-button.search-on-providers {
+        font-size: .9em;
+        cursor: pointer;
+        text-transform: none;
+        padding: 0;
+        line-height: 1.4em;
+      }
+      h2[slot="header"] {
+        margin: 8px;
+      }
+    </style>
+
+    <app-route route="{{route}}" pattern="/:image" data="{{data}}"></app-route>
+
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list id="imagesList"
+            selectable resizable column-menu multi-sort
+            apiurl="/api/v1/images"
+            items="[[model.imagesArray]]"
+            name="Images"
+            selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            combined-filter={{combinedFilter}}
+            frozen=[[_getFrozenLogColumn()]]
+            visible=[[_getVisibleColumns()]]
+            renderers=[[_getRenderers(model.images)]]
+            route={{route}}
+            user-filter=[[model.sections.images.q]]
+            primary-field-name="id">
+          <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Images
+            <paper-button class="search-on-providers blue-link" on-tap="searchOnProviders">Search more images.</paper-button>
+          </h2>
+          <mist-actions slot="action-buttons" actions="[[actions]]" type="image" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+          <image-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></image-actions>
+          <p slot="no-items-found">No images found.</p>
+      </mist-list>
+      <div class="absolute-bottom-right">
+          <paper-fab id="imageAdd" icon="search" on-tap="_addResource"></paper-fab>
+      </div>
+      <image-provider-search clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
+    </template>
+
+    <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]" section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]></image-page>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'page-images',
+      behaviors: [
+        mistListsBehavior
+      ],
+      properties: {
+        model: Object,
+        items: Array,
+        filteredItems: Array,
+        combinedFilter: String
+      },
+      listeners: {
+        'select-action': 'selectAction',
+        'create_machine': '_createMachine'
+      },
+      _isDetailsPageActive: function (path) {
+          if (path && this.querySelector('image-page'))
+            this.querySelector('image-page').updateState();
+          return path;
+      },
+      _isListActive: function (path) {
+          return !path;
+      },
+      _createMachine: function(e){
+        // console.log('_createMachine', e.detail);
+        this.fire("go-to", {url: '/machines/+create', params: {cloud:e.detail.cloud, image: e.detail.image}});
+      },
+      _getImage: function (route) {
+          // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
+          if (this.model.images)
+            return this.model.images[route.path.slice(1,route.path.length)];
+      },
+      _getImageId: function(route){
+        if (route.path.slice(1,route.path.length) && this.querySelector('image-page'))
+          this.querySelector('image-page').updateState();
+
+          return route.path.slice(1,route.path.length);
+      },
+      _addResource: function(e) {
+          // maybe a dialog to search images in providers
+          this.querySelector('image-provider-search')._openDialog();
+      },
+      _getFrozenLogColumn: function(){
+          return ['name'];
+      },
+      _getVisibleColumns: function(){
+          return ['star', 'cloud', 'id', 'tags'];
+      },
+      _getRenderers: function(keys) {
+          var _this = this;
+          return {
+              'name': {
+                  'body': function(item, row) {
+                      var name = item == "<none>:<none>" ? row.id : item;
+                      if (row.star)
+                        return '<strong class="name starred">'+ name + '</strong>';
+                      else
+                        return '<strong class="name unstarred">'+ name + '</strong>';
+                  }
+              },
+              'cloud': {
+                  'body': function(item, row) {
+                    return row && row.cloud ? row.cloud.title : '';
+                  }
+              },
+              'star': {
+                  'body': function(item, row) {
+                      return item ? '<iron-icon icon="star" class="starred"></iron-icon>' : '<iron-icon icon="star-border" class="unstarred"></iron-icon>';
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item || [],
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              }
+          }
+      },
+      searchableClouds: function(clouds){
+        return clouds.filter(function(c){
+          return ['ec2','docker'].indexOf(c.provider) > -1;
+        });
+      },
+      sortedImages: function(images){
+          return this.model.imagesArray.sort(function(a, b){
+              //if both properties exist
+              if (a.star > b.star) {
+                  return -1;
+              }
+              if (a.star < b.star) {
+                  return 1;
+              }
+              return 0;
+          }.bind(this));
+      },
+      searchOnProviders: function(){
+        document.querySelector('image-provider-search')._openDialog();
+      },
+      // redirect events
+      selectAction: function(e) {
+          e.stopImmediatePropagation();
+          if (this.querySelector('image-actions')) {
+            this.querySelector('image-actions').selectAction(e);
+          }
+      }
+
+    });
+  </script>
+</dom-module>
