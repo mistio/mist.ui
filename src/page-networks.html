@@ -33,7 +33,7 @@
             </div>
         </template>
         <network-add model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-add>
-        <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networks)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
+        <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networksArray.length)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
             hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
     </template>
 
@@ -55,30 +55,36 @@
                     notify: true
                 }
             },
-
+            
             listeners: {
                 'select-action': 'selectAction',
             },
+            
             _isAddPageActive: function (path) {
                 return path == '/+add';
             },
+            
             _isDetailsPageActive: function (path) {
                 if (path && path != '/+add' && this.querySelector('network-page'))
                     this.querySelector('network-page').updateState();
                 return path && path != '/+add';
             },
+            
             _isListActive: function (path) {
                 return !path;
             },
+            
             _getNetwork: function (id) {
                 if (this.model.networks)
                     return this.model.networks[id];
             },
+            
             _addResource: function (e) {
                 this.fire('go-to', {
                     url: this.model.sections.networks.add
                 });
             },
+            
             _getFrozenLogColumn: function () {
                 return ['name'];
             },

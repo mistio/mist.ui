@@ -226,19 +226,6 @@
                     </div>
                 </div>
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="team" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
-                <!-- <div class="item-actions">
-                    <paper-button on-tap="_editTeam" class="simple">Edit Team</paper-button>
-                    <paper-menu-button horizontal-align="right" hidden$="[[teamIsOwners]]">
-                        <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
-                        <paper-menu id="machine_actions" class="dropdown-content">
-                            <paper-button on-tap="_deleteTeam" class="simple"> Delete Team</paper-button>
-                        </paper-menu>
-                    </paper-menu-button>
-
-                    <paper-button on-tap="_addMember" class="simple white left-icon" style$="color: [[section.color]]">
-                        <iron-icon icon="social:person-add" style$="color: [[section.color]]"></iron-icon> Invite Members
-                    </paper-button>
-                </div> -->
             </paper-material>
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Team not found.</div>
@@ -294,6 +281,7 @@
                     </template>
                 </div>
             </div>
+
             <div class="flex-horizontal-with-ratios section" hidden$=[[!rbac]]>
                 <div class="width100" hidden$="[[isMissing]]">
                     <paper-material class="no-pad">
@@ -304,8 +292,7 @@
                             Members of the owners team have full access to all resources in your organization.
                             </br>
                             For fine grained permissions add more teams and assign RBAC policies.
-                            <a href="http://docs.mist.io/article/102-role-based-access-control"
-                                target="_blank" class="blue-link">Documentation</a>
+                            <a href="http://docs.mist.io/article/102-role-based-access-control" target="_blank" class="blue-link" hidden$=[[!docs]]>Documentation</a>
                             </br>
                             </br>
                         </p>
@@ -317,23 +304,22 @@
                     <paper-material class="no-pad">
                         <h3 class="smallcaps resource-head text-center">Team Policy</h3>
                         <p class="text-center">
-                            Role based access policies are only available in Mist.io's commercial versions.
+                            [[cta.description]]
                         </p>
                         <p class="text-center">
-                            <paper-button class="blue">
-                                <a href="https://mist.io/sign-up" target="_blank">SIGN UP TO MIST.IO SAAS</a>
+                            <paper-button class="blue uppercase">
+                                <a href$="[[cta.uri]]" target="_blank">[[cta.action]]</a>
                             </paper-button>
                         </p>
                         <p class="text-center">
                             or contact
-                            <a href="mailto:sales@mist.io" class="blue-link">sales@mist.io</a> for details.
+                            <a href$="mailto:[[email.sales]]" class="blue-link">[[email.sales]]</a> for details.
                             <br/>
                             <br/>
                         </p>
                     </paper-material>
                 </div>
             </div>
-        </div>
         </div>
 
         <div class="absolute-bottom-right">
@@ -420,6 +406,7 @@
                 },
                 itemArray: Array
             },
+
             observers: [
                 '_change(team)'
             ],
@@ -507,7 +494,8 @@
             _deleteTeam: function (e) {
                 this._showDialog({
                     title: 'Delete Team?',
-                    body: "Deleting teams cannot be undone. You are about to delete team: " + this.team
+                    body: "Deleting teams cannot be undone. You are about to delete team: " +
+                        this.team
                         .name,
                     danger: true,
                     reason: "team.delete"
@@ -602,7 +590,7 @@
             _showMessage: function (rbac, billing) {
                 if (this.team)
                     return !rbac && !billing;
-            },
+            }
         });
     </script>
 </dom-module>
