@@ -11,150 +11,166 @@
 
 <dom-module id="rule-edit">
     <template>
-		<style>
-        :host {
-            display: block;
-            position: relative;
-            background-color: #eee;
-        }
-        .rule-edit {
-            position: relative;
-        }
-		paper-button {
-            padding: 0.8em 1.57em 0.7em 1.57em;
-            font-weight: 500;
-        }
-        paper-button[disabled] {
-            background-color: rgba(0,0,0,.13) !important;
-            color: rgba(0,0,0,0.32) !important;
-        }
-        paper-material {
-            border-top: 2px solid #ddd;
-        }
-        .metricOp  {
-            width: 50px;
-        }
-        .metricAggr,
-        .metricAction {
-            width: 100px;
-            margin-right: 10px;
-        }
-        paper-input#metricValue, 
-        paper-input#metricOffset {
-            width: 40px;
-            display: inline-block;
-        }
-        paper-input#metricAggr {
-            width: 120px;
-            display: inline-block;
-        }
-        .rule.incident-true {
-            color: var(--red-color);
-        }
-        .rule {
-            padding: 8px 0;
-        }
-        .rule-id {
-            position: absolute;
-            color: rgba(0,0,0,0.32);
-            font-size: 0.8em;
-            top: 16px;
-            left: 0;
-        }
-        .rule-actions {
-            justify-content: flex-end;
-            font-size: 0.9em;
-            margin-top: 16px;
-        }
-        paper-button iron-icon {
-            opacity: 0.32;
-            padding: 4px;
-        }
-        paper-input#emails {
-            max-width: 240px;
-            display: inline-block;
-        }
-        #newrule > * {
-            padding-left: 8px;
-            padding-right: 8px;
-        }
-        paper-dropdown-menu::content #dropdown {
-            width: inherit !important;
-        }
-        .add {
-        	cursor: pointer;
-        }
-        .and {
-            padding: 0 8px;
-        }
-	</style>
+        <style>
+            :host {
+                display: block;
+                position: relative;
+                background-color: #eee;
+            }
 
-    <div class="rule-edit">
-        <span class="rule-id">[[_computeId(rule.title)]]</span>
-        <div id="newrule" class="rule">
+            .rule-edit {
+                position: relative;
+            }
 
-            <template is="dom-repeat" items="[[rule.queries]]" as="query">
-                If 
+            paper-button {
+                padding: 0.8em 1.57em 0.7em 1.57em;
+                font-weight: 500;
+            }
 
-                <paper-dropdown-menu class="dropdown-block metricName">
-                    <paper-menu id="metricName" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
-                        <template is="dom-repeat" items="[[availableMetrics]]" as="option">
-                            <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-                        </template>
-                    </paper-menu>
-                </paper-dropdown-menu>
+            paper-button[disabled] {
+                background-color: rgba(0, 0, 0, .13) !important;
+                color: rgba(0, 0, 0, 0.32) !important;
+            }
 
-                <paper-dropdown-menu class="dropdown-block metricOp">
-                    <paper-menu id="metricOp" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
-                        <paper-item value="gt"> &gt; </paper-item>
-                        <paper-item value="lt"> &lt; </paper-item>
-                    </paper-menu>
-                </paper-dropdown-menu>
+            paper-material {
+                border-top: 2px solid #ddd;
+            }
 
-                <paper-input id="metricValue" value="{{query.threshold}}" auto-validate></paper-input>
+            .metricOp {
+                width: 50px;
+            }
 
-                {{computeUnits(newMetric, builtinMetrics, customMetrics)}}
+            .metricAggr,
+            .metricAction {
+                width: 100px;
+                margin-right: 10px;
+            }
 
-                for 
+            paper-input#metricValue,
+            paper-input#metricOffset {
+                width: 40px;
+                display: inline-block;
+            }
 
-                <paper-dropdown-menu class="dropdown-block metricAggr">
-                    <paper-menu id="metricAggr" attr-for-selected="value" selected="{{query.aggregation}}" class="dropdown-content">
-                        <paper-item value="all"> every </paper-item>
-                        <paper-item value="any"> any </paper-item>
-                        <paper-item value="avg"> average </paper-item>
-                    </paper-menu>
-                </paper-dropdown-menu>
+            paper-input#metricAggr {
+                width: 120px;
+                display: inline-block;
+            }
 
-                value within 
+            .rule.incident-true {
+                color: var(--red-color);
+            }
 
-                <paper-input id="metricOffset" value="{{rule.window.start}}" type="number" auto-validate></paper-input>
+            .rule {
+                padding: 8px 0;
+            }
 
-                <paper-dropdown-menu class="dropdown-block metricAction">
-                    <paper-menu id="windowPeriod" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
-                        <paper-item value="seconds"> seconds </paper-item>
-                        <paper-item value="minutes"> minutes </paper-item>
-                        <paper-item value="hours"> hours </paper-item>
-                    </paper-menu>
-                </paper-dropdown-menu>
+            .rule-id {
+                position: absolute;
+                color: rgba(0, 0, 0, 0.32);
+                font-size: 0.8em;
+                top: 16px;
+                left: 0;
+            }
 
-            </template>
+            .rule-actions {
+                justify-content: flex-end;
+                font-size: 0.9em;
+                margin-top: 16px;
+            }
 
-            then
+            paper-button iron-icon {
+                opacity: 0.32;
+                padding: 4px;
+            }
 
-            <span id="actionsDropdown">
-                <template is="dom-repeat" items="[[rule.actions]]" as="action">
-                    <span class="and" hidden$="[[!index]]"> AND </span>
-                    <rule-action id="[[rule.id]]" action="{{action}}" users="[[users]]" teams="[[teams]]"></rule-action>
-                    <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
+            paper-input#emails {
+                max-width: 240px;
+                display: inline-block;
+            }
+
+            #newrule>* {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            paper-dropdown-menu::content #dropdown {
+                width: inherit !important;
+            }
+
+            .add {
+                cursor: pointer;
+            }
+
+            .and {
+                padding: 0 8px;
+            }
+        </style>
+
+        <div class="rule-edit">
+            <span class="rule-id">[[_computeId(rule.title)]]</span>
+            <div id="newrule" class="rule">
+
+                <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                    If
+
+                    <paper-dropdown-menu class="dropdown-block metricName">
+                        <paper-menu slot="dropdown-content" id="metricName" attr-for-selected="value" selected="{{rule.metric}}" class="dropdown-content">
+                            <template is="dom-repeat" items="[[availableMetrics]]" as="option">
+                                <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+
+                    <paper-dropdown-menu class="dropdown-block metricOp">
+                        <paper-menu slot="dropdown-content" id="metricOp" attr-for-selected="value" selected="{{rule.operator}}" class="dropdown-content">
+                            <paper-item value="gt"> &gt; </paper-item>
+                            <paper-item value="lt"> &lt; </paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+
+                    <paper-input id="metricValue" value="{{query.threshold}}" auto-validate></paper-input>
+
+                    {{computeUnits(newMetric, builtinMetrics, customMetrics)}} for
+
+                    <paper-dropdown-menu class="dropdown-block metricAggr">
+                        <paper-menu slot="dropdown-content" id="metricAggr" attr-for-selected="value" selected="{{rule.aggregate}}" class="dropdown-content">
+                            <paper-item value="all"> every </paper-item>
+                            <paper-item value="any"> any </paper-item>
+                            <paper-item value="avg"> average </paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+
+                    value within
+
+                    <paper-input id="metricOffset" value="{{rule.window.start}}" type="number" auto-validate></paper-input>
+
+                    <paper-dropdown-menu class="dropdown-block metricAction">
+                        <paper-menu id="windowPeriod" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                            <paper-item value="seconds"> seconds </paper-item>
+                            <paper-item value="minutes"> minutes </paper-item>
+                            <paper-item value="hours"> hours </paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+
                 </template>
-            </span>
-            <iron-icon icon="add" on-tap="_addAction"></iron-icon>
+
+                then
+
+                <span id="actionsDropdown">
+                    <template is="dom-repeat" items="[[rule.actions]]" as="action">
+                        <span class="and" hidden$="[[!index]]"> AND </span>
+                        <rule-action id="[[rule.id]]" action="{{action}}" users="[[users]]" teams="[[teams]]"></rule-action>
+                        <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
+                    </template>
+                </span>
+                <iron-icon icon="add" on-tap="_addAction"></iron-icon>
+
+            </div>
+
+            <slot name="rule-actions"></slot>
 
         </div>
-
-        <slot name="rule-actions"></slot>
-
-    </div>
     </template>
 
     <script>
@@ -162,16 +178,16 @@
             is: 'rule-edit',
 
             properties: {
-            	rule: Object,
-            	resource: Object,  // machine, cloud or other later
+                rule: Object,
+                resource: Object, // machine, cloud or other later
                 updateExistingRule: Boolean,
                 model: Object,
-                builtinMetrics:{
+                builtinMetrics: {
                     type: Object,
                     notify: true,
                     value: {}
                 },
-                customMetrics:{
+                customMetrics: {
                     type: Object,
                     notify: true,
                     value: {}
@@ -200,42 +216,41 @@
             observers: [
                 'editNewChanged(editNew)'
             ],
-            ready: function(){
-            },
-            addRule: function() {
+            ready: function () {},
+            addRule: function () {
                 this.fire('add-rule');
             },
-            _showAdd: function(e){
+            _showAdd: function (e) {
                 this.rule.action.length > 1;
             },
-            _computeId: function(title) {
+            _computeId: function (title) {
                 return title || 'new rule';
             },
-            _removeAction: function(e) {
+            _removeAction: function (e) {
                 console.log('_removeAction', e.model.index, e);
                 if (e.model.index)
                     this.splice('rule.actions', e.model.index, 1);
             },
-            _addAction: function(e) {
+            _addAction: function (e) {
                 this.push('rule.actions', {
-                        type: 'machine_action'
-                    })
+                    type: 'machine_action'
+                })
             },
-            computeUnits: function(metric, builtinMetrics, customMetrics) {
+            computeUnits: function (metric, builtinMetrics, customMetrics) {
                 var ref;
                 if (this.builtinMetrics || this.customMetrics)
-                    ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
+                    ref = this.builtinMetrics[metric] || this.customMetrics[metric];
                 return ref && ref.unit ? ref.unit : '';
             },
-            _computeMetrics: function(resource, builtinMetrics, customMetrics){
+            _computeMetrics: function (resource, builtinMetrics, customMetrics) {
                 var metrics = [];
-                for (var p in this.builtinMetrics){
+                for (var p in this.builtinMetrics) {
                     metrics.push(this.builtinMetrics[p])
                 }
                 if (this.customMetrics) {
-                    for (var q in this.customMetrics){
+                    for (var q in this.customMetrics) {
                         if (this.customMetrics[q].machines) {
-                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
+                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function (m) {
                                 return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
                             }, this);
                             if (machineHasCustomMetric)
@@ -245,7 +260,7 @@
                 }
                 return metrics;
             },
-            editNewChanged: function(editNew) {
+            editNewChanged: function (editNew) {
                 if (editNew)
                     this.querySelector('rule-action')._initDropdowns();
             }

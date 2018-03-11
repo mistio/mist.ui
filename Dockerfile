@@ -1,9 +1,9 @@
-FROM node:6.9.1-alpine
+FROM node:6.13.1-alpine
 MAINTAINER mist.io <support@mist.io>
 
 RUN apk add --update --no-cache git nginx
 
-RUN npm update && npm install -g -U polymer-cli bower gulp
+RUN npm update && npm install -g -U --no-optional polymer-cli bower gulp
 
 ENV bower_allow_root=true \
     bower_interactive= \
