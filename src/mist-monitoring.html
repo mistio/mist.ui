@@ -98,6 +98,7 @@
             }
 
             .logs {
+                position: relative;
                 background-color: #f1f1f1;
                 padding: 4px 16px;
                 border-radius: 3px;
@@ -168,6 +169,12 @@
             .monitoring-head {
                 @apply(--mist-monitoring-head-mixin)
             }
+
+            .close-logs {
+                position: absolute;
+                right: 8px;
+                top: 8px;
+            }
         </style>
         <template is="dom-if" if="[[!resource.id]]" restamp>
             <template is="dom-if" if="[[showHomeDashboard]]" restamp>
@@ -207,7 +214,7 @@
                     <div hidden$="[[isManual]]">
                         <div class="logs" hidden$="[[!showLogs]]">
                             <p hidden$="[[!jobId]]">
-                                LOGS
+                                LOGS <iron-icon class="close-logs" icon="close" on-tap="resetPolling"></iron-icon>
                                 <br/>
                                 <template is="dom-repeat" items="{{logItems}}" as="logItem">
                                     <div>
@@ -543,7 +550,8 @@
         },
         stopPolling: function (logItems) {
             if (this.logItems && this.logItems.length > 0) {
-                if (this.logItems[this.logItems.length - 1].action.endsWith('deploy_collectd_finished')) {
+                if (this.logItems[this.logItems.length - 1].action.endsWith('deploy_collectd_finished') ||
+                    this.logItems[this.logItems.length - 1].action.endsWith('deployment_finished')) {
                     this.resetPolling();
                 }
             }
