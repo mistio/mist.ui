@@ -182,11 +182,11 @@
                         return f.name == "stackinputs";
                     });
                     this.set('fields.' + ind + '.defaultValue', this.yaml_inputs);
-                    console.log('template is redefined');
+                    // console.log('template is redefined');
 
                     var yaml_or_form = 'form';
                     var template = this.model.templates[params.template];
-                    console.log('Computing Fields started');
+                    // console.log('Computing Fields started');
 
                     if (this.fields) {
                         var yf = this.fields.find(function (f) {
@@ -404,8 +404,7 @@
 
             _updateFields: function (event) {
                 var e = Polymer.dom(event);
-                var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) > -
-                    1
+                var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) > -1;
                 if (changeInYaml) {
                     var yaml = document.querySelector("paper-textarea#stackinputs").value;
                     var yaml_array = yaml.split('\n');
@@ -436,15 +435,17 @@
                                 inp.name) == -1) {
                             yaml_inputs += inp.name + ': ';
                             var val = inp.value || inp.defaultValue;
-                            if (inp.value == 'custom')
+                            if (inp.value == 'custom') {
                                 val = JSON.stringify(inp.customValue);
+                                // console.log('custom ',val,JSON.stringify(inp.customValue))
+                            }
                             yaml_inputs += val + '\n';
                         }
                         if (cloud && cloud.value) {
                             if (inp.name.startsWith("mist_cloud")) {
                                 xid = inp.name.split("mist_cloud")[0];
                                 cloudId = inp.value;
-                                if (cloudId && this.fieldIndexByName('mist_size'+xid)){
+                                if (cloudId && this.fieldIndexByName('mist_size'+xid) > -1){
                                     if (["onapp", "vsphere", "libvirt", "gce"].indexOf(this.model.clouds[cloudId].provider) > -1){
                                         this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.custom', true);
                                         this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.customValue', {});
@@ -453,6 +454,7 @@
                                         this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.custom', false);
                                         this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.customValue', false);
                                     }
+                                    // console.log(this.get('fields.'+this.fieldIndexByName('mist_size'+xid)+'.customValue'));
                                 }
                             }
                             if (inp.name.startsWith("mist_location")) {
@@ -484,7 +486,6 @@
                             }
                             if (inp.name.startsWith("mist_size")) {
                                 xid = inp.name.split("mist_size")[0];
-                                console.log('xid', xid);
                                 fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
@@ -535,9 +536,9 @@
             },
 
             updateKeys: function (e) {
-                console.log('_updateKeys', e);
+                // console.log('_updateKeys', e);
                 this.async(function () {
-                    console.log(this.template);
+                    // console.log(this.template);
                     if (this.fields)
                         this.fields.forEach(function (f, index) {
                             // make key dropdown && select newly created key
