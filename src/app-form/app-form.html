@@ -358,7 +358,7 @@
                                     <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                                 </div>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-checkbox name$="[[field.name]]" data-value="[[_computeID(option, field.name)]]">[[option.name]]</paper-checkbox>
+                                    <paper-checkbox name$="[[field.name]]" data-value="[[field.id]]">[[option.name]]</paper-checkbox>
                                 </template>
                             </div>
                         </template>
@@ -853,6 +853,9 @@
                         if (p.startsWith('mist_location')) {
                             inps[p] = inps[p] != undefined ? inps[p].toString() : '';
                         }
+                        if (p.startsWith('mist_size')) {
+                            inps[p] = inps[p] == "custom" ? inps['customValue'].toString() : inps[p];
+                        }
                     }
 
                     payload = {
@@ -1116,12 +1119,6 @@
                     }
                 });
                 return arr;
-            },
-            _computeID: function (option, fieldname) {
-                if (fieldname == "networks")
-                    return option.network_id;
-                else
-                    return option.id;
             },
             _updateCheckboxesField: function (e) {
                 if (e.target.tagName == "PAPER-CHECKBOX") {
