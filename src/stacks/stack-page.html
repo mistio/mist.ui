@@ -851,26 +851,28 @@
 
                     var run = function(el) {
                         var item = runitems.shift();
-                        var uri = '/api/v1/jobs/' + item.job_id;
-                        var xhr = new XMLHttpRequest();
-                        xhr.onreadystatechange = function() {
-                        if (xhr.readyState == XMLHttpRequest.DONE) {
-                            if (xhr.status == 200) {
-                                var response = xhr.response ? xhr.response : [];
-                                if (response) {
-                                    response = JSON.parse(response);
-                                    console.log(response);
-                                    for (var p in response) {
-                                        item[p] = response[p];
+                        if (item) {
+                            var uri = '/api/v1/jobs/' + item.job_id;
+                            var xhr = new XMLHttpRequest();
+                            xhr.onreadystatechange = function() {
+                            if (xhr.readyState == XMLHttpRequest.DONE) {
+                                if (xhr.status == 200) {
+                                    var response = xhr.response ? xhr.response : [];
+                                    if (response) {
+                                        response = JSON.parse(response);
+                                        console.log(response);
+                                        for (var p in response) {
+                                            item[p] = response[p];
+                                        }
                                     }
+                                    item.response = response;
                                 }
-                                item.response = response;
-                            }
-                            if (runitems.length) {
-                                run(el);
+                                if (runitems.length) {
+                                    run(el);
+                                }
                             }
                         }
-                      }.bind(this);
+                    };
 
                       xhr.open('GET', uri);
                       xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
