@@ -23,6 +23,7 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="sub-form.html">
+<link rel="import" href="mist-size-field.html">
 
 <script src="../../bower_components/yaml.js/dist/yaml.min.js"></script>
 
@@ -357,7 +358,7 @@
                                     <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                                 </div>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-checkbox name$="[[field.name]]" data-value="[[_computeID(option, field.name)]]">[[option.name]]</paper-checkbox>
+                                    <paper-checkbox name$="[[field.name]]" data-value="[[field.id]]">[[option.name]]</paper-checkbox>
                                 </template>
                             </div>
                         </template>
@@ -375,7 +376,9 @@
                                     </template>
                                 </paper-menu>
                             </paper-dropdown-menu>
-
+                        </template>
+                        <template is="dom-if" if="[[_computeFieldType(field, 'mist_size', field.show)]]">
+                            <mist-size-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-size-field>
                         </template>
                         <template is="dom-if" if="[[_computeFieldType(field, 'mist_dropdown', field.show)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
@@ -810,10 +813,15 @@
                         return this._validatePatternedField(el);
                     } else if (el.type == "password" && el.pattern && el.required) {
                         return this._validatePatternedField(el);
+                    } else if (el.type == "mist_size") {
+                        return el.show && el.required ? el.value && this._validateMistSize(el) : true;
                     } else {
                         return el.show && el.required ? el.value && el.value.length : true;
                     }
                 }, this);
+            },
+            _validateMistSize: function (el) {
+                return el.value == "custom" && el.customValue.ram && el.customValue.cpu && el.customValue.disk ? true : el.value.length; 
             },
             _allItemsValid: function (el) {
                 var allItemsValid;
@@ -845,6 +853,9 @@
                         if (p.startsWith('mist_location')) {
                             inps[p] = inps[p] != undefined ? inps[p].toString() : '';
                         }
+                        if (p.startsWith('mist_size')) {
+                            inps[p] = inps[p] == "custom" ? inps['customValue'].toString() : inps[p];
+                        }
                     }
 
                     payload = {
@@ -863,6 +874,9 @@
 
                     // if there's a list field add it as a nested object under the subform title.
                     this.fields.forEach(function (field) {
+                        if (field.type == 'mist_size' && field.value == "custom") {
+                            payload[field.name] = field.customValue;
+                        }
                         if (field.type == 'list') {
                             var subformPayload = [];
                             if (field.items && field.items.length) {
@@ -1105,12 +1119,6 @@
                     }
                 });
                 return arr;
-            },
-            _computeID: function (option, fieldname) {
-                if (fieldname == "networks")
-                    return option.network_id;
-                else
-                    return option.id;
             },
             _updateCheckboxesField: function (e) {
                 if (e.target.tagName == "PAPER-CHECKBOX") {
