@@ -170,6 +170,8 @@
                     this.model.templates[params.template].inputs.forEach(function (inp) {
                         yaml_inputs += inp.name + ': ';
                         var val = inp.value = !undefined ? inp.value : inp.defaultValue || inp.default;
+                        if (inp.value == 'custom')
+                            val = JSON.stringify(inp.customValue);
                         yaml_inputs += val + '\n';
                     }, this);
                     this.set('yaml_inputs', yaml_inputs);
@@ -180,12 +182,11 @@
                         return f.name == "stackinputs";
                     });
                     this.set('fields.' + ind + '.defaultValue', this.yaml_inputs);
-                    console.log('template is redefined');
-
+                    // console.log('template is redefined');
 
                     var yaml_or_form = 'form';
                     var template = this.model.templates[params.template];
-                    console.log('Computing Fields started');
+                    // console.log('Computing Fields started');
 
                     if (this.fields) {
                         var yf = this.fields.find(function (f) {
@@ -315,7 +316,7 @@
                                 }
                             }
 
-                            // make image location & dependent on cloud
+                            // make image & location dependent on cloud
                             if (inp.name.startsWith("mist_location")) {
                                 var xid = inp.name.split("mist_location")[1];
                                 inp.show = false;
@@ -327,11 +328,11 @@
                                 }
                             }
 
-                            // make image location & dependent on cloud
+                            // make size dependent on cloud
                             if (inp.name.startsWith("mist_size")) {
                                 var xid = inp.name.split("mist_size")[1];
                                 inp.show = false;
-                                inp.type = 'mist_dropdown';
+                                inp.type = 'mist_size';
                                 inp.helptext = 'Machine size';
                                 inp.showIf = {
                                     fieldName: "mist_cloud" + xid,
@@ -363,7 +364,6 @@
                         required: false
                     });
                     this.set('fields', ret);
-
 
                     return this.model.templates[params.template];
                 } else {
@@ -404,8 +404,7 @@
 
             _updateFields: function (event) {
                 var e = Polymer.dom(event);
-                var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) > -
-                    1
+                var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) > -1;
                 if (changeInYaml) {
                     var yaml = document.querySelector("paper-textarea#stackinputs").value;
                     var yaml_array = yaml.split('\n');
@@ -427,53 +426,80 @@
                         return f.name.startsWith("mist_cloud");
                     });
                     var yaml_inputs = '';
-                    this.fields.forEach(function (inp) {
-                        var fieldCloud;
+                    this.fields.forEach(function (inp, index) {
+                        var fieldCloud, // cloud field Object
+                            xid, // resource batch index type string ex _1
+                            cloudId; // mist cloud id
 
                         if (['name', 'description', 'yaml_or_form', 'stackinputs', 'deploy'].indexOf(
                                 inp.name) == -1) {
                             yaml_inputs += inp.name + ': ';
                             var val = inp.value || inp.defaultValue;
+                            if (inp.value == 'custom') {
+                                val = JSON.stringify(inp.customValue);
+                                // console.log('custom ',val,JSON.stringify(inp.customValue))
+                            }
                             yaml_inputs += val + '\n';
                         }
                         if (cloud && cloud.value) {
+                            if (inp.name.startsWith("mist_cloud")) {
+                                xid = inp.name.split("mist_cloud")[0];
+                                cloudId = inp.value;
+                                if (cloudId && this.fieldIndexByName('mist_size'+xid) > -1){
+                                    if (["onapp", "vsphere", "libvirt", "gce"].indexOf(this.model.clouds[cloudId].provider) > -1){
+                                        this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.custom', true);
+                                        this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.customValue', {});
+                                    }
+                                    else {
+                                        this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.custom', false);
+                                        this.set('fields.'+this.fieldIndexByName('mist_size'+xid)+'.customValue', false);
+                                    }
+                                    // console.log(this.get('fields.'+this.fieldIndexByName('mist_size'+xid)+'.customValue'));
+                                }
+                            }
                             if (inp.name.startsWith("mist_location")) {
-                                var xid = inp.name.split("mist_location")[0];
+                                xid = inp.name.split("mist_location")[0];
                                 fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
-                                var cloudId = fieldCloud.value;
+                                cloudId = fieldCloud.value;
                                 if (cloudId)
-                                    inp.options = this.model.clouds[cloudId].locationsArray;
+                                    inp['options'] = this.model.clouds[cloudId].locationsArray;
                             }
                             if (inp.name.startsWith("mist_image")) {
-                                var xid = inp.name.split("mist_image")[0];
+                                xid = inp.name.split("mist_image")[0];
                                 fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
-                                var cloudId = fieldCloud.value;
+                                cloudId = fieldCloud.value;
                                 if (this.model && cloudId)
-                                    inp.options = this.model.clouds[cloudId].imagesArray;
+                                    inp['options'] = this.model.clouds[cloudId].imagesArray;
                             }
                             if (inp.name.startsWith("mist_networks")) {
-                                var xid = inp.name.split("mist_networks")[0];
+                                xid = inp.name.split("mist_networks")[0];
                                 fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
-                                var cloudId = fieldCloud.value;
+                                cloudId = fieldCloud.value;
                                 if (this.model && cloudId)
-                                    inp.options = this.model.clouds[cloudId].networksArray;
+                                    inp['options'] = this.model.clouds[cloudId].networksArray;
                             }
                             if (inp.name.startsWith("mist_size")) {
-                                console.warn('mist_size');
-                                var xid = inp.name.split("mist_size")[0];
+                                xid = inp.name.split("mist_size")[0];
                                 fieldCloud = this.fields.find(function (f) {
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
-                                var cloudId = fieldCloud.value;
-                                console.warn('xid', xid, 'cloud', fieldCloud);
-                                if (cloudId)
-                                    inp.options = this.model.clouds[cloudId].sizesArray;
+                                cloudId = fieldCloud.value;
+                                if (cloudId) {
+                                    if (["libvirt", "onapp", "vsphere"].indexOf(this.model.clouds[cloudId].provider) == -1)
+                                        inp['options'] = this.model.clouds[cloudId].sizesArray;
+                                    else 
+                                        inp.options = [];
+                                    if (["onapp", "vsphere", "libvirt", "gce"].indexOf(this.model.clouds[cloudId].provider) > -1)
+                                        inp['custom'] = true;
+                                    else
+                                        inp['custom'] = false;
+                                }
                             }
 
                             this.fields.forEach(function (f, index) {
@@ -502,10 +528,17 @@
                 }
             },
 
+            fieldIndexByName: function (name) {
+                var index = this.fields.findIndex(function (f) {
+                    return f.name == name;
+                });
+                return index;
+            },
+
             updateKeys: function (e) {
-                console.log('_updateKeys', e);
+                // console.log('_updateKeys', e);
                 this.async(function () {
-                    console.log(this.template);
+                    // console.log(this.template);
                     if (this.fields)
                         this.fields.forEach(function (f, index) {
                             // make key dropdown && select newly created key

@@ -121,7 +121,7 @@
             <paper-material class$="selected-[[!selectedCloud]]" hidden$=[[!_hasProviders(providers)]]>
                 <h3 class="smallcaps">Machine Setup</h3>
                 <div hidden$=[[selectedCloud]]>
-                    <p>Depending on the cloud there maybe needed different machine parameters. Choose a provider for the coresponding
+                    <p>Depending on the cloud, different machine parameters may be required. Choose a provider for the coresponding
                         fields to appear.</p>
                 </div>
                 <div hidden$=[[!selectedCloud]]>
@@ -419,13 +419,6 @@
                                 this.set('machineFields.' + index + '.required', false);
                         }
 
-                        if (f.required && f.options && f.options.length == 1) {
-                            if (f.type == "dropdown")
-                                this.set('machineFields.' + index + '.value', f.options[0].val);
-                            else
-                                this.set('machineFields.' + index + '.value', f.options[0].id);
-                        }
-
                         // update options
                         if (f.options)
                             this.set('machineFields.' + index + '.options', f.options);
@@ -447,11 +440,22 @@
                         this._updateFieldsForKvm();
                     }
 
-                    // default values
+                    // default values, hide empty non required, fill in single options
                     if (this.machineFields) {
                         this.machineFields.forEach(function (f, index) {
                             this.set('machineFields.' + index + '.value', this.get(
                                 'machineFields.' + index + '.defaultValue'));
+
+                            if (f.required && f.options && f.options.length == 1) {
+                                if (f.type == "dropdown")
+                                    this.set('machineFields.' + index + '.value', f.options[0].val);
+                                else
+                                    this.set('machineFields.' + index + '.value', f.options[0].id);
+                            }
+
+                            if (!f.required && f.options && f.options.length == 0) {
+                                this.set('machineFields.' + index + '.show', false);
+                            }
                         }.bind(this));
                     }
                 }
@@ -461,6 +465,9 @@
                 // console.log('model, selected cloud or machine fields changed', this.selectedCloud, changeRecord);
                 if (this.selectedCloud && this.model && this.model.clouds && this.model.clouds[this
                         .selectedCloud]) {
+                    // if (changeRecord.path.endsWith('options') && this.get(changeRecord.path).length == 1)
+                    //     this.set(changeRecord.path.replace('.options', '.value'), changeRecord.path+'.0.id')
+
                     // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
                     if (this.model.clouds[this.selectedCloud].provider == "docker" && changeRecord.path
                         .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
@@ -786,19 +793,13 @@
 
                 if (!location)
                     return;
+                if (location && location.extra) {
+                    if (!total)
+                        var total = location.extra.max_disk_size;
 
-                if (!total)
-                    var total = location.extra.max_disk_size;
-
-                if (total && total - value > 0)
-                    this.set('machineFields.' + sizeInd + '.max', total - value);
-            },
-
-            _updateFieldsForOnapp: function () {
-                var keyInd = this._fieldIndexByName('key');
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', "Key");
-                this.set('machineFields.' + keyInd + '.helptext', "Optional.");
+                    if (total && total - value > 0)
+                        this.set('machineFields.' + sizeInd + '.max', total - value);
+                }
             },
 
 
@@ -831,6 +832,13 @@
                 this.set('machineFields.' + locInd + '.label', "Location");
             },
 
+            _updateFieldsForOnapp: function () {
+                var keyInd = this._fieldIndexByName('key');
+                this.set('machineFields.' + keyInd + '.required', false);
+                this.set('machineFields.' + keyInd + '.label', "Key");
+                this.set('machineFields.' + keyInd + '.helptext', "Optional.");
+            },
+
             _updateFieldMinsForOnapp: function (image) {
                 var image = this.model.clouds[this.selectedCloud].images && this.model.clouds[this.selectedCloud].images[image] ? this.model.clouds[this.selectedCloud].images[image] : undefined;
 
@@ -849,6 +857,8 @@
             _updateFieldOptionsForOnapp: function (loc) {
                 var location = this.model.clouds[this.selectedCloud].locations[loc];
 
+                console.log('location',this.model.clouds[this.selectedCloud]);
+
                 if (!location) {
                     return;
                 }
@@ -860,32 +870,34 @@
                     swapInd = this._fieldIndexByName('size_disk_swap');
 
                 // update mins maxs
-                this.set('machineFields.' + cpuInd + '.max', location.extra.max_cpu);
-                this.set('machineFields.' + ramInd + '.max', location.extra.max_memory);
-                this.set('machineFields.' + hgiInd + '.value', location.extra.hypervisor_group_id);
+                if (location.extra) {
+                    this.set('machineFields.' + cpuInd + '.max', location.extra.max_cpu);
+                    this.set('machineFields.' + ramInd + '.max', location.extra.max_memory);
+                    this.set('machineFields.' + hgiInd + '.value', location.extra.hypervisor_group_id);
 
-                if (location.extra.max_disk_size) {
-                    this._updateDiskMax('size_disk_primary', this.get('machineFields.' + this._fieldIndexByName(
-                        'size_disk_swap') + '.value'), location.extra.max_disk_size);
-                    this._updateDiskMax('size_disk_swap', this.get('machineFields.' + this._fieldIndexByName(
-                        'size_disk_primary') + '.value'), location.extra.max_disk_size);
-                } else {
-                    this.set('machineFields.' + diskInd + '.max', 16);
-                    this.set('machineFields.' + swapInd + '.max', 16);
+                    if (location.extra.max_disk_size) {
+                        this._updateDiskMax('size_disk_primary', this.get('machineFields.' + this._fieldIndexByName(
+                            'size_disk_swap') + '.value'), location.extra.max_disk_size);
+                        this._updateDiskMax('size_disk_swap', this.get('machineFields.' + this._fieldIndexByName(
+                            'size_disk_primary') + '.value'), location.extra.max_disk_size);
+                    } else {
+                        this.set('machineFields.' + diskInd + '.max', 16);
+                        this.set('machineFields.' + swapInd + '.max', 16);
+                    }
+
+                    var imagesInd = this._fieldIndexByName('image'),
+                        networksInd = this._fieldIndexByName('networks');
+
+                    // update networks
+                    this.set('machineFields.' + networksInd + '.options', location.extra.networks);
+
+                    // filter images
+                    if (location.extra.federated == true)
+                        this.set('machineFields.' + imagesInd + '.options', this._filterImagesByLoc(
+                            location.extra.hypervisor_group_id));
+                    else
+                        this.set('machineFields.' + imagesInd + '.options', this._filterImagesWithNoHyp());
                 }
-
-                var imagesInd = this._fieldIndexByName('image'),
-                    networksInd = this._fieldIndexByName('networks');
-
-                // update networks
-                this.set('machineFields.' + networksInd + '.options', location.extra.networks);
-
-                // filter images
-                if (location.extra.federated == true)
-                    this.set('machineFields.' + imagesInd + '.options', this._filterImagesByLoc(
-                        location.extra.hypervisor_group_id));
-                else
-                    this.set('machineFields.' + imagesInd + '.options', this._filterImagesWithNoHyp());
 
             },
             _filterImagesByLoc: function (location) {
@@ -1082,21 +1094,15 @@
                     this.set('machineFields.' + passwordInd + '.required', false);
 
                     this.set('machineFields.' + keyInd + '.show', true);
-                    this.set('machineFields.' + keyInd + '.required', true);
-                }
-                //if the provider is Docker, the key should not be required
-                if (this.model.clouds[this.selectedCloud].provider == 'docker') {
-                    this.set('machineFields.' + keyInd + '.required', false);
+                    //if the provider is Docker or onapp, the key should not be required
+                    if (['docker', 'onapp'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
+                        this.set('machineFields.' + keyInd + '.required', true);
                 }
             },
             _fieldIndexByName: function (name) {
-                var index;
-                var passField = this.machineFields.find(function (f, ind) {
-                    if (f.name == name)
-                        index = ind;
-                    return f.name == name;
-                });
-                return index;
+                return this.machineFields.findIndex(function (f) {
+                        return f.name == name;
+                    });
             },
             _machineCreateResponse: function (e) {
                 // console.log('creation resp', e);

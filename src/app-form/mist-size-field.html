@@ -1,0 +1,176 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+
+<dom-module id="mist-size-field">
+    <template>
+        <style include="shared-styles forms">
+            :host {
+                display: block;
+            }
+            :host>* {
+                width: 100%;
+            }
+            paper-item.button-true {
+                background-color: #2196F3 !important;
+                font-weight: 500 !important;
+                color: #fff !important;
+                text-transform: uppercase;
+            }
+        </style>
+        <paper-dropdown-menu label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" 
+            required="[[field.required]]" hidden$="[[!field.options.length]]">
+            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
+                <template is="dom-if" if="[[_noOptions(field.options.length)]]" restamp>
+                    <paper-item disabled>No sizes found</paper-item>
+                </template>
+                <paper-item value="custom" class="button-true" hidden$="[[!field.custom]]">Custom Size</paper-item>
+                <template is="dom-repeat" items="[[field.options]]" as="option">
+                    <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                        <span class="flex">[[showOption(option)]]</span>
+                    </paper-item>
+                </template>
+            </paper-menu>
+        </paper-dropdown-menu>
+        <template is="dom-if" if="[[isCustom]]">
+            <template is="dom-repeat" items="{{customSizeFields}}" as="csfield">
+                <div hidden="[[csfield.hidden]]">[[csfield.label]]
+                    <span class="field-helptext">min [[csfield.min]], max [[csfield.max]] [[csfield.unit]]</span>
+                </div>
+                <paper-slider disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
+                max="[[csfield.max]]" value="{{csfield.value}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
+            </template>
+        </template>
+    </template>
+    <script>
+        Polymer({
+            is: 'mist-size-field',
+
+            properties: {
+                field: {
+                    type: Object,
+                    notify: true
+                },
+                isCustom: {
+                    type: Boolean,
+                    value: false
+                },
+                customValue: {
+                    type: Object,
+                    reflectToAttribute: true
+                },
+                showFieldOptions: {
+                    type: Boolean,
+                    value: true,
+                    computed: '_computeShowFieldOptions(field)'
+                },
+                customSizeFields: {
+                    type: Array,
+                    value: function() {
+                        return [{
+                            name: "ram",
+                            label: "RAM MB",
+                            type: "slider",
+                            value: 256,
+                            defaultValue: "",
+                            min: 256,
+                            max: 6223,
+                            step: 1,
+                            show: true,
+                            required: false,
+                            unit: "MB"
+                        },{
+                            name: "cpu",
+                            label: "CPU cores",
+                            type: "slider",
+                            value: 1,
+                            defaultValue: "",
+                            min: 1,
+                            max: 16,
+                            step: 1,
+                            show: true,
+                            required: false,
+                            unit: "cores"
+                        },{
+                            name: "disk",
+                            label: "Disk GB",
+                            type: "slider",
+                            value: 5,
+                            defaultValue: "",
+                            min: 5,
+                            max: 16,
+                            step: 1,
+                            show: true,
+                            required: false,
+                            unit: "GB"
+                        }]
+                    }
+                }
+            },
+
+            observers: [
+                '_fieldOptionsChanged(field.custom,field.options,field.options.length)',
+                '_fieldValueChanged(field.value)',
+                '_updateCustomValue(isCustom,customSizeFields.*)'
+            ],
+
+            showOption: function (option) {
+                if (option.name)
+                    return option.name;
+                if (option.id)
+                    return option.id;
+            },
+
+            _replaceAsterisk: function (str) {
+                return str.replace(/_/g, " ").replace("*", "").replace("id", "").trim();
+            },
+
+            _noOptions: function (options) {
+                return !this.field.options || this.field.options.length == 0;
+            },
+            
+            _updateCustomValue: function (fields) {
+                if (!this.isCustom) {
+                    this.set('customValue', false);
+                }
+                else {
+                    var cv = {}
+                    for (var i=0; i<this.customSizeFields.length; i++){
+                        cv[this.customSizeFields[i].name] = this.customSizeFields[i].value;
+                    }
+                    this.set('field.customValue', cv);
+                }
+            },
+
+            _fieldOptionsChanged: function (custom,options,length) {
+                // show only sliders if custom allowed and there are no options
+                if (this.field.custom && (!this.field.options || !this.field.options.length))
+                    this.set('field.value', 'custom');
+                else
+                    this._resetField();
+            },
+
+            _fieldValueChanged: function (value) {
+                if (this.field.value == "custom") {
+                    this.set('isCustom', true);
+                }
+                else {
+                    this.set('isCustom', false);
+                    this.field['customValue'] = false;
+                }
+            },
+
+            _resetField: function () {
+                this.set('field.value', this.field.defaultValue);
+                if (this.field.value == "custom")
+                    this.set('isCustom', true);
+            },
+        });
+    </script>
+</dom-module>
