@@ -1,11 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
-<link rel="import" href="validate-rule-behavior.html">
-<link rel="import" href="rules-item.html">
+<link rel="import" href="rule-item.html">
 <link rel="import" href="rule-edit.html">
 
 <dom-module id="mist-rules">
@@ -20,6 +18,7 @@
                 color: inherit !important;
                 padding: 0.8em 1.57em 0.7em 1.57em;
                 font-weight: 500;
+                background-color: transparent;
             }
 
             paper-button[disabled] {
@@ -29,6 +28,7 @@
 
             paper-material {
                 border-top: 2px solid #ddd;
+                padding-bottom: 0;
             }
 
             paper-button iron-icon {
@@ -45,173 +45,90 @@
                 font-size: 0.9em;
                 margin-top: 16px;
             }
+
             .errormsg-container {
                 color: var(--red-color);
                 align-self: flex-start;
                 flex: 1;
             }
+
             .errormsg-container iron-icon {
                 color: inherit;
             }
         </style>
         <paper-material elevation="0">
-            <template is="dom-repeat" items="[[rulesArray]]">
-                <rules-item builtin-metrics="[[builtinMetrics]]" custom-metrics="[[customMetrics]]" rule="[[item]]" incidents="[[incidents]]" resource="[[resource]]" model="[[model]]" teams="[[teams]]" users="[[users]]"></rules-item>
+            <template is="dom-repeat" items="[[resourceRules]]">
+                <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]]
+                    users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]]></rule-item>
+                <rule-edit hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]]
+                    users=[[users]] teams=[[teams]]></rule-edit>
             </template>
-
-            <paper-button toggles active="{{editNew}}" hidden$="{{editNew}}"><iron-icon icon="icons:add-circle"></iron-icon> add new rule</paper-button>
-
-            <rule-edit  rule={{newRule}}
-                        builtin-metrics=[[builtinMetrics]]
-                        custom-metrics=[[customMetrics]]
-                        available-metrics=[[availableMetrics]]
-                        machine=[[machine]]
-                        cloud=[[cloud]]
-                        resource=[[resource]]
-                        form-error=[[formError]]
-                        form-message=[[formMessage]]
-                        users="[[model.membersArray]]"
-                        teams="[[model.teamsArray]]"
-                        edit-new="{{editNew}}"
-                        hidden$="{{!editNew}}">
-                            <div slot="rule-actions" class="rule-actions layout horizontal" hidden$="[[updateExistingRule]]">
-                                <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg">[[formMessage]]</span></p>
-                                <paper-spinner active$="{{sendingData}}"></paper-spinner>
-                                <paper-button toggles active="{{editNew}}" class="link">cancel</paper-button>
-                                <paper-button on-tap="addRule" class="blue" disabled$="[[!isValidRule]]">save rule</paper-button>
-                            </div>
-                        </rule-edit>
+            <paper-button toggles active="{{addingRule}}" hidden$="[[addingRule]]">
+                <iron-icon icon="icons:add-circle"></iron-icon> add new rule
+            </paper-button>
+            <rule-edit active={{addingRule}} available-metrics=[[availableMetrics]] resource=[[resource]] users=[[users]] teams=[[teams]]
+                hidden$=[[!addingRule]]>
+            </rule-edit>
         </paper-material>
-
-        <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" handle-as="xml" method="POST" on-request="_handleAddRequest"
-            on-response="_handleAddResponse" on-error="_handleAddError" loading="{{sendingData}}"></iron-ajax>
-
     </template>
 
     <script>
         Polymer({
             is: 'mist-rules',
-            behaviors: [validateRuleBehavior],
 
             properties: {
                 incidents: {
                     type: Array
                 },
-                machine: {
-                    type: String,
-                    value: ''
-                },
-                cloud: {
-                    type: String,
-                    value: ''
-                },
                 resource: Object, // machine, cloud or other later
-                model: Object,
-                rules: {
-                    type: Object,
-                    notify: true
-                },
-                rulesArray: {
+                rules: Object,
+                resourceRules: {
                     type: Array,
-                    value: []
+                    computed: '_computeResourceRulesArray(rules.*, resource)'
                 },
                 builtinMetrics: {
-                    type: Object,
-                    notify: true,
-                    value: {}
+                    type: Object
                 },
                 customMetrics: {
-                    type: Object,
-                    notify: true,
-                    value: {}
+                    type: Object
                 },
                 availableMetrics: {
                     type: Array,
                     computed: "_computeMetrics(resource, builtinMetrics, customMetrics)"
                 },
-                newRule: Object,
-                editNew: {
-                    type: Boolean,
-                    value: false // TODO revert to false 
-                },
-                formError: {
+                addingRule: {
                     type: Boolean,
                     value: false
                 },
                 teams: Array,
-                users: Array,
-                isValieRule: {
-                    type: Boolean,
-                    value: false,
-                    notify: true
-                }
+                users: Array
             },
-            listeners: {
-                'iron-select':'userChanges',
-                'input':'userChanges',
-                'change':'userChanges',
-                'edit-request': 'editRequest',
-                'add-rule': 'addRule',
-                'rule-changed': '_validateRule'
-            },
-            observers: [
-                "_computeRules(rules.*, resource)",
-                "_updateConditionsIds(resource.*)",
-                "_validateRule(newRule.*, newRule.actions.*, newRule.queries.*, newRule.conditions.*)"
-            ],
             ready: function () {},
-            _updateConditionsIds: function(resource) {
-                if (this.resource && resource.path == 'resource')
-                    this.init();
-            },
-            init: function() {
-                var new_rule = {
-                    actions:[{
-                        type: 'notification'
-                    }],
-                    queries: [{
-                        target: 'load.shortterm',
-                        operator: 'gt',
-                        threshold: 5,
-                        aggregation: 'any',
-                    }],
-                    window: {
-                        start: 60,
-                        period: 'seconds',
-                    },
-                    frequency: {
-                        every: 60,
-                        period: 'seconds',
-                    },
-                    conditions: [{
-                            type: 'machines',
-                            ids: [this.resource.id]
-                        }],
-                }
-                this.set('newRule', new_rule);
-            },
-            _computeRules: function (rules, resource) {
+            _computeResourceRulesArray: function (rules, resource) {
                 var rulesArray = [],
-                    thisMachineRules = [],
-                    resource = resource,
                     that = this;
                 if (this.rules) {
                     for (var rule in this.rules) {
+                        //this.rules[rule].edit = false;
                         rulesArray.push(this.rules[rule]);
                     }
                 }
-                thisMachineRules = rulesArray.filter(function(r){
-                    return that._ruleAppliesOnResource(r,resource);
+                var resourceRules = rulesArray.filter(function (r) {
+                    return that._ruleAppliesOnResource(r, resource);
                 }).reverse();
-                this.set('rulesArray', thisMachineRules);
+                return resourceRules;
             },
-            _ruleAppliesOnResource: function (r,resource) {
+            _ruleAppliesOnResource: function (r, resource) {
                 var type = 'machines',
                     that = this;
-                var m = r.conditions.find(function(c){
-                    return c.type == type && c.ids.indexOf(that.resource.id) > -1
+                var m = r.selectors && r.selectors.find(function (c) {
+                    return (c.type == type && c.ids.indexOf(that.resource.id) > -1) || (c.type ==
+                        'tags' && that._tagsInResource(c.tags))
                 });
                 return m ? true : false;
+            },
+            _tagsInResource: function (tags) {
+                return tags;
             },
             _computeMetrics: function (resource, builtinMetrics, customMetrics) {
                 var metrics = [];
@@ -229,56 +146,14 @@
                         }
                     }
                 }
-                return metrics;
+                return metrics.reverse();
             },
-            addRule: function(e){
-                function copy(o) { // deep copy an array of objects
-                    var output, v, key;
-                    output = Array.isArray(o) ? [] : {};
-                    for (key in o) {
-                        v = o[key];
-                        output[key] = (typeof v === "object") ? copy(v) : v;
-                    }
-                    return output;
-                }
-
-                var payload = copy(this.newRule);
-                payload.window.start = parseInt(payload.window.start);
-                payload['frequency']['every'] = payload.window.start;
-                payload['frequency']['period'] = payload.window.period;
-
-                // clean payload, format emails
-                for (var i=0; i<payload.actions.length; i++){
-                    payload.actions[i] = this._cleanAction(payload.actions[i]);
-                }
-                this.$.addRuleRequest.body = payload;
-                this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
-                this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.addRuleRequest.generateRequest();
-            },
-            _handleAddResponse: function () {
-                this.set('editNew', false);
-                this.set('formError', false);
-                this.init();
-            },
-            _handleAddError: function (e) {
-                console.log(e.detail.request.xhr.responseText);
-                this.set('formMessage', e.detail.request.xhr.responseText)
-                this.set('formError', true);
-            },
-            userChanges: function(){
-                this._validateRule();
-                this.set('formError', false);
-            },
-            editRequest: function (e) {
-                // handling of edit area
-                var id = e.detail.rule;
-                var els = this.querySelectorAll('rules-item');
-                [].forEach.call(els, function (el, index) {
-                    if (el.rule.id != id) {
-                        el.set('editMode', false);
-                    }
+            _hasOpenIncident: function (rule, incidents) {
+                var find = false;
+                find = this.incidents.find(function (i) {
+                    return !i.finished_at && i.rule_id == rule.id;
                 });
+                return !find ? false : true;
             }
         });
     </script>

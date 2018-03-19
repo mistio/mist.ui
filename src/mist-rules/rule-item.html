@@ -1,98 +1,96 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
-<link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
-<link rel="import" href="validate-rule-behavior.html">
-
-<dom-module id="rules-item">
+<dom-module id="rule-item">
     <template>
-    	<style include="shared-styles forms">
-    		paper-button[disabled] {
-    			background-color: rgba(0,0,0,.13) !important;
-    			color: rgba(0,0,0,0.32) !important;
-    		}
-        	:host {
+        <style include="shared-styles forms tags-and-labels">
+            paper-button[disabled] {
+                background-color: rgba(0, 0, 0, .13) !important;
+                color: rgba(0, 0, 0, 0.32) !important;
+            }
+
+            :host {
                 display: block;
+                text-transform: lowercase;
+                background-color: #f5f5f5;
             }
+
+            span.keyword {
+                font-weight: 600;
+            }
+
             .rule {
-                padding: 8px 0;
+                padding: 16px 0;
+                font-family: monospace;
             }
+
             .strong {
                 font-weight: 500;
             }
-            .rule-item {
-            	padding-right: 24px;
-            	padding-left: 24px;
-            	align-items: center;
-            	border-bottom: 1px solid #ccc;
+
+            div.layout.rule-item {
+                padding-right: 136px;
+                padding-left: 8px;
+                align-items: center;
+                border-bottom: 1px solid #ccc;
             }
+
             .rule-item iron-icon[icon='close'] {
                 cursor: pointer;
             }
+
             iron-icon#alert {
                 cursor: inherit;
                 color: inherit !important;
             }
+
             paper-icon-button::content iron-icon {
-            	opacity: 0.32;
+                opacity: 0.32;
             }
-            .rule-edit {
-            	position: relative;
-            	background-color: #eee;
-            	padding: 0 24px 16px 24px;
-            	border-bottom: 1px solid #ccc;
-            }
-            .metricOp  {
+
+            .operator {
                 width: 50px;
             }
-            .metricAggr,
-            .metricAction {
+
+            .aggregation,
+            .action {
                 width: 100px;
             }
-            paper-input#metricValue, 
-            paper-input#metricOffset {
+
+            paper-input#threshold,
+            paper-input#offset {
                 width: 40px;
                 display: inline-block;
             }
-            paper-input#metricAggr {
+
+            paper-input#aggregation {
                 width: 120px;
                 display: inline-block;
             }
+
             .rule.incident-true {
                 color: var(--red-color);
             }
+
             .rule-actions {
-            	align-self: flex-end;
-            	justify-content: flex-end;
-    			font-size: 0.9em;
-    			margin-top: 16px;
+                align-self: flex-end;
+                justify-content: flex-end;
+                font-size: 0.9em;
+                margin-top: 16px;
             }
+
             .rule-id {
-            	color: rgba(0,0,0,0.32);
-            	font-size: 0.8em;
+                color: rgba(0, 0, 0, 0.32);
+                font-size: 0.8em;
                 display: inline-block;
                 width: 40px;
+                margin-right: 16px;
+                padding: 16px;
             }
-            .rule-edit .rule-id {
-            	position: absolute;
-            	top: 16px;
-            	left: 24px;
-            }
-            .errormsg-container {
-                color: var(--red-color);
-            }
-            .errormsg-container iron-icon {
-                color: inherit;
-            }
-            .uppercase {
-                text-transform: uppercase;
-            }
-            .monospace {
+
+            code {
                 max-width: 160px;
                 white-space: nowrap;
                 overflow: hidden;
@@ -105,136 +103,114 @@
                 display: inline-block;
                 border-radius: 2px;
             }
+
             .command {
                 max-width: 160px;
             }
+
             .emails {
                 max-width: 260px;
             }
+
             .teams {
                 max-width: 260px;
             }
+
             .members {
                 max-width: 360px;
             }
-            paper-input#emails {
-                max-width: 240px;
-                display: inline-block;
-            }
-            .rule-edit .rule > * {
-                padding-left: 8px;
-                padding-right: 8px;
-            }
+
             .and {
                 padding: 0 8px;
             }
+
+            span.actions {
+                position: absolute;
+                right: 24px
+            }
+
+            span.actions>paper-icon-button {
+                padding: 8px;
+            }
         </style>
 
-		<div class="rule-item layout flex-1 horizontal"  hidden$="{{editMode}}">
-            <div id="[[rule.id]]" class$="rule flex incident-[[ruleCreatesIncident(rule,incidents)]]">
+        <div class="rule-item layout flex-1 horizontal">
+            <div id="[[rule.id]]" class$="flex incident-[[openIncident]]">
                 <span class="rule-id">[[rule.title]]</span>
-                <iron-icon id="alert" icon="icons:warning" hidden$="{{!ruleCreatesIncident(rule,incidents)}}"></iron-icon>
-                <template is="dom-repeat" items="[[rule.queries]]" as="query">
-                    <span class="and" hidden$="[[!index]]"> AND </span> 
-                    If 
-                    <span class="strong">
-                    	[[computeName(query.target, builtinMetrics, customMetrics)]] [[computeOperator(query.operator)]] [[query.threshold]][[computeUnits(query.target, builtinMetrics, customMetrics)]] 
-                    </span>
-                    for [[computeAggregate(query.aggregation)]] value
-                    <span hidden$="[[!query.aggregation]]">
-                        within [[rule.window.start]] [[rule.window.period]],
-                    </span>
-                </template>
-                then
-                <template is="dom-repeat" items="[[rule.actions]]" as="action">
-                    <span class="and" hidden$="[[!index]]"> AND </span>
-                    <span class="strong">[[_phrase(action.type)]]</span>
-                    <span class="monospace command" hidden$="[[!_showCommandTextarea(action.type)]]"><code>[[action.command]]</code></span>
-                    <span class="uppercase">[[action.action]]</span>
-                    <span hidden$="[[!action.emails.length]]">
-                        <span class="monospace emails"><code>[[joinEmails(action.emails)]]</code></span>
-                    </span>
-                    <span hidden$="[[!action.teams.length]]">
-                        <span hidden$="[[!action.emails.length]]"> and </span>
-                        team<span hidden$="[[!_isPlural(action.teams.length)]]">s</span>
-                        <span class="monospace teams"><code>[[joinResources(action.teams,'teams',model)]]</code></span>
-                    </span>
-                    <span hidden$="[[!action.users.length]]">
-                        <span hidden$="[[!action.teams.length]]"> and </span>
-                        user<span hidden$="[[!_isPlural(action.users.length)]]">s</span>
-                        <span class="monospace members"><code>[[joinResources(action.users,'members',model)]]</code></span>
-                    </span>
-                </template>
-                <paper-icon-button icon="icons:create" toggles active={{editMode}} hidden$="[[!canEdit]]">edit</paper-icon-button>
+                <iron-icon id="alert" icon="icons:warning" hidden$="[[!openIncident]]"></iron-icon>
+                <span class="rule">
+                    <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                        <span class="and" hidden$="[[!index]]"> AND </span>
+                        <span class="keyword if">if</span>
+                        <span class="strong">
+                            [[_computeTargetName(query.target, availableMetrics)]] [[_computeOperator(query.operator)]] [[query.threshold]][[_computeUnit(query.target,
+                            availableMetrics)]]
+                        </span>
+                        <span class="keyword">for</span> [[_computeAggregation(query.aggregation)]] value
+                        <span hidden$="[[!_hasWindow(query.aggregation)]]">
+                            <span class="keyword">within</span> [[rule.window.start]] [[rule.window.period]]
+                        </span>
+                    </template>
+                    <span class="keyword then">then</span>
+                    <template is="dom-repeat" items="[[rule.actions]]" as="action">
+                        <span class="and" hidden$="[[!index]]"> AND </span>
+                        <span class="strong">[[_phrase(action.type)]]</span>
+                        <span class="monospace command" hidden$="[[!_showCommandTextarea(action.type)]]">
+                            <code>[[action.command]]</code>
+                        </span>
+                        <span>[[action.action]]</span>
+                        <span hidden$="[[!action.teams.length]]">
+                            team
+                            <span hidden$="[[!_isPlural(action.teams.length)]]">s</span>
+                            <template is="dom-repeat" items="[[action.teams]]" as="team">
+                                <code>[[_computeTeam(team, teams.length)]]</code>
+                            </template>
+                        </span>
+                        <span hidden$="[[!action.users.length]]">
+                            user
+                            <span hidden$="[[!_isPlural(action.users.length)]]">s</span>
+                            <template is="dom-repeat" items="[[action.users]]" as="user">
+                                <code>[[_computeUser(user, users.*)]]</code>
+                            </template>
+                        </span>
+                        <span hidden$="[[!action.emails.length]]">
+                            email
+                            <span hidden$="[[!_isPlural(action.emails.length)]]">s</span>
+                            <template is="dom-repeat" items="[[action.emails]]" as="email">
+                                <code>[[email]]</code>
+                            </template>
+                        </span>
+                    </template>
+                </span>
             </div>
-            <paper-spinner active$="{{sendingData}}"></paper-spinner>
-            <iron-icon icon="close" data-attr="[[rule.id]]" on-tap="deleteRule"></iron-icon>
-        </div>
-        <div class="rule-edit" hidden$="{{!editMode}}">
-            <rule-edit  rule={{newRule}}
-                    builtin-metrics=[[builtinMetrics]]
-                    custom-metrics=[[customMetrics]]
-                    available-metrics=[[availableMetrics]]
-                    machine=[[machine]]
-                    cloud=[[cloud]]
-                    resource=[[resource]]
-                    form-error=[[formError]]
-                    users="[[users]]"
-                    teams="[[teams]]"
-                    hidden$="{{!editMode}}" update-existing-rule>
-                        <div slot="rule-actions" class="rule-actions layout horizontal">
-                            <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-                            <paper-spinner active$="{{sendingData}}"></paper-spinner>
-                            <paper-button toggles active={{!editMode}}>cancel</paper-button>
-                            <paper-button on-tap="updateRule" class="blue" disabled$="{{disable}}">update rule</paper-button>
-                        </div>
-                    </rule-edit>
-        </div>
-        <iron-ajax id="deleteRuleRequest" contentType="application/json" handle-as="json" method="DELETE" on-request="_handleDeleteRequest" on-response="_handleDeleteResponse" on-error="_handleDeleteError" loading="{{sendingData}}"></iron-ajax>
+            <paper-spinner active$=[[sendingData]]></paper-spinner>
+            <span class="actions">
+                <paper-icon-button icon="icons:create" toggles active={{editing}} hidden$="[[!canEdit]]">edit</paper-icon-button>
+                <paper-icon-button icon="delete" data-attr="[[rule.id]]" on-tap="deleteRule" hidden$="[[!canEdit]]"></paper-icon-button>
 
-        <iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" handle-as="xml" method="POST" on-request="_handleUpdateRequest" on-response="_handleUpdateResponse" on-error="_handleUpdateError" loading="{{sendingData}}"></iron-ajax>
+                <template is="dom-repeat" items="[[tagSelectors]]" as="tag">
+                    <span class="tag">[[tag]]</span>
+                </template>
+            </span>
 
-        <!-- get metrics: http://localhost/api/v1/clouds/[[cloud.id]]/machines/[[machine.id]]/metrics -->
+        </div>
+        <iron-ajax id="deleteRuleRequest" contentType="application/json" handle-as="json" method="DELETE" on-request="_handleDeleteRequest"
+            on-response="_handleDeleteResponse" on-error="_handleDeleteError" loading={{sendingData}}></iron-ajax>
     </template>
 
     <script>
         Polymer({
-            is: 'rules-item',
-            behaviors: [validateRuleBehavior],
+            is: 'rule-item',
 
             properties: {
-                incidents: {
-                    type: Array
-                },
-                resource: Object,  // machine, cloud or other later
-                model: Object,
-                rule: Object,
-                builtinMetrics:{
-                    type: Object,
-                    notify: true,
-                    value: {}
-                },
-                customMetrics:{
-                    type: Object,
-                    notify: true,
-                    value: {}
-                },
-                availableMetrics: {
-                    type: Array,
-                    computed: "_computeMetrics(resource, builtinMetrics, customMetrics)"
-                },
-                newRule: {
-                    type: Object,
-                    computed: "_computeNewRule(rule)",
-                    notify: true
-                },
-                disable: {
-                    type: Boolean,
-                    value: true
-                },
-                editMode: {
+                openIncident: {
                     type: Boolean,
                     value: false
+                },
+                resource: Object, // machine, cloud or other later
+                rule: Object,
+                availableMetrics: {
+                    type: Array
                 },
                 sendingData: {
                     type: Boolean,
@@ -244,82 +220,88 @@
                     type: Boolean,
                     value: false
                 },
-                selectedUsers: {
-                    type: Array,
-                    observer: '_selectedUsersChanged'
-                },
-                selectedTeams: {
-                    type: Array,
-                    observer: '_selectedTeamsChanged'
-                },
                 teams: Array,
                 users: Array,
-                isValidRule: Boolean,
                 canEdit: {
                     type: Boolean,
-                    computed: '_computedCanEdit(rule)'
+                    computed: '_computeCanEdit(rule)'
+                },
+                editing: {
+                    type: Boolean,
+                    notify: true
+                },
+                tagSelectors: {
+                    type: Array,
+                    computed: "_computeTagSelectors(rule.selectors.length)"
                 }
             },
-            listeners: {
-            	'iron-select':'ruleUpdates',
-            	'input':'ruleUpdates',
-                'change':'ruleUpdates'
+            ready: function () {},
+            _computeCanEdit: function (rule) {
+                return this.rule && this.rule.selectors.filter(function (c) {
+                    return c.type == "machines" && c.ids.length > 1
+                }).length == 0 && this.rule.selectors.filter(function (c) {
+                    return c.type == "tags"
+                }).length == 0;
             },
-            observers: [
-            	'editModeChanged(editMode)'
-            ],
-            ready: function() {},
-            _computedCanEdit: function(rule) {
-                return this.rule && this.rule.conditions.filter(function(c){return c.type == "machines" && c.ids.length > 1}).length == 0;
-            },
-            _computeNewRule: function(rule){
-                var newRule = {};
-                for (var p in rule) {
-                    if (typeof(rule[p]) == 'string')
-            			newRule[p] = rule[p].slice(0);
-                    if (typeof(rule[p]) == 'number')
-                        newRule[p] = rule[p].toString().slice(0);
-                    if (typeof(rule[p]) == 'number' && p == 'reminder_offset')
-                        newRule[p] = (rule[p]/60+1).toString().slice(0);
-                    if (typeof(rule[p]) == 'object')
-                        newRule[p] = rule[p];
-                    if (typeof(rule[p]) == 'array')
-                        newRule[p] = rule[p];
-            	}
-            	return newRule;
-            },
-            computeUnits: function(metric, builtinMetrics, customMetrics) {
+            _computeUnit: function (metric, availableMetrics) {
                 var ref;
-                if (this.builtinMetrics || this.customMetrics)
-                    ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
+                if (this.availableMetrics)
+                    ref = this.availableMetrics[metric];
                 return ref && ref.unit ? ref.unit : '';
             },
-            computeName: function(metric, builtinMetrics, customMetrics) {
+            _computeTargetName: function (metric, availableMetrics) {
                 var ref;
-                if (this.builtinMetrics || this.customMetrics)
-                    ref =  this.builtinMetrics[metric] || this.customMetrics[metric];
-                return ref && ref.name ? ref.name : '';
+                if (this.availableMetrics)
+                    ref = this.availableMetrics.find(function (i) {
+                        return i.id == metric
+                    });
+                return ref && ref.name ? ref.name : metric;
             },
-            computeOperator: function(op){
+            _computeOperator: function (op) {
                 if (op == "gt")
                     return ">";
                 if (op == "lt")
                     return "<";
             },
-            computeAggregate: function(aggr){
+            _computeAggregation: function (aggr) {
                 if (aggr == "all")
                     return "every";
                 else
-                    return aggr;
+                    return aggr || "any";
             },
-            ruleCreatesIncident: function(rule, incidents){
-                var find = false;
-                    find = this.incidents.find(function(i){
-                    return !i.finished_at && i.rule_id == rule.id;
-                });
-                return !find ? false : true;
+            _computeTeam: function (team) {
+                return this.teams.find(function (i) {
+                    return i.id == team;
+                }).name;
             },
-            _phrase: function(action) {
+            _computeUser: function (user) {
+                return this.users.find(function (i) {
+                    return i.id == user;
+                }).name;
+            },
+            _computeTagSelectors: function () {
+                var ret = [];
+                for (var i = 0; i < this.rule.selectors.length; i++) {
+                    if (this.rule.selectors[i].type == 'tags') {
+                        var keys = Object.keys(this.rule.selectors[i].tags);
+                        for (var j = 0; j < keys.length; j++) {
+                            var key = keys[j],
+                                value = this.rule.selectors[i].tags[key];
+                            if (value)
+                                ret.push(key + ': ' + value);
+                            else
+                                ret.push(key);
+                        }
+                    }
+                }
+                return ret;
+            },
+            _hasWindow: function (aggregation) {
+                if (!aggregation || aggregation == "any")
+                    return false;
+                return true;
+            },
+            _phrase: function (action) {
                 var verb;
                 if (action == 'notification')
                     verb = 'alert';
@@ -329,138 +311,21 @@
                     verb = 'run command';
                 return verb;
             },
-            _computeMetrics: function(resource, builtinMetrics, customMetrics){
-                var metrics = [];
-                for (var p in this.builtinMetrics){
-                    metrics.push(this.builtinMetrics[p])
-                }
-                if (this.customMetrics) {
-                    for (var q in this.customMetrics){
-                        var machineHasCustomMetric = this.customMetrics[q].machines.find(function(m){
-                            return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
-                        }, this)
-                        if (machineHasCustomMetric) 
-                            metrics.push(this.customMetrics[q])
-                    }
-                }
-                return metrics;
-            },
-            deleteRule: function(e){
-                var ruleid = e.target.dataAttr;
-                this.$.deleteRuleRequest.url = '/api/v1/rules/'+ruleid;
+            deleteRule: function (e) {
+                var ruleid = e.target.parentElement.dataAttr;
+                this.$.deleteRuleRequest.url = '/api/v1/rules/' + ruleid;
                 this.$.deleteRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.deleteRuleRequest.generateRequest();
             },
-            updateRule: function(e){
-                function copy(o) { // deep copy an array of objects
-                    var output, v, key;
-                    output = Array.isArray(o) ? [] : {};
-                    for (key in o) {
-                        v = o[key];
-                        output[key] = (typeof v === "object") ? copy(v) : v;
-                    }
-                    return output;
-                }
-
-                var payload = copy(this.newRule);
-                var ruleid = e.target.dataAttr;
-                delete payload.title;
-                delete payload.id;
-
-                payload.window.start = parseInt(payload.window.start);
-                payload['frequency']['every'] = payload.window.start;
-                payload['frequency']['period'] = payload.window.period;
-
-                for (var i=0; i<payload.actions.length; i++){
-                    for (var i=0; i<payload.actions.length; i++){
-                        payload.actions[i] = this._cleanAction(payload.actions[i]);
-                    }
-                }
-                this.$.updateRuleRequest.body = payload;
-                this.$.updateRuleRequest.headers["Content-Type"] = 'application/json';
-                this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.updateRuleRequest.generateRequest();
-                this.set('formError', false);
+            _showCommandTextarea: function (action) {
+                return action == "command";
             },
-            _handleUpdateRequest: function(e){
-            	this.set('formError', false);
-            },
-            _handleUpdateResponse: function(e){
-            	this.set('editMode', false);
-            },
-            _handleUpdateError: function(e){
-            	this.$.errormsg.textContent = e.detail.request.xhr.responseText;
-            	this.set('formError', true);
-            },
-            _selectedUsersChanged: function(users) {
-                var users = [];
-                this.$.users.selectedItems.forEach(function(u){
-                    users.push(u.value)
-                });
-                // console.log(users);
-                this.set('newRule.users', users);
-            },
-            _selectedTeamsChanged: function(teams) {
-                var teams = [];
-                this.$.teams.selectedItems.forEach(function(t){
-                    teams.push(t.value)
-                });
-                // console.log(teams);
-                this.set('newRule.teams', teams);
-            },
-            ruleUpdates: function(e){
-                this._validateRule();
-            	this.set('disable', JSON.stringify(this.rule) == JSON.stringify(this.newRule) || !this.isValidRule);
-            	this.set('formError', false);
-            },
-            editModeChanged: function(editMode) {
-            	if (editMode == true) {
-            		this.fire('edit-request', {rule: this.rule.id})
-            	}
-            },
-            _showCommandTextarea: function(action){
-                return action == "command" ;
-            },
-            joinEmails: function(emails){
+            _joinEmails: function (emails) {
                 if (emails)
-                    return typeof(emails)=='array' ? emails.join(', ') : emails;
+                    return typeof (emails) == 'array' ? emails.join(', ') : emails;
             },
-            joinResources: function(array, type, model) {
-                if (array && array.length){
-                    var filteredArray = this.model[type+'Array'].filter(function(el){
-                        return array.indexOf(el.id) > -1;
-                    }.bind(this));
-                    // console.log('filteredArray', filteredArray);
-                    var names = filteredArray.map(function(r){
-                        return r.name || r.email;
-                    })
-                    return names.join(', ');
-                }
-                else
-                    return "not found";
-            },
-            _selectedUsersChanged: function(users) {
-                var users = [];
-                this.$.users.selectedItems.forEach(function(u){
-                    users.push(u.value)
-                });
-                // console.log(users);
-                this.set('newRule.users', users);
-            },
-            _selectedTeamsChanged: function(teams) {
-                var teams = [];
-                this.$.teams.selectedItems.forEach(function(t){
-                    teams.push(t.value)
-                });
-                // console.log(teams);
-                this.set('newRule.teams', teams);
-            },
-            _isSelected: function (id,array) {
-                // console.log('_isSelected',id,array);
-                return array.indexOf(id) > -1;
-            },
-            _isPlural: function (int) {
-                return int > 1;
+            _isPlural: function (i) {
+                return i > 1;
             }
         });
     </script>

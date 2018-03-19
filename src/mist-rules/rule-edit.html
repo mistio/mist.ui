@@ -1,11 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<link rel="import" href="mist-dropdown-multi.html">
+
+<link rel="import" href="validate-rule-behavior.html">
 
 <link rel="import" href="rule-action.html">
 
@@ -15,7 +18,8 @@
             :host {
                 display: block;
                 position: relative;
-                background-color: #eee;
+                background-color: #fff;
+                border-bottom: 1px solid #ccc;
             }
 
             .rule-edit {
@@ -36,24 +40,19 @@
                 border-top: 2px solid #ddd;
             }
 
-            .metricOp {
+            .operator {
                 width: 50px;
             }
 
-            .metricAggr,
-            .metricAction {
+            .aggregation,
+            .action {
                 width: 100px;
                 margin-right: 10px;
             }
 
-            paper-input#metricValue,
-            paper-input#metricOffset {
+            paper-input.threshold,
+            paper-input.offset {
                 width: 40px;
-                display: inline-block;
-            }
-
-            paper-input#metricAggr {
-                width: 120px;
                 display: inline-block;
             }
 
@@ -77,6 +76,7 @@
                 justify-content: flex-end;
                 font-size: 0.9em;
                 margin-top: 16px;
+                text-align: right
             }
 
             paper-button iron-icon {
@@ -89,9 +89,14 @@
                 display: inline-block;
             }
 
-            #newrule>* {
-                padding-left: 8px;
+            #newrule {
+                padding-left: 48px;
                 padding-right: 8px;
+            }
+
+            span.if,
+            span.then {
+                margin-left: -48px;
             }
 
             paper-dropdown-menu::content #dropdown {
@@ -105,100 +110,178 @@
             .and {
                 padding: 0 8px;
             }
+
+            paper-dropdown-menu,
+            paper-input {
+                top: 2px;
+            }
+
+            span.keyword {
+                font-weight: 600;
+                font-family: monospace;
+                margin-right: 8px;
+            }
+
+            paper-dropdown-menu.target,
+            paper-dropdown-menu.ruleAction {
+                width: 150px;
+            }
+
+            .errormsg-container {
+                color: var(--red-color);
+            }
+
+            paper-textarea#command {
+                --paper-input-container-input: {
+                    text-align: left;
+                    font-family: monospace;
+                }
+                ;
+                min-width: 200px;
+                display: inline-block;
+                top: 3px;
+            }
+
+            paper-dropdown-menu,
+            paper-input {
+                --paper-dropdown-menu-input: {
+                    font-family: monospace;
+                    text-transform: lowercase;
+                }
+                ;
+                --paper-dropdown-menu-label: {
+                    font-family: monospace;
+                    text-transform: lowercase;
+                }
+                ;
+                --paper-input-container-input: {
+                    font-family: monospace;
+                    text-align: center;
+                    text-transform: lowercase;
+                }
+                ;
+                --paper-input-container-label: {
+                    font-family: monospace;
+                    text-transform: lowercase;
+                }
+            }
         </style>
 
         <div class="rule-edit">
             <span class="rule-id">[[_computeId(rule.title)]]</span>
             <div id="newrule" class="rule">
-
+                <span class="keyword if">if</span>
                 <template is="dom-repeat" items="[[rule.queries]]" as="query">
-                    If
-
-                    <paper-dropdown-menu class="dropdown-block metricName">
-                        <paper-menu slot="dropdown-content" id="metricName" attr-for-selected="value" selected="{{rule.metric}}" class="dropdown-content">
+                    <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator"
+                        on-selected-item-changed="_validateRule">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[availableMetrics]]" as="option">
                                 <paper-item value="[[option.id]]">[[option.name]]</paper-item>
                             </template>
                         </paper-menu>
                     </paper-dropdown-menu>
-
-                    <paper-dropdown-menu class="dropdown-block metricOp">
-                        <paper-menu slot="dropdown-content" id="metricOp" attr-for-selected="value" selected="{{rule.operator}}" class="dropdown-content">
+                    <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold"
+                        on-selected-item-changed="_validateRule">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
                             <paper-item value="gt"> &gt; </paper-item>
                             <paper-item value="lt"> &lt; </paper-item>
                         </paper-menu>
                     </paper-dropdown-menu>
-
-                    <paper-input id="metricValue" value="{{query.threshold}}" auto-validate></paper-input>
-
-                    {{computeUnits(newMetric, builtinMetrics, customMetrics)}} for
-
-                    <paper-dropdown-menu class="dropdown-block metricAggr">
-                        <paper-menu slot="dropdown-content" id="metricAggr" attr-for-selected="value" selected="{{rule.aggregate}}" class="dropdown-content">
-                            <paper-item value="all"> every </paper-item>
-                            <paper-item value="any"> any </paper-item>
-                            <paper-item value="avg"> average </paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
-                    value within
-
-                    <paper-input id="metricOffset" value="{{rule.window.start}}" type="number" auto-validate></paper-input>
-
-                    <paper-dropdown-menu class="dropdown-block metricAction">
-                        <paper-menu id="windowPeriod" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
-                            <paper-item value="seconds"> seconds </paper-item>
-                            <paper-item value="minutes"> minutes </paper-item>
-                            <paper-item value="hours"> hours </paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-
+                    <span>
+                        <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
+                            type="number" on-value-changed="_validateRule"></paper-input>
+                        [[_computeUnits(newMetric, availableMetrics)]]
+                    </span>
+                    <span hidden$=[[!query.threshold]]>
+                        <span class="keyword">for</span>
+                        <paper-dropdown-menu class="dropdown-block aggregation" on-selected-item-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}"
+                                class="dropdown-content aggregation">
+                                <paper-item value=""> any </paper-item>
+                                <paper-item value="all"> every </paper-item>
+                                <paper-item value="avg"> average </paper-item>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                        <span class="keyword">value</span>
+                        <span hidden$=[[!rule.aggregation]]>
+                            <span class="keyword">within</span>
+                            <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                            <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                                <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                                    <paper-item value="seconds">seconds</paper-item>
+                                    <paper-item value="minutes">minutes</paper-item>
+                                    <paper-item value="hours">hours</paper-item>
+                                </paper-menu>
+                            </paper-dropdown-menu>
+                        </span>
                 </template>
-
-                then
-
-                <span id="actionsDropdown">
-                    <template is="dom-repeat" items="[[rule.actions]]" as="action">
-                        <span class="and" hidden$="[[!index]]"> AND </span>
-                        <rule-action id="[[rule.id]]" action="{{action}}" users="[[users]]" teams="[[teams]]"></rule-action>
-                        <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
-                    </template>
-                </span>
-                <iron-icon icon="add" on-tap="_addAction"></iron-icon>
-
+                <div hidden$="[[!_isConditionValid(rule.queries.*, rule.queries.0.threshold)]]">
+                    <span class="keyword then">then</span>
+                    <span id="actionsDropdown">
+                        <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
+                            <span class="and" hidden$="[[!index]]"> AND </span>
+                            <!--rule-action id="[[rule.id]]" action="{{action}}" users="[[users]]" teams="[[teams]]"></rule-action-->
+                            <paper-dropdown-menu class="dropdown-block ruleAction" on-value-changed="_validateRule">
+                                <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" class="dropdown-content">
+                                    <template is="dom-repeat" items=[[actions]] as="action">
+                                        <paper-item value=[[action]]>[[action]]</paper-item>
+                                    </template>
+                                </paper-menu>
+                            </paper-dropdown-menu>
+                            <template is="dom-if" if="[[_isCommandSelected(ruleAction.type)]]">
+                                <paper-textarea id="command" placeholder="command input" value="{{ruleAction.command}}" on-value-changed="_validateRule"></paper-textarea>
+                            </template>
+                            <template is="dom-if" if="[[_isAlertSelected(ruleAction.type)]]">
+                                <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{ruleAction.teams}}" on-value-changed="_validateRule"></mist-dropdown-multi>
+                                <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{ruleAction.users}}" on-value-changed="_validateRule"></mist-dropdown-multi>
+                                <paper-input id="emails" label="other email" value="{{ruleAction.emails}}" type="email" auto-validate on-invalid-changed="_validateRule"
+                                    invalid={{ruleAction.emailsInvalid}}></paper-input>
+                            </template>
+                            <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
+                        </template>
+                    </span>
+                    <!--iron-icon icon="add" on-tap="_addAction"></iron-icon-->
+                </div>
             </div>
 
-            <slot name="rule-actions"></slot>
-
+            <div slot="rule-actions" class="rule-actions layout horizontal">
+                <p class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon>
+                    <span id="errormsg">[[formMessage]]</span>
+                </p>
+                <paper-spinner active$="{{sendingData}}"></paper-spinner>
+                <paper-button class="link" on-tap="_close">cancel</paper-button>
+                <paper-button on-tap="saveRule" class="blue" disabled$="[[!isValidRule]]">save rule</paper-button>
+            </div>
         </div>
+
+        <iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" method="POST" on-request="_handleUpdateRequest"
+            on-response="_close" on-error="_handleUpdateError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+
+        <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest"
+            on-response="_close" on-error="_handleAddError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+
     </template>
 
     <script>
         Polymer({
             is: 'rule-edit',
+            behaviors: [validateRuleBehavior],
 
             properties: {
-                rule: Object,
+                rule: {
+                    type: Object
+                },
+                currentRule: {
+                    type: Object
+                },
                 resource: Object, // machine, cloud or other later
                 updateExistingRule: Boolean,
-                model: Object,
-                builtinMetrics: {
-                    type: Object,
-                    notify: true,
-                    value: {}
-                },
-                customMetrics: {
-                    type: Object,
-                    notify: true,
-                    value: {}
-                },
                 availableMetrics: {
-                    type: Array,
-                    computed: "_computeMetrics(resource, builtinMetrics, customMetrics)"
+                    type: Array
                 },
-                editNew: {
+                active: {
                     type: Boolean,
-                    value: false,
                     notify: true
                 },
                 formError: {
@@ -210,60 +293,179 @@
                 users: Array,
                 actions: {
                     type: Array,
-                    value: ['reboot', 'destroy', 'launch']
+                    value: function () {
+                        return ['alert', 'reboot', 'destroy', 'run'];
+                    }
+                },
+                isValidRule: {
+                    type: Boolean,
+                    value: false
                 }
             },
             observers: [
-                'editNewChanged(editNew)'
+                "_focusOnMetricName(active)",
+                "_currentRuleUpdated(currentRule.*)"
             ],
-            ready: function () {},
-            addRule: function () {
-                this.fire('add-rule');
+            ready: function () {
+                if (!this.rule)
+                    this._resetRule();
             },
-            _showAdd: function (e) {
-                this.rule.action.length > 1;
+            _currentRuleUpdated: function (event) {
+                this.set('rule', {
+                    id: this.currentRule.id,
+                    title: this.currentRule.title,
+                    actions: this._tranformActions(this.currentRule.actions),
+                    queries: this.currentRule.queries.slice(),
+                    aggregation: this.currentRule.queries[0].aggregation == 'any' ? '' : this.currentRule
+                        .queries[0].aggregation,
+                    window: {
+                        period: this.currentRule.window.period || 'minutes',
+                        start: this.currentRule.start || 1
+                        //stop: this.currentRule.stop
+                    }
+                });
             },
-            _computeId: function (title) {
-                return title || 'new rule';
-            },
-            _removeAction: function (e) {
-                console.log('_removeAction', e.model.index, e);
-                if (e.model.index)
-                    this.splice('rule.actions', e.model.index, 1);
-            },
-            _addAction: function (e) {
-                this.push('rule.actions', {
-                    type: 'machine_action'
-                })
-            },
-            computeUnits: function (metric, builtinMetrics, customMetrics) {
-                var ref;
-                if (this.builtinMetrics || this.customMetrics)
-                    ref = this.builtinMetrics[metric] || this.customMetrics[metric];
-                return ref && ref.unit ? ref.unit : '';
-            },
-            _computeMetrics: function (resource, builtinMetrics, customMetrics) {
-                var metrics = [];
-                for (var p in this.builtinMetrics) {
-                    metrics.push(this.builtinMetrics[p])
-                }
-                if (this.customMetrics) {
-                    for (var q in this.customMetrics) {
-                        if (this.customMetrics[q].machines) {
-                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function (m) {
-                                return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
-                            }, this);
-                            if (machineHasCustomMetric)
-                                metrics.push(this.customMetrics[q])
-                        }
+            _tranformActions: function (actions) {
+                var result = [];
+                for (var i = 0; i < actions.length; i++) {
+                    if (actions[i].type == 'notification') {
+                        result.push({
+                            type: 'alert',
+                            users: actions[i].users.slice(),
+                            teams: actions[i].teams.slice(),
+                            emails: actions[i].emails.slice()
+                        });
+                    } else if (actions[i].type == 'machine_action') {
+                        result.push({
+                            type: actions[i].action
+                        });
+                    } else if (actions[i].type == 'command') {
+                        result.push({
+                            type: 'run',
+                            command: actions[i].command
+                        });
                     }
                 }
-                return metrics;
+                return result;
             },
-            editNewChanged: function (editNew) {
-                if (editNew)
-                    this.querySelector('rule-action')._initDropdowns();
+            _computeId: function (title) {
+                return title ? 'edit ' + title : 'new rule';
+            },
+            _computeUnits: function (metric, metrics) {
+                var ref;
+                if (this.availableMetrics && this.availableMetrics[metric])
+                    ref = this.availableMetrics[metric].unit;
+                return ref || '';
+            },
+            _resetRule: function (event) {
+                this.set('rule', {
+                    actions: [{
+                        emailsInvalid: null
+                    }],
+                    queries: [{}],
+                    aggregation: '',
+                    window: {
+                        period: 'minutes',
+                        start: 1
+                    }
+                });
+                this.set('formError', false);
+            },
+            _close: function (event) {
+                this._resetRule(event);
+                this.set('active', false);
+            },
+            _isCommandSelected: function (selectedAction) {
+                return selectedAction == 'run';
+            },
+            _isAlertSelected: function (selectedAction) {
+                return selectedAction == 'alert';
+            },
+            _isConditionValid: function (queries, threshold) {
+                if (this.rule.queries.length && this.rule.queries[this.rule.queries.length - 1].threshold)
+                    return true;
+                return false;
+            },
+            _focusOnMetricName: function (active) {
+                if (active && !this.rule.id) {
+                    this.querySelector('paper-dropdown-menu.target').open();
+                    this.querySelector('paper-dropdown-menu.target').$.menuButton.focus();
+                }
+            },
+            _focusOnOperator: function (e) {
+                var selector = '#' + e.currentTarget.id.replace("target-", "operator-");
+                this.querySelector(selector).open();
+                this.querySelector(selector).focus();
+            },
+            _focusOnThreshold: function (e) {
+                var selector = '#' + e.currentTarget.id.replace("operator-", "threshold-");
+                this.querySelector(selector).focus();
+            },
+            saveRule: function () {
+                // Prepare payload
+                var payload = {
+                    queries: [],
+                    actions: []
+                };
+                payload.selectors = [{
+                    type: 'machines',
+                    ids: [this.resource.id]
+                }];
+                payload.window = {
+                    period: this.rule.window.period || 'minutes',
+                    start: parseInt(this.rule.window.start) || 1
+                };
+                payload.frequency = {
+                    period: this.rule.window.period || 'minutes',
+                    every: parseInt(this.rule.window.start) || 1
+                };
+                for (var i = 0; i < this.rule.queries.length; i++) {
+                    payload.queries[i] = {
+                        target: this.rule.queries[i].target,
+                        operator: this.rule.queries[i].operator,
+                        threshold: this.rule.queries[i].threshold,
+                        aggregation: this.rule.aggregation ? this.rule.aggregation : 'any'
+                    };
+                }
+                for (var i = 0; i < this.rule.actions.length; i++) {
+                    if (this.rule.actions[i].type == 'alert') {
+                        payload.actions[i] = {
+                            type: 'notification',
+                            users: this.rule.actions[i].users,
+                            teams: this.rule.actions[i].teams,
+                            emails: this.rule.actions[i].emails && this.rule.actions[i].emails.split()
+                        };
+                    } else if (this.rule.actions[i].type == 'run') {
+                        payload.actions[i] = {
+                            type: 'command',
+                            command: this.rule.actions[i].command
+                        };
+                    } else if (this.rule.actions[i].type == 'reboot' || this.rule.actions[i].type ==
+                        'destroy') {
+                        payload.actions[i] = {
+                            type: 'machine_action',
+                            action: this.rule.actions[i].type
+                        };
+                    }
+                }
+                if (!this.rule.id) { // Add new rule
+                    this.$.addRuleRequest.body = payload;
+                    this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
+                    this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.addRuleRequest.generateRequest();
+                } else { // Update existing rule
+                    this.$.updateRuleRequest.body = payload;
+                    this.$.updateRuleRequest.headers["Content-Type"] = 'application/json';
+                    this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.updateRuleRequest.generateRequest();
+                }
+            },
+            _handleAddError: function (e) {
+                console.log(e.detail.request.xhr.responseText);
+                this.set('formMessage', e.detail.request.xhr.responseText)
+                this.set('formError', true);
             }
+
         })
     </script>
 </dom-module>
