@@ -426,11 +426,17 @@
                 }
                 for (var i = 0; i < this.rule.actions.length; i++) {
                     if (this.rule.actions[i].type == 'alert') {
+                        var emails;
+                        if (this.rule.actions[i].emails instanceof Array) {
+                            emails = this.rule.actions[i].emails;
+                        } else {
+                            emails = this.rule.actions[i].emails.split();
+                        }
                         payload.actions[i] = {
                             type: 'notification',
                             users: this.rule.actions[i].users,
                             teams: this.rule.actions[i].teams,
-                            emails: this.rule.actions[i].emails && this.rule.actions[i].emails.split()
+                            emails: emails
                         };
                     } else if (this.rule.actions[i].type == 'run') {
                         payload.actions[i] = {
