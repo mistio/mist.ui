@@ -529,7 +529,7 @@
             }
         },
         handleGetJobLog: function (e) {
-            console.log('handleGetJobLog', e);
+            // console.log('handleGetJobLog', e);
             this.set('logItems', e.detail.response.logs)
         },
         handleGetJobLogError: function (e) {
@@ -679,7 +679,7 @@
             this.set('jobId', false);
         },
         getStats: function (isMonitored, isManual, waitingData, isActivated) {
-            if (this.isMonitored && this.monitoring.monitored_machines[this.resource.id].installation_status != "succeeded") {
+            if (this.isMonitored && !this.isActivated && this.monitoring.monitored_machines[this.resource.id].installation_status != "succeeded") {
                 if (!this.intervalMonitoringID)
                     this.monitoringPolling();
             } else {
@@ -695,6 +695,12 @@
             }.bind(this), 5000);
 
             console.log('interval id', this.intervalMonitoringID);
+        },
+        _handleStatsResponse: function(e) {
+            this.stopGetStats();
+        },
+        _handleStatsError: function(e) {
+            this.stopGetStats();
         },
         stopGetStats: function () {
             window.clearInterval(this.get('intervalMonitoringID'));
