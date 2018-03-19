@@ -8,7 +8,7 @@
                 display: block;
             }
         </style>
-    	<app-form model=[[model]] fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" on-request="[[onRequest]]" on-response="[[onResponse]]" on-error="[[onError]]" btncontent="[[btncontent]]">[[workflow]]</app-form>
+    	<app-form id$="stack_[[workflow]]" model=[[model]] fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" on-request="[[onRequest]]" on-response="[[onResponse]]" on-error="[[onError]]" btncontent="[[btncontent]]">[[workflow]]</app-form>
     </template>
     <script>
         (function() {
@@ -115,6 +115,18 @@
 	                            }
 	                        }
 
+                            // make network dropdown & dependent on cloud
+                            if (inp.name.startsWith("mist_networks")) {
+                                var xid = inp.name.split("mist_networks")[1];
+                                inp.show = false;
+                                inp.type = 'mist_dropdown';
+                                inp.helptext = 'Select network';
+                                inp.showIf = {
+                                    fieldName: "mist_cloud" + xid,
+                                    fieldExists: true
+                                }
+                            }
+
 	                        // make image location & dependent on cloud
 	                        if (inp.name.startsWith("mist_size")) {
 	                            var xid = inp.name.split("mist_size")[1];
@@ -184,6 +196,15 @@
                                   var cloudId = fieldCloud.value;
                                   if (this.model && cloudId)
                                       inp.options = this.model.clouds[cloudId].imagesArray;
+                                }
+                                if (inp.name.startsWith("mist_networks")) {
+                                  var xid = inp.name.split("mist_networks")[0];
+                                  fieldCloud = this.fields.find(function (f) {
+                                      return f.name.startsWith("mist_cloud" + xid);
+                                  }) || cloud;
+                                  cloudId = fieldCloud.value;
+                                  if (this.model && cloudId)
+                                    inp['options'] = this.model.clouds[cloudId].networksArray;
                                 }
                                 if(inp.name.startsWith("mist_size")) {
                                     console.warn('mist_size');
