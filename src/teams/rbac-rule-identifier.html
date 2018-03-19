@@ -4,62 +4,74 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 
-<dom-module id="rule-identifier">
+<dom-module id="rbac-rule-identifier">
     <template>
         <style is="custom-style" include="shared-styles tags-and-labels">
-        :host {
-            display: flex;
-            align-items: center;
-        }
-        paper-dropdown-menu {
-            width: 150px;
-            --paper-dropdown-menu-input: {
-                text-transform: uppercase;
+            :host {
+                display: flex;
+                align-items: center;
             }
-            --paper-input-container-underline: {
-                /*display: none;*/
-                opacity: 0.32;
-            };
-        }
-        paper-dropdown-menu ::content div.floated-label-placeholder {
-            margin-top: -12px;
-        }
-        paper-dropdown-menu.short {
-            /*width: 80px;*/
-            margin-right: 16px;
-        }
-        paper-input ::content div.floated-label-placeholder{
-            display: none;
-        }
-        paper-input {
-            vertical-align: baseline;
-        }
-        paper-input ::content paper-input-container {
-            padding: 0;
-        }
-        .flex {
-            display: inline-flex;
-        }
-        .tag {
-            vertical-align: middle;
-        }
-        paper-input {
-            width: 150px;
-            --paper-input-container-underline {
-                opacity: 0.32;
+
+            paper-dropdown-menu {
+                width: 150px;
+                --paper-dropdown-menu-input: {
+                    text-transform: uppercase;
+                }
+                --paper-input-container-underline: {
+                    /*display: none;*/
+                    opacity: 0.32;
+                }
+                ;
             }
-        }
-        .tag iron-icon {
-            color: #fff;
-            width: 13px;
-            height: 13px;
-            cursor: pointer;
-        }
-        iron-icon.edit {
-            color: inherit;
-            padding: 8px;
-            opacity: 0.32
-        }
+
+            paper-dropdown-menu ::content div.floated-label-placeholder {
+                margin-top: -12px;
+            }
+
+            paper-dropdown-menu.short {
+                /*width: 80px;*/
+                margin-right: 16px;
+            }
+
+            paper-input ::content div.floated-label-placeholder {
+                display: none;
+            }
+
+            paper-input {
+                vertical-align: baseline;
+            }
+
+            paper-input ::content paper-input-container {
+                padding: 0;
+            }
+
+            .flex {
+                display: inline-flex;
+            }
+
+            .tag {
+                vertical-align: middle;
+            }
+
+            paper-input {
+                width: 150px;
+                --paper-input-container-underline {
+                    opacity: 0.32;
+                }
+            }
+
+            .tag iron-icon {
+                color: #fff;
+                width: 13px;
+                height: 13px;
+                cursor: pointer;
+            }
+
+            iron-icon.edit {
+                color: inherit;
+                padding: 8px;
+                opacity: 0.32
+            }
         </style>
         <paper-dropdown-menu class="short" no-animations>
             <paper-menu slot="dropdown-content" id="identifierSelector" class="dropdown-content" selected="[[selectedIndetifierType]]">
@@ -71,12 +83,14 @@
 
         <span hidden$="[[!showTags]]">
             <template is="dom-repeat" items="[[tags]]" as="tag">
-                <span class="tag" class="flex" hidden$="[[showEdit]]">[[tag]] <iron-icon id$="tag-[[index]]" icon="close" on-tap="_deleteTag"></iron-icon></span>
+                <span class="tag" class="flex" hidden$="[[showEdit]]">[[tag]]
+                    <iron-icon id$="tag-[[index]]" icon="close" on-tap="_deleteTag"></iron-icon>
+                </span>
             </template>
         </span>
         <span hidden$="[[!showDropDown]]">
             <paper-dropdown-menu no-animations hidden$="[[showTags]]">>
-                <paper-menu slot="dropdown-content" class="dropdown-content" attr-for-selected="id" selected="[[rule.rid]]" >
+                <paper-menu slot="dropdown-content" class="dropdown-content" attr-for-selected="id" selected="[[rule.rid]]">
                     <template is="dom-repeat" items="[[resourceDropDown]]" as="resource">
                         <paper-item class="rid" id$="[[resource.id]]">[[resource.title]] [[resource.name]] [[resource.domain]]</paper-item>
                     </template>
@@ -88,13 +102,13 @@
             <iron-icon class="edit" icon="editor:mode-edit" on-tap="_toggleShowEdit"></iron-icon>
         </span>
     </template>
- </dom-module>
- <script>
-     (function() {
+</dom-module>
+<script>
+    (function () {
         'use strict';
 
         Polymer({
-            is: 'rule-identifier',
+            is: 'rbac-rule-identifier',
             properties: {
                 model: Object,
                 rule: {
@@ -140,136 +154,147 @@
                 'iron-select': '_updateIdentifier',
                 keyup: 'hotkeys'
             },
-            ready: function(){
+            ready: function () {
 
             },
-            _computeTagString: function(rule, rtags){
+            _computeTagString: function (rule, rtags) {
                 return this._computeRTags(rtags).join(', ');
             },
-            _updateIdentifier: function(e){
+            _updateIdentifier: function (e) {
                 // case of changing identifier-type 
-                if (e.detail.item.attributes.class.nodeValue.indexOf('identifier-type') > -1){
+                if (e.detail.item.attributes.class.nodeValue.indexOf('identifier-type') > -1) {
                     var identifierType = e.detail.item.dataset.value.toLowerCase();
                     if (identifierType == 'tags') {
                         this.set('showDropDown', false);
                         this.set('showTags', true);
-                        if (this.tags.length == 0){
+                        if (this.tags.length == 0) {
                             this.set('showEdit', true);
-                        // this.fire('update-rid', {'index': this.index, 'rid': ''});
+                            // this.fire('update-rid', {'index': this.index, 'rid': ''});
                         }
-                    }
-                    else if (identifierType == 'id'){
-                     	this.set('showDropDown', true); 
-                     	this.set('showTags', false);
+                    } else if (identifierType == 'id') {
+                        this.set('showDropDown', true);
+                        this.set('showTags', false);
                         // this.fire('update-rtags', {'index': this.index, 'rtags': {}});
-                    }
-                    else {
+                    } else {
                         this.set('showDropDown', false);
                         this.set('showTags', false);
-                        this.fire('update-rid', {'index': this.index, 'rid': ''});
-                        this.fire('update-rtags', {'index': this.index, 'rtags': {}});
+                        this.fire('update-rid', {
+                            'index': this.index,
+                            'rid': ''
+                        });
+                        this.fire('update-rtags', {
+                            'index': this.index,
+                            'rtags': {}
+                        });
                     }
-                    
+
                 }
                 // case of choοsing rid                 
-                else if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1){
+                else if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1) {
                     var rid = e.detail.item.id;
-                    this.fire('update-rid', {'index': this.index, 'rid': rid});
+                    this.fire('update-rid', {
+                        'index': this.index,
+                        'rid': rid
+                    });
                 }
             },
-            _ruleHasTags: function(rule, tags){
+            _ruleHasTags: function (rule, tags) {
                 if (Object.keys(rule.rtags).length > 0)
                     this.showTags = true;
                 return Object.keys(rule.rtags).length > 0 ? true : false;
             },
-            _ruleHasId: function(rule){
+            _ruleHasId: function (rule) {
                 return rule.rid.length > 0 ? true : false;
             },
-            _computeRTags: function(tags){
+            _computeRTags: function (tags) {
                 if (tags) {
-                    var arrTags = Object.keys(tags); 
-                    for (var i=0; i < arrTags.length; i++) {
+                    var arrTags = Object.keys(tags);
+                    for (var i = 0; i < arrTags.length; i++) {
                         var t = arrTags[i];
                         if (tags[t] != null) {
-                            arrTags[i] = arrTags[i]+'='+tags[t];
+                            arrTags[i] = arrTags[i] + '=' + tags[t];
                         }
                     }
                     return arrTags;
-                }
-                else {
+                } else {
                     return []
                 }
             },
-            _computeLink: function(type, id){
+            _computeLink: function (type, id) {
                 if (type && id && type != "cloud") {
                     return false;
-                }
-                else if (type == "cloud" && id){
+                } else if (type == "cloud" && id) {
                     return this.model.clouds[id].title;
-                }
-                else if (type == "cloud" && !id){
+                } else if (type == "cloud" && !id) {
                     return 'all clouds';
                 }
             },
-            _computeResourceName: function(type, id){
-                if (type && id) {                    
-                    var mod =  this.model[type+'s'];
+            _computeResourceName: function (type, id) {
+                if (type && id) {
+                    var mod = this.model[type + 's'];
                     return mod[id].name;
                 }
             },
-            _computeSelectedIdentifierType: function(rule, rtags, rid){
+            _computeSelectedIdentifierType: function (rule, rtags, rid) {
                 if (this.rule.rid.length > 0) {
                     return 1;
-                }
-                else {
+                } else {
                     return Object.keys(this.rule.rtags).length > 0 ? 2 : 0;
                 }
             },
-            _computeRecords: function(){
+            _computeRecords: function () {
                 var allRecords = [];
-                this.model['zonesArray'].forEach(function(zone) {
-                    zone.records.forEach(function(record) {
+                this.model['zonesArray'].forEach(function (zone) {
+                    zone.records.forEach(function (record) {
                         allRecords.push(record);
                     })
                 })
                 return allRecords;
             },
-            _computeRuleDD: function(rule, rtype, model){
-                if (rtype && rtype!='' && this.model[rtype+'sArray'] && this.model[rtype+'sArray'].length > 0) {
-                    return this.model[rtype+'sArray'];
-                }
-                else if (rtype == 'record') {
+            _computeRuleDD: function (rule, rtype, model) {
+                if (rtype && rtype != '' && this.model[rtype + 'sArray'] && this.model[rtype + 'sArray']
+                    .length > 0) {
+                    return this.model[rtype + 'sArray'];
+                } else if (rtype == 'record') {
                     return this._computeRecords();
-                }
-                else if (!rtype) {
-                    return [{name:'choose recources'}];
-                }
-                else {
-                    return [{name:'no '+rtype+'s found'}];
+                } else if (!rtype) {
+                    return [{
+                        name: 'choose recources'
+                    }];
+                } else {
+                    return [{
+                        name: 'no ' + rtype + 's found'
+                    }];
                 }
             },
-            _toggleShowEdit: function(){
+            _toggleShowEdit: function () {
                 this.set('showEdit', !this.showEdit);
             },
-            _updateTags: function(){
+            _updateTags: function () {
                 var tagArr = this.$.inputField.value.split(',');
                 var newRtags = {};
-                tagArr.forEach(function(t){
-                    var k = t.split("=")[0].replace(' ','').trim();
-                    if (k !='') {
+                tagArr.forEach(function (t) {
+                    var k = t.split("=")[0].replace(' ', '').trim();
+                    if (k != '') {
                         var v = t.split("=")[1] ? t.split("=")[1].trim() : null;
                         newRtags[k] = v;
                     }
                 }, this);
                 this.set('showEdit', false);
-                this.fire('update-rtags', {'index': this.index, 'rtags': newRtags});
+                this.fire('update-rtags', {
+                    'index': this.index,
+                    'rtags': newRtags
+                });
             },
-            _deleteTag: function(e){
+            _deleteTag: function (e) {
                 var tag = e.detail.sourceEvent.path[1].textContent.split('=')[0].trim();
                 var index = e.detail.sourceEvent.path[0].id.split('-')[1];
-                this.fire('delete-rtag', {'index': this.index, 'tag': tag});
+                this.fire('delete-rtag', {
+                    'index': this.index,
+                    'tag': tag
+                });
             },
-            hotkeys: function(e){
+            hotkeys: function (e) {
                 // if 'enter'
                 if (e.keyCode === 13) {
                     this.$.inputField.blur();
@@ -278,4 +303,4 @@
             }
         });
     })();
- </script>
+</script>
