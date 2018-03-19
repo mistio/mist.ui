@@ -447,7 +447,7 @@
                 return '/api/v1/machines/' + resource.id + '/dashboard';
         },
         _computeIsMonitored: function (resource, id, monitoring) {
-            console.log('compute Is Monitored', resource, id, monitoring);
+            // console.log('compute Is Monitored', resource, id, monitoring);
             if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
                 .monitored_machines[this.resource.id]) {
                 this.set('isMonitored', false);
@@ -618,7 +618,6 @@
                 return false;
         },
         _computeIsManual: function (isMonitored, resource, monitoring) {
-            console.log(this.resource);
             if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
                 .monitored_machines[this.resource.id] || !this.monitoring.monitored_machines[this.resource.id]
                 .installation_status.manual)
@@ -648,7 +647,6 @@
             dialog._openDialog();
         },
         _disassociateMetric: function (e) {
-            console.log(e);
             var targets = e.detail.panel.panel.targets;
 
             targets.forEach(function (target) {
@@ -683,18 +681,14 @@
                 if (!this.intervalMonitoringID)
                     this.monitoringPolling();
             } else {
-                console.log('stopGetStats');
                 this.stopGetStats();
             }
         },
         monitoringPolling: function () {
-            console.log('started monitoringPolling')
             this.intervalMonitoringID = window.setInterval(function () {
                 this.$.getStats.generateRequest();
                 console.log('monitoringPolling');
             }.bind(this), 5000);
-
-            console.log('interval id', this.intervalMonitoringID);
         },
         _handleStatsResponse: function(e) {
             this.stopGetStats();
@@ -705,7 +699,6 @@
         stopGetStats: function () {
             window.clearInterval(this.get('intervalMonitoringID'));
             this.set('intervalMonitoringID', false);
-            console.log('clearInterval');
         },
         _computeShowHomeDashboard: function (monitoring, hidden) {
             if (hidden || !monitoring.machines || !monitoring.machines.length)
