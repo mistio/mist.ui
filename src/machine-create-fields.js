@@ -249,7 +249,16 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: "",
         show: false,
         required: false
-    }]
+    }, {
+        name: "networks",
+        label: "Networks *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: []
+    }],
 });
 
 // HOSTVIRTUAL
