@@ -89,10 +89,10 @@
             </template>
         </span>
         <span hidden$="[[!showDropDown]]">
-            <paper-dropdown-menu no-animations hidden$="[[showTags]]">>
-                <paper-menu slot="dropdown-content" class="dropdown-content" attr-for-selected="id" selected="[[rule.rid]]">
+            <paper-dropdown-menu no-animations hidden$="[[showTags]]" placeholder="[[placeholder]]">
+                <paper-menu slot="dropdown-content" class="dropdown-content" attr-for-selected="datavalue" selected="{{rule.rid}}">
                     <template is="dom-repeat" items="[[resourceDropDown]]" as="resource">
-                        <paper-item class="rid" id$="[[resource.id]]">[[resource.title]] [[resource.name]] [[resource.domain]]</paper-item>
+                        <paper-item class="rid" id="[[resource.id]]" datavalue="[[resource.id]]">[[resource.title]] [[resource.name]] [[resource.domain]]</paper-item>
                     </template>
                 </paper-menu>
             </paper-dropdown-menu>
@@ -122,7 +122,8 @@
                 },
                 resourceDropDown: {
                     type: Array,
-                    computed: "_computeRuleDD(rule, rule.rtype, model.*)"
+                    value: [],
+                    computed: '_computeRuleDD(rule.rtype, model.*)'
                 },
                 showDropDown: {
                     type: Boolean,
@@ -148,11 +149,15 @@
                 tags: {
                     type: Array,
                     computed: '_computeRTags(rule.rtags)'
-                }
+                },
+                placeholder: String
             },
+            observers: [
+                
+            ],
             listeners: {
                 'iron-select': '_updateIdentifier',
-                keyup: 'hotkeys'
+                'keyup': 'hotkeys'
             },
             ready: function () {
 
@@ -251,20 +256,17 @@
                 })
                 return allRecords;
             },
-            _computeRuleDD: function (rule, rtype, model) {
-                if (rtype && rtype != '' && this.model[rtype + 'sArray'] && this.model[rtype + 'sArray']
-                    .length > 0) {
-                    return this.model[rtype + 'sArray'];
-                } else if (rtype == 'record') {
-                    return this._computeRecords();
-                } else if (!rtype) {
-                    return [{
-                        name: 'choose recources'
-                    }];
-                } else {
-                    return [{
-                        name: 'no ' + rtype + 's found'
-                    }];
+            _computeRuleDD: function (rtype, model) {
+                if (rtype) {
+                    if (rtype != 'record'){
+                        this.set('placeholder', this.model[rtype+"sArray"].length ? "" : "no "+rtype+"s found");
+                        return this.model[rtype + 'sArray'];
+                    }
+                    if (rtype == 'record') {
+                        var records = this._computeRecords();
+                        this.set('placeholder', records.length ? "" : "no zones found");
+                        return records;
+                    }
                 }
             },
             _toggleShowEdit: function () {
