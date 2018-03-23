@@ -251,11 +251,20 @@ MACHINE_CREATE_FIELDS.push({
         required: false
     }, {
         name: "networks",
-        label: "Networks *",
+        label: "Network",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
         show: true,
+        required: false,
+        options: []
+    }, {
+        name: "subnetwork",
+        label: "Subnetwork",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: false,
         required: false,
         options: []
     }],
