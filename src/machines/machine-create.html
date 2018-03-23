@@ -12,7 +12,7 @@
 <dom-module id="machine-create">
     <template>
         <style include="shared-styles forms single-page">
-             :host {
+            :host {
                 display: block;
                 min-height: 1200px;
             }
@@ -54,7 +54,7 @@
                 max-height: 400px !important;
             }
 
-             :host app-form::content paper-radio-group {
+            :host app-form::content paper-radio-group {
                 margin-top: 24px;
             }
 
@@ -290,9 +290,9 @@
             },
             _cloudChanged: function (selectedCloud) {
                 if (!this.docs && this.machinesFields) {
-                    for (var i=0; i < this.machinesFields.length; i++) {
+                    for (var i = 0; i < this.machinesFields.length; i++) {
                         if (this.machinesFields[i].fields) {
-                            for (var j=0; j < this.machinesFields[i].fields.length; j++) {
+                            for (var j = 0; j < this.machinesFields[i].fields.length; j++) {
                                 this.machinesFields[i].fields[j].helpHref = '';
                             }
                         }
@@ -391,7 +391,8 @@
                         if (f.name.endsWith("size")) {
                             f.options = this.model.clouds[cloudId].sizesArray || [];
                             // allow custom size set
-                            if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[this.selectedCloud].provider) > -1) {
+                            if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[this.selectedCloud]
+                                    .provider) > -1) {
                                 f.options = [{
                                     name: "Custom Size",
                                     id: "custom",
@@ -414,8 +415,9 @@
 
                         // for openstack this should be multi selection
                         if (f.name.endsWith("networks")) {
-                            f.options = this.model.clouds[cloudId].networksArray ? this.model.clouds[cloudId].networksArray.slice() : [];
-                            if (f.options.length<2)
+                            f.options = this.model.clouds[cloudId].networksArray ? this.model.clouds[
+                                cloudId].networksArray.slice() : [];
+                            if (f.options.length < 2)
                                 this.set('machineFields.' + index + '.required', false);
                         }
 
@@ -498,6 +500,13 @@
                         .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
                         'image') {
                         this._updateEc2Sizes(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
+
+                    // if it's gce and network changes update subnets
+                    if (this.model.clouds[this.selectedCloud].provider == "gce" && changeRecord.path
+                        .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
+                        'networks') {
+                        this._updateGceSubnets(this.get(changeRecord.path.replace('.value', '')).value);
                     }
 
                     // if image and image is Windows, show password field
@@ -717,7 +726,8 @@
                     }
                 }
                 // if is vsphere change fields
-                if (this.model && this.model.clouds && this.model.clouds[this.selectedCloud] && this.model.clouds[this.selectedCloud].provider == "vsphere") {
+                if (this.model && this.model.clouds && this.model.clouds[this.selectedCloud] && this.model.clouds[
+                        this.selectedCloud].provider == "vsphere") {
                     this._updateFieldsForVsphere();
                 }
             },
@@ -840,7 +850,8 @@
             },
 
             _updateFieldMinsForOnapp: function (image) {
-                var image = this.model.clouds[this.selectedCloud].images && this.model.clouds[this.selectedCloud].images[image] ? this.model.clouds[this.selectedCloud].images[image] : undefined;
+                var image = this.model.clouds[this.selectedCloud].images && this.model.clouds[this.selectedCloud]
+                    .images[image] ? this.model.clouds[this.selectedCloud].images[image] : undefined;
 
                 if (!image) {
                     return;
@@ -857,7 +868,7 @@
             _updateFieldOptionsForOnapp: function (loc) {
                 var location = this.model.clouds[this.selectedCloud].locations[loc];
 
-                console.log('location',this.model.clouds[this.selectedCloud]);
+                console.log('location', this.model.clouds[this.selectedCloud]);
 
                 if (!location) {
                     return;
@@ -992,6 +1003,29 @@
                 }
 
             },
+            _updateGceSubnets: function (networkId) {
+                var subnetsInd = this._fieldIndexByName('subnetwork'),
+                    network = this.model.clouds[this.selectedCloud].networks[networkId];
+                if (subnetsInd && network && network.extra.mode == 'custom') {
+                    var subnetsOptions = this.model.clouds[this.selectedCloud].networks[networkId].subnets.map(
+                        x => x.name).filter((v, i, a) => a.indexOf(v) === i).map(x => {
+                        return {
+                            id: x,
+                            name: x
+                        }
+                    });
+                    this.set('machineFields.' + subnetsInd + '.options', subnetsOptions);
+                    if (subnetsOptions.length) {
+                        this.set('machineFields.' + subnetsInd + '.show', true);
+                        this.set('machineFields.' + subnetsInd + '.required', true);
+                    }
+                } else if (subnetsInd && network) {
+                    this.set('machineFields.' + subnetsInd + '.options', []);
+                    this.set('machineFields.' + subnetsInd + '.show', false);
+                    this.set('machineFields.' + subnetsInd + '.required', false);
+                    this.set('machineFields.' + subnetsInd + '.value', undefined);
+                }
+            },
             _toggleScriptFields: function (scripttype) {
                 var inlineInd = this._fieldIndexByName('script');
                 var selectInd = this._fieldIndexByName('script_id');
@@ -1101,8 +1135,8 @@
             },
             _fieldIndexByName: function (name) {
                 return this.machineFields.findIndex(function (f) {
-                        return f.name == name;
-                    });
+                    return f.name == name;
+                });
             },
             _machineCreateResponse: function (e) {
                 // console.log('creation resp', e);
@@ -1121,7 +1155,7 @@
             _computeProviders: function (model, clouds) {
                 // // exclude bare metals and other from provider dropdown list
                 return this.model.cloudsArray.filter(function (c) {
-                    return ["bare_metal","clearcenter"].indexOf(c.provider) == -1;
+                    return ["bare_metal", "clearcenter"].indexOf(c.provider) == -1;
                 });
             },
             addInput: function (e) {
