@@ -134,18 +134,22 @@
                 margin: 0 !important;
                 border: 1px solid #ddd !important;
             }
+
             paper-menu {
                 padding: 0;
                 margin-top: 0;
             }
+
             .current-org-teams {
-                color: rgba(0,0,0,0.54);
+                color: rgba(0, 0, 0, 0.54);
                 font-size: 0.8em;
             }
+
             .current-org-teams:after {
                 position: relative;
                 content: ", ";
             }
+
             .current-org-teams:last-of-type:after {
                 content: " ";
             }
@@ -168,13 +172,14 @@
                 opacity: 1;
                 transition: opacity 0.4s ease-in-out, top 0.3s ease-in-out;
             }
+
             .tip[closed] {
                 opacity: 0;
                 top: 80px;
                 transition: opacity 0s ease-in-out, top 0s ease-in-out;
             }
         </style>
-        <paper-menu-button horizontal-align="right" vertical-offset="56"  opened="{{opened}}">
+        <paper-menu-button horizontal-align="right" vertical-offset="56" opened="{{opened}}">
             <paper-icon-button src="[[gravatar]]" class="gravatar dropdown-trigger"></paper-icon-button>
             <div class="dropdown-content">
                 <div class="grid-row current context">
@@ -244,7 +249,7 @@
             },
             size: {
                 type: Number,
-                value: function() {
+                value: function () {
                     return window.devicePixelRatio > 1.5 ? 80 : 40;
                 }
             },
@@ -270,7 +275,10 @@
                 type: Array,
                 computed: '_computeOrganizationsList(user, org, user.orgs)'
             },
-            opened: Boolean,
+            opened: {
+                type: Boolean,
+                notify: true
+            },
             docsUri: {
                 type: String,
                 value: ''
@@ -280,15 +288,15 @@
                 value: ''
             }
         },
-        _computeGravatar: function(email, size, placeholder) {
+        _computeGravatar: function (email, size, placeholder) {
             var avatarString = md5(email),
                 url = '//www.gravatar.com/avatar/' + avatarString + '.jpg?s=' + size + '&d=' + placeholder;
             return url;
         },
-        _computeGravatarName: function(first_name, last_name, email) {
+        _computeGravatarName: function (first_name, last_name, email) {
             return first_name && last_name ? first_name + ' ' + last_name : email;
         },
-        _computeUserName: function(user) {
+        _computeUserName: function (user) {
             var ret = '';
             if (user.first_name)
                 ret += user.first_name + ' ';
@@ -298,45 +306,44 @@
                 ret += user.email;
             return ret;
         },
-        _computeOrganizationsList: function(user, org) {
+        _computeOrganizationsList: function (user, org) {
             if (user.orgs) {
                 var curOrgName = org.name;
-                var organizations = user.orgs.filter(function(o) {
-                        return o.name != curOrgName;
-                    }, this).sort(function(a, b) {
-                        if (a.name > b.name) {
-                            return 1;
-                        }
-                        if (a.name < b.name) {
-                            return -1;
-                        }
-                        return 0;
+                var organizations = user.orgs.filter(function (o) {
+                    return o.name != curOrgName;
+                }, this).sort(function (a, b) {
+                    if (a.name > b.name) {
+                        return 1;
                     }
-                );
+                    if (a.name < b.name) {
+                        return -1;
+                    }
+                    return 0;
+                });
             }
             return organizations;
         },
-        _computeOrganizationIcon: function(organization) {
+        _computeOrganizationIcon: function (organization) {
             return organization.id ? 'social:group' : 'social:person';
         },
-        _computeOrganizationName: function(name) {
+        _computeOrganizationName: function (name) {
             return name && name.length ? name : '[ untitled org ]';
         },
-        _computeOrganizationNameStyle: function(name) {
+        _computeOrganizationNameStyle: function (name) {
             return !name && 'opacity: .5' || '';
         },
-        _isCurrentOrg: function(organization) {
+        _isCurrentOrg: function (organization) {
             return organization.id == this.org.id;
         },
-        _addOrg: function(e) {
+        _addOrg: function (e) {
             var dialog = this.querySelector('organization-add');
             dialog.openDialog();
         },
-        _goToOrg: function(e) {
+        _goToOrg: function (e) {
             var orgId = e.currentTarget.getAttribute('id');
             window.location.href = orgId ? '/switch_context/' + orgId : '/switch_context';
         },
-        _logout: function(e) {
+        _logout: function (e) {
             window.location.href = '/logout';
         }
     });

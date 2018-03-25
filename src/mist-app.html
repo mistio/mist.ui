@@ -51,9 +51,6 @@
                 background-color: var(--base-background-color);
             }
 
-            app-header {
-                z-index: 0 !important;
-            }
             iron-pages {
                 padding: 24px 24px 0 24px;
                 margin-left: 210px;
@@ -156,8 +153,8 @@
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]"
                 with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
-            <app-header slot="header" fixed shadow>
-                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
+            <app-header slot="header" fixed shadow style$=[[_computeHeaderStyle(userMenuOpened)]]>
+                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}}></mist-header>
             </app-header>
             <div id="main-loader" class="is-loading-html">
                 <paper-spinner active="[[loading]]"></paper-spinner>
@@ -267,7 +264,9 @@
                 },
 
                 count: Number,
-                config: Object
+                config: Object,
+
+                userMenuOpened: Boolean
             },
 
             listeners: {
@@ -409,22 +408,6 @@
                 if (['index.html', 'sign-up', 'sign-in'].indexOf(page) > -1)
                     page = 'dashboard';
                 this.page = page || 'dashboard';
-                if (subpath == '') { // Update iron-list
-                    var p = page != '' && page != undefined ? '#' + page : '',
-                        i = this.querySelector('iron-list' + p),
-                        l = this.querySelector('mist-list' + p + "List");
-                    if (i) {
-                        i.fire('iron-resize');
-                    } else if (l) {
-                        l.fire('resize');
-                    }
-                } else {
-                    if (page == 'zones') {
-                        var l = this.querySelector('mist-list#recordsList');
-                        if (l)
-                            l.fire('resize');
-                    }
-                }
                 if (this.page == 'dashboard') {
                     this.clearSearch();
                 }
@@ -858,6 +841,14 @@
                     msg: e.detail.message,
                     duration: 3000
                 });
+            },
+
+            _computeHeaderStyle: function(userMenuOpened) {
+                if (userMenuOpened) {
+                    return 'z-index: 1 !important';
+                } else {
+                    return 'z-index: 0 !important';
+                }
             }
         });
 
