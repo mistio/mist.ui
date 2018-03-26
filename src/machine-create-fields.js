@@ -518,7 +518,31 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             defaultValue: "",
             show: true,
             required: true,
-            options: []
+            customSizeFields: [{
+                name: "ram",
+                label: "RAM MB",
+                type: "slider",
+                value: 256,
+                defaultValue: "",
+                min: 256,
+                max: 6223,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "MB"
+            },{
+                name: "cpu",
+                label: "CPU cores",
+                type: "slider",
+                value: 1,
+                defaultValue: "",
+                min: 1,
+                max: 16,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "cores"
+            }]
         });
     }
     // mist_dropdown for all others
