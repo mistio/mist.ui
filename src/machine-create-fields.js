@@ -516,6 +516,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             type: "mist_size",
             value: "",
             defaultValue: "",
+            custom: true,
             show: true,
             required: true,
             customSizeFields: [{
