@@ -526,7 +526,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 defaultValue: "",
                 min: 256,
                 max: 6223,
-                step: 1,
+                step: 256,
                 show: true,
                 required: false,
                 unit: "MB"
