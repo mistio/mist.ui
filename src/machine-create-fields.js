@@ -514,8 +514,8 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             name: "size",
             label: "Size *",
             type: "mist_size",
-            value: "",
-            defaultValue: "",
+            value: "custom",
+            defaultValue: "custom",
             custom: true,
             show: true,
             required: true,
@@ -524,7 +524,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 label: "RAM MB",
                 type: "slider",
                 value: 256,
-                defaultValue: "",
+                defaultValue: 256,
                 min: 256,
                 max: 6223,
                 step: 256,
@@ -536,7 +536,7 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 label: "CPU cores",
                 type: "slider",
                 value: 1,
-                defaultValue: "",
+                defaultValue: 1,
                 min: 1,
                 max: 16,
                 step: 1,
@@ -546,86 +546,111 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             }]
         });
     }
+    else if (['onapp'].indexOf(p.provider) != -1) {
+        p.fields.splice(2 ,0 , {
+            name: "size",
+            label: "Size *",
+            type: "mist_size",
+            value: "custom",
+            defaultValue: "custom",
+            custom: true,
+            show: true,
+            required: true,
+            customSizeFields: [{
+                name: "size_ram",
+                label: "RAM MB",
+                type: "slider",
+                value: 256,
+                defaultValue: 256,
+                min: 256,
+                max: 6223,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "MB",
+                helptext: "Custom RAM size in MB.",
+                showIf: {
+                    fieldName: "size",
+                    fieldValues: ["custom"]
+                }
+            }, {
+                name: "size_cpu",
+                label: "CPU cores",
+                type: "slider",
+                value: 1,
+                defaultValue: 1,
+                min: 1,
+                max: 16,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "cores",
+                helptext: "Custom CPU cores.",
+                showIf: {
+                    fieldName: "size",
+                    fieldValues: ["custom"]
+                }
+            }, {
+                name: "size_disk_primary",
+                label: "Primary Disk",
+                type: "slider",
+                value: 5,
+                defaultValue: 5,
+                min: 5,
+                max: 16,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "GB",
+                helptext: "Custom disk size in GB.",
+                showIf: {
+                    fieldName: "size",
+                    fieldValues: ["custom"]
+                }
+            }, {
+                name: "size_disk_swap",
+                label: "Swap Disk",
+                type: "slider",
+                value: 1,
+                defaultValue: 1,
+                min: 1,
+                max: 11,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "GB",
+                helptext: "Custom disk size in GB.",
+                showIf: {
+                    fieldName: "size",
+                    fieldValues: ["custom"]
+                }
+            }]
+        });
+    }
+    else if (['vsphere'].indexOf(p.provider) != -1) {
+        p.fields.splice(2 ,0 , {
+            name: "size",
+            label: "Size *",
+            type: "mist_size",
+            value: "custom",
+            defaultValue: "custom",
+            custom: true,
+            show: true,
+            required: true
+        })
+    }
     // mist_dropdown for all others
-    else if (['libvirt'].indexOf(p.provider) == -1) {
+    else {
         p.fields.splice(2 ,0 , {
             name: "size",
             label: "Size *",
             type: "mist_dropdown",
-            value: "",
-            defaultValue: "",
+            value: "custom",
+            defaultValue: "custom",
             show: true,
             required: true,
             options: [],
-            custom: true
-        }, {
-            name: "size_ram",
-            label: "RAM MB",
-            type: "slider",
-            value: 256,
-            defaultValue: "",
-            min: 256,
-            max: 6223,
-            step: 1,
-            show: true,
-            required: false,
-            unit: "MB",
-            helptext: "Custom RAM size in MB.",
-            showIf: {
-                fieldName: "size",
-                fieldValues: ["custom"]
-            }
-        }, {
-            name: "size_cpu",
-            label: "CPU cores",
-            type: "slider",
-            value: 1,
-            defaultValue: "",
-            min: 1,
-            max: 16,
-            step: 1,
-            show: true,
-            required: false,
-            unit: "cores",
-            helptext: "Custom CPU cores.",
-            showIf: {
-                fieldName: "size",
-                fieldValues: ["custom"]
-            }
-        }, {
-            name: "size_disk_primary",
-            label: "Primary Disk",
-            type: "slider",
-            value: 5,
-            defaultValue: "",
-            min: 5,
-            max: 16,
-            step: 1,
-            show: true,
-            required: false,
-            unit: "GB",
-            helptext: "Custom disk size in GB.",
-            showIf: {
-                fieldName: "size",
-                fieldValues: ["custom"]
-            }
-        }, {
-            name: "size_disk_swap",
-            label: "Swap Disk",
-            type: "slider",
-            value: 1,
-            defaultValue: "",
-            min: 1,
-            max: 11,
-            step: 1,
-            show: true,
-            required: false,
-            unit: "GB",
-            helptext: "Custom disk size in GB.",
-            showIf: {
-                fieldName: "size",
-                fieldValues: ["custom"]
-            }
+            custom: false
         });
     }
 
