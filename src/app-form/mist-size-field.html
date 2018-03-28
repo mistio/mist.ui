@@ -28,12 +28,12 @@
             }
         </style>
         <paper-dropdown-menu label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" 
-            required="[[field.required]]" hidden$="[[!field.options.length]]">
+            required="[[field.required]]" hidden$="[[_hideDropdown(field.options,field)]]">
             <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
                 <template is="dom-if" if="[[_noOptions(field.options.length)]]" restamp>
                     <paper-item disabled>No sizes found</paper-item>
                 </template>
-                <paper-item value="custom" class="button-true" hidden$="[[!field.custom]]">Custom Size</paper-item>
+                <paper-item value="custom" class="button-true" hidden$="[[!_allowCustom(field)]]">Custom Size</paper-item>
                 <template is="dom-repeat" items="[[field.options]]" as="option">
                     <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                         <span class="flex">[[showOption(option)]]</span>
@@ -66,7 +66,8 @@
                 },
                 customValue: {
                     type: Object,
-                    reflectToAttribute: true
+                    reflectToAttribute: true,
+                    value: {}
                 },
                 showFieldOptions: {
                     type: Boolean,
@@ -134,11 +135,24 @@
                 return str.replace(/_/g, " ").replace("*", "").replace("id", "").trim();
             },
 
+            _hideDropdown: function(options, field) {
+                return field.custom == true && (!this.field.options || this.field.options.length == 0);
+            },
+
             _noOptions: function (options) {
                 return !this.field.options || this.field.options.length == 0;
             },
+
+            _fieldChanged: function (field) {
+                if (field.path == "field" && !this.field.customSizeFields)
+                    this.field.customSizeFields = this.customSizeFields;
+            },
+
+            _allowCustom: function (field) {
+                return field.custom == true;                
+            },
             
-            _updateCustomValue: function (fields) {
+            _updateCustomValue: function (custom,fields) {
                 if (!this.isCustom) {
                     this.set('customValue', false);
                 }
@@ -153,8 +167,10 @@
 
             _fieldOptionsChanged: function (custom,options,length) {
                 // show only sliders if custom allowed and there are no options
-                if (this.field.custom && (!this.field.options || !this.field.options.length))
+                if (this.field.custom && (!this.field.options || !this.field.options.length)) {
+                    this.set('isCustom', true);
                     this.set('field.value', 'custom');
+                }
                 else
                     this._resetField();
             },
