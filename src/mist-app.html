@@ -32,6 +32,7 @@
 <link rel="import" href="mist-socket.html">
 <link rel="import" href="mist-notice.html">
 <link rel="import" href="mist-icons.html">
+<link rel="import" href="organizations/organization-add.html">
 
 <script type="text/javascript" src="providers.js" inline></script>
 
@@ -98,12 +99,12 @@
             }
 
             .is-loading-html {
-                top: 65px;
+                top: 70px;
                 left: 234px;
                 right: 0;
                 bottom: 0;
                 position: absolute;
-                height: 94%;
+                height: 93%;
                 background-color: var(--base-background-color);
                 display: block;
                 z-index: 0;
@@ -132,7 +133,7 @@
 
             @media screen and (max-width: 768px) {
                 iron-pages {
-                    padding: 8px 0 0 0;
+                    padding: 0;
                 }
                 iron-pages::content .columns {
                     display: block;
@@ -148,13 +149,13 @@
         <app-location route="{{route}}"></app-location>
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
 
-        <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]"
-        with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
 
         <app-header-layout mode="standard" class="fit" fullbleed has-scrolling-region>
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-            <app-header slot="header" fixed condenses shadow>
-                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]"></mist-header>
+            <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]"
+                with-backdrop isclosed="{{sidebarIsClosed}}"></mist-sidebar>
+            <app-header slot="header" fixed shadow style$=[[_computeHeaderStyle(userMenuOpened)]]>
+                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}}></mist-header>
             </app-header>
             <div id="main-loader" class="is-loading-html">
                 <paper-spinner active="[[loading]]"></paper-spinner>
@@ -191,12 +192,13 @@
                 <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
             </iron-pages>
             <paper-toast id="mist-toast"></paper-toast>
-        </paper-header-panel>
+        </app-header-layout>
 
         <mist-socket model="{{model}}"></mist-socket>
 
         <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
+        <organization-add current-org="[[model.org]]"></organization-add>
     </template>
 
     <script>
@@ -264,7 +266,9 @@
                 },
 
                 count: Number,
-                config: Object
+                config: Object,
+
+                userMenuOpened: Boolean
             },
 
             listeners: {
@@ -282,7 +286,8 @@
                 'add-new-images': 'addImages',
                 'go-to': 'setLocationPath',
                 'mist-list-filtered-items-length-changed': 'setHeaderCount',
-                'export-list-csv': '_exportCsvMessage'
+                'export-list-csv': '_exportCsvMessage',
+                'add-org': '_addOrg'
             },
 
             observers: [
@@ -406,22 +411,6 @@
                 if (['index.html', 'sign-up', 'sign-in'].indexOf(page) > -1)
                     page = 'dashboard';
                 this.page = page || 'dashboard';
-                if (subpath == '') { // Update iron-list
-                    var p = page != '' && page != undefined ? '#' + page : '',
-                        i = this.querySelector('iron-list' + p),
-                        l = this.querySelector('mist-list' + p + "List");
-                    if (i) {
-                        i.fire('iron-resize');
-                    } else if (l) {
-                        l.fire('resize');
-                    }
-                } else {
-                    if (page == 'zones') {
-                        var l = this.querySelector('mist-list#recordsList');
-                        if (l)
-                            l.fire('resize');
-                    }
-                }
                 if (this.page == 'dashboard') {
                     this.clearSearch();
                 }
@@ -855,6 +844,19 @@
                     msg: e.detail.message,
                     duration: 3000
                 });
+            },
+
+            _computeHeaderStyle: function(userMenuOpened) {
+                if (userMenuOpened) {
+                    return 'z-index: 1 !important';
+                } else {
+                    return 'z-index: 0 !important';
+                }
+            },
+
+            _addOrg: function(e) {
+                var dialog = this.querySelector('organization-add');
+                dialog.openDialog();
             }
         });
 
