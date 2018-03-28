@@ -33,7 +33,7 @@
                 <template is="dom-if" if="[[_noOptions(field.options.length)]]" restamp>
                     <paper-item disabled>No sizes found</paper-item>
                 </template>
-                <paper-item value="custom" class="button-true" hidden$="[[!_allowCustom(field)]]">Custom Size</paper-item>
+                <paper-item value="custom" class="button-true" hidden$="[[!_allowCustom(field,field.custom)]]">Custom Size</paper-item>
                 <template is="dom-repeat" items="[[field.options]]" as="option">
                     <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                         <span class="flex">[[showOption(option)]]</span>
@@ -42,7 +42,7 @@
             </paper-menu>
         </paper-dropdown-menu>
         <template is="dom-if" if="[[isCustom]]">
-            <template is="dom-repeat" items="{{customSizeFields}}" as="csfield">
+            <template is="dom-repeat" items="{{field.customSizeFields}}" as="csfield">
                 <div hidden="[[csfield.hidden]]">[[csfield.label]]
                     <span class="field-helptext">min [[csfield.min]], max [[csfield.max]] [[csfield.unit]]</span>
                 </div>
@@ -121,7 +121,8 @@
             observers: [
                 '_fieldOptionsChanged(field.custom,field.options,field.options.length)',
                 '_fieldValueChanged(field.value)',
-                '_updateCustomValue(isCustom,customSizeFields.*)'
+                '_updateCustomValue(isCustom,customSizeFields.*)',
+                '_fieldChanged(field)'
             ],
 
             showOption: function (option) {
@@ -144,8 +145,10 @@
             },
 
             _fieldChanged: function (field) {
-                if (field.path == "field" && !this.field.customSizeFields)
-                    this.field.customSizeFields = this.customSizeFields;
+                if (field.path == "field"){
+                    if (!this.field.customSizeFields)
+                        this.field.customSizeFields = this.customSizeFields;
+                }
             },
 
             _allowCustom: function (field) {

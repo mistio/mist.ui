@@ -6,6 +6,7 @@
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../app-form/app-form.html">
+<script type="text/javascript" src="../machine-create-fields.js" inline></script>
 <dom-module id="stack-create">
     <template>
         <style include="shared-styles forms single-page">
@@ -493,8 +494,11 @@
                                 if (cloudId) {
                                     inp['options'] = this.model.clouds[cloudId].sizesArray ? this.model.clouds[cloudId].sizesArray : [];
                                     if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[cloudId].provider) > -1) {
+                                        var provider = this.model.clouds[cloudId].provider,
+                                            fields = MACHINE_CREATE_FIELDS.find(function(p) {return p.provider == provider}).fields;
                                         inp['custom'] = true;
                                         inp["value"] = "custom";
+                                        inp["customSizeFields"] = fields.find(function(f){return f.type == "mist_size"}).customSizeFields;
                                     }
                                     else
                                         inp['custom'] = false;
