@@ -814,14 +814,24 @@
                     } else if (el.type == "password" && el.pattern && el.required) {
                         return this._validatePatternedField(el);
                     } else if (el.type == "mist_size") {
-                        return el.show && el.required ? el.value && this._validateMistSize(el) : true;
+                        return el.show && el.required ? this._validateMistSize(el) : true;
                     } else {
                         return el.show && el.required ? el.value && el.value.length : true;
                     }
                 }, this);
             },
             _validateMistSize: function (el) {
-                return el.value == "custom" && el.customValue.ram && el.customValue.cpu && el.customValue.disk ? true : el.value.length; 
+                return el.value == "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length; 
+            },
+            _validateCustomValue: function (customSizeFields, customValue) {
+                if (customSizeFields) {
+                    for (var i=0; i<customSizeFields.length; i++) {
+                        if (customValue[customSizeFields[i].name] == undefined || customValue[customSizeFields[i].name] == ""){
+                            return false;
+                        }
+                    }
+                }
+                return true;
             },
             _allItemsValid: function (el) {
                 var allItemsValid;
