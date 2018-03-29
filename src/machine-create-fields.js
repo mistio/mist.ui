@@ -636,7 +636,44 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             defaultValue: "custom",
             custom: true,
             show: true,
-            required: true
+            required: true,
+            customSizeFields: [{
+                name: "ram",
+                label: "RAM MB",
+                type: "slider",
+                value: 256,
+                defaultValue: "",
+                min: 256,
+                max: 6223,
+                step: 256,
+                show: true,
+                required: false,
+                unit: "MB"
+            },{
+                name: "cpu",
+                label: "CPU cores",
+                type: "slider",
+                value: 1,
+                defaultValue: "",
+                min: 1,
+                max: 16,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "cores"
+            },{
+                name: "disk",
+                label: "Disk GB",
+                type: "slider",
+                value: 5,
+                defaultValue: "",
+                min: 5,
+                max: 16,
+                step: 1,
+                show: true,
+                required: false,
+                unit: "GB"
+            }]
         })
     }
     // mist_dropdown for all others
