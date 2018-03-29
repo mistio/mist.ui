@@ -42,12 +42,12 @@
             </paper-menu>
         </paper-dropdown-menu>
         <template is="dom-if" if="[[isCustom]]">
-            <template is="dom-repeat" items="{{field.customSizeFields}}" as="csfield">
+            <template is="dom-repeat" items="[[field.customSizeFields]]" as="csfield">
                 <div hidden="[[csfield.hidden]]">[[csfield.label]]
                     <span class="field-helptext">min [[csfield.min]], max [[csfield.max]] [[csfield.unit]]</span>
                 </div>
                 <paper-slider disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
-                max="[[csfield.max]]" value="{{csfield.value}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
+                max="[[csfield.max]]" value="{{csfield.value::change}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
             </template>
         </template>
     </template>
@@ -121,8 +121,7 @@
             observers: [
                 '_fieldOptionsChanged(field.custom,field.options,field.options.length)',
                 '_fieldValueChanged(field.value)',
-                '_updateCustomValue(isCustom,customSizeFields.*)',
-                '_fieldChanged(field)'
+                '_updateCustomValue(isCustom,field.customSizeFields.*)'
             ],
 
             showOption: function (option) {
@@ -144,25 +143,19 @@
                 return !this.field.options || this.field.options.length == 0;
             },
 
-            _fieldChanged: function (field) {
-                if (field.path == "field"){
-                    if (!this.field.customSizeFields)
-                        this.field.customSizeFields = this.customSizeFields;
-                }
-            },
-
             _allowCustom: function (field) {
                 return field.custom == true;                
             },
             
             _updateCustomValue: function (custom,fields) {
+                console.log('_updateCustomValue', custom,fields);
                 if (!this.isCustom) {
                     this.set('customValue', false);
                 }
                 else {
                     var cv = {}
-                    for (var i=0; i<this.customSizeFields.length; i++){
-                        cv[this.customSizeFields[i].name] = this.customSizeFields[i].value;
+                    for (var i=0; i<this.field.customSizeFields.length; i++){
+                        cv[this.field.customSizeFields[i].name] = this.field.customSizeFields[i].value;
                     }
                     this.set('field.customValue', cv);
                 }
