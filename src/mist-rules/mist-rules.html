@@ -58,7 +58,7 @@
         </style>
         <paper-material elevation="0">
             <template is="dom-repeat" items="[[resourceRules]]">
-                <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]]
+                <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]]
                     users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]]></rule-item>
                 <rule-edit hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]]
                     users=[[users]] teams=[[teams]]></rule-edit>
@@ -80,7 +80,10 @@
                 incidents: {
                     type: Array
                 },
-                resource: Object, // machine, cloud or other later
+                resource: {
+                    type: Object, // machine, cloud or other later
+                    value: false
+                },
                 rules: Object,
                 resourceRules: {
                     type: Array,
@@ -113,6 +116,8 @@
                         rulesArray.push(this.rules[rule]);
                     }
                 }
+                if (!this.resource)
+                    return rulesArray;
                 var resourceRules = rulesArray.filter(function (r) {
                     return that._ruleAppliesOnResource(r, resource);
                 }).reverse();
@@ -138,10 +143,10 @@
                 if (this.customMetrics) {
                     for (var q in this.customMetrics) {
                         if (this.customMetrics[q].machines) {
-                            var machineHasCustomMetric = this.customMetrics[q].machines.find(function (m) {
+                            var machineHasCustomMetric = this.resource && this.customMetrics[q].machines.find(function (m) {
                                 return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
                             }, this);
-                            if (machineHasCustomMetric)
+                            if (machineHasCustomMetric || !this.resource)
                                 metrics.push(this.customMetrics[q])
                         }
                     }
