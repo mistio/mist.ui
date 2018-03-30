@@ -57,7 +57,7 @@
                     <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
             </paper-material>
             <paper-material hidden$="[[!hasOpenstackClouds]]">
-                <app-form fields="[[fields]]" form="[[network]]" url="/api/v1/clouds/[[cloud]]/networks" on-response="_handleAddNetworkResponse"
+                <app-form id="network_add" fields="[[fields]]" form="[[network]]" url="/api/v1/clouds/[[cloud]]/networks" on-response="_handleAddNetworkResponse"
                     on-error="_handleError"></app-form>
             </paper-material>
         </div>
@@ -268,7 +268,7 @@
             updateFields: function (e) {
                 this.set('formError', false);
                 // hide gateway if field if subnet_disableGateway is true
-                if (e.target.id == "subnet_disableGateway") {
+                if (e.target.id == "app-form-network_add-subnet_disableGateway") {
                     var subnet_disableGateway = this.fields.findIndex(function (f) {
                         return f.name == "subnet_disableGateway"
                     });
@@ -284,7 +284,7 @@
                     }
                 }
                 // clear subnet name if field if createSubnet is false
-                if (e.target.id == "createSubnet") {
+                if (e.target.id == "app-form-network_add-createSubnet") {
                     var createSubnet = this.fields.findIndex(function (f) {
                         return f.name == "createSubnet"
                     });
@@ -300,7 +300,7 @@
             },
             updateUrl: function (e) {
                 //update url when cloud is selected
-                if (e.target.id == "app-form--cloud") {
+                if (e.target.id == "app-form-network_add-cloud") {
                     var cloud = this.fields.findIndex(function (field) {
                         return field.name == "cloud";
                     }, this);
@@ -311,8 +311,7 @@
             updatePayload: function () {
                 if (this.fields.length) {
                     // update payload
-                    var payload = {};
-                    payload = {
+                    var payload = {
                         network: {
                             name: this.fields[0].value,
                             admin_state_up: this.fields[2].value
@@ -333,19 +332,19 @@
                                 else
                                     allocationPools.push(l);
                             })
-                            payload.subnet = {
-                                name: this.fields[4].value,
-                                ip_version: parseInt(this.fields[6].value),
-                                cidr: this.fields[5].value,
-                                enable_dhcp: this.fields[8].value,
-                                allocation_pools: allocationPools
-                            };
                         }
+                        payload['subnet'] = {
+                            name: this.fields[4].value,
+                            ip_version: parseInt(this.fields[6].value),
+                            cidr: this.fields[5].value,
+                            enable_dhcp: this.fields[8].value,
+                            allocation_pools: allocationPools
+                        };
                         // if subnet disable Gateway delete property
                         var subnet_disableGateway = this.fields.findIndex(function (f) {
                             return f.name == "subnet_disableGateway"
                         });
-                        if (payload.subnet) {
+                        if (payload.subnet != undefined) {
                             if (this.fields[subnet_disableGateway].value == false) {
                                 payload.subnet.gateway_ip = this.fields[7].value;
                             } else {
