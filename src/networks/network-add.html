@@ -248,6 +248,7 @@
                 '_cloudsChanged(model.clouds.*)'
             ],
             listeners: {
+                'input': 'updateFields',
                 'change': 'updateFields',
                 'iron-select': 'updateUrl'
             },
@@ -319,9 +320,15 @@
                     }
                     //create subnet
                     if (this.fields[3].value == true) {
-                        //parse allocation pools
-                        var allocationPools = [];
+                        payload['subnet'] = {
+                            name: this.fields[4].value,
+                            ip_version: parseInt(this.fields[6].value),
+                            cidr: this.fields[5].value,
+                            enable_dhcp: this.fields[8].value,
+                        };
                         if (this.fields[10].value) {
+                            //parse allocation pools
+                            var allocationPools = [];
                             var lines = this.fields[10].value.split('\n');
                             lines.forEach(function (l) {
                                 if (l && l.indexOf('-') > 0) 
@@ -332,24 +339,17 @@
                                 else
                                     allocationPools.push(l);
                             })
-                        }
-                        payload['subnet'] = {
-                            name: this.fields[4].value,
-                            ip_version: parseInt(this.fields[6].value),
-                            cidr: this.fields[5].value,
-                            enable_dhcp: this.fields[8].value,
-                            allocation_pools: allocationPools
-                        };
+                        if (allocation_pools.length)
+                            payload.subnet['allocation_pools'] = allocation_pools;
                         // if subnet disable Gateway delete property
+                        }
                         var subnet_disableGateway = this.fields.findIndex(function (f) {
-                            return f.name == "subnet_disableGateway"
+                            return f.name == "subnet_disableGateway";
                         });
-                        if (payload.subnet != undefined) {
-                            if (this.fields[subnet_disableGateway].value == false) {
-                                payload.subnet.gateway_ip = this.fields[7].value;
-                            } else {
-                                delete payload.subnet['gateway_ip'];
-                            }
+                        if (this.fields[subnet_disableGateway].value == false) {
+                            payload.subnet.gateway_ip = this.fields[7].value;
+                        } else {
+                            delete payload.subnet['gateway_ip'];
                         }
                     }
                     this.set('network', payload);
