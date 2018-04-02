@@ -585,7 +585,7 @@ PROVIDERS.push({
         show: true,
         required: false,
         options: [],
-        helptext: 'If you don\'t specify an SSH key, mist.io will assume that you are connecting via tcp (qemu+tcp)',
+        helptext: 'If you don\'t specify an SSH key, we assume that you are connecting via tcp (qemu+tcp)',
         helpHref: 'http://docs.mist.io/article/24-adding-kvm'
     }, {
         name: "machine_user",
@@ -595,7 +595,7 @@ PROVIDERS.push({
         defaultValue: "root",
         show: true,
         required: false,
-        helptext: 'The SSH user that Mist.io should try to connect as'
+        helptext: 'The SSH user to connect as'
     }, {
         name: "ssh_port",
         label: "SSH port",
