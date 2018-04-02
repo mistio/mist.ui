@@ -57,8 +57,8 @@
                     <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
             </paper-material>
             <paper-material hidden$="[[!hasOpenstackClouds]]">
-                <app-form id="network_add" fields="[[fields]]" form="[[network]]" url="/api/v1/clouds/[[cloud]]/networks" on-response="_handleAddNetworkResponse"
-                    on-error="_handleError"></app-form>
+                <app-form id="network_add" fields="{{fields}}" form="[[form]]" url="/api/v1/clouds/[[cloud]]/networks" on-response="_handleAddNetworkResponse"
+                    on-error="_handleError" format-payload></app-form>
             </paper-material>
         </div>
     </template>
@@ -75,10 +75,9 @@
                 },
                 cloud: {
                     type: String,
-                    value: '',
-                    notify: true
+                    value: ''
                 },
-                network: {
+                form: {
                     type: Object,
                     value: function () {
                         return {}
@@ -160,8 +159,8 @@
                             show: false,
                             required: false,
                             showIf: {
-                                fieldName: "subnet_name",
-                                fieldExists: true
+                                fieldName: "createSubnet",
+                                fieldValues: [true]
                             }
                         }, {
                             name: "subnet_ipv",
@@ -180,8 +179,8 @@
                                 val: 6
                             }],
                             showIf: {
-                                fieldName: "subnet_address",
-                                fieldExists: true
+                                fieldName: "createSubnet",
+                                fieldValues: [true]
                             }
                         }, {
                             name: "subnet_gatewayIp",
@@ -190,11 +189,12 @@
                             value: "",
                             defaultValue: "",
                             placeholder: "",
-                            show: false,
+                            show: true,
                             required: false,
+                            disabled: false,
                             showIf: {
-                                fieldName: "subnet_address",
-                                fieldExists: true
+                                fieldName: "createSubnet",
+                                fieldValues: [true]
                             }
                         }, {
                             name: "subnet_disableGateway",
@@ -206,8 +206,8 @@
                             show: false,
                             required: false,
                             showIf: {
-                                fieldName: "subnet_address",
-                                fieldExists: true
+                                fieldName: "createSubnet",
+                                fieldValues: [true]
                             }
                         }, {
                             name: "subnet_enableDHCP",
@@ -219,8 +219,8 @@
                             show: false,
                             required: false,
                             showIf: {
-                                fieldName: "subnet_address",
-                                fieldExists: true
+                                fieldName: "createSubnet",
+                                fieldValues: [true]
                             }
                         }, {
                             name: "subnet_allocationPools",
@@ -232,8 +232,8 @@
                             show: false,
                             required: false,
                             showIf: {
-                                fieldName: "subnet_address",
-                                fieldExists: true
+                                fieldName: "createSubnet",
+                                fieldValues: [true]
                             }
                         }]
                     },
@@ -245,12 +245,11 @@
                 }
             },
             observers: [
-                '_cloudsChanged(model.clouds.*)'
+                '_cloudsChanged(model.clouds.*)',
+                '_updateFields(fields.*)'
             ],
             listeners: {
-                'input': 'updateFields',
-                'change': 'updateFields',
-                'iron-select': 'updateUrl'
+                'format-payload': 'updatePayload'
             },
             _cloudsChanged: function (clouds) {
                 var openstackClouds = this.model.cloudsArray.filter(function (cloud) {
@@ -266,48 +265,13 @@
                     this.set('hasOpenstackClouds', false);
                 }
             },
-            updateFields: function (e) {
-                this.set('formError', false);
-                // hide gateway if field if subnet_disableGateway is true
-                if (e.target.id == "app-form-network_add-subnet_disableGateway") {
-                    var subnet_disableGateway = this.fields.findIndex(function (f) {
-                        return f.name == "subnet_disableGateway"
-                    });
-                    var subnet_gatewayIp = this.fields.findIndex(function (f) {
-                        return f.name == "subnet_gatewayIp"
-                    });
-                    if (this.fields[subnet_disableGateway].value == true) {
-                        this.set('fields.' + subnet_gatewayIp + '.show', false)
-                        this.set('fields.' + subnet_gatewayIp + '.hidden', true)
-                    } else {
-                        this.set('fields.' + subnet_gatewayIp + '.show', true)
-                        this.set('fields.' + subnet_gatewayIp + '.hidden', false)
-                    }
-                }
-                // clear subnet name if field if createSubnet is false
-                if (e.target.id == "app-form-network_add-createSubnet") {
-                    var createSubnet = this.fields.findIndex(function (f) {
-                        return f.name == "createSubnet"
-                    });
-                    var subnet_name = this.fields.findIndex(function (f) {
-                        return f.name == "subnet_name"
-                    });
-                    if (this.fields[createSubnet].value == false) {
-                        this.set('fields.' + subnet_name + '.value', '')
-                    }
-                }
+            _updateFields: function (fields) {
+                if (fields.path == "fields.#1.value") // cloud changed
+                    this.set('cloud', fields.value)
 
-                this.updatePayload();
-            },
-            updateUrl: function (e) {
-                //update url when cloud is selected
-                if (e.target.id == "app-form-network_add-cloud") {
-                    var cloud = this.fields.findIndex(function (field) {
-                        return field.name == "cloud";
-                    }, this);
-                    this.set('cloud', this.fields[cloud].value)
+                if (fields.path == "fields.#8.value"){ // subnet_disableGateway changed
+                    this.set('fields.7.disabled', fields.value);
                 }
-                this.updatePayload();
             },
             updatePayload: function () {
                 if (this.fields.length) {
@@ -320,6 +284,7 @@
                     }
                     //create subnet
                     if (this.fields[3].value == true) {
+                        var allocationPools = [];
                         payload['subnet'] = {
                             name: this.fields[4].value,
                             ip_version: parseInt(this.fields[6].value),
@@ -328,7 +293,6 @@
                         };
                         if (this.fields[10].value) {
                             //parse allocation pools
-                            var allocationPools = [];
                             var lines = this.fields[10].value.split('\n');
                             lines.forEach(function (l) {
                                 if (l && l.indexOf('-') > 0) 
@@ -339,10 +303,10 @@
                                 else
                                     allocationPools.push(l);
                             })
-                        if (allocation_pools.length)
-                            payload.subnet['allocation_pools'] = allocation_pools;
-                        // if subnet disable Gateway delete property
                         }
+                        if (allocationPools.length)
+                            payload.subnet['allocation_pools'] = allocationPools;
+                        // if subnet disable Gateway delete property
                         var subnet_disableGateway = this.fields.findIndex(function (f) {
                             return f.name == "subnet_disableGateway";
                         });
@@ -352,7 +316,7 @@
                             delete payload.subnet['gateway_ip'];
                         }
                     }
-                    this.set('network', payload);
+                    this.set('form', payload);
                 }
             },
             _handleAddNetworkResponse: function (e) {

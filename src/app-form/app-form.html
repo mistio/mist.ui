@@ -623,7 +623,8 @@
                 horizontalLayout: {
                     type: Boolean,
                     value: false
-                }
+                },
+                formatPayload: Boolean
             },
             observers: [
                 '_fieldsChanged(fields.*, sendingData)'
@@ -702,7 +703,6 @@
                     this.fields.forEach(function (el, index) {
                         // if field has a dependency
                         if (el.showIf) {
-
                             dependency = form[el.showIf.fieldName];
                             if (el.showIf.fieldExists) {
                                 show = dependency ? true : false;
@@ -846,6 +846,9 @@
                 return false;
             },
             _submitForm: function (e) {
+                if (this.formatPayload)
+                    this.fire('format-payload');
+
                 var payload = {};
                 if (this.workflow) {
                     var inps = YAML.parse(this.form.stackinputs);
