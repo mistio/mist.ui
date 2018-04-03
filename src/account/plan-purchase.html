@@ -5,7 +5,7 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 
-<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+<link rel="import" href="../helpers/card-form.html">
 
 <dom-module id="plan-purchase">
     <template>
@@ -14,20 +14,11 @@
                 box-sizing: border-box;
             }
             #form {
-                width: 360px;
+                max-width: 400px;
                 font-size: inherit;
             }
             .head {
                 text-align: center;
-            }
-            .form-inputs {
-                border-radius: 2px;
-                border: 1px solid wheat;
-                background-color: seashell;
-                padding: 8px;
-                width: 100%;
-                margin-bottom: 16px;
-                box-sizing: border-box;
             }
             .form-row {
                 padding: 4px 0;
@@ -57,7 +48,7 @@
             }
             .errormsg-container {
                 color: var(--red-color);
-                width: 300px;
+                font-size: 14px;
                 padding-left: 20px;
             }
             .errormsg-container iron-icon {
@@ -118,56 +109,33 @@
         <paper-dialog id="form" with-backdrop>
             <div class="purchase-logo"></div>
             <div class="head">
-                <p class="title" hidden$="[[addCard]]">[[plan.title]] plan</p>
+                <p class="title" hidden$="[[addCard]]">
+                    <span hidden$="[[plan]]">Pay As You Go</span>
+                    <span hidden$="[[!plan]]">[[plan.title]] plan</span>
+                </p>
                 <p class="title" hidden$="[[!addCard]]">Add Card</p>
                 <hr class="headhr"/>
-                <p class="desc" hidden$="[[addCard]]">Subscription of $[[plan.price]]/mo. <br/> up to [[plan.machine_limit]] machines, monitoring for [[plan.monitor_limit]] of them.</p>
+                <p class="desc" hidden$="[[addCard]]">
+                    <span hidden$="[[plan]]"><strong>Free</strong> for up to 10 vCPUs</span>
+                    <span hidden$="[[!plan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[plan.vcpu_limit]] vCPUs</span>
+                </p>
                 <p class="desc" hidden$="[[!addCard]]">Add a credit card to your account</p>
             </div>
             <paper-dialog-scrollable>
                 <div class="form-inputs" hidden$="[[hideCardFields]]">
-                    <div class="form-row">
-                        <label class="align">
-                            <span>Card Number</span>
-                            <input type="text" size="20" data-stripe="number" value="{{payload.number::input}}">
-                        </label>
-                    </div>
-
-                    <div class="form-row">
-                        <label class="align">
-                            <span>Expiration <strong>(MM/YY)</strong></span>
-                            <input type="text" size="4" data-stripe="exp_month" value="{{payload.exp_month::input}}">
-                            <span> / </span>
-                            <input type="text" size="4" data-stripe="exp_year" value="{{payload.exp_year::input}}">
-                        </label>
-                    </div>
-
-                    <div class="form-row align">
-                        <label class="align">
-                            <span>CVC</span>
-                            <input type="text" size="4" data-stripe="cvc" value="{{payload.cvc::input}}">
-                        </label>
-
-                        <label class="align">
-                            <span>ZIP code</span>
-                            <input type="text" size="4" data-stripe="address_zip" value="{{payload.address_zip::input}}">
-                        </label>
-                    </div>
-
-
+                    <card-form id="inPlanPurchase" card-valid="{{cardValid}}" token="{{token}}"></card-form>
                 </div>
-
             </paper-dialog-scrollable>
             <div class="progress">
-                <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
+                <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                 <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
                 <hr class="appform"/>
                 <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
             </div>
             <div class="buttons">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button autofocus on-tap="submit" class="blue" disabled="[[!formReady]]">
-                    <span hidden$="[[addCard]]">[[buttonText]] </span>
+                <paper-button dialog-dismis on-tap="_reset">Cancel</paper-button>
+                <paper-button autofocus on-tap="_submit" class="blue" disabled="[[!formReady]]">
+                    <span hidden$="[[addCard]]">[[buttonText]]</span>
                     <span hidden$="[[!addCard]]">Add Card </span>
                 </paper-button>
             </div>
@@ -176,7 +144,7 @@
             </div>
         <paper-dialog>
 
-        <iron-ajax id="purchasePlanRequest" method="POST" on-request="purchaseRequest" on-response="purchaseResponse" on-error="purchaseError"></iron-ajax>
+        <iron-ajax id="purchasePlanRequest" method="POST" loading="{{loading}}" on-response="purchaseResponse" on-error="purchaseError"></iron-ajax>
 
     </template>
     <script>
@@ -186,7 +154,10 @@
         properties: {
             user: Object,
             org: Object,
-            plan: Object,
+            plan: {
+                type: Object,
+                value: false
+            },
             payload: {
                 type: Object,
                 value: function(){
@@ -205,7 +176,7 @@
                 value: false,
                 reflectToAttribute: true
             },
-            sendingData: {
+            loading: {
                 type: Boolean,
                 value: false
             },
@@ -215,6 +186,7 @@
             },
             formReady: {
                 type: Boolean,
+                computed: '_computeFormReady(hasCard, cardValid)',
                 value: false
             },
             hasCard: {
@@ -229,15 +201,16 @@
             buttonText: {
                 type: String,
                 computed: '_computeButtonText(plan,org)'
-            }
+            },
+            cardValid: Boolean
         },
         observers: [
             'updateHasCard(org.card)'
         ],
         listeners: {
             'input': 'validateForm',
-            'iron-overlay-closed' : 'reset',
-            // blur: ''
+            'iron-overlay-closed' : '_reset',
+            'card-response': '_gotCardResponse'
         },
         attached: function(){},
         updateHasCard: function(card){
@@ -248,56 +221,50 @@
             this.querySelector("#form").open();
         },
         _computeHideCardFields (price, hasCard) {
-            if (price == 0 || hasCard)
-                this.set('formReady', true);
-
             return price == 0 || hasCard;
         },
-        submit: function(){
-            if (!this.hideCardFields) {
-
-                //extra stripe validation
-                var isValid = Stripe.card.validateCardNumber(this.payload.number) &&
-                    Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year) &&
-                    Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '';
-
-                if (isValid){
-                    Stripe.setPublishableKey(STRIPE_PUBLIC_APIKEY);
-                    Stripe.card.createToken(this.payload, stripeResponseHandler);
-                    this.set('sendingData', true);
-                    var that = this;
-                    function stripeResponseHandler(status, response){
-                        if (response.error) {
-                            console.log('stripeResponseHandler failed', response.error.message);
-                            that.showError(response.error.message);
-                        }
-                        else {
-                            that.sumbmitPayment(status, response);
-                        }
+        _computeFormReady: function(hasCard, cardValid){
+            return hasCard || cardValid;
+        },
+        _submit: function(e){
+            if (this.cardValid) {
+                this.querySelector('card-form#inPlanPurchase').verify();
+            }
+        },
+        _gotCardResponse: function(e){
+            console.log('_gotCardResponse', e.detail)
+            if (this.cardValid) {
+                var card = this.querySelector('card-form#inPlanPurchase');
+                if (e.detail.token) {
+                    var mistPayload;
+                    if (this.addCard) {
+                        mistPayload = { token: e.detail.token };
+                        this.$.purchasePlanRequest.url = "/card";
                     }
+                    else {
+                        mistPayload = {
+                            token: e.detail.token,
+                            promo_code: ''
+                        };
+                        if (plan)
+                            mistPayload.plan = this.plan.title,
+                        this.$.purchasePlanRequest.url = "/purchase";
+                    }
+                    this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
+                    this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.purchasePlanRequest.body = mistPayload;
+                    this.$.purchasePlanRequest.generateRequest();
+                }
+                else if (card.errors) {
+                    this.set('formError', true);
+                    this.$.errormsg.textContent = card.errors;
                 }
                 else {
-                    var errorText = 'There seems to be an error in';
-                    if (!Stripe.card.validateCardNumber(this.payload.number))
-                        errorText += ' card number';
-
-                    if (!Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year))
-                        errorText += ' expiration';
-
-                    if (!Stripe.card.validateCVC(this.payload.cvc))
-                        errorText += ' cvc';
-
-                    if (this.payload.address_zip == '')
-                        errorText += ' zip code';
-
-                    errorText += '.';
-
-                    this.showError(errorText);
+                    this.set('loading', true)
                 }
-            }
-            else {
-                this.sumbmitPayment(null, {id: ''});
-            }
+            } 
+            else 
+                this.querySelector('#form').refit();
         },
         sumbmitPayment: function(status, response){
             var mistPayload;
@@ -320,94 +287,41 @@
             this.$.purchasePlanRequest.params = mistPayload;
             this.$.purchasePlanRequest.generateRequest();
         },
-        showError: function(error){
-            this.set('sendingData', false);
-            this.set('formError', true);
-            this.$.errormsg.textContent = error;
-        },
-        validateForm: function(error){
-            this.set('formError', false);
-            this.$.errormsg.textContent = '';
-
-            if (this.valideNumber('Card-number',this.payload.number,0) && this.valideNumber('Expiration month',this.payload.exp_month,2) && this.valideNumber('Expiration year',this.payload.exp_year,2) && this.valideNumber('CVC',this.payload.cvc,3))
-                this.set('formReady', true);
-
-            else
-                this.set('formReady', false);
-        },
-        valideNumber: function(name, input, length){
-            if (!input || !input.length){
-                //no input
-                return false;
-            }
-            if (length !=0 && input.length > length){
-                //input longer than constrain
-                this.showHelp(name, length);
-                return false;
-            }
-            if (!(/^[0-9 ]*$/.test(input))){
-                //input is not number
-                this.showHelp(name);
-                return false;
-            }
-            return true;
-        },
-        showHelp: function(input, length){
-            var message;
-            if (!length) {
-                message = input +" must be a number";
-            }
-            else {
-                message = input +" must a be "+ length +"-digit number";
-            }
-            this.set('formError', true);
-            this.$.errormsg.textContent = message;
-        },
+        
 
         purchaseRequest: function(e){
-            console.log('purchaseRequest',e);
-            this.set('sendingData', true);
+            this.set('loading', true)
         },
         purchaseResponse: function(e){
-            console.log('purchaseResponse',e);
-            this.set('sendingData', false);
-            this.set('formError', false);
-
-            this.querySelector("#form").close();
-            this.reset();
-
+            this._reset();
             if (this.addCard)
                 this.fire('toast', {msg: 'Card added.', duration: 3000});
             else
                 this.fire('toast', {msg: 'Plan changed.', duration: 3000});
         },
-        reset: function(){
-            // reset form after submit
-            this.set("payload", {
-                        number: "",
-                        exp_month: "",
-                        exp_year: "",
-                        cvc: "",
-                        address_zip: ""
-                    });
+        _reset: function(){
             this.set('formError', false);
+            this.querySelector('card-form#inPlanPurchase').reset();
+            this.querySelector("#form").close();
         },
         purchaseError: function(e){
             console.log('purchaseError',e);
-            this.set('sendingData', false);
             this.set('formError', true);
-            this.$.errormsg.textContent = error;
+            this.$.errormsg.textContent = e.detail.error;
         },
         _computeButtonText: function(plan, org){
-            if (this.org.current_plan.machine_limit > plan.machine_limit){
-                return 'Downgrade';
-            }
-            else if (this.org.current_plan.machine_limit < plan.machine_limit){
-                return 'Upgrade';
-            }
-            else {
-                return "Purchase";
-            }
+            // if (this.org.current_plan.vcpu_limit > plan.vcpu_limit){
+            //     return 'Downgrade';
+            // }
+            // else if (this.org.current_plan.vcpu_limit < plan.vcpu_limit){
+            //     return 'Upgrade';
+            // }
+            // else {
+            //     return "Purchase";
+            // }
+            if (!plan)
+                return "Subscribe";
+            return "Purchase";
         }
     });
     </script>
