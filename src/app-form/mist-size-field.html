@@ -14,9 +14,11 @@
             :host {
                 display: block;
             }
+
             :host>* {
                 width: 100%;
             }
+
             paper-item.button-true {
                 background-color: #2196F3 !important;
                 font-weight: 500 !important;
@@ -24,8 +26,8 @@
                 text-transform: uppercase;
             }
         </style>
-        <paper-dropdown-menu label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" 
-            required="[[field.required]]" hidden$="[[!field.options.length]]">
+        <paper-dropdown-menu label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]"
+            hidden$="[[!field.options.length]]">
             <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.value}}" class="dropdown-content">
                 <template is="dom-if" if="[[_noOptions(field.options.length)]]" restamp>
                     <paper-item disabled>No sizes found</paper-item>
@@ -40,11 +42,11 @@
         </paper-dropdown-menu>
         <template is="dom-if" if="[[isCustom]]" restamp>
             <template is="dom-repeat" items="{{customSizeFields}}" as="csfield">
-                <div hidden="[[csfield.hidden]]">[[csfield.label]]
+                <div hidden=[[!csfield.show]]>[[csfield.label]]
                     <span class="field-helptext">min [[csfield.min]], max [[csfield.max]] [[csfield.unit]]</span>
                 </div>
-                <paper-slider disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
-                max="[[csfield.max]]" value="{{csfield.value}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
+                <paper-slider disabled="[[csfield.disabled]]" hidden=[[!csfield.show]] min="[[csfield.min]]" max="[[csfield.max]]" value="{{csfield.value}}"
+                    step="[[csfield.step]]" pin snaps editable></paper-slider>
             </template>
         </template>
     </template>
@@ -72,7 +74,7 @@
                 },
                 customSizeFields: {
                     type: Array,
-                    value: function() {
+                    value: function () {
                         return [{
                             name: "ram",
                             label: "RAM MB",
@@ -85,7 +87,7 @@
                             show: true,
                             required: false,
                             unit: "MB"
-                        },{
+                        }, {
                             name: "cpu",
                             label: "CPU cores",
                             type: "slider",
@@ -97,17 +99,18 @@
                             show: true,
                             required: false,
                             unit: "cores"
-                        },{
+                        }, {
                             name: "disk",
                             label: "Disk GB",
                             type: "slider",
                             value: 5,
                             defaultValue: "",
                             min: 5,
-                            max: 16,
+                            max: 100,
                             step: 1,
-                            show: true,
+                            show: false,
                             required: false,
+                            excludeFromPayload: true,
                             unit: "GB"
                         }]
                     }
@@ -134,20 +137,21 @@
             _noOptions: function (options) {
                 return !this.field.options || this.field.options.length == 0;
             },
-            
+
             _updateCustomValue: function (fields) {
                 if (!this.isCustom) {
                     this.set('customValue', false);
                 } else {
                     var cv = {}
-                    for (var i=0; i<this.customSizeFields.length; i++){
-                        cv[this.customSizeFields[i].name] = this.customSizeFields[i].value;
+                    for (var i = 0; i < this.customSizeFields.length; i++) {
+                        if (!this.customSizeFields[i].excludeFromPayload)
+                            cv[this.customSizeFields[i].name] = this.customSizeFields[i].value;
                     }
                     this.set('field.customValue', cv);
                 }
             },
 
-            _fieldOptionsChanged: function (custom,options,length) {
+            _fieldOptionsChanged: function (custom, options, length) {
                 // show only sliders if custom allowed and there are no options
                 if (this.field.custom && (!this.field.options || !this.field.options.length))
                     this.set('field.value', 'custom');
@@ -158,8 +162,7 @@
             _fieldValueChanged: function (value) {
                 if (this.field.value == "custom") {
                     this.set('isCustom', true);
-                }
-                else {
+                } else {
                     this.set('isCustom', false);
                     this.field['customValue'] = false;
                 }
