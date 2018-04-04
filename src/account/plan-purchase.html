@@ -82,6 +82,7 @@
                 margin-top: 0;
                 padding: 4px 16px;
                 font-size: 0.8em;
+                margin-bottom: 0;
             }
             label span {
                 margin-right: 8px;
@@ -142,7 +143,7 @@
             <div class="stripe">
                 * We use Stripe for safe payments
             </div>
-        <paper-dialog>
+        </paper-dialog>
 
         <iron-ajax id="purchasePlanRequest" method="POST" loading="{{loading}}" on-response="purchaseResponse" on-error="purchaseError"></iron-ajax>
 
@@ -231,6 +232,9 @@
                 this.querySelector('card-form#inPlanPurchase').verify();
             }
         },
+        validateForm: function(error){
+            this.set('formError', false);
+        },
         _gotCardResponse: function(e){
             console.log('_gotCardResponse', e.detail)
             if (this.cardValid) {
@@ -246,10 +250,11 @@
                             token: e.detail.token,
                             promo_code: ''
                         };
-                        if (plan)
-                            mistPayload.plan = this.plan.title,
+                        if (this.plan)
+                            mistPayload.plan = this.plan.title;
                         this.$.purchasePlanRequest.url = "/purchase";
                     }
+                    console.log('_gotCardResponse', this.$.purchasePlanRequest.url);
                     this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
                     this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.purchasePlanRequest.body = mistPayload;
@@ -265,32 +270,6 @@
             } 
             else 
                 this.querySelector('#form').refit();
-        },
-        sumbmitPayment: function(status, response){
-            var mistPayload;
-            if (this.addCard) {
-                mistPayload = {
-                    token: response.id
-                };
-                this.$.purchasePlanRequest.url = "/card";
-            }
-            else {
-                mistPayload = {
-                    token: response.id,
-                    plan: this.plan.title,
-                    promo_code: ''
-                };
-                this.$.purchasePlanRequest.url = "/purchase";
-            }
-
-            this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.purchasePlanRequest.params = mistPayload;
-            this.$.purchasePlanRequest.generateRequest();
-        },
-        
-
-        purchaseRequest: function(e){
-            this.set('loading', true)
         },
         purchaseResponse: function(e){
             this._reset();

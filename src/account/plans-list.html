@@ -161,7 +161,7 @@
             },
             plans: {
                 type: Array,
-                computed: 'computePlans(user, org)'
+                computed: 'computePlans(user, org.*)'
             },
             showBalance: {
                 type: Boolean,
@@ -180,11 +180,10 @@
             'update-payment-method': 'addCard'
         },
         computeIsCurrent: function(plan, org) {
-            if (this.org.current_plan) {
-                return plan.title == this.org.current_plan.title ? true : false;
-            } else {
+            if (!this.org || this.org.current_plan) 
                 return false;
-            }
+            else 
+                return plan.title == this.org.current_plan.title;
         },
         _showRates: function(e) {
             if (e.target.classList.contains('active')) {
@@ -201,17 +200,17 @@
             if (!this.org.available_plans)
                 return [];
             return this.org.available_plans.filter(function(p){
-                return p.visible;
-            });
+                return p.visible && p.title != this.org.current_plan.title;
+            }.bind(this));
         },
         _computeReadableDate: function(date) {
             return date ? moment(date * 1000).format("MMMM Do YYYY") : '...';
         },
         purchasePlan: function(e) {
-            this.$.purchasePlan.plan = e.detail.plan;
+            console.log('purchasePlan',e);
             if (e.detail.plan)
                 this.$.purchasePlan.plan = e.detail.plan;
-            if (e.detail.plan)
+            else
                 this.$.purchasePlan.plan = false;
             this.$.purchasePlan.open();
         },
