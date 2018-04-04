@@ -44,24 +44,16 @@
         </style>
 
         <div id="balanceGraph" style="height:300px; width: 410px;"></div>
-                    
+        <iron-ajax id="getBalance" auto url="/api/v1/metering" method="GET" loading="{{loadingMetering}}" on-response="_handleMeteringResponse" on-error="_handleMeteringError"></iron-ajax>
     </template>
     <script>
 BALANCE_GRAPH_OPTIONS = {
     title: {
-        text: 'Balance'
+        text: 'Cores and rules checks'
     },
     tooltip: {
         trigger: 'axis',
         extraCssText: 'text-align: left',
-        formatter: function (params, ticket, callback) {
-            var title = '<strong><sup>$</sup>'+params[0].data[1]+' on '+moment(params[0].data[0]).format('DD MMM')+ '</strong><br />',
-                vcpus = '<sup>$</sup>'+params[0].data[2]+' for '+params[0].data[3]+' extra vcpus<br />',
-                datapoints = '<sup>$</sup>'+params[0].data[4]+' for '+params[0].data[5]+' extra datapoints<br />',
-                checks = '<sup>$</sup>'+params[0].data[6]+' for ' +params[0].data[7]+' extra rule checks<br />',
-                requests = '<sup>$</sup>'+params[0].data[8]+' for ' +params[0].data[9]+' for extra apicall requests';
-            return title + vcpus + datapoints + checks + requests;
-        }
     },
     grid: {
         left: '3%',
@@ -89,13 +81,14 @@ BALANCE_GRAPH_OPTIONS = {
     },
     yAxis: {
         type: 'value',
-        axisLabel: {
-            formatter: '${value}'
-        }
     },
     series: [
         {
-            name:'cost',
+            name:'cores',
+            type:'line',
+            data:[],
+        },{
+            name:'checks',
             type:'line',
             data:[],
         }
@@ -124,103 +117,21 @@ BALANCE_GRAPH_OPTIONS = {
                         return BALANCE_GRAPH_OPTIONS;
                     }
                 },
-                balanceData: Object,
-                data: {
-                    type: Array,
-                    computed: '_computeData(balanceData)'
+                balanceData: {
+                    type: Object,
+                    value: function() {
+                        return {
+                            balance: 124,
+                            data: []
+                        }
+                    }
                 },
-
             },
             listeners: {
 
             },
-            attached: function(){
+            ready: function(){
                 this.initCharts();
-                var balanceData = {
-                    balance: 124,
-                    data: [{  //datetime cost
-                            date: moment().subtract(1,'days').toDate(),
-                            cost: 10,
-                            usage: {
-                                vcpus: {total: 110, extra: 5, cost: 10},
-                                datapoints: {total: 110,  extra: 0, cost: 0},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                        {
-                            date: moment().subtract(2,'days').toDate(),
-                            cost: 0,
-                            usage: {
-                                vcpus: {total: 90, extra: 0, cost: 0},
-                                datapoints: {total: 110, extra: 0, cost: 0},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                        {
-                            date: moment().subtract(3,'days').toDate(),
-                            cost: 0,
-                            usage: {
-                                vcpus: {total: 90, extra: 0, cost: 0},
-                                datapoints: {total: 110, extra: 0, cost: 0},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                        {
-                            date: moment().subtract(4,'days').toDate(),
-                            cost: 57,
-                            usage: {
-                                vcpus: {total: 126, extra: 26, cost: 52},
-                                datapoints: {total: 110, extra: 135, cost: 5},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                        {  //datetime cost
-                            date: moment().subtract(5,'days').toDate(),
-                            cost: 10,
-                            usage: {
-                                vcpus: {total: 110, extra: 5, cost: 10},
-                                datapoints: {total: 110,  extra: 0, cost: 0},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                        {
-                            date: moment().subtract(6,'days').toDate(),
-                            cost: 0,
-                            usage: {
-                                vcpus: {total: 90, extra: 0, cost: 0},
-                                datapoints: {total: 110, extra: 0, cost: 0},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                        {
-                            date: moment().subtract(7,'days').toDate(),
-                            cost: 0,
-                            usage: {
-                                vcpus: {total: 90, extra: 0, cost: 0},
-                                datapoints: {total: 110, extra: 0, cost: 0},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                        {
-                            date: moment().subtract(8,'days').toDate(),
-                            cost: 57,
-                            usage: {
-                                vcpus: {total: 126, extra: 26, cost: 52},
-                                datapoints: {total: 110, extra: 135, cost: 5},
-                                checks: {total: 110, extra: 0, cost: 0},
-                                requests: {total: 110, extra: 0, cost: 0},
-                            }
-                        },
-                    ]
-                };
-                this.set('balanceData', balanceData);
             },
             initCharts: function() {
                 var colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548', '#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
@@ -233,25 +144,21 @@ BALANCE_GRAPH_OPTIONS = {
                 });
                 this.balanceGraph = echarts.init(this.$.balanceGraph, 'balance');
                 this.balanceGraph.setOption(this.balanceGraphOptions);
-                // this.updateChartWidth();
                 console.log('initialized charts');
             },
-            _computeData: function(balanceData) {
-                // var plan = 'Small', 
-                //     price = 200, 
-                //     monthdays = moment(this.balanceData.data[this.balanceData.data.length-1][0]).daysInMonth();
-                var pricePerDay; // = (price/monthdays).toFixed();
-                var timeToCost = this.balanceData.data.map(function(d){
-                    var cost = pricePerDay ? Math.max(pricePerDay, d.cost) : d.cost;
-                    return [d.date, cost, d.usage.vcpus.cost, d.usage.vcpus.extra, d.usage.datapoints.cost, d.usage.datapoints.extra, d.usage.checks.cost, d.usage.checks.extra, d.usage.requests.cost, d.usage.requests.extra]
+            _handleMeteringResponse: function(e) {
+                var data = e.detail.xhr.response;
+                var timeToCores = data.map(function(d){
+                    return [d.date, d.usage.cores];
                 });
-                var since = moment(timeToCost[timeToCost.length-1][0]).format('DD MMM');
-                // this.set('balanceGraphOptions.yAxis.min', (200/30).toFixed());
-                this.set('balanceGraphOptions.series.0.data', timeToCost);
-                this.set('balanceGraphOptions.title.text', '$'+this.balanceData.balance+' since '+since);
-                this.balanceGraph.setOption(this.balanceGraphOptions);
-                return timeToCost;
-            }
+                var timeToChecks = data.map(function(d){
+                    return [d.date, d.usage.checks];
+                });
+                var since = data.length ? moment(data[data.length-1][0]).format('DD MMM') : '';
+                this.set('balanceGraphOptions.series.0.data', timeToCores);
+                this.set('balanceGraphOptions.series.1.data', timeToChecks);
+                this.balanceGraph.setOption(this.get('balanceGraphOptions'));
+            },
         });
     </script>
 </dom-module>
