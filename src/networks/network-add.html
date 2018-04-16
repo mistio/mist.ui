@@ -97,10 +97,6 @@
                 model: {
                     type: Object
                 },
-                cloud: {
-                    type: String,
-                    value: ''
-                },
                 providers: Array,
                 form: {
                     type: Object,
@@ -164,65 +160,72 @@
                 // add cloud fields
                 if (networkFields.fields)
                     this.set('fields', networkFields.fields);
-                // set values by provider
-                // this._updateFields(selectedCloud);
             },
-            // _updateFields: function (selectedCloud) {
-                // this.set('fields', this.)
-                // if (fields.path == "fields.#1.value") // cloud changed
-                //     this.set('cloud', fields.value)
-
-                // if (fields.path == "fields.#8.value"){ // subnet_disableGateway changed
-                //     this.set('fields.7.disabled', fields.value);
-                // }
-                // console.log(fields);
-            // },
             updatePayload: function () {
                 if (this.fields.length) {
+                    var network,
+                        provider = this.model.clouds[this.selectedCloud].provider,
+                        cidr = this.fieldIndexByName('cidr');
+
                     // update payload
                     var payload = {
                         network: {
-                            name: this.fields[0].value,
-                            // cidr: "10.0.2.0/24"
-                            // admin_state_up: this.fields[2].value
+                            name: this.fields[this.fieldIndexByName('name')].value
+                        }
+                    }
+                    if (provider == 'gce') {
+                        payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value
+                    }
+                    else if (provider == 'openstack') {
+                        payload['subnet'] = {
+                            name: this.fields[this.fieldIndexByName('subnet_name')].value,
+                            cidr: this.fields[this.fieldIndexByName('subnet_address')].value,
                         }
                     }
                     //create subnet
-                    if (this.fields[3].value == true) {
-                        var allocationPools = [];
-                        payload['subnet'] = {
-                            name: this.fields[4].value,
-                            ip_version: parseInt(this.fields[6].value),
-                            cidr: this.fields[5].value,
-                            enable_dhcp: this.fields[8].value,
-                        };
-                        if (this.fields[10].value) {
-                            //parse allocation pools
-                            var lines = this.fields[10].value.split('\n');
-                            lines.forEach(function (l) {
-                                if (l && l.indexOf('-') > 0) 
-                                    allocationPools.push({
-                                        start: l.replace(',', '').split('-')[0].trim(),
-                                        end: l.replace(',', '').split('-')[1].trim()
-                                    });
-                                else
-                                    allocationPools.push(l);
-                            })
+                    if (this.fields[this.fieldIndexByName('createSubnet')].value == true) {
+                        if (provider == 'gce') {
+                            payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value
                         }
-                        if (allocationPools.length)
-                            payload.subnet['allocation_pools'] = allocationPools;
-                        // if subnet disable Gateway delete property
-                        var subnet_disableGateway = this.fields.findIndex(function (f) {
-                            return f.name == "subnet_disableGateway";
-                        });
-                        if (this.fields[subnet_disableGateway].value == false) {
-                            payload.subnet.gateway_ip = this.fields[7].value;
-                        } else {
-                            delete payload.subnet['gateway_ip'];
+                        else if (provider == 'openstack') {
+                            var allocationPools = [];
+                            payload['subnet'] = {
+                                name: this.fields[this.fieldIndexByName('subnet_name')].value,
+                                ip_version: parseInt(this.fields[this.fieldIndexByName('ip_version')].value),
+                                cidr: this.fields[this.fieldIndexByName('subnet_address')].value,
+                                enable_dhcp: this.fields[this.fieldIndexByName('enable_dhcp')].value,
+                            };
+                            if (this.fields[this.fieldIndexByName('subnet_allocationPools')].value) {
+                                //parse allocation pools
+                                var lines = this.fields[this.fieldIndexByName('subnet_allocationPools')].value.split('\n');
+                                lines.forEach(function (l) {
+                                    if (l && l.indexOf('-') > 0) 
+                                        allocationPools.push({
+                                            start: l.replace(',', '').split('-')[0].trim(),
+                                            end: l.replace(',', '').split('-')[1].trim()
+                                        });
+                                    else
+                                        allocationPools.push(l);
+                                })
+                            }
+                            if (allocationPools.length)
+                                payload.subnet['allocation_pools'] = allocationPools;
+                            // if subnet disable Gateway delete property
+                            if (this.fields[this.fieldIndexByName('subnet_disableGateway')].value == false) {
+                                payload.subnet.gateway_ip = this.fields[this.fieldIndexByName('gateway_ip')].value;
+                            } else {
+                                delete payload.subnet['gateway_ip'];
+                            }
                         }
                     }
                     this.set('form', payload);
                 }
+            },
+            fieldIndexByName: function (name) {
+                var field = this.fields.findIndex(function (f) {
+                    return f.name == name;
+                });
+                return field;
             },
             _handleAddNetworkResponse: function (e) {
                 var response = JSON.parse(e.detail.xhr.response);
