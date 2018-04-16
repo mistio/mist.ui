@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 
 <link rel="import" href="../app-form/app-form.html">
+<script type="text/javascript" src="../network-add-fields.js" inline></script>
 
 <dom-module id="network-add">
     <template>
@@ -29,9 +30,13 @@
                 right: 0;
             }
 
-             :host>::content paper-input-container {
+            :host>::content paper-input-container {
                 padding-top: 16px;
                 padding-bottom: 16px;
+            }
+
+            .dropdown-with-logos paper-item img {
+                margin-right: 16px;
             }
 
             .single-head {
@@ -51,15 +56,34 @@
                     </div>
                 </div>
             </paper-material>
-            <paper-material hidden$="[[hasOpenstackClouds]]">
-                <p>To add a network you need to have an enabled Openstack cloud in your account.
-                    <br/> Add and enable an Openstack cloud using the
-                    <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a>.</p>
+            <paper-material hidden$="[[hasCloudsWithNetworks]]">
+                <p>To add a network you need to have an enabled Openstack or GCE cloud in your account.
+                    <br/> Add a cloud using the
+                    <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">add cloud form</a>
+                    or enable your Openstack or GCE clouds available in <a href="/dashboard" is="pushstate-anchor" class="blue-link regular">dashboard</a>.
+                </p>
             </paper-material>
-            <paper-material hidden$="[[!hasOpenstackClouds]]">
-                <app-form id="network_add" fields="{{fields}}" form="[[form]]" url="/api/v1/clouds/[[cloud]]/networks" on-response="_handleAddNetworkResponse"
-                    on-error="_handleError" format-payload></app-form>
+            <paper-material hidden$=[[!hasCloudsWithNetworks]]>
+                <div class="grid-row">
+                    <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{selectedCloud::iron-select}}" class="dropdown-content">
+                            <template is="dom-repeat" items="[[providers]]" as="provider">
+                                <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]">
+                                    <img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
             </paper-material>
+            <paper-material hidden$="[[selectedCloud]]">
+                <p>Select a cloud.</p>
+            </paper-material>
+            <template is="dom-if" if="[[selectedCloud]]" restamp>
+                <paper-material>
+                    <app-form id="network_add" fields="{{fields}}" form="[[form]]" url="/api/v1/clouds/[[selectedCloud]]/networks" on-response="_handleAddNetworkResponse"
+                        on-error="_handleError" format-payload></app-form>
+                </paper-material>
+            </template>
         </div>
     </template>
     <script>
@@ -77,6 +101,7 @@
                     type: String,
                     value: ''
                 },
+                providers: Array,
                 form: {
                     type: Object,
                     value: function () {
@@ -86,200 +111,80 @@
                 },
                 fields: {
                     type: Array,
+                    value: [],
+                    notify: true
+                },
+                networksFields: {
+                    type: Array,
                     value: function () {
-                        return [{
-                            name: "name",
-                            label: "Name *",
-                            type: "text",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            errorMessage: "Please enter network's name",
-                            show: true,
-                            required: true,
-                            excludeFromPayload: true
-                        }, {
-                            name: "cloud",
-                            label: "Cloud *",
-                            type: "mist_dropdown",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            errorMessage: "Please select a cloud",
-                            helptext: "You can only add networks in Openstack clouds",
-                            show: true,
-                            required: true,
-                            options: []
-                        }, {
-                            name: "admin_state_up",
-                            label: "Admin State *",
-                            type: "dropdown",
-                            value: true,
-                            defaultValue: true,
-                            placeholder: "",
-                            show: true,
-                            required: true,
-                            excludeFromPayload: true,
-                            options: [{
-                                title: "Up",
-                                val: true
-                            }, {
-                                title: "Down",
-                                val: false
-                            }]
-                        }, {
-                            name: "createSubnet",
-                            label: "Create Subnet",
-                            type: "toggle",
-                            value: false,
-                            defaultValue: false,
-                            placeholder: "",
-                            show: true,
-                            required: false
-                        }, {
-                            name: "subnet_name",
-                            label: "Subnet Name",
-                            type: "text",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            show: false,
-                            required: false,
-                            showIf: {
-                                fieldName: "createSubnet",
-                                fieldValues: [true]
-                            }
-                        }, {
-                            name: "subnet_address",
-                            label: "Network Address (CIDR)",
-                            type: "ip_textarea",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            show: false,
-                            required: false,
-                            showIf: {
-                                fieldName: "createSubnet",
-                                fieldValues: [true]
-                            }
-                        }, {
-                            name: "subnet_ipv",
-                            label: "IP Version",
-                            type: "dropdown",
-                            value: 4,
-                            defaultValue: 4,
-                            placeholder: "",
-                            show: false,
-                            required: false,
-                            options: [{
-                                title: "IPv4",
-                                val: 4
-                            }, {
-                                title: "IPv6",
-                                val: 6
-                            }],
-                            showIf: {
-                                fieldName: "createSubnet",
-                                fieldValues: [true]
-                            }
-                        }, {
-                            name: "subnet_gatewayIp",
-                            label: "Gateway IP",
-                            type: "text",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            show: true,
-                            required: false,
-                            disabled: false,
-                            showIf: {
-                                fieldName: "createSubnet",
-                                fieldValues: [true]
-                            }
-                        }, {
-                            name: "subnet_disableGateway",
-                            label: "Disable Gateway",
-                            type: "toggle",
-                            value: false,
-                            defaultValue: false,
-                            placeholder: "",
-                            show: false,
-                            required: false,
-                            showIf: {
-                                fieldName: "createSubnet",
-                                fieldValues: [true]
-                            }
-                        }, {
-                            name: "subnet_enableDHCP",
-                            label: "Enable DHCP",
-                            type: "toggle",
-                            value: false,
-                            defaultValue: false,
-                            placeholder: "",
-                            show: false,
-                            required: false,
-                            showIf: {
-                                fieldName: "createSubnet",
-                                fieldValues: [true]
-                            }
-                        }, {
-                            name: "subnet_allocationPools",
-                            label: "Allocation Pools",
-                            type: "textarea",
-                            value: "",
-                            defaultValue: "",
-                            placeholder: "",
-                            show: false,
-                            required: false,
-                            showIf: {
-                                fieldName: "createSubnet",
-                                fieldValues: [true]
-                            }
-                        }]
+                        return NETWORK_ADD_FIELDS;
                     },
                     notify: true
                 },
-                hasOpenstackClouds: {
+                hasCloudsWithNetworks: {
                     type: Boolean,
-                    value: true
-                }
+                    value: false
+                },
+                selectedCloud: {
+                    type: String,
+                    value: false
+                },
             },
             observers: [
                 '_cloudsChanged(model.clouds.*)',
-                '_updateFields(fields.*)'
+                '_cloudChanged(selectedCloud)'
             ],
             listeners: {
                 'format-payload': 'updatePayload'
             },
             _cloudsChanged: function (clouds) {
-                var openstackClouds = this.model.cloudsArray.filter(function (cloud) {
-                    return cloud.provider == 'openstack' && cloud.enabled;
+                var networkClouds = this.model.cloudsArray.filter(function (cloud) {
+                    return ['openstack', 'gce'].indexOf(cloud.provider) > -1 && cloud.enabled;
                 });
-                if (openstackClouds.length > 0) {
-                    this.set('hasOpenstackClouds', true);
-                    var index = this.fields.findIndex(function (field) {
-                        return field.name == "cloud";
-                    }, this);
-                    this.set('fields.' + index + '.options', openstackClouds);
-                } else {
-                    this.set('hasOpenstackClouds', false);
-                }
+                this.set('providers', networkClouds);
+                this.set('hasCloudsWithNetworks', networkClouds.length > 0 ? true : false);
             },
-            _updateFields: function (fields) {
-                if (fields.path == "fields.#1.value") // cloud changed
-                    this.set('cloud', fields.value)
+            _computeProviderLogo: function (className) {
+                var identifier = className.split('_')[0];
+                return 'assets/providers/provider-' + identifier + '.png';
+            },
+            _isOnline: function (cloud, state, clouds) {
+                return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
+            },
+            _cloudChanged: function (selectedCloud) {
+                // clear to reset
+                this.set('machineFields', []);
+                var networkFields = [];
+                if (this.selectedCloud) {
+                    var cloudName = this.model.clouds[selectedCloud].provider;
+                    networkFields = this.networksFields.find(function (c) {
+                        return c.provider == cloudName;
+                    });
+                }
+                // add cloud fields
+                if (networkFields.fields)
+                    this.set('fields', networkFields.fields);
+                // set values by provider
+                // this._updateFields(selectedCloud);
+            },
+            // _updateFields: function (selectedCloud) {
+                // this.set('fields', this.)
+                // if (fields.path == "fields.#1.value") // cloud changed
+                //     this.set('cloud', fields.value)
 
-                if (fields.path == "fields.#8.value"){ // subnet_disableGateway changed
-                    this.set('fields.7.disabled', fields.value);
-                }
-            },
+                // if (fields.path == "fields.#8.value"){ // subnet_disableGateway changed
+                //     this.set('fields.7.disabled', fields.value);
+                // }
+                // console.log(fields);
+            // },
             updatePayload: function () {
                 if (this.fields.length) {
                     // update payload
                     var payload = {
                         network: {
                             name: this.fields[0].value,
-                            admin_state_up: this.fields[2].value
+                            // cidr: "10.0.2.0/24"
+                            // admin_state_up: this.fields[2].value
                         }
                     }
                     //create subnet
