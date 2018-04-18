@@ -177,7 +177,10 @@
                             name: this.fields[this.fieldIndexByName('name')].value
                         }
                     }
-                    if (['gce', 'ec2'].indexOf(provider) > -1) {
+                    if (['gce'].indexOf(provider) > -1) {
+                        payload.network['mode'] = 'custom';
+                    }
+                    else if (['ec2'].indexOf(provider) > -1) {
                         payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value;
                     }
                     else if (provider == 'openstack') {
@@ -194,7 +197,6 @@
                                 payload.subnet.availability_zone = this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('location')].value].name;
                             }
                             if (['gce'].indexOf(provider) > -1) {
-                                // payload.subnet.region = "us-central1"; //this.fields[this.fieldIndexByName('region')].value;
                                 payload.subnet.region = this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('location')].value].name;
                             }
                         }
