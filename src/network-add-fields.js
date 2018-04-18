@@ -200,6 +200,19 @@ NETWORK_ADD_FIELDS.push({
             fieldName: "createSubnet",
             fieldValues: [true]
         }
+    }, {
+        name: "location",
+        label: "Region *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: [],
+        showIf: {
+            fieldName: "createSubnet",
+            fieldValues: [true]
+        }
     }]
 });
 
@@ -258,6 +271,19 @@ NETWORK_ADD_FIELDS.push({
         placeholder: "",
         show: false,
         required: false,
+        showIf: {
+            fieldName: "createSubnet",
+            fieldValues: [true]
+        }
+    }, {
+        name: "location",
+        label: "Availability Zone *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        options: [],
         showIf: {
             fieldName: "createSubnet",
             fieldValues: [true]

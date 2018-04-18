@@ -160,6 +160,10 @@
                 // add cloud fields
                 if (networkFields.fields)
                     this.set('fields', networkFields.fields);
+
+                // add locations fields
+                if (this.fieldIndexByName('location') > -1)
+                    this.set('fields.'+this.fieldIndexByName('location')+'.options', this.model.clouds[selectedCloud].locationsArray);
             },
             updatePayload: function () {
                 if (this.fields.length) {
@@ -182,10 +186,17 @@
                     //create subnet
                     if (this.fields[this.fieldIndexByName('createSubnet')].value == true) {
                         payload.subnet = {
-                            name: this.fields[this.fieldIndexByName('subnet_name')].value,
+                            name: this.fields[this.fieldIndexByName('subnet_name')].value
                         };
                         if (['gce', 'ec2'].indexOf(provider) > -1) {
-                            payload.subnet.cidr = this.fields[this.fieldIndexByName('subnet_cidr')].value
+                            payload.subnet.cidr = this.fields[this.fieldIndexByName('subnet_cidr')].value;
+                            if (['ec2'].indexOf(provider) > -1) {
+                                payload.subnet.availability_zone = this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('location')].value].name;
+                            }
+                            if (['gce'].indexOf(provider) > -1) {
+                                // payload.subnet.region = "us-central1"; //this.fields[this.fieldIndexByName('region')].value;
+                                payload.subnet.region = this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('location')].value].name;
+                            }
                         }
                         else if (provider == 'openstack') {
                             var allocationPools = [];
