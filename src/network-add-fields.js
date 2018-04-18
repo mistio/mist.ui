@@ -202,3 +202,65 @@ NETWORK_ADD_FIELDS.push({
         }
     }]
 });
+
+
+// EC2
+NETWORK_ADD_FIELDS.push({
+    provider: 'ec2',
+    fields: [{
+        name: "name",
+        label: "Name *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        errorMessage: "Please enter network's name",
+        show: true,
+        required: true,
+        excludeFromPayload: true
+    }, {
+        name: "cidr",
+        label: "Network CIDR",
+        type: "ip_textarea",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        show: true,
+        required: true
+    }, {
+        name: "createSubnet",
+        label: "Create Subnet",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        placeholder: "",
+        show: true,
+        required: false
+    }, {
+        name: "subnet_name",
+        label: "Subnet Name",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        show: false,
+        required: false,
+        showIf: {
+            fieldName: "createSubnet",
+            fieldValues: [true]
+        }
+    }, {
+        name: "subnet_cidr",
+        label: "Subnet CIDR",
+        type: "ip_textarea",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        show: false,
+        required: false,
+        showIf: {
+            fieldName: "createSubnet",
+            fieldValues: [true]
+        }
+    }]
+});

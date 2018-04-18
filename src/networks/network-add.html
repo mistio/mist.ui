@@ -76,7 +76,7 @@
                 </div>
             </paper-material>
             <paper-material hidden$="[[selectedCloud]]">
-                <p>Select a cloud.</p>
+                Select a cloud.
             </paper-material>
             <template is="dom-if" if="[[selectedCloud]]" restamp>
                 <paper-material>
@@ -173,28 +173,25 @@
                             name: this.fields[this.fieldIndexByName('name')].value
                         }
                     }
-                    if (provider == 'gce') {
-                        payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value
+                    if (['gce', 'ec2'].indexOf(provider) > -1) {
+                        payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value;
                     }
                     else if (provider == 'openstack') {
-                        payload['subnet'] = {
-                            name: this.fields[this.fieldIndexByName('subnet_name')].value,
-                            cidr: this.fields[this.fieldIndexByName('subnet_address')].value,
-                        }
+                        payload.network['admin_state_up'] = this.fields[this.fieldIndexByName('admin_state_up')].value;
                     }
                     //create subnet
                     if (this.fields[this.fieldIndexByName('createSubnet')].value == true) {
-                        if (provider == 'gce') {
-                            payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value
+                        payload.subnet = {
+                            name: this.fields[this.fieldIndexByName('subnet_name')].value,
+                        };
+                        if (['gce', 'ec2'].indexOf(provider) > -1) {
+                            payload.subnet.cidr = this.fields[this.fieldIndexByName('subnet_cidr')].value
                         }
                         else if (provider == 'openstack') {
                             var allocationPools = [];
-                            payload['subnet'] = {
-                                name: this.fields[this.fieldIndexByName('subnet_name')].value,
-                                ip_version: parseInt(this.fields[this.fieldIndexByName('ip_version')].value),
-                                cidr: this.fields[this.fieldIndexByName('subnet_address')].value,
-                                enable_dhcp: this.fields[this.fieldIndexByName('enable_dhcp')].value,
-                            };
+                            payload.subnet.subnet_address = this.fields[this.fieldIndexByName('subnet_address')].value
+                            payload.ip_version  = parseInt(this.fields[this.fieldIndexByName('ip_version')].value);
+                            payload.enable_dhcp = this.fields[this.fieldIndexByName('enable_dhcp')].value;
                             if (this.fields[this.fieldIndexByName('subnet_allocationPools')].value) {
                                 //parse allocation pools
                                 var lines = this.fields[this.fieldIndexByName('subnet_allocationPools')].value.split('\n');
