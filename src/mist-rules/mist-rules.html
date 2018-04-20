@@ -55,14 +55,27 @@
             .errormsg-container iron-icon {
                 color: inherit;
             }
+            paper-material > h2.title {
+                background-color: #444;
+                color: #fff;
+                text-transform: capitalize;
+                padding: 0 24px;
+                margin: 0;
+            }
         </style>
+        <template is="dom-repeat" items="[[ruleCategories]]" as="cat">
+            <paper-material elevation="0">
+                <h2 class="title" hidden$="[[_titleHidden(resource,cat,rules)]]">[[cat.name]]</h2>
+                <template is="dom-repeat" items="[[_computeResourceRulesArray(rules,resource,cat)]]">
+                    <!-- <h2 hidden$="[[resource]]">[[item.selectors.0.ids]]</h2> -->
+                    <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]]
+                        users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]]></rule-item>
+                    <rule-edit hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]]
+                        users=[[users]] teams=[[teams]]></rule-edit>
+                </template>
+            </paper-material>
+        </template>
         <paper-material elevation="0">
-            <template is="dom-repeat" items="[[resourceRules]]">
-                <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]]
-                    users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]]></rule-item>
-                <rule-edit hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]]
-                    users=[[users]] teams=[[teams]]></rule-edit>
-            </template>
             <paper-button toggles active="{{addingRule}}" hidden$="[[addingRule]]">
                 <iron-icon icon="icons:add-circle"></iron-icon> add new rule
             </paper-button>
@@ -73,6 +86,16 @@
     </template>
 
     <script>
+RULE_CATEGORIES = [{
+    name: 'on all machines',
+    type: 'all_machines'
+},{
+    name: 'on machines with tags',
+    type: 'tagged_machines'
+},{
+    name: 'on specific machines',
+    type: 'specific_machines'
+}]
         Polymer({
             is: 'mist-rules',
 
@@ -85,9 +108,13 @@
                     value: false
                 },
                 rules: Object,
+                ruleCategories: {
+                    type: Array,
+                    computed: 'computeRuleCategories(resource, rules)'
+                },
                 resourceRules: {
                     type: Array,
-                    computed: '_computeResourceRulesArray(rules.*, resource)'
+                    // computed: '_computeResourceRulesArray(rules.*, resource, category)'
                 },
                 builtinMetrics: {
                     type: Object
@@ -107,7 +134,7 @@
                 users: Array
             },
             ready: function () {},
-            _computeResourceRulesArray: function (rules, resource) {
+            _computeResourceRulesArray: function (rules, resource, category) {
                 var rulesArray = [],
                     that = this;
                 if (this.rules) {
@@ -117,23 +144,81 @@
                     }
                 }
                 if (!this.resource)
-                    return rulesArray;
+                    return rulesArray.filter(function(r){return that._ruleInCategory(r,category)});
                 var resourceRules = rulesArray.filter(function (r) {
                     return that._ruleAppliesOnResource(r, resource);
                 }).reverse();
                 return resourceRules;
+            },
+            _ruleInCategory: function(r,category) {
+                if (category.type == 'specific_machines') {
+                    for (var p in r.selectors) {
+                        if (r.selectors[p].type == 'machines' && r.selectors[p].ids.length == 1)
+                            return true;
+                    }
+                }
+                else if (category.type == 'all_machines') {
+                    for (var p in r.selectors) {
+                        if (r.selectors[p].type == 'machines' && r.selectors[p].ids.length == 0)
+                            return true;
+                    }
+                }
+                else if (category.type == 'tagged_machines') {
+                    for (var p in r.selectors) {
+                        if (r.selectors[p].type == 'tags')
+                            return true;
+                    }
+                }
+                return false;
+            },
+            _computeNames: function (selectors) {
+                var names = "";
+                for (var i = 0; i < selectors.length; i++) {
+                    if (selectors[i].type == "machines") {
+                        for (var j = 0; j < selectors[i].ids.length; i++) {
+                            names.push(this.model.machines[selectors[i].ids[j]].name)
+                        }
+                    }
+                }
+                return names;
+            },
+            _titleHidden: function(resource,cat,rules) {
+                //hide title if either in resource's single page or if category has no rules
+                return resource || this._categoryHasNoRules(rules,cat);
+            },
+            _categoryHasNoRules: function(rules,category) {
+                for (var p in rules) {
+                    if (this._ruleInCategory(rules[p], category)) {
+                        return false;
+                    }
+                }
+                return true;
             },
             _ruleAppliesOnResource: function (r, resource) {
                 var type = 'machines',
                     that = this;
                 var m = r.selectors && r.selectors.find(function (c) {
                     return (c.type == type && c.ids.indexOf(that.resource.id) > -1) || (c.type ==
-                        'tags' && that._tagsInResource(c.tags))
+                        'tags' && that._tagsInResource(c.tags, resource))
                 });
                 return m ? true : false;
             },
-            _tagsInResource: function (tags) {
-                return tags;
+            _tagsInResource: function (tags,resource) {
+                // console.log('tags',tags,resource);
+                for (var t in tags) {
+                    if (!resource.tags[t] || resource.tags[t] != tags[t])
+                        return false;
+                }
+                return true;
+            },
+            computeRuleCategories: function (resource, rules) {
+                if (!resource)
+                    return RULE_CATEGORIES;
+                else
+                    return [{
+                        name: 'on specific machines',
+                        type: 'specific_machines'
+                    }]
             },
             _computeMetrics: function (resource, builtinMetrics, customMetrics) {
                 var metrics = [];
