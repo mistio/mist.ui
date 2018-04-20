@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
@@ -167,6 +168,10 @@
                     text-transform: lowercase;
                 }
             }
+            .inline:not([hidden]) {
+                display: inline-block;
+                max-width: 200px !important;
+            }
         </style>
 
         <div class="rule-edit">
@@ -175,17 +180,24 @@
                 <div hidden$=[[resource]]>
                     <span class="keyword on">apply on</span>
                     <paper-dropdown-menu class="dropdown-block apply-on">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" class="dropdown-content">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
                             <paper-item value="every">every machine</paper-item>
-                            <paper-submenu>
-                                <paper-item value="specific">selected machine</paper-item>
-                                <paper-menu>
-                                    <paper-item>yolo</paper-item>
-                                </paper-menu>
-                            </paper-submenu>
+                            <!-- <paper-item value="specific">specific machine</paper-item> -->
                             <paper-item value="tagged">machines with tag </paper-item>
                         </paper-menu>
                     </paper-dropdown-menu>
+                    <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
+                        <paper-dropdown-menu class="dropdown-block">
+                            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
+                                <template is="dom-repeat" items="[[machines]]" as="machine">
+                                    <paper-item value="[[machine.id]]">[[machine.name]]</paper-item>
+                                </template>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                    </div>
+                    <div class="inline" hidden$=[[!_isTagged(ruleType)]]>
+                        <paper-input class="tags" value="{{tags}}"></paper-input>
+                    </div>
                 </div>
                 <span class="keyword if">if</span>
                 <template is="dom-repeat" items="[[rule.queries]]" as="query">
@@ -287,6 +299,12 @@
                 rule: {
                     type: Object
                 },
+                ruleType: {
+                    type: String,
+                    value: false
+                },
+                tags: String,
+                machines: Array,
                 currentRule: {
                     type: Object
                 },
@@ -324,6 +342,12 @@
             ready: function () {
                 if (!this.rule)
                     this._resetRule();
+            },
+            _isSpecific: function(type) {
+                return type == 'specific';
+            },
+            _isTagged: function(type) {
+                return type == 'tagged';
             },
             _currentRuleUpdated: function (event) {
                 this.set('rule', {
@@ -422,10 +446,31 @@
                     queries: [],
                     actions: []
                 };
-                payload.selectors = [{
-                    type: 'machines',
-                    ids: [this.resource.id]
-                }];
+                if (this.resource)
+                    payload.selectors = [{
+                        type: 'machines',
+                        ids: [this.resource.id]
+                    }];
+                else {
+                    if (this.ruleType == 'specific') {
+                        payload.selectors = [{
+                            type: 'machines',
+                            ids: [this.machineId]
+                        }];
+                    }
+                    else if (this.ruleType == 'tagged') {
+                        payload.selectors = [{
+                            type: 'tags',
+                            tags: this._computeTagsFromString(this.tags)
+                        }];
+                    }
+                    else if (this.ruleType == 'every') {
+                        payload.selectors = [{
+                            type: 'machines'
+                        }];
+                    }
+
+                }
                 payload.window = {
                     period: this.rule.window.period || 'minutes',
                     start: parseInt(this.rule.window.start) || 1
@@ -480,6 +525,22 @@
                     this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.updateRuleRequest.generateRequest();
                 }
+            },
+            _computeTagsFromString: function (str) {
+                var tags = {};
+                if (str && str.length) {
+                    var chuncks = str.split(',');
+                    console.log('_computeTagsFromString',str, chuncks)
+                    if (chuncks.length) {
+                        for (var i = 0; i < chuncks.length; i++) {
+                            var parts = chuncks[i].split('='),
+                                key = parts[0].trim(),
+                                value = parts[1] ? parts[1].trim() : null;
+                            tags[key] = value;
+                        }
+                    }
+                }
+                return tags;
             },
             _handleFormError: function (e) {
                 console.log(e.detail.request.xhr.responseText);
