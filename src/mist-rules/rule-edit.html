@@ -361,7 +361,7 @@
                         var selector = rule.selectors[0];
                         if (selector.type == "tags") {
                             this.set('ruleType', "tagged");
-                            this.set('tags', JSON.stringify(selector.tags))
+                            this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
                         }
                         else if (selector.ids.length == 1) {
                             this.set('ruleType', "specific");
@@ -369,6 +369,9 @@
                         }
                     }
                 }
+            },
+            _removeBrackets: function (string) {
+                return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=");
             },
             _currentRuleUpdated: function (event) {
                 this.set('rule', {
