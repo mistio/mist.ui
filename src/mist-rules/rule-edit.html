@@ -182,7 +182,7 @@
                     <paper-dropdown-menu class="dropdown-block apply-on">
                         <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
                             <paper-item value="every">every machine</paper-item>
-                            <!-- <paper-item value="specific">specific machine</paper-item> -->
+                            <paper-item value="specific">specific machine</paper-item>
                             <paper-item value="tagged">machines with tag </paper-item>
                         </paper-menu>
                     </paper-dropdown-menu>
@@ -304,6 +304,7 @@
                     value: false
                 },
                 tags: String,
+                machineId: String,
                 machines: Array,
                 currentRule: {
                     type: Object
@@ -337,7 +338,8 @@
             },
             observers: [
                 "_focusOnMetricName(active)",
-                "_currentRuleUpdated(currentRule.*)"
+                "_currentRuleUpdated(currentRule.*)",
+                "_initialiseEdit(rule,resource, rule.id)"
             ],
             ready: function () {
                 if (!this.rule)
@@ -348,6 +350,24 @@
             },
             _isTagged: function(type) {
                 return type == 'tagged';
+            },
+            _initialiseEdit: function (rule, resource) {
+                if (!resource){
+                    if (!rule.selectors || !rule.selectors.length) {
+                        this.set('ruleType', "every");
+                    }
+                    else {
+                        var selector = rule.selectors[0];
+                        if (selector.type == "tags") {
+                            this.set('ruleType', "tagged");
+                            this.set('tags', JSON.stringify(selector.tags))
+                        }
+                        else if (selector.ids.length == 1) {
+                            this.set('ruleType', "specific");
+                            this.set('machineId', selector.ids[0]);
+                        }
+                    }
+                }
             },
             _currentRuleUpdated: function (event) {
                 this.set('rule', {

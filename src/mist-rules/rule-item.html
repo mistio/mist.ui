@@ -185,12 +185,11 @@
             </div>
             <paper-spinner active$=[[sendingData]]></paper-spinner>
             <span class="actions">
-                <paper-icon-button icon="icons:create" toggles active={{editing}} hidden$="[[!canEdit]]">edit</paper-icon-button>
-                <paper-icon-button icon="delete" data-attr="[[rule.id]]" on-tap="deleteRule" hidden$="[[!canEdit]]"></paper-icon-button>
-
                 <template is="dom-repeat" items="[[tagSelectors]]" as="tag">
                     <span class="tag">[[tag]]</span>
                 </template>
+                <paper-icon-button icon="icons:create" toggles active={{editing}} hidden$="[[!canEdit]]">edit</paper-icon-button>
+                <paper-icon-button icon="delete" data-attr="[[rule.id]]" on-tap="deleteRule" hidden$="[[!canEdit]]"></paper-icon-button>
             </span>
 
         </div>
@@ -207,7 +206,10 @@
                     type: Boolean,
                     value: false
                 },
-                resource: Object,
+                resource: {
+                    type:Object,
+                    value: false
+                },
                 rule: Object,
                 availableMetrics: {
                     type: Array
@@ -224,7 +226,7 @@
                 users: Array,
                 canEdit: {
                     type: Boolean,
-                    computed: '_computeCanEdit(rule)'
+                    computed: '_computeCanEdit(rule,resource)'
                 },
                 editing: {
                     type: Boolean,
@@ -236,12 +238,16 @@
                 }
             },
             ready: function () {},
-            _computeCanEdit: function (rule) {
-                return this.rule && this.rule.selectors.filter(function (c) {
-                    return c.type == "machines" && c.ids.length > 1
-                }).length == 0 && this.rule.selectors.filter(function (c) {
-                    return c.type == "tags"
-                }).length == 0;
+            _computeCanEdit: function (rule, resource) {
+                if (resource) {
+                    return this.rule && this.rule.selectors.filter(function (c) {
+                        return c.type == "machines" && c.ids.length > 1
+                    }).length == 0 && this.rule.selectors.filter(function (c) {
+                        return c.type == "tags"
+                    }).length == 0;
+                }
+                else 
+                    return true;
             },
             _computeUnit: function (metric, availableMetrics) {
                 var ref;
