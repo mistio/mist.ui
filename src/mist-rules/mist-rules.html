@@ -111,7 +111,7 @@ RULE_CATEGORIES = [{
                 rules: Object,
                 ruleCategories: {
                     type: Array,
-                    computed: 'computeRuleCategories(resource, rules)'
+                    computed: 'computeRuleCategories(resource, rules, machines)'
                 },
                 resourceRules: {
                     type: Array,
@@ -181,6 +181,9 @@ RULE_CATEGORIES = [{
                 }
                 return names;
             },
+            _removeBrackets: function (string) {
+                return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
+            },
             _titleHidden: function(resource,cat,rules) {
                 //hide title if either in resource's single page or if category has no rules
                 return resource || this._categoryHasNoRules(rules,cat);
@@ -210,14 +213,57 @@ RULE_CATEGORIES = [{
                 }
                 return true;
             },
-            computeRuleCategories: function (resource, rules) {
-                if (!resource)
-                    return RULE_CATEGORIES;
+            computeRuleCategories: function (resource, rules, machines) {
+                if (!resource) {
+                    var categories = [], rulesOnAll = [], rulesOnSpecific = [], rulesOnTags = [];
+                    for (var p in rules) {
+                        var rule = rules[p];
+                        if (!rule.selectors || !rule.selectors.length) {
+                            rulesOnAll.push(rule);
+                        }
+                        else if (rule.selectors.length == 1 && rule.selectors[0].ids) {
+                            rulesOnSpecific.push(rule);
+                        }
+                        else if (rule.selectors.length == 1 && rule.selectors[0].tags) {
+                            rulesOnTags.push(rule);
+                        }
+                    }
+                    if (rulesOnAll.length > 0) {
+                        categories.push({name: 'rules on all machines',type: 'all_machines'})
+                    }
+                    if (rulesOnSpecific.length > 0) {
+                        for (var i=0; i<rulesOnSpecific.length; i++) {
+                            var id = rulesOnSpecific[i].selectors[0].ids[0],
+                                machine = this.machines && this.machines.find(function(m){ return m.id == id});
+                                if (machine)
+                                    if (!categories.length || categories.findIndex(function(c){return c.id && c.id == machine.id}) == -1) {
+                                        categories.push({name: 'rules on machine '+machine.name, type: 'specific_machines', id:rulesOnSpecific[i].selectors[0].ids[0]})
+                                    }
+                        }
+                    }
+                    if (rulesOnTags.length > 0) {
+                        for (var i=0; i<rulesOnTags.length; i++) {
+                            categories.push({name: 'rules on tags '+this._removeBrackets(JSON.stringify(rulesOnTags[i].selectors[0].tags)), type: 'tagged_machines', tags: rulesOnTags[i].tags})
+                        }
+                    }
+                    return categories;
+                }
                 else
                     return [{
                         name: 'on specific machines',
                         type: 'specific_machines'
                     }]
+
+                // [{
+                //     name: 'on all machines',
+                //     type: 'all_machines'
+                // },{
+                //     name: 'on machines with tags',
+                //     type: 'tagged_machines'
+                // },{
+                //     name: 'on specific machines',
+                //     type: 'specific_machines'
+                // }]
             },
             _computeMetrics: function (resource, builtinMetrics, customMetrics) {
                 var metrics = [];
