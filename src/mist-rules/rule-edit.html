@@ -189,8 +189,8 @@
                     <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
                         <paper-dropdown-menu class="dropdown-block">
                             <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
-                                <template is="dom-repeat" items="[[machines]]" as="machine">
-                                    <paper-item value="[[machine.id]]" disabled="[[!machine.monitoring]]">[[machine.name]]</paper-item>
+                                <template is="dom-repeat" items="[[monitoredMachines]]" as="machine">
+                                    <paper-item value="[[machine.id]]">[[machine.name]]</paper-item>
                                 </template>
                             </paper-menu>
                         </paper-dropdown-menu>
@@ -306,6 +306,10 @@
                 tags: String,
                 machineId: String,
                 machines: Array,
+                monitoredMachines: {
+                    type: Array,
+                    computed: '_computeMonitoredMachines(machines)'
+                },
                 currentRule: {
                     type: Object
                 },
@@ -368,6 +372,14 @@
                         }
                     }
                 }
+            },
+            _computeMonitoredMachines: function (machines) {
+                if (machines)
+                    return machines.filter(function(m){
+                        return m.monitoring;
+                    });
+                else
+                    return []
             },
             _removeBrackets: function (string) {
                 return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
