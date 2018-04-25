@@ -8,7 +8,7 @@
 
 <dom-module id="mist-rules">
     <template>
-        <style include="shared-styles">
+        <style include="shared-styles tags-and-labels">
             :host {
                 display: block;
             }
@@ -61,12 +61,33 @@
                 padding: 0 24px;
                 margin: 0;
             }
+            .tag {
+                vertical-align: middle;
+                line-height: 1.5;
+            }
+            .machine-link {
+                color: #81D4FA;
+                font-size: inherit;
+                font-weight: normal;
+            }
+            .machine-link:hover {
+                text-decoration: underline;
+            }
         </style>
         <template is="dom-repeat" items="[[ruleCategories]]" as="cat">
             <paper-material elevation="0">
                 <h2 class="title">
                     [[cat.name]]
-                    <span class="secondary" hidden$="[[!cat.count]]">[[cat.count]] machines</span>
+                    <template is="dom-repeat" items="[[cat.selectors]]" as="selector">
+                        <template is="dom-if" if="[[isObj(selector)]]">
+                            <template is="dom-repeat" items="[[arrayTags(selector)]]" as="tag">
+                                <span class="tag">[[tag]]</span>
+                            </template>
+                        </template>
+                        <template is="dom-if" if="[[isStr(selector)]]">
+                            <a class="regural blue-link machine-link" href$="/machines/[[selector]]"> [[printMachine(selector, machines)]]</a>
+                        </template>
+                    </template>
                 </h2>
                 <template is="dom-repeat" items="[[cat.rules]]">
                     <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]]
@@ -128,6 +149,26 @@
                 users: Array
             },
             ready: function () {},
+            isObj: function (tag) {
+                return typeof tag == "object";
+            },
+            isStr: function (id) {
+                return typeof id == "string";
+            },
+            arrayTags: function (tag) {
+                var arr = [], str;
+                for (var p in tag) {
+                    var str = p;
+                    if (tag[p]) {
+                        str = p + "=" + tag[p];
+                    }
+                    arr.push(str)
+                }
+                return arr;
+            },
+            printMachine: function (id, machines) {
+                return this.machines && this.machines.find(function(m) {return m.id == id}) ? this.machines.find(function(m) {return m.id == id}).name : '';
+            },
             _computeResourceRulesArray: function (rules, resource, category) {
                 var rulesArray = [];
                 if (this.rules) {
@@ -217,7 +258,7 @@
                             var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
                             if (!categories.find(function(c){return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags})){
                                 categories.push({
-                                    name: 'Apply on tags '+stringifiedTags,
+                                    name: 'Apply on tags ',
                                     type: 'tagged_machines',
                                     stringifiedTags: stringifiedTags,
                                     rules: [r],
@@ -230,6 +271,7 @@
 
                         }
                         if (sl.type == "machines") {
+                            var thisMachine = this.resource ? 'this ' : '';
                             var specificCategory = categories.find(function(c){
                                 var allSame = true; 
                                 for (var n=0; n<c.selectors.length; n++) {
@@ -240,7 +282,7 @@
                             });
                             if (!specificCategory)
                                 categories.push({
-                                    name: 'Apply on machine ' + that._computeNames(sl.ids, that.machines, that.resource),
+                                    name: 'Apply on ' + thisMachine + 'machine ',
                                     type: 'specific_machines',
                                     rules: [r],
                                     count: 1,
