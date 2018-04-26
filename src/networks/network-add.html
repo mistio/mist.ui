@@ -134,11 +134,11 @@
                 'format-payload': 'updatePayload'
             },
             _cloudsChanged: function (clouds) {
-                var networkClouds = this.model.cloudsArray.filter(function (cloud) {
+                var networkClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
                     return ['openstack', 'gce', 'ec2'].indexOf(cloud.provider) > -1;
                 });
                 this.set('providers', networkClouds);
-                this.set('hasCloudsWithNetworks', networkClouds.length > 0 ? true : false);
+                this.set('hasCloudsWithNetworks', networkClouds && networkClouds.length > 0 ? true : false);
             },
             _computeProviderLogo: function (className) {
                 var identifier = className.split('_')[0];
@@ -163,7 +163,18 @@
 
                 // add locations fields
                 if (this.fieldIndexByName('location') > -1)
-                    this.set('fields.'+this.fieldIndexByName('location')+'.options', this.model.clouds[selectedCloud].locationsArray);
+                    if (cloudName == "ec2")
+                        this.set('fields.'+this.fieldIndexByName('location')+'.options', this.model.clouds[selectedCloud].locationsArray);
+                    if (cloudName == "gce") {
+                        var regionsArr = [], regions = [];
+                        this.model.clouds[selectedCloud].locationsArray.forEach(function(l){
+                            if (!regionsArr.includes(l.extra.region)) {
+                                regionsArr.push(l.extra.region);
+                                regions.push({name:l.extra.region, id:l.extra.region});
+                            }
+                        });
+                        this.set('fields.'+this.fieldIndexByName('location')+'.options', regions);
+                    }
             },
             updatePayload: function () {
                 if (this.fields.length) {
