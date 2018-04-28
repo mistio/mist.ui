@@ -241,7 +241,7 @@
         </div>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="machinesList" selectable resizable column-menu multi-sort apiurl="/api/v1/machines" items="[[model.machinesArray]]"
+            <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" items="[[model.machinesArray]]"
                 name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
                 route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id">
@@ -309,6 +309,10 @@
                 actions: {
                     type: Array,
                     notify: true
+                },
+                sorters: {
+                    type: Array,
+                    value: function() { return [['state', 'asc']]; }
                 }
             },
             listeners: {
@@ -503,12 +507,10 @@
                             return prefix + ret;
                         },
                         'cmp': function (item1, item2, row1, row2) {
-                            if (item1 == item2) {
-                                if (_this.model.machines[row1.id].monitoring && !_this.model.machines[row2.id].monitoring)
-                                    return -1;
-                                else if (!_this.model.machines[row1.id].monitoring && _this.model.machines[row2.id].monitoring)
-                                    return 1;
-                            }
+                            if (row1.monitoring && !row2.monitoring)
+                                return -1;
+                            else if (!row1.monitoring && row2.monitoring)
+                                return 1;
                             return item1.localeCompare(item2);
                         }
                     },
