@@ -33,7 +33,7 @@
                     <paper-item disabled>No sizes found</paper-item>
                 </template>
                 <paper-item value="custom" class="button-true" hidden$="[[!field.custom]]">Custom Size</paper-item>
-                <template is="dom-repeat" items="[[field.options]]" as="option">
+                <template is="dom-repeat" items="[[_sort(field.options)]]" as="option">
                     <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                         <span class="flex">[[showOption(option)]]</span>
                     </paper-item>
@@ -173,6 +173,21 @@
                 if (this.field.value == "custom")
                     this.set('isCustom', true);
             },
+
+            _sort: function(arr) {
+                if (arr && arr.length)
+                    return arr.sort(function(a,b){
+                        if (a.cpus < b.cpus) {
+                            return -1;
+                        }
+                        if (a.cpus > b.cpus) {
+                            return 1;
+                        }
+                        return 0;
+                    })
+                else
+                    return [];
+            }
         });
     </script>
 </dom-module>
