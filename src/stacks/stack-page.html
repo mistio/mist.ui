@@ -63,15 +63,15 @@
                 margin: 36px;
             }
 
-            paper-material.form-view,
-            .app-form-title,
-            app-form,
+            paper-material.form-view {
+                position: relative;
+            }
             mist-form {
-                max-width: 900px;
+                max-width: 100%;
+                position: relative;
             }
 
             .app-form-title {
-                background-color: #eee;
                 font-size: 24px;
                 text-transform: capitalize;
             }
@@ -238,8 +238,10 @@
             }
 
             #workflowsView {
-                display: flex;
-                flex: 100%;
+                display: block;
+                max-width: 100%;
+                overflow: hidden;
+                position: relative;
             }
 
             .resource-head {
@@ -259,12 +261,14 @@
             }
 
             .wf-item {
+                padding: 24px;
                 margin: 40px auto;
                 display: none;
             }
 
             .wf-item[show="true"] {
-                display: block;
+                display: flex;
+                flex-direction: column;
             }
 
             @media screen and (max-width: 1400px) {
@@ -278,10 +282,6 @@
                     display: none;
                 }
             }
-
-            /**[narrow] .wf-item {
-            display: block;
-        }*/
 
             .resources-list {
                 margin-bottom: 0;
@@ -470,22 +470,6 @@
                     </div>
                 </div>
                 <mist-actions actions="[[actions]]" type="stack" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
-                <!-- <div class="item-actions">
-                    <paper-button on-tap="_editTags" class="simple">Tags</paper-button>
-                    <paper-button on-tap="_deleteStack" class="simple">Delete</paper-button>
-                    <paper-menu-button horizontal-align="right">
-                        <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
-                        <paper-menu id="stack_actions" class="dropdown-content">
-                            <template is="dom-repeat" items="[[workflows]]" as="workflow">
-                                <paper-button id$="[[workflow.name]]" on-tap="_quickActionsNavigation" class="simple" disabled$="[[disabled]]">[[workflow.name]]</paper-button>
-                            </template>
-                        </paper-menu>
-                    </paper-menu-button>
-                    <paper-button on-tap="deployNowWork" class="simple white" style$="color: [[section.color]]" hidden$="[[ok]]" disabled$="[[disabled]]">Deploy
-                        <iron-icon style$="color: [[section.color]]" icon="av:play-arrow"></iron-icon>
-                    </paper-button>
-                    <paper-button on-tap="openWorkflows" class="simple white" style$="color: [[section.color]]" hidden$="[[hideWorkflows]]" disabled$="[[disabled]]">Workflows</paper-button>
-                </div> -->
             </paper-material>
 
             <paper-material>
@@ -534,11 +518,11 @@
                             <div id$="[[workflow.name]]show" class="wf-item">
 
                                 <template is="dom-if" if=[[workflow.params.length]]>
-                                    <paper-material class="app-form-title">[[workflow.name]]</paper-material>
-                                    <paper-material>
+                                    <h2 class="pad app-form-title">[[workflow.name]]</h2>
+                                    <div class="pad">
                                         <mist-form model=[[model]] fields="[[workflow.params]]" workflow="[[workflow.name]]" url$="/api/v1/stacks/[[stack.id]]" on-request="handleWorkflowRequest"
                                             on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]">[[workflow.name]]</mist-form>
-                                    </paper-material>
+                                    </div>
                                 </template>
 
                                 <template is="dom-if" if=[[!workflow.params.length]]>

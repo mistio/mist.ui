@@ -1,9 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-submenu.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
 <link rel="import" href="mist-dropdown-multi.html">
@@ -32,10 +35,6 @@
             paper-button[disabled] {
                 background-color: rgba(0, 0, 0, .13) !important;
                 color: rgba(0, 0, 0, 0.32) !important;
-            }
-
-            paper-material {
-                border-top: 2px solid #ddd;
             }
 
             .operator {
@@ -93,7 +92,8 @@
             }
 
             span.if,
-            span.then {
+            span.then,
+            span.on {
                 margin-left: -48px;
             }
 
@@ -164,11 +164,37 @@
                     text-transform: lowercase;
                 }
             }
+            .inline:not([hidden]) {
+                display: inline-block;
+                max-width: 200px !important;
+            }
         </style>
 
         <div class="rule-edit">
             <span class="rule-id">[[_computeId(rule.title)]]</span>
             <div id="newrule" class="rule">
+                <div hidden$=[[resource]]>
+                    <span class="keyword on">apply on</span>
+                    <paper-dropdown-menu class="dropdown-block apply-on">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
+                            <paper-item value="every">every machine</paper-item>
+                            <paper-item value="specific">specific machine</paper-item>
+                            <paper-item value="tagged">machines with tag </paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
+                        <paper-dropdown-menu class="dropdown-block">
+                            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
+                                <template is="dom-repeat" items="[[monitoredMachines]]" as="machine">
+                                    <paper-item value="[[machine.id]]">[[machine.name]]</paper-item>
+                                </template>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                    </div>
+                    <div class="inline" hidden$=[[!_isTagged(ruleType)]]>
+                        <paper-input class="tags" value="{{tags}}"></paper-input>
+                    </div>
+                </div>
                 <span class="keyword if">if</span>
                 <template is="dom-repeat" items="[[rule.queries]]" as="query">
                     <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator"
@@ -269,6 +295,18 @@
                 rule: {
                     type: Object
                 },
+                hidden: Boolean,
+                ruleType: {
+                    type: String,
+                    value: false
+                },
+                tags: String,
+                machineId: String,
+                machines: Array,
+                monitoredMachines: {
+                    type: Array,
+                    computed: '_computeMonitoredMachines(machines)'
+                },
                 currentRule: {
                     type: Object
                 },
@@ -301,11 +339,47 @@
             },
             observers: [
                 "_focusOnMetricName(active)",
-                "_currentRuleUpdated(currentRule.*)"
+                "_currentRuleUpdated(currentRule.*)",
+                "_initialiseEdit(currentRule,resource, rule.id)"
             ],
             ready: function () {
                 if (!this.rule)
                     this._resetRule();
+            },
+            _isSpecific: function(type) {
+                return type == 'specific';
+            },
+            _isTagged: function(type) {
+                return type == 'tagged';
+            },
+            _initialiseEdit: function (rule, resource) {
+                if (!resource){
+                    if (!rule.selectors || !rule.selectors.length) {
+                        this.set('ruleType', "every");
+                    }
+                    else {
+                        var selector = rule.selectors[0];
+                        if (selector.type == "tags") {
+                            this.set('ruleType', "tagged");
+                            this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
+                        }
+                        else if (selector.ids.length == 1) {
+                            this.set('ruleType', "specific");
+                            this.set('machineId', selector.ids[0]);
+                        }
+                    }
+                }
+            },
+            _computeMonitoredMachines: function (machines) {
+                if (machines)
+                    return machines.filter(function(m){
+                        return m.monitoring;
+                    });
+                else
+                    return []
+            },
+            _removeBrackets: function (string) {
+                return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
             },
             _currentRuleUpdated: function (event) {
                 this.set('rule', {
@@ -384,15 +458,21 @@
                 return false;
             },
             _focusOnMetricName: function (active) {
-                if (active && !this.rule.id) {
-                    this.querySelector('paper-dropdown-menu.target').open();
-                    this.querySelector('paper-dropdown-menu.target').$.menuButton.focus();
-                }
+                if (this.rule && this.resource)
+                    if (active && !this.rule.id && this.querySelector('paper-dropdown-menu.target')) {
+                        this.querySelector('paper-dropdown-menu.target').open();
+                        if (this.querySelector('paper-dropdown-menu.target').$.menuButton)
+                            this.querySelector('paper-dropdown-menu.target').$.menuButton.focus();
+                    }
             },
             _focusOnOperator: function (e) {
-                var selector = '#' + e.currentTarget.id.replace("target-", "operator-");
-                this.querySelector(selector).open();
-                this.querySelector(selector).focus();
+                if (!this.hidden) {
+                    var selector = '#' + e.currentTarget.id.replace("target-", "operator-");
+                    if (this.querySelector(selector)) {
+                        this.querySelector(selector).open();
+                        this.querySelector(selector).focus();
+                    }
+                }
             },
             _focusOnThreshold: function (e) {
                 var selector = '#' + e.currentTarget.id.replace("operator-", "threshold-");
@@ -404,10 +484,29 @@
                     queries: [],
                     actions: []
                 };
-                payload.selectors = [{
-                    type: 'machines',
-                    ids: [this.resource.id]
-                }];
+                if (this.resource)
+                    payload.selectors = [{
+                        type: 'machines',
+                        ids: [this.resource.id]
+                    }];
+                else {
+                    if (this.ruleType == 'specific') {
+                        payload.selectors = [{
+                            type: 'machines',
+                            ids: [this.machineId]
+                        }];
+                    }
+                    else if (this.ruleType == 'tagged') {
+                        payload.selectors = [{
+                            type: 'tags',
+                            tags: this._computeTagsFromString(this.tags)
+                        }];
+                    }
+                    else if (this.ruleType == 'every') {
+                        payload.selectors = [];
+                    }
+
+                }
                 payload.window = {
                     period: this.rule.window.period || 'minutes',
                     start: parseInt(this.rule.window.start) || 1
@@ -462,6 +561,21 @@
                     this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.updateRuleRequest.generateRequest();
                 }
+            },
+            _computeTagsFromString: function (str) {
+                var tags = {};
+                if (str && str.length) {
+                    var chuncks = str.split(',');
+                    if (chuncks.length) {
+                        for (var i = 0; i < chuncks.length; i++) {
+                            var parts = chuncks[i].split('='),
+                                key = parts[0].trim(),
+                                value = parts[1] ? parts[1].trim() : null;
+                            tags[key] = value;
+                        }
+                    }
+                }
+                return tags;
             },
             _handleFormError: function (e) {
                 console.log(e.detail.request.xhr.responseText);
