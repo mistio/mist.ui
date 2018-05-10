@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 
+<link rel="import" href="../helpers/cc-required.html">
 <link rel="import" href="../app-form/app-form.html">
 
 <dom-module id="cloud-add">
@@ -43,6 +44,14 @@
                 margin-top: 20px;
             }
 
+            .progress {
+                position: relative;
+                width: 100%;
+                left: 0;
+                right: 0;
+                margin-left: -24px;
+            }
+
             .dropdown-with-logos paper-item img {
                 margin-right: 16px;
             }
@@ -56,14 +65,14 @@
                 max-height: 400px !important;
             }
 
-             :host paper-menu.providers paper-item {
+            :host paper-menu.providers paper-item {
                 display: inline-block;
                 width: 20%;
                 min-width: 160px;
                 line-height: 48px;
             }
 
-             :host paper-menu.providers img {
+            :host paper-menu.providers img {
                 margin-right: 8px;
                 vertical-align: middle;
             }
@@ -132,7 +141,7 @@
                 </div>
             </paper-material>
         </div>
-
+        <cc-required id="ccRequired" plan="{{selectedPlan}}" has-back="true"></cc-required>
     </template>
     <script>
         Polymer({
@@ -175,6 +184,10 @@
                 docs: {
                     type: String,
                     value: ''
+                },
+                org: Object,
+                selectedPlan: {
+                    type: String
                 }
             },
             observers: [
@@ -183,10 +196,23 @@
             ],
             listeners: {
                 'iron-select': '_updateCloudTitle',
-                'reset-form': '_resetProvider'
+                'reset-form': '_resetProvider',
+                'reset-form': '_resetProvider',
+                'open-cc-required': '_openCcRequired',
+                'close-cc-required': '_closeCcRequired',
             },
             ready: function () {
 
+            },
+            attached: function() {
+                if (!this.org.current_plan || !this.org.current_plan.title || !this.org.current_plan.title.length)
+                    this._openCcRequired();
+            },
+            _openCcRequired: function() {
+                this.querySelector('#ccRequired').open();
+            },
+            _closeCcRequired: function() {
+                this.querySelector('#ccRequired').close();
             },
             _cloudAddAjaxResponse: function (response) {
                 this._unsetProvider();
