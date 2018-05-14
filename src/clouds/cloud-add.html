@@ -181,6 +181,11 @@
                 clouds: Array,
                 enableMonitoring: Boolean,
                 enableBilling: Boolean,
+                disableAddCloud: {
+                    type: Boolean,
+                    computed: '_computeDisableAddCloud(enableBilling, org.*)',
+                    value: false
+                },
                 portalName: 'Mist.io',
                 docs: {
                     type: String,
@@ -189,11 +194,13 @@
                 org: Object,
                 selectedPlan: {
                     type: String
-                }
+                },
+                hidden: Boolean
             },
             observers: [
                 '_providerChanged(selectedProvider, providers)',
-                '_keysChanged(keys.*, providerFields)'
+                '_keysChanged(keys.*, providerFields)',
+                '_hiddenChanged(hidden)'
             ],
             listeners: {
                 'iron-select': '_updateCloudTitle',
@@ -206,10 +213,22 @@
 
             },
             attached: function() {
-                if (this.enableBilling && !this.org.card)
+                if (this.disableAddCloud)
                     this._openCcRequired();
             },
+            _hiddenChanged: function(hidden) {
+                if (this.disableAddCloud) {
+                    if (!hidden)
+                        this.querySelector('#ccRequired').open();
+                    else if (hidden)
+                        this.querySelector('#ccRequired').close();
+                }
+            },
+            _computeDisableAddCloud: function (enableBilling, org) {
+                return enableBilling && !this.org.card;
+            },
             _openCcRequired: function() {
+                // e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
                 this.querySelector('#ccRequired').open();
             },
             _closeCcRequired: function() {
