@@ -157,15 +157,6 @@ NETWORK_ADD_FIELDS.push({
         required: true,
         excludeFromPayload: true
     }, {
-        name: "cidr",
-        label: "Network CIDR",
-        type: "ip_textarea",
-        value: "",
-        defaultValue: "",
-        placeholder: "",
-        show: true,
-        required: true
-    }, {
         name: "createSubnet",
         label: "Create Subnet",
         type: "toggle",
@@ -174,6 +165,29 @@ NETWORK_ADD_FIELDS.push({
         placeholder: "",
         show: true,
         required: false
+    }, {
+        name: "subnet_type",
+        label: "Subnet Type",
+        type: "dropdown",
+        value: 'auto',
+        defaultValue: 'auto',
+        show: true,
+        required: true,
+        helptext: 'Subnets let you create your own private cloud topology within Google Cloud. Click Automatic to create a subnet in each region, or click Custom to manually define the subnets',
+        showIf: {
+            fieldName: "createSubnet",
+            fieldValues: [true]
+        },
+        options: [
+            {
+                title: 'Automatic',
+                val: 'auto'
+            },
+            {
+                title: 'Custom',
+                val: 'custom'
+            }
+        ]
     }, {
         name: "subnet_name",
         label: "Subnet Name",
@@ -184,8 +198,8 @@ NETWORK_ADD_FIELDS.push({
         show: false,
         required: false,
         showIf: {
-            fieldName: "createSubnet",
-            fieldValues: [true]
+            fieldName: "subnet_type",
+            fieldValues: ['custom']
         }
     }, {
         name: "subnet_cidr",
@@ -197,8 +211,8 @@ NETWORK_ADD_FIELDS.push({
         show: false,
         required: false,
         showIf: {
-            fieldName: "createSubnet",
-            fieldValues: [true]
+            fieldName: "subnet_type",
+            fieldValues: ['custom']
         }
     }, {
         name: "location",
@@ -210,8 +224,8 @@ NETWORK_ADD_FIELDS.push({
         required: true,
         options: [],
         showIf: {
-            fieldName: "createSubnet",
-            fieldValues: [true]
+            fieldName: "subnet_type",
+            fieldValues: ['custom']
         }
     }]
 });
