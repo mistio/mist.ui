@@ -162,9 +162,10 @@
                     this.set('fields', networkFields.fields);
 
                 // add locations fields
-                if (this.fieldIndexByName('location') > -1)
+                if (this.fieldIndexByName('region') > -1 || this.fieldIndexByName('availability_zone') > -1)
+                    var fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
                     if (cloudName == "ec2")
-                        this.set('fields.'+this.fieldIndexByName('location')+'.options', this.model.clouds[selectedCloud].locationsArray);
+                        this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', this.model.clouds[selectedCloud].locationsArray);
                     if (cloudName == "gce") {
                         var regionsArr = [], regions = [];
                         if (this.model.clouds[selectedCloud].locationsArray)
@@ -174,34 +175,31 @@
                                     regions.push({name:l.extra.region, id:l.extra.region});
                                 }
                             });
-                        this.set('fields.'+this.fieldIndexByName('location')+'.options', regions);
+                        this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', regions);
                     }
             },
             updatePayload: function () {
                 if (this.fields.length) {
-                    var payload = {network: {}};
+                    var payload = {},
+                        provider = this.model.clouds[this.selectedCloud].provider;
+                    payload['network'] = {};
                     // create network
                     for (var i = 0; i < this.fields.length; i++) {
                         if (this.fields[i].inPayloadGroup == "network")
                             payload.network[this.fields[i].name] = this.fields[i].value;
                     }
                     // create subnet
-                    if (this.fields[this.fieldIndexByName('createSubnet')].value == true) {
+                    if ((this.fieldIndexByName('createSubnet') > -1 && this.fields[this.fieldIndexByName('createSubnet')].value == true) ||
+                        (provider == "gce" && this.fields[this.fieldIndexByName('mode')].value == "custom")) {
                         payload.subnet = {};
                         for (var i = 0; i < this.fields.length; i++) {
                             if (this.fields[i].inPayloadGroup == "subnet")
                                 payload.subnet[this.fields[i].name] = this.fields[i].value;
                         }
-                    }
-
-                    // delete gateway_ip if disabled
-                    if (this.fieldIndexByName('subnet_disableGateway') > -1 && this.fields[this.fieldIndexByName('subnet_disableGateway')].value == true)
-                        delete payload.subnet['gateway_ip'];
-
-                    // parse and format allocation pools if they exist
-                    if (this.fieldIndexByName('subnet_allocationPools') > -1 && this.fields[this.fieldIndexByName('subnet_allocationPools')].value) {
-                        var allocationPools = [], 
-                            lines = this.fields[this.fieldIndexByName('subnet_allocationPools')].value.split('\n');
+                        // parse and format allocation pools if they exist
+                        if (this.fieldIndexByName('allocation_pools') > -1 && this.fields[this.fieldIndexByName('allocation_pools')].value) {
+                            var allocationPools = [], 
+                                lines = this.fields[this.fieldIndexByName('allocation_pools')].value.split('\n');
                             lines.forEach(function (l) {
                                 if (l && l.indexOf('-') > 0)
                                     allocationPools.push({
@@ -211,10 +209,15 @@
                                 else
                                     allocationPools.push(l);
                             })
-                            if (allocationPools.length)
+                            if (allocationPools.length){
                                 payload.subnet['allocation_pools'] = allocationPools;
+                            }
                         }
 
+                        if (this.fieldIndexByName('disableGateway') > -1 && this.fields[this.fieldIndexByName('disableGateway')].value == true) {
+                            delete payload.subnet['gateway_ip'];
+                        }
+                    }
 
                     // var network,
                     //     provider = this.model.clouds[this.selectedCloud].provider,

@@ -16,6 +16,16 @@ NETWORK_ADD_FIELDS.push({
         excludeFromPayload: true,
         inPayloadGroup: 'network'
     }, {
+        name: "cidr",
+        label: "Network CIDR",
+        type: "ip_textarea",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        show: true,
+        required: true,
+        inPayloadGroup: 'network'
+    }, {
         name: "admin_state_up",
         label: "Admin State *",
         type: "dropdown",
@@ -59,7 +69,7 @@ NETWORK_ADD_FIELDS.push({
         inPayloadGroup: 'subnet'
     }, {
         name: "subnet_address",
-        label: "Network Address (CIDR)",
+        label: "Subnet Address (CIDR)",
         type: "ip_textarea",
         value: "",
         defaultValue: "",
@@ -72,7 +82,7 @@ NETWORK_ADD_FIELDS.push({
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "subnet_ipv",
+        name: "ip_version",
         label: "IP Version",
         type: "dropdown",
         value: 4,
@@ -93,7 +103,7 @@ NETWORK_ADD_FIELDS.push({
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "subnet_gatewayIp",
+        name: "gateway_ip",
         label: "Gateway IP",
         type: "text",
         value: "",
@@ -103,12 +113,12 @@ NETWORK_ADD_FIELDS.push({
         required: false,
         disabled: false,
         showIf: {
-            fieldName: "createSubnet",
-            fieldValues: [true]
+            fieldName: "disableGateway",
+            fieldValues: [false]
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "subnet_disableGateway",
+        name: "disableGateway",
         label: "Disable Gateway",
         type: "toggle",
         value: false,
@@ -122,7 +132,7 @@ NETWORK_ADD_FIELDS.push({
         },
         excludeFromPayload: true
     }, {
-        name: "subnet_enableDHCP",
+        name: "enable_dhcp",
         label: "Enable DHCP",
         type: "toggle",
         value: false,
@@ -136,7 +146,7 @@ NETWORK_ADD_FIELDS.push({
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "subnet_allocationPools",
+        name: "allocation_pools",
         label: "Allocation Pools",
         type: "textarea",
         value: "",
@@ -168,17 +178,7 @@ NETWORK_ADD_FIELDS.push({
         excludeFromPayload: true,
         inPayloadGroup: 'network'
     }, {
-        name: "createSubnet",
-        label: "Create Subnet",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        placeholder: "",
-        show: true,
-        required: false,
-        excludeFromPayload: true
-    }, {
-        name: "subnet_type",
+        name: "mode",
         label: "Subnet Type",
         type: "dropdown",
         value: 'auto',
@@ -186,10 +186,6 @@ NETWORK_ADD_FIELDS.push({
         show: true,
         required: true,
         helptext: 'Subnets let you create your own private cloud topology within Google Cloud. Click Automatic to create a subnet in each region, or click Custom to manually define the subnets',
-        showIf: {
-            fieldName: "createSubnet",
-            fieldValues: [true]
-        },
         options: [
             {
                 title: 'Automatic',
@@ -200,9 +196,9 @@ NETWORK_ADD_FIELDS.push({
                 val: 'custom'
             }
         ],
-        inPayloadGroup: 'subnet'
+        inPayloadGroup: 'network'
     }, {
-        name: "subnet_name",
+        name: "name",
         label: "Subnet Name",
         type: "text",
         value: "",
@@ -211,12 +207,12 @@ NETWORK_ADD_FIELDS.push({
         show: false,
         required: false,
         showIf: {
-            fieldName: "subnet_type",
+            fieldName: "mode",
             fieldValues: ['custom']
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "subnet_cidr",
+        name: "cidr",
         label: "Subnet CIDR",
         type: "ip_textarea",
         value: "",
@@ -225,12 +221,12 @@ NETWORK_ADD_FIELDS.push({
         show: false,
         required: false,
         showIf: {
-            fieldName: "subnet_type",
+            fieldName: "mode",
             fieldValues: ['custom']
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "location",
+        name: "region",
         label: "Region *",
         type: "mist_dropdown",
         value: "",
@@ -239,7 +235,7 @@ NETWORK_ADD_FIELDS.push({
         required: true,
         options: [],
         showIf: {
-            fieldName: "subnet_type",
+            fieldName: "mode",
             fieldValues: ['custom']
         },
         inPayloadGroup: 'subnet'
@@ -282,7 +278,7 @@ NETWORK_ADD_FIELDS.push({
         required: false,
         excludeFromPayload: true
     }, {
-        name: "subnet_name",
+        name: "name",
         label: "Subnet Name",
         type: "text",
         value: "",
@@ -296,7 +292,7 @@ NETWORK_ADD_FIELDS.push({
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "subnet_cidr",
+        name: "cidr",
         label: "Subnet CIDR",
         type: "ip_textarea",
         value: "",
@@ -310,7 +306,7 @@ NETWORK_ADD_FIELDS.push({
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "location",
+        name: "availability_zone",
         label: "Availability Zone *",
         type: "mist_dropdown",
         value: "",
