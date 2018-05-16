@@ -167,82 +167,120 @@
                         this.set('fields.'+this.fieldIndexByName('location')+'.options', this.model.clouds[selectedCloud].locationsArray);
                     if (cloudName == "gce") {
                         var regionsArr = [], regions = [];
-                        this.model.clouds[selectedCloud].locationsArray.forEach(function(l){
-                            if (!regionsArr.includes(l.extra.region)) {
-                                regionsArr.push(l.extra.region);
-                                regions.push({name:l.extra.region, id:l.extra.region});
-                            }
-                        });
+                        if (this.model.clouds[selectedCloud].locationsArray)
+                            this.model.clouds[selectedCloud].locationsArray.forEach(function(l){
+                                if (!regionsArr.includes(l.extra.region)) {
+                                    regionsArr.push(l.extra.region);
+                                    regions.push({name:l.extra.region, id:l.extra.region});
+                                }
+                            });
                         this.set('fields.'+this.fieldIndexByName('location')+'.options', regions);
                     }
             },
             updatePayload: function () {
                 if (this.fields.length) {
-                    var network,
-                        provider = this.model.clouds[this.selectedCloud].provider,
-                        cidr = this.fieldIndexByName('cidr');
-
-                    // update payload
-                    var payload = {
-                        network: {
-                            name: this.fields[this.fieldIndexByName('name')].value
-                        }
+                    var payload = {network: {}};
+                    // create network
+                    for (var i = 0; i < this.fields.length; i++) {
+                        if (this.fields[i].inPayloadGroup == "network")
+                            payload.network[this.fields[i].name] = this.fields[i].value;
                     }
-                    if (['ec2'].indexOf(provider) > -1) {
-                        payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value;
-                    }
-                    else if (provider == 'openstack') {
-                        payload.network['admin_state_up'] = this.fields[this.fieldIndexByName('admin_state_up')].value;
-                    }
-                    //create subnet
+                    // create subnet
                     if (this.fields[this.fieldIndexByName('createSubnet')].value == true) {
-                        if (['gce'].indexOf(provider) > -1) {
-                            payload.network['mode'] = this.fields[this.fieldIndexByName('subnet_type')].value;
-                            if (payload.network['mode'] == "custom") {
-                                payload.subnet = {
-                                    name: this.fields[this.fieldIndexByName('subnet_name')].value,
-                                    cidr: this.fields[this.fieldIndexByName('subnet_cidr')].value,
-                                    region: this.fields[this.fieldIndexByName('location')].value
-                                };
-                            }
+                        payload.subnet = {};
+                        for (var i = 0; i < this.fields.length; i++) {
+                            if (this.fields[i].inPayloadGroup == "subnet")
+                                payload.subnet[this.fields[i].name] = this.fields[i].value;
                         }
-                        if (['ec2','openstack'].indexOf(provider) > -1) {
-                            payload.subnet = {
-                                name: this.fields[this.fieldIndexByName('subnet_name')].value
-                            };
-                        }
-                        if (['ec2'].indexOf(provider) > -1) {
-                            payload.subnet.cidr = this.fields[this.fieldIndexByName('subnet_cidr')].value;
-                            payload.subnet.availability_zone = this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('location')].value].name;
-                        }
-                        else if (provider == 'openstack') {
-                            var allocationPools = [];
-                            payload.subnet.subnet_address = this.fields[this.fieldIndexByName('subnet_address')].value
-                            payload.ip_version  = parseInt(this.fields[this.fieldIndexByName('ip_version')].value);
-                            payload.enable_dhcp = this.fields[this.fieldIndexByName('enable_dhcp')].value;
-                            if (this.fields[this.fieldIndexByName('subnet_allocationPools')].value) {
-                                //parse allocation pools
-                                var lines = this.fields[this.fieldIndexByName('subnet_allocationPools')].value.split('\n');
-                                lines.forEach(function (l) {
-                                    if (l && l.indexOf('-') > 0)
-                                        allocationPools.push({
-                                            start: l.replace(',', '').split('-')[0].trim(),
-                                            end: l.replace(',', '').split('-')[1].trim()
-                                        });
-                                    else
-                                        allocationPools.push(l);
-                                })
-                            }
+                    }
+
+                    // delete gateway_ip if disabled
+                    if (this.fieldIndexByName('subnet_disableGateway') > -1 && this.fields[this.fieldIndexByName('subnet_disableGateway')].value == true)
+                        delete payload.subnet['gateway_ip'];
+
+                    // parse and format allocation pools if they exist
+                    if (this.fieldIndexByName('subnet_allocationPools') > -1 && this.fields[this.fieldIndexByName('subnet_allocationPools')].value) {
+                        var allocationPools = [], 
+                            lines = this.fields[this.fieldIndexByName('subnet_allocationPools')].value.split('\n');
+                            lines.forEach(function (l) {
+                                if (l && l.indexOf('-') > 0)
+                                    allocationPools.push({
+                                        start: l.replace(',', '').split('-')[0].trim(),
+                                        end: l.replace(',', '').split('-')[1].trim()
+                                    });
+                                else
+                                    allocationPools.push(l);
+                            })
                             if (allocationPools.length)
                                 payload.subnet['allocation_pools'] = allocationPools;
-                            // if subnet disable Gateway delete property
-                            if (this.fields[this.fieldIndexByName('subnet_disableGateway')].value == false) {
-                                payload.subnet.gateway_ip = this.fields[this.fieldIndexByName('gateway_ip')].value;
-                            } else {
-                                delete payload.subnet['gateway_ip'];
-                            }
                         }
-                    }
+
+
+                    // var network,
+                    //     provider = this.model.clouds[this.selectedCloud].provider,
+                    //     cidr = this.fieldIndexByName('cidr');
+
+                    // // update payload
+                    // var payload = {
+                    //     network: {
+                    //         name: this.fields[this.fieldIndexByName('name')].value
+                    //     }
+                    // }
+                    // if (['ec2'].indexOf(provider) > -1) {
+                    //     payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value;
+                    // }
+                    // else if (provider == 'openstack') {
+                    //     payload.network['admin_state_up'] = this.fields[this.fieldIndexByName('admin_state_up')].value;
+                    // }
+                    // //create subnet
+                    // if (this.fields[this.fieldIndexByName('createSubnet')].value == true) {
+                    //     if (['gce'].indexOf(provider) > -1) {
+                    //         payload.network['mode'] = this.fields[this.fieldIndexByName('subnet_type')].value;
+                    //         if (payload.network['mode'] == "custom") {
+                    //             payload.subnet = {
+                    //                 name: this.fields[this.fieldIndexByName('subnet_name')].value,
+                    //                 cidr: this.fields[this.fieldIndexByName('subnet_cidr')].value,
+                    //                 region: this.fields[this.fieldIndexByName('location')].value
+                    //             };
+                    //         }
+                    //     }
+                    //     if (['ec2','openstack'].indexOf(provider) > -1) {
+                    //         payload.subnet = {
+                    //             name: this.fields[this.fieldIndexByName('subnet_name')].value
+                    //         };
+                    //     }
+                    //     if (['ec2'].indexOf(provider) > -1) {
+                    //         payload.subnet.cidr = this.fields[this.fieldIndexByName('subnet_cidr')].value;
+                    //         payload.subnet.availability_zone = this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('location')].value].name;
+                    //     }
+                    //     else if (provider == 'openstack') {
+                    //         var allocationPools = [];
+                    //         payload.subnet.subnet_address = this.fields[this.fieldIndexByName('subnet_address')].value
+                    //         payload.subnet.ip_version  = parseInt(this.fields[this.fieldIndexByName('subnet_ipv')].value);
+                    //         payload.subnet.enable_dhcp = this.fields[this.fieldIndexByName('subnet_enableDHCP')].value;
+                    //         if (this.fields[this.fieldIndexByName('subnet_allocationPools')].value) {
+                    //             //parse allocation pools
+                    //             var lines = this.fields[this.fieldIndexByName('subnet_allocationPools')].value.split('\n');
+                    //             lines.forEach(function (l) {
+                    //                 if (l && l.indexOf('-') > 0)
+                    //                     allocationPools.push({
+                    //                         start: l.replace(',', '').split('-')[0].trim(),
+                    //                         end: l.replace(',', '').split('-')[1].trim()
+                    //                     });
+                    //                 else
+                    //                     allocationPools.push(l);
+                    //             })
+                    //         }
+                    //         if (allocationPools.length)
+                    //             payload.subnet['allocation_pools'] = allocationPools;
+                    //         // if subnet disable Gateway delete property
+                    //         if (this.fields[this.fieldIndexByName('subnet_disableGateway')].value == false) {
+                    //             payload.subnet.gateway_ip = this.fields[this.fieldIndexByName('gateway_ip')].value;
+                    //         } else {
+                    //             delete payload.subnet['gateway_ip'];
+                    //         }
+                    //     }
+                    // }
                     this.set('form', payload);
                 }
             },
