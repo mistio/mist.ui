@@ -58,7 +58,7 @@ NETWORK_ADD_FIELDS.push({
         },
         inPayloadGroup: 'subnet'
     }, {
-        name: "subnet_address",
+        name: "cidr",
         label: "Subnet Address (CIDR)",
         type: "ip_textarea",
         value: "",
