@@ -144,6 +144,7 @@ NETWORK_ADD_FIELDS.push({
         placeholder: "",
         show: false,
         required: false,
+        helptext: "In the form: start CIDR - end CIDR, a range per line.",
         showIf: {
             fieldName: "createSubnet",
             fieldValues: [true]
