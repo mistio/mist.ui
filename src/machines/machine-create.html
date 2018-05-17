@@ -421,6 +421,23 @@
                                 this.set('machineFields.' + index + '.required', false);
                         }
 
+                        // for ec2 subnet selection
+                        if (f.name == "subnet_id") {
+                            var subnets = [];
+                            for (var i=0; i<this.model.clouds[cloudId].networksArray.length; i++){
+                                var network = this.model.clouds[cloudId].networksArray[i];
+                                if (network.subnets && network.subnets.length)
+                                    for (var j=0; j<network.subnets.length; j++) {
+                                        var subnet =  network.subnets[j];
+                                        subnet.suffix = network.name;
+                                        subnets.push(subnet);
+                                    }
+                            }
+                            f.options = subnets;
+                            if (f.options.length < 2)
+                                this.set('machineFields.' + index + '.required', false);
+                        }
+
                         // update options
                         if (f.options)
                             this.set('machineFields.' + index + '.options', f.options);

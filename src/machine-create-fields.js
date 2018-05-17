@@ -227,7 +227,18 @@ MACHINE_CREATE_FIELDS.push({
 // AWS
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
-    fields: []
+    fields: [
+    {
+        name: "subnet_id",
+        label: "Subnet ID *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: []
+    }
+    ]
 });
 
 // GCE
