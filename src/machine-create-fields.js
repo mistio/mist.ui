@@ -230,13 +230,17 @@ MACHINE_CREATE_FIELDS.push({
     fields: [
     {
         name: "subnet_id",
-        label: "Subnet ID *",
+        label: "Subnet ID",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
-        show: true,
+        show: false,
         required: false,
-        options: []
+        options: [],
+        showIf: {
+            fieldName: "location",
+            fieldExists: true
+        }
     }
     ]
 });

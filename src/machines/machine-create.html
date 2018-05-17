@@ -548,6 +548,28 @@
                         this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
                     }
 
+                    // if it's ec2 and location is selected filter subnets
+                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'location' && changeRecord.value.length) {
+                        var loc = this._fieldIndexByName('location'),
+                            subid = this._fieldIndexByName('subnet_id');
+
+                        var subnets = [];
+                        for (var i=0; i<this.model.clouds[this.selectedCloud].networksArray.length; i++){
+                            var network = this.model.clouds[this.selectedCloud].networksArray[i];
+                            if (network.subnets && network.subnets.length)
+                                for (var j=0; j<network.subnets.length; j++) {
+                                    var subnet =  network.subnets[j];
+                                    subnet.suffix = network.name;
+                                    subnets.push(subnet);
+                                }
+                        }
+                        var subs = subnets.filter(function(subn){
+                            return subn.availability_zone == this.model.clouds[this.selectedCloud].locations[changeRecord.value].name;
+                        }.bind(this));
+                        this.set('machineFields.'+subid+'.options', subs);
+                    }
+
                     // if it is azure arm and location is changed
                     if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
                         changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace(
