@@ -16,16 +16,6 @@ NETWORK_ADD_FIELDS.push({
         excludeFromPayload: true,
         inPayloadGroup: 'network'
     }, {
-        name: "cidr",
-        label: "Network CIDR",
-        type: "ip_textarea",
-        value: "",
-        defaultValue: "",
-        placeholder: "",
-        show: true,
-        required: true,
-        inPayloadGroup: 'network'
-    }, {
         name: "admin_state_up",
         label: "Admin State *",
         type: "dropdown",
