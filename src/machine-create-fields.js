@@ -237,6 +237,7 @@ MACHINE_CREATE_FIELDS.push({
         show: false,
         required: false,
         options: [],
+        helptext: "Optional. If you leave subnet blank, the machine will be created in the location's (availability zone) default subnet.",
         showIf: {
             fieldName: "location",
             fieldExists: true

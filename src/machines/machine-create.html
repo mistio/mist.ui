@@ -553,21 +553,21 @@
                             '.value', '')).name == 'location' && changeRecord.value.length) {
                         var loc = this._fieldIndexByName('location'),
                             subid = this._fieldIndexByName('subnet_id');
-
+                        // clear previous selection
+                        this.set('machineFields.'+subid+'.value', '');
                         var subnets = [];
                         for (var i=0; i<this.model.clouds[this.selectedCloud].networksArray.length; i++){
                             var network = this.model.clouds[this.selectedCloud].networksArray[i];
                             if (network.subnets && network.subnets.length)
                                 for (var j=0; j<network.subnets.length; j++) {
                                     var subnet =  network.subnets[j];
-                                    subnet.suffix = network.name;
-                                    subnets.push(subnet);
+                                    if (subnet.availability_zone == this.model.clouds[this.selectedCloud].locations[changeRecord.value].name) {
+                                        subnet.suffix = network.name;
+                                        subnets.push(subnet);
+                                    }
                                 }
                         }
-                        var subs = subnets.filter(function(subn){
-                            return subn.availability_zone == this.model.clouds[this.selectedCloud].locations[changeRecord.value].name;
-                        }.bind(this));
-                        this.set('machineFields.'+subid+'.options', subs);
+                        this.set('machineFields.'+subid+'.options', subnets);
                     }
 
                     // if it is azure arm and location is changed
