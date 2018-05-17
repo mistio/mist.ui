@@ -389,7 +389,15 @@
                             f.options = this.model.clouds[cloudId].storageAccountsArray || [];
                         }
                         if (f.name.endsWith("size")) {
-                            f.options = this.model.clouds[cloudId].sizesArray || [];
+                            f.options = this.model.clouds[cloudId].sizesArray.sort(function(a,b){
+                                    if (a.cpus < b.cpus) {
+                                        return -1;
+                                    }
+                                    if (a.cpus > b.cpus) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                }) || [];
                             // allow custom size set
                             if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[this.selectedCloud]
                                     .provider) > -1) {
