@@ -673,16 +673,15 @@
                         datasources="[[datasources]]"
                         hidden$="[[hidden]]"
                         machine-keys="[[machineKeys]]"
-                        incidents="[[_filterMachinesIncidents(model.incidentsArray)]]"
+                        incidents="[[_filterMachinesIncidents(model.incidentsArray, model.incidentsArray.length, model.incidents.*)]]"
                         portal-name="[[portalName]]"></mist-monitoring>
                     <mist-rules
                         id="monitoringRules"
-                        machine="[[machine.machine_id]]"
                         cloud="[[machine.cloud.id]]"
                         builtin-metrics="[[model.monitoring.builtin_metrics]]"
                         custom-metrics="[[model.monitoring.custom_metrics]]"
                         incidents="[[model.incidentsArray]]"
-                        rules="[[model.monitoring.rules]]"
+                        rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine)]]"
                         teams="[[model.teamsArray]]"
                         users="[[model.membersArray]]"
                         resource="[[machine]]"
@@ -758,7 +757,7 @@
     MACHINEACTIONS = {
         'shell': {
             'name': 'shell',
-            'icon': 'vaadin-icons:terminal',
+            'icon': 'vaadin:terminal',
             'confirm': false,
             'multi': true
         },
@@ -979,6 +978,48 @@
         ready: function () {
             this.set('hideAssociatedKeys', true);
             this.set('isPendingKeyRequest', false);
+        },
+        _rulesApplyOnMachine: function (rules, machine) {
+            var machineRules = {}, check;
+            for (var p in rules) {
+                // applies on all machines
+                if (!rules[p].selectors.length) {
+                    check = true;
+                }
+                else {
+                    for (var i = 0; i < rules[p].selectors.length; i++) {
+                        var selector = rules[p].selectors[i];
+                        // applies on specific machines
+                        if (selector.type == 'machines' ){
+                            if (selector.ids.indexOf(machine.id) > -1)
+                                check = true;
+                            else
+                                check = false;
+                        }
+                        // applies on tags
+                        else if (selector.type == 'tags' ){
+                            if (!machine.tags.length)
+                                check = false; // machine has no tags
+                            else {
+                                for (var q in selector.tags) {
+                                    var mtag = machine.tags.find(function(t){ return t.key == q });
+                                    if (!mtag) // machine has no such tag
+                                        check = false;
+                                    else { 
+                                        if (!selector.tags[q])
+                                            check = mtag.value == ""; // if tag value is null machine tag value must be empty string
+                                        else if (selector.tags[q])
+                                            check = selector.tags[q] == mtag.value; // if tag value is !null machine tag value must be equal 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (check == true)
+                    machineRules[p] = rules[p];
+            }
+            return machineRules;
         },
         _getMachine: function (id, machines) {
             if (id && this.model && this.model.machines && this.model.machines[id])
@@ -1307,7 +1348,7 @@
                     return item.extra.cpu + 'cpu, ' + item.extra.memory + 'M ram';
                 if (item.extra && item.extra.PLANID) {
                     var cloud = this.model.clouds[item.cloud.id];
-                    return (cloud && cloud.sizes) ? cloud.sizes[item.extra.PLANID].name + ": " + cloud.sizes[
+                    return (cloud && cloud.sizes && cloud.sizes[item.extra.PLANID]) ? cloud.sizes[item.extra.PLANID].name + ": " + cloud.sizes[
                             item.extra.PLANID].ram + " ram, " + cloud.sizes[item.extra.PLANID].disk +
                         " disk, " + cloud.sizes[item.extra.PLANID].bandwidth + " bandwidth" : item.extra.PLANID
                 }

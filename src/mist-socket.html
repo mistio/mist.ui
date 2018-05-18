@@ -500,6 +500,7 @@
                     }
                 }
             }
+            this._updateRules(data.rules);
             return this.set('model.monitoring', data);
         },
 
@@ -597,7 +598,13 @@
         },
 
         _updateRules: function (data) {
-            return this._updateModel('rules', data);
+            var rulesArray = [];
+            for (var p in data) {
+                data[p].id = p;
+                rulesArray.push(data[p]);
+            }
+            this._updateModel('rules', rulesArray);
+            // return this._updateModel('rules', data);
         },
 
         _updateSchedules: function (data) {
@@ -900,6 +907,7 @@
 
         _updateIncidents: function (data) {
             this.set('model.onboarding.isLoadingIncidents', false);
+            this.set('model.incidentsArray', data);
             return this.set('model.incidents', _generateMap(data, 'incident_id'));
         },
 
@@ -975,6 +983,7 @@
                 jsonpatch.applyOperation(target, operation, true);
             });
             this.set('model.incidentsArray', Object.values(target.incidents || {}));
+            this.notifyPath('model.incidentsArray');
         },
 
 

@@ -1,27 +1,27 @@
-var MACHINE_CREATE_FIELDS = []
+let MACHINE_CREATE_FIELDS = [];
 
 // AZURE
 MACHINE_CREATE_FIELDS.push({
     provider: 'azure',
     fields: [{
-        name: "azure_port_bindings",
-        label: "Azure Port Bindings",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'azure_port_bindings',
+        label: 'Azure Port Bindings',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: false,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "azure_port_bindings",
-        label: "Azure Port Bindings",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
+        name: 'azure_port_bindings',
+        label: 'Azure Port Bindings',
+        type: 'textarea',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        helptext: 'e.g. http tcp 80:80, smtp tcp 25:25, https tcp 443:443'
-    }]
+        helptext: 'e.g. http tcp 80:80, smtp tcp 25:25, https tcp 443:443',
+    }],
 });
 
 
@@ -29,500 +29,500 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'azure_arm',
     fields: [{
-        name: "create_resource_group",
-        h3: "Resource group",
-        type: "radio",
+        name: 'create_resource_group',
+        h3: 'Resource group',
+        type: 'radio',
         value: true,
         defaultValue: true,
-        class: "bind-both",
-        helptext: "Create the machine in a new resource group",
+        class: 'bind-both',
+        helptext: 'Create the machine in a new resource group',
         show: true,
         required: false,
         options: [{
-            title: "Create new",
-            val: true
+            title: 'Create new',
+            val: true,
         }, {
-            title: "Use existing",
-            val: false
+            title: 'Use existing',
+            val: false,
         }],
     }, {
-        name: "ex_resource_group",
-        label: "Resource Group",
-        type: "mist_dropdown",
-        class: "margin-bottom",
-        value: "",
-        defaultValue: "",
+        name: 'ex_resource_group',
+        label: 'Resource Group',
+        type: 'mist_dropdown',
+        class: 'margin-bottom',
+        value: '',
+        defaultValue: '',
         show: false,
         required: true,
-        options: []
+        options: [],
     }, {
-        name: "new_resource_group",
-        label: "Resource Group name",
-        type: "text",
-        value: "",
-        class: "margin-bottom",
-        defaultValue: "",
+        name: 'new_resource_group',
+        label: 'Resource Group name',
+        type: 'text',
+        value: '',
+        class: 'margin-bottom',
+        defaultValue: '',
         show: true,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "create_storage_account",
-        h3: "Storage account",
-        label: "Create new storage account",
-        type: "radio",
+        name: 'create_storage_account',
+        h3: 'Storage account',
+        label: 'Create new storage account',
+        type: 'radio',
         value: true,
         defaultValue: true,
-        class: "bind-both",
-        helptext: "Create the machine in a new storage account",
+        class: 'bind-both',
+        helptext: 'Create the machine in a new storage account',
         show: true,
         required: false,
         options: [{
-            title: "Create new",
-            val: true
+            title: 'Create new',
+            val: true,
         }, {
-            title: "Use existing",
-            val: false
+            title: 'Use existing',
+            val: false,
         }],
     }, {
-        name: "new_storage_account",
-        label: "Storage Account name",
-        type: "text",
-        value: "",
-        class: "margin-bottom",
-        defaultValue: "",
+        name: 'new_storage_account',
+        label: 'Storage Account name',
+        type: 'text',
+        value: '',
+        class: 'margin-bottom',
+        defaultValue: '',
         show: true,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "ex_storage_account",
-        label: "Storage Account",
-        type: "mist_dropdown",
-        value: "",
-        class: "margin-bottom",
-        defaultValue: "",
+        name: 'ex_storage_account',
+        label: 'Storage Account',
+        type: 'mist_dropdown',
+        value: '',
+        class: 'margin-bottom',
+        defaultValue: '',
         show: true,
         required: true,
-        options: []
+        options: [],
     }, {
-        name: "create_network",
-        h3: "Network",
-        label: "Create new network",
-        type: "radio",
+        name: 'create_network',
+        h3: 'Network',
+        label: 'Create new network',
+        type: 'radio',
         value: true,
         defaultValue: true,
-        class: "bind-both",
-        helptext: "Create the machine in a new network",
+        class: 'bind-both',
+        helptext: 'Create the machine in a new network',
         show: true,
         required: false,
         options: [{
-            title: "Create new",
-            val: true
+            title: 'Create new',
+            val: true,
         }, {
-            title: "Use existing",
-            val: false
+            title: 'Use existing',
+            val: false,
         }],
     }, {
-        name: "new_network",
-        label: "Network name",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        class: "margin-bottom",
+        name: 'new_network',
+        label: 'Network name',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        class: 'margin-bottom',
         show: false,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "networks",
-        label: "Networks",
-        type: "mist_dropdown",
+        name: 'networks',
+        label: 'Networks',
+        type: 'mist_dropdown',
         noPluralisation: true,
-        value: "",
-        class: "margin-bottom",
-        defaultValue: "",
+        value: '',
+        class: 'margin-bottom',
+        defaultValue: '',
         show: true,
         required: true,
-        options: []
+        options: [],
     }, {
-        name: "machine_username",
-        label: "Machine Username *",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'machine_username',
+        label: 'Machine Username *',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: true,
         required: true,
-        helptext: "Machine username"
+        helptext: 'Machine username',
     }, {
-        name: "machine_password",
-        label: "Machine Password *",
-        type: "password",
-        value: "",
-        defaultValue: "",
+        name: 'machine_password',
+        label: 'Machine Password *',
+        type: 'password',
+        value: '',
+        defaultValue: '',
         // http://regexlib.com/REDetails.aspx?regexp_id=887
-        pattern: "(?=^.{12,123}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
-        errorMessage: "Invalid password!",
+        pattern: '(?=^.{12,123}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*',
+        errorMessage: 'Invalid password!',
         show: false,
         required: false,
-        helptext: "Windows machine password is required. The password must be between 12-123 characters long and must contain an uppercase character, a lowercase character, a numeric digit and a special character."
-    }]
+        helptext: 'Windows machine password is required. The password must be between 12-123 characters long and must contain an uppercase character, a lowercase character, a numeric digit and a special character.',
+    }],
 });
 
 
 // DIGITALOCEAN
 MACHINE_CREATE_FIELDS.push({
     provider: 'digitalocean',
-    fields: []
+    fields: [],
 });
 
 // DOCKER
 MACHINE_CREATE_FIELDS.push({
     provider: 'docker',
     fields: [{
-        name: "docker_env",
-        label: "Docker Env",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
+        name: 'docker_env',
+        label: 'Docker Env',
+        type: 'textarea',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        helptext: "",
+        helptext: '',
     }, {
-        name: "docker_command",
-        label: "Docker Command",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'docker_command',
+        label: 'Docker Command',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "docker_port_bindings",
-        label: "Docker Port Bindings",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'docker_port_bindings',
+        label: 'Docker Port Bindings',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: false,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "docker_exposed_ports",
-        label: "Docker Exposed Ports",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'docker_exposed_ports',
+        label: 'Docker Exposed Ports',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: false,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "ports",
-        label: "Ports",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
+        name: 'ports',
+        label: 'Ports',
+        type: 'textarea',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        helptext: 'e.g. 80:80'
-    }]
+        helptext: 'e.g. 80:80',
+    }],
 });
 
 // AWS
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
-    fields: []
+    fields: [],
 });
 
 // GCE
 MACHINE_CREATE_FIELDS.push({
     provider: 'gce',
     fields: [{
-        name: "image_extra",
-        label: "Image extra",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'image_extra',
+        label: 'Image extra',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: false,
-        required: false
+        required: false,
     }, {
-        name: "location_name",
-        label: "Location name",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'location_name',
+        label: 'Location name',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: false,
-        required: false
+        required: false,
     }, {
-        name: "networks",
-        label: "Network",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'networks',
+        label: 'Network',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        options: []
+        options: [],
     }, {
-        name: "subnetwork",
-        label: "Subnetwork",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'subnetwork',
+        label: 'Subnetwork',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
         show: false,
         required: false,
-        options: []
+        options: [],
     }],
 });
 
 // HOSTVIRTUAL
 MACHINE_CREATE_FIELDS.push({
     provider: 'hostvirtual',
-    fields: []
+    fields: [],
 });
 
 // KVM
 MACHINE_CREATE_FIELDS.push({
     provider: 'libvirt',
     fields: [{
-        name: "networks",
-        label: "Networks",
-        type: "checkboxes",
-        value: "",
-        defaultValue: "",
+        name: 'networks',
+        label: 'Networks',
+        type: 'checkboxes',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        options: []
-    },{
-        name: "libvirt_disk_path",
-        type: "text",
-        label: "Path to create VM's disk",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: false,
-        helptext: "Where the VM disk file will be created",
-        helpHref: "http://docs.mist.io/article/99-managing-kvm-with-mist-io"
+        options: [],
     }, {
-        name: "libvirt_disk_size",
-        type: "text",
-        label: "Disc size (GB)",
+        name: 'libvirt_disk_path',
+        type: 'text',
+        label: 'Path to create VM\'s disk',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        helptext: 'Where the VM disk file will be created',
+        helpHref: 'http://docs.mist.io/article/99-managing-kvm-with-mist-io',
+    }, {
+        name: 'libvirt_disk_size',
+        type: 'text',
+        label: 'Disc size (GB)',
         value: 4,
         defaultValue: 4,
         show: true,
         required: false,
-        pattern: "[0-9]*",
-        helptext: "The VM's size will be the size of the image plus the number in GBs provided here",
-        helpHref: "http://docs.mist.io/article/99-managing-kvm-with-mist-io"
-    }]
+        pattern: '[0-9]*',
+        helptext: 'The VM\'s size will be the size of the image plus the number in GBs provided here',
+        helpHref: 'http://docs.mist.io/article/99-managing-kvm-with-mist-io',
+    }],
 });
 
 // LINODE
 MACHINE_CREATE_FIELDS.push({
     provider: 'linode',
     fields: [{
-        name: "image_extra",
-        label: "Image extra",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'image_extra',
+        label: 'Image extra',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: false,
-        required: false
+        required: false,
     }, {
-        name: "location_name",
-        label: "Location name",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'location_name',
+        label: 'Location name',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: false,
-        required: false
-    }]
+        required: false,
+    }],
 });
 
 // NEPHOSCALE
 MACHINE_CREATE_FIELDS.push({
     provider: 'nephoscale',
-    fields: []
+    fields: [],
 });
 
 // OPENSTACK
 MACHINE_CREATE_FIELDS.push({
     provider: 'openstack',
     fields: [{
-        name: "networks",
-        label: "Networks",
-        type: "checkboxes",
-        value: "",
-        defaultValue: "",
+        name: 'networks',
+        label: 'Networks',
+        type: 'checkboxes',
+        value: '',
+        defaultValue: '',
         show: true,
         required: true,
-        options: []
+        options: [],
     }, {
-        name: "associate_floating_ip",
-        label: "Associate Floating IP",
-        type: "toggle",
-        value: "true",
-        defaultValue: "true",
+        name: 'associate_floating_ip',
+        label: 'Associate Floating IP',
+        type: 'toggle',
+        value: 'true',
+        defaultValue: 'true',
         show: false,
         required: false,
         showIf: {
-            fieldName: "networks",
-            fieldExists: true
-        }
-    }]
+            fieldName: 'networks',
+            fieldExists: true,
+        },
+    }],
 });
 
 // PACKET
 MACHINE_CREATE_FIELDS.push({
     provider: 'packet',
-    fields: []
+    fields: [],
 });
 
 // RACKSPACE
 MACHINE_CREATE_FIELDS.push({
     provider: 'rackspace',
-    fields: []
+    fields: [],
 });
 
 // SOFTLAYER
 MACHINE_CREATE_FIELDS.push({
     provider: 'softlayer',
     fields: [{
-        name: "softlayer_backend_vlan_id",
-        label: "Backend VLAN ID",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'softlayer_backend_vlan_id',
+        label: 'Backend VLAN ID',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        helptext: "Optional."
+        helptext: 'Optional.',
     }, {
-        name: "hourly",
-        label: "Hourly billing",
-        type: "toggle",
+        name: 'hourly',
+        label: 'Hourly billing',
+        type: 'toggle',
         value: true,
         defaultValue: true,
         show: true,
         required: false,
-        helptext: "If you don't select hourly billing, monthly billing will be applied"
+        helptext: 'If you don\'t select hourly billing, monthly billing will be applied',
 
     }, {
-        name: "bare_metal",
-        label: "Bare Metal",
-        type: "toggle",
+        name: 'bare_metal',
+        label: 'Bare Metal',
+        type: 'toggle',
         value: false,
         defaultValue: false,
         show: true,
         required: false,
-        helptext: "Whether the new server will be Cloud server, or Bare Metal"
+        helptext: 'Whether the new server will be Cloud server, or Bare Metal',
 
     }, {
-        name: "machine_password",
-        label: "Machine Password *",
-        type: "password",
-        value: "",
-        defaultValue: "",
+        name: 'machine_password',
+        label: 'Machine Password *',
+        type: 'password',
+        value: '',
+        defaultValue: '',
         show: false,
         required: false,
-        helptext: "Windows machine password is required."
-    }]
+        helptext: 'Windows machine password is required.',
+    }],
 });
 
 // VCLOUD
 MACHINE_CREATE_FIELDS.push({
     provider: 'vcloud',
     fields: [{
-        name: "networks",
-        label: "Networks *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'networks',
+        label: 'Networks *',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        options: []
-    }]
+        options: [],
+    }],
 });
 
 // VSPHERE
 MACHINE_CREATE_FIELDS.push({
     provider: 'vsphere',
     fields: [{
-        name: "networks",
-        label: "Networks *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'networks',
+        label: 'Networks *',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        options: []
-    }]
+        options: [],
+    }],
 });
 
 // VULTR
 MACHINE_CREATE_FIELDS.push({
     provider: 'vultr',
-    fields: []
+    fields: [],
 });
 
 // ONAPP
 MACHINE_CREATE_FIELDS.push({
     provider: 'onapp',
     fields: [{
-        name: "networks",
-        label: "Network",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'networks',
+        label: 'Network',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        options: []
-    }]
+        options: [],
+    }],
 });
 
 // add common fields
-MACHINE_CREATE_FIELDS.forEach(function (p) {
-    //add common machine properties fields
+MACHINE_CREATE_FIELDS.forEach(function(p) {
+    // add common machine properties fields
     p.fields.splice(0, 0, {
-        name: "name",
-        label: "Machine Name *",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'name',
+        label: 'Machine Name *',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         show: true,
         required: true,
-        helptext: "Fill in the machine's name"
+        helptext: 'Fill in the machine\'s name',
     }, {
-        name: "image",
-        label: "Image *",
-        type: "mist_dropdown_searchable",
-        value: "",
-        defaultValue: "",
+        name: 'image',
+        label: 'Image *',
+        type: 'mist_dropdown_searchable',
+        value: '',
+        defaultValue: '',
         show: true,
         required: true,
         options: [],
-        search: ""
+        search: '',
     }, {
-        name: "location",
-        label: "Location *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'location',
+        label: 'Location *',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
         show: true,
         required: true,
-        options: []
+        options: [],
     }
     );
 
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
-        p.fields.splice(2 ,0 , {
-            name: "size",
-            label: "Size *",
-            type: "mist_size",
-            value: "custom",
-            defaultValue: "custom",
+        p.fields.splice(2 , 0, {
+            name: 'size',
+            label: 'Size *',
+            type: 'mist_size',
+            value: 'custom',
+            defaultValue: 'custom',
             custom: true,
             show: true,
             required: true,
             customSizeFields: [{
-                name: "ram",
-                label: "RAM MB",
-                type: "slider",
+                name: 'ram',
+                label: 'RAM MB',
+                type: 'slider',
                 value: 256,
                 defaultValue: 256,
                 min: 256,
@@ -530,11 +530,11 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 step: 256,
                 show: true,
                 required: false,
-                unit: "MB"
-            },{
-                name: "cpu",
-                label: "CPU cores",
-                type: "slider",
+                unit: 'MB',
+            }, {
+                name: 'cpu',
+                label: 'CPU cores',
+                type: 'slider',
                 value: 1,
                 defaultValue: 1,
                 min: 1,
@@ -542,24 +542,23 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 step: 1,
                 show: true,
                 required: false,
-                unit: "cores"
-            }]
+                unit: 'cores',
+            }],
         });
-    }
-    else if (['onapp'].indexOf(p.provider) != -1) {
-        p.fields.splice(2 ,0 , {
-            name: "size",
-            label: "Size *",
-            type: "mist_size",
-            value: "custom",
-            defaultValue: "custom",
+    } else if (['onapp'].indexOf(p.provider) != -1) {
+        p.fields.splice(2,0, {
+            name: 'size',
+            label: 'Size *',
+            type: 'mist_size',
+            value: 'custom',
+            defaultValue: 'custom',
             custom: true,
             show: true,
             required: true,
             customSizeFields: [{
-                name: "size_ram",
-                label: "RAM MB",
-                type: "slider",
+                name: 'size_ram',
+                label: 'RAM MB',
+                type: 'slider',
                 value: 256,
                 defaultValue: 256,
                 min: 256,
@@ -567,16 +566,16 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 step: 1,
                 show: true,
                 required: false,
-                unit: "MB",
-                helptext: "Custom RAM size in MB.",
+                unit: 'MB',
+                helptext: 'Custom RAM size in MB.',
                 showIf: {
-                    fieldName: "size",
-                    fieldValues: ["custom"]
-                }
+                    fieldName: 'size',
+                    fieldValues: ['custom'],
+                },
             }, {
-                name: "size_cpu",
-                label: "CPU cores",
-                type: "slider",
+                name: 'size_cpu',
+                label: 'CPU cores',
+                type: 'slider',
                 value: 1,
                 defaultValue: 1,
                 min: 1,
@@ -584,16 +583,16 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 step: 1,
                 show: true,
                 required: false,
-                unit: "cores",
-                helptext: "Custom CPU cores.",
+                unit: 'cores',
+                helptext: 'Custom CPU cores.',
                 showIf: {
-                    fieldName: "size",
-                    fieldValues: ["custom"]
-                }
+                    fieldName: 'size',
+                    fieldValues: ['custom'],
+                },
             }, {
-                name: "size_disk_primary",
-                label: "Primary Disk",
-                type: "slider",
+                name: 'size_disk_primary',
+                label: 'Primary Disk',
+                type: 'slider',
                 value: 5,
                 defaultValue: 5,
                 min: 5,
@@ -601,16 +600,16 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 step: 1,
                 show: true,
                 required: false,
-                unit: "GB",
-                helptext: "Custom disk size in GB.",
+                unit: 'GB',
+                helptext: 'Custom disk size in GB.',
                 showIf: {
-                    fieldName: "size",
-                    fieldValues: ["custom"]
-                }
+                    fieldName: 'size',
+                    fieldValues: ['custom'],
+                },
             }, {
-                name: "size_disk_swap",
-                label: "Swap Disk",
-                type: "slider",
+                name: 'size_disk_swap',
+                label: 'Swap Disk',
+                type: 'slider',
                 value: 1,
                 defaultValue: 1,
                 min: 1,
@@ -618,120 +617,119 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
                 step: 1,
                 show: true,
                 required: false,
-                unit: "GB",
-                helptext: "Custom disk size in GB.",
+                unit: 'GB',
+                helptext: 'Custom disk size in GB.',
                 showIf: {
-                    fieldName: "size",
-                    fieldValues: ["custom"]
-                }
-            }]
+                    fieldName: 'size',
+                    fieldValues: ['custom'],
+                },
+            }],
         });
-    }
-    else if (['vsphere'].indexOf(p.provider) != -1) {
-        p.fields.splice(2 ,0 , {
-            name: "size",
-            label: "Size *",
-            type: "mist_size",
-            value: "custom",
-            defaultValue: "custom",
+    } else if (['vsphere'].indexOf(p.provider) != -1) {
+        p.fields.splice(2 , 0, {
+            name: 'size',
+            label: 'Size *',
+            type: 'mist_size',
+            value: 'custom',
+            defaultValue: 'custom',
             custom: true,
             show: true,
             required: true,
             customSizeFields: [{
-                name: "ram",
-                label: "RAM MB",
-                type: "slider",
+                name: 'ram',
+                label: 'RAM MB',
+                type: 'slider',
                 value: 256,
-                defaultValue: "",
+                defaultValue: '',
                 min: 256,
                 max: 6223,
                 step: 256,
                 show: true,
                 required: false,
-                unit: "MB"
-            },{
-                name: "cpu",
-                label: "CPU cores",
-                type: "slider",
+                unit: 'MB',
+            }, {
+                name: 'cpu',
+                label: 'CPU cores',
+                type: 'slider',
                 value: 1,
-                defaultValue: "",
+                defaultValue: '',
                 min: 1,
                 max: 16,
                 step: 1,
                 show: true,
                 required: false,
-                unit: "cores"
-            },{
-                name: "disk",
-                label: "Disk GB",
-                type: "slider",
+                unit: 'cores',
+            }, {
+                name: 'disk',
+                label: 'Disk GB',
+                type: 'slider',
                 value: 5,
-                defaultValue: "",
+                defaultValue: '',
                 min: 5,
                 max: 16,
                 step: 1,
                 show: true,
                 required: false,
-                unit: "GB"
-            }]
-        })
+                unit: 'GB',
+            }],
+        });
     }
     // mist_dropdown for all others
     else {
-        p.fields.splice(2 ,0 , {
-            name: "size",
-            label: "Size *",
-            type: "mist_dropdown",
-            value: "custom",
-            defaultValue: "custom",
+        p.fields.splice(2 , 0, {
+            name: 'size',
+            label: 'Size *',
+            type: 'mist_dropdown',
+            value: 'custom',
+            defaultValue: 'custom',
             show: true,
             required: true,
             options: [],
-            custom: false
+            custom: false,
         });
     }
 
     if (['onapp'].indexOf(p.provider) != -1) {
         p.fields.push({
-            name: "hypervisor_group_id",
-            label: "hypervisor_group_id",
-            type: "text",
-            value: "",
-            defaultValue: "",
+            name: 'hypervisor_group_id',
+            label: 'hypervisor_group_id',
+            type: 'text',
+            value: '',
+            defaultValue: '',
             show: true,
             hidden: true,
-            required: false
+            required: false,
         }, {
-            name: "onapp_advanced_options",
-            label: "Advanced Options",
-            type: "toggle",
+            name: 'onapp_advanced_options',
+            label: 'Advanced Options',
+            type: 'toggle',
             value: false,
             defaultValue: false,
             excludeFromPayload: true,
-            helptext: "",
+            helptext: '',
             show: true,
-            required: false
+            required: false,
         }, {
-            name: "port_speed",
-            label: "Port Speed",
-            type: "slider",
-            value: "",
+            name: 'port_speed',
+            label: 'Port Speed',
+            type: 'slider',
+            value: '',
             defaultValue: 0,
             min: 0,
             max: 1000,
             step: 1,
             show: true,
             required: false,
-            unit: "Mbps",
-            helptext: "Port speed in Mbps. Value 0 will enable unlimited speed.",
+            unit: 'Mbps',
+            helptext: 'Port speed in Mbps. Value 0 will enable unlimited speed.',
             showIf: {
-                fieldName: "onapp_advanced_options",
-                fieldValues: [true]
-            }
+                fieldName: 'onapp_advanced_options',
+                fieldValues: [true],
+            },
         }, {
-            name: "cpu_priority",
-            label: "CPU Priority",
-            type: "slider",
+            name: 'cpu_priority',
+            label: 'CPU Priority',
+            type: 'slider',
             value: 1,
             defaultValue: 1,
             min: 1,
@@ -739,16 +737,16 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             step: 1,
             show: true,
             required: false,
-            unit: "%",
-            helptext: "CPU priority percentage.",
+            unit: '%',
+            helptext: 'CPU priority percentage.',
             showIf: {
-                fieldName: "onapp_advanced_options",
-                fieldValues: [true]
-            }
+                fieldName: 'onapp_advanced_options',
+                fieldValues: [true],
+            },
         }, {
-            name: "cpu_threads",
-            label: "CPU Threads",
-            type: "slider",
+            name: 'cpu_threads',
+            label: 'CPU Threads',
+            type: 'slider',
             value: 1,
             defaultValue: 1,
             min: 1,
@@ -756,16 +754,16 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             step: 1,
             show: true,
             required: false,
-            unit: "",
-            helptext: "Custom CPU Threads",
+            unit: '',
+            helptext: 'Custom CPU Threads',
             showIf: {
-                fieldName: "onapp_advanced_options",
-                fieldValues: [true]
-            }
+                fieldName: 'onapp_advanced_options',
+                fieldValues: [true],
+            },
         }, {
-            name: "cpu_sockets",
-            label: "CPU Sockets",
-            type: "slider",
+            name: 'cpu_sockets',
+            label: 'CPU Sockets',
+            type: 'slider',
             value: 1,
             defaultValue: 1,
             min: 1,
@@ -773,54 +771,54 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
             step: 1,
             show: true,
             required: false,
-            unit: "",
-            helptext: "Custom CPU Sockets",
+            unit: '',
+            helptext: 'Custom CPU Sockets',
             showIf: {
-                fieldName: "onapp_advanced_options",
-                fieldValues: [true]
-            }
+                fieldName: 'onapp_advanced_options',
+                fieldValues: [true],
+            },
         });
     }
 
     p.fields.push({
-        name: "key",
-        label: "Key *",
-        type: "ssh_key",
-        value: "",
-        defaultValue: "",
+        name: 'key',
+        label: 'Key *',
+        type: 'ssh_key',
+        value: '',
+        defaultValue: '',
         show: true,
         required: true,
-        options: []
+        options: [],
     });
 
-    //add cloud init field only to providers that accept and we support
+    // add cloud init field only to providers that accept and we support
     if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt'].indexOf(p.provider) != -1) {
         p.fields.push({
-            name: "cloud_init",
-            label: "Cloud Init",
-            type: "textarea",
-            value: "",
-            defaultValue: "",
+            name: 'cloud_init',
+            label: 'Cloud Init',
+            type: 'textarea',
+            value: '',
+            defaultValue: '',
             show: true,
             required: false,
-            helptext: "Start your Cloud Init script with #!/bin/bash or use a valid yaml configuration file starting with #cloud-config"
+            helptext: 'Start your Cloud Init script with #!/bin/bash or use a valid yaml configuration file starting with #cloud-config',
         });
     }
 
-    //add onapp specific fields
+    // add onapp specific fields
     if (['onapp'].indexOf(p.provider) != -1) {
         p.fields.push({
-            name: "build",
-            label: "Build",
-            type: "toggle",
+            name: 'build',
+            label: 'Build',
+            type: 'toggle',
             value: true,
             defaultValue: true,
             show: true,
             required: false,
         }, {
-            name: "boot",
-            label: "Boot",
-            type: "toggle",
+            name: 'boot',
+            label: 'Boot',
+            type: 'toggle',
             value: true,
             defaultValue: true,
             show: true,
@@ -828,341 +826,341 @@ MACHINE_CREATE_FIELDS.forEach(function (p) {
         });
     }
 
-    //add common post provision fields
+    // add common post provision fields
     p.fields.push({
-        name: "post_provision_script",
-        label: "Run Script",
-        type: "toggle",
+        name: 'post_provision_script',
+        label: 'Run Script',
+        type: 'toggle',
         value: false,
         defaultValue: false,
         excludeFromPayload: true,
-        helptext: "Open options to run a script immediately after provisioning",
-        show: true,
-        required: false
-    }, {
-        name: "run_script",
-        label: "Script Inline or Select",
-        type: "radio",
-        value: "inline",
-        defaultValue: "inline",
-        helptext: "Edit a script to run or choose one from your existing ones.",
+        helptext: 'Open options to run a script immediately after provisioning',
         show: true,
         required: false,
-        class: "bind-bottom radio-highight",
+    }, {
+        name: 'run_script',
+        label: 'Script Inline or Select',
+        type: 'radio',
+        value: 'inline',
+        defaultValue: 'inline',
+        helptext: 'Edit a script to run or choose one from your existing ones.',
+        show: true,
+        required: false,
+        class: 'bind-bottom radio-highight',
         options: [{
-            title: "Inline Script",
-            val: "inline"
+            title: 'Inline Script',
+            val: 'inline',
         }, {
-            title: "Select Existing",
-            val: "select"
+            title: 'Select Existing',
+            val: 'select',
         }],
         showIf: {
-            fieldName: "post_provision_script",
-            fieldValues: ["true", true]
-        }
+            fieldName: 'post_provision_script',
+            fieldValues: ['true', true],
+        },
     }, {
-        name: "script",
-        label: "Inline Script",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
+        name: 'script',
+        label: 'Inline Script',
+        type: 'textarea',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        class: "bind-top background",
-        helptext: "The inline script will run after provisioning",
+        class: 'bind-top background',
+        helptext: 'The inline script will run after provisioning',
         showIf: {
-            fieldName: "run_script",
-            fieldValues: ["inline"]
-        }
+            fieldName: 'run_script',
+            fieldValues: ['inline'],
+        },
     }, {
-        name: "script_id",
-        label: "Script",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
-        class: "bind-both background",
+        name: 'script_id',
+        label: 'Script',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        class: 'bind-both background',
         show: true,
         required: false,
-        helptext: "The selected script will run after provisioning",
+        helptext: 'The selected script will run after provisioning',
         showIf: {
-            fieldName: "run_script",
-            fieldValues: ["select"]
-        }
+            fieldName: 'run_script',
+            fieldValues: ['select'],
+        },
     }, {
-        name: "script_params",
-        label: "Optional Script Params",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
+        name: 'script_params',
+        label: 'Optional Script Params',
+        type: 'textarea',
+        value: '',
+        defaultValue: '',
         show: true,
         required: false,
-        class: "bind-top background",
-        helptext: "",
+        class: 'bind-top background',
+        helptext: '',
         showIf: {
-            fieldName: "run_script",
-            fieldValues: ["select"]
-        }
+            fieldName: 'run_script',
+            fieldValues: ['select'],
+        },
     }, {
-        name: "post_provision_scheduler",
-        label: "Schedule a task",
-        type: "toggle",
+        name: 'post_provision_scheduler',
+        label: 'Schedule a task',
+        type: 'toggle',
         value: false,
         defaultValue: false,
         excludeFromPayload: true,
-        helptext: "Enable a scheduled action on this machine",
+        helptext: 'Enable a scheduled action on this machine',
         show: true,
-        required: false
+        required: false,
     }, {
-        name: "action",
-        label: "Schedule Task",
-        type: "dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'action',
+        label: 'Schedule Task',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
         excludeFromPayload: true,
         show: true,
         required: false,
-        helptext: "Choose one from the available tasks to schedule.",
+        helptext: 'Choose one from the available tasks to schedule.',
         options: [],
         showIf: {
-            fieldName: "post_provision_scheduler",
-            fieldValues: ["true", true]
-        }
+            fieldName: 'post_provision_scheduler',
+            fieldValues: ['true', true],
+        },
     }, {
-        name: "schedule_script_id",
-        label: "Script",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
+        name: 'schedule_script_id',
+        label: 'Script',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
         show: false,
         required: false,
         excludeFromPayload: true,
         add: true,
-        helptext: "Schedule an existing script to run.",
+        helptext: 'Schedule an existing script to run.',
         options: [],
         showIf: {
-            fieldName: "action",
-            fieldValues: ["run script"]
-        }
+            fieldName: 'action',
+            fieldValues: ['run script'],
+        },
     }, {
-        name: "params",
-        label: "Parameters",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
-        helptext: "",
+        name: 'params',
+        label: 'Parameters',
+        type: 'textarea',
+        value: '',
+        defaultValue: '',
+        helptext: '',
         show: false,
         required: false,
         showIf: {
-            fieldName: "action",
-            fieldValues: ["run script"]
-        }
+            fieldName: 'action',
+            fieldValues: ['run script'],
+        },
     }, {
-        name: "schedule_type",
-        label: "Schedule Type",
-        type: "radio",
-        value: "one_off",
-        defaultValue: "one_off",
-        helptext: "The scheduler type. Visit the docs",
-        helpHref: "http://docs.mist.io/article/151-scheduler",
+        name: 'schedule_type',
+        label: 'Schedule Type',
+        type: 'radio',
+        value: 'one_off',
+        defaultValue: 'one_off',
+        helptext: 'The scheduler type. Visit the docs',
+        helpHref: 'http://docs.mist.io/article/151-scheduler',
         show: false,
         required: true,
         excludeFromPayload: true,
-        class: "bind-bottom radio-highight",
+        class: 'bind-bottom radio-highight',
         options: [{
-            title: "Once",
-            val: "one_off"
+            title: 'Once',
+            val: 'one_off',
         }, {
-            title: "Repeat",
-            val: "interval"
+            title: 'Repeat',
+            val: 'interval',
         }, {
-            title: "Crontab",
-            val: "crontab"
+            title: 'Crontab',
+            val: 'crontab',
         }],
         showIf: {
-            fieldName: "post_provision_scheduler",
-            fieldValues: ["true", true]
-        }
+            fieldName: 'post_provision_scheduler',
+            fieldValues: ['true', true],
+        },
     }, {
-        name: "schedule_entry",
-        label: "Schedule time",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        helptext: "",
+        name: 'schedule_entry',
+        label: 'Schedule time',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        helptext: '',
         show: true,
         hidden: true,
         excludeFromPayload: true,
-        required: false
+        required: false,
     }, {
-        name: "schedule_entry_interval_every",
-        label: "Interval",
-        type: "text",
-        value: "10",
-        defaultValue: "",
+        name: 'schedule_entry_interval_every',
+        label: 'Interval',
+        type: 'text',
+        value: '10',
+        defaultValue: '',
         excludeFromPayload: true,
-        class: "bind-both background",
+        class: 'bind-both background',
         show: false,
         required: true,
-        helptext: "Example, every 10 minutes",
+        helptext: 'Example, every 10 minutes',
         showIf: {
-            fieldName: "schedule_type",
-            fieldValues: ["interval"]
-        }
-    }, {
-        name: "schedule_entry_interval_period",
-        type: "radio",
-        value: "minutes",
-        defaultValue: "minutes",
-        excludeFromPayload: true,
-        class: "bind-top background",
-        show: false,
-        required: false,
-        showIf: {
-            fieldName: "schedule_type",
-            fieldValues: ["interval"]
+            fieldName: 'schedule_type',
+            fieldValues: ['interval'],
         },
-        options: [{ //days, hours, minutes, seconds, microseconds
-            title: "days",
-            val: "days"
-        }, {
-            title: "hours",
-            val: "hours"
-        }, {
-            title: "mins",
-            val: "minutes"
-        }]
     }, {
-        name: "schedule_entry_crontab",
-        label: "Crontab",
-        type: "text",
-        value: "*/10 * * * *",
-        defaultValue: "*/10 * * * *",
+        name: 'schedule_entry_interval_period',
+        type: 'radio',
+        value: 'minutes',
+        defaultValue: 'minutes',
         excludeFromPayload: true,
-        class: "bind-top background",
-        show: false,
-        required: false,
-        helptext: "Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: Minute, Hour, Day of the Month, Month of the Year, Day of the Week.",
-        helpHref: "http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules",
-        showIf: {
-            fieldName: "schedule_type",
-            fieldValues: ["crontab"]
-        }
-    }, {
-        name: "schedule_entry_one_off",
-        label: "",
-        type: "date",
-        value: "",
-        defaultValue: "",
-        class: "bind-top background",
-        icon: "schedule",
-        excludeFromPayload: true,
+        class: 'bind-top background',
         show: false,
         required: false,
         showIf: {
-            fieldName: "schedule_type",
-            fieldValues: ["one_off"]
-        }
+            fieldName: 'schedule_type',
+            fieldValues: ['interval'],
+        },
+        options: [{ // days, hours, minutes, seconds, microseconds
+            title: 'days',
+            val: 'days',
+        }, {
+            title: 'hours',
+            val: 'hours',
+        }, {
+            title: 'mins',
+            val: 'minutes',
+        }],
     }, {
-        name: "start_after",
-        label: "Starts",
-        type: "date",
-        value: "",
-        placeholder: "now",
-        defaultValue: "",
-        helptext: "",
-        icon: "schedule",
+        name: 'schedule_entry_crontab',
+        label: 'Crontab',
+        type: 'text',
+        value: '*/10 * * * *',
+        defaultValue: '*/10 * * * *',
+        excludeFromPayload: true,
+        class: 'bind-top background',
+        show: false,
+        required: false,
+        helptext: 'Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: Minute, Hour, Day of the Month, Month of the Year, Day of the Week.',
+        helpHref: 'http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules',
+        showIf: {
+            fieldName: 'schedule_type',
+            fieldValues: ['crontab'],
+        },
+    }, {
+        name: 'schedule_entry_one_off',
+        label: '',
+        type: 'date',
+        value: '',
+        defaultValue: '',
+        class: 'bind-top background',
+        icon: 'schedule',
+        excludeFromPayload: true,
+        show: false,
+        required: false,
+        showIf: {
+            fieldName: 'schedule_type',
+            fieldValues: ['one_off'],
+        },
+    }, {
+        name: 'start_after',
+        label: 'Starts',
+        type: 'date',
+        value: '',
+        placeholder: 'now',
+        defaultValue: '',
+        helptext: '',
+        icon: 'schedule',
         show: false,
         required: false,
         disabled: false,
         excludeFromPayload: true,
         showIf: {
-            fieldName: "schedule_type",
-            fieldValues: ["interval", "crontab"]
-        }
+            fieldName: 'schedule_type',
+            fieldValues: ['interval', 'crontab'],
+        },
     }, {
-        name: "expires",
-        label: "Expires",
-        type: "date",
-        value: "",
-        placeholder: "never",
+        name: 'expires',
+        label: 'Expires',
+        type: 'date',
+        value: '',
+        placeholder: 'never',
         excludeFromPayload: true,
-        defaultValue: "",
-        helptext: "",
-        icon: "schedule",
+        defaultValue: '',
+        helptext: '',
+        icon: 'schedule',
         show: false,
         required: false,
         showIf: {
-            fieldName: "schedule_type",
-            fieldValues: ["interval", "crontab"]
-        }
+            fieldName: 'schedule_type',
+            fieldValues: ['interval', 'crontab'],
+        },
     }, {
-        name: "max_run_count",
-        label: "Maximum Run Count",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'max_run_count',
+        label: 'Maximum Run Count',
+        type: 'text',
+        value: '',
+        defaultValue: '',
         excludeFromPayload: true,
         show: false,
         required: false,
-        helptext: "Optional. Integers only. Define a maximum run count.",
+        helptext: 'Optional. Integers only. Define a maximum run count.',
         showIf: {
-            fieldName: "schedule_type",
-            fieldValues: ["interval", "crontab"]
-        }
+            fieldName: 'schedule_type',
+            fieldValues: ['interval', 'crontab'],
+        },
     });
 
     if (['onapp'].indexOf(p.provider) == -1) {
         p.fields.push({
-            name: "create_hostname_machine",
-            label: "Create Hostname",
-            type: "toggle",
+            name: 'create_hostname_machine',
+            label: 'Create Hostname',
+            type: 'toggle',
             value: false,
             defaultValue: false,
             excludeFromPayload: true,
-            helptext: "Open options to create an A record for this machine.",
+            helptext: 'Open options to create an A record for this machine.',
             show: true,
-            required: false
+            required: false,
         }, {
-            name: "hostname",
-            label: "Hostname",
-            type: "textarea",
-            value: "",
-            defaultValue: "",
-            helptext: "Provide the desired hostname you want to assign to the machine. Example: machine1.mist.io. There needs to be a DNS zone for this domain already created. Currently under heavy development, might not be fully functional.",
+            name: 'hostname',
+            label: 'Hostname',
+            type: 'textarea',
+            value: '',
+            defaultValue: '',
+            helptext: 'Provide the desired hostname you want to assign to the machine. Example: machine1.mist.io. There needs to be a DNS zone for this domain already created. Currently under heavy development, might not be fully functional.',
             show: true,
             required: false,
             showIf: {
-                fieldName: "create_hostname_machine",
-                fieldValues: ["true", true]
-            }
+                fieldName: 'create_hostname_machine',
+                fieldValues: ['true', true],
+            },
         });
     }
 
     p.fields.push({
-        name: "monitoring",
-        label: "Enable monitoring",
-        type: "toggle",
+        name: 'monitoring',
+        label: 'Enable monitoring',
+        type: 'toggle',
         value: false,
         defaultValue: false,
         show: true,
         required: false,
-        helptext: ""
+        helptext: '',
     }, {
-        name: "async",
-        label: "Async request",
-        type: "toggle",
+        name: 'async',
+        label: 'Async request',
+        type: 'toggle',
         value: true,
         defaultValue: true,
         show: false,
         required: false,
-        helptext: ""
+        helptext: '',
     });
 
-    if (p.provider == "onapp") {
-        var locationField = p.fields.find(function (f) {
-                return f.name == 'location'
-            }),
-            index = p.fields.indexOf(locationField);
+    if (p.provider == 'onapp') {
+        let locationField = p.fields.find(function(f) {
+                return f.name == 'location';
+            });
+        let index = p.fields.indexOf(locationField);
         p.fields.splice(1, 0, p.fields.splice(index, 1)[0]);
     }
 });

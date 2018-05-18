@@ -389,17 +389,15 @@
                             f.options = this.model.clouds[cloudId].storageAccountsArray || [];
                         }
                         if (f.name.endsWith("size")) {
-                            f.options = this.model.clouds[cloudId].sizesArray ? this.model.clouds[cloudId].sizesArray : [];
+                            f.options = this.model.clouds[cloudId].sizesArray || [];
                             // allow custom size set
                             if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[this.selectedCloud]
                                     .provider) > -1) {
-                                f['custom'] = true;
-                                if (f.type == "mist_dropdown")
-                                    f.options = [{
-                                        name: "Custom Size",
-                                        id: "custom",
-                                        button: true
-                                    }].concat(f.options);
+                                f.options = [{
+                                    name: "Custom Size",
+                                    id: "custom",
+                                    button: true
+                                }].concat(f.options);
                             }
                         }
                         if (f.name.endsWith("key")) {
@@ -943,6 +941,7 @@
                 this.set('machineFields.' + monInd + '.value', false);
             },
             _updateFieldsForKvm: function () {
+                debugger;
                 var imaInd = this._fieldIndexByName('image');
                 var locInd = this._fieldIndexByName('location');
                 var keyInd = this._fieldIndexByName('key');
@@ -1145,9 +1144,6 @@
                 var response = JSON.parse(e.detail.xhr.response);
                 this.fire('go-to', {
                     url: '/machines'
-                })
-                this.fire('set-job-id', {
-                    jobId: response.job_id
                 });
                 this._resetForm();
             },

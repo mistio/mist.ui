@@ -17,6 +17,7 @@
                 padding: 0;
                 margin: 0;
                 height: 0;
+                margin-bottom: 32px;
             }
 
             :host(.active) {
@@ -135,7 +136,7 @@
             }
         </style>
 
-        <template is="dom-if" if="[[incidents.length]]">
+        <template is="dom-if" if="[[incidents.length]]" restamp>
             <div class="flexchild-col">
                 <a href="/incidents" class="main-section" is="pushstate-anchor">
                     <section-tile name="incidents" color="#d96557" icon="icons:error-outline" count="[[incidents.length]]" incidents></section-tile>
@@ -188,7 +189,7 @@
             },
             incidents: {
                 type: Array,
-                computed: '_computeOpenIncidents(model.incidentsArray.*)'
+                computed: '_computeOpenIncidents(model.incidentsArray, model.incidentsArray.*, model.incidentsArray.length,  model.incidents,  model.incidents.*)'
             },
             resolvedCount: {
                 type: Number,
@@ -205,7 +206,7 @@
                 this.classList.add('active');
             }.bind(this), (index + 1) * 50);
         },
-        _computeOpenIncidents: function (incidents) {
+        _computeOpenIncidents: function (incidentsArray, incidentsSplices, incidentsLength, incidentsMap, incidentsMapSplices) {
             var all = Object.values(this.model.incidents);
             return all.filter(function (incident) {
                 return !incident.finished_at;

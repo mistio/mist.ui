@@ -14,9 +14,11 @@
             :host {
                 display: block;
             }
+
             :host>* {
                 width: 100%;
             }
+
             paper-item.button-true {
                 background-color: #2196F3 !important;
                 font-weight: 500 !important;
@@ -34,7 +36,7 @@
                     <paper-item disabled>No sizes found</paper-item>
                 </template>
                 <paper-item value="custom" class="button-true" hidden$="[[!_allowCustom(field,field.custom)]]">Custom Size</paper-item>
-                <template is="dom-repeat" items="[[field.options]]" as="option">
+                <template is="dom-repeat" items="[[_sort(field.options)]]" as="option">
                     <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                         <span class="flex">[[showOption(option)]]</span>
                     </paper-item>
@@ -76,7 +78,7 @@
                 },
                 customSizeFields: {
                     type: Array,
-                    value: function() {
+                    value: function () {
                         return [{
                             name: "ram",
                             label: "RAM MB",
@@ -89,7 +91,7 @@
                             show: true,
                             required: false,
                             unit: "MB"
-                        },{
+                        }, {
                             name: "cpu",
                             label: "CPU cores",
                             type: "slider",
@@ -101,17 +103,18 @@
                             show: true,
                             required: false,
                             unit: "cores"
-                        },{
+                        }, {
                             name: "disk",
                             label: "Disk GB",
                             type: "slider",
                             value: 5,
                             defaultValue: "",
                             min: 5,
-                            max: 16,
+                            max: 100,
                             step: 1,
-                            show: true,
+                            show: false,
                             required: false,
+                            excludeFromPayload: true,
                             unit: "GB"
                         }]
                     }
@@ -151,17 +154,17 @@
                 console.log('_updateCustomValue', custom,fields);
                 if (!this.isCustom) {
                     this.set('customValue', false);
-                }
-                else {
+                } else {
                     var cv = {}
                     for (var i=0; i<this.field.customSizeFields.length; i++){
-                        cv[this.field.customSizeFields[i].name] = this.field.customSizeFields[i].value;
+                        if (!this.customSizeFields[i].excludeFromPayload)
+                            cv[this.field.customSizeFields[i].name] = this.field.customSizeFields[i].value;
                     }
                     this.set('field.customValue', cv);
                 }
             },
 
-            _fieldOptionsChanged: function (custom,options,length) {
+            _fieldOptionsChanged: function (custom, options, length) {
                 // show only sliders if custom allowed and there are no options
                 if (this.field.custom && (!this.field.options || !this.field.options.length)) {
                     this.set('isCustom', true);
@@ -174,11 +177,11 @@
             _fieldValueChanged: function (value) {
                 if (this.field.value == "custom") {
                     this.set('isCustom', true);
-                }
-                else {
+                } else {
                     this.set('isCustom', false);
                     this.field['customValue'] = false;
                 }
+                this.fire('fields-changed');
             },
 
             _resetField: function () {
@@ -186,6 +189,21 @@
                 if (this.field.value == "custom")
                     this.set('isCustom', true);
             },
+
+            _sort: function(arr) {
+                if (arr && arr.length)
+                    return arr.sort(function(a,b){
+                        if (a.cpus < b.cpus) {
+                            return -1;
+                        }
+                        if (a.cpus > b.cpus) {
+                            return 1;
+                        }
+                        return 0;
+                    })
+                else
+                    return [];
+            }
         });
     </script>
 </dom-module>

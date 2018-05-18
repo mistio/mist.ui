@@ -44,6 +44,9 @@
             iron-icon#alert {
                 cursor: inherit;
                 color: inherit !important;
+                padding: 14px 0px;
+                margin-right: 8px;
+                margin-left: -3px;
             }
 
             paper-icon-button::content iron-icon {
@@ -70,7 +73,7 @@
                 display: inline-block;
             }
 
-            .rule.incident-true {
+            .rule-item.incident-true {
                 color: var(--red-color);
             }
 
@@ -132,6 +135,11 @@
             span.actions>paper-icon-button {
                 padding: 8px;
             }
+            .tag.white {
+                background-color: #fff;
+                border: 1px solid #ddd;
+                color: #222;
+            }
         </style>
 
         <div class="rule-item layout flex-1 horizontal">
@@ -151,30 +159,30 @@
                             <span class="keyword">within</span> [[rule.window.start]] [[rule.window.period]]
                         </span>
                     </template>
-                    <span class="keyword then">then</span>
+                    <span class="keyword then">&nbsp;then&nbsp;</span>
                     <template is="dom-repeat" items="[[rule.actions]]" as="action">
-                        <span class="and" hidden$="[[!index]]"> AND </span>
+                        <span class="and" hidden$="[[!index]]">&nbsp;AND&nbsp;</span>
                         <span class="strong">[[_phrase(action.type)]]</span>
                         <span class="monospace command" hidden$="[[!_showCommandTextarea(action.type)]]">
-                            <code>[[action.command]]</code>
+                            <code>[[action.command]]</code>&nbsp;
                         </span>
                         <span>[[action.action]]</span>
                         <span hidden$="[[!action.teams.length]]">
-                            team<span hidden$="[[!_isPlural(action.teams.length)]]">s</span>
+                            team<span hidden$="[[!_isPlural(action.teams.length)]]">s</span>&nbsp;
                             <template is="dom-repeat" items="[[action.teams]]" as="team">
-                                <code>[[_computeTeam(team, teams.length)]]</code>
+                                <code>[[_computeTeam(team, teams.length)]]</code>&nbsp;
                             </template>
                         </span>
                         <span hidden$="[[!action.users.length]]">
-                            user<span hidden$="[[!_isPlural(action.users.length)]]">s</span>
+                            user<span hidden$="[[!_isPlural(action.users.length)]]">s</span>&nbsp;
                             <template is="dom-repeat" items="[[action.users]]" as="user">
-                                <code>[[_computeUser(user, users.*)]]</code>
+                                <code>[[_computeUser(user, users.*)]]</code>&nbsp;
                             </template>
                         </span>
                         <span hidden$="[[!action.emails.length]]">
-                            email<span hidden$="[[!_isPlural(action.emails.length)]]">s</span>
+                            email<span hidden$="[[!_isPlural(action.emails.length)]]">s</span>&nbsp;
                             <template is="dom-repeat" items="[[action.emails]]" as="email">
-                                <code>[[email]]</code>
+                                <code>[[email]]</code>&nbsp;
                             </template>
                         </span>
                     </template>
@@ -182,12 +190,14 @@
             </div>
             <paper-spinner active$=[[sendingData]]></paper-spinner>
             <span class="actions">
-                <paper-icon-button icon="icons:create" toggles active={{editing}} hidden$="[[!canEdit]]">edit</paper-icon-button>
-                <paper-icon-button icon="delete" data-attr="[[rule.id]]" on-tap="deleteRule" hidden$="[[!canEdit]]"></paper-icon-button>
-
-                <template is="dom-repeat" items="[[tagSelectors]]" as="tag">
+                <!-- <template is="dom-repeat" items="[[tagSelectors]]" as="tag">
                     <span class="tag">[[tag]]</span>
                 </template>
+                <template is="dom-if" if="[[ruleAppliesOnAllMachines]]">
+                    <span class="tag white">on all machines</span>
+                </template> -->
+                <paper-icon-button icon="icons:create" toggles active={{editing}} hidden$="[[!canEdit]]">edit</paper-icon-button>
+                <paper-icon-button icon="delete" data-attr="[[rule.id]]" on-tap="deleteRule" hidden$="[[!canEdit]]"></paper-icon-button>
             </span>
 
         </div>
@@ -204,7 +214,10 @@
                     type: Boolean,
                     value: false
                 },
-                resource: Object, // machine, cloud or other later
+                resource: {
+                    type:Object,
+                    value: false
+                },
                 rule: Object,
                 availableMetrics: {
                     type: Array
@@ -221,7 +234,7 @@
                 users: Array,
                 canEdit: {
                     type: Boolean,
-                    computed: '_computeCanEdit(rule)'
+                    computed: '_computeCanEdit(rule,resource)'
                 },
                 editing: {
                     type: Boolean,
@@ -230,15 +243,28 @@
                 tagSelectors: {
                     type: Array,
                     computed: "_computeTagSelectors(rule.selectors.length)"
+                },
+                ruleAppliesOnAllMachines: {
+                    type: Boolean,
+                    value: false
                 }
             },
             ready: function () {},
-            _computeCanEdit: function (rule) {
-                return this.rule && this.rule.selectors.filter(function (c) {
-                    return c.type == "machines" && c.ids.length > 1
-                }).length == 0 && this.rule.selectors.filter(function (c) {
-                    return c.type == "tags"
-                }).length == 0;
+            _computeCanEdit: function (rule, resource) {
+                var that = this;
+                if (resource) {
+                    var ruleExist = this.rule ? true : false,
+                        ruleSelectors = this.rule.selectors && this.rule.selectors.length ? true : false,
+                        ruleAppliesOnAllMachines = !this.rule.selectors || !this.rule.selectors.length,
+                        ruleAppliesOnTags = this.rule.selectors.filter(function (c) {
+                                                return c.type == "tags"
+                                            }).length > 0;
+                    // console.log('_computeCanEdit', rule.id, ruleExist, ruleSelectors, !ruleAppliesOnAllMachines, !ruleAppliesOnTags);
+                    this.set('ruleAppliesOnAllMachines', ruleAppliesOnAllMachines);
+                    return ruleExist && ruleSelectors && !ruleAppliesOnAllMachines && !ruleAppliesOnTags;
+                }
+                else 
+                    return true;
             },
             _computeUnit: function (metric, availableMetrics) {
                 var ref;
