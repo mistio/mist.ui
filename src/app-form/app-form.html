@@ -377,7 +377,7 @@
                                 </paper-menu>
                             </paper-dropdown-menu>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_size', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_size', field.show)]]" restamp>
                             <mist-size-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-size-field>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_dropdown', field.show)]]">
@@ -690,13 +690,14 @@
                 if (fields && fields.path && fields.path == 'fields') {
                     this._updateForm();
                 }
+                var that = this;
                 this.async(function () {
-                    var form = this.form,
+                    var form = that.form,
                         show = true,
                         dependency, reset = true;
 
                     // Update show field flag after calculating dependencies
-                    this.fields.forEach(function (el, index) {
+                    that.fields.forEach(function (el, index) {
                         // if field has a dependency
                         if (el.showIf) {
 
@@ -709,7 +710,7 @@
                             }
 
                             //check for second level dependency
-                            var parent = this.fields.find(function (f) {
+                            var parent = that.fields.find(function (f) {
                                 return f.name == el.showIf.fieldName;
                             });
 
@@ -726,61 +727,61 @@
                                 show = show && parentShow;
                             }
 
-                            this.set('fields.' + index + '.show', show);
+                            that.set('fields.' + index + '.show', show);
 
                             // update form values regardless of el.show
                             if (el.type == "ip_textarea") {
                                 var textToArray = el.value.split('\n');
-                                this.set('form.' + el.name, textToArray);
+                                that.set('form.' + el.name, textToArray);
                             } else if (el.name == "machines_tags") {
                                 var textToArray = el.value.split(',');
-                                this.set('form.' + el.name, this._constructTagsValue(
+                                that.set('form.' + el.name, that._constructTagsValue(
                                     textToArray));
                             } else if (el.type == "checkboxes") {
-                                this.set('form.' + el.name, this._constructCheckboxValue(
+                                that.set('form.' + el.name, that._constructCheckboxValue(
                                     el.name));
                             } else {
-                                this.set('form.' + el.name, el.value);
+                                that.set('form.' + el.name, el.value);
                             }
                         } else {
                             if (el.type == "ip_textarea") {
                                 var textToArray = el.value.split('\n');
-                                this.set('form.' + el.name, textToArray);
+                                that.set('form.' + el.name, textToArray);
                             } else if (el.name == "machines_tags") {
                                 var textToArray = el.value.split(',');
-                                this.set('form.' + el.name, this._constructTagsValue(
+                                that.set('form.' + el.name, that._constructTagsValue(
                                     textToArray));
                             } else if (el.type == "checkboxes") {
-                                this.set('form.' + el.name, this._constructCheckboxValue(
+                                that.set('form.' + el.name, that._constructCheckboxValue(
                                     el.name));
                             } else {
-                                this.set('form.' + el.name, el.value);
+                                that.set('form.' + el.name, el.value);
                             }
                         }
 
                         // if field is a dependency of another field
-                        this.fields.forEach(function (depel, index) {
+                        that.fields.forEach(function (depel, index) {
                             if (depel.showIf &&
                                 depel.showIf.fieldName != 'yaml_or_form' &&
                                 depel.showIf.fieldName == el.name) {
                                 if (depel.options) {
-                                    this.set('fields.' + index + '.options',
+                                    that.set('fields.' + index + '.options',
                                         depel.options);
                                 }
                             }
-                        }, this);
+                        });
 
                         if (el.placeholderIf) {
                             dependency = form[el.placeholderIf.fieldName];
-                            this.set('fields.' + index + '.placeholder', el.placeholderIf
+                            that.set('fields.' + index + '.placeholder', el.placeholderIf
                                 .fieldOptions[dependency]);
                         }
-                    }, this);
+                    });
 
-                    var valid = this._validateFields(this.fields);
+                    var valid = that._validateFields(that.fields);
                     console.log("Validate Fields", valid);
-                    this.set('form', form);
-                    this.set('formReady', valid && !sendingData);
+                    that.set('form', form);
+                    that.set('formReady', valid && !sendingData);
                 });
             },
             _validateFields: function (fields) {
@@ -803,8 +804,8 @@
                     } else if (el.name == "admin_state_up") {
                         return true;
                     } else if (el.name == "cloud_init") {
-                        return el.value.startsWith("#!/bin/bash") || el.value.startsWith(
-                            "#cloud-config") || el.value.trim() == "";
+                        return typeof el.value == "string" && (el.value.startsWith("#!/bin/bash") || el.value.startsWith(
+                                                    "#cloud-config") || el.value.trim() == "");
                     } else if (el.name == "schedule_entry") {
                         return !el.excludeFromPayload ? el.value : true;
                     } else if (el.name == "libvirt_disk_size" && el.pattern) {
@@ -815,7 +816,7 @@
                         return el.show && el.required ? this._validateMistSize(el) : true;
                     } else {
                         if (el.show && el.required && (!el.value || !el.value.length))
-                            console.warn(el.type, 'not valid', el.name, el.value.length);
+                            console.warn(el.type, 'not valid', el.name, el.value);
                         return el.show && el.required ? el.value && el.value.length : true;
                     }
                 }, this);
@@ -824,7 +825,8 @@
                 return el.value == "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length; 
             },
             _validateCustomValue: function (customSizeFields, customValue) {
-                if (customSizeFields) {
+                // console.log('_validateCustomValue',customSizeFields, customValue);
+                if (customSizeFields && customValue) {
                     for (var i=0; i<customSizeFields.length; i++) {
                         if (customValue[customSizeFields[i].name] == undefined || customValue[customSizeFields[i].name] == ""){
                             console.warn(customValue[customSizeFields[i].name], ' not valid')
