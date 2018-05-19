@@ -305,7 +305,7 @@ MACHINE_CREATE_FIELDS.push({
         value: 4,
         defaultValue: 4,
         show: true,
-        required: false,
+        required: true,
         pattern: '[0-9]*',
         helptext: 'The VM\'s size will be the size of the image plus the number in GBs provided here',
         helpHref: 'http://docs.mist.io/article/99-managing-kvm-with-mist-io',
@@ -517,6 +517,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             value: 'custom',
             defaultValue: 'custom',
             custom: true,
+            customValue: null,
             show: true,
             required: true,
             customSizeFields: [{
@@ -553,6 +554,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             value: 'custom',
             defaultValue: 'custom',
             custom: true,
+            customValue: null,
             show: true,
             required: true,
             customSizeFields: [{
@@ -633,6 +635,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             value: 'custom',
             defaultValue: 'custom',
             custom: true,
+            customValue: null,
             show: true,
             required: true,
             customSizeFields: [{
@@ -680,8 +683,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             name: 'size',
             label: 'Size *',
             type: 'mist_dropdown',
-            value: 'custom',
-            defaultValue: 'custom',
+            value: '',
+            defaultValue: '',
             show: true,
             required: true,
             options: [],
