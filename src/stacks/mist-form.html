@@ -62,9 +62,10 @@
                         return f.name == "stackinputs";
                     });
                     this.set('fields.'+ind+'.defaultValue', this.yaml_inputs);
+                    this._updateFields();
                 },
                 _updateFields: function(e){
-                    var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) >-1
+                    var changeInYaml = e && e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) >-1;
                     var ret= [];
                     this.fields.forEach(function(inp) {
                     	if (inp.name !='yaml_or_form' && inp.name != 'stackinputs'){
@@ -133,15 +134,15 @@
 	                        if (inp.name.startsWith("mist_size")) {
 	                            var xid = inp.name.split("mist_size")[1];
 	                            inp.show = false;
-	                            inp.type = 'mist_dropdown';
+	                            inp.type = 'mist_size';
 	                            inp.helptext = 'Machine size';
 	                            inp.showIf = {
 	                                fieldName: "mist_cloud" + xid,
 	                                fieldExists: true
 	                            }
-	                        }
+                            }
 
-	                        // hide mist api credential inputs
+                            // hide mist api credential inputs
 	                        if (inp.name == "mist_token" || inp.name == "mist_uri" || inp.name == "mist_username" || inp.name == "mist_password") {
 	                            inp.hidden = true;
 	                            inp.required = false;
@@ -216,8 +217,114 @@
                                     }) || cloud;
                                     var cloudId = fieldCloud.value;
                                     console.warn('xid', xid, 'cloud', fieldCloud);
-                                    if (cloudId)
-                                        inp.options = this.model.clouds[cloudId].sizesArray;
+                                    if (cloudId) {
+                                        if (this.model.clouds[cloudId].sizesArray)
+                                            inp.options = this.model.clouds[cloudId].sizesArray;
+                                        if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
+                                            inp.value = 'custom';
+                                            inp.default = 'custom';
+                                            inp.custom = true;
+                                            inp.customValue = null;
+                                        }
+                                        if (['libvirt','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
+                                            inp.customSizeFields = [{
+                                                name: 'ram',
+                                                label: 'RAM MB',
+                                                type: 'slider',
+                                                value: 256,
+                                                defaultValue: 256,
+                                                min: 256,
+                                                max: 6223,
+                                                step: 256,
+                                                show: true,
+                                                required: false,
+                                                unit: 'MB',
+                                            }, {
+                                                name: 'cpu',
+                                                label: 'CPU cores',
+                                                type: 'slider',
+                                                value: 1,
+                                                defaultValue: 1,
+                                                min: 1,
+                                                max: 16,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'cores',
+                                            }]
+                                        }
+                                        if (['onapp'].indexOf(this.model.clouds[cloudId].provider)>-1) {
+                                            inp.customSizeFields = [{
+                                                name: 'size_ram',
+                                                label: 'RAM MB',
+                                                type: 'slider',
+                                                value: 256,
+                                                defaultValue: 256,
+                                                min: 256,
+                                                max: 6223,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'MB',
+                                                helptext: 'Custom RAM size in MB.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }, {
+                                                name: 'size_cpu',
+                                                label: 'CPU cores',
+                                                type: 'slider',
+                                                value: 1,
+                                                defaultValue: 1,
+                                                min: 1,
+                                                max: 16,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'cores',
+                                                helptext: 'Custom CPU cores.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }, {
+                                                name: 'size_disk_primary',
+                                                label: 'Primary Disk',
+                                                type: 'slider',
+                                                value: 5,
+                                                defaultValue: 5,
+                                                min: 5,
+                                                max: 16,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'GB',
+                                                helptext: 'Custom disk size in GB.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }, {
+                                                name: 'size_disk_swap',
+                                                label: 'Swap Disk',
+                                                type: 'slider',
+                                                value: 1,
+                                                defaultValue: 1,
+                                                min: 1,
+                                                max: 11,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'GB',
+                                                helptext: 'Custom disk size in GB.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }]
+                                        }
+                                    }
                                 }
                             }
                         }, this);
