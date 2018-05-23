@@ -10,7 +10,7 @@
                 position: relative;
             }
         </style>
-    	<app-form id$="stack_[[workflow]]" model=[[model]] fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" on-request="[[onRequest]]" on-response="[[onResponse]]" on-error="[[onError]]" btncontent="[[btncontent]]">[[workflow]]</app-form>
+    	<app-form id$="stack_[[workflow]]" model=[[model]] fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" btncontent="[[btncontent]]">[[workflow]]</app-form>
     </template>
     <script>
         (function() {
@@ -19,10 +19,7 @@
             Polymer({
                 is: 'mist-form',
                 properties: {
-                    model: {
-                        type: Object,
-                        notify: true
-                    },
+                    model: Object,
                     fields: {
                     	type: Array,
                     	notify: true
@@ -39,8 +36,6 @@
                     }
                 },
                 observers: [
-                	// 'initializeFields(fields)',
-                    // '_computeFields(fields)'
                     '_cloudChanged(fields.*)'
                 ],
                 listeners: {
@@ -48,7 +43,6 @@
                     'iron-select' : '_updateFields',
                 },
                 ready: function(){
-                	console.log("ready: Initialize stack inputs");
                 	var yaml_inputs = '';
                     this.fields.forEach(function(inp) {
                         yaml_inputs += inp.name+ ': ';
@@ -59,9 +53,23 @@
                     this._updateFields();
                 },
                 _cloudChanged: function (changeRecord) {
-                    console.log('changeRecord',changeRecord);
-                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
-                        // debugger;
+                    if (changeRecord && changeRecord.path && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')) && this.get(changeRecord.path.replace('.value','')).name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
+                        if (this.fields) {
+                            function copy(o) { // deep copy an array of objects
+                                var output, v, key;
+                                output = Array.isArray(o) ? [] : {};
+                                for (key in o) {
+                                    v = o[key];
+                                    output[key] = (typeof v === "object") ? copy(v) : v;
+                                }
+                                return output;
+                            }
+                            // reset fields if cloud changed
+                            var fields = copy(this.fields);
+                            this.set('fields', []);
+                            this.set('fields', fields);
+                            this._updateFields();
+                        }
                     }
                 },
                 _updateFields: function(e){
@@ -186,7 +194,7 @@
                                     }) || cloud;
                                     var cloudId = fieldCloud.value;
                                     if (cloudId)
-                                        inp.options = this.model.clouds[cloudId].locationsArray;
+                                        inp.options = this.model.clouds[cloudId].locationsArray || [];
                                 }
                                 if(inp.name.startsWith("mist_image")) {
                                   var xid = inp.name.split("mist_image")[0];
@@ -195,7 +203,7 @@
                                   }) || cloud;
                                   var cloudId = fieldCloud.value;
                                   if (this.model && cloudId)
-                                      inp.options = this.model.clouds[cloudId].imagesArray;
+                                      inp.options = this.model.clouds[cloudId].imagesArray || [];
                                 }
                                 if (inp.name.startsWith("mist_networks")) {
                                   var xid = inp.name.split("mist_networks")[0];
@@ -204,19 +212,17 @@
                                   }) || cloud;
                                   cloudId = fieldCloud.value;
                                   if (this.model && cloudId)
-                                    inp['options'] = this.model.clouds[cloudId].networksArray;
+                                    inp['options'] = this.model.clouds[cloudId].networksArray || [];
                                 }
                                 if(inp.name.startsWith("mist_size")) {
-                                    console.warn('mist_size');
                                     var xid = inp.name.split("mist_size")[0];
                                     fieldCloud = this.fields.find(function(f){
                                         return f.name.startsWith("mist_cloud" + xid);
                                     }) || cloud;
                                     var cloudId = fieldCloud.value;
-                                    console.warn('xid', xid, 'cloud', fieldCloud);
                                     if (cloudId) {
                                         if (this.model.clouds[cloudId].sizesArray)
-                                            inp.options = this.model.clouds[cloudId].sizesArray;
+                                            inp.options = this.model.clouds[cloudId].sizesArray || [];
                                         if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)==-1) {
                                             inp.custom = false;
                                             inp.customValue = null;
@@ -224,8 +230,8 @@
                                         }
                                         if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
                                             inp.options = [];
-                                            inp.value = 'custom';
                                             inp.custom = true;
+                                            inp.value = 'custom';
                                         }
                                         if (['libvirt','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
                                             inp.customSizeFields = [{
