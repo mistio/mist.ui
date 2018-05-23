@@ -41,6 +41,7 @@
                 observers: [
                 	// 'initializeFields(fields)',
                     // '_computeFields(fields)'
+                    '_cloudChanged(fields.*)'
                 ],
                 listeners: {
                     'change' : '_updateFields',
@@ -55,18 +56,16 @@
                         yaml_inputs += val+'\n';
                     }, this);
                     this.set('yaml_inputs', yaml_inputs);
-                    // pass values into form's stackinputs default value
-                    var ind;
-                    var stackinputsField = this.fields.find(function(f, index){
-                        ind=index;
-                        return f.name == "stackinputs";
-                    });
-                    this.set('fields.'+ind+'.defaultValue', this.yaml_inputs);
                     this._updateFields();
                 },
+                _cloudChanged: function (changeRecord) {
+                    console.log('changeRecord',changeRecord);
+                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')).name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
+                        // debugger;
+                    }
+                },
                 _updateFields: function(e){
-                    var changeInYaml = e && e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) >-1;
-                    var ret= [];
+                    var changeInYaml = e && e.path.indexOf(document.querySelector("paper-textarea#app-form-stack_"+this.workflow+"-stackinputs")) >-1;
                     this.fields.forEach(function(inp) {
                     	if (inp.name !='yaml_or_form' && inp.name != 'stackinputs'){
 
@@ -147,8 +146,6 @@
 	                            inp.hidden = true;
 	                            inp.required = false;
 	                        }
-
-	                        ret.push(inp);
 	                    }
                     }, this);
 
@@ -220,11 +217,15 @@
                                     if (cloudId) {
                                         if (this.model.clouds[cloudId].sizesArray)
                                             inp.options = this.model.clouds[cloudId].sizesArray;
-                                        if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
-                                            inp.value = 'custom';
-                                            inp.default = 'custom';
-                                            inp.custom = true;
+                                        if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)==-1) {
+                                            inp.custom = false;
                                             inp.customValue = null;
+                                            inp.customSizeFields = [];
+                                        }
+                                        if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
+                                            inp.options = [];
+                                            inp.value = 'custom';
+                                            inp.custom = true;
                                         }
                                         if (['libvirt','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
                                             inp.customSizeFields = [{
@@ -332,15 +333,16 @@
                         this.set('yaml_inputs', yaml_inputs);
 
                         // pass values into form's stackinputs value
-                        var ind;
-                        var stackinputsField = this.fields.find(function(f, index){
-                            ind=index;
-                            return f.name == "stackinputs";
-                        });
-
-                        this.set('fields.' + ind + '.value', this.yaml_inputs);
+                        this._updateStackInputsValue()
                     }
                 },
+                _updateStackInputsValue: function () {
+                    var stackinputsIndex = this.fields.findIndex(function(f){
+                        return f.name == "stackinputs";
+                    });
+                    if (stackinputsIndex && stackinputsIndex>-1)
+                        this.set('fields.' + stackinputsIndex + '.value', this.yaml_inputs);
+                }
            	});
         })();
     </script>
