@@ -35,7 +35,9 @@
                 <template is="dom-if" if="[[_noOptions(field.options.length)]]" restamp>
                     <paper-item disabled>No sizes found</paper-item>
                 </template>
-                <paper-item value="custom" class="button-true" hidden$="[[!field.custom]]">Custom Size</paper-item>
+                <template is="dom-if" if="[[field.custom]]" restamp>
+                    <paper-item value="custom" class="button-true">Custom Size</paper-item>
+                </template>
                 <template is="dom-repeat" items="[[_sort(field.options)]]" as="option">
                     <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                         <span class="flex">[[showOption(option)]]</span>
@@ -44,12 +46,12 @@
             </paper-menu>
         </paper-dropdown-menu>
         <template is="dom-if" if="[[field.custom]]" restamp>
-            <template is="dom-repeat" items="[[field.customSizeFields]]" as="csfield">
+            <template is="dom-repeat" items="{{field.customSizeFields}}" as="csfield">
                 <div hidden="[[csfield.hidden]]">[[csfield.label]]
                     <span class="field-helptext">min [[csfield.min]], max [[csfield.max]] [[csfield.unit]]</span>
                 </div>
-                <paper-slider disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
-                max="[[csfield.max]]" value="{{csfield.value::change}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
+                <paper-slider id$="[[csfield.name]]" disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
+                max="[[csfield.max]]" value="{{csfield.value}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
             </template>
         </template>
     </template>
@@ -61,11 +63,6 @@
                 field: {
                     type: Object,
                     notify: true
-                },
-                showFieldOptions: {
-                    type: Boolean,
-                    value: true,
-                    computed: '_computeShowFieldOptions(field)'
                 }
             },
 
@@ -73,11 +70,23 @@
                 'change': '_updateCustomValue'
             },
             observers: [
-                // '_fieldOptionsChanged(field.custom,field.customSizeFields, field.options,field.options.length)'
+                'initialiseValues(field)'
             ],
 
             ready: function() {
-                this._updateCustomValue();
+                this.initialiseValues();
+            },
+
+            initialiseValues: function (cr) {
+                if (!this.field.custom || !this.field.customSizeFields) {
+                    this.set('field.value', '');
+                    this.set('field.customSizeFields', null);
+                    this.set('field.customValue', null);
+                }
+                else if (this.field.custom) {
+                    this.set('field.value', 'custom');
+                    this._updateCustomValue();
+                }
             },
 
             showOption: function (option) {
@@ -103,13 +112,14 @@
                 return field.custom == true || !this.field.options || !this.field.options.length;
             },
             
-            _updateCustomValue: function (custom,fields) {
+            _updateCustomValue: function (e) {
                 if (!this.field.custom) {
                     this.set('field.customValue', false);
                 } else {
-                    var cv = {}
+                    var cv = {};
                     for (var i=0; i<this.field.customSizeFields.length; i++){
-                        cv[this.field.customSizeFields[i].name] = this.field.customSizeFields[i].value;
+                        var el = this.querySelector("paper-slider#"+this.field.customSizeFields[i].name);
+                        cv[this.field.customSizeFields[i].name] = el && el.value ? el.value : this.field.customSizeFields[i].min;
                     }
                     this.set('field.customValue', cv);
                 }
