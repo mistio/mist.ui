@@ -18,46 +18,16 @@
             :host[opened] {
                 display: block;
             }
-            :host[opened="false"] .cloud-block,
-            :host:not([opened]) .cloud-block {
-                display: none;
-            }
-            :host .cloud-block {
-                box-sizing: border-box;
-                @apply(--layout-horizontal);
-            }
-            :host >::content paper-input-container {
-                padding: 0 0 8px 0;
-            }
-            .cloud-overview-item {
-                @apply(--layout-horizontal);
-                padding: 16px 0;
-            }
-            .cloud-overview-item.last {
-                padding: 12px 0 16px 0;
-            }
-            .button {
-                align-self: center;
-            }
             paper-toggle-button {
                 padding: 0;
             }
-            .default-rule {
-                display: inline-block;
-            }
         </style>
 
-        <div class="cloud-block">
-            <div class="cloud-overview flex">
-                <div class="default-rule">
-                    <paper-toggle-button id="DNS-enable-disable" checked$="[[_computeIsDNSEnabled(isToggleOn)]]" on-tap="_changeDNSenabled" disabled="[[loading]]">
-                            <span hidden$="[[!_computeIsDNSEnabled(isToggleOn)]]">Enabled</span>
-                            <span hidden$="[[_computeIsDNSEnabled(isToggleOn)]]">Disabled</span>
-                    </paper-toggle-button>
-                    <p>This option enables DNS access in this cloud.</p>
-                </div>
-            </div>
-        </div>
+        <paper-toggle-button id="DNS-enable-disable" checked$="[[isToggleOn]]" on-tap="_changeDNSenabled" disabled="[[loading]]">
+            <span hidden$="[[!isToggleOn]]">Enabled</span>
+            <span hidden$="[[isToggleOn]]">Disabled</span>
+        </paper-toggle-button>
+        <p>This option enables DNS access in this cloud.</p>
 
         <iron-ajax id="cloudEditDNSAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" handle-as="xml" method="POST" on-response="_handleCloudEditDNSAjaxResponse" on-error="_handleCloudEditDNSAjaxError" loading="{{loading}}"></iron-ajax>
 
@@ -93,7 +63,7 @@
                     return enabled;
                 },
                 _handleCloudEditDNSAjaxResponse: function() {
-                    var message = this.cloud.dns_enabled ? 'DNS support for ' + this.cloud.title + ' enabled!' : 'DNS support for ' + this.cloud.title + ' disabled!' ;
+                    var message = this.querySelector('#DNS-enable-disable').checked ? 'DNS support for ' + this.cloud.title + ' enabled!' : 'DNS support for ' + this.cloud.title + ' disabled!' ;
                     this.fire('toast',{msg:message,duration:5000});
                 },
                 _handleCloudEditDNSAjaxError: function(e) {
