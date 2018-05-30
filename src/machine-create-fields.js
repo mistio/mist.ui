@@ -227,7 +227,23 @@ MACHINE_CREATE_FIELDS.push({
 // AWS
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
-    fields: []
+    fields: [
+    {
+        name: "subnet_id",
+        label: "Subnet",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        options: [],
+        helptext: "Optional. If you leave subnet blank, the machine will be created in the location's (availability zone) default subnet.",
+        showIf: {
+            fieldName: "location",
+            fieldExists: true
+        }
+    }
+    ]
 });
 
 // GCE

@@ -389,7 +389,15 @@
                             f.options = this.model.clouds[cloudId].storageAccountsArray || [];
                         }
                         if (f.name.endsWith("size")) {
-                            f.options = this.model.clouds[cloudId].sizesArray || [];
+                            f.options = this.model.clouds[cloudId].sizesArray.sort(function(a,b){
+                                    if (a.cpus < b.cpus) {
+                                        return -1;
+                                    }
+                                    if (a.cpus > b.cpus) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                }) || [];
                             // allow custom size set
                             if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[this.selectedCloud]
                                     .provider) > -1) {
@@ -417,6 +425,23 @@
                         if (f.name.endsWith("networks")) {
                             f.options = this.model.clouds[cloudId].networksArray ? this.model.clouds[
                                 cloudId].networksArray.slice() : [];
+                            if (f.options.length < 2)
+                                this.set('machineFields.' + index + '.required', false);
+                        }
+
+                        // for ec2 subnet selection
+                        if (f.name == "subnet_id") {
+                            var subnets = [];
+                            for (var i=0; i<this.model.clouds[cloudId].networksArray.length; i++){
+                                var network = this.model.clouds[cloudId].networksArray[i];
+                                if (network.subnets && network.subnets.length)
+                                    for (var j=0; j<network.subnets.length; j++) {
+                                        var subnet =  network.subnets[j];
+                                        subnet.suffix = network.name;
+                                        subnets.push(subnet);
+                                    }
+                            }
+                            f.options = subnets;
                             if (f.options.length < 2)
                                 this.set('machineFields.' + index + '.required', false);
                         }
@@ -521,6 +546,28 @@
                         .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                         .name == 'name') {
                         this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
+
+                    // if it's ec2 and location is selected filter subnets
+                    if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
+                            '.value', '')).name == 'location' && changeRecord.value.length) {
+                        var loc = this._fieldIndexByName('location'),
+                            subid = this._fieldIndexByName('subnet_id');
+                        // clear previous selection
+                        this.set('machineFields.'+subid+'.value', '');
+                        var subnets = [];
+                        for (var i=0; i<this.model.clouds[this.selectedCloud].networksArray.length; i++){
+                            var network = this.model.clouds[this.selectedCloud].networksArray[i];
+                            if (network.subnets && network.subnets.length)
+                                for (var j=0; j<network.subnets.length; j++) {
+                                    var subnet =  network.subnets[j];
+                                    if (subnet.availability_zone == this.model.clouds[this.selectedCloud].locations[changeRecord.value].name) {
+                                        subnet.suffix = network.name;
+                                        subnets.push(subnet);
+                                    }
+                                }
+                        }
+                        this.set('machineFields.'+subid+'.options', subnets);
                     }
 
                     // if it is azure arm and location is changed
