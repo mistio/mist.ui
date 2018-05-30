@@ -230,7 +230,7 @@ MACHINE_CREATE_FIELDS.push({
     fields: [
     {
         name: "subnet_id",
-        label: "Subnet ID",
+        label: "Subnet",
         type: "mist_dropdown",
         value: "",
         defaultValue: "",
