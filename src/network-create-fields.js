@@ -1,7 +1,7 @@
-var NETWORK_ADD_FIELDS = []
+var NETWORK_CREATE_FIELDS = []
 
 // OPENSTACK
-NETWORK_ADD_FIELDS.push({
+NETWORK_CREATE_FIELDS.push({
     provider: 'openstack',
     fields: [{
         name: "name",
@@ -154,7 +154,7 @@ NETWORK_ADD_FIELDS.push({
 });
 
 // GCE
-NETWORK_ADD_FIELDS.push({
+NETWORK_CREATE_FIELDS.push({
     provider: 'gce',
     fields: [{
         name: "name",
@@ -235,7 +235,7 @@ NETWORK_ADD_FIELDS.push({
 
 
 // EC2
-NETWORK_ADD_FIELDS.push({
+NETWORK_CREATE_FIELDS.push({
     provider: 'ec2',
     fields: [{
         name: "name",
