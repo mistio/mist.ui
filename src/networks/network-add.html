@@ -50,7 +50,7 @@
                 </span>
                 <div class="title flex">
                     <h2>
-                        Add Network
+                        Create Network
                     </h2>
                     <div class="subtitle">
                     </div>
@@ -65,7 +65,7 @@
             </paper-material>
             <paper-material hidden$=[[!hasCloudsWithNetworks]]>
                 <div class="grid-row">
-                    <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Choose Cloud" horizontal-align="left">
+                    <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Select Cloud" horizontal-align="left">
                         <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{selectedCloud::iron-select}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[providers]]" as="provider">
                                 <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]">
@@ -75,12 +75,9 @@
                     </paper-dropdown-menu>
                 </div>
             </paper-material>
-            <paper-material hidden$="[[selectedCloud]]">
-                Select a cloud.
-            </paper-material>
             <template is="dom-if" if="[[selectedCloud]]" restamp>
                 <paper-material>
-                    <app-form id="network_add" fields="{{fields}}" form="[[form]]" url="/api/v1/clouds/[[selectedCloud]]/networks" on-response="_handleAddNetworkResponse"
+                    <app-form id="network_add" fields="{{fields}}" form="[[form]]" url="/api/v1/clouds/[[selectedCloud]]/networks" on-response="_handleCreateNetworkResponse"
                         on-error="_handleError" format-payload></app-form>
                 </paper-material>
             </template>
@@ -219,71 +216,6 @@
                         }
                     }
 
-                    // var network,
-                    //     provider = this.model.clouds[this.selectedCloud].provider,
-                    //     cidr = this.fieldIndexByName('cidr');
-
-                    // // update payload
-                    // var payload = {
-                    //     network: {
-                    //         name: this.fields[this.fieldIndexByName('name')].value
-                    //     }
-                    // }
-                    // if (['ec2'].indexOf(provider) > -1) {
-                    //     payload.network['cidr'] = this.fields[this.fieldIndexByName('cidr')].value;
-                    // }
-                    // else if (provider == 'openstack') {
-                    //     payload.network['admin_state_up'] = this.fields[this.fieldIndexByName('admin_state_up')].value;
-                    // }
-                    // //create subnet
-                    // if (this.fields[this.fieldIndexByName('createSubnet')].value == true) {
-                    //     if (['gce'].indexOf(provider) > -1) {
-                    //         payload.network['mode'] = this.fields[this.fieldIndexByName('subnet_type')].value;
-                    //         if (payload.network['mode'] == "custom") {
-                    //             payload.subnet = {
-                    //                 name: this.fields[this.fieldIndexByName('subnet_name')].value,
-                    //                 cidr: this.fields[this.fieldIndexByName('subnet_cidr')].value,
-                    //                 region: this.fields[this.fieldIndexByName('location')].value
-                    //             };
-                    //         }
-                    //     }
-                    //     if (['ec2','openstack'].indexOf(provider) > -1) {
-                    //         payload.subnet = {
-                    //             name: this.fields[this.fieldIndexByName('subnet_name')].value
-                    //         };
-                    //     }
-                    //     if (['ec2'].indexOf(provider) > -1) {
-                    //         payload.subnet.cidr = this.fields[this.fieldIndexByName('subnet_cidr')].value;
-                    //         payload.subnet.availability_zone = this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('location')].value].name;
-                    //     }
-                    //     else if (provider == 'openstack') {
-                    //         var allocationPools = [];
-                    //         payload.subnet.subnet_address = this.fields[this.fieldIndexByName('subnet_address')].value
-                    //         payload.subnet.ip_version  = parseInt(this.fields[this.fieldIndexByName('subnet_ipv')].value);
-                    //         payload.subnet.enable_dhcp = this.fields[this.fieldIndexByName('subnet_enableDHCP')].value;
-                    //         if (this.fields[this.fieldIndexByName('subnet_allocationPools')].value) {
-                    //             //parse allocation pools
-                    //             var lines = this.fields[this.fieldIndexByName('subnet_allocationPools')].value.split('\n');
-                    //             lines.forEach(function (l) {
-                    //                 if (l && l.indexOf('-') > 0)
-                    //                     allocationPools.push({
-                    //                         start: l.replace(',', '').split('-')[0].trim(),
-                    //                         end: l.replace(',', '').split('-')[1].trim()
-                    //                     });
-                    //                 else
-                    //                     allocationPools.push(l);
-                    //             })
-                    //         }
-                    //         if (allocationPools.length)
-                    //             payload.subnet['allocation_pools'] = allocationPools;
-                    //         // if subnet disable Gateway delete property
-                    //         if (this.fields[this.fieldIndexByName('subnet_disableGateway')].value == false) {
-                    //             payload.subnet.gateway_ip = this.fields[this.fieldIndexByName('gateway_ip')].value;
-                    //         } else {
-                    //             delete payload.subnet['gateway_ip'];
-                    //         }
-                    //     }
-                    // }
                     this.set('form', payload);
                 }
             },
@@ -293,7 +225,7 @@
                 });
                 return field;
             },
-            _handleAddNetworkResponse: function (e) {
+            _handleCreateNetworkResponse: function (e) {
                 var response = JSON.parse(e.detail.xhr.response);
                 this.fire('go-to', {
                     url: '/networks'
