@@ -227,7 +227,23 @@ MACHINE_CREATE_FIELDS.push({
 // AWS
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
-    fields: [],
+    fields: [
+    {
+        name: 'subnet_id',
+        label: 'Subnet',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        show: false,
+        required: false,
+        options: [],
+        helptext: 'Optional. If you leave subnet blank, the machine will be created in the location\'s (availability zone) default subnet.',
+        showIf: {
+            fieldName: 'location',
+            fieldExists: true,
+        },
+    },
+    ],
 });
 
 // GCE
@@ -510,7 +526,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
 
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
-        p.fields.splice(2 , 0, {
+        p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -547,7 +563,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             }],
         });
     } else if (['onapp'].indexOf(p.provider) != -1) {
-        p.fields.splice(2,0, {
+        p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -628,7 +644,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             }],
         });
     } else if (['vsphere'].indexOf(p.provider) != -1) {
-        p.fields.splice(2 , 0, {
+        p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -679,7 +695,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }
     // mist_dropdown for all others
     else {
-        p.fields.splice(2 , 0, {
+        p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_dropdown',
