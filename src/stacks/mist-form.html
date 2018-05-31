@@ -10,7 +10,7 @@
                 position: relative;
             }
         </style>
-    	<app-form id$="stack_[[workflow]]" model=[[model]] fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" on-request="[[onRequest]]" on-response="[[onResponse]]" on-error="[[onError]]" btncontent="[[btncontent]]">[[workflow]]</app-form>
+    	<app-form id$="stack_[[workflow]]" model=[[model]] fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" btncontent="[[btncontent]]">[[workflow]]</app-form>
     </template>
     <script>
         (function() {
@@ -19,10 +19,7 @@
             Polymer({
                 is: 'mist-form',
                 properties: {
-                    model: {
-                        type: Object,
-                        notify: true
-                    },
+                    model: Object,
                     fields: {
                     	type: Array,
                     	notify: true
@@ -39,15 +36,13 @@
                     }
                 },
                 observers: [
-                	// 'initializeFields(fields)',
-                    // '_computeFields(fields)'
+                    '_cloudChanged(fields.*)'
                 ],
                 listeners: {
                     'change' : '_updateFields',
                     'iron-select' : '_updateFields',
                 },
                 ready: function(){
-                	console.log("ready: Initialize stack inputs");
                 	var yaml_inputs = '';
                     this.fields.forEach(function(inp) {
                         yaml_inputs += inp.name+ ': ';
@@ -55,17 +50,30 @@
                         yaml_inputs += val+'\n';
                     }, this);
                     this.set('yaml_inputs', yaml_inputs);
-                    // pass values into form's stackinputs default value
-                    var ind;
-                    var stackinputsField = this.fields.find(function(f, index){
-                        ind=index;
-                        return f.name == "stackinputs";
-                    });
-                    this.set('fields.'+ind+'.defaultValue', this.yaml_inputs);
+                    this._updateFields();
+                },
+                _cloudChanged: function (changeRecord) {
+                    if (changeRecord && changeRecord.path && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')) && this.get(changeRecord.path.replace('.value','')).name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
+                        if (this.fields) {
+                            function copy(o) { // deep copy an array of objects
+                                var output, v, key;
+                                output = Array.isArray(o) ? [] : {};
+                                for (key in o) {
+                                    v = o[key];
+                                    output[key] = (typeof v === "object") ? copy(v) : v;
+                                }
+                                return output;
+                            }
+                            // reset fields if cloud changed
+                            var fields = copy(this.fields);
+                            this.set('fields', []);
+                            this.set('fields', fields);
+                            this._updateFields();
+                        }
+                    }
                 },
                 _updateFields: function(e){
-                    var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#stackinputs")) >-1
-                    var ret= [];
+                    var changeInYaml = e && e.path.indexOf(document.querySelector("paper-textarea#app-form-stack_"+this.workflow+"-stackinputs")) >-1;
                     this.fields.forEach(function(inp) {
                     	if (inp.name !='yaml_or_form' && inp.name != 'stackinputs'){
 
@@ -133,21 +141,19 @@
 	                        if (inp.name.startsWith("mist_size")) {
 	                            var xid = inp.name.split("mist_size")[1];
 	                            inp.show = false;
-	                            inp.type = 'mist_dropdown';
+	                            inp.type = 'mist_size';
 	                            inp.helptext = 'Machine size';
 	                            inp.showIf = {
 	                                fieldName: "mist_cloud" + xid,
 	                                fieldExists: true
 	                            }
-	                        }
+                            }
 
-	                        // hide mist api credential inputs
+                            // hide mist api credential inputs
 	                        if (inp.name == "mist_token" || inp.name == "mist_uri" || inp.name == "mist_username" || inp.name == "mist_password") {
 	                            inp.hidden = true;
 	                            inp.required = false;
 	                        }
-
-	                        ret.push(inp);
 	                    }
                     }, this);
 
@@ -188,7 +194,7 @@
                                     }) || cloud;
                                     var cloudId = fieldCloud.value;
                                     if (cloudId)
-                                        inp.options = this.model.clouds[cloudId].locationsArray;
+                                        inp.options = this.model.clouds[cloudId].locationsArray || [];
                                 }
                                 if(inp.name.startsWith("mist_image")) {
                                   var xid = inp.name.split("mist_image")[0];
@@ -197,7 +203,7 @@
                                   }) || cloud;
                                   var cloudId = fieldCloud.value;
                                   if (this.model && cloudId)
-                                      inp.options = this.model.clouds[cloudId].imagesArray;
+                                      inp.options = this.model.clouds[cloudId].imagesArray || [];
                                 }
                                 if (inp.name.startsWith("mist_networks")) {
                                   var xid = inp.name.split("mist_networks")[0];
@@ -206,18 +212,126 @@
                                   }) || cloud;
                                   cloudId = fieldCloud.value;
                                   if (this.model && cloudId)
-                                    inp['options'] = this.model.clouds[cloudId].networksArray;
+                                    inp['options'] = this.model.clouds[cloudId].networksArray || [];
                                 }
                                 if(inp.name.startsWith("mist_size")) {
-                                    console.warn('mist_size');
                                     var xid = inp.name.split("mist_size")[0];
                                     fieldCloud = this.fields.find(function(f){
                                         return f.name.startsWith("mist_cloud" + xid);
                                     }) || cloud;
                                     var cloudId = fieldCloud.value;
-                                    console.warn('xid', xid, 'cloud', fieldCloud);
-                                    if (cloudId)
-                                        inp.options = this.model.clouds[cloudId].sizesArray;
+                                    if (cloudId) {
+                                        if (this.model.clouds[cloudId].sizesArray)
+                                            inp.options = this.model.clouds[cloudId].sizesArray || [];
+                                        if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)==-1) {
+                                            inp.custom = false;
+                                            inp.customValue = null;
+                                            inp.customSizeFields = [];
+                                        }
+                                        if (['libvirt','onapp','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
+                                            inp.options = [];
+                                            inp.custom = true;
+                                            inp.value = 'custom';
+                                        }
+                                        if (['libvirt','vsphere'].indexOf(this.model.clouds[cloudId].provider)>-1) {
+                                            inp.customSizeFields = [{
+                                                name: 'ram',
+                                                label: 'RAM MB',
+                                                type: 'slider',
+                                                value: 256,
+                                                defaultValue: 256,
+                                                min: 256,
+                                                max: 6223,
+                                                step: 256,
+                                                show: true,
+                                                required: false,
+                                                unit: 'MB',
+                                            }, {
+                                                name: 'cpu',
+                                                label: 'CPU cores',
+                                                type: 'slider',
+                                                value: 1,
+                                                defaultValue: 1,
+                                                min: 1,
+                                                max: 16,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'cores',
+                                            }]
+                                        }
+                                        if (['onapp'].indexOf(this.model.clouds[cloudId].provider)>-1) {
+                                            inp.customSizeFields = [{
+                                                name: 'size_ram',
+                                                label: 'RAM MB',
+                                                type: 'slider',
+                                                value: 256,
+                                                defaultValue: 256,
+                                                min: 256,
+                                                max: 6223,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'MB',
+                                                helptext: 'Custom RAM size in MB.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }, {
+                                                name: 'size_cpu',
+                                                label: 'CPU cores',
+                                                type: 'slider',
+                                                value: 1,
+                                                defaultValue: 1,
+                                                min: 1,
+                                                max: 16,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'cores',
+                                                helptext: 'Custom CPU cores.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }, {
+                                                name: 'size_disk_primary',
+                                                label: 'Primary Disk',
+                                                type: 'slider',
+                                                value: 5,
+                                                defaultValue: 5,
+                                                min: 5,
+                                                max: 16,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'GB',
+                                                helptext: 'Custom disk size in GB.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }, {
+                                                name: 'size_disk_swap',
+                                                label: 'Swap Disk',
+                                                type: 'slider',
+                                                value: 1,
+                                                defaultValue: 1,
+                                                min: 1,
+                                                max: 11,
+                                                step: 1,
+                                                show: true,
+                                                required: false,
+                                                unit: 'GB',
+                                                helptext: 'Custom disk size in GB.',
+                                                showIf: {
+                                                    fieldName: 'size',
+                                                    fieldValues: ['custom'],
+                                                },
+                                            }]
+                                        }
+                                    }
                                 }
                             }
                         }, this);
@@ -225,15 +339,16 @@
                         this.set('yaml_inputs', yaml_inputs);
 
                         // pass values into form's stackinputs value
-                        var ind;
-                        var stackinputsField = this.fields.find(function(f, index){
-                            ind=index;
-                            return f.name == "stackinputs";
-                        });
-
-                        this.set('fields.' + ind + '.value', this.yaml_inputs);
+                        this._updateStackInputsValue()
                     }
                 },
+                _updateStackInputsValue: function () {
+                    var stackinputsIndex = this.fields.findIndex(function(f){
+                        return f.name == "stackinputs";
+                    });
+                    if (stackinputsIndex && stackinputsIndex>-1)
+                        this.set('fields.' + stackinputsIndex + '.value', this.yaml_inputs);
+                }
            	});
         })();
     </script>

@@ -398,15 +398,6 @@
                                     }
                                     return 0;
                                 }) || [];
-                            // allow custom size set
-                            if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[this.selectedCloud]
-                                    .provider) > -1) {
-                                f.options = [{
-                                    name: "Custom Size",
-                                    id: "custom",
-                                    button: true
-                                }].concat(f.options);
-                            }
                         }
                         if (f.name.endsWith("key")) {
                             f.options = this.model.keysArray || [];
@@ -864,22 +855,7 @@
                 var keyInd = this._fieldIndexByName('key');
                 if (this.get('machineFields.' + keyInd + '.required')) {
                     this.set('machineFields.' + keyInd + '.required', false);
-                    this.set('machineFields.' + keyInd + '.show', false);
-                    this.set('machineFields.' + keyInd + '.hidden', true);
                     this.set('machineFields.' + keyInd + '.label', "Key");
-                    this.set('machineFields.' + keyInd + '.excludeFromPayload', true);
-                    var scriptInd = this._fieldIndexByName('post_provision_script');
-                    this.set('machineFields.' + scriptInd + '.show', false);
-                    this.set('machineFields.' + scriptInd + '.hidden', true);
-                    this.set('machineFields.' + scriptInd + '.excludeFromPayload', true);
-                    var diskInd = this._fieldIndexByName('size_disk_primary');
-                    this.set('machineFields.' + diskInd + '.show', false);
-                    this.set('machineFields.' + diskInd + '.hidden', true);
-                    this.set('machineFields.' + diskInd + '.excludeFromPayload', true);
-                    var swapInd = this._fieldIndexByName('size_disk_swap');
-                    this.set('machineFields.' + swapInd + '.show', false);
-                    this.set('machineFields.' + swapInd + '.hidden', true);
-                    this.set('machineFields.' + diskInd + '.excludeFromPayload', true);
                 }
             },
 
@@ -1190,9 +1166,6 @@
                 var response = JSON.parse(e.detail.xhr.response);
                 this.fire('go-to', {
                     url: '/machines'
-                })
-                this.fire('set-job-id', {
-                    jobId: response.job_id
                 });
                 this._resetForm();
             },
