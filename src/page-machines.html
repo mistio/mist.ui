@@ -257,7 +257,7 @@
         <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]
             docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-            <machine-page model="[[model]]" resource-id="[[data.machine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]]
+            <machine-page model="[[model]]" machine="[[_getMachine(data.machine,model.machines)]]" section="[[model.sections.machines]]" monitoring=[[monitoring]]
                 hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
         </template>
         <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
@@ -329,6 +329,11 @@
                 'stopPolling(logItem)',
                 '_selectedItemsChanged(selectedItems.length)'
             ],
+
+            _getMachine: function (id, machines) {
+                if (id && this.model && this.model.machines && this.model.machines[id])
+                    return this.model.machines[id];
+            },
 
             setJobId: function (e) {
                 if (e.detail.jobId)
