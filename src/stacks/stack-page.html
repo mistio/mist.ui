@@ -450,7 +450,7 @@
             .single-head {
                 @apply(--stack-page-head-mixin)
             }
-            .is_start_creation-true {
+            .inStartCreationState-true {
                 opacity: 0.3;
                 pointer-events: none;
             }
@@ -473,7 +473,7 @@
                         <span hidden$="[[template.id]]"> missing template</span>
                     </div>
                 </div>
-                <mist-actions class$="is_start_creation-[[start_creation]]" actions="[[actions]]" type="stack" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <mist-actions class$="inStartCreationState-[[inStartCreationState]]" actions="[[actions]]" type="stack" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
             </paper-material>
 
             <paper-material>
@@ -554,52 +554,44 @@
                 </paper-material>
 
                 <!-- If stack status error-->
-                <template is="dom-if" if="[[error]]">
-                    <paper-material>
-                        <div class="parsing-loader error">
-                            <h3>There seems to be an error</h3>
-                            <paper-progress id="stackpageprogress" value="100"></paper-progress>
-                            <h4>The process failed.
-                                <br/>
-                                <!-- <span class="retry regular blue-link" id="install" on-tap="doWorkflow">Try again </span>
-                            <p id="messages"></p> -->
-                            </h4>
-                        </div>
-                    </paper-material>
-                </template>
+                <paper-material hidden$=[[!inErrorState]]>
+                    <div class="parsing-loader error">
+                        <h3>There seems to be an error</h3>
+                        <paper-progress id="stackpageprogress" value="100"></paper-progress>
+                        <h4>The process failed.
+                            <br/>
+                            <!-- <span class="retry regular blue-link" id="install" on-tap="doWorkflow">Try again </span>
+                        <p id="messages"></p> -->
+                        </h4>
+                    </div>
+                </paper-material>
 
                 <!-- If stack status start_creation-->
-                <template is="dom-if" if="[[start_creation]]">
-                    <paper-material>
-                        <div class="parsing-loader">
-                            <h3>Creating stack [[stack.name]]</h3>
-                            <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
-                            <h4>This may take a while.</h4>
-                            <paper-button on-tap="cancelWorkflow">Cancel</paper-button>
-                        </div>
-                    </paper-material>
-                </template>
+                <paper-material hidden$=[[!inStartCreationState]]>
+                    <div class="parsing-loader">
+                        <h3>Creating stack [[stack.name]]</h3>
+                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
+                        <h4>This may take a while.</h4>
+                        <paper-button on-tap="cancelWorkflow">Cancel</paper-button>
+                    </div>
+                </paper-material>
 
                 <!-- If stack status workflow_started-->
-                <template is="dom-if" if="[[workflow_started]]">
-                    <paper-material>
-                        <div class="parsing-loader">
-                            <h3>Started workflow</h3>
-                            <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
-                            <paper-button class="blue-link" on-tap="cancelWorkflow">Cancel</paper-button>
-                        </div>
-                    </paper-material>
-                </template>
+                <paper-material hidden$=[[!inWorkflowStartedState]]>
+                    <div class="parsing-loader">
+                        <h3>Started workflow</h3>
+                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
+                        <paper-button class="blue-link" on-tap="cancelWorkflow">Cancel</paper-button>
+                    </div>
+                </paper-material>
 
                 <!-- If stack status workflow_started-->
-                <template is="dom-if" if="[[delete_request]]">
-                    <paper-material>
-                        <div class="parsing-loader">
-                            <h3>Deleting Stack</h3>
-                            <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
-                        </div>
-                    </paper-material>
-                </template>
+                <paper-material hidden$=[[!delete_request]]>
+                    <div class="parsing-loader">
+                        <h3>Deleting Stack</h3>
+                        <paper-progress id="stackpageprogress" value="30" indeterminate></paper-progress>
+                    </div>
+                </paper-material>
 
             </div>
 
@@ -771,25 +763,21 @@
                     computed: '_resourcelist(keys, networks, zones, machines)',
                     notify: true
                 },
-                start_creation: {
+                inStartCreationState: {
                     type: Boolean,
-                    value: false,
-                    computed: 'is_start_creation(stack)'
+                    value: false
                 },
-                error: {
+                inErrorState: {
                     type: Boolean,
-                    value: false,
-                    computed: 'is_error(stack)'
+                    value: false
                 },
-                workflow_started: {
+                inWorkflowStartedState: {
                     type: Boolean,
-                    value: false,
-                    computed: 'is_workflow_started(stack)'
+                    value: false
                 },
-                ok: {
+                inOkState: {
                     type: Boolean,
-                    value: true,
-                    computed: 'is_ok(stack)'
+                    value: true
                 },
                 outputsAreEmpty: {
                     type: Boolean,
@@ -821,7 +809,8 @@
                 'newStackPage(stack.id)',
                 'stackoutputsChanged(stack.outputs)',
                 'updateTerm(showOutput)',
-                'enhanceWorkflowLogs(stack.workflows)'
+                'enhanceWorkflowLogs(stack.workflows)',
+                '_stackStateChanged(stack.status)'
             ],
             listeners: {
                 'iron-activate': '_handleInterval',
@@ -972,20 +961,21 @@
                     }
                 });
             },
-            is_start_creation: function (stack) {
-                if (stack)
-                    return stack.status == 'start_creation';
-            },
-            is_error: function (stack) {
-                return stack && stack.status == 'error';
-            },
-            is_workflow_started: function (stack) {
-                if (stack)
-                    return stack.status == 'workflow_started';
-            },
-            is_ok: function (stack) {
-                if (stack)
-                    return stack.status == 'ok';
+            _stackStateChanged: function(status) {
+                this.set('inStartCreationState', false) 
+                this.set('inErrorState', false)
+                this.set('inWorkflowStartedState', false)
+                this.set('inOkState', false)
+                if (status) {
+                    if (status == 'start_creation')
+                        this.set('inStartCreationState', true);
+                    if (status == 'error')
+                        this.set('inErrorState', true);
+                    if (status == 'workflow_started')
+                        this.set('inWorkflowStartedState', true);
+                    if (status =='ok')
+                        this.set('inOkState', true);
+                }
             },
             _showAll: function (stack) {
                 if (stack)
