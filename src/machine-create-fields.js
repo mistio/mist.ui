@@ -678,23 +678,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 unit: 'cores',
-            }, {
-                name: 'disk',
-                label: 'Disk GB',
-                type: 'slider',
-                value: 5,
-                defaultValue: '',
-                min: 5,
-                max: 16,
-                step: 1,
-                show: true,
-                required: false,
-                unit: 'GB',
             }],
         });
-    }
-    // mist_dropdown for all others
-    else {
+    } else { // mist_dropdown for all others
         p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
