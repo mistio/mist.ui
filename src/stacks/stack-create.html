@@ -156,7 +156,8 @@
             },
 
             observers: [
-                '_computeFields(template, template.inputs, template.inputs.*, model.templatesArray.*, model.cloudsArray.*, model.keysArray.*, params)'
+                '_computeFields(template, template.inputs, template.inputs.*, model.templatesArray.*, model.cloudsArray.*, model.keysArray.*, params)',
+                '_cloudChanged(fields.*)'
             ],
 
             listeners: {
@@ -165,6 +166,26 @@
                 'update-keys': 'updateKeys'
             },
             ready: function () {},
+            _cloudChanged: function (changeRecord) {
+                if (changeRecord && changeRecord.path && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')) && this.get(changeRecord.path.replace('.value','')).name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
+                    if (this.fields) {
+                        function copy(o) { // deep copy an array of objects
+                            var output, v, key;
+                            output = Array.isArray(o) ? [] : {};
+                            for (key in o) {
+                                v = o[key];
+                                output[key] = (typeof v === "object") ? copy(v) : v;
+                            }
+                            return output;
+                        }
+                        // reset fields if cloud changed
+                        var fields = copy(this.fields);
+                        this.set('fields', []);
+                        this.set('fields', fields);
+                        this._updateFields();
+                    }
+                }
+            },
             _fromTemplate: function (params, templates) {
                 if (params.template && this.model.templates) {
                     var yaml_inputs = '';
@@ -405,7 +426,7 @@
 
             _updateFields: function (event) {
                 var e = Polymer.dom(event);
-                var changeInYaml = e.path.indexOf(document.querySelector("paper-textarea#app-form-create_stack-stackinputs")) > -1;
+                var changeInYaml = e  && e.path.indexOf(document.querySelector("paper-textarea#app-form-create_stack-stackinputs")) > -1;
                 if (changeInYaml) {
                     var yaml = document.querySelector("paper-textarea#stackinputs").value;
                     var yaml_array = yaml.split('\n');
