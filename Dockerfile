@@ -1,4 +1,4 @@
-FROM node:6.13.1-alpine
+FROM node:8-alpine
 MAINTAINER mist.io <support@mist.io>
 
 RUN apk add --update --no-cache git nginx
