@@ -880,11 +880,12 @@
                     return;
                 }
 
-                var ramInd = this._fieldIndexByName('size_ram'),
-                    diskInd = this._fieldIndexByName('size_disk_primary');
+                var sizeInd = this._fieldIndexByName('mist_size'),
+                    ramInd = this._fieldIndexByName('size_ram', this.get('machineFields.' + sizeInd + '.customSizeFields')),
+                    diskInd = this._fieldIndexByName('size_disk_primary', this.get('machineFields.' + sizeInd + '.customSizeFields'));
 
-                this.set('machineFields.' + ramInd + '.min', image.extra.min_memory_size);
-                this.set('machineFields.' + diskInd + '.min', image.extra.min_disk_size);
+                this.set('machineFields.' + sizeInd + '.customSizeFields.' + ramInd + '.min', image.extra.min_memory_size);
+                this.set('machineFields.' + sizeInd + '.customSizeFields.' + diskInd + '.min', image.extra.min_disk_size);
 
                 // console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
             },
@@ -1156,10 +1157,15 @@
                         this.set('machineFields.' + keyInd + '.required', true);
                 }
             },
-            _fieldIndexByName: function (name) {
-                return this.machineFields.findIndex(function (f) {
-                    return f.name == name;
-                });
+            _fieldIndexByName: function (name, context) {
+                if (!context)
+                    return this.machineFields.findIndex(function (f) {
+                        return f.name == name;
+                    });
+                else
+                    return context.findIndex(function (f) {
+                        return f.name == name;
+                    });
             },
             _machineCreateResponse: function (e) {
                 // console.log('creation resp', e);
