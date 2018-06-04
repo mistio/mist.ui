@@ -475,14 +475,17 @@
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Stack not found.</div>
                 <div class="flex-horizontal-with-ratios">
-                    <div class="page-block">
+                    <div class="page-block" hidden$="[[!stack.description.length]]">
                         <h3 class="smallcaps">Stack Description</h3>
                         <p>[[stack.description]]</p>
                     </div>
                     <div class="page-block">
                         <h3 class="smallcaps">Created</h3>
-                        <p>[[_computeReadableDate(stack.created_at)]]
-                        </p>
+                        <p>[[_computeReadableDate(stack.created_at)]]</p>
+                    </div>
+                    <div class="page-block" hidden$="[[!stack.owned_by.length]]">
+                        <span class="smallcaps">Owner </span>
+                        <p><a href$="/members/[[stack.owned_by]]">[[_displayOwner(stack.owned_by,model.members)]]</a></p>
                     </div>
                     <div class="page-block" hidden$="[[isEmpty(stack.tags)]]">
                         <h3 class="smallcaps">Tags
@@ -896,6 +899,9 @@
                 };
 
                 run(this);
+            },
+            _displayOwner: function (id, members) {
+                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _computeStack: function (params) {
                 var stack = {};
