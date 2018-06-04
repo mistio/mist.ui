@@ -79,7 +79,8 @@
             }
 
             .paper-header {
-                @apply(--layout-horizontal);
+                display: flex;
+                flex-direction: row;
             }
 
             .paper-header {
@@ -99,7 +100,8 @@
 
             .paper-header h2 {
                 margin-left: 20px;
-                @apply(--layout-flex);
+                display: flex;
+                flex-direction: row;
                 text-transform: capitalize;
             }
 
@@ -133,7 +135,7 @@
                 font-weight: bold;
                 font-size: 0.8em;
                 display: inline-block;
-                width: 80px;
+                width: 100px;
                 opacity: 0.54;
             }
 
@@ -175,10 +177,18 @@
             <div class="columns">
                 <paper-material id="leftcolumn resource-description" class="left">
                     <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
-                    <h4 class="id n-info-head">Network ID:</h4>
-                    <span class="id">[[network.id]]</span>
-                    <h4 class="id n-info-head">Network CIDR:</h4>
-                    <span class="id">[[network.cidr]]</span>
+                    <div>
+                        <h4 class="id n-info-head">Network ID:</h4>
+                        <span class="id">[[network.id]]</span>
+                    </div>
+                    <div>
+                        <h4 class="id n-info-head">Network CIDR:</h4>
+                        <span class="id">[[network.cidr]]</span>
+                    </div>
+                    <div hidden$="[[!network.owned_by.length]]">
+                        <h4 class="id n-info-head">Owner:</h4>
+                        <span class="id"><a href$="/members/[[team.owned_by]]">[[_displayOwner(network.owned_by,model.members)]]</a></span>
+                    </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
                     <div hidden$="[[!network.tags.length]]">
@@ -271,6 +281,9 @@
             observers: [
                 '_change(network)'
             ],
+            _displayOwner: function (id, members) {
+                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+            },
             _change: function (item) {
                 if (item)
                     this.set('itemArray', [this.network]);
