@@ -53,8 +53,11 @@
                     this._updateFields();
                 },
                 _cloudChanged: function (changeRecord) {
-                    if (changeRecord && changeRecord.path && changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace('.value','')) && this.get(changeRecord.path.replace('.value','')).name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
-                        if (this.fields) {
+                    if (!this.fields || !changeRecord || !changeRecord.path || !changeRecord.path.endsWith('value'))
+                        return;
+                    else {
+                        var field = this.get(changeRecord.path.replace('.value',''))
+                        if (field && field.name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
                             function copy(o) { // deep copy an array of objects
                                 var output, v, key;
                                 output = Array.isArray(o) ? [] : {};
