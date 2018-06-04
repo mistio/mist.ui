@@ -383,7 +383,7 @@
                 font-weight: bold;
                 font-size: 0.8em;
                 display: inline-block;
-                width: 80px;
+                width: f;
                 opacity: 0.54;
             }
 
@@ -473,7 +473,7 @@
                 font-weight: bold;
                 font-size: 0.8em;
                 display: inline-block;
-                width: 80px;
+                width: 90px;
                 opacity: 0.54;
                 margin: 0;
             }
@@ -526,6 +526,16 @@
                                 <div class="cell">
                                     <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
                                     [[machine.cloud.title]]
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!machine.owned_by.length]]">
+                                <div class="cell">
+                                    <h4>Owner:</h4>
+                                </div>
+                                <div class="cell">
+                                    <a href$="/members/[[machine.owned_by]]">[[_displayUser(machine.owned_by,model.members)]]</a>
+                                    <h4> - Created by: </h4>
+                                    <a href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!cloud.tenant]]">
@@ -1027,6 +1037,9 @@
         },
         _getMachineCloud: function (clouds, id) {
             return this.model.clouds[id];
+        },
+        _displayUser: function (id, members) {
+            return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
         },
         _showRecommendationDialog: function () {
             this.fire("open-recommendation-dialog", {
