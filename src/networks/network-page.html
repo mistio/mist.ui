@@ -34,7 +34,7 @@
             }
 
             .left {
-                line-height: 1.6em;
+                /*line-height: 1.6em;*/
             }
 
             .left,
@@ -137,6 +137,7 @@
                 display: inline-block;
                 width: 100px;
                 opacity: 0.54;
+                margin: 0;
             }
 
             #rightcolumn .n-info-head {
@@ -178,16 +179,20 @@
                 <paper-material id="leftcolumn resource-description" class="left">
                     <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
                     <div>
-                        <h4 class="id n-info-head">Network ID:</h4>
-                        <span class="id">[[network.id]]</span>
-                    </div>
-                    <div>
                         <h4 class="id n-info-head">Network CIDR:</h4>
                         <span class="id">[[network.cidr]]</span>
                     </div>
+                    <div>
+                        <h4 class="id n-info-head">Network ID:</h4>
+                        <span class="id">[[network.id]]</span>
+                    </div>
                     <div hidden$="[[!network.owned_by.length]]">
                         <h4 class="id n-info-head">Owner:</h4>
-                        <span class="id"><a href$="/members/[[network.owned_by]]">[[_displayOwner(network.owned_by,model.members)]]</a></span>
+                        <span class="id"><a href$="/members/[[network.owned_by]]">[[_displayUser(network.owned_by,model.members)]]</a></span>
+                    </div>
+                    <div hidden$="[[!network.created_by.length]]">
+                        <h4 class="id n-info-head">Created by:</h4>
+                        <span class="id"><a href$="/members/[[network.created_by]]">[[_displayUser(network.created_by,model.members)]]</a></span>
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
@@ -281,7 +286,7 @@
             observers: [
                 '_change(network)'
             ],
-            _displayOwner: function (id, members) {
+            _displayUser: function (id, members) {
                 return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _change: function (item) {
