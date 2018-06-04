@@ -303,7 +303,7 @@
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Schedule not found</div>
                 <div class="layout horizontal">
-                    <div class="flex">
+                    <div class="flex flex-1">
                         <h4 class="id">
                             <paper-toggle-button id="scheduleEnabled" checked="[[schedule.task_enabled]]" on-tap="toggleEnable" disabled$="[[hasExpired]]"></paper-toggle-button>
                             <span hidden$="[[hasExpired]]">
@@ -341,6 +341,10 @@
                         <!-- <paper-button id="copyId" on-tap="_copyID" class="simple-button blue-link smaller" noink>Copy</paper-button> -->
                         <iron-icon icon="clear" on-tap="_hideID"></iron-icon>
                     </span>
+                </div>
+                <div hidden$="[[!schedule.owned_by.length]]">
+                    <span class="m-info-head">Owner: </span>
+                    <a href$="/members/[[team.owned_by]]">[[_displayOwner(schedule.owned_by,model.members)]]</a>
                 </div>
                 <div hidden$="[[!schedule.description]]"><span class="m-info-head">Descr.: </span> 
                     [[schedule.description]]
@@ -576,6 +580,9 @@
             attached: function() {
                 this.isLoading = false;
                 this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
+            },
+            _displayOwner: function (id, members) {
+                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _viewID: function(e) {
                 this.set('showId', true);
