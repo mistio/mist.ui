@@ -32,7 +32,7 @@
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
-    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[model.membersArray]]" items="[[items]]" type="machine"></transfer-ownership>
+    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(model.membersArray)]]" items="[[items]]" type="machine"></transfer-ownership>
     <resize-dialog id="resizedialog" machine="[[_getMachine(items.length)]]" clouds="[[model.clouds]]"></resize-dialog>
 
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
@@ -221,6 +221,13 @@
           arr.push('tag');
         }
         return arr;
+      },
+      _otherMembers: function (members) {
+        return members.filter(function(m) {
+          // TO REMOVE test code
+          return m.id != this.user;
+          // return true;
+        }.bind(this));
       },
       _getMachine: function (length) {
         if (this.items.length)
