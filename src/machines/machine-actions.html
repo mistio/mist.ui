@@ -16,6 +16,7 @@
 <link rel="import" href="run-script-on-machine.html">
 <link rel="import" href="resize-dialog.html">
 <link rel="import" href="machine-edit.html">
+<link rel="import" href="transfer-ownership.html">
 
 <dom-module id="machine-actions">
   <template>
@@ -31,6 +32,7 @@
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
+    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[model.membersArray]]" items="[[items]]" type="machine"></transfer-ownership>
     <resize-dialog id="resizedialog" machine="[[_getMachine(items.length)]]" clouds="[[model.clouds]]"></resize-dialog>
 
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
@@ -128,6 +130,12 @@
         'confirm': true,
         'multi': true
       },
+      'transfer-ownership': {
+        'name': 'transfer ownership',
+        'icon': 'icons:redo',
+        'confirm': false,
+        'multi': true
+      },
       'tag': {
         'name': 'tag',
         'icon': 'label',
@@ -152,6 +160,7 @@
       is: 'machine-actions',
       properties: {
         model: Object,
+        user: String,
         items: {
           type: Array,
           value: function () {
@@ -203,6 +212,9 @@
         }
         if (machine.key_associations && machine.key_associations.length) {
           arr.push('run-script');
+        }
+        if (machine.owned_by == this.user) {
+          arr.push('transfer-ownership');
         }
         if (machine) {
           arr.push('tag');
@@ -271,6 +283,8 @@
             this.$.resizedialog._openDialog();
           } else if (action.name == 'tag') {
             this.$.tagsdialog._openDialog();
+          } else if (action.name == 'transfer ownership') {
+            this.$.ownershipdialog._openDialog();
           } else if (action.name == 'rename') {
             this.$['renamedialog']._openDialog();
           } else if (action.name == 'webconfig') {

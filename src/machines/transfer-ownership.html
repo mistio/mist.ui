@@ -1,0 +1,110 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+
+<dom-module id="transfer-ownership">
+<template>
+    <style include="shared-styles dialogs">
+        :host {
+            display: block;
+            width: 100%;
+        }
+        paper-dialog {
+            width: 310px;
+        }
+        paper-dialog ::content h2 {
+            text-transform: capitalize;
+        }
+        p.margin {
+            margin: 16px 0 !important; 
+        }
+        paper-dropdown-menu ::content iron-dropdown {
+            width: 262px;
+        }
+        ul {
+            padding-left: 18px;
+            color: rgba(0,0,0,0.54);
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+    </style>
+
+    <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+        <h2>Transfer Ownership</h2>
+        <paper-dialog-scrollable>
+            <p>
+                Choose a user to transfer ownership to for [[type]][[_plural(items)]]
+            </p>
+            <ul>
+                <template is="dom-repeat" items="[[items]]">
+                    <li>[[item.name]]</li>
+                </template>
+            </ul>
+            <paper-dropdown-menu label="Users">
+                 <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{newOwner}}" class="dropdown-content" verticalAlign="top">
+                    <template is="dom-repeat" items="[[members]]" as="member">
+                        <paper-item value="[[member.id]]">[[_displayUser(member)]]</paper-item>
+                    </template>
+                 </paper-menu>
+            </paper-dropdown-menu>
+            <div class="clearfix btn-group">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="red" dialog-confirm>Transfer Ownership</paper-button>
+            </div>
+        </paper-dialog-scrollable>
+    </paper-dialog>
+</template>
+
+<script>
+    Polymer({
+        is: 'transfer-ownership',
+
+        properties: {
+            type: {
+                type: String,
+                value: 'isYesNo'
+            },
+            newOwner: String,
+            items: Array
+        },
+        listeners: {
+            'confirmation': 'confirmationListener'
+        },
+        ready: function() {
+
+        },
+        _computeType: function(type, value) {
+            return type == value;
+        },
+        _openDialog: function(e) {
+            this.$.dialogModal.open();
+        },
+        _closeDialog: function(e) {
+            this.$.dialogModal.close();
+        },
+        confirmationListener: function (argument) {
+            console.log('confirmationListener');
+        },
+        _modalClosed: function(e) {
+            var normalizedEvent = Polymer.dom(e);
+            if (normalizedEvent.event.target.id == 'dialogModal') {
+                this.fire('confirmation', {
+                    response: this.$.dialogModal.closingReason,
+                    reason: this.reason
+                });
+            }
+        },
+        _displayUser: function (member){
+            return member && member.name || member.email;
+        },
+        _plural: function (arr) {
+            return arr.length && arr.length>1 ? 's' : '';
+        }
+    })
+</script>
+</dom-module>
