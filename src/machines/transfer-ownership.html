@@ -54,7 +54,7 @@
             </paper-dropdown-menu>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button class="red" dialog-confirm>Transfer Ownership</paper-button>
+                <paper-button class="red" disabled$="[[!newOwner]]" on-tap="confirmTransfer">Transfer Ownership</paper-button>
             </div>
         </paper-dialog-scrollable>
     </paper-dialog>
@@ -65,14 +65,15 @@
         is: 'transfer-ownership',
 
         properties: {
-            type: {
+            type: String,
+            newOwner: {
                 type: String,
-                value: 'isYesNo'
+                value: false
             },
-            newOwner: String,
             items: Array
         },
         listeners: {
+            'iron-overlay-closed': 'overlayClosed',
             'confirmation': 'confirmationListener'
         },
         ready: function() {
@@ -87,17 +88,14 @@
         _closeDialog: function(e) {
             this.$.dialogModal.close();
         },
-        confirmationListener: function (argument) {
-            console.log('confirmationListener');
+        overlayClosed: function (e) {
+            console.log('iron-overlay-closed', e);
+            e.stopPropagation();
         },
-        _modalClosed: function(e) {
-            var normalizedEvent = Polymer.dom(e);
-            if (normalizedEvent.event.target.id == 'dialogModal') {
-                this.fire('confirmation', {
-                    response: this.$.dialogModal.closingReason,
-                    reason: this.reason
-                });
-            }
+        confirmTransfer: function (e) {
+            console.log('confirmation', e);
+            e.stopPropagation();
+            this.fire('transfer-ownership', {user_id: this.newOwner});
         },
         _displayUser: function (member){
             return member && member.name || member.email;

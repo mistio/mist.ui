@@ -182,6 +182,7 @@
       },
       listeners: {
         'rename-machine': 'renameAction',
+        'transfer-ownership': 'transferOwnership',
         'perform-action': 'performAction',
         'iron-overlay-closed': 'confirmAction'
       },
@@ -311,6 +312,22 @@
         console.log('renameAction', e.detail);
         this.performMachineAction(e.detail.action, this.items, e.detail.name);
       },
+      transferOwnership: function (e) {
+        console.log('transferOwnership', e.detail);
+        var payload = {
+          user_id: e.detail.user_id, //new owner
+          resources: {
+              rids: this.items.map(function(i){return i.id}),
+              rtype: this.type
+          }
+        };
+        this.$.request.url = '/api/v1/ownership';
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
+        this.$.request.body = payload;
+        this.$.request.generateRequest();
+      },
       performMachineAction: function (action, items, name) {
         var runitems = items.slice();
         // console.log('perform action machine',items);
@@ -374,6 +391,8 @@
             window.open('', 'view');
 
             form.submit();
+            return;
+          } else if (action.name == 'transfer ownership') {
             return;
           } else {
             console.error('unknown action', action, 'on item', item);
