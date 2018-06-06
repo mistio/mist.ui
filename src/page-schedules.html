@@ -23,7 +23,7 @@
         frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.schedules)]] route={{route}}
         user-filter=[[model.sections.schedules.q]] primary-field-name="id">
         <mist-actions slot="action-buttons" actions="[[actions]]" type="schedule" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-        <schedule-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></schedule-actions>
+        <schedule-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></schedule-actions>
         <p slot="no-items-found">No schedules found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
@@ -32,7 +32,7 @@
     </template>
     <schedule-add model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]]></schedule-add>
     <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules)]]" resource-id="[[data.schedule]]"
-      section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]]></schedule-page>
+      section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]]  user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></schedule-page>
   </template>
   <script>
     Polymer({
@@ -57,6 +57,11 @@
       },
       _isAddPageActive: function (path) {
         return path == '/+add';
+      },
+      _otherMembers: function (members) {
+          return members.filter(function(m) {
+              return m.id != this.model.user.id && !m.pending;
+          }.bind(this));
       },
       _isDetailsPageActive: function (path) {
         if (path && path != '/+add' && this.querySelector('schedule-page'))
