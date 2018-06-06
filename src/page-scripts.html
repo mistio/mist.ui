@@ -24,7 +24,7 @@
         frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.scripts)]] route={{route}}
         user-filter=[[model.sections.scripts.q]] primary-field-name="id">
         <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-        <script-actions slot="actions" items=[[selectedItems]] actions={{actions}}></script-actions>
+        <script-actions slot="actions" items=[[selectedItems]] actions={{actions}} user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></script-actions>
         <p slot="no-items-found">No scripts found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
@@ -33,7 +33,7 @@
     </template>
     <script-add model="[[model]]" section="[[model.sections.scripts]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]]></script-add>
     <script-page model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" resource-id="[[data.script]]" section="[[model.sections.scripts]]"
-      hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
+      user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
     <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
 
   </template>
@@ -62,6 +62,11 @@
       },
       _isAddPageActive: function (path) {
         return path == '/+add';
+      },
+      _otherMembers: function (members) {
+          return members.filter(function(m) {
+              return m.id != this.model.user.id && !m.pending;
+          }.bind(this));
       },
       _isDetailsPageActive: function (path) {
         if (path && path != '/+add' & !path.endsWith('+run') && this.querySelector('script-page'))
