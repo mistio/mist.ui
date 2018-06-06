@@ -457,11 +457,20 @@
         run(this);
       },
       handleResponse: function (e) {
+        console.log('handle response', e, this.$.request.body);
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {
-            msg: 'Action: ' + this.$.request.body.action + ' successfull',
+            msg: 'Action: ' + (this.$.request.body.action || 'ownership transfer') + ' successfull',
             duration: 3000
-          })
+          });
+        if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
+          this.$.ownershipdialog._closeDialog();
+          this.fire('action-finished');
+          this.fire('toast', {
+            msg: 'Successfull ownership transfer',
+            duration: 3000
+          });
+        }
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection
@@ -498,6 +507,9 @@
           msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
           duration: 5000
         });
+        if (e.detail.xhr.responseURL.endsWith("api/v1/ownership")) {
+          this.$.ownershipdialog._closeDialog();
+        }
       },
       _makeList: function (items, property) {
         if (items && items.length)
