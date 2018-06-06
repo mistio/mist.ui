@@ -25,7 +25,7 @@
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.networks,model.clouds)]]
                 route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></network-actions>
+                <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></network-actions>
                 <p slot="no-items-found">No networks found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -34,7 +34,7 @@
         </template>
         <network-create model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-create>
         <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networksArray.length)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
-            hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
+            members="[[_otherMembers(model.membersArray)]]" hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
     </template>
 
     <script>
@@ -77,6 +77,12 @@
             _getNetwork: function (id) {
                 if (this.model.networks)
                     return this.model.networks[id];
+            },
+
+            _otherMembers: function (members) {
+                return members.filter(function(m) {
+                    return m.id != this.model.user.id && !m.pending;
+                }.bind(this));
             },
             
             _addResource: function (e) {
