@@ -145,7 +145,7 @@
             </div>
         </paper-dialog>
 
-        <iron-ajax id="purchasePlanRequest" method="POST" loading="{{loading}}" on-response="purchaseResponse" on-error="purchaseError"></iron-ajax>
+        <iron-ajax id="purchasePlanRequest" url="/api/v1/billing" method="POST" loading="{{loading}}" on-response="purchaseResponse" on-error="purchaseError"></iron-ajax>
 
     </template>
     <script>
@@ -240,35 +240,19 @@
             if (this.cardValid) {
                 var card = this.querySelector('card-form#inPlanPurchase');
                 if (e.detail.token) {
-                    var mistPayload;
-                    if (this.addCard) {
-                        mistPayload = { token: e.detail.token };
-                        this.$.purchasePlanRequest.url = "/card";
-                    }
-                    else {
-                        mistPayload = {
-                            token: e.detail.token,
-                            promo_code: ''
-                        };
-                        if (this.plan)
-                            mistPayload.plan = this.plan.title;
-                        this.$.purchasePlanRequest.url = "/purchase";
-                    }
+                    var payload = { token: e.detail.token };;
                     console.log('_gotCardResponse', this.$.purchasePlanRequest.url);
                     this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
                     this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.purchasePlanRequest.body = mistPayload;
+                    this.$.purchasePlanRequest.body = payload;
                     this.$.purchasePlanRequest.generateRequest();
-                }
-                else if (card.errors) {
+                } else if (card.errors) {
                     this.set('formError', true);
                     this.$.errormsg.textContent = card.errors;
-                }
-                else {
+                } else {
                     this.set('loading', true)
                 }
-            } 
-            else 
+            } else
                 this.querySelector('#form').refit();
         },
         purchaseResponse: function(e){
