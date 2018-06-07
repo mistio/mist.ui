@@ -7,6 +7,7 @@
 <link rel="import" href="tunnels/tunnel-page.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-tunnels">
@@ -23,7 +24,7 @@
             <mist-list id="tunnelsList" selectable resizable column-menu multi-sort apiurl="/api/v1/tunnels" items="[[model.tunnelsArray]]"
                 name="Tunnels" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]]
                 visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.tunnels)]] route={{route}} user-filter=[[model.sections.tunnels.q]]
-                primary-field-name="id" user="[[model.user.id]]" members="[[model.membersArray]]">
+                primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="tunnel" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></tunnel-actions>
                 <p slot="no-items-found">No tunnels found.</p>
@@ -42,7 +43,8 @@
         Polymer({
             is: 'page-tunnels',
             behaviors: [
-                mistListsBehavior
+                mistListsBehavior,
+                ownerFilterBehavior
             ],
 
             properties: {

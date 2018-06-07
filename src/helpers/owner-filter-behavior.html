@@ -1,0 +1,43 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<script>
+/**
+ * Behavior that enables the owner filter behavior for lists.
+ *
+ * @polymerBehavior
+ */
+ownerFilterBehavior = {
+    properties: {},
+    _ownerFilter: function () {
+        var _this = this;
+        return {
+          	'apply': function(item,query) {
+				var q = query.slice(0),
+					filterOwner = q.indexOf('owner:')>-1,
+					ownerRegex = /owner:(\S*)\s?/,
+					owner;
+				if (filterOwner) {
+					if (ownerRegex.exec(q).length) {
+						owner = ownerRegex.exec(q)[1];
+						console.log('owner', owner, ownerRegex.exec(q));
+				  		q = q.replace('owner:','').replace(owner,'');
+				  		if (owner == "$me"){
+				      		if (!item.owned_by || item.owned_by != _this.model.user.id)
+				          		return false;
+				  		}
+				  		else {
+					      	var ownerObj = _this.model.membersArray.find(function(m){
+					          	return [m.name, m.email, m.id].indexOf(owner) > -1;
+					      	});
+					      	if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
+					          	return false;
+					  	}
+				  	return q;
+				  }
+				}
+				return true;
+          	}
+        }
+    }
+}
+</script>

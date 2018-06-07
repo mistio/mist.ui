@@ -7,6 +7,7 @@
 <link rel="import" href="scripts/script-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-scripts">
@@ -22,7 +23,7 @@
       <mist-list id="scriptsList" selectable resizable column-menu multi-sort apiurl="/api/v1/scripts" items="[[model.scriptsArray]]"
         name="Scripts" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
         frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.scripts)]] route={{route}}
-        user-filter=[[model.sections.scripts.q]] primary-field-name="id" user="[[model.user.id]]" members="[[model.membersArray]]">
+        user-filter=[[model.sections.scripts.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
         <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
         <script-actions slot="actions" items=[[selectedItems]] actions={{actions}} user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></script-actions>
         <p slot="no-items-found">No scripts found.</p>
@@ -42,7 +43,8 @@
     Polymer({
       is: 'page-scripts',
       behaviors: [
-        mistListsBehavior
+        mistListsBehavior,
+        ownerFilterBehavior
       ],
 
       properties: {

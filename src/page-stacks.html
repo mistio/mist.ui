@@ -7,6 +7,7 @@
 <link rel="import" href="stacks/stack-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-stacks">
@@ -25,7 +26,7 @@
             <mist-list id="stacksList" selectable resizable column-menu multi-sort apiurl="/api/v1/stacks" items="[[model.stacksArray]]"
                 name="Stacks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.stacks,model.templates)]]
-                route={{route}} user-filter=[[model.sections.stacks.q]] primary-field-name="id" user="[[model.user.id]]" members="[[model.membersArray]]">
+                route={{route}} user-filter=[[model.sections.stacks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="stack" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <stack-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></stack-actions>
                 <p slot="no-items-found">No stacks found.</p>
@@ -43,7 +44,8 @@
         Polymer({
             is: 'page-stacks',
             behaviors: [
-                mistListsBehavior
+                mistListsBehavior,
+                ownerFilterBehavior
             ],
 
             properties: {

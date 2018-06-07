@@ -7,6 +7,7 @@
 <link rel="import" href="templates/template-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-templates">
@@ -21,7 +22,7 @@
             <mist-list id="templatesList" selectable resizable column-menu multi-sort apiurl="/api/v1/templates" items="[[model.templatesArray]]"
                 name="Templates" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.templates)]]
-                route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id" user="[[model.user.id]]" members="[[model.membersArray]]">
+                route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="template" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></template-actions>
                 <p slot="no-items-found">No templates found.</p>
@@ -40,7 +41,8 @@
         Polymer({
             is: 'page-templates',
             behaviors: [
-                mistListsBehavior
+                mistListsBehavior,
+                ownerFilterBehavior
             ],
 
             properties: {
