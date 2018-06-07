@@ -34,7 +34,7 @@
             }
             .errormsg-container {
                 color: var(--red-color);
-                width: 300px;
+                width: 100%;
                 padding-left: 20px;
                 font-size: 14px;
             }
@@ -97,7 +97,7 @@
             </div>
         </paper-dialog>
 
-        <iron-ajax id="addCard" url="/purchase" method="POST" loading="{{loading}}" handle-as="xml" on-response="_handleCardResponse" on-error="_handleCardError"></iron-ajax>
+        <iron-ajax id="addCard" url="/api/v1/billing" method="POST" loading="{{loading}}" handle-as="xml" on-response="_handleCardResponse" on-error="_handleCardError"></iron-ajax>
 
     </template>
     <script>
@@ -175,9 +175,12 @@
                     if (this.cardValid) {
                         var card = this.querySelector('card-form#inAddCloud');
                         if (e.detail.token) {
+                            var payload = {token: e.detail.token};
+                            if (this.plan)
+                                payload.plan = this.plan;
                             this.$.addCard.headers["Content-Type"] = 'application/json';
                             this.$.addCard.headers["Csrf-Token"] = CSRF_TOKEN;
-                            this.$.addCard.body = {plan: this.plan, token: e.detail.token};
+                            this.$.addCard.body = payload;
                             this.$.addCard.generateRequest();
                         }
                         else if (card.errors) {
