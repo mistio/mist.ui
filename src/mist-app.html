@@ -276,6 +276,7 @@
                 'toast': 'showToast',
                 'desktop-notification': 'showDesktopNotification',
                 'clear-search-on-nav': 'clearSearch',
+                'preserve-filters': 'clearSearchPreservingFilters',
                 'search': 'updateSearchQuery',
                 'open-and-select': 'openAndSelect',
                 'cloud-edit-key': 'openCloudEdit',
@@ -434,6 +435,24 @@
                         this.set('model.sections.' + sec + '.q', '');
                     }
                 }
+            },
+
+            clearSearchPreservingFilters: function(e) {
+                var q = this.q || '',
+                    filterOwner = q.indexOf('owner:')>-1,
+                    ownerRegex = /owner:(\S*)\s?/,
+                    owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+                
+                if (filterOwner && owner && owner.length) {
+                    q = q.replace('owner:','').replace(owner+'','');
+                }
+                this.set('q', this.q.replace(q,''));
+                if (this.model) {
+                    for (var sec in this.model.sections) {
+                        this.set('model.sections.' + sec + '.q', this.q.replace(q,''));
+                    }
+                }
+                this.fire('search', this.q.replace(q,''));
             },
 
             _pageChanged: function (page) {

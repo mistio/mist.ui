@@ -1,6 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <link rel="import" href="search-suggestions.html">
@@ -134,9 +137,25 @@
           line-height: 64px;
         }
       }
+      paper-menu-button {
+        padding: 0;
+        background-color: rgba(255,255,255,0.2);
+      }
+      paper-menu-button paper-button {
+        margin: 0;
+        text-transform: none;
+        font-size: 0.9em;
+      }
     </style>
     <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
     <div id="search" class="horizontal layout center">
+      <paper-menu-button vertical-offset="48" multi="true">
+          <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters</paper-button>
+          <paper-listbox class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
+            <paper-item value="owner:$me">Your own resources</paper-item>
+            <paper-item value="">All resources</paper-item>
+          </paper-listbox>
+      </paper-menu-button>
       <iron-icon icon="search"></iron-icon>
       <form on-submit="performSearch" class="flex-1">
           <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
@@ -174,12 +193,14 @@
       },
       width: {
         type: Number
-      }
+      },
+      filter: String
     },
 
     observers: [
       '_queryChanged(query)',
-      'overflowChanged(overflow)'
+      'overflowChanged(overflow)',
+      '_filterChanged(filter)'
     ],
 
     listeners: {
@@ -195,6 +216,16 @@
 
     performSearch: function(e) {
       e.preventDefault();
+    },
+    _filterChanged: function(filter) {
+      if (filter.length)
+        this.fire('search', filter+' '+this.query.replace(/owner:\S*\s/,'').trim());
+      else {
+        var newQ = this.query.replace(/owner:\S*\s?/,'').trim();
+        this.fire('search', newQ);
+        if (!newQ.length)
+          this.clearSearch();
+      }
     },
     _queryChanged: function(q) {
       if (q && q.length) {
