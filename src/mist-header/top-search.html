@@ -30,7 +30,6 @@
       }
 
       :host::content iron-icon {
-        margin-right: 15px;
         cursor: pointer;
         color: inherit;
       }
@@ -138,7 +137,7 @@
         }
       }
       paper-menu-button {
-        padding: 0;
+        padding: 0 0 0 16px;
         background-color: rgba(255,255,255,0.2);
       }
       paper-menu-button paper-button {
@@ -150,9 +149,9 @@
     <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
     <div id="search" class="horizontal layout center">
       <paper-menu-button vertical-offset="48" multi="true">
-          <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters</paper-button>
+          <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon></paper-button>
           <paper-listbox class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
-            <paper-item value="owner:$me">Your own resources</paper-item>
+            <paper-item value="owner:$me">Your resources</paper-item>
             <paper-item value="">All resources</paper-item>
           </paper-listbox>
       </paper-menu-button>
@@ -218,8 +217,11 @@
       e.preventDefault();
     },
     _filterChanged: function(filter) {
-      if (filter.length)
+      if (filter.length){
+        this.$.query.focus();
+        this.set('showClear', true);
         this.fire('search', filter+' '+this.query.replace(/owner:\S*\s/,'').trim());
+      }
       else {
         var newQ = this.query.replace(/owner:\S*\s?/,'').trim();
         this.fire('search', newQ);
