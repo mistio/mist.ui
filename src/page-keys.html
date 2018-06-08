@@ -39,7 +39,7 @@
             user-filter=[[model.sections.keys.q]]
             primary-field-name="id" filter-method="[[_ownerFilter()]]">
           <mist-actions slot="action-buttons" actions="[[actions]]" type="key" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-          <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></key-actions>
+          <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" user="[[model.user]]" members="[[model.membersArray]]" org="[[model.org]]"></key-actions>
           <p slot="no-items-found">No keys found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
@@ -47,7 +47,7 @@
       </div>
     </template>
     <key-add model="[[model]]" section="[[model.sections.keys]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[config.features.docs]]></key-add>
-    <key-page model="[[model]]" key$="[[_getKeyPair(data.key, model.keys)]]" resource-id="[[data.key]]" section="[[model.sections.keys]]" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]" hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
+    <key-page model="[[model]]" key$="[[_getKeyPair(data.key, model.keys)]]" resource-id="[[data.key]]" section="[[model.sections.keys]]" user="[[model.user]]" hidden$=[[!_isDetailsPageActive(route.path)]] org="[[model.org]]"></key-page>
   </template>
 
   <script>
@@ -75,11 +75,6 @@
       },
       _isAddPageActive: function (path) {
         return path == '/+add';
-      },
-      _otherMembers: function (members) {
-          return members.filter(function(m) {
-              return m.id != this.model.user.id && !m.pending;
-          }.bind(this));
       },
       _isDetailsPageActive: function (path) {
         if (path && path != '/+add' && this.querySelector('key-page'))

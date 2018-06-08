@@ -79,7 +79,7 @@
         <template is="dom-if" if="[[members.length]]" restamp>
             <paper-dropdown-menu label="Users">
                  <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{newOwner}}" class="dropdown-content" verticalAlign="top">
-                    <template is="dom-repeat" items="[[members]]" as="member">
+                    <template id="membersDomRepeat" is="dom-repeat" items="[[members]]" as="member">
                         <paper-item value="[[member.id]]">[[_displayUser(member)]]</paper-item>
                     </template>
                  </paper-menu>
@@ -121,6 +121,9 @@
                 value: false
             }
         },
+        observers: [
+            '_membersChanged(members.*)'
+        ],
         listeners: {
             'iron-overlay-closed': 'overlayClosed',
             'confirmation': 'confirmationListener'
@@ -144,6 +147,10 @@
         overlayClosed: function (e) {
             // console.log('iron-overlay-closed', e);
             e.stopPropagation();
+        },
+        _membersChanged: function() {
+            if (this.$.membersDomRepeat && this.members)
+                this.$.membersDomRepeat.render();
         },
         confirmTransfer: function (e) {
             // console.log('confirmation', e);
