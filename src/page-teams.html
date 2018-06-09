@@ -43,6 +43,7 @@
             renderers=[[_getRenderers(model.teams,model.members)]]
             route={{route}}
             user-filter=[[model.sections.teams.q]]
+            filter-method=[[_isMemberOfFilter()]]
             primary-field-name="id">
             <mist-actions slot="action-buttons" actions="[[actions]]" type="team" items="[[selectedItems]]" model="[[model]]"></mist-actions>
             <team-actions slot="actions" items="[[selectedItems]]" org="[[model.org.id]]" actions="{{actions}}"></team-actions>
@@ -101,6 +102,42 @@
       },
       _isListActive: function(path) {
           return !path;
+      },
+      _isMemberOfFilter: function () {
+          var _this = this;
+          return {
+              'apply': function(item,query) {
+                  // let owners see all teams
+                  if (_this.model.org.is_owner)
+                      return true;
+
+                  var q = query.slice(0) || '',
+                      filterOwner = query.indexOf('owner:')>-1,
+                      ownerRegex = /owner:(\S*)\s?/;
+
+                  if (filterOwner && q) {
+                      if (ownerRegex.exec(q).length) {
+                          var owner = ownerRegex.exec(q)[1];
+                          if (owner) {
+                              if (owner == "$me"){
+                                  if (!item.members.length || item.members.indexOf(_this.model.user.id) == -1)
+                                      return false;
+                              }
+                              else {
+                                  var ownerObj = _this.model.membersArray.find(function(m){
+                                      return [m.name, m.email, m.id].indexOf(owner) > -1;
+                                  });
+                                  if (!ownerObj || (!item.members.length || item.members.indexOf(ownerObj.id) == -1))
+                                      return false;
+                              }
+                              q = q.replace('owner:','').replace(owner,'');
+                              return q;
+                          }
+                      }
+                  }
+                  return query;
+              }
+          }
       },
       _hasNoSelectedItems: function() {
           return !(this.selectedItems && this.selectedItems.length);
