@@ -66,7 +66,6 @@ KEY_ACTIONS = {
       properties: {
         user: String,
         members: Array,
-        ownership: Boolean,
         org: Object,
         items: { 
           type: Array,
@@ -102,11 +101,10 @@ KEY_ACTIONS = {
         if (this.items && members) {
           var owners = this.items.map(function(i){return i.owned_by;})
                             .filter(function(value,index,self){return self.indexOf(value) === index;});
-          // filter out pending users and the single owner of the item-set (if that is the case)
-          console.log('key owners',owners);
+          // filter out pending users and the single owner of the item-set if that is the case
           return members.filter(function(m) {
-              return owners.length == 1 ? m.id != owners[1] && !m.pending : !m.pending;
-          }.bind(this));
+              return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
+          });
         }
       },
       itemActions: function(key) {
