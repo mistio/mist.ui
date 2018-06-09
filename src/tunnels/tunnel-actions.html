@@ -18,7 +18,7 @@
     </style>
     
     <dialog-element id="confirm"></dialog-element>
-    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[members]]" items="[[items]]" type="[[type]]"></transfer-ownership>
+    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[members]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
 
     <iron-ajax id="request"
@@ -61,6 +61,7 @@ TUNNEL_ACTIONS = {
       properties: {
         user: String,
         members: Array,
+        org: Object,
         items: { 
           type: Array,
           value: []
@@ -80,7 +81,7 @@ TUNNEL_ACTIONS = {
         }
       },
       observers:[
-        '_mapPolicyToActions(items.*)'
+        '_mapPolicyToActions(items.*,org)'
       ],
       listeners: {
         'iron-overlay-closed': 'confirmAction',
@@ -96,10 +97,10 @@ TUNNEL_ACTIONS = {
         if (tunnel) {
           if(this.inSingleView)
             arr.push('edit');
-          if (tunnel.owned_by == this.user) {
+          arr.push('tag');
+          if (this.org.ownership_enabled && (tunnel.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
           }
-          arr.push('tag');
           arr.push('delete');
         }
         return arr;
@@ -110,6 +111,16 @@ TUNNEL_ACTIONS = {
             ret.push(TUNNEL_ACTIONS[actions[i]]);
         }
         return ret;
+      },
+      _otherMembers: function (members,items) {
+        if (this.items && members) {
+          var owners = this.items.map(function(i){return i.owned_by;})
+                            .filter(function(value,index,self){return self.indexOf(value) === index;});
+          // filter out pending users and the single owner of the item-set if that is the case
+          return members.filter(function(m) {
+              return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
+          });
+        }
       },
       _delete: function() {
         //set up iron ajax

@@ -26,7 +26,7 @@
                 visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.tunnels)]] route={{route}} user-filter=[[model.sections.tunnels.q]]
                 primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="tunnel" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></tunnel-actions>
+                <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="model.membersArray]]" org="[[model.org]]"></tunnel-actions>
                 <p slot="no-items-found">No tunnels found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -35,7 +35,7 @@
         </template>
         <tunnel-add model="[[model]]" section="[[model.sections.tunnels]]" hidden$=[[!_isAddPageActive(route.path)]]></tunnel-add>
         <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels)]]" resource-id="[[data.tunnel]]" section="[[model.sections.tunnels]]"
-            members="[[_otherMembers(model.membersArray)]]" user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]]>
+            hidden$=[[!_isDetailsPageActive(route.path)]]>
             </key-page>
     </template>
 
@@ -89,11 +89,6 @@
 
             _getVisibleColumns: function () {
                 return ['cidrs', 'owned_by', 'created_by', 'id', 'tags'];
-            },
-            _otherMembers: function (members) {
-                return members.filter(function(m) {
-                    return m.id != this.model.user.id && !m.pending;
-                }.bind(this));
             },
             _getRenderers: function (tunnels) {
                 var _this = this;
