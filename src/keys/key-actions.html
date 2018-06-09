@@ -64,7 +64,7 @@ KEY_ACTIONS = {
     Polymer({ 
       is: 'key-actions',
       properties: {
-        user: Object,
+        user: String,
         members: Array,
         org: Object,
         items: { 
@@ -86,7 +86,7 @@ KEY_ACTIONS = {
         }
       },
       observers:[
-        '_mapPolicyToActions(items.*, org)'
+        '_mapPolicyToActions(items.*, org, user)'
       ],
       listeners: {
         'iron-overlay-closed': 'confirmAction',
@@ -109,14 +109,14 @@ KEY_ACTIONS = {
       },
       itemActions: function(key) {
         var arr = [];
-        if (key && !key.isDefault) {
+        if (key && !key.isDefault && this.org.is_owner) {
           arr.push('make_default');
         }
         if (key) {
           if (this.inSingleView)
             arr.push('rename');
           arr.push('tag');
-          if (this.org.ownership_enabled && (key.owned_by == this.user.id || this.org.is_owner)) {
+          if (this.org.ownership_enabled && (key.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
           }
           arr.push('delete');
