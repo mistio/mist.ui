@@ -28,7 +28,7 @@
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.stacks,model.templates)]]
                 route={{route}} user-filter=[[model.sections.stacks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="stack" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <stack-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></stack-actions>
+                <stack-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></stack-actions>
                 <p slot="no-items-found">No stacks found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -37,7 +37,7 @@
         </template>
         <stack-create model="[[model]]" section="[[model.sections.stacks]]" params="[[route.__queryParams]]" hidden$=[[!_isAddPageActive(route.path)]]></stack-create>
         <stack-page model="[[model]]" stack$="[[_getStack(data.stack, model.stacks)]]" resource-id="[[data.stack]]" section="[[model.sections.stacks]]"
-             members="[[_otherMembers(model.membersArray)]]" hidden$=[[!_isDetailsPageActive(route.path)]]></stack-page>
+            hidden$=[[!_isDetailsPageActive(route.path)]]></stack-page>
     </template>
 
     <script>
@@ -76,11 +76,6 @@
             _getStack: function (id) {
                 if (this.model.stacks)
                     return this.model.stacks[id];
-            },
-            _otherMembers: function (members) {
-                return members.filter(function(m) {
-                    return m.id != this.model.user.id && !m.pending;
-                }.bind(this));
             },
             _addResource: function (e) {
                 this.fire('go-to', {
