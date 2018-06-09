@@ -25,7 +25,7 @@
                 visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.zones)]] route={{route}} user-filter=[[model.sections.zones.q]]
                 primary-field-name="id" filter-method="[[_ownerFilter()]]">>
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="zone" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <zone-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></zone-actions>
+                <zone-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></zone-actions>
                 <p slot="no-items-found">No zones found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -34,7 +34,7 @@
         </template>
         <zone-add model="[[model]]" section="[[model.sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></zone-add>
         <zone-page model="[[model]]" zone="[[_getZone(data.zone, model.zones.*)]]" resource-id="[[data.zone]]" section="[[model.sections.zones]]"
-            user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]" hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
+            hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
     </template>
 
     <script>
@@ -64,11 +64,6 @@
 
             _isAddPageActive: function (path) {
                 return path == '/+add';
-            },
-            _otherMembers: function (members) {
-                return members.filter(function(m) {
-                    return m.id != this.model.user.id && !m.pending;
-                }.bind(this));
             },
             _isDetailsPageActive: function (path) {
                 if (path && path != '/+add' && this.querySelector('zone-page'))
