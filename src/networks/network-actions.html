@@ -19,7 +19,7 @@
 
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
-    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[members]]" items="[[items]]" type="[[type]]"></transfer-ownership>
+    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
 
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
 
@@ -62,10 +62,11 @@
           value: 'network'
         },
         members: Array,
-        user: String
+        user: String,
+        org: Object
       },
       observers: [
-        '_mapPolicyToActions(items.*)'
+        '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
         'iron-overlay-closed': 'confirmAction',
@@ -82,7 +83,7 @@
         if (network) {
           arr.push('delete');
           arr.push('tag');
-          if (network.owned_by == this.user) {
+          if (this.org.ownership_enabled && (network.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
           }
         }
@@ -94,6 +95,16 @@
           ret.push(NETWORK_ACTIONS[actions[i]]);
         }
         return ret;
+      },
+      _otherMembers: function (members,items) {
+        if (this.items && members) {
+          var owners = this.items.map(function(i){return i.owned_by;})
+                            .filter(function(value,index,self){return self.indexOf(value) === index;});
+          // filter out pending users and the single owner of the item-set if that is the case
+          return members.filter(function(m) {
+              return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
+          });
+        }
       },
       _delete: function () {
         //set up iron ajax
