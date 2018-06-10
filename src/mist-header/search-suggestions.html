@@ -207,7 +207,8 @@
                 visible: {
                     type: Boolean,
                     reflectToAttribute: true,
-                    value: false
+                    value: false,
+                    notify: true
                 },
                 resultsExist: {
                     type: Boolean,
@@ -223,6 +224,9 @@
                 'viewingListsChanged(hide)',
                 'widthChanged(width)'
             ],
+            listeners: {
+                'tap': 'closeIfClickedElsewhere'
+            },
 
             attached: function() {
                 this.style.width = "100%";
@@ -274,9 +278,30 @@
 
             filterItem: function(item, index) {
                 var q = this.query || '',
-                    queryTerms = q.split(' ');
+                    filterOwner = q.indexOf('owner:')>-1,
+                    ownerRegex = /owner:(\S*)\s?/,
+                    owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1],
+                    queryTerms;
 
-                if (this.query && this.query.length > 0) {
+                if (filterOwner && owner && owner.length) {
+                    q = q.replace('owner:','').replace(owner+'','');
+
+                    if (owner == "$me"){
+                        if (!item.owned_by || item.owned_by != this.model.user.id)
+                            return false;
+                    }
+                    else {
+                        var ownerObj = this.model.membersArray.find(function(m){
+                            return [m.name, m.email, m.id].indexOf(owner) > -1;
+                        });
+                        if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
+                            return false;
+                    }
+                }
+
+                queryTerms = q.split(' ');
+
+                if (q && q.trim().length > 0) {
                     // Check if all terms exist in stringified item
                     for (var i = 0; i < queryTerms.length; i++) {
                         if (queryTerms[i] && queryTerms[i].length &&

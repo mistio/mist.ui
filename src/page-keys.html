@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="keys/key-actions.html">
 <link rel="import" href="keys/key-add.html">
 <link rel="import" href="keys/key-page.html">
@@ -36,9 +37,9 @@
             renderers=[[_getRenderers(model.keys)]]
             route={{route}}
             user-filter=[[model.sections.keys.q]]
-            primary-field-name="id">
+            primary-field-name="id" filter-method="[[_ownerFilter()]]">
           <mist-actions slot="action-buttons" actions="[[actions]]" type="key" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-          <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]"></key-actions>
+          <key-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></key-actions>
           <p slot="no-items-found">No keys found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
@@ -54,7 +55,8 @@
 
       is: 'page-keys',
       behaviors: [
-        mistListsBehavior
+        mistListsBehavior,
+        ownerFilterBehavior
       ],
       properties: {
         model: Object,
@@ -94,7 +96,7 @@
       },
 
       _getVisibleColumns: function(){
-          return ['machines','isDefault', 'id', 'tags'];
+          return ['machines','isDefault', 'owned_by', 'created_by', 'id', 'tags'];
       },
 
       _getRenderers: function(keys) {
@@ -116,6 +118,22 @@
                   },
                   'body': function(item, row) {
                     return item ? '<span class="default"><iron-icon icon="communication:vpn-key"></iron-icon> Default key</span>' : '';
+                  }
+              },
+              'owned_by': {
+                  'title': function (item, row) {
+                      return 'owner';
+                  },
+                  'body': function (item, row) {
+                      return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                  }
+              },
+              'created_by': {
+                  'title': function (item, row) {
+                      return 'created by';
+                  },
+                  'body': function (item, row) {
+                      return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                   }
               },
               'tags': {

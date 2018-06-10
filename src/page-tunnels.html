@@ -7,6 +7,7 @@
 <link rel="import" href="tunnels/tunnel-page.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-tunnels">
@@ -23,9 +24,9 @@
             <mist-list id="tunnelsList" selectable resizable column-menu multi-sort apiurl="/api/v1/tunnels" items="[[model.tunnelsArray]]"
                 name="Tunnels" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]]
                 visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.tunnels)]] route={{route}} user-filter=[[model.sections.tunnels.q]]
-                primary-field-name="id">
+                primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="tunnel" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></tunnel-actions>
+                <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="model.membersArray]]" org="[[model.org]]"></tunnel-actions>
                 <p slot="no-items-found">No tunnels found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -42,11 +43,13 @@
         Polymer({
             is: 'page-tunnels',
             behaviors: [
-                mistListsBehavior
+                mistListsBehavior,
+                ownerFilterBehavior
             ],
 
             properties: {
                 model: Object,
+                ownership: Boolean,
                 actions: {
                     type: Array,
                     notify: true
@@ -85,9 +88,11 @@
             },
 
             _getVisibleColumns: function () {
-                return ['cidrs', 'id', 'tags'];
+                var ret = ['cidrs', 'owned_by', 'created_by', 'id', 'tags'];
+                if (this.model.org.ownership_enabled != true)
+                    ret.splice(ret.indexOf('owned_by'), 1);
+                return ret;
             },
-
             _getRenderers: function (tunnels) {
                 var _this = this;
                 return {
@@ -100,6 +105,22 @@
                         'body': function (item, row) {
                             if (item)
                                 return item.join(', ');
+                        }
+                    },
+                    'owned_by': {
+                        'title': function (item, row) {
+                            return 'owner';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        }
+                    },
+                    'created_by': {
+                        'title': function (item, row) {
+                            return 'created by';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
                     'tags': {

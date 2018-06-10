@@ -230,7 +230,7 @@
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Team not found.</div>
                 <div class="flex-horizontal-with-ratios" hidden$="[[isMissing]]">
-                    <div class="page-block" hidden$="[[!team.description]]">
+                    <div class="page-block" hidden$="[[!team.description.length]]">
                         <h3 class="smallcaps">Team Description</h3>
                         <p>[[team.description]]</p>
                     </div>
@@ -243,6 +243,14 @@
                         <h3 class="smallcaps">Created</h3>
                         <p>[[timestamp]]
                         </p>
+                    </div>
+                    <div class="page-block" hidden$="[[!team.owned_by.length]]">
+                        <h3 class="smallcaps">Owner</h3>
+                        <p><a href$="/members/[[team.owned_by]]">[[_displayUser(team.owned_by,model.members)]]</a></p>
+                    </div>
+                    <div class="page-block" hidden$="[[!team.created_by.length]]">
+                        <h3 class="smallcaps">Created by</h3>
+                        <p><a href$="/members/[[team.created_by]]">[[_displayUser(team.created_by,model.members)]]</a></p>
                     </div>
                 </div>
             </paper-material>
@@ -418,6 +426,9 @@
             ready: function () {
                 var wh = window.innerHeight;
                 this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
+            },
+            _displayUser: function (id, members) {
+                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _change: function (item) {
                 if (item)

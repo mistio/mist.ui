@@ -34,7 +34,7 @@
             }
 
             .left {
-                line-height: 1.6em;
+                /*line-height: 1.6em;*/
             }
 
             .left,
@@ -79,7 +79,8 @@
             }
 
             .paper-header {
-                @apply(--layout-horizontal);
+                display: flex;
+                flex-direction: row;
             }
 
             .paper-header {
@@ -99,7 +100,8 @@
 
             .paper-header h2 {
                 margin-left: 20px;
-                @apply(--layout-flex);
+                display: flex;
+                flex-direction: row;
                 text-transform: capitalize;
             }
 
@@ -133,8 +135,9 @@
                 font-weight: bold;
                 font-size: 0.8em;
                 display: inline-block;
-                width: 80px;
+                width: 100px;
                 opacity: 0.54;
+                margin: 0;
             }
 
             #rightcolumn .n-info-head {
@@ -159,7 +162,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <network-actions items="[[itemArray]]" actions="{{actions}}"></network-actions>
+            <network-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
@@ -175,10 +178,22 @@
             <div class="columns">
                 <paper-material id="leftcolumn resource-description" class="left">
                     <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
-                    <h4 class="id n-info-head">Network ID:</h4>
-                    <span class="id">[[network.id]]</span>
-                    <h4 class="id n-info-head">Network CIDR:</h4>
-                    <span class="id">[[network.cidr]]</span>
+                    <div>
+                        <h4 class="id n-info-head">Network CIDR:</h4>
+                        <span class="id">[[network.cidr]]</span>
+                    </div>
+                    <div>
+                        <h4 class="id n-info-head">Network ID:</h4>
+                        <span class="id">[[network.id]]</span>
+                    </div>
+                    <div hidden$="[[!network.owned_by.length]]">
+                        <h4 class="id n-info-head">Owner:</h4>
+                        <span class="id"><a href$="/members/[[network.owned_by]]">[[_displayUser(network.owned_by,model.members)]]</a></span>
+                    </div>
+                    <div hidden$="[[!network.created_by.length]]">
+                        <h4 class="id n-info-head">Created by:</h4>
+                        <span class="id"><a href$="/members/[[network.created_by]]">[[_displayUser(network.created_by,model.members)]]</a></span>
+                    </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
                     <div hidden$="[[!network.tags.length]]">
@@ -271,6 +286,9 @@
             observers: [
                 '_change(network)'
             ],
+            _displayUser: function (id, members) {
+                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+            },
             _change: function (item) {
                 if (item)
                     this.set('itemArray', [this.network]);

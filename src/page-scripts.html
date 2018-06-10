@@ -7,6 +7,7 @@
 <link rel="import" href="scripts/script-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-scripts">
@@ -22,9 +23,9 @@
       <mist-list id="scriptsList" selectable resizable column-menu multi-sort apiurl="/api/v1/scripts" items="[[model.scriptsArray]]"
         name="Scripts" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
         frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.scripts)]] route={{route}}
-        user-filter=[[model.sections.scripts.q]] primary-field-name="id">
+        user-filter=[[model.sections.scripts.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
         <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-        <script-actions slot="actions" items=[[selectedItems]] actions={{actions}}></script-actions>
+        <script-actions slot="actions" items=[[selectedItems]] actions={{actions}} user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></script-actions>
         <p slot="no-items-found">No scripts found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
@@ -42,11 +43,13 @@
     Polymer({
       is: 'page-scripts',
       behaviors: [
-        mistListsBehavior
+        mistListsBehavior,
+        ownerFilterBehavior
       ],
 
       properties: {
         model: Object,
+        ownership: Boolean,
         actions: {
           type: Array,
           notify: true
@@ -94,7 +97,10 @@
       },
 
       _getVisibleColumns: function () {
-        return ['exec_type', 'location', 'tags'];
+        var ret = ['exec_type', 'owned_by', 'created_by', 'location', 'tags'];
+        if (this.model.org.ownership_enabled != true)
+          ret.splice(ret.indexOf('owned_by'), 1);
+        return ret;
       },
 
       _getRenderers: function (scripts) {
@@ -112,6 +118,22 @@
             'body': function (item, row) {
               return item;
             }
+          },
+          'owned_by': {
+              'title': function (item, row) {
+                  return 'owner';
+              },
+              'body': function (item, row) {
+                  return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+              }
+          },
+          'created_by': {
+              'title': function (item, row) {
+                  return 'created by';
+              },
+              'body': function (item, row) {
+                  return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+              }
           },
           'tags': {
             'body': function (item, row) {
