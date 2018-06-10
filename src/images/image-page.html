@@ -166,6 +166,8 @@
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Image not found.</div>
                 <h4 class="id">Image ID:</h4><span class="id">[[image.id]]</span>
+                <h4 class="id" hidden$="[[!image.owned_by.length]]">Owner:</h4><span class="id"><a href$="/members/[[image.owned_by]]">[[_displayUser(image.owned_by,model.members)]]</a></span>
+                <h4 class="id" hidden$="[[!image.created_by.length]]">Created by:</h4><span class="id"><a href$="/members/[[image.created_by]]">[[_displayUser(image.created_by,model.members)]]</a></span>
                 <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:
                 </h4>
                 <template is="dom-if" if="[[image.tags]]">
@@ -231,6 +233,9 @@
                   '_count(section.count)'
                 ],
                 ready: function() {
+                },
+                _displayUser: function (id, members) {
+                    return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
                 },
                 _count: function(count){
                     console.log('state count', count);

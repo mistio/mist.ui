@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
+<link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 
 <dom-module id="template-actions">
@@ -17,6 +18,7 @@
     </style>
     
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <dialog-element id="confirm"></dialog-element>
 
     <iron-ajax id="request"
@@ -47,6 +49,12 @@ TEMPLATE_ACTIONS = {
     'confirm': true,
     'multi': true
   },
+  'transfer-ownership': {
+    'name': 'transfer ownership',
+    'icon': 'icons:redo',
+    'confirm': false,
+    'multi': true
+  },
   'delete': {
     'name': 'delete',
     'icon': 'delete',
@@ -57,6 +65,8 @@ TEMPLATE_ACTIONS = {
     Polymer({ 
       is: 'template-actions',
       properties: {
+        user: String,
+        members: Array,
         items: { 
           type: Array,
           value: []
@@ -79,7 +89,8 @@ TEMPLATE_ACTIONS = {
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction'
+        'iron-overlay-closed': 'confirmAction',
+        'transfer-ownership': 'transferOwnership'
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -94,6 +105,9 @@ TEMPLATE_ACTIONS = {
             arr.push('create');
           arr.push('edit');
           arr.push('tag');
+          if (template.owned_by == this.user) {
+            arr.push('transfer-ownership');
+          }
           arr.push('delete');
         }
         return arr;
@@ -150,10 +164,27 @@ TEMPLATE_ACTIONS = {
           else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
           }
+          else if (action.name == 'transfer ownership') {
+            this.$.ownershipdialog._openDialog();
+          }
           else {
             this.performAction(this.action, this.items);
           }
         }
+      },
+      transferOwnership: function (e) {
+        var payload = {
+          user_id: e.detail.user_id, //new owner
+          resources: {}
+        };
+        payload.resources[this.type] = this.items.map(function(i){return i.id});
+        console.log('transferOwnership', e.detail, payload);
+        this.$.request.url = '/api/v1/ownership';
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
+        this.$.request.body = payload;
+        this.$.request.generateRequest();
       },
       performAction: function(action, items) {
         if (action.name == 'delete') {
@@ -169,6 +200,14 @@ TEMPLATE_ACTIONS = {
       handleResponse: function(e) {
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+        if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
+          this.$.ownershipdialog._closeDialog();
+          this.fire('action-finished');
+          this.fire('toast', {
+            msg: 'Successfull ownership transfer',
+            duration: 3000
+          });
+        }
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection
@@ -204,6 +243,9 @@ TEMPLATE_ACTIONS = {
       handleError: function(e) {
         // console.log(e.detail.request.xhr.statusText);
         this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
+        if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
+          this.$.ownershipdialog._closeDialog();
+        }
       },
 
       _makeList: function(items, property){

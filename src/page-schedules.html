@@ -7,6 +7,7 @@
 <link rel="import" href="schedules/schedule-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-schedules">
@@ -21,9 +22,9 @@
       <mist-list id="schedulesList" selectable resizable column-menu multi-sort apiurl="/api/v1/schedules" items="[[model.schedulesArray]]"
         name="Schedules" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
         frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.schedules)]] route={{route}}
-        user-filter=[[model.sections.schedules.q]] primary-field-name="id">
+        user-filter=[[model.sections.schedules.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
         <mist-actions slot="action-buttons" actions="[[actions]]" type="schedule" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-        <schedule-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></schedule-actions>
+        <schedule-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></schedule-actions>
         <p slot="no-items-found">No schedules found.</p>
       </mist-list>
       <div class="absolute-bottom-right">
@@ -38,7 +39,8 @@
     Polymer({
       is: 'page-schedules',
       behaviors: [
-        mistListsBehavior
+        mistListsBehavior,
+        ownerFilterBehavior
       ],
 
       properties: {
@@ -80,7 +82,10 @@
       },
 
       _getVisibleColumns: function () {
-        return ['task_type', 'schedule', 'conditions', 'total_run_count', 'tags'];
+        var ret = ['task_type', 'schedule', 'conditions', 'owned_by', 'created_by', 'total_run_count', 'tags'];
+        if (this.model.org.ownership_enabled != true)
+          ret.splice(ret.indexOf('owned_by'), 1);
+        return ret;
       },
 
       _getRenderers: function (schedules) {
@@ -118,6 +123,22 @@
               }
               return display;
             }
+          },
+          'owned_by': {
+              'title': function (item, row) {
+                  return 'owner';
+              },
+              'body': function (item, row) {
+                  return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+              }
+          },
+          'created_by': {
+              'title': function (item, row) {
+                  return 'created by';
+              },
+              'body': function (item, row) {
+                  return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+              }
           },
           'schedule': {
             'body': function (item, row) {

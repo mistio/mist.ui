@@ -472,7 +472,7 @@
                 font-weight: bold;
                 font-size: 0.8em;
                 display: inline-block;
-                width: 80px;
+                width: 90px;
                 opacity: 0.54;
                 margin: 0;
             }
@@ -492,7 +492,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></machine-actions>
+            <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" ></machine-actions>
             <paper-material class="single-head layout horizontal machine-page-head">
                 <span class="icon">
                     <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
@@ -525,6 +525,14 @@
                                 <div class="cell">
                                     <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
                                     [[machine.cloud.title]]
+                                </div>
+                            </div>
+                            <div class="row" hidden$="[[!machine.owned_by.length]]">
+                                <div class="cell">
+                                    <h4>Owner:</h4>
+                                </div>
+                                <div class="cell">
+                                    <a class="blue-link" href$="/members/[[machine.owned_by]]">[[_displayUser(machine.owned_by,model.members)]]</a>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!cloud.tenant]]">
@@ -566,6 +574,9 @@
                                 </div>
                                 <div class="cell">
                                     [[_fromNow(machine.created)]]
+                                    <span hidden$="[[!machine.created_by]]"> 
+                                        by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
+                                    </span>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!machine.probe.ssh.updated_at]]">
@@ -820,6 +831,12 @@
             'confirm': true,
             'multi': true
         },
+        'transfer-ownership': {
+            'name': 'transfer ownership',
+            'icon': 'icons:redo',
+            'confirm': false,
+            'multi': true
+        },
         'webconfig': {
             'name': 'webconfig',
             'icon': 'image:panorama-fish-eye',
@@ -837,8 +854,8 @@
             'icon': 'icons:compare-arrows',
             'confirm': false,
             'multi': true
-        },
-    }
+        }
+    };
 
     Polymer({
         is: 'machine-page',
@@ -849,6 +866,7 @@
             model: {
                 type: Object
             },
+            user: String,
             router: Object,
             machine: {
                 type: Object
@@ -927,7 +945,7 @@
             },
             actions: {
                 type: Array,
-                computed: '_computeActions(machine, machine.*, model.machines.*)'
+                computed: '_computeActions(machine, machine.*, model.machines.*, user)'
             },
             dirtyCowAlert: {
                 type: String,
@@ -1019,6 +1037,9 @@
         _getMachineCloud: function (clouds, id) {
             return this.model.clouds[id];
         },
+        _displayUser: function (id, members) {
+            return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+        },
         _showRecommendationDialog: function () {
             this.fire("open-recommendation-dialog", {
                 'item-type': 'machines',
@@ -1037,6 +1058,8 @@
                     ret.push('run-script');
             }
             if (item) {
+                if (item.owned_by == this.user)
+                    ret.push('transfer-ownership');
                 if (item.actions.tag)
                     ret.push('tag');
                 if (item.actions.start)

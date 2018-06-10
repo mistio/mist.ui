@@ -153,7 +153,7 @@
         <app-header-layout mode="standard" class="fit" fullbleed>
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
             <app-header slot="header" fixed shadow>
-                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}}></mist-header>
+                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}} ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]"
                         isclosed="{{sidebarIsClosed}}"></mist-sidebar>
@@ -269,13 +269,15 @@
                 count: Number,
                 config: Object,
 
-                userMenuOpened: Boolean
+                userMenuOpened: Boolean,
+                visibleSuggestions: Boolean
             },
 
             listeners: {
                 'toast': 'showToast',
                 'desktop-notification': 'showDesktopNotification',
                 'clear-search-on-nav': 'clearSearch',
+                'preserve-filters': 'clearSearchPreservingFilters',
                 'search': 'updateSearchQuery',
                 'open-and-select': 'openAndSelect',
                 'cloud-edit-key': 'openCloudEdit',
@@ -286,7 +288,8 @@
                 'go-to': 'setLocationPath',
                 'mist-list-filtered-items-length-changed': 'setHeaderCount',
                 'export-list-csv': '_exportCsvMessage',
-                'add-org': '_addOrg'
+                'add-org': '_addOrg',
+                'tap': 'closeIfClickedElsewhere'
             },
 
             observers: [
@@ -434,6 +437,24 @@
                         this.set('model.sections.' + sec + '.q', '');
                     }
                 }
+            },
+
+            clearSearchPreservingFilters: function(e) {
+                var q = this.q || '',
+                    filterOwner = q.indexOf('owner:')>-1,
+                    ownerRegex = /owner:(\S*)\s?/,
+                    owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+                
+                if (filterOwner && owner && owner.length) {
+                    q = q.replace('owner:','').replace(owner+'','');
+                }
+                this.set('q', this.q.replace(q,''));
+                if (this.model) {
+                    for (var sec in this.model.sections) {
+                        this.set('model.sections.' + sec + '.q', this.q.replace(q,''));
+                    }
+                }
+                this.fire('search', this.q.replace(q,''));
             },
 
             _pageChanged: function (page) {
@@ -857,6 +878,10 @@
             _addOrg: function(e) {
                 var dialog = this.querySelector('organization-add');
                 dialog.openDialog();
+            },
+            closeIfClickedElsewhere: function(e) {
+                if (this.visibleSuggestions && e.path.indexOf(this.querySelector('mist-header')) == -1)
+                    this.set('visibleSuggestions', false);
             }
         });
 

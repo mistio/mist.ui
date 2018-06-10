@@ -83,7 +83,7 @@
             }
         </style>
         <app-location route="{{route}}"></app-location>
-        <zone-actions items="[[itemArray]]" actions="{{actions}}"></zone-actions>
+        <zone-actions items="[[itemArray]]" actions="{{actions}}" members="[[model.membersArray]]" user="[[model.user.id]]" org="[[model.org]]"></zone-actions>
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active="[[isLoading]]"></paper-spinner>
@@ -110,7 +110,13 @@
                     <paper-material>
                         <div class="missing" hidden$="[[!isMissing]]">Zone not found.</div>
                         <div class='resource-info'>
-                            <h4 class="id">Zone ID:</h4><span class="id">[[zone.id]]</span>
+                            <h4 class="id">Zone ID:</h4> <span class="id">[[zone.id]]</span>
+                        </div>
+                        <div class='resource-info' hidden$="[[!zone.owned_by.length]]">
+                            <h4 class="id">Owner:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.owned_by,model.members)]]</a></span>
+                        </div>
+                        <div class='resource-info' hidden$="[[!zone.created_by.length]]">
+                            <h4 class="id">Created by:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.created_by,model.members)]]</a></span>
                         </div>
                         <template is="dom-if" if="[[tagsExist]]">
                             <div class='resource-info'>
@@ -293,6 +299,9 @@
                 },
                 _editZone: function(e) {
                     console.log(e);
+                },
+                _displayUser: function (id, members) {
+                    return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
                 },
                 // _editTags: function() {
                 //     var el = this.querySelector('tags-list'),

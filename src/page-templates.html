@@ -7,6 +7,7 @@
 <link rel="import" href="templates/template-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-templates">
@@ -21,9 +22,9 @@
             <mist-list id="templatesList" selectable resizable column-menu multi-sort apiurl="/api/v1/templates" items="[[model.templatesArray]]"
                 name="Templates" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.templates)]]
-                route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id">
+                route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="template" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></template-actions>
+                <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></template-actions>
                 <p slot="no-items-found">No templates found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -33,18 +34,20 @@
         <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
         <template-page model="[[model]]" template$="[[_getTemplate(data.template, model.templates)]]" resource-id="[[data.template]]"
             stacks$="[[_getTemplateStacks(data.template, model.templates, model.stacks)]]" section="[[model.sections.templates]]"
-            hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
+            hidden$=[[!_isDetailsPageActive(route.path)]] user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></template-page>
     </template>
 
     <script>
         Polymer({
             is: 'page-templates',
             behaviors: [
-                mistListsBehavior
+                mistListsBehavior,
+                ownerFilterBehavior
             ],
 
             properties: {
                 model: Object,
+                ownership: Boolean,
                 actions: {
                     type: Array,
                     notify: true
@@ -69,6 +72,11 @@
                     url: '/templates/' + this.selectedItems[0].id
                 });
                 this.querySelector('template-page').fire('edit');
+            },
+            _otherMembers: function (members) {
+                return members.filter(function(m) {
+                    return m.id != this.model.user.id && !m.pending;
+                }.bind(this));
             },
             _isAddPageActive: function (path) {
                 return path == '/+add';
@@ -102,7 +110,10 @@
             },
 
             _getVisibleColumns: function () {
-                return ['exec_type', 'location_type', 'tags'];
+                var ret = ['exec_type', 'location_type', 'owned_by', 'created_by', 'tags'];
+                if (this.model.org.ownership_enabled != true)
+                    ret.splice(ret.indexOf('owned_by'), 1);
+                return ret;
             },
 
             _getRenderers: function (templates) {
@@ -111,6 +122,22 @@
                     'name': {
                         'body': function (item, row) {
                             return '<strong class="name">' + item + '</strong>';
+                        }
+                    },
+                    'owned_by': {
+                        'title': function (item, row) {
+                            return 'owner';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        }
+                    },
+                    'created_by': {
+                        'title': function (item, row) {
+                            return 'created by';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
                     'tags': {

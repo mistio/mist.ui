@@ -1,6 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <link rel="import" href="search-suggestions.html">
@@ -27,7 +30,6 @@
       }
 
       :host::content iron-icon {
-        margin-right: 15px;
         cursor: pointer;
         color: inherit;
       }
@@ -134,16 +136,32 @@
           line-height: 64px;
         }
       }
+      paper-menu-button {
+        padding: 0 0 0 16px;
+        background-color: rgba(255,255,255,0.2);
+      }
+      paper-menu-button paper-button {
+        margin: 0;
+        text-transform: none;
+        font-size: 16px;
+      }
     </style>
     <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
     <div id="search" class="horizontal layout center">
+      <paper-menu-button vertical-offset="48" multi="true" hidden$="[[!ownership]]">
+          <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon></paper-button>
+          <paper-listbox id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
+            <paper-item value="owner:$me">Your resources</paper-item>
+            <paper-item value="">All resources</paper-item>
+          </paper-listbox>
+      </paper-menu-button>
       <iron-icon icon="search"></iron-icon>
       <form on-submit="performSearch" class="flex-1">
           <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
       </form>
       <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!showClear]]"></iron-icon>
     </div>
-    <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]"></search-suggestions>
+    <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
   </template>
   <script>
   Polymer({
@@ -174,12 +192,22 @@
       },
       width: {
         type: Number
+      },
+      filter: String,
+      ownership: {
+        type: Boolean,
+        value: false
+      },
+      visibleSuggestions: {
+        type: Boolean,
+        notify: true
       }
     },
 
     observers: [
       '_queryChanged(query)',
-      'overflowChanged(overflow)'
+      'overflowChanged(overflow)',
+      '_filterChanged(filter)'
     ],
 
     listeners: {
@@ -196,15 +224,42 @@
     performSearch: function(e) {
       e.preventDefault();
     },
+    _filterChanged: function(filter) {
+      if (filter.length){
+        this.$.query.focus();
+        this.set('showClear', true);
+        if (this.query.indexOf(filter)==-1)
+          this.fire('search', filter + ' ' + this.query.replace(/owner:\S*\s/, ''));
+      } else {
+        var newQ = this.query.replace(/owner:\S*\s?/g, '');
+        this.fire('search', newQ);
+        if (!newQ.length)
+          this.clearSearch();
+      }
+    },
     _queryChanged: function(q) {
+      if (!q.length) 
+        this.setTypedFilter(q);
       if (q && q.length) {
         this.$.query.focus();
         this.set('showClear', true);
-      }
-      else
+      } else
         this.set('showClear', this.overflow || false);
 
       this.fire('search', this.query);
+    },
+    setTypedFilter: function(q) {
+      var filterOwner = q.indexOf('owner:')>-1,
+          ownerRegex = /owner:(\S*)\s?/,
+          owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+      
+      if (!filterOwner || !q.length) {
+          this.$.filterSelection.selected = -1;
+          this.set('filter','');
+        }
+
+      if (filterOwner && owner && owner.length && this.filter != 'owner:'+owner)
+          this.set('filter', 'owner:'+owner);
     },
     clearSearch: function(e){
       this.set('query',"");
@@ -213,6 +268,7 @@
         this.set('overflow', false);
     },
     hotkeys: function(e) {
+        this.setTypedFilter(this.query);
         // ESC
         if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.$.query) {
             this.set('query',"");
@@ -230,8 +286,7 @@
       if (overflow){
         this.updateWidth();
         this.$.query.focus();
-      }
-      else 
+      } else
         this.$.query.blur();
       this.set('showClear', this.overflow);
     }

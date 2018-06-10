@@ -7,6 +7,7 @@
 <link rel="import" href="networks/network-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
 <dom-module id="page-networks">
@@ -23,9 +24,9 @@
             <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" items="[[model.networksArray]]"
                 name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.networks,model.clouds)]]
-                route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id">
+                route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}"></network-actions>
+                <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
                 <p slot="no-items-found">No networks found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -41,7 +42,8 @@
         Polymer({
             is: 'page-networks',
             behaviors: [
-                mistListsBehavior
+                mistListsBehavior,
+                ownerFilterBehavior
             ],
 
             properties: {
@@ -90,7 +92,10 @@
             },
 
             _getVisibleColumns: function () {
-                return ['provider', 'network_type', 'subnets', 'state', 'tags'];
+                var ret = ['provider', 'owned_by', 'created_by', 'network_type', 'subnets', 'state', 'tags'];
+                if (this.model.org.ownership_enabled != true)
+                    ret.splice(ret.indexOf('owned_by'), 1);
+                return ret;
             },
 
             _getRenderers: function (networks, clouds) {
@@ -108,6 +113,22 @@
                         'body': function (item, row) {
                             return _this.model && _this.model.clouds && _this.model.clouds[row.cloud_id] ?
                                 _this.model.clouds[row.cloud_id].title : item;
+                        }
+                    },
+                    'owned_by': {
+                        'title': function (item, row) {
+                            return 'owner';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        }
+                    },
+                    'created_by': {
+                        'title': function (item, row) {
+                            return 'created by';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
                     'network_type': {

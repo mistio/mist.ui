@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
+<link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 
 <dom-module id="network-actions">
@@ -18,6 +19,7 @@
 
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+    <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
 
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
 
@@ -28,6 +30,12 @@
         'name': 'tag',
         'icon': 'label',
         'confirm': true,
+        'multi': true
+      },
+      'transfer-ownership': {
+        'name': 'transfer ownership',
+        'icon': 'icons:redo',
+        'confirm': false,
         'multi': true
       },
       'delete': {
@@ -52,13 +60,17 @@
         type: {
           type: String,
           value: 'network'
-        }
+        },
+        members: Array,
+        user: String,
+        org: Object
       },
       observers: [
-        '_mapPolicyToActions(items.*)'
+        '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction'
+        'iron-overlay-closed': 'confirmAction',
+        'transfer-ownership': 'transferOwnership'
       },
       ready: function () {},
       attached: function () {
@@ -71,6 +83,9 @@
         if (network) {
           arr.push('delete');
           arr.push('tag');
+          if (this.org.ownership_enabled && (network.owned_by == this.user || this.org.is_owner)) {
+            arr.push('transfer-ownership');
+          }
         }
         return arr;
       },
@@ -80,6 +95,16 @@
           ret.push(NETWORK_ACTIONS[actions[i]]);
         }
         return ret;
+      },
+      _otherMembers: function (members,items) {
+        if (this.items && members) {
+          var owners = this.items.map(function(i){return i.owned_by;})
+                            .filter(function(value,index,self){return self.indexOf(value) === index;});
+          // filter out pending users and the single owner of the item-set if that is the case
+          return members.filter(function(m) {
+              return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
+          });
+        }
       },
       _delete: function () {
         //set up iron ajax
@@ -126,12 +151,28 @@
               danger: true,
               reason: this.type + "." + this.action.name
             });
+          } else if (action.name == 'transfer ownership') {
+            this.$.ownershipdialog._openDialog();
           } else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
           } else {
             this.performAction(this.action, this.items);
           }
         }
+      },
+      transferOwnership: function (e) {
+        var payload = {
+          user_id: e.detail.user_id, //new owner
+          resources: {}
+        };
+        payload.resources[this.type] = this.items.map(function(i){return i.id});
+        console.log('transferOwnership', e.detail, payload);
+        this.$.request.url = '/api/v1/ownership';
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
+        this.$.request.body = payload;
+        this.$.request.generateRequest();
       },
       performAction: function (action, items) {
         if (action.name == 'delete') {
@@ -144,6 +185,14 @@
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
           })
+        if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
+          this.$.ownershipdialog._closeDialog();
+          this.fire('action-finished');
+          this.fire('toast', {
+            msg: 'Successfull ownership transfer',
+            duration: 3000
+          });
+        }
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection
@@ -180,6 +229,9 @@
           msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
           duration: 5000
         });
+        if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
+          this.$.ownershipdialog._closeDialog();
+        }
       },
       _makeList: function (items, property) {
         if (items && items.length)

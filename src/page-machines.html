@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="machines/machine-create.html">
 <link rel="import" href="machines/machine-page.html">
 <link rel="import" href="machines/machine-actions.html">
@@ -244,9 +245,9 @@
             <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" items="[[model.machinesArray]]"
                 name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
-                route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id">
+                route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
+                <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]" user="[[model.user]]" org="[[model.org]]"></machine-actions>
                 <p slot="no-items-found">No machines found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -257,7 +258,7 @@
         <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]
             docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-            <machine-page model="[[model]]" machine="[[_getMachine(data.machine,model.machines)]]" section="[[model.sections.machines]]" monitoring=[[monitoring]]
+            <machine-page model="[[model]]" machine="[[_getMachine(data.machine,model.machines)]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]"
                 hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
         </template>
         <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
@@ -282,10 +283,14 @@
     <script>
         Polymer({
             is: 'page-machines',
+            behaviors: [
+                ownerFilterBehavior
+            ],
 
             properties: {
                 model: Object,
                 data: Object,
+                ownership: Boolean,
                 itemOfRecommendation: Object,
                 selectedItems: {
                     type: Array
@@ -450,9 +455,10 @@
             },
 
             _getVisibleColumns: function () {
-                return ['state', 'cloud', 'cost', 'created', 'tags', 'image_id', 'size', 'location',
-                    'hostname', 'public_ips'
-                ];
+                var ret = ['state', 'cloud', 'cost', 'owned_by', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
+                if (this.model.org.ownership_enabled != true)
+                    ret.splice(ret.indexOf('owned_by'), 1);
+                return ret;
             },
 
             _getRenderers: function (machines, clouds, incidents) {
@@ -546,6 +552,22 @@
                             if (item1.monthly > item2.monthly)
                                 return 1;
                             return 0;
+                        }
+                    },
+                    'owned_by': {
+                        'title': function (item, row) {
+                            return 'owner';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        }
+                    },
+                    'created_by': {
+                        'title': function (item, row) {
+                            return 'created by';
+                        },
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
                     'created': {
