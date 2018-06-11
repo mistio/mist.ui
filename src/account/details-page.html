@@ -124,7 +124,18 @@
             paper-toggle-button {
                 margin: auto;
                 display: inline-flex;
+                vertical-align: text-bottom;
                 cursor: pointer;
+            }
+
+            .margin-bottom {
+                margin-bottom: 16px;
+            }
+
+            .secondary {
+                opacity: 0.54;
+                display: inline-flex;
+                vertical-align: text-bottom;
             }
         </style>
         <paper-material>
@@ -164,13 +175,14 @@
                     <h2 class="title">Organisation Profile</h2>
                     <p>Enter your organisation details. To switch organisation use the  user menu in the top right corner of your screen.</p>
                 </div>
-                <paper-input class="dropdown-block xs12 l6" id="orgName" label="Organization Name" required error-message="Please enter your company's name" value="{{orgName}}" auto-validate disabled$="[[!org.is_owner]]"></paper-input>
+                <paper-input class="dropdown-block xs12 l6" id="orgName" label="Organisation Name" required error-message="Please enter your company's name" value="{{orgName}}" auto-validate disabled$="[[!org.is_owner]]"></paper-input>
 
                 <paper-textarea class="xs12 l6" id="org-email" label="Organisation Alert Email *" error-message="Please enter your email" value="{{orgAlertEmails}}" auto-validate hidden$="[[!config.features.monitoring]]"></paper-textarea>
 
                 <p class="xs12 l12" hidden$="[[!config.features.monitoring]]">* In your organisation's alert email, you can specify the email you want your incidents' alerts to be sent to. This can be overriden when you add rules in your monitored machines.</p>
 
                 <div class="xs12 head">
+                    <h2 class="title">Organisation Features</h2>
                     <div hidden$="[[!org.avatar]]" class="existing-org-logo">
                         <div class="org-logo-field-title">Organisation logo</div>
                         <div>
@@ -181,7 +193,7 @@
                         </div>
                     </div>
                     <div hidden$="[[org.avatar.length]]">
-                        <div class="xs12 org-logo-field-title margin">Custom Logo</div>
+                        <!-- <div class="xs12 org-logo-field-title margin">Custom Logo</div> -->
                         <paper-toggle-button checked="{{customLogo}}">
                             Enable custom logo.
                         </paper-toggle-button>
@@ -201,12 +213,22 @@
                         </div>
                     </div>
                 </div>
-                <div class="xs12" hidden$="[[!config.features.r12ns]]">
+
+                <div class="xs12 margin-bottom" hidden$="[[!config.features.r12ns]]">
                     <div hidden$="[[!org.is_owner]]">
                         <paper-toggle-button checked="{{enableR12ns}}">
-                            Enable Recommendations
+                            Recommendations <span hidden$="[[enableR12ns]]">OFF</span> <span hidden$="[[!enableR12ns]]">ON</span>
                         </paper-toggle-button>
-                        <p>Generate cost and performance recommendations for your monitored infrastructure.</p>
+                        <span class="secondary">Generate cost and performance recommendations for your monitored infrastructure.</spam>
+                    </div>
+                </div>
+
+                <div class="xs12">
+                    <div hidden$="[[!org.is_owner]]">
+                        <paper-toggle-button checked="{{enableOwnership}}">
+                            Ownership Features <span hidden$="[[enableOwnership]]">OFF</span> <span hidden$="[[!enableOwnership]]">ON</span>
+                        </paper-toggle-button>
+                        <span class="secondary">Allow filtering and Role Based Access actions based on resource ownership.</spam>
                     </div>
                 </div>
 
@@ -221,6 +243,14 @@
                     <paper-button class="pull-right" disabled$="[[!orgFormReady]]" raised on-tap="_submitOrgForm" page="second">Save Organisation Profile</paper-button>
                     <iron-ajax id="orgAjaxRequest"
                         url="/api/v1/org/[[org.id]]"
+                        method="PUT"
+                        loading="{{loadingOrg}}"
+                        on-response="_handleAjaxResponse"
+                        on-error="_handleOrgAjaxError"
+                        handle-as="xml"></iron-ajax>
+
+                    <iron-ajax id="ownershipRequest"
+                        url="/api/v1/ownership"
                         method="PUT"
                         loading="{{loadingOrg}}"
                         on-response="_handleAjaxResponse"
@@ -271,7 +301,7 @@
                     },
                     orgFormReady: {
                         type: Boolean,
-                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, enableR12ns, loadingOrg, org)'
+                        computed: '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, enableR12ns, loadingOrg, org, enableOwnership)'
                     },
                     loadingUser: {
                         type: Boolean,
@@ -294,11 +324,13 @@
                         value: ''
                     },
                     customLogo: false,
-                    enableR12ns: false
+                    enableR12ns: false,
+                    enableOwnership: false
                 },
                 observers: [
                     '_userUpdated(user)',
-                    '_orgUpdated(org)'
+                    '_orgUpdated(org)',
+                    '_enableOwnershipChanged(enableOwnership)'
                 ],
 
                 attached: function() {
@@ -323,6 +355,7 @@
                     this.orgAlertEmails = org.alerts_email.join('\n');
                     this.customLogo = org.avatar ? true : false;
                     this.enableR12ns = org.enable_r12ns;
+                    this.enableOwnership = org.ownership_enabled;
                 },
 
                 _computeUploadHeaders: function() {
@@ -351,9 +384,9 @@
                     return false;
                 },
 
-                _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, enableR12ns, loading, org){
+                _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, enableR12ns, loading, org, enableOwnership){
                     if (orgName && orgName.trim() != "" && org.is_owner && !loading &&
-                        (orgName != org.name || enableR12ns != org.enable_r12ns || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
+                        (orgName != org.name || enableR12ns != org.enable_r12ns || enableOwnership != org.ownership_enabled || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
                          (orgAvatar && orgAvatar != org.avatar)))
                         return true;
                     return false;
@@ -382,21 +415,35 @@
                     console.log('loadingUser', this.loadingUser);
                 },
 
+                _toggleOwnership: function() {
+                    this.$.ownershipRequest.headers["Content-Type"] = 'application/json';
+                    this.$.ownershipRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.ownershipRequest.generateRequest();
+                },
+
                 _submitOrgForm: function(e, org) {
-                    var payload = {
-                        new_name: this.orgName,
-                        alerts_email: this.orgAlertEmails,
-                        enable_r12ns: this.enableR12ns
-                    };
+                    if (this.enableOwnership != this.org.ownership_enabled)
+                        this._toggleOwnership();
 
-                    if (this.orgAvatar)
-                        payload['avatar'] = this.orgAvatar;
+                    if (orgName != org.name || enableR12ns != org.enable_r12ns || 
+                            (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) || 
+                            (orgAvatar && orgAvatar != org.avatar)) {
 
-                    this.$.orgAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.orgAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.orgAjaxRequest.body = payload;
-                    this.$.orgAjaxRequest.generateRequest();
-                    console.log('loadingOrg', this.loadingOrg);
+                        var payload = {
+                            new_name: this.orgName,
+                            alerts_email: this.orgAlertEmails,
+                            enable_r12ns: this.enableR12ns
+                        };
+
+                        if (this.orgAvatar)
+                            payload['avatar'] = this.orgAvatar;
+
+                        this.$.orgAjaxRequest.headers["Content-Type"] = 'application/json';
+                        this.$.orgAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.orgAjaxRequest.body = payload;
+                        this.$.orgAjaxRequest.generateRequest();
+                        console.log('loadingOrg', this.loadingOrg);
+                    }
                 },
 
                 _handleAjaxResponse: function(e) {
