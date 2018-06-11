@@ -215,6 +215,13 @@
       'iron-resize': 'updateWidth'
     },
 
+    attached: function() {
+      var filter = localStorage.getItem('mist-filter');
+      console.log('attached', filter);
+      if (filter.length)
+        this.set('filter', filter);
+    },
+
     updateWidth: function() {
         this.debounce('windowResize', function() {
             this.set('width', this.getBoundingClientRect().width)
@@ -236,6 +243,11 @@
         if (!newQ.length)
           this.clearSearch();
       }
+      this.updateLocalStorage(filter);
+    },
+    updateLocalStorage: function(filter) {
+      if (filter && filter.length && filter.length >=0)
+        localStorage.setItem('mist-filter', filter);
     },
     _queryChanged: function(q) {
       if (!q.length) 
