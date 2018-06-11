@@ -151,8 +151,8 @@
       <paper-menu-button vertical-offset="48" multi="true" hidden$="[[!ownership]]">
           <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon></paper-button>
           <paper-listbox id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
-            <paper-item value="owner:$me">Your resources</paper-item>
-            <paper-item value="">All resources</paper-item>
+            <paper-item value="owner:$me" on-tap="updateLocalStorage">Your resources</paper-item>
+            <paper-item value="" on-tap="updateLocalStorage">All resources</paper-item>
           </paper-listbox>
       </paper-menu-button>
       <iron-icon icon="search"></iron-icon>
@@ -217,9 +217,9 @@
 
     attached: function() {
       var filter = localStorage.getItem('mist-filter');
-      console.log('attached', filter);
-      if (filter.length)
-        this.set('filter', filter);
+      if (filter) {
+          this.set('filter', filter);
+      }
     },
 
     updateWidth: function() {
@@ -233,6 +233,7 @@
     },
     _filterChanged: function(filter) {
       if (filter.length){
+        this.updateLocalStorage();
         this.$.query.focus();
         this.set('showClear', true);
         if (this.query.indexOf(filter)==-1)
@@ -243,11 +244,10 @@
         if (!newQ.length)
           this.clearSearch();
       }
-      this.updateLocalStorage(filter);
     },
-    updateLocalStorage: function(filter) {
-      if (filter && filter.length && filter.length >=0)
-        localStorage.setItem('mist-filter', filter);
+    updateLocalStorage: function(e) {
+        if (typeof this.filter == 'string')
+          localStorage.setItem('mist-filter', this.filter);
     },
     _queryChanged: function(q) {
       if (!q.length) 
@@ -260,7 +260,7 @@
 
       this.fire('search', this.query);
     },
-    setTypedFilter: function(q) {
+    setTypedFilter: function(q,caller) {
       var filterOwner = q.indexOf('owner:')>-1,
           ownerRegex = /owner:(\S*)\s?/,
           owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
@@ -270,8 +270,12 @@
           this.set('filter','');
         }
 
-      if (filterOwner && owner && owner.length && this.filter != 'owner:'+owner)
+      if (filterOwner && owner && owner.length && this.filter != 'owner:'+owner) {
           this.set('filter', 'owner:'+owner);
+        }
+      // update localStorage if user is typing
+      if (caller)
+          this.updateLocalStorage();
     },
     clearSearch: function(e){
       this.set('query',"");
@@ -280,7 +284,7 @@
         this.set('overflow', false);
     },
     hotkeys: function(e) {
-        this.setTypedFilter(this.query);
+        this.setTypedFilter(this.query,'hotkeys');
         // ESC
         if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.$.query) {
             this.set('query',"");
