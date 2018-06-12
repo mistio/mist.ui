@@ -20,11 +20,16 @@
             color: #ffffff;
             background-color: #039BE5;
             flex-basis: auto;
+            width: 100%;
         }
 
          :host[is-current] paper-button {
             color: #039BE5 !important;
             background-color: #ffffff !important;
+        }
+
+        div[hidden] {
+            display: none;
         }
 
         hr {
@@ -178,13 +183,65 @@
         paper-tooltip::content #tooltip {
             font-size: 14px;
         }
+    /*   
+    a) null or undefined
+
+    b) {
+        'title': 'Small',
+        'price': 200,
+        'vcpu_limit': '200',
+        'datapoint_limit': '20M',
+        'checks_limit': '100k',
+        'retention': '3 month',
+        'visible': True,
+    }
+
+    c) {
+        'title': 'Small',
+        'description': '',
+        'price': 150,
+        'machine_limit': 50,
+        'monitor_limit': 20,
+        'is_ibm_compatible': False,
+        'visible': False,
+    }
+
+    */
         </style>
-        <div class="plan" hidden$="[[plan]]">
-            <h2>
-                <span hidden$="[[plan.title]]">Pay As You Go</span>
-            </h2>
-        </div>
-        <div class="plan" hidden$="[[!plan]]">
+        <template is="dom-if" if="[[!plan]]">
+            <div class="plan" hidden$="[[plan]]">
+                <h2>
+                    <span hidden$="[[plan.title]]">Pay As You Go</span>
+                </h2>
+                <div class="old-plan-body">
+                    <div>
+                <!-- any plan but payg has title -->
+                        <div class="payg-info" hidden$="[[plan.title]]">
+                            <strong>FREE</strong> for up to
+
+                            10 <span id="vcpus">vCPUs</span>,<br/>
+                            1M <span id="datapoints">datapoints/day</span>,<br/>
+                            10k <span id="rulechecks">rule checks/day</span>,<br/>
+                            10k <span id="apirequests">API requests/day</span>.<br/>
+
+                            <div>1 month <span id="retention">retention</span></div>
+                            <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
+                            <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
+                            <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
+                            <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
+                            <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
+
+                            <div hidden$="[[plan.title]]">
+                                <br/>
+                                <br/>
+                                <paper-button class="blue" raised on-tap="_selectPayg" hidden$="[[!hasCard]]">Enable</paper-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <template is="dom-if" if="[[plan]]">
             <div class="plan old" hidden$="[[plan.vcpu_limit]]">
                 <h2>[[plan.title]]
                     <!-- any plan but payg has title -->
@@ -196,27 +253,6 @@
                     <div>
                         <br/>
                         <h2 class="price" hidden$="[[!plan.price]]"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
-                         <!-- any plan but payg has title -->
-                        <div class="payg-info" hidden$="[[plan.title]]">
-                            <strong>FREE</strong> for up to
-
-                            10 <span id="vcpus">vCPUs</span>,
-                            1M <span id="datapoints">datapoints/day</span>,
-                            10k <span id="rulechecks">rule checks/day</span>,
-                            10k <span id="apirequests">API requests/day</span>.
-
-                            <div>1 month <span id="retention">retention</span></div>
-                            <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
-                            <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
-                            <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
-                            <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
-                            <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
-                        </div>
-                        <div hidden$="[[plan.title]]">
-                            <br/>
-                            <br/>
-                            <paper-button class="blue" raised on-tap="_selectPayg" hidden$="[[!hasCard]]">Enable</paper-button>
-                        </div>
                     </div>
                     <div hidden$="[[enterprise]]">
                         <p>
@@ -278,7 +314,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </template>
         <dialog-element id="plancancel"></dialog-element>
         <iron-ajax id="cancelPlanAjaxRequest" url="/api/v1/org/[[org.id]]/billing" method="DELETE" loading="{{loadingCancel}}" on-response="_handleCancelAjaxResponse" on-error="_handleCancelAjaxError" handle-as="xml"></iron-ajax>
     </template>
@@ -288,9 +324,7 @@
 
         properties: {
             email: Object,
-            plan: {
-                type: Object
-            },
+            plan: Object,
             org: {
                 type: Object
             },
