@@ -179,96 +179,103 @@
             font-size: 14px;
         }
         </style>
-        <div class="plan old" hidden$="[[plan.vcpu_limit]]">
-            <h2>[[plan.title]]
-                <!-- any plan but payg has title -->
+        <div class="plan" hidden$="[[plan]]">
+            <h2>
                 <span hidden$="[[plan.title]]">Pay As You Go</span>
             </h2>
-            <hr>
-            <div class="old-plan-body">
-                <!-- regular plans -->
-                <div>
-                    <br/>
-                    <h2 class="price" hidden$="[[!plan.price]]"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
-                     <!-- any plan but payg has title -->
-                    <div class="payg-info" hidden$="[[plan.title]]">
-                        <strong>FREE</strong> for up to
-
-                        10 <span id="vcpus">vCPUs</span>,
-                        1M <span id="datapoints">datapoints/day</span>,
-                        10k <span id="rulechecks">rule checks/day</span>,
-                        10k <span id="apirequests">API requests/day</span>.
-
-                        <div>1 month <span id="retention">retention</span></div>
-                        <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
-                        <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
-                        <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
-                        <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
-                        <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
-                    </div>
-                    <div hidden$="[[plan.title]]">
-                        <br/>
-                        <br/>
-                        <paper-button class="blue" raised on-tap="_selectPayg" hidden$="[[!hasCard]]">Enable</paper-button>
-                    </div>
-                </div>
-                <div hidden$="[[enterprise]]">
-                    <p>
-                        <!-- any plan but payg has title -->
-                        <span hidden$="[[!plan.title]]">[[descriptionText]]</span>
-                    </p>
-                </div>
-                <!-- if plan is enterprise but not current. show text -->
-                <p hidden$="[[!enterprise]]">
-                    Contact us for your custom Enterprise plan of more than 300 machines
-                </p>
-                <div hidden$="[[!enterprise]]">
-                    tel: +1-650-605-3299
-                    <br/>
-                    <a href$="mailto:[[email.sales]]">[[email.sales]]</a>
-                </div>
-                <!-- regular plans -->
-                <p hidden$="[[!plan.promo]]">[[plan.promo.description]]</p>
-                <!-- plan is canceled -->
-                <template is="dom-if" if="[[plan.expiration]]">
-                    Your plan will expire on [[_computeReadableDate(plan.expiration)]].
-                    <br/>
-                    <br/>
-                </template>
-                <template is="dom-if" if="[[showPurchase(plan, isCurrent, org)]]">
-                    <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPayg" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
-                </template>
-                <!-- is current plan, not cancelled-->
-                <div hidden$="[[!showCancel(plan,org)]]">
-                    <paper-button id="cancelButton" on-tap="_cancelPlan" hidden$="{{loadingCancel}}">Cancel Plan</paper-button>
-                    <div hidden$="{{!loadingCancel}}">
-                        Canceling Plan
-                        <br/>
-                        <br/>
-                        <paper-spinner-lite class="white" active="{{loadingCancel}}"></paper-spinner-lite>
-                    </div>
-                    <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
-                </div>
-            </div>
         </div>
-        <div class="plan" hidden$="[[!plan.vcpu_limit]]">
-            <div class$="[[bgclass]]">
-                [[plan.title]]
-            </div>
-            <div class="plan-body">
-                <div class="plan-body-item">
-                    <div class="valign">
-                        <h2 class="price"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
-                        <paper-button class="blue" raised on-tap="_selectPlan" hidden$="[[isCurrent]]">Purchase</paper-button>
-                        <!-- <div class="selected" hidden$="[[!isCurrent]]"><iron-icon icon="icons:check"></iron-icon> selected</div>
-                        <a class="cancel regular blue-link" on-tap="_cancelPlan" hidden$="[[!isCurrent]]">Cancel plan</a> -->
+        <div class="plan" hidden$="[[!plan]]">
+            <div class="plan old" hidden$="[[plan.vcpu_limit]]">
+                <h2>[[plan.title]]
+                    <!-- any plan but payg has title -->
+                    <span hidden$="[[plan.title]]">Pay As You Go</span>
+                </h2>
+                <hr>
+                <div class="old-plan-body">
+                    <!-- regular plans -->
+                    <div>
+                        <br/>
+                        <h2 class="price" hidden$="[[!plan.price]]"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
+                         <!-- any plan but payg has title -->
+                        <div class="payg-info" hidden$="[[plan.title]]">
+                            <strong>FREE</strong> for up to
+
+                            10 <span id="vcpus">vCPUs</span>,
+                            1M <span id="datapoints">datapoints/day</span>,
+                            10k <span id="rulechecks">rule checks/day</span>,
+                            10k <span id="apirequests">API requests/day</span>.
+
+                            <div>1 month <span id="retention">retention</span></div>
+                            <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
+                            <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
+                            <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
+                            <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
+                            <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
+                        </div>
+                        <div hidden$="[[plan.title]]">
+                            <br/>
+                            <br/>
+                            <paper-button class="blue" raised on-tap="_selectPayg" hidden$="[[!hasCard]]">Enable</paper-button>
+                        </div>
+                    </div>
+                    <div hidden$="[[enterprise]]">
+                        <p>
+                            <!-- any plan but payg has title -->
+                            <span hidden$="[[!plan.title]]">[[descriptionText]]</span>
+                        </p>
+                    </div>
+                    <!-- if plan is enterprise but not current. show text -->
+                    <p hidden$="[[!enterprise]]">
+                        Contact us for your custom Enterprise plan of more than 300 machines
+                    </p>
+                    <div hidden$="[[!enterprise]]">
+                        tel: +1-650-605-3299
+                        <br/>
+                        <a href$="mailto:[[email.sales]]">[[email.sales]]</a>
+                    </div>
+                    <!-- regular plans -->
+                    <p hidden$="[[!plan.promo]]">[[plan.promo.description]]</p>
+                    <!-- plan is canceled -->
+                    <template is="dom-if" if="[[plan.expiration]]">
+                        Your plan will expire on [[_computeReadableDate(plan.expiration)]].
+                        <br/>
+                        <br/>
+                    </template>
+                    <template is="dom-if" if="[[showPurchase(plan, isCurrent, org)]]">
+                        <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPayg" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
+                    </template>
+                    <!-- is current plan, not cancelled-->
+                    <div hidden$="[[!showCancel(plan,org)]]">
+                        <paper-button id="cancelButton" on-tap="_cancelPlan" hidden$="{{loadingCancel}}">Cancel Plan</paper-button>
+                        <div hidden$="{{!loadingCancel}}">
+                            Canceling Plan
+                            <br/>
+                            <br/>
+                            <paper-spinner-lite class="white" active="{{loadingCancel}}"></paper-spinner-lite>
+                        </div>
+                        <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
                     </div>
                 </div>
-                <div class="plan-body-item">
-                    <p class="valign">[[plan.vcpu_limit]] vCPUs</p>
-                    <p class="valign">[[plan.datapoint_limit]] datapoints/day</p>
-                    <p class="valign">[[plan.checks_limit]] rule checks/day</p>
-                    <p class="valign">[[plan.retention]] retention</p>
+            </div>
+            <div class="plan" hidden$="[[plan.machine_limit]]">
+                <div class$="[[bgclass]]">
+                    [[plan.title]]
+                </div>
+                <div class="plan-body">
+                    <div class="plan-body-item">
+                        <div class="valign">
+                            <h2 class="price"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
+                            <paper-button class="blue" raised on-tap="_selectPlan" hidden$="[[isCurrent]]">Purchase</paper-button>
+                            <!-- <div class="selected" hidden$="[[!isCurrent]]"><iron-icon icon="icons:check"></iron-icon> selected</div>
+                            <a class="cancel regular blue-link" on-tap="_cancelPlan" hidden$="[[!isCurrent]]">Cancel plan</a> -->
+                        </div>
+                    </div>
+                    <div class="plan-body-item">
+                        <p class="valign">[[plan.vcpu_limit]] vCPUs</p>
+                        <p class="valign">[[plan.datapoint_limit]] datapoints/day</p>
+                        <p class="valign">[[plan.checks_limit]] rule checks/day</p>
+                        <p class="valign">[[plan.retention]] retention</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -319,7 +326,7 @@
             },
             buttonText: {
                 type: String,
-                computed: '_computeButtonText(plan, org.current_plan)'
+                computed: '_computeButtonText(plan, org)'
             },
             loadingCancel: {
                 type: Boolean,
@@ -327,13 +334,13 @@
             },
             bgclass: {
                 type: String,
-                computed: '_computeBgClass(plan, org.current_plan.*)'
+                computed: '_computeBgClass(plan, org)'
             }
         },
         listeners: {
             'confirmation': '_cancelPlanConfirmed',
         },
-        _computeBgClass: function(plan, current) {
+        _computeBgClass: function(plan, org) {
             if (plan.title == "Small")
                 return "title bg-1";
             else if (plan.title == "Medium")
@@ -424,10 +431,10 @@
             this.fire('error-on-cancel-plan', { error: e.detail.request.xhr.responseText });
         },
         _computeButtonText: function(plan, org) {
-            if (this.plan.title && this.org.current_plan.machine_limit > plan.machine_limit) {
+            if (this.plan.title && this.org.current_plan && this.org.current_plan.machine_limit > plan.machine_limit) {
                 console.log('UP / DOWN', this.org.current_plan.machine_limit, plan.machine_limit)
                 return 'Downgrade';
-            } else if (!this.org.current_plan.machine_limit || this.org.current_plan.machine_limit < plan.machine_limit) {
+            } else if (!this.org.current_plan || !this.org.current_plan.machine_limit || this.org.current_plan.machine_limit < plan.machine_limit) {
                 return 'Upgrade';
             } else {
                 return "Purchase";
