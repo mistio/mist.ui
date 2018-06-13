@@ -183,6 +183,10 @@
         paper-tooltip::content #tooltip {
             font-size: 14px;
         }
+
+        .days-left {
+            font-size: 2em;
+        }
     /*   
     a) null or undefined
 
@@ -217,7 +221,7 @@
                     <div>
                 <!-- any plan but payg has title -->
                         <div class="payg-info" hidden$="[[plan.title]]">
-                            <!-- Pay as you go rates -->
+                            Pay for what you use.
                             <!-- <strong>FREE</strong> for up to
 
                             10 <span id="vcpus">vCPUs</span>,<br/>
@@ -234,12 +238,17 @@
 
                             <div hidden$="[[plan.title]]">
                                 <br/>
-                                <br/>
-                                <paper-button class="blue" raised on-tap="_selectPayg" hidden$="[[!hasCard]]">Enable</paper-button>
-
+                                <template is="dom-if" if="[[!org.card]]">
+                                    <paper-button class="blue" raised on-tap="_selectPayg">Enable</paper-button>
+                                </template>
                                 <br/>
                                 <br/>
                                 14 days of <strong>free trial</strong>.
+                                <template is="dom-if" if="[[org.card]]">
+                                    <br/>
+                                    <br/>
+                                    <span class="days-left">8</span> days left.
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -483,7 +492,7 @@
             return this.org.current_plan && this.plan.title && this.org.current_plan.title == plan.title && !this.org.current_plan.expiration;
         },
         showPurchase: function(planexpiration, isCurrent, org) {
-            return (!this.isCurrent && this.plan.price != null) || (this.isCurrent && this.org.current_plan.expiration);
+            return (!this.isCurrent && this.plan.price != null) || (this.isCurrent && this.org.current_plan && this.org.current_plan.expiration);
         }
     });
     </script>
