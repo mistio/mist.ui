@@ -1,6 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
 <link rel="import" href="balance-chart.html">
 <link rel="import" href="plan-item.html">
 <link rel="import" href="plan-purchase.html">
@@ -84,6 +87,21 @@
             font-size: 0.9em;
         }
 
+        #paygRatesDialog {
+            width: 350px;
+        }
+        #paygRatesDialog .btn-group {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+        }
+        .info-icon {
+            width: 32px;
+            height: 32px;
+            vertical-align: middle;
+            opacity: 0.54;
+        }
+
         balance-chart {
             margin-top: 20px;
         }
@@ -128,7 +146,7 @@
                     </template>
                 </div>
                 <div class="text-center xs12">
-                    <p class="secondary">* Pay As You Go rates apply if limits are exceeded.</p>
+                    <p class="secondary">* Pay As You Go rates apply if limits are exceeded.<paper-icon-button icon="icons:help" class="info-icon" on-tap="openRates"></paper-icon-button></p>
                 </div>
             </div>
         </paper-material>
@@ -142,6 +160,27 @@
         </paper-material>
         <plan-purchase id="purchasePlan" org="[[org]]"></plan-purchase>
         <plan-purchase id="addCard" org="[[org]]" add-card></plan-purchase>
+        <paper-dialog id="paygRatesDialog" with-backdrop>
+            <h2>Pay As You Go Rates</h2>
+            <paper-dialog-scrollable>
+                <p>High watermark, pro-rated daily.</p>
+                <ul>
+                    <li> <strong><sup>$</sup>2/mo</strong> per <span id="vcpus">vCPUs</span></li>
+                    <li> <strong><sup>$</sup>5/mo</strong> per 1M <span id="datapoints">datapoints/day</span> </li>
+                    <li> <strong><sup>$</sup>5/mo</strong> per 100k <span id="rulechecks">rule checks/day</span></li>
+                    <li> <strong><sup>$</sup>5/mo</strong> per 1M <span id="apirequests">API requests/day</span></li>
+                </ul>
+                <p>and one month retention.</p>
+                <paper-tooltip for="vcpus" animation-delay="0" position="top">Total sum of physical and virtual processor cores under management.</paper-tooltip>
+                <paper-tooltip for="datapoints" animation-delay="0" position="top">Incoming metric samples and log entries.</paper-tooltip>
+                <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
+                <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
+                <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
+            </paper-dialog-scrollable>
+            <div class="btn-group">
+                <paper-button class="blue-link" dialog-dismiss> Close</paper-button>
+            </div>
+        </paper-dialog>
     </template>
     <script>
     Polymer({
@@ -219,6 +258,9 @@
         },
         addCard: function(e) {
             this.$.addCard.open();
+        },
+        openRates: function(){
+            this.$.paygRatesDialog.open();
         },
         showErrorsOfCancel: function(errormessage) {
 
