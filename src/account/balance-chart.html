@@ -37,13 +37,12 @@
             color: var(--accent-color) !important;
         }
         #balanceGraph {
-            width: 300px;
             height: 300px;
             margin-bottom: 40px;
         }
         </style>
 
-        <div id="balanceGraph" style="height:300px; width: 410px;"></div>
+        <div id="balanceGraph" style$="height:300px; width:[[balanceGraphWidth]]px;"></div>
         <iron-ajax id="getBalance" auto url="/api/v1/metering" method="GET" loading="{{loadingMetering}}" on-response="_handleMeteringResponse" on-error="_handleMeteringError"></iron-ajax>
     </template>
     <script>
@@ -105,6 +104,9 @@ BALANCE_GRAPH_OPTIONS = {
 
         Polymer({
             is: 'balance-chart',
+            behaviors: [
+                Polymer.IronResizableBehavior
+            ],
 
             properties: {
                 isOverUsing: Boolean,
@@ -130,10 +132,14 @@ BALANCE_GRAPH_OPTIONS = {
                     type: Array,
                     computed: '_computeData(balanceData)'
                 },
+                balanceGraphWidth: {
+                    type: Number,
+                    value: 300
+                }
 
             },
             listeners: {
-
+                'iron-resize': 'updateChartWidth'
             },
             attached: function(){
                 this.initCharts();
@@ -234,8 +240,21 @@ BALANCE_GRAPH_OPTIONS = {
                 });
                 this.balanceGraph = echarts.init(this.$.balanceGraph, 'balance');
                 this.balanceGraph.setOption(this.balanceGraphOptions);
-                // this.updateChartWidth();
+                this.updateChartWidth();
                 console.log('initialized charts');
+            },
+            updateChartWidth: function() {
+                var parentWidth = this.parentNode.offsetWidth;
+                console.log('updateChartWidth',parentWidth);
+                if (parentWidth) {
+                    this.set('balanceGraphWidth', parentWidth);
+                    this.resizeGraph();
+                }
+            },
+            resizeGraph: function() {
+                console.log('resizeGraph');
+                if (this.balanceGraph)
+                    this.balanceGraph.resize();
             },
             _computeData: function(balanceData) {
                 // var plan = 'Small', 
