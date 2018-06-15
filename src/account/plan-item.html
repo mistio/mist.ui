@@ -331,7 +331,7 @@
                         <div class="plan-body-item">
                             <div class="valign">
                                 <h2 class="price"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
-                                <template is="dom-if" if="[[showPurchase(plan, isCurrent, org)]]">
+                                <template is="dom-if" if="[[showPurchase(isCurrent, org)]]" restamp>
                                     <paper-button class="blue" raised on-tap="_selectPlan">Purchase</paper-button>
                                 </template>
                             </div>
@@ -385,7 +385,7 @@
             },
             isCurrent: {
                 type: Boolean,
-                value: '_computeIsCurrent(plan,org.*)',
+                value: false,
                 reflectToAttribute: true
             },
             priceText: {
@@ -421,6 +421,9 @@
         listeners: {
             'confirmation': '_cancelPlanConfirmed',
         },
+        observers: [
+            '_computeIsCurrent(plan, org.*)'
+        ],
         _computeBgClass: function(plan, org) {
             if (this.fullwidth == true)
                 return "title";
@@ -527,6 +530,7 @@
             return this.org.current_plan && this.plan.title && this.org.current_plan.title == plan.title && !this.org.current_plan.expiration;
         },
         showPurchase: function(planexpiration, isCurrent, org) {
+            console.log('showPurchase', this.isCurrent, this.plan.price != null)
             return (!this.isCurrent && this.plan.price != null) || (this.isCurrent && !this.fullwidth && this.org.current_plan && this.org.current_plan.expiration);
         },
         displayInt: function(int){
