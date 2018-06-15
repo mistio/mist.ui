@@ -120,7 +120,7 @@
                 <p class="title" hidden$="[[!addCard]]">Add Card</p>
                 <hr class="headhr"/>
                 <p class="desc" hidden$="[[addCard]]">
-                    <span hidden$="[[!plan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[plan.vcpu_limit]] vCPUs</span>
+                    <span hidden$="[[!plan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[displayInt(plan.vcpu_limit)]] vCPUs</span>
                 </p>
                 <p class="desc" hidden$="[[!addCard]]">Add a credit card to your account</p>
             </div>
@@ -283,6 +283,14 @@
             console.log('purchaseError',e);
             this.set('formError', true);
             this.$.errormsg.textContent = e.detail.error;
+        },
+        displayInt: function(int){
+            if (int && int.toString())
+                return int.toString().split('').reverse().join('')
+                    .replace('000000000','B').replace('000000','M').replace('000','k')
+                    .split('').reverse().join('');
+            else
+                return int;
         },
         _computeButtonText: function(plan, org){
             // if (this.org.current_plan.vcpu_limit > plan.vcpu_limit){
