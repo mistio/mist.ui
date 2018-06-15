@@ -196,6 +196,14 @@
             list-style: none;
             font-size: 0.9em;
         }
+
+        .subtext {
+            font-size: 0.8em;
+        }
+
+        ul.rates {
+            padding-left: 48px;
+        }
         </style>
         <template is="dom-if" if="[[!plan]]" restamp>
             <div class="plan" hidden$="[[plan]]">
@@ -205,9 +213,8 @@
                 <div class="old-plan-body">
                     <div>
                         <div class="payg-info" hidden$="[[plan.title]]">
-                            <p>High watermark, pro-rated daily.</p>
-                            <ul>
-                                <li> <strong><sup>$</sup>2/mo</strong> per <span id="vcpus">vCPUs</span></li>
+                            <ul class="rates">
+                                <li> <strong><sup>$</sup>2/mo</strong> per <span id="vcpus">vCPU</span></li>
                                 <li> <strong><sup>$</sup>5/mo</strong> per 1M <span id="datapoints">datapoints/day</span> </li>
                                 <li> <strong><sup>$</sup>5/mo</strong> per 100k <span id="rulechecks">rule checks/day</span></li>
                                 <li> <strong><sup>$</sup>5/mo</strong> per 1M <span id="apirequests">API requests/day</span></li>
@@ -218,6 +225,7 @@
                             <paper-tooltip for="rulechecks" animation-delay="0" position="top">Evaluations of conditions that trigger alerts or automated actions.</paper-tooltip>
                             <paper-tooltip for="apirequests" animation-delay="0" position="top">Invokations of the Mist.io API by any member of your organization.</paper-tooltip>
                             <paper-tooltip for="retention" animation-delay="0" position="top">Historic data within the retention window will be accesible.</paper-tooltip>
+                            <p class="subtext">High watermark, pro-rated daily.</p>
 
                             <div hidden$="[[plan.title]]">
                                 <br/>
@@ -225,8 +233,8 @@
                                     <paper-button class="blue" raised on-tap="_selectPayg">Enable</paper-button>
                                     <p>14 days of <strong>free trial</strong>.</p>
                                 </template>
-                                <template is="dom-if" if="[[org.card]]">
-                                    <p><span class="days-left">8</span> days <br/>
+                                <template is="dom-if" if="[[org.trial_days_left]]">
+                                    <p><span class="days-left">[[org.trial_days_left]]</span> days <br/>
                                     of free trial left.</p>
                                     <p><br/>
                                         <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
@@ -313,7 +321,7 @@
             </div>
         </template>
         <dialog-element id="plancancel"></dialog-element>
-        <iron-ajax id="cancelPlanAjaxRequest" url="/api/v1/org/[[org.id]]/billing" method="DELETE" loading="{{loadingCancel}}" on-response="_handleCancelAjaxResponse" on-error="_handleCancelAjaxError" handle-as="xml"></iron-ajax>
+        <iron-ajax id="cancelPlanAjaxRequest" url="/api/v1//billing" method="DELETE" loading="{{loadingCancel}}" on-response="_handleCancelAjaxResponse" on-error="_handleCancelAjaxError" handle-as="xml"></iron-ajax>
     </template>
     <script>
     Polymer({
