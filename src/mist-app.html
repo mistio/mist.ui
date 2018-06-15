@@ -270,13 +270,16 @@
                 config: Object,
 
                 userMenuOpened: Boolean,
-                visibleSuggestions: Boolean
+                visibleSuggestions: {
+                    type: Boolean,
+                    value: false
+                }
             },
 
             listeners: {
                 'toast': 'showToast',
                 'desktop-notification': 'showDesktopNotification',
-                'clear-search-on-nav': 'clearSearch',
+                'clear-search-on-nav': 'clearSearchPreservingFilters',
                 'preserve-filters': 'clearSearchPreservingFilters',
                 'search': 'updateSearchQuery',
                 'open-and-select': 'openAndSelect',
@@ -415,7 +418,8 @@
                     page = 'dashboard';
                 this.page = page || 'dashboard';
                 if (this.page == 'dashboard') {
-                    this.clearSearch();
+                    this.clearSearchPreservingFilters(); 
+                    this.async(function(){this.set('visibleSuggestions', false);}.bind(this),100);
                 }
                 this.set('count', null);
             },
