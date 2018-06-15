@@ -7,7 +7,7 @@
 <dom-module id="plan-item">
     <template>
         <style include="shared-styles">
-         :host {
+        :host {
             box-sizing: border-box;
             @apply(--shadow-elevation-2dp);
             display: flex;
@@ -16,19 +16,19 @@
             margin: 8px;
         }
 
-         :host[is-current] {
+        :host[fullwidth] {
             color: #ffffff;
             background-color: #039BE5;
-            flex-basis: auto;
             width: 100%;
+            flex-basis: auto;
         }
 
-         :host[is-current] paper-button {
+        :host[fullwidth] paper-button {
             color: #039BE5 !important;
             background-color: #ffffff !important;
         }
 
-        :host[is-current] .plan h2 {
+        :host[fullwidth] .plan h2 {
             font-weight: bold;
         }
 
@@ -120,6 +120,10 @@
             padding: 30px 10px 30px 10px;
         }
 
+        :host[fullwidth] .plan-body-item:first-child {
+            padding: 0 10px 30px 10px;
+        }
+
         @media only screen and (max-width: 600px) {
             .plan-body-item {
                 min-height: 50px;
@@ -130,8 +134,7 @@
             border-top: 1px solid #d4d4d4;
         }
 
-        :host[is-current] .plan-body-item+.plan-body-item, :host[is-current] .plan-body-item:last-child{
-            /*border-top: 1px solid rgba(255, 255, 255, 0.33);*/
+        :host[fullwidth] .plan-body-item+.plan-body-item, :host[fullwidth] .plan-body-item:last-child{
             border: 0 none;
         }
 
@@ -209,6 +212,20 @@
         ul.rates {
             padding-left: 48px;
         }
+        .margin-top {
+            margin-top: 60px;
+        }
+        .loadingCancel {
+            position: relative;
+            width: 100%;
+            display: block;
+            height: 60px;
+        }
+        .loadingCancel paper-spinner-lite {
+            position: absolute;
+            bottom: 0;
+            right: calc(50% - 14px);
+        }
         </style>
         <template is="dom-if" if="[[!plan]]" restamp>
             <div class="plan">
@@ -284,9 +301,11 @@
                         <p hidden$="[[!plan.promo]]">[[plan.promo.description]]</p>
                         <!-- plan is canceled -->
                         <template is="dom-if" if="[[plan.expiration]]">
-                            Your plan will expire on [[_computeReadableDate(plan.expiration)]].
-                            <br/>
-                            <br/>
+                            <p>
+                                <strong>Your plan will expire on [[_computeReadableDate(plan.expiration)]].</strong>
+                                <br/>
+                                <br/>
+                            </p>
                         </template>
                         <template is="dom-if" if="[[showPurchase(plan, isCurrent, org)]]">
                             <paper-button id="select" class="btn-block submit-btn blue" on-tap="_selectPayg" hidden$="[[isFreePlan]]">[[buttonText]]</paper-button>
@@ -294,10 +313,8 @@
                         <!-- is current plan, not cancelled-->
                         <div hidden$="[[!showCancel(plan,org)]]">
                             <paper-button id="cancelButton" on-tap="_cancelPlan" hidden$="{{loadingCancel}}">Cancel Plan</paper-button>
-                            <div hidden$="{{!loadingCancel}}">
-                                Canceling Plan
-                                <br/>
-                                <br/>
+                            <div class="loadingCancel" hidden$="{{!loadingCancel}}">
+                                <p>Canceling Plan</p>
                                 <paper-spinner-lite class="white" active="{{loadingCancel}}"></paper-spinner-lite>
                             </div>
                             <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
@@ -314,9 +331,9 @@
                         <div class="plan-body-item">
                             <div class="valign">
                                 <h2 class="price"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
-                                <paper-button class="blue" raised on-tap="_selectPlan" hidden$="[[isCurrent]]">Purchase</paper-button>
-                                <!-- <div class="selected" hidden$="[[!isCurrent]]"><iron-icon icon="icons:check"></iron-icon> selected</div>
-                                <a class="cancel regular blue-link" on-tap="_cancelPlan" hidden$="[[!isCurrent]]">Cancel plan</a> -->
+                                <template is="dom-if" if="[[showPurchase(plan, isCurrent, org)]]">
+                                    <paper-button class="blue" raised on-tap="_selectPlan">Purchase</paper-button>
+                                </template>
                             </div>
                         </div>
                         <div class="plan-body-item">
@@ -327,16 +344,16 @@
                         </div>
                         <template is="dom-if" if="[[plan.expiration]]">
                             <div class="plan-body-item">
-                                <p>Your plan will expire on [[_computeReadableDate(plan.expiration)]].</p>
+                                <p class="margin-top"><strong>Your plan will expire on [[_computeReadableDate(plan.expiration)]].</strong></p>
                             </div>
                         </template>
-                        <div hidden$="[[!showCancel(plan,org)]]">
+                        <div class="margin-top" hidden$="[[!showCancel(plan,org)]]">
                             <paper-button id="cancelButton" on-tap="_cancelPlan" hidden$="{{loadingCancel}}">Cancel Plan</paper-button>
                             <div hidden$="{{!loadingCancel}}">
-                                Canceling Plan
-                                <br/>
-                                <br/>
-                                <paper-spinner-lite class="white" active="{{loadingCancel}}"></paper-spinner-lite>
+                                <div class="loadingCancel" hidden$="{{!loadingCancel}}">
+                                    <p>Canceling Plan</p>
+                                    <paper-spinner-lite class="white" active="{{loadingCancel}}"></paper-spinner-lite>
+                                </div>
                             </div>
                             <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
                         </div>
@@ -354,6 +371,7 @@
         properties: {
             email: Object,
             plan: Object,
+            fullwidth: Boolean,
             org: {
                 type: Object
             },
@@ -367,7 +385,7 @@
             },
             isCurrent: {
                 type: Boolean,
-                computed: '_computeIsCurrent(plan,org.*)',
+                value: '_computeIsCurrent(plan,org.*)',
                 reflectToAttribute: true
             },
             priceText: {
@@ -404,7 +422,7 @@
             'confirmation': '_cancelPlanConfirmed',
         },
         _computeBgClass: function(plan, org) {
-            if (this.isCurrent)
+            if (this.fullwidth == true)
                 return "title";
             if (plan.title == "Small")
                 return "title bg-1";
@@ -509,11 +527,11 @@
             return this.org.current_plan && this.plan.title && this.org.current_plan.title == plan.title && !this.org.current_plan.expiration;
         },
         showPurchase: function(planexpiration, isCurrent, org) {
-            return (!this.isCurrent && this.plan.price != null) || (this.isCurrent && this.org.current_plan && this.org.current_plan.expiration);
+            return (!this.isCurrent && this.plan.price != null) || (this.isCurrent && !this.fullwidth && this.org.current_plan && this.org.current_plan.expiration);
         },
         displayInt: function(int){
             return int.toString().split('').reverse().join('')
-                    .replace('000000000','B').replace('000000','M').replace('000','K')
+                    .replace('000000000','B').replace('000000','M').replace('000','k')
                     .split('').reverse().join('');
         }
     });
