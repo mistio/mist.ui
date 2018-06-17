@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
@@ -109,7 +110,7 @@
                 font-size: 0.9em;
             }
         </style>
-
+        <iron-a11y-keys id="a11y" target="[[target]]" keys="enter" on-keys-pressed="_onEnter"></iron-a11y-keys>
         <paper-dialog id="form" with-backdrop>
             <div class="purchase-logo"></div>
             <div class="head">
@@ -190,7 +191,7 @@
             },
             formReady: {
                 type: Boolean,
-                computed: '_computeFormReady(hasCard, cardValid)',
+                computed: '_computeFormReady(hasCard, cardValid, hideCardFields)',
                 value: false
             },
             hasCard: {
@@ -206,7 +207,13 @@
                 type: String,
                 computed: '_computeButtonText(plan,org)'
             },
-            cardValid: Boolean
+            cardValid: Boolean,
+            target: {
+                type: Object,
+                value: function() {
+                    return this.$.form;
+                }
+            }
         },
         observers: [
             'updateHasCard(org.card)'
@@ -227,8 +234,8 @@
         _computeHideCardFields (price, hasCard) {
             return price == 0 || hasCard;
         },
-        _computeFormReady: function(hasCard, cardValid){
-            return hasCard || cardValid;
+        _computeFormReady: function(hasCard, cardValid, hideCardFields){
+            return cardValid || hideCardFields;
         },
         _submit: function(e){
             if (this.cardValid) {
@@ -241,6 +248,10 @@
                 this.$.purchasePlanRequest.body = payload;
                 this.$.purchasePlanRequest.generateRequest();
             }
+        },
+        _onEnter: function(e) {
+            if (this.formReady)
+                this._submit()
         },
         validateForm: function(error){
             this.set('formError', false);
