@@ -111,7 +111,7 @@
             }
         </style>
         <iron-a11y-keys id="a11y" target="[[target]]" keys="enter" on-keys-pressed="_onEnter"></iron-a11y-keys>
-        <paper-dialog id="form" with-backdrop modal="[[hasBack]]">
+        <paper-dialog id="form" with-backdrop modal="[[persist]]">
             <div class="purchase-logo"></div>
             <div class="head">
                 <p class="title" hidden$="[[addCard]]">
@@ -138,8 +138,8 @@
                 <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
             </div>
             <div class="buttons">
-                <paper-button on-tap="_goBack" hidden$="[[!hasBack]]">Back</paper-button>
-                <paper-button dialog-dismis on-tap="_reset" hidden$="[[hasBack]]">Cancel</paper-button>
+                <paper-button on-tap="_goBack" hidden$="[[!persist]]">Back</paper-button>
+                <paper-button dialog-dismis on-tap="_reset" hidden$="[[persist]]">Cancel</paper-button>
                 <paper-button autofocus on-tap="_submit" class="blue" disabled="[[!formReady]]">
                     <span hidden$="[[addCard]]">[[buttonText]]</span>
                     <span hidden$="[[!addCard]]">Add Card </span>
@@ -196,6 +196,10 @@
                 value: false
             },
             hasCard: {
+                type: Boolean,
+                value: false
+            },
+            persist: {
                 type: Boolean,
                 value: false
             },
@@ -323,11 +327,11 @@
         },
         _goBack: function(e) {
             e.stopImmediatePropagation();
-            this._reset();
             if (history)
                 history.back();
             else
                 this.fire('go-to','/');
+            this._reset();
         },
     });
     </script>
