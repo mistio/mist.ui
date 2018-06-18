@@ -138,7 +138,8 @@
                 <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
             </div>
             <div class="buttons">
-                <paper-button dialog-dismis on-tap="_reset">Cancel</paper-button>
+                <paper-button on-tap="_goBack" hidden$="[[!hasBack]]">Back</paper-button>
+                <paper-button dialog-dismis on-tap="_reset" hidden$="[[hasBack]]">Cancel</paper-button>
                 <paper-button autofocus on-tap="_submit" class="blue" disabled="[[!formReady]]">
                     <span hidden$="[[addCard]]">[[buttonText]]</span>
                     <span hidden$="[[!addCard]]">Add Card </span>
@@ -231,6 +232,9 @@
         open: function(e){
             this.querySelector("#form").open();
         },
+        close: function(e){
+            this.querySelector("#form").close();
+        },
         _computeHideCardFields (price, hasCard) {
             return price == 0 || hasCard;
         },
@@ -316,7 +320,15 @@
             if (!plan)
                 return "Enable";
             return "Purchase";
-        }
+        },
+        _goBack: function(e) {
+            e.stopImmediatePropagation();
+            this._reset();
+            if (history)
+                history.back();
+            else
+                this.fire('go-to','/');
+        },
     });
     </script>
 </dom-module>
