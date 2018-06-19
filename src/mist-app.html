@@ -33,6 +33,7 @@
 <link rel="import" href="mist-notice.html">
 <link rel="import" href="mist-icons.html">
 <link rel="import" href="organizations/organization-add.html">
+<link rel="import" href="account/plan-purchase.html">
 
 <script type="text/javascript" src="providers.js" inline></script>
 
@@ -200,6 +201,8 @@
         <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
         <organization-add current-org="[[model.org]]"></organization-add>
+
+        <plan-purchase id="mistAppCcRequired" org="[[org]]" button-text="Enable"></plan-purchase>
     </template>
 
     <script>
@@ -270,7 +273,12 @@
                 config: Object,
 
                 userMenuOpened: Boolean,
-                visibleSuggestions: Boolean
+                visibleSuggestions: Boolean,
+                ccRequired: {
+                    type: Boolean,
+                    value: false,
+                    computed: '_computeCcRequired(model.org.*, model.cloudsArray.length)'
+                }
             },
 
             listeners: {
@@ -289,16 +297,38 @@
                 'mist-list-filtered-items-length-changed': 'setHeaderCount',
                 'export-list-csv': '_exportCsvMessage',
                 'add-org': '_addOrg',
-                'tap': 'closeIfClickedElsewhere'
+                'tap': 'closeIfClickedElsewhere',
+                'cc-dismiss': '_ccDismissed'
             },
 
             observers: [
                 '_routePageChanged(routeData.page, subroute.path)',
                 '_sizeChanged(smallscreen)',
-                '_configUpdated(config)'
+                '_configUpdated(config)',
+                '_ccRequiredChanged(ccRequired)'
             ],
 
-            attached: function () {},
+            attached: function () {
+                if (this.ccRequired){
+                    this.querySelector('#mistAppCcRequired').open();
+                }
+            },
+
+            _computeCcRequired: function(org, clouds) {
+                return !org.card && clouds;
+            },
+
+            _ccRequiredChanged: function(required) {
+                if (required)
+                    this.querySelector('#mistAppCcRequired').open();
+            },
+
+            _ccDismissed: function() {
+                if (this.ccRequired)
+                    this.async(function () {
+                        this.querySelector('#mistAppCcRequired').open();
+                    }.bind(this), 1000*60);
+            },
 
             _sizeChanged: function (smallscreen) {
                 console.log('updateResize');
