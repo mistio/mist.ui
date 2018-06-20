@@ -67,6 +67,7 @@ TEMPLATE_ACTIONS = {
       properties: {
         user: String,
         members: Array,
+        org: Object,
         items: { 
           type: Array,
           value: []
@@ -105,7 +106,7 @@ TEMPLATE_ACTIONS = {
             arr.push('create');
           arr.push('edit');
           arr.push('tag');
-          if (template.owned_by == this.user) {
+          if (this.org.ownership_enabled && (template.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
           }
           arr.push('delete');
@@ -118,6 +119,16 @@ TEMPLATE_ACTIONS = {
             ret.push(TEMPLATE_ACTIONS[actions[i]]);
         }
         return ret;
+      },
+      _otherMembers: function (members,items) {
+        if (this.items && this.members) {
+          var owners = this.items.map(function(i){return i.owned_by;})
+                            .filter(function(value,index,self){return self.indexOf(value) === index;});
+          // filter out pending users and the single owner of the item-set if that is the case
+          return this.members.filter(function(m) {
+              return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
+          });
+        }
       },
       _delete: function() {
         //set up iron ajax

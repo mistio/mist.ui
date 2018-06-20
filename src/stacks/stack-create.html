@@ -156,8 +156,7 @@
             },
 
             observers: [
-                '_computeFields(template, template.inputs, template.inputs.*, model.templatesArray.*, model.cloudsArray.*, model.keysArray.*, params)',
-                '_cloudChanged(fields.*)'
+                '_computeFields(template, template.inputs, template.inputs.*, model.templatesArray.*, model.cloudsArray.*, model.keysArray.*, params)'
             ],
 
             listeners: {
@@ -166,29 +165,6 @@
                 'update-keys': 'updateKeys'
             },
             ready: function () {},
-            _cloudChanged: function (changeRecord) {
-                if (!this.fields || !changeRecord || !changeRecord.path || !changeRecord.path.endsWith('value'))
-                    return;
-                else {
-                    var field = this.get(changeRecord.path.replace('.value',''));
-                    if (field && field.name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
-                        function copy(o) { // deep copy an array of objects
-                            var output, v, key;
-                            output = Array.isArray(o) ? [] : {};
-                            for (key in o) {
-                                v = o[key];
-                                output[key] = (typeof v === "object") ? copy(v) : v;
-                            }
-                            return output;
-                        }
-                        // reset fields if cloud changed
-                        var fields = copy(this.fields);
-                        this.set('fields', []);
-                        this.set('fields', fields);
-                        this._updateFields();
-                    }
-                }
-            },
             _fromTemplate: function (params, templates) {
                 if (params.template && this.model.templates) {
                     var yaml_inputs = '';
@@ -432,6 +408,30 @@
             },
 
             _updateFields: function (event) {
+                // if a cloud changed
+                if (this.fields && event && event.path.map(function(i){return i.id;}).join(',').indexOf("mist_cloud") > -1) {
+                    var fieldName = event.path.find(function(f){
+                            return f.id && f.id.indexOf('mist_cloud') > -1
+                        }),
+                        fieldIndex = fieldName && this.fieldIndexByName(fieldName.id.replace('app-form-create_stack-','')),
+                        field = fieldIndex > -1 && this.fields[fieldIndex];
+
+                    if (field && field.name.startsWith('mist_cloud') && this.model.clouds[field.value]) {
+                        function copy(o) { // deep copy an array of objects
+                            var output, v, key;
+                            output = Array.isArray(o) ? [] : {};
+                            for (key in o) {
+                                v = o[key];
+                                output[key] = (typeof v === "object") ? copy(v) : v;
+                            }
+                            return output;
+                        }
+                        // reset fields if cloud changed
+                        var fields = copy(this.fields);
+                        this.set('fields', []);
+                        this.set('fields', fields);
+                    }
+                }
                 var e = Polymer.dom(event);
                 var changeInYaml = e && e.path && e.path.indexOf(document.querySelector("paper-textarea#app-form-create_stack-stackinputs")) > -1;
                 if (changeInYaml) {
