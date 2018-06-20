@@ -55,7 +55,7 @@
             <iron-pages attr-for-selected="name" selected="{{data.page}}">
                 <details-page config=[[config]] name="profile" org="[[org]]" user="[[user]]" data-route="0"></details-page>
                 <password-page name="password" user="[[user]]" data-route="1"></password-page>
-                <plans-list name="billing" org="[[org]]" user="[[user]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list>
+                <plans-list name="billing" org="[[org]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list>
                 <sessions-list name="sessions" org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
                 <tokens-list name="tokens" org="[[org]]" user="[[user]]" data-route="4"></tokens-list>
                 <whitelisted-ips name="ips" user="[[user]]" data-route="5"></whitelisted-ips>
@@ -78,13 +78,12 @@
             tokens: Array,
             sessions: Array,
             location: Object,
-            data: Object
-        },
-        observer: [
-        ],
-        attached: function(){
-            if (this.data == undefined || this.data.page == undefined || ['notifications', 'subscriptions', 'ips', 'tokens', 'sessions', 'billing', 'password', 'profile'].indexOf(this.data.page) == -1)
-                this.set('data', {page: 'profile'});
+            data: {
+                type: Object,
+                value: function () {
+                    return {page: 'profile'};
+                }
+            }
         },
         _showBilling: function(is_owner, has_billing) {
             return is_owner && has_billing;

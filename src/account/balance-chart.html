@@ -48,10 +48,11 @@
             text-align: left;
         }
         </style>
-        <span class="burn" hidden$=[[!burnRate]]><strong>Current monthly burn rate:</strong> ~ $[[burnRate]]</span>
+        <span class="burn" hidden$=[[!currentPaygRate]]><strong>Current PAYG rate:</strong> ~ $[[currentPaygRate]]</span>
+        <span class="burn" hidden$=[[withInLimits]]>Your current usage is within the limits of your plan.</span>
         <span class="due" hidden$=[[!amountDue]]><strong>Amount due in next invoice:</strong> $[[amountDue]] from [[periodStart]] to [[periodEnd]]</span>
         <div id="balanceGraph" style$="height:300px; width:[[balanceGraphWidth]]px;">
-                <paper-spinner active=[[loading]]></paper-spinner>
+            <paper-spinner active=[[loading]]></paper-spinner>
         </div>
 
         <iron-ajax id="getBalance" auto url="/api/v1/billing" method="GET" loading="{{loading}}" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
@@ -59,7 +60,7 @@
     <script>
         BALANCE_GRAPH_OPTIONS = {
             title: {
-                text: 'Usage'
+                text: 'Pay As You Go Usage'
             },
             tooltip: {
                 trigger: 'axis',
@@ -67,7 +68,7 @@
                 formatter: function (params, ticket, callback) {
                     var title = (params[0].data[1] ? ('<strong>$' + params[0].data[1].formatMoney(2,'.',',') + ' on ' ) : ' ') + moment(params[0].data[0]).format('DD MMM')+ '</strong><br />',
                         vcpus = params[0].data[2] ? params[0].data[2].formatMoney(0,'.',',') + ' vcpus<br />' : '',
-                        datapoints = params[0].data[2] ? params[0].data[3].formatMoney(0,'.',',') + ' datapoints<br />' : '',
+                        datapoints = params[0].data[3] ? params[0].data[3].formatMoney(0,'.',',') + ' datapoints<br />' : '',
                         checks = params[0].data[4] ? params[0].data[4].formatMoney(0,'.',',') + ' rule checks<br />' : '';
                         //requests = params[0].data[5] + ' requests';
                     return title + vcpus + datapoints + checks; // + requests;
@@ -118,17 +119,6 @@
             ],
 
             properties: {
-                isOverUsing: Boolean,
-                user: {
-                    type: Object
-                },
-                org: {
-                    type: Object
-                },
-                plans: {
-                    type: Array,
-                    computed: 'computePlans(user, org)'
-                },
                 balanceGraph: Object,
                 balanceGraphOptions: {
                     type: Object,
@@ -149,7 +139,7 @@
                     type: Boolean,
                     value: true
                 },
-                burnRate: {
+                currentPaygRate: {
                     type: Number,
                     value: 0
                 },
@@ -192,7 +182,7 @@
             },
             _handleResponse: function(e) {
                 this.initCharts();
-                this.set('burnRate', e.detail.response.current_monthly_burn_rate);
+                this.set('currentPaygRate', e.detail.response.current_payg_rate);
                 this.set('amountDue', e.detail.response.amount_due);
                 var start = new Date(e.detail.response.period_start*1000),
                     end = new Date(e.detail.response.period_end*1000);

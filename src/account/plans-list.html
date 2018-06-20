@@ -129,21 +129,17 @@
                     <h2 class="title">Your current billing status</h2>
                 </div>
                 <div class="plans xs12 s6 m6 l6">
-                    <plan-item plan="[[org.current_plan]]" index="0" class="plan" org="[[org]]" email=[[email]] fullwidth="true"></plan-item>
+                    <plan-item plan="[[org.current_plan]]" current class="plan" email=[[email]] has-card=[[_hasCard(org.card)]] trial-days-left=[[org.trial_days_left]]></plan-item>
                 </div>
                 <div class="xs12 s6 m6 l6" hidden$="[[org.card]]">
                     <!-- <p hidden$="[[!org.current_plan.promo_code.description]]">Your current plan offers you: [[org.current_plan.promo_code.description]]</p> -->
                     <p>For questions and other information contact us at <a href$="mailto:[[email.sales]]">[[email.sales]]</span></a></p>
                 </div>
                 <div class="xs12 s6 m6 l6" hidden$="[[!org.card]]">
-                    <!-- <div class="navigator" hidden$="[[!allowBalanceRatesNavigation]]">
-                        <paper-button id="viewBallanceBtn" on-tap="_showRates" class="simple active">metering data</paper-button>
-                        <paper-button id="viewRatesBtn" on-tap="_showRates" class="simple">view rates</paper-button>
-                    </div> -->
                     <h2 class="title balance-title">Your Balance 
                         <span class="secondary" hidden$=[[!org.trial_days_left]]><br/>You are in free trial until [[computeStartChargingDay(org.trial_days_left)]].</span></h2>
                     <div class="balance text-center">
-                        <balance-chart org="[[org]]" user="[[user]]" plans="[[plans]]"></balance-chart>
+                        <balance-chart org="[[org]]" plans="[[plans]]"></balance-chart>
                     </div>
                 </div>
             </div>
@@ -152,8 +148,10 @@
                     <h2 class="title">Prepaid Plans</h2>
                 </div>
                 <div class="plans xs12">
-                    <template is="dom-repeat" items=[[plans]] as="plan">
-                        <plan-item user="[[user]]" plan="[[plan]]" index="[[index]]" class="plan" org="[[org]]" email=[[email]]></plan-item>
+                    <template is="dom-if" if="[[org]]" restamp>
+                        <template is="dom-repeat" items=[[plans]] as="plan" restamp>
+                            <plan-item plan="[[plan]]" class="plan" email=[[email]] has-card=[[_hasCard(org.card)]] trial-days-left=[[org.trial_days_left]]></plan-item>
+                        </template>
                     </template>
                 </div>
                 <div class="text-center xs12">
@@ -198,54 +196,20 @@
 
         properties: {
             email: Object,
-            user: {
-                type: Object
-            },
             org: {
                 type: Object
             },
             plans: {
                 type: Array,
-                computed: 'computePlans(user, org.*)'
-            },
-            showBalance: {
-                type: Boolean,
-                computed: '_computeShowBalance(org)',
-                value: false
-            },
-            showRates: {
-                type: Boolean,
-                value: true
-            },
-            allowBalanceRatesNavigation: {
-                type: Boolean,
-                value: true
+                computed: '_computePlans(org.*)'
             },
         },
         listeners: {
             'plan-selected': 'purchasePlan',
-            'error-on-cancel-plan': 'showErrorsOfCancel',
             'add-card': 'addCard',
             'update-payment-method': 'addCard'
         },
-        computeIsCurrent: function(plan, org) {
-            if (!this.org || this.org.current_plan) 
-                return false;
-            else 
-                return plan.title == this.org.current_plan.title;
-        },
-        _showRates: function(e) {
-            if (e.target.classList.contains('active')) {
-                this.querySelector('#viewBallanceBtn').classList.toggle('active');
-                this.querySelector('#viewRatesBtn').classList.toggle('active');
-                this.set('showRates', !this.showRates);
-            }
-        },
-        _computeShowBalance: function(current_plan) {
-            return true;
-            // return !this.org.current_plan || !this.org.current_plan.title || this.org.current_plan.id; //&& this.org.current_plan.balance ?
-        },
-        computePlans: function(user, org) {
+        _computePlans: function(org) {
             if (!this.org.available_plans)
                 return [];
             return this.org.available_plans.filter(function(p){
@@ -255,9 +219,6 @@
                     return false;
                 return true;
             }.bind(this));
-        },
-        _computeReadableDate: function(date) {
-            return date ? moment(date * 1000).format("MMMM Do YYYY") : '...';
         },
         purchasePlan: function(e) {
             if (e.detail.plan && e.detail.plan.title)
@@ -275,7 +236,10 @@
         computeStartChargingDay: function(days) {
             return moment().add(days,'days').format("dddd MMMM Do");
         },
-        showErrorsOfCancel: function(errormessage) {
+        _hasCard: function(card) {
+            if (card && card.length)
+                return true;
+            return false;
         }
     });
     </script>
