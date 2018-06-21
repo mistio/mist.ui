@@ -113,7 +113,7 @@
         }
 
         .plan paper-button {
-            margin: 0 8px !important;
+            margin: 2px 8px !important;
             font-size: 14px;
             height: 2rem;
             width: auto;
@@ -221,7 +221,7 @@
             padding-left: 48px;
         }
         p.margin-top, .margin-top {
-            margin-top: 60px;
+            margin-top: 48px;
         }
         .loadingCancel {
             position: relative;
@@ -233,6 +233,10 @@
             position: absolute;
             bottom: 0;
             right: calc(50% - 14px);
+        }
+        p.ccinfo {
+            margin-top: 24px;
+            font-size: 0.8em;
         }
         </style>
         <template is="dom-if" if="[[!plan]]" restamp>
@@ -335,7 +339,7 @@
                     <div class="plan-body">
                         <div class="plan-body-item">
                             <div class="valign">
-                                <h2 class="price"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
+                                <h2 class="price"><sup>$</sup>[[_formatMoney(plan.price)]]<sub>/mo.</sub></h2>
                                 <template is="dom-if" if="[[showPurchase(plan, current)]]" restamp>
                                     <paper-button class="blue" raised on-tap="_selectPlan">Purchase</paper-button>
                                 </template>
@@ -361,6 +365,7 @@
                                 </div>
                             </div>
                             <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
+                            <p class="ccinfo">Card number: *****[[hasCard]]</p>
                         </div>
                     </div>
                 </div>
@@ -519,6 +524,11 @@
             return int.toString().split('').reverse().join('')
                     .replace('000000000','B').replace('000000','M').replace('000','k')
                     .split('').reverse().join('');
+        },
+        _formatMoney: function(int) {
+            if (int)
+                return int.formatMoney(0,'.',',');
+            return int;
         }
     });
     </script>
