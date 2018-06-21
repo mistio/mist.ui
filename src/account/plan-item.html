@@ -30,6 +30,12 @@
             background-color: #ffffff !important;
         }
 
+        :host[current] paper-button#updatePaymentMethodButton,
+        :host[current] paper-button#cancelButton {
+            color: #fff !important;
+            background-color: transparent !important;
+        }
+
         :host[current] .plan h2 {
             font-weight: bold;
             margin-top: 0;
@@ -113,7 +119,7 @@
         }
 
         .plan paper-button {
-            margin: 2px 8px !important;
+            margin: 0 8px !important;
             font-size: 14px;
             height: 2rem;
             width: auto;
@@ -238,6 +244,9 @@
             margin-top: 24px;
             font-size: 0.8em;
         }
+        p.margin-24 {
+            margin: 24px;
+        }
         </style>
         <template is="dom-if" if="[[!plan]]" restamp>
             <div class="plan">
@@ -265,12 +274,15 @@
                                 <br/>
                                 <template is="dom-if" if="[[!hasCard]]" restamp>
                                     <paper-button class="blue" raised on-tap="_purchasePlan">Enable</paper-button>
-                                    <p>14 days of <strong>free trial</strong>.</p>
+                                    <p class="margin-24">14 days of <strong>free trial</strong>.</p>
                                 </template>
                                 <template is="dom-if" if="[[trialDaysLeft]]">
                                     <p><span class="days-left">[[trialDaysLeft]]</span> days <br/>
                                     of free trial left.</p>
-                                    <p><br/>
+                                    <!-- <p><br/>
+                                        <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
+                                    </p> -->
+                                    <p class="ccinfo" hidden$="{{loadingCancel}}">Card number: *****[[hasCard]]
                                         <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
                                     </p>
                                 </template>
@@ -364,8 +376,9 @@
                                     <paper-spinner-lite class="white" active="{{loadingCancel}}"></paper-spinner-lite>
                                 </div>
                             </div>
-                            <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
-                            <p class="ccinfo">Card number: *****[[hasCard]]</p>
+                            <p class="ccinfo" hidden$="{{loadingCancel}}">Card number: *****[[hasCard]] 
+                                <paper-button id="updatePaymentMethodButton" on-tap="_updatePaymentMethod" hidden$="{{loadingCancel}}">Update payment method</paper-button>
+                            </p>
                         </div>
                     </div>
                 </div>
