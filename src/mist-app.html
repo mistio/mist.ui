@@ -276,7 +276,7 @@
                 ccRequired: {
                     type: Boolean,
                     value: false,
-                    computed: '_computeCcRequired(model.org.*, model.cloudsArray.length)'
+                    computed: '_computeCcRequired(config.features.*, model.org.*, model.cloudsArray.length)'
                 },
                 visibleSuggestions: {
                     type: Boolean,
@@ -318,7 +318,9 @@
             },
 
             _computeCcRequired: function(org, clouds) {
-                return !this.model.org.card && this.model.cloudsArray.length ? true : false;
+                if (!this.config.features.billing || this.model.org.card || this.model.org.current_plan)
+                    return false;
+                return this.model.cloudsArray.length ? true : false;
             },
 
             _ccRequiredChanged: function(required) {
@@ -352,7 +354,6 @@
                 else if (this.querySelector('cloud-page'))
                     this.querySelector('cloud-page')._cloudArraysChanged();
             },
-
 
             setLocationPath: function (e) {
                 if (e.detail.url && this.querySelector('app-location')) {
