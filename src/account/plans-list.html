@@ -7,6 +7,7 @@
 <link rel="import" href="balance-chart.html">
 <link rel="import" href="plan-item.html">
 <link rel="import" href="plan-purchase.html">
+
 <dom-module id="plans-list">
     <template>
         <style is="custom-style" include="shared-styles">
@@ -129,10 +130,9 @@
                     <h2 class="title">Your current billing status</h2>
                 </div>
                 <div class="plans xs12 s6 m6 l6">
-                    <plan-item plan="[[org.current_plan]]" current class="plan" email=[[email]] has-card=[[_hasCard(org.card)]] trial-days-left=[[org.trial_days_left]]></plan-item>
+                    <plan-item plan="[[org.current_plan]]" current class="plan" email=[[email]] has-card=[[hasCard]] trial-days-left=[[org.trial_days_left]]></plan-item>
                 </div>
                 <div class="xs12 s6 m6 l6" hidden$="[[org.card]]">
-                    <!-- <p hidden$="[[!org.current_plan.promo_code.description]]">Your current plan offers you: [[org.current_plan.promo_code.description]]</p> -->
                     <p>For questions and other information contact us at <a href$="mailto:[[email.sales]]">[[email.sales]]</span></a></p>
                 </div>
                 <div class="xs12 s6 m6 l6" hidden$="[[!org.card]]">
@@ -150,7 +150,7 @@
                 <div class="plans xs12">
                     <template is="dom-if" if="[[org]]" restamp>
                         <template is="dom-repeat" items=[[plans]] as="plan" restamp>
-                            <plan-item plan="[[plan]]" class="plan" email=[[email]] has-card=[[_hasCard(org.card)]] trial-days-left=[[org.trial_days_left]]></plan-item>
+                            <plan-item plan="[[plan]]" class="plan" email=[[email]] has-card=[[hasCard]] trial-days-left=[[org.trial_days_left]]></plan-item>
                         </template>
                     </template>
                 </div>
@@ -197,12 +197,18 @@
         properties: {
             email: Object,
             org: {
-                type: Object
+                type: Object,
+                value: function() {return {}}
             },
             plans: {
                 type: Array,
                 computed: '_computePlans(org.*)'
             },
+            hasCard: {
+                type: Boolean,
+                value: false,
+                computed: '_computeHasCard(org.*)'
+            }
         },
         listeners: {
             'plan-selected': 'purchasePlan',
@@ -236,9 +242,9 @@
         computeStartChargingDay: function(days) {
             return moment().add(days,'days').format("dddd MMMM Do");
         },
-        _hasCard: function(card) {
-            if (card && card.length)
-                return card;
+        _computeHasCard: function(org) {
+            if (this.org && this.org.card && this.org.card.length)
+                return true;
             return false;
         }
     });
