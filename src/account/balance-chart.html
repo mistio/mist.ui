@@ -40,7 +40,12 @@
         }
         #balanceGraph {
             height: 300px;
-            margin-top: 40px;
+            margin-top: -48px;
+            margin-left: -24px;
+            text-align: center;
+        }
+        #balanceGraph > paper-spinner {
+            margin-top: 48px;
         }
         span.burn, span.due {
             font-size: 16px;
@@ -48,9 +53,12 @@
             text-align: left;
         }
         </style>
-        <span class="burn" hidden$=[[!currentPaygRate]]><strong>Current PAYG rate:</strong> ~ $[[_formatMoney(currentPaygRate)]]</span>
-        <span class="burn" hidden$=[[withInLimits]]>Your current usage is within the limits of your plan.</span>
-        <span class="due" hidden$=[[!amountDue]]><strong>Amount due in next invoice:</strong> $[[_formatMoney(amountDue)]] from [[periodStart]] to [[periodEnd]]</span>
+        <span class="due" hidden$=[[!amountDue]]>Upcoming invoice for <strong>$[[_formatMoney(amountDue)]]</strong> will be billed at [[periodEnd]]</span>
+        <div hidden$=[[!usageLoaded]]>
+            <h2>Pay As You Go Usage</h2>
+            <span class="burn" hidden$=[[!currentPaygRate]]><strong>Current PAYG rate:</strong> ~ $[[_formatMoney(currentPaygRate)]]</span>
+            <span class="burn" hidden$=[[!_isWithinPlan(currentPaygRate)]]>Your current usage is within the limits of your plan.</span>
+        </div>
         <div id="balanceGraph" style$="height:300px; width:[[balanceGraphWidth]]px;">
             <paper-spinner active=[[loading]]></paper-spinner>
         </div>
@@ -59,9 +67,6 @@
     </template>
     <script>
         BALANCE_GRAPH_OPTIONS = {
-            title: {
-                text: 'Pay As You Go Usage'
-            },
             tooltip: {
                 trigger: 'axis',
                 extraCssText: 'text-align: left',
@@ -75,7 +80,7 @@
                 }
             },
             grid: {
-                left: '3%',
+                left: '0',
                 right: '4%',
                 bottom: '3%',
                 containLabel: true
@@ -149,6 +154,14 @@
                 amountDue: {
                     type: Number,
                     value: 0
+                },
+                usageLoaded: {
+                    type: Boolean,
+                    value: false
+                },
+                plan: {
+                    type: Boolean,
+                    value: false
                 }
             },
             listeners: {
@@ -195,6 +208,7 @@
                     balance: e.detail.response.amount_due,
                     data: e.detail.response.series
                 });
+                this.set('usageLoaded', true);
             },
             _computeData: function(balanceData) {
                 var timeToCost = this.balanceData.data.map(function(d){
@@ -209,6 +223,11 @@
                 if (int)
                     return int.formatMoney(2,'.',',');
                 return int;
+            },
+            _isWithinPlan: function(paygRate) {
+                if (paygRate == 0 && this.plan != undefined)
+                    return true;
+                return false;
             }
         });
     </script>
