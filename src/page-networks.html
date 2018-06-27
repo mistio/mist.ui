@@ -23,7 +23,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" items="[[model.networksArray]]"
                 name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.networks,model.clouds)]]
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.networks,model.clouds)]]
                 route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
@@ -93,7 +93,7 @@
 
             _getVisibleColumns: function () {
                 var ret = ['provider', 'owned_by', 'created_by', 'network_type', 'subnets', 'state', 'tags'];
-                if (this.model.org.ownership_enabled != true)
+                if (this.model.org && this.model.org.ownership_enabled != true)
                     ret.splice(ret.indexOf('owned_by'), 1);
                 return ret;
             },

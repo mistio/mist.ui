@@ -244,7 +244,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" items="[[model.machinesArray]]"
                 name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
                 route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]" user="[[model.user]]" org="[[model.org]]"></machine-actions>
@@ -456,7 +456,7 @@
 
             _getVisibleColumns: function () {
                 var ret = ['state', 'cloud', 'cost', 'owned_by', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
-                if (this.model.org.ownership_enabled != true)
+                if (this.model.org && this.model.org.ownership_enabled != true)
                     ret.splice(ret.indexOf('owned_by'), 1);
                 return ret;
             },
