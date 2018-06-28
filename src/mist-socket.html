@@ -311,7 +311,7 @@
                 jsonpatch.applyOperation(_this.model, operation, true);
 
                 // let's also update the machinesArray if necessary 
-                var cloud_id, machine_id, resource_id;
+                var cloud_id, machine_id, network_id;
                 if (operation.path.indexOf('/clouds/') > -1) {
                     path = operation.path.split('/clouds/')[1].split('/');
                     cloud_id = path[0];
@@ -319,6 +319,10 @@
                 if (cloud_id && operation.path && operation.path.split('/machines/')[1]) {
                     path = operation.path.split('/machines/')[1].split('/');
                     machine_id = path[0];
+                }
+                else if (cloud_id && operation.path && operation.path.split('/networks/')[1]) {
+                    path = operation.path.split('/networks/')[1].split('/');
+                    network_id = path[1];
                 }
                 if (machine_id && path.length == 1) {
                     if (operation.op == 'remove') {
@@ -340,11 +344,32 @@
                         _this.set('model' + operation.path.replace(/\//g, "."), operation.value);
                     }
                 }
+                // update the netwoeksArray
+                else if (network_id && path.length == 2) {
+                    if (operation.op == 'remove') {
+                        var i = _this.model.clouds[cloud_id].networksArray.findIndex(
+                            function (item) {
+                                return item.id == network_id
+                            }
+                        );
+                        _this.model.clouds[cloud_id].networksArray.splice(i, 1);
+                    }
+                    if (operation.op == 'add') {
+                        _this.model.clouds[cloud_id].networksArray.push(_this.model.clouds[cloud_id]
+                            .networks[path[0]][network_id])
+                    }
+                }
             });
             this.debounce('updateAllMachines', function () {
                 var _this = this;
                 requestIdleCallback(function () {
                     _this._updateAllMachines();
+                });
+            }, 500);
+            this.debounce('updateAllNetworks', function () {
+                var _this = this;
+                requestIdleCallback(function () {
+                    _this._updateAllNetworks();
                 });
             }, 500);
         },
@@ -723,16 +748,20 @@
         _updateNetworks: function (data) {
             this.set('model.onboarding.isLoadingNetworks', false);
             //update cloud's networks
-            var cloudNetworks = [];
+            console.log('_updateNetworks', data);
+            var cloudNetworks = [],
+                pcloudNetworks = []
+                rcloudNetworks = [];
             if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider) {
-                var privateNets = data.networks.private,
-                    publicNets = data.networks.public;
+                var privateNets = data.networks.private || {},
+                    publicNets = data.networks.public || {},
+                    routersNets = data.networks.routers || {};
                 for (var pnetId in privateNets) {
                     if (privateNets[pnetId].id) {
                         privateNets[pnetId]["network_type"] = "private";
                         privateNets[pnetId]["provider"] = this.model.clouds[data.cloud_id].provider;
                         privateNets[pnetId]["cloud_id"] = data.cloud_id;
-                        cloudNetworks.push(privateNets[pnetId]);
+                        pcloudNetworks.push(privateNets[pnetId]);
                     }
                 }
                 for (var netId in publicNets) {
@@ -743,27 +772,33 @@
                         cloudNetworks.push(publicNets[netId]);
                     }
                 }
+                for (var netId in routersNets) {
+                    if (routersNets[netId].id) {
+                        routersNets[netId]["network_type"] = "router";
+                        routersNets[netId]["provider"] = this.model.clouds[data.cloud_id].provider;
+                        routersNets[netId]["cloud_id"] = data.cloud_id;
+                        rcloudNetworks.push(routersNets[netId]);
+                    }
+                }
             }
-            // data.networks.routers.forEach(function(net){
-            //     if (net.id){
-            //         net["network_type"] = "router";
-            //         net["provider"] = this.model.clouds[data.cloud_id].provider;
-            //         net["cloud_id"] = data.cloud_id;
-            //         cloudNetworks.push(net);
-            //     }
-            // }, this);
 
             // console.log('networks',cloudNetworks);
 
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.networks', cloudNetworks);
+            var changed = this._updateModel('clouds.' + data.cloud_id + '.networks.private', pcloudNetworks) ||
+                          this._updateModel('clouds.' + data.cloud_id + '.networks.public', cloudNetworks) ||
+                          this._updateModel('clouds.' + data.cloud_id + '.networks.routers', rcloudNetworks);
 
             if (!changed)
                 return false;
 
-            this.set('model.clouds.' + data.cloud_id + '.networksArray', cloudNetworks);
-            this.set('model.clouds.' + data.cloud_id + '.networks', _generateMap(cloudNetworks));
+            this.set('model.clouds.' + data.cloud_id + '.networksArray', cloudNetworks.concat(pcloudNetworks).concat(rcloudNetworks));
+            this.set('model.clouds.' + data.cloud_id + '.networks', data.networks);
 
             //update all networks array
+            this._updateAllNetworks();
+        },
+
+        _updateAllNetworks: function() {
             var allNetworks = [];
             if (this.model != undefined) {
                 this.model.cloudsArray.forEach(function (cloud) {
