@@ -281,7 +281,11 @@
                     type: String,
                     computed: '_computeNetworkCloud(network, model.clouds)'
                 },
-                itemArray: Array
+                itemArray: Array,
+                hidden: Boolean
+            },
+            listeners: {
+                'network-deleted': '_networkDeleted'
             },
             observers: [
                 '_change(network)'
@@ -329,6 +333,11 @@
             },
             _mapToArray: function(subnets) {
                 return mapToArray(subnets);
+            },
+            _networkDeleted: function(e) {
+                console.log(e);
+                if (!this.hidden && e.detail.responseURL.endsWith(this.network.id))
+                    this.fire('go-to', {url: '/networks'});
             }
         });
     </script>
