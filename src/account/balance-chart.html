@@ -41,11 +41,12 @@
         #balanceGraph {
             height: 300px;
             margin-top: -48px;
-            margin-left: -24px;
+            margin-left: 0px;
             text-align: center;
         }
         #balanceGraph > paper-spinner {
             margin-top: 48px;
+            margin-left: -24px;
         }
         span.burn, span.due {
             font-size: 16px;
@@ -197,32 +198,37 @@
                     this.balanceGraph.resize();
             },
             _handleResponse: function(e) {
-                this.initCharts();
-                this.set('currentPaygRate', e.detail.response.current_payg_rate);
                 this.set('amountDue', e.detail.response.amount_due);
-                var start = new Date(e.detail.response.period_start*1000),
-                    end = new Date(e.detail.response.period_end*1000);
-                this.set('periodStart', start.toISOString().slice(-19, -14));
-                this.set('periodEnd', end.toISOString().slice(-19, -14));
-                this.set('balanceData', {
-                    balance: e.detail.response.amount_due,
-                    data: e.detail.response.series
-                });
+                if (e.detail.response.period_start && e.detail.response.period_end) {
+                    var start = new Date(e.detail.response.period_start*1000),
+                        end = new Date(e.detail.response.period_end*1000);
+                    this.set('periodStart', start.toISOString().slice(-19, -14));
+                    this.set('periodEnd', end.toISOString().slice(-19, -14));
+                }
+
+                this.set('currentPaygRate', e.detail.response.current_payg_rate);
+
+                if (!e.detail.response.series.length) {
+                    this.$.balanceGraph.hidden = true;
+                    return
+                }
+
+                this.initCharts();
+                this.set(
+                    'balanceGraphOptions.series.0.data',
+                    e.detail.response.series.map(
+                        function(d) {
+                            return [d.date, d.cost, d.usage.cores, d.usage.datapoints, d.usage.checks]
+                        }
+                    )
+                );
+                this.balanceGraph.setOption(this.balanceGraphOptions);
                 this.set('usageLoaded', true);
             },
-            _computeData: function(balanceData) {
-                var timeToCost = this.balanceData.data.map(function(d){
-                    return [d.date, d.cost, d.usage.cores, d.usage.datapoints, d.usage.checks]
-                });
-                var since = moment(timeToCost[timeToCost.length-1][0]).format('DD MMM');
-                this.set('balanceGraphOptions.series.0.data', timeToCost);
-                this.balanceGraph.setOption(this.balanceGraphOptions);
-                return timeToCost;
-            },
-            _formatMoney: function(int) {
-                if (int)
-                    return int.formatMoney(2,'.',',');
-                return int;
+            _formatMoney: function(i) {
+                if (i)
+                    return i.formatMoney(2, '.', ',');
+                return i;
             },
             _isWithinPlan: function(paygRate) {
                 if (paygRate == 0 && this.plan != undefined)
