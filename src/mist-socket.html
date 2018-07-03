@@ -305,82 +305,84 @@
 
         _patchModel: function (patch) {
             var _this = this;
+            var cloud_id, machine_id, network_id;
             patch.forEach(function (operation) {
                 // apply patch to the model
                 try {
                     jsonpatch.applyOperation(_this.model, operation, true);
+
+                    // let's also update the machinesArray if necessary
+                    if (operation.path.indexOf('/clouds/') > -1) {
+                        path = operation.path.split('/clouds/')[1].split('/');
+                        cloud_id = path[0];
+                    }
+                    if (cloud_id && operation.path && operation.path.split('/machines/')[1]) {
+                        path = operation.path.split('/machines/')[1].split('/');
+                        machine_id = path[0];
+                    }
+                    else if (cloud_id && operation.path && operation.path.split('/networks/')[1]) {
+                        // console.log('patch',operation);
+                        path = operation.path.split('/networks/')[1].split('/');
+                        network_id = path[1];
+                    }
+                    if (machine_id && path.length == 1) {
+                        if (operation.op == 'remove') {
+                            var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
+                                function (item) {
+                                    return item.machine_id == machine_id
+                                }
+                            );
+                            if (i>-1)
+                                _this.model.clouds[cloud_id].machinesArray.splice(i, 1);
+                        }
+                        if (operation.op == 'add') {
+                            _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id]
+                                .machines[machine_id])
+                        }
+                        // not sure if this is necessary
+                        if (operation.op == 'replace') {
+                            _this.set('model' + operation.path.replace(/\//g, "."), operation.value);
+                        }
+                    }
+                    // update the networksArray
+                    else if (network_id && path.length == 2) {
+                        if (operation.op == 'remove') {
+                            var i = _this.model.clouds[cloud_id].networksArray.findIndex(
+                                function (item) {
+                                    return item.id == network_id
+                                }
+                            );
+                            if (i>-1)
+                                _this.model.clouds[cloud_id].networksArray.splice(i, 1);
+                        }
+                        if (operation.op == 'add') {
+                            _this.model.clouds[cloud_id].networksArray.push(_this.model.clouds[cloud_id]
+                                .networks[path[0]][network_id])
+                        }
+                        // not sure if this is necessary
+                        if (operation.op == 'replace') {
+                            _this.set('model' + operation.path.replace(/\//g, "."), operation.value);
+                        }
+                    }
                 }
                 catch(error) {
                     console.log('Error on patch', operation.op, operation.path, error);
                 }
-
-                // let's also update the machinesArray if necessary 
-                var cloud_id, machine_id, network_id;
-                if (operation.path.indexOf('/clouds/') > -1) {
-                    path = operation.path.split('/clouds/')[1].split('/');
-                    cloud_id = path[0];
-                }
-                if (cloud_id && operation.path && operation.path.split('/machines/')[1]) {
-                    path = operation.path.split('/machines/')[1].split('/');
-                    machine_id = path[0];
-                }
-                else if (cloud_id && operation.path && operation.path.split('/networks/')[1]) {
-                    console.log('patch',operation);
-                    path = operation.path.split('/networks/')[1].split('/');
-                    network_id = path[1];
-                }
-                if (machine_id && path.length == 1) {
-                    if (operation.op == 'remove') {
-                        console.log('remove', operation.path);
-                        var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
-                            function (item) {
-                                return item.machine_id == machine_id
-                            }
-                        );
-                        _this.model.clouds[cloud_id].machinesArray.splice(i, 1);
-                    }
-                    if (operation.op == 'add') {
-                        console.log('add', operation.path);
-                        _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id]
-                            .machines[machine_id])
-                    }
-                    // not sure if this is necessary
-                    if (operation.op == 'replace') {
-                        _this.set('model' + operation.path.replace(/\//g, "."), operation.value);
-                    }
-                }
-                // update the netwoeksArray
-                else if (network_id && path.length == 2) {
-                    if (operation.op == 'remove') {
-                        var i = _this.model.clouds[cloud_id].networksArray.findIndex(
-                            function (item) {
-                                return item.id == network_id
-                            }
-                        );
-                        _this.model.clouds[cloud_id].networksArray.splice(i, 1);
-                    }
-                    if (operation.op == 'add') {
-                        _this.model.clouds[cloud_id].networksArray.push(_this.model.clouds[cloud_id]
-                            .networks[path[0]][network_id])
-                    }
-                    // not sure if this is necessary
-                    if (operation.op == 'replace') {
-                        _this.set('model' + operation.path.replace(/\//g, "."), operation.value);
-                    }
-                }
             });
-            this.debounce('updateAllMachines', function () {
-                var _this = this;
-                requestIdleCallback(function () {
-                    _this._updateAllMachines();
-                });
-            }, 500);
-            this.debounce('updateAllNetworks', function () {
-                var _this = this;
-                requestIdleCallback(function () {
-                    _this._updateAllNetworks();
-                });
-            }, 500);
+            if (machine_id)
+                this.debounce('updateAllMachines', function () {
+                    var _this = this;
+                    requestIdleCallback(function () {
+                        _this._updateAllMachines();
+                    });
+                }, 500);
+            if (network_id)
+                this.debounce('updateAllNetworks', function () {
+                    var _this = this;
+                    requestIdleCallback(function () {
+                        _this._updateAllNetworks();
+                    });
+                }, 500);
         },
 
         _updateModel: function (section, data, primaryField) {
