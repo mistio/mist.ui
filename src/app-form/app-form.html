@@ -216,7 +216,7 @@
             }
 
             .date {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
                 align-items: center;
             }
 
@@ -330,8 +330,8 @@
                                 value="{{field.value}}" auto-validate auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
                                 placeholder=[[field.placeholder]]>
-                                <div suffix hidden$="[[!field.suffix]]">[[field.suffix]]</div>
-                                <div prefix hidden$="[[!field.prefix]]">[[field.prefix]]</div>
+                                <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
+                                <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
                             </paper-input>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'password', field.show)]]">
@@ -365,7 +365,7 @@
                                     <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                                 </div>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-checkbox name$="[[field.name]]" data-value="[[option.id]]">[[option.name]]</paper-checkbox>
+                                    <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]">[[option.name]]</paper-checkbox>
                                 </template>
                             </div>
                         </template>
@@ -405,7 +405,7 @@
                                             <!-- <span hidden$="[[!option.suffix]]" class="item-desc secondary">  </span> -->
                                         </paper-item>
                                     </template>
-                                    <paper-button on-tap="_addInput" data-add="[[field.name]]" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
+                                    <paper-button on-tap="_addInput" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
                                 </paper-menu>
                             </paper-dropdown-menu>
                         </template>
@@ -426,7 +426,7 @@
                                                 <span class="flex">[[showOption(option)]]</span>
                                             </paper-item>
                                         </template>
-                                        <paper-button on-tap="_addInput" data-add="[[field.name]]" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
+                                        <paper-button on-tap="_addInput" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
                                     </paper-menu>
                                 </div>
                             </paper-dropdown-menu>
@@ -465,7 +465,7 @@
                                     <iron-icon icon="[[field.icon]]" hidden$="[[!field.icon]]"></iron-icon>
                                     [[_displayDate(field, field.value)]]
                                 </paper-button>
-                                <paper-icon-button icon="icons:close" on-tap="_clearDate" data-value="[[field.name]]" hidden$="[[!field.value.length]]"></paper-icon-button>
+                                <paper-icon-button icon="icons:close" on-tap="_clearDate" hidden$="[[!field.value.length]]"></paper-icon-button>
                             </div>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'list', field.show)]]">
@@ -638,7 +638,6 @@
                 '_fieldsChanged(fields.*, sendingData)'
             ],
             listeners: {
-                'change': '_updateCheckboxesField',
                 'fields-changed': 'runFieldsChanged'
             },
             ready: function () {
@@ -746,8 +745,7 @@
                                 that.set('form.' + el.name, that._constructTagsValue(
                                     textToArray));
                             } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, that._constructCheckboxValue(
-                                    el.name));
+                                that.set('form.' + el.name, el.value || []);
                             } else {
                                 that.set('form.' + el.name, el.value);
                             }
@@ -760,8 +758,7 @@
                                 that.set('form.' + el.name, that._constructTagsValue(
                                     textToArray));
                             } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, that._constructCheckboxValue(
-                                    el.name));
+                                that.set('form.' + el.name, el.value || []);
                             } else {
                                 that.set('form.' + el.name, el.value);
                             }
@@ -798,8 +795,8 @@
                         return el.show && el.required ? this.validatecidr(el.value, index) :
                             true;
                     } else if (el.type == "checkboxes") {
-                        return el.show && el.required ? this._constructCheckboxValue(el.name)
-                            .length : true;
+                        console.log('validation', el.value && el.value.length);
+                        return el.show && el.required ? el.value && el.value.length : true;
                     } else if (el.type == "machines_tags") {
                         var textToArray = el.value.split(',');
                         return el.show && el.required ? JSON.stringify(this._constructTagsValue(
@@ -1061,7 +1058,7 @@
             _addInput: function (e) {
                 this.fire('add-input', {
                     event: e,
-                    fieldname: e.target.dataAdd
+                    fieldname: e.model.field.name
                 });
             },
             _computeResourceTypeForField: function (str) {
@@ -1107,14 +1104,10 @@
                 }
             },
             _clearDate: function (e) {
+                // console.log('_clearDate',e, e.model.item.name);
                 var fieldIndex,
-                    fieldname;
+                    fieldname = e.model.field.name;
 
-                if (e.target.tagName == "IRON-ICON") {
-                    fieldname = e.target.parentNode.dataValue;
-                } else if (e.target.tagName == "PAPER-ICON-BUTTON") {
-                    fieldname = e.target.dataValue;
-                }
                 var el = this.fields.find(function (f, index) {
                     fieldIndex = index;
                     return f.name == fieldname;
@@ -1126,16 +1119,28 @@
             _constructCheckboxValue: function (fieldname) {
                 var checkboxes = this.querySelectorAll('paper-checkbox[name=' + fieldname + ']'); // get checkboxes
                 var arr = [];
-                var index = -1;
-                var field = this.fields.find(function (f, ind) {
-                    index = ind;
-                    return f.name == fieldname;
-                })
                 checkboxes.forEach(function (c) {
                     if (c.checked)
                         arr.push(c.dataValue);
                 })
+                console.log('_constructCheckboxValue',arr);
                 return arr;
+            },
+            _updateCheckboxesField: function (e) {
+                console.log('_updateCheckboxesField', e, e.model);
+                var fieldInd = this.fields.findIndex(function (f) {
+                    return f.name == e.model.field.name;
+                })
+                var arr = this.get('fields.' + fieldInd + '.value') || [];
+                if (fieldInd > -1) {
+                    if (e.target.checked && arr.indexOf(e.model.option.id) == -1)
+                        arr.push(e.model.option.id);
+                    else if (!e.target.checked && arr.indexOf(e.model.option.id) > -1)
+                        arr.splice(arr.indexOf(e.model.option.id),1)
+
+                    this.set('fields.' + fieldInd + '.value', arr);
+                }
+                console.log('_updateCheckboxesField', arr);
             },
             _constructTagsValue: function (tagStringsArray) {
                 var arr = {};
@@ -1149,26 +1154,6 @@
                     }
                 });
                 return arr;
-            },
-            _updateCheckboxesField: function (e) {
-                if (e.target.tagName == "PAPER-CHECKBOX") {
-                    // console.log(e, e.target, e.target.tagName == "PAPER-CHECKBOX");
-                    var name = e.target.name;
-                    var fieldIndex;
-                    var el = this.fields.find(function (f, index) {
-                        fieldIndex = index;
-                        return f.name == name;
-                    });
-                    if (fieldIndex) {
-                        var arr = this.querySelectorAll('paper-checkbox[name=' + name +
-                            '][checked]');
-                        var arrvalue = Array.prototype.map.call(arr, function (c) {
-                            return c.dataValue
-                        });
-                        // console.log('_updateCheckboxesField',arrvalue);
-                        this.set('fields.' + fieldIndex + '.value', arrvalue);
-                    }
-                }
             },
             _helpTap: function (e) {
                 this.fire('user-action', 'open help ' + e.model.field.helpHref);
