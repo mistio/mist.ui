@@ -33,6 +33,7 @@
 <link rel="import" href="mist-notice.html">
 <link rel="import" href="mist-icons.html">
 <link rel="import" href="organizations/organization-add.html">
+<link rel="import" href="account/plan-purchase.html">
 
 <script type="text/javascript" src="providers.js" inline></script>
 
@@ -164,7 +165,7 @@
                 <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"
                     docs=[[config.features.docs]]></page-dashboard>
                 <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]]
-                    portal-name="[[config.portal_name]]"></page-clouds>
+                    portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
                 <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]] docs=[[config.features.docs]]
                     portal-name="[[config.portal_name]]"></page-machines>
                 <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
@@ -200,6 +201,8 @@
         <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
         <organization-add current-org="[[model.org]]"></organization-add>
+
+        <plan-purchase id="mistAppCcRequired" org="[[org]]" button-text="Enable"></plan-purchase>
     </template>
 
     <script>
@@ -270,6 +273,11 @@
                 config: Object,
 
                 userMenuOpened: Boolean,
+                ccRequired: {
+                    type: Boolean,
+                    value: false,
+                    computed: '_computeCcRequired(config.features.*, model.org.*, model.cloudsArray.length)'
+                },
                 visibleSuggestions: {
                     type: Boolean,
                     value: false
@@ -292,16 +300,41 @@
                 'mist-list-filtered-items-length-changed': 'setHeaderCount',
                 'export-list-csv': '_exportCsvMessage',
                 'add-org': '_addOrg',
-                'tap': 'closeIfClickedElsewhere'
+                'tap': 'closeIfClickedElsewhere',
+                'cc-dismiss': '_ccDismissed'
             },
 
             observers: [
                 '_routePageChanged(routeData.page, subroute.path)',
                 '_sizeChanged(smallscreen)',
-                '_configUpdated(config)'
+                '_configUpdated(config)',
+                '_ccRequiredChanged(ccRequired)'
             ],
 
-            attached: function () {},
+            attached: function () {
+                if (this.ccRequired){
+                    this._ccDismissed();
+                }
+            },
+
+            _computeCcRequired: function(org, clouds) {
+                if (!this.config.features.billing || this.model.org.card || this.model.org.current_plan)
+                    return false;
+                return this.model.cloudsArray.length ? true : false;
+            },
+
+            _ccRequiredChanged: function(required) {
+                if (required)
+                    this.querySelector('#mistAppCcRequired').open();
+            },
+
+            _ccDismissed: function() {
+                if (this.ccRequired)
+                    this.async(function () {
+                        if (this.ccRequired)
+                            this.querySelector('#mistAppCcRequired').open();
+                    }.bind(this), 1000*60);
+            },
 
             _sizeChanged: function (smallscreen) {
                 console.log('updateResize');
@@ -321,7 +354,6 @@
                 else if (this.querySelector('cloud-page'))
                     this.querySelector('cloud-page')._cloudArraysChanged();
             },
-
 
             setLocationPath: function (e) {
                 if (e.detail.url && this.querySelector('app-location')) {
@@ -804,7 +836,7 @@
             },
 
             _onUserAction: function (event) {
-                console.log('user-action', event);
+                // console.log('user-action', event);
                 if (typeof gtag == 'function') {
                     gtag('event', event.detail, {
                         'event_category': 'ui'
