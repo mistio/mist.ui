@@ -154,7 +154,7 @@
         <app-header-layout mode="standard" class="fit" fullbleed>
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
             <app-header slot="header" fixed shadow>
-                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}} ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
+                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}} ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}" preset-filters="{{presetFilters}}" user-saved-filters="[[userSavedFilters]]"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]"
                         isclosed="{{sidebarIsClosed}}"></mist-sidebar>
@@ -167,7 +167,7 @@
                 <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]]
                     portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
                 <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]] docs=[[config.features.docs]]
-                    portal-name="[[config.portal_name]]"></page-machines>
+                    portal-name="[[config.portal_name]]" preset-filters="[[presetFilters]]"></page-machines>
                 <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
                 <page-keys name="keys" route="{{subroute}}" model="[[model]]" config=[[config]]></page-keys>
                 <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
@@ -281,6 +281,19 @@
                 visibleSuggestions: {
                     type: Boolean,
                     value: false
+                },
+                userSavedFilters: {
+                    type: Array,
+                    value: []
+                },
+                presetFilters: {
+                    type: Array,
+                    value: function() {
+                        return [
+                            {filter:"owner:$me", name:"Your resources", default:true},
+                            {filter:"", name:"All resources", default:true, clear:"owner:$me"}
+                        ]
+                    }
                 }
             },
 
@@ -301,7 +314,10 @@
                 'export-list-csv': '_exportCsvMessage',
                 'add-org': '_addOrg',
                 'tap': 'closeIfClickedElsewhere',
-                'cc-dismiss': '_ccDismissed'
+                'cc-dismiss': '_ccDismissed',
+                'open-save-filter-dialog': '_saveFilter',
+                'filter-delete': '_deleteFilter',
+                'filter-change': '_updateUserSavedFilters',
             },
 
             observers: [
@@ -453,6 +469,8 @@
                     this.clearSearchPreservingFilters(); 
                     this.async(function(){this.set('visibleSuggestions', false);}.bind(this),100);
                 }
+                if (this.model && this.model.org && this.model.org.ownership_enabled)
+                    this._updateUserSavedFilters();
                 this.set('count', null);
             },
 
@@ -498,6 +516,8 @@
                 // Load page import on demand. Show 404 page if fails
                 var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
                 this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
+                if (this.model && this.model.org && this.model.org.ownership_enabled)
+                    this._updateUserSavedFilters();
             },
 
             _hideLoader: function () {
@@ -925,6 +945,16 @@
             closeIfClickedElsewhere: function(e) {
                 if (this.visibleSuggestions && e.path.indexOf(this.querySelector('mist-header')) == -1)
                     this.set('visibleSuggestions', false);
+            },
+            _saveFilter: function(e) {
+                this.querySelector('page-'+this.page+' mist-list')._openDialogSaveFilter();
+            },
+            _deleteFilter: function(e) {
+                this.querySelector('page-'+this.page+' mist-list').deleteFilter(e.detail.index);
+            },
+            _updateUserSavedFilters: function(page) {
+                this.set('userSavedFilters', []);
+                this.set('userSavedFilters', this.querySelector('page-'+this.page+' mist-list').userSavedFilters || []);
             }
         });
 
