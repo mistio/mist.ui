@@ -291,6 +291,11 @@
                                 inp.options.forEach(function (o) {
                                     o.disabled = !o.enabled;
                                 });
+
+                                inp.showIf = {
+                                    fieldName: "use_existing_resources",
+                                    fieldValues: [false, undefined]
+                                }
                             }
 
                             // make image dropdown & dependent on cloud
@@ -338,6 +343,26 @@
                                 inp.showIf = {
                                     fieldName: "mist_cloud" + xid,
                                     fieldExists: true
+                                }
+                            }
+
+                            // use_existing_resources a toogler
+                            if (inp.name.startsWith("use_existing_resources")) {
+                                inp.show = true;
+                                inp.label = 'Use Existing Resources';
+                                inp.type = 'toggle';
+                            }
+
+                            // make dropdowns of existing machines
+                            if (inp.name.startsWith("mist_machine_id_")) {
+                                var type = inp.name.split("mist_machine_id_")[1];
+                                inp.show = false;
+                                inp.type = 'mist_dropdown';
+                                inp.label = 'Existing machine '+type;
+                                inp.helptext = inp.description;
+                                inp.showIf = {
+                                    fieldName: "use_existing_resources",
+                                    fieldValues: [true]
                                 }
                             }
 
@@ -470,6 +495,21 @@
                             }
                             yaml_inputs += val + '\n';
                         }
+                        // existing machines fields do not require cloud
+                        if (inp.name.startsWith("mist_machine_id_")) {
+                            if (inp.show == true) {
+                                inp.required = true;
+                            } else {
+                                inp.required = false;
+                            }
+                            if (this.model) {
+                                inp['options'] = this.model.machinesArray;
+                                for (var i = 0; i<inp['options'].length; i++) {
+                                    inp['options'][i].img = this._computeProviderLogo(inp['options'][i].cloud.provider);
+                                    inp['options'][i].prefix = inp['options'][i].cloud.title;
+                                }
+                            }
+                        }
                         if (cloud && cloud.value) {
                             if (inp.name.startsWith("mist_cloud")) {
                                 xid = inp.name.split("mist_cloud")[0];
@@ -491,7 +531,7 @@
                             }
                             if (inp.name.startsWith("mist_location")) {
                                 xid = inp.name.split("mist_location")[0];
-                                fieldCloud = this.fields.find(function (f) {
+                                fieldCloud = this.fields.find(function (f) {use_existing_resources
                                     return f.name.startsWith("mist_cloud" + xid);
                                 }) || cloud;
                                 cloudId = fieldCloud.value;
@@ -617,6 +657,9 @@
                     // Reset Form Fields Validation
                     this._resetField(el, index);
                 }, this);
+            },
+            _computeProviderLogo: function (provider) {
+                return 'assets/providers/provider-' + provider + '.png';
             },
             _resetField: function (el, index) {
                 // this.set('fields.' + index + '.value', el.defaultValue);
