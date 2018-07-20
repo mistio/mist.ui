@@ -887,6 +887,7 @@
                     this.fire('format-payload');
 
                 var payload = {};
+                var machines = this.model && this.model.machines;
                 if (this.workflow) {
                     var inps = YAML.parse(this.form.stackinputs);
                     for (var p in inps) {
@@ -899,6 +900,11 @@
                                 inps[p] = sizeField.customValue;
                             }
                         }
+                        if (p.startsWith('mist_machine_id')) {
+                            var machineIdField = this.fields.find(function(f){return f.name == p});
+                            inps[p] = machineIdField.preformatPayloadValue.apply(machineIdField.value, machines);
+                        }
+
                     }
 
                     payload = {
