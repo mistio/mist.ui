@@ -304,10 +304,10 @@
                             </app-incidents>
                         </div>
                         <div class="sections layout horizontal wrap">
-                            <template is="dom-repeat" items="[[model.sectionsArray]]">
+                            <template is="dom-repeat" items="{{sectionsArray}}">
                                 <template is="dom-if" if="[[item.tile]]">
                                     <a href$="/[[item.id]]" on-tap="clearSearch" class="main-section flex" is="pushstate-anchor" hidden$="[[_isHidden(item, item.count)]]">
-                                        <section-tile name$="[[item.id]]" color="[[item.color]]" icon="[[item.icon]]" count="[[item.count]]">
+                                        <section-tile name$="[[item.id]]" color="[[item.color]]" icon="[[item.icon]]" count="[[_getSectionCount(item.id, sectionsArray)]]">
                                         </section-tile>
                                     </a>
                                 </template>
@@ -336,7 +336,7 @@
                         <template is="dom-if" if=[[model.org]] restamp>
                             <paper-material id="rightcolumn" class="logs">
                                 <mist-list id="logs"
-                                    timeseries expands searchable toolbar column-menu resizable streaming infinite
+                                    timeseries expands searchable toolbar column-menu resizable streaming infinite rest
                                     apiurl="/api/v1/logs"
                                     name="all logs"
                                     frozen=[[_getFrozenLogColumn()]]
@@ -408,7 +408,11 @@
                 computed: "_computeHasMissingMonitored(model.machines.*, model.monitoring.*)",
                 value: []
             },
-            smallscreen: Boolean
+            smallscreen: Boolean,
+            sectionsArray: {
+                type: Array,
+                computed: '_toArray(model.sections, model.sections.*)'
+            }
         },
         observers: [
             'cloudLayoutMatrix(model.clouds.*, sidebarIsOpen)'
@@ -564,7 +568,6 @@
                         show = true;
                     }
                 }
-
             }
             return show;
         },
@@ -650,6 +653,14 @@
 
         clearSearch: function(e){
             this.fire('clear-search-on-nav');
+        },
+
+        _toArray: function (x, z) {
+            return Object.keys(x).map(y => x[y])
+        },
+
+        _getSectionCount: function (name, sections) {
+            return this.model.sections[name].count;
         }
     });
 </script>
