@@ -88,12 +88,24 @@
 	                        //     inp.required = false;
 	                        // }
 
-	                        // make key dropdown
+                            if (inp.name.startsWith('delta')) {
+                                inp.showIf = {
+                                    fieldName: "use_existing_resources",
+                                    fieldValues: [false, undefined]
+                                }
+                            }
+
+                            // make key dropdown
 	                        if (inp.name.startsWith('mist_key')) {
 	                            inp.type = 'ssh_key';
 	                            // inp.type = 'dropdown';
 	                            inp.helptext = 'Select key';
 	                            inp.options = this.model.keysArray;
+
+                                inp.showIf = {
+                                    fieldName: "use_existing_resources",
+                                    fieldValues: [false, undefined]
+                                }
 	                        }
 
 	                        // make cloud dropdown
@@ -102,6 +114,11 @@
 	                            inp.type = 'mist_dropdown';
 	                            inp.helptext = 'Select cloud';
 	                            inp.options = this.model.cloudsArray;
+
+                                inp.showIf = {
+                                    fieldName: "use_existing_resources",
+                                    fieldValues: [false, undefined]
+                                }
 	                        }
 
 	                        // make image dropdown & dependent on cloud
@@ -172,7 +189,7 @@
                             }
 
                             // hide mist api credential inputs
-	                        if (inp.name == "mist_token" || inp.name == "mist_uri" || inp.name == "mist_username" || inp.name == "mist_password") {
+	                        if (["mist_token", "script_path", "mist_uri", "mist_username", "mist_password"].indexOf(inp.name)> -1) {
 	                            inp.hidden = true;
 	                            inp.required = false;
 	                        }
@@ -188,7 +205,7 @@
                             var value = line.split(':')[1];
                             if (value)
                                 value = value.trim();
-                            inputs[name] = value;
+                            inputs[name] = JSON.parse(value);
                         });
 
                         this.fields.forEach(function(f, index){
@@ -200,12 +217,14 @@
                             return f.name.startsWith("mist_cloud");
                         });
                         var yaml_inputs = '';
+                        var machines = this.model.machines;
                         this.fields.forEach(function(inp) {
                             var fieldCloud;
 
                             if (['yaml_or_form','stackinputs'].indexOf(inp.name) == -1) {
                                 yaml_inputs += inp.name+ ': ';
-                                var val = inp.value || inp.defaultValue;
+                                var preformatedValue = inp.preformatPayloadValue ? inp.preformatPayloadValue.apply(inp.value, machines) : inp.value;
+                                var val = preformatedValue ? JSON.stringify(preformatedValue) : inp.defaultValue;
                                 yaml_inputs += val+'\n';
                             }
                             // existing machines fields do not require cloud
