@@ -281,6 +281,12 @@
                 margin-left: 10px;
             }
 
+            paper-checkbox .item-desc{
+                display: inline-block;
+                height: 24px;
+                vertical-align: top;
+            }
+
             @media (max-width: 991px) {
                 :host div.field-helptext {
                     margin-top: -10px !important;
@@ -378,7 +384,12 @@
                                     <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                                 </div>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]">[[option.name]]</paper-checkbox>
+                                    <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]">
+                                        <template is="dom-if" if="[[option.img]]">
+                                                <img src="[[option.img]]" width="24px" />
+                                        </template>
+                                        <span class="item-desc" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[option.name]]</span>
+                                    </paper-checkbox>
                                 </template>
                             </div>
                         </template>
@@ -891,18 +902,23 @@
                 if (this.workflow) {
                     var inps = YAML.parse(this.form.stackinputs);
                     for (var p in inps) {
+                        var field = this.fields.find(function(f){return f.name == p});
+
                         if (p.startsWith('mist_location')) {
                             inps[p] = inps[p] != undefined ? inps[p].toString() : '';
                         }
                         if (p.startsWith('mist_size')) {
-                            var sizeField = this.fields.find(function(f){return f.name == p})
-                            if (sizeField && sizeField.type == 'mist_size' && sizeField.value == 'custom') {
-                                inps[p] = sizeField.customValue;
+                            if (field && field.type == 'mist_size' && field.value == 'custom') {
+                                inps[p] = field.customValue;
                             }
                         }
-                        if (p.startsWith('mist_machine_id')) {
-                            var machineIdField = this.fields.find(function(f){return f.name == p});
-                            inps[p] = machineIdField.preformatPayloadValue.apply(machineIdField.value, machines);
+                        if (field.preformatPayloadValue != undefined && field.preformatPayloadValue.apply) {
+                            console.log('preformatPayloadValue',field.value, field.preformatPayloadValue, field.preformatPayloadValue.apply);
+                            inps[p] = field.preformatPayloadValue.apply(field.value, machines);
+                        }
+
+                        if (field.excludeFromPayload == true) {
+                            delete inps[p];
                         }
 
                     }
