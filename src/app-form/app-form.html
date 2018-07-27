@@ -684,7 +684,8 @@
                 '_fieldsChanged(fields.*, sendingData)'
             ],
             listeners: {
-                'fields-changed': 'runFieldsChanged'
+                'fields-changed': 'runFieldsChanged',
+                'field-value-changed': 'runValidateFields'
             },
             ready: function () {
                 this.fields = [];
@@ -736,6 +737,10 @@
             },
             runFieldsChanged: function () {
                 this._fieldsChanged()
+            },
+            runValidateFields: function() {
+                var valid = this._validateFields();
+                this.set('formReady', valid && !this.sendingData);
             },
             _fieldsChanged: function (fields, sendingData) {
                 if (this.formError) {
@@ -829,19 +834,19 @@
                         }
                     });
 
-                    var valid = that._validateFields(that.fields);
+                    var valid = that._validateFields();
                     // console.log("Validate Fields", valid);
                     that.set('form', form);
                     that.set('formReady', valid && !sendingData);
                 });
             },
-            _validateFields: function (fields) {
-                return fields.every(function (el, index) {
+            _validateFields: function () {
+                return this.fields.every(function (el, index) {
                     if (el.type == "ip_textarea") {
                         return el.show && el.required ? this.validatecidr(el.value, index) :
                             true;
                     } else if (el.type == "checkboxes") {
-                        console.log('validation', el.value && el.value.length);
+                        // console.log('validation', el.value && el.value.length);
                         return el.show && el.required ? el.value && el.value.length : true;
                     } else if (el.type == "machines_tags") {
                         var textToArray = el.value.split(',');
@@ -868,10 +873,9 @@
                     } else if (el.type == "mist_machine") {
                         return el.show && el.required ? el.valid : true;
                     } else {
-                        if (el.show && el.required && (!el.value || !el.value.length)){
+                        if (el.show && el.required && (!el.value || !el.value.length))
                             console.warn(el.type, 'not valid', el.name, el.value);
-                            return el.show && el.required ? el.value && el.value.length : true;
-                        }
+                        return el.show && el.required ? el.value && el.value.length : true;
                     }
                 }, this);
             },
@@ -1179,11 +1183,11 @@
                     if (c.checked)
                         arr.push(c.dataValue);
                 })
-                console.log('_constructCheckboxValue',arr);
+                // console.log('_constructCheckboxValue',arr);
                 return arr;
             },
             _updateCheckboxesField: function (e) {
-                console.log('_updateCheckboxesField', e, e.model);
+                // console.log('_updateCheckboxesField', e, e.model);
                 var fieldInd = this.fields.findIndex(function (f) {
                     return f.name == e.model.field.name;
                 })
@@ -1196,7 +1200,7 @@
 
                     this.set('fields.' + fieldInd + '.value', arr);
                 }
-                console.log('_updateCheckboxesField', arr);
+                // console.log('_updateCheckboxesField', arr);
             },
             _constructTagsValue: function (tagStringsArray) {
                 var arr = {};
