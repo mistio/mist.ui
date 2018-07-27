@@ -103,7 +103,7 @@
             </paper-material>
             <paper-material>
                 <app-form id="create_stack" fields="{{fields}}" templateid="{{template.id}}" workflow="install" url="/api/v1/stacks" on-request="_handleRequest"
-                    on-response="_handleResponse" on-error="_handleError" btncontent="create stack" model="[[model]]"></app-form>
+                    on-response="_handleResponse" on-error="_handleError" btncontent="create stack"></app-form>
             </paper-material>
         </div>
     </template>
@@ -514,12 +514,13 @@
                                 inp.required = false;
                             }
                             if (this.model) {
+                                var machines = this.model.machines;
                                 inp['options'] = this.model.machinesArray;
                                 for (var i = 0; i<inp['options'].length; i++) {
                                     inp['options'][i].img = this._computeProviderLogo(inp['options'][i].cloud.provider);
                                     inp['options'][i].prefix = inp['options'][i].cloud.title;
                                 }
-                                inp.preformatPayloadValue = {apply: function(it, machines){
+                                inp.preformatPayloadValue = {apply: function(it){
                                     return machines && machines[it] ? {cloud_id: machines[it].cloud.id, machine_id: machines[it].machine_id} : {};
                                 }};
                             }
