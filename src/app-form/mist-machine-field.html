@@ -5,8 +5,9 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="mist-size-field.html">
 
 <dom-module id="mist-machine-field">
     <template>
@@ -25,8 +26,113 @@
                 color: #fff !important;
                 text-transform: uppercase;
             }
+
+            paper-input.search {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .fullwidth {
+                width: 100%;
+            }
         </style>
-        
+
+        <paper-dropdown-menu label="[[field.label]] cloud" horizontal-align="left" disabled="[[field.disabled]]" 
+            required="[[field.required]]">
+            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.cloud}}" class="dropdown-content">
+                <template is="dom-if" if="[[_noOptions(_objectToArray(field.clouds))]]" restamp>
+                    <paper-item disabled>No clouds found</paper-item>
+                </template>
+                <template id="cloudsDomRepeat" is="dom-repeat" items="[[_objectToArray(field.clouds)]]" as="option">
+                    <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                        <span class="flex">[[_showOption(option)]]</span>
+                    </paper-item>
+                </template>
+            </paper-menu>
+        </paper-dropdown-menu>
+
+        <p>
+            <paper-toggle-button checked="{{useExistingMachine}}" hidden$="[[!field.cloud.length]]">Use existing machine as [[field.label]]</paper-toggle-button>
+        </p>
+
+        <!-- if useExistingMachine -->
+        <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" 
+            required="[[field.required]]" hidden$="[[!useExistingMachine]]">
+            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" class="dropdown-content">
+                <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
+                    <paper-item disabled>No machines found</paper-item>
+                </template>
+                <template id="machinesDomRepeat" is="dom-repeat" items="[[machines]]" as="option">
+                    <paper-item value="[[option.machine_id]]" disabled$="[[option.disabled]]">
+                        <span class="flex">[[_showOption(option)]]</span>
+                    </paper-item>
+                </template>
+            </paper-menu>
+        </paper-dropdown-menu>
+
+        <!-- if !useExistingMachine -->
+        <div hidden$="[[useExistingMachine]]">
+            <div hidden$="[[!field.cloud.length]]">
+
+                <paper-dropdown-menu label="[[field.label]] image" horizontal-align="left" disabled="[[field.disabled]]" class="fullwidth">
+                    <div slot="dropdown-content" class="dropdown-content">
+                        <paper-input class="search" label="Search images" value="{{imageSearchKeywords}}" hidden$="[[_noOptions(images)]]"></paper-input>
+                        <paper-menu attr-for-selected="value" selected="{{field.value}}">
+                            <template is="dom-if" if="[[_noOptions(images)]]" restamp>
+                                <paper-item disabled>No images found</paper-item>
+                            </template>
+                            <template is="dom-repeat" items="[[_filter(images, imageSearchKeywords)]]" as="option">
+                                <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
+                                    <span class="flex">[[_showOption(option)]]</span>
+                                </paper-item>
+                            </template>
+                        </paper-menu>
+                    </div>
+                </paper-dropdown-menu>
+
+                <mist-size-field id$="app-form-[[id]]-[[field.name]]-size" field="{{fieldSize}}"></mist-size-field>
+
+                <paper-dropdown-menu label="[[field.label]] key" horizontal-align="left" disabled="[[field.disabled]]"required="[[field.required]]">
+                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.key}}" class="dropdown-content">
+                        <template is="dom-if" if="[[_noOptions(keys)]]" restamp>
+                            <paper-item disabled>No keys found</paper-item>
+                        </template>
+                        <template id="keysDomRepeat" is="dom-repeat" items="[[keys]]" as="option">
+                            <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                                <span class="flex">[[_showOption(option)]]</span>
+                            </paper-item>
+                        </template>
+                    </paper-menu>
+                </paper-dropdown-menu>
+
+                <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]"required="[[field.required]]">
+                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.location}}" class="dropdown-content">
+                        <template is="dom-if" if="[[_noOptions(locations)]]" restamp>
+                            <paper-item disabled>No locations found</paper-item>
+                        </template>
+                        <template id="locationsDomRepeat" is="dom-repeat" items="[[locations]]" as="option">
+                            <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                                <span class="flex">[[_showOption(option)]]</span>
+                            </paper-item>
+                        </template>
+                    </paper-menu>
+                </paper-dropdown-menu>
+
+                <paper-dropdown-menu label="[[field.label]] network" horizontal-align="left" disabled="[[field.disabled]]"required="[[field.required]]">
+                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.network}}" class="dropdown-content">
+                        <template is="dom-if" if="[[_noOptions(networks)]]" restamp>
+                            <paper-item disabled>No networks found</paper-item>
+                        </template>
+                        <template id="networksDomRepeat" is="dom-repeat" items="[[networks]]" as="option">
+                            <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                                <span class="flex">[[_showOption(option)]]</span>
+                            </paper-item>
+                        </template>
+                    </paper-menu>
+                </paper-dropdown-menu>
+            </div>
+        </div>
+
     </template>
     <script>
         Polymer({
@@ -36,12 +142,57 @@
                 field: {
                     type: Object,
                     notify: true
+                },
+                machines: {
+                    type: Array
+                },
+                images: {
+                    type: Array
+                },
+                sizes: {
+                    type: Array
+                },
+                locations: {
+                    type: Array
+                },
+                keys: {
+                    type: Array
+                },
+                networks: {
+                    type: Array
+                },
+                useExistingMachine: {
+                    type: Boolean,
+                    value: false
+                },
+                imageSearchKeywords: {
+                    type: String,
+                    value: ''
+                },
+                fieldSize: {
+                    type: Object,
+                    value: function(){
+                        return {
+                            label: 'size',
+                            type: 'mist_size',
+                            options: [],
+                            custom: false,
+                            value: null,
+                            customSizeFields: []
+                        }
+                    }
                 }
             },
 
             listeners: {
             },
             observers: [
+                '_fieldChanged(field)',
+                '_fieldCloudsChanged(field, field.clouds.*)',
+                '_fieldKeysChanged(field, field.keys.*)',
+                '_selectedCloudChanged(field.cloud)',
+                '_fieldSizeChanged(fieldSize.value)',
+                '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.image, field.size, field.location, field.network, field.key)'
             ],
 
             ready: function() {
@@ -49,6 +200,98 @@
             },
 
             initializeValues: function (cr) {
+            },
+
+            _fieldChanged: function(field) {
+                this.set('fieldSize.label', this.field.label + ' size');
+            },
+
+            _fieldCloudsChanged: function(clouds) {
+                this.$.cloudsDomRepeat.render();
+            },
+
+            _selectedCloudChanged: function(cloud) {
+                if (this.field.cloud) {
+                    var selectedCloud = this.field.clouds[this.field.cloud];
+                    this.set('machines', this._objectToArray(selectedCloud.machines));
+                    this.set('images', this._objectToArray(selectedCloud.images));
+                    this.set('sizes', this._objectToArray(selectedCloud.sizes));
+                    this.set('locations', this._objectToArray(selectedCloud.locations));
+                    this.set('networks', this._objectToArray(selectedCloud.networks));
+
+                    this.$.machinesDomRepeat.render();
+                    this.$.imagesDomRepeat.render();
+                    // this.$.sizesDomRepeat.render();
+                    this.$.locationsDomRepeat.render();
+                    this.$.networksDomRepeat.render();
+
+                    // update field consumed by mist-list
+                    this.set('fieldSize.options', selectedCloud.sizesArray ? selectedCloud.sizesArray : [])
+                    if (["onapp", "vsphere", "libvirt"].indexOf(selectedCloud.provider) > -1) {
+                        var provider = selectedCloud.provider,
+                            fields = MACHINE_CREATE_FIELDS.find(function(p) {return p.provider == provider}).fields;
+                            this.set('fieldSize.custom', true)
+                            this.set('fieldSize.value', "custom")
+                            this.set('fieldSize.customSizeFields',fields.find(function(f){return f.type == "mist_size"}).customSizeFields)
+                    } else {
+                        this.set('fieldSize.custom', false)
+                    }
+                }
+            },
+
+            _fieldSizeChanged: function(fieldSizeValue) {
+                this.set('field.size', this.fieldSize.value);
+            },
+
+            _fieldKeysChanged: function(keys) {
+                this.set('keys', this._objectToArray(this.field.keys));
+                this.$.keysDomRepeat.render();
+            },
+
+            _updateFieldValue: function(useExistingMachine, cloud, machine, image, size, location, network, key) {
+                if (this.useExistingMachine) {
+                    this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
+                } else {
+                    this.set('field.value', {cloud_id: this.field.cloud, 
+                                            image_id: this.field.image,
+                                            size_id: this.field.size,
+                                            location_id: this.field.location,
+                                            network_id: this.field.network})
+                }
+                this.validateValue(this.field.value);
+            },
+
+            validateValue: function(value){
+                var assertValidity = true;
+                this.set('field.valid', assertValidity)
+            },
+
+            _noOptions: function (options) {
+                return !options || options.length == 0;
+            },
+
+            _showOption: function (option) {
+                if (option.name) {
+                    return option.name;
+                } else if (option.title) {
+                    return option.title;
+                } else if (option.id) {
+                    return option.id;
+                }
+            },
+
+            _filter: function (options, search) {
+                return options.filter(function (op) {
+                    return op.name.toLowerCase().indexOf(search.toLowerCase()) > -1;
+                });
+            },
+
+            _objectToArray: function(obj) {
+                var arr = [];
+                for (var p in obj) {
+                    arr.push(obj[p]);
+                }
+                return arr;
             }
 
         });
