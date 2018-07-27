@@ -344,6 +344,27 @@
                                 }
                             }
 
+                            // prepare mist machine
+                            if (inp.name.startsWith("mist_machine")) {
+                                inp.label = inp.name.split("mist_machine_")[1] || "Mist Machine";
+                                inp.valid = true;
+                                inp.show = true;
+                                inp.type = 'mist_machine';
+                                inp.cloud = '';
+                                inp.machine = '';
+                                inp.image = '';
+                                inp.size = '';
+                                inp.location = '';
+                                inp.key = '';
+                                inp.network = '';
+                                inp.value = {};
+                                inp.helptext = inp.description;
+                                if (this.model){
+                                    inp.clouds = this.model.clouds;
+                                    inp.keys = this.model.keys;
+                                }
+                            }
+
                             // hide mist api credential inputs
                             if (["mist_token", "script_path", "mist_uri", "mist_username", "mist_password"].indexOf(inp.name) > -1) {
                                 inp.hidden = true;
@@ -471,6 +492,14 @@
                                 val = JSON.stringify(inp.customValue);
                             }
                             yaml_inputs += val + '\n';
+                        }
+
+                        // mist-machine contains its own cloud value
+                        if (inp.name.startsWith("mist_machine")) {
+                            if (this.model) {
+                                inp.clouds = this.model.clouds;
+                                inp.keys = this.model.keys;
+                            }
                         }
                         if (cloud && cloud.value) {
                             if (inp.name.startsWith("mist_cloud")) {
