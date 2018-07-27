@@ -77,12 +77,12 @@
                 <paper-dropdown-menu label="[[field.label]] image" horizontal-align="left" disabled="[[field.disabled]]" class="fullwidth">
                     <div slot="dropdown-content" class="dropdown-content">
                         <paper-input class="search" label="Search images" value="{{imageSearchKeywords}}" hidden$="[[_noOptions(images)]]"></paper-input>
-                        <paper-menu attr-for-selected="value" selected="{{field.value}}">
+                        <paper-menu attr-for-selected="value" selected="{{field.image}}">
                             <template is="dom-if" if="[[_noOptions(images)]]" restamp>
                                 <paper-item disabled>No images found</paper-item>
                             </template>
                             <template is="dom-repeat" items="[[_filter(images, imageSearchKeywords)]]" as="option">
-                                <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
+                                <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                                     <span class="flex">[[_showOption(option)]]</span>
                                 </paper-item>
                             </template>
@@ -177,7 +177,8 @@
                             type: 'mist_size',
                             options: [],
                             custom: false,
-                            value: null,
+                            value: '',
+                            customValue: {},
                             customSizeFields: []
                         }
                     }
@@ -191,7 +192,7 @@
                 '_fieldCloudsChanged(field, field.clouds.*)',
                 '_fieldKeysChanged(field, field.keys.*)',
                 '_selectedCloudChanged(field.cloud)',
-                '_fieldSizeChanged(fieldSize.value)',
+                '_fieldSizeChanged(fieldSize.value.*)',
                 '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.image, field.size, field.location, field.network, field.key)'
             ],
 
@@ -210,6 +211,15 @@
                 this.$.cloudsDomRepeat.render();
             },
 
+            _fieldSizeChanged: function(fieldSizeValue) {
+                this.set('field.size_id', this.fieldSize.value == 'custom' ? this.fieldSize.customValue : this.fieldSize.value);
+            },
+
+            _fieldKeysChanged: function(keys) {
+                this.set('keys', this._objectToArray(this.field.keys));
+                this.$.keysDomRepeat.render();
+            },
+
             _selectedCloudChanged: function(cloud) {
                 if (this.field.cloud) {
                     var selectedCloud = this.field.clouds[this.field.cloud];
@@ -220,8 +230,6 @@
                     this.set('networks', this._objectToArray(selectedCloud.networks));
 
                     this.$.machinesDomRepeat.render();
-                    this.$.imagesDomRepeat.render();
-                    // this.$.sizesDomRepeat.render();
                     this.$.locationsDomRepeat.render();
                     this.$.networksDomRepeat.render();
 
@@ -239,31 +247,55 @@
                 }
             },
 
-            _fieldSizeChanged: function(fieldSizeValue) {
-                this.set('field.size', this.fieldSize.value);
-            },
-
-            _fieldKeysChanged: function(keys) {
-                this.set('keys', this._objectToArray(this.field.keys));
-                this.$.keysDomRepeat.render();
-            },
-
             _updateFieldValue: function(useExistingMachine, cloud, machine, image, size, location, network, key) {
                 if (this.useExistingMachine) {
                     this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
                 } else {
                     this.set('field.value', {cloud_id: this.field.cloud, 
+                                            key_id: this.field.key,
                                             image_id: this.field.image,
-                                            size_id: this.field.size,
+                                            size_id: this.field.size_id,
                                             location_id: this.field.location,
                                             network_id: this.field.network})
                 }
-                this.validateValue(this.field.value);
+                this.set('field.valid', this.validateValue(this.field.value))
+                this.fire('field-value-changed');
             },
 
             validateValue: function(value){
-                var assertValidity = true;
-                this.set('field.valid', assertValidity)
+                if (this.useExistingMachine) {
+                    if (!value.cloud_id) {
+                        console.log('cloud')
+                        return false;
+                    }
+                    if (!value.machine_id){
+                        console.log('machine')
+                        return false;
+                    }
+                    return true;
+                } else if (!this.useExistingMachine) {
+                    if (!value.cloud_id){
+                        console.log('cloud');
+                        return false;
+                    }
+                    if (!value.image_id){
+                        console.log('machine');
+                        return false;
+                    }
+                    if (!value.key_id){
+                        console.log('key');
+                        return false;
+                    }
+                    if (!value.size_id){
+                        console.log('size', value.size_id);
+                        return false;
+                    }
+                    if (!value.location_id){
+                        console.log('location');
+                        return false;
+                    }
+                    return true;
+                }
             },
 
             _noOptions: function (options) {
