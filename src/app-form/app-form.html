@@ -597,10 +597,9 @@
              * @event leadchange
              */
             properties: {
-                model: {
-                    type: Object
+                id: {
+                    type: String
                 },
-                id: String,
                 sections: {
                     type: Object
                 },
@@ -914,28 +913,25 @@
                     this.fire('format-payload');
 
                 var payload = {};
-                var machines = this.model && this.model.machines;
                 if (this.workflow) {
                     var inps = YAML.parse(this.form.stackinputs);
                     for (var p in inps) {
                         var field = this.fields.find(function(f){return f.name == p});
-
-                        if (p.startsWith('mist_location')) {
-                            inps[p] = inps[p] != undefined ? inps[p].toString() : '';
-                        }
-                        if (p.startsWith('mist_size')) {
-                            if (field && field.type == 'mist_size' && field.value == 'custom') {
-                                inps[p] = field.customValue;
-                            }
-                        }
-                        if (field.preformatPayloadValue != undefined && field.preformatPayloadValue.apply) {
-                            inps[p] = field.preformatPayloadValue.apply(field.value, machines);
-                        }
-
                         if (field.excludeFromPayload == true) {
                             delete inps[p];
+                        } else {
+                            if (p.startsWith('mist_location')) {
+                                inps[p] = inps[p] != undefined ? inps[p].toString() : '';
+                            }
+                            if (p.startsWith('mist_size')) {
+                                if (field && field.type == 'mist_size' && field.value == 'custom') {
+                                    inps[p] = field.customValue;
+                                }
+                            }
+                            if (field.preformatPayloadValue != undefined && field.preformatPayloadValue.apply) {
+                                inps[p] = field.preformatPayloadValue.apply(field.value);
+                            }
                         }
-
                     }
 
                     payload = {
