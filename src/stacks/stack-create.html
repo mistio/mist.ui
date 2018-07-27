@@ -341,15 +341,6 @@
                                 }
                             }
 
-                            // make dropdowns of existing machines
-                            if (inp.name.startsWith("mist_machine_id_")) {
-                                var type = inp.name.split("mist_machine_id_")[1];
-                                inp.show = false;
-                                inp.type = 'mist_dropdown';
-                                inp.label = 'Existing machine '+type;
-                                inp.helptext = inp.description;
-                            }
-
                             // hide mist api credential inputs
                             if (["mist_token", "script_path", "mist_uri", "mist_username", "mist_password"].indexOf(inp.name) > -1) {
                                 inp.hidden = true;
@@ -477,25 +468,6 @@
                                 val = JSON.stringify(inp.customValue);
                             }
                             yaml_inputs += val + '\n';
-                        }
-                        // existing machines fields do not require cloud
-                        if (inp.name.startsWith("mist_machine_id_")) {
-                            if (inp.show == true) {
-                                inp.required = true;
-                            } else {
-                                inp.required = false;
-                            }
-                            if (this.model) {
-                                var machines = this.model.machines;
-                                inp['options'] = this.model.machinesArray;
-                                for (var i = 0; i<inp['options'].length; i++) {
-                                    inp['options'][i].img = this._computeProviderLogo(inp['options'][i].cloud.provider);
-                                    inp['options'][i].prefix = inp['options'][i].cloud.title;
-                                }
-                                inp.preformatPayloadValue = {apply: function(it){
-                                    return machines && machines[it] ? {cloud_id: machines[it].cloud.id, machine_id: machines[it].machine_id} : {};
-                                }};
-                            }
                         }
                         if (cloud && cloud.value) {
                             if (inp.name.startsWith("mist_cloud")) {
