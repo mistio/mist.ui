@@ -246,6 +246,15 @@ MACHINE_CREATE_FIELDS.push({
     ],
 });
 
+
+// Alibaba Cloud
+MACHINE_CREATE_FIELDS.push({
+    provider: 'aliyun_ecs',
+    fields: [
+    ],
+});
+
+
 // GCE
 MACHINE_CREATE_FIELDS.push({
     provider: 'gce',
