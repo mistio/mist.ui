@@ -24,6 +24,7 @@
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="sub-form.html">
 <link rel="import" href="mist-size-field.html">
+<link rel="import" href="mist-machine-field.html">
 
 <script src="../../bower_components/yaml.js/dist/yaml.min.js"></script>
 
@@ -266,11 +267,37 @@
                 font-size: 18px;
             }
 
+            .item-desc:before {
+                content: attr(data-prefix);
+                opacity: 0.67;
+                font-size: .8em;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
             .item-desc:after {
                 content: attr(data-suffix);
                 opacity: 0.67;
                 font-size: .8em;
                 margin-left: 10px;
+            }
+
+            paper-checkbox {
+                position: relative;
+                margin-bottom: 8px; 
+            }
+
+            paper-checkbox .item-desc{
+                display: inline-block;
+                vertical-align: top;
+            }
+
+            paper-checkbox .item-desc.noimg-false {
+                padding-left: 24px;
+            }
+
+            paper-checkbox .item-img {
+                position: absolute;
             }
 
             @media (max-width: 991px) {
@@ -308,6 +335,11 @@
 
             .horizontal-grid .field-helptext {
                 align-self: flex-start;
+            }
+
+            paper-menu img {
+                margin-right: 8px;
+                vertical-align: middle;
             }
 
             @media screen and (max-width: 800px) {
@@ -358,14 +390,22 @@
                             </paper-radio-group>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'checkboxes', field.show)]]">
-                            <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" horizontal-align="left"
-                                hidden$="[[field.hidden]]">
+                            <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" hidden$="[[field.hidden]]">
+                                <div hidden$="[[!_noOptions(field.options, field.options.length)]]">
+                                    <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]
+                                            <span hidden$="[[field.noPluralisation]]">s </span> found</paper-item>
+                                </div>
                                 <div hidden$="[[_noOptions(field.options, field.options.length)]]">
                                     <span class="checkboxes-label" hidden$="[[field.label]]">[[field.name]]:</span>
                                     <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                                 </div>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]">[[option.name]]</paper-checkbox>
+                                    <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]">
+                                        <template is="dom-if" if="[[option.img]]">
+                                            <img class="item-img" src="[[option.img]]" width="24px"/>
+                                        </template>
+                                        <span class$="item-desc noimg-[[!option.img]]" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[option.name]]</span>
+                                    </paper-checkbox>
                                 </template>
                             </div>
                         </template>
@@ -387,6 +427,9 @@
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_size', field.show)]]" restamp>
                             <mist-size-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-size-field>
                         </template>
+                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_machine', field.show)]]" restamp>
+                            <mist-machine-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-machine-field>
+                        </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_dropdown', field.show)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]" required="[[field.required]]">
@@ -401,7 +444,10 @@
                                             <template is="dom-if" if="[[option.icon]]">
                                                 <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
                                             </template>
-                                            <span class="flex item-desc" data-suffix$=[[option.suffix]]>[[showOption(option)]]</span> 
+                                            <template is="dom-if" if="[[option.img]]">
+                                                <img src="[[option.img]]" width="24px" />
+                                            </template>
+                                            <span class="flex item-desc" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[showOption(option)]]</span> 
                                             <!-- <span hidden$="[[!option.suffix]]" class="item-desc secondary">  </span> -->
                                         </paper-item>
                                     </template>
@@ -554,10 +600,9 @@
              * @event leadchange
              */
             properties: {
-                model: {
-                    type: Object
+                id: {
+                    type: String
                 },
-                id: String,
                 sections: {
                     type: Object
                 },
@@ -638,7 +683,8 @@
                 '_fieldsChanged(fields.*, sendingData)'
             ],
             listeners: {
-                'fields-changed': 'runFieldsChanged'
+                'fields-changed': 'runFieldsChanged',
+                'field-value-changed': 'runValidateFields'
             },
             ready: function () {
                 this.fields = [];
@@ -690,6 +736,10 @@
             },
             runFieldsChanged: function () {
                 this._fieldsChanged()
+            },
+            runValidateFields: function() {
+                var valid = this._validateFields();
+                this.set('formReady', valid && !this.sendingData);
             },
             _fieldsChanged: function (fields, sendingData) {
                 if (this.formError) {
@@ -783,19 +833,19 @@
                         }
                     });
 
-                    var valid = that._validateFields(that.fields);
+                    var valid = that._validateFields();
                     // console.log("Validate Fields", valid);
                     that.set('form', form);
                     that.set('formReady', valid && !sendingData);
                 });
             },
-            _validateFields: function (fields) {
-                return fields.every(function (el, index) {
+            _validateFields: function () {
+                return this.fields.every(function (el, index) {
                     if (el.type == "ip_textarea") {
                         return el.show && el.required ? this.validatecidr(el.value, index) :
                             true;
                     } else if (el.type == "checkboxes") {
-                        console.log('validation', el.value && el.value.length);
+                        // console.log('validation', el.value && el.value.length);
                         return el.show && el.required ? el.value && el.value.length : true;
                     } else if (el.type == "machines_tags") {
                         var textToArray = el.value.split(',');
@@ -819,6 +869,8 @@
                         return this._validatePatternedField(el);
                     } else if (el.type == "mist_size") {
                         return el.show && el.required ? this._validateMistSize(el) : true;
+                    } else if (el.type == "mist_machine") {
+                        return el.show && el.required ? el.valid : true;
                     } else {
                         if (el.show && el.required && (!el.value || !el.value.length))
                             console.warn(el.type, 'not valid', el.name, el.value);
@@ -874,13 +926,20 @@
                 if (this.workflow) {
                     var inps = YAML.parse(this.form.stackinputs);
                     for (var p in inps) {
-                        if (p.startsWith('mist_location')) {
-                            inps[p] = inps[p] != undefined ? inps[p].toString() : '';
-                        }
-                        if (p.startsWith('mist_size')) {
-                            var sizeField = this.fields.find(function(f){return f.name == p})
-                            if (sizeField && sizeField.type == 'mist_size' && sizeField.value == 'custom') {
-                                inps[p] = sizeField.customValue;
+                        var field = this.fields.find(function(f){return f.name == p});
+                        if (field.excludeFromPayload == true) {
+                            delete inps[p];
+                        } else {
+                            if (p.startsWith('mist_location')) {
+                                inps[p] = inps[p] != undefined ? inps[p].toString() : '';
+                            }
+                            if (p.startsWith('mist_size')) {
+                                if (field && field.type == 'mist_size' && field.value == 'custom') {
+                                    inps[p] = field.customValue;
+                                }
+                            }
+                            if (field.preformatPayloadValue != undefined && field.preformatPayloadValue.apply) {
+                                inps[p] = field.preformatPayloadValue.apply(field.value);
                             }
                         }
                     }
@@ -1062,7 +1121,7 @@
                 });
             },
             _computeResourceTypeForField: function (str) {
-                return str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("id", "").trim();
+                return str ? str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("ids", "").replace("id", "").trim() : '';
             },
             _selectDate: function (e) {
                 var event = Polymer.dom(e),
@@ -1123,11 +1182,11 @@
                     if (c.checked)
                         arr.push(c.dataValue);
                 })
-                console.log('_constructCheckboxValue',arr);
+                // console.log('_constructCheckboxValue',arr);
                 return arr;
             },
             _updateCheckboxesField: function (e) {
-                console.log('_updateCheckboxesField', e, e.model);
+                // console.log('_updateCheckboxesField', e, e.model);
                 var fieldInd = this.fields.findIndex(function (f) {
                     return f.name == e.model.field.name;
                 })
@@ -1140,7 +1199,7 @@
 
                     this.set('fields.' + fieldInd + '.value', arr);
                 }
-                console.log('_updateCheckboxesField', arr);
+                // console.log('_updateCheckboxesField', arr);
             },
             _constructTagsValue: function (tagStringsArray) {
                 var arr = {};
