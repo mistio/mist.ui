@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
@@ -30,7 +31,12 @@
                 color: #fff !important;
                 text-transform: uppercase;
             }
-
+            paper-listbox {
+                background: transparent;
+                display: inline-block;
+                vertical-align: top;
+                max-height: 600px;
+            }
             paper-input.search {
                 padding-left: 16px;
                 padding-right: 16px;
@@ -43,6 +49,16 @@
             .title {
                 text-transform: capitalize;
                 font-weight: bold;
+            }
+
+            *[secondary] {
+                opacity: .54;
+            }
+
+            @media (max-width: 991px) {
+                paper-listbox {
+                    padding: 38px 16px 16px 16px;
+                }
             }
         </style>
 
@@ -105,7 +121,7 @@
 
                 <mist-size-field id$="app-form-[[id]]-[[field.name]]-size" field="{{fieldSize}}"></mist-size-field>
 
-                <paper-dropdown-menu label="[[field.label]] key" horizontal-align="left" disabled="[[field.disabled]]"required="[[field.required]]">
+                <paper-dropdown-menu label="[[field.label]] key" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
                     <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.key}}" class="dropdown-content">
                         <template is="dom-if" if="[[_noOptions(keys)]]" restamp>
                             <paper-item disabled>No keys found</paper-item>
@@ -118,7 +134,7 @@
                     </paper-menu>
                 </paper-dropdown-menu>
 
-                <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]"required="[[field.required]]">
+                <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
                     <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.location}}" class="dropdown-content">
                         <template is="dom-if" if="[[_noOptions(locations)]]" restamp>
                             <paper-item disabled>No locations found</paper-item>
@@ -131,18 +147,23 @@
                     </paper-menu>
                 </paper-dropdown-menu>
 
-                <paper-dropdown-menu label="[[field.label]] network" horizontal-align="left" disabled="[[field.disabled]]"required="[[field.required]]">
-                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.network}}" class="dropdown-content">
-                        <template is="dom-if" if="[[_noOptions(networks)]]" restamp>
-                            <paper-item disabled>No networks found</paper-item>
-                        </template>
-                        <template id="networksDomRepeat" is="dom-repeat" items="[[networks]]" as="option">
-                            <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
-                                <span class="flex">[[_showOption(option)]]</span>
-                            </paper-item>
-                        </template>
-                    </paper-menu>
-                </paper-dropdown-menu>
+                <paper-listbox>
+                    <div>[[field.label]] network</div>
+                    <template is="dom-if" if="[[_noOptions(networks)]]" restamp>
+                        <p secondary>No networks found</p>
+                    </template>
+                    <template id="networksDomRepeat" is="dom-repeat" items="[[networks]]" as="option">
+                        <paper-item>
+                            <paper-checkbox name="network" on-change="_updateCheckboxesField" id$="[[option.id]]">
+                                <template is="dom-if" if="[[option.img]]">
+                                    <img class="item-img" src="[[option.img]]" width="24px"/>
+                                </template>
+                                <span class$="item-desc noimg-[[!option.img]]" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[_showOption(option)]]</span>
+                            </paper-checkbox>
+                        </paper-item>
+                    </template>
+                </paper-listbox>
+
             </div>
         </div>
 
@@ -206,7 +227,7 @@
                 '_fieldKeysChanged(field, field.keys.*)',
                 '_selectedCloudChanged(field.cloud)',
                 '_fieldSizeChanged(fieldSize.value.*)',
-                '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.image, field.size, field.location, field.network, field.key)'
+                '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.image, field.size, field.location, field.networks, field.key)'
             ],
 
             ready: function() {
@@ -260,7 +281,7 @@
                 }
             },
 
-            _updateFieldValue: function(useExistingMachine, cloud, machine, image, size, location, network, key) {
+            _updateFieldValue: function(useExistingMachine, cloud, machine, image, size, location, networks, key) {
                 if (this.useExistingMachine) {
                     this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
                 } else {
@@ -269,7 +290,7 @@
                                             image_id: this.field.image,
                                             size_id: this.field.size_id,
                                             location_id: this.field.location,
-                                            network_id: this.field.network})
+                                            networks: this.field.networks})
                 }
                 this.set('field.valid', this.validateValue(this.field.value))
                 this.fire('field-value-changed');
@@ -337,7 +358,17 @@
                     arr.push(obj[p]);
                 }
                 return arr;
-            }
+            },
+
+            _updateCheckboxesField: function (e) {
+                var fieldNetworks = this.get('field.networks') || [];
+                if (e.target.checked && fieldNetworks.indexOf(e.model.option.id) == -1){
+                    fieldNetworks.push(e.model.option.id);
+                } else if (!e.target.checked && fieldNetworks.indexOf(e.model.option.id) > -1){
+                    fieldNetworks.splice(fieldNetworks.indexOf(e.model.option.id),1)
+                }
+                this.set('field.networks', fieldNetworks);
+            },
 
         });
     </script>
