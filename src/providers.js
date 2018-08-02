@@ -472,7 +472,7 @@ PROVIDERS.push({
 PROVIDERS.push({
     title: 'Alibaba Cloud',
     val: 'aliyun_ecs',
-    className: 'provider-aliyun',
+    className: 'provider-aliyunecs',
     options: [{
         name: "region",
         label: "Region *",
@@ -484,6 +484,9 @@ PROVIDERS.push({
         options: [{
             'title': 'China East 1 (Hangzhou)',
             'val': 'cn-hangzhou'
+        }, {
+            'title': 'EU Central 1 (Frankfurt)',
+            'val': 'eu-central-1'
         }]
     }, {
         name: "title",
