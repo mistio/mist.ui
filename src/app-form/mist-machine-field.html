@@ -95,7 +95,7 @@
         <!-- if useExistingMachine -->
         <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" 
             required="[[field.required]]" hidden$="[[!useExistingMachine]]">
-            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" class="dropdown-content">
+            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-values="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
                 <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
                     <paper-item disabled>No machines found</paper-item>
                 </template>
@@ -209,6 +209,10 @@
                     type: Array,
                     value: []
                 },
+                multi: {
+                    type: Boolean,
+                    value: false
+                },
                 useExistingMachine: {
                     type: Boolean,
                     value: false
@@ -241,7 +245,7 @@
                 '_fieldKeysChanged(field, field.keys.*)',
                 '_selectedCloudChanged(field.cloud)',
                 '_fieldSizeChanged(fieldSize.value.*)',
-                '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.image, field.size, field.location, field.networks, field.key)'
+                '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.machinesList, field.image, field.size, field.location, field.networks, field.key)'
             ],
 
             ready: function() {
@@ -253,6 +257,7 @@
 
             _fieldChanged: function(field) {
                 this.set('fieldSize.label', this.field.label + ' size');
+                this.set('multi', this.field.multi || false);
             },
 
             _fieldCloudsChanged: function(clouds) {
@@ -295,10 +300,14 @@
                 }
             },
 
-            _updateFieldValue: function(useExistingMachine, cloud, machine, image, size, location, networks, key) {
+            _updateFieldValue: function(useExistingMachine, cloud, machine, machineList, image, size, location, networks, key) {
                 // console.log(useExistingMachine, cloud, machine, image, size, location, networks, key);
                 if (this.useExistingMachine) {
-                    this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
+                    if (this.multi) {
+                        this.set('field.value', this.field.machinesList.map(function(f){return {cloud_id: this.field.cloud, machine_id: f} }.bind(this)));
+                    } else {
+                        this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
+                    }
                 } else {
                     this.set('field.value', {cloud_id: this.field.cloud, 
                                             key_id: this.field.key,
