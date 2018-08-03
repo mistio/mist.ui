@@ -63,6 +63,10 @@
                 opacity: .54;
             }
 
+            .selected {
+                margin-top: 24px;
+            }
+
             @media (max-width: 991px) {
                 paper-listbox {
                     padding: 38px 16px 16px 16px;
@@ -88,14 +92,19 @@
         <p>
             <paper-toggle-button checked="{{useExistingMachine}}" hidden$="[[!field.cloud.length]]">
                 <span hidden$="{{useExistingMachine}}"> Create [[field.label]] machine</span>
-                <span hidden$="{{!useExistingMachine}}"> Use existing machine as [[field.label]]</span>
+                <span hidden$="{{!useExistingMachine}}"> Use existing machine<span hidden$="!multi">s</span> as [[field.label]]</span>
             </paper-toggle-button>
         </p>
 
         <!-- if useExistingMachine -->
+        <div hidden$="[[!useExistingMachine]]">
+            <span class="selected" hidden$="[[!multi]]">
+                <span hidden$="[[!field.machinesList.length]]">Selected:</span> <strong>[[_computeMachinesNames(field.machinesList,machines)]]</strong>
+            </span>
+        </div>
         <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" 
             required="[[field.required]]" hidden$="[[!useExistingMachine]]">
-            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-values="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
+            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-items="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
                 <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
                     <paper-item disabled>No machines found</paper-item>
                 </template>
@@ -304,7 +313,7 @@
                 // console.log(useExistingMachine, cloud, machine, image, size, location, networks, key);
                 if (this.useExistingMachine) {
                     if (this.multi) {
-                        this.set('field.value', this.field.machinesList.map(function(f){return {cloud_id: this.field.cloud, machine_id: f} }.bind(this)));
+                        this.set('field.value', this.field.machinesList.map(function(f){return {cloud_id: this.field.cloud, machine_id: f.value} }.bind(this)));
                     } else {
                         this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
                     }
@@ -321,18 +330,29 @@
             },
 
             validateValue: function(){
-                if (!this.field.value.cloud_id) {
-                    // console.log('cloud')
-                    return false;
-                }
                 if (this.useExistingMachine) {
-                    if (!this.field.value.machine_id){
-                        // console.log('machine')
-                        return false;
+                    if (this.multi) {
+                        if (!this.field.value.length){
+                            console.log('machine')
+                            return false;
+                        }
+                    } else {
+                        if (!this.field.value.cloud_id) {
+                            console.log('cloud')
+                            return false;
+                        }
+                        if (!this.field.value.machine_id){
+                            console.log('machine')
+                            return false;
+                        }
                     }
                 } else if (!this.useExistingMachine) {
+                    if (!this.field.value.cloud_id) {
+                            console.log('cloud')
+                            return false;
+                        }
                     if (!this.field.value.image_id){
-                        // console.log('machine');
+                        console.log('machine');
                         return false;
                     }
                     if (!this.field.value.key_id){
@@ -388,6 +408,16 @@
                 }
                 this.set('field.networks', fieldNetworks);
             },
+
+            _computeMachinesNames: function(machinesList, machines) {
+                console.log(!machinesList ? 'select' :  machinesList.map(function(m){return this._getName(m.value, machines);}.bind(this)));
+                return !machinesList ? 'select' :  machinesList.map(function(m){return this._getName(m.value, machines);}.bind(this))
+            },
+
+            _getName: function(m, machines) {
+                var machine = this.machines && this.machines.find(function(item){ return item.machine_id == m});
+                return machine ? machine.name : 'not found';
+            }
 
         });
     </script>
