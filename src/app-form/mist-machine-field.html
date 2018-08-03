@@ -78,10 +78,10 @@
         <paper-dropdown-menu label="[[field.label]] cloud" horizontal-align="left" disabled="[[field.disabled]]" 
             required="[[field.required]]">
             <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.cloud}}" class="dropdown-content">
-                <template is="dom-if" if="[[_noOptions(_objectToArray(field.clouds))]]" restamp>
+                <template is="dom-if" if="[[_noOptions(clouds)]]" restamp>
                     <paper-item disabled>No clouds found</paper-item>
                 </template>
-                <template id="cloudsDomRepeat" is="dom-repeat" items="[[_objectToArray(field.clouds)]]" as="option">
+                <template id="cloudsDomRepeat" is="dom-repeat" items="[[clouds]]" as="option">
                     <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                         <span class="flex">[[_showOption(option)]]</span>
                     </paper-item>
@@ -181,6 +181,10 @@
                     </template>
                 </paper-listbox>
 
+                <div hidden$="[[!multi]]">
+                    <paper-input value="{{field.quantity}}" label="[[field.label]]s quantity" type="number"></paper-input>
+                </div>
+
             </div>
         </div>
 
@@ -193,6 +197,10 @@
                 field: {
                     type: Object,
                     notify: true
+                },
+                clouds: {
+                    type: Array,
+                    value: []
                 },
                 machines: {
                     type: Array,
@@ -250,11 +258,11 @@
             },
             observers: [
                 '_fieldChanged(field)',
-                '_fieldCloudsChanged(field, field.clouds.*)',
-                '_fieldKeysChanged(field, field.keys.*)',
+                '_fieldCloudsChanged(field, field.clouds, field.clouds.*)',
+                '_fieldKeysChanged(field, field.keys, field.keys.*)',
                 '_selectedCloudChanged(field.cloud)',
                 '_fieldSizeChanged(fieldSize.value.*)',
-                '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.machinesList, field.image, field.size, field.location, field.networks, field.key)'
+                '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.machinesList, field.image, field.size, field.location, field.networks, field.key, field.quantity)'
             ],
 
             ready: function() {
@@ -270,6 +278,7 @@
             },
 
             _fieldCloudsChanged: function(clouds) {
+                this.set('clouds', this._objectToArray(this.field.clouds));
                 this.$.cloudsDomRepeat.render();
             },
 
@@ -309,7 +318,7 @@
                 }
             },
 
-            _updateFieldValue: function(useExistingMachine, cloud, machine, machineList, image, size, location, networks, key) {
+            _updateFieldValue: function(useExistingMachine, cloud, machine, machineList, image, size, location, networks, key, quantity) {
                 // console.log(useExistingMachine, cloud, machine, image, size, location, networks, key);
                 if (this.useExistingMachine) {
                     if (this.multi) {
@@ -318,12 +327,22 @@
                         this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
                     }
                 } else {
-                    this.set('field.value', {cloud_id: this.field.cloud, 
+                    if (this.multi) {
+                        this.set('field.value', {cloud_id: this.field.cloud,
+                                            key_id: this.field.key,
+                                            image_id: this.field.image,
+                                            size_id: this.field.size_id,
+                                            location_id: this.field.location,
+                                            networks: this.field.networks,
+                                            quantity: parseInt(this.field.quantity) || 1});
+                    } else {
+                        this.set('field.value', {cloud_id: this.field.cloud,
                                             key_id: this.field.key,
                                             image_id: this.field.image,
                                             size_id: this.field.size_id,
                                             location_id: this.field.location,
                                             networks: this.field.networks});
+                    }
                 }
                 this.set('field.valid', this.validateValue());
                 this.fire('field-value-changed');
@@ -333,26 +352,26 @@
                 if (this.useExistingMachine) {
                     if (this.multi) {
                         if (!this.field.value.length){
-                            console.log('machine')
+                            // console.log('machine')
                             return false;
                         }
                     } else {
                         if (!this.field.value.cloud_id) {
-                            console.log('cloud')
+                            // console.log('cloud')
                             return false;
                         }
                         if (!this.field.value.machine_id){
-                            console.log('machine')
+                            // console.log('machine')
                             return false;
                         }
                     }
                 } else if (!this.useExistingMachine) {
                     if (!this.field.value.cloud_id) {
-                            console.log('cloud')
+                            // console.log('cloud')
                             return false;
                         }
                     if (!this.field.value.image_id){
-                        console.log('machine');
+                        // console.log('machine');
                         return false;
                     }
                     if (!this.field.value.key_id){
@@ -410,7 +429,6 @@
             },
 
             _computeMachinesNames: function(machinesList, machines) {
-                console.log(!machinesList ? 'select' :  machinesList.map(function(m){return this._getName(m.value, machines);}.bind(this)));
                 return !machinesList ? 'select' :  machinesList.map(function(m){return this._getName(m.value, machines);}.bind(this))
             },
 
