@@ -186,22 +186,28 @@
                     notify: true
                 },
                 machines: {
-                    type: Array
+                    type: Array,
+                    value: []
                 },
                 images: {
-                    type: Array
+                    type: Array,
+                    value: []
                 },
                 sizes: {
-                    type: Array
+                    type: Array,
+                    value: []
                 },
                 locations: {
-                    type: Array
+                    type: Array,
+                    value: []
                 },
                 keys: {
-                    type: Array
+                    type: Array,
+                    value: []
                 },
                 networks: {
-                    type: Array
+                    type: Array,
+                    value: []
                 },
                 useExistingMachine: {
                     type: Boolean,
@@ -290,6 +296,7 @@
             },
 
             _updateFieldValue: function(useExistingMachine, cloud, machine, image, size, location, networks, key) {
+                // console.log(useExistingMachine, cloud, machine, image, size, location, networks, key);
                 if (this.useExistingMachine) {
                     this.set('field.value', {cloud_id: this.field.cloud, machine_id: this.field.machine})
                 } else {
@@ -298,46 +305,41 @@
                                             image_id: this.field.image,
                                             size_id: this.field.size_id,
                                             location_id: this.field.location,
-                                            networks: this.field.networks})
+                                            networks: this.field.networks});
                 }
-                this.set('field.valid', this.validateValue(this.field.value))
+                this.set('field.valid', this.validateValue());
                 this.fire('field-value-changed');
             },
 
-            validateValue: function(value){
+            validateValue: function(){
+                if (!this.field.value.cloud_id) {
+                    // console.log('cloud')
+                    return false;
+                }
                 if (this.useExistingMachine) {
-                    if (!value.cloud_id) {
-                        // console.log('cloud')
-                        return false;
-                    }
-                    if (!value.machine_id){
+                    if (!this.field.value.machine_id){
                         // console.log('machine')
                         return false;
                     }
-                    return true;
                 } else if (!this.useExistingMachine) {
-                    if (!value.cloud_id){
-                        // console.log('cloud');
-                        return false;
-                    }
-                    if (!value.image_id){
+                    if (!this.field.value.image_id){
                         // console.log('machine');
                         return false;
                     }
-                    if (!value.key_id){
+                    if (!this.field.value.key_id){
                         // console.log('key');
                         return false;
                     }
-                    if (!value.size_id){
+                    if (!this.field.value.size_id){
                         // console.log('size', value.size_id);
                         return false;
                     }
-                    if (!value.location_id){
+                    if (!this.field.value.location_id){
                         // console.log('location');
                         return false;
                     }
-                    return true;
                 }
+                return true;
             },
 
             _noOptions: function (options) {
