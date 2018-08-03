@@ -204,6 +204,33 @@ PROVIDERS.push({
     }]
 });
 
+// CLEARVM
+PROVIDERS.push({
+    title: 'ClearVM',
+    val: 'clearvm',
+    className: 'provider-clearvm',
+    options: [{
+        name: "url",
+        label: "Url *",
+        type: "text",
+        value: "ClearVM",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter url"
+    }, {
+        name: "api_key",
+        label: "API key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API key",
+        helptext: ""
+    }]
+});
+
 // DIGITALOCEAN
 PROVIDERS.push({
     title: 'Digital Ocean',
