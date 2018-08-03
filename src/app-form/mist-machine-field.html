@@ -334,7 +334,7 @@
                                             size_id: this.field.size_id,
                                             location_id: this.field.location,
                                             networks: this.field.networks,
-                                            quantity: parseInt(this.field.quantity) || 1}]);
+                                            quantity: parseInt(this.field.quantity) && parseInt(this.field.quantity) > 0 ? parseInt(this.field.quantity) : 1}]);
                     } else {
                         this.set('field.value', {cloud_id: this.field.cloud,
                                             key_id: this.field.key,
@@ -366,25 +366,52 @@
                         }
                     }
                 } else if (!this.useExistingMachine) {
-                    if (!this.field.value.cloud_id) {
-                            // console.log('cloud')
+                    if (this.multi) {
+                        if (!this.field.value[0].cloud_id) {
+                                // console.log('cloud')
+                                return false;
+                            }
+                        if (!this.field.value[0].image_id){
+                            // console.log('machine');
                             return false;
                         }
-                    if (!this.field.value.image_id){
-                        // console.log('machine');
-                        return false;
-                    }
-                    if (!this.field.value.key_id){
-                        // console.log('key');
-                        return false;
-                    }
-                    if (!this.field.value.size_id){
-                        // console.log('size', value.size_id);
-                        return false;
-                    }
-                    if (!this.field.value.location_id){
-                        // console.log('location');
-                        return false;
+                        if (!this.field.value[0].key_id){
+                            // console.log('key');
+                            return false;
+                        }
+                        if (!this.field.value[0].size_id){
+                            // console.log('size', value.size_id);
+                            return false;
+                        }
+                        if (!this.field.value[0].location_id){
+                            // console.log('location');
+                            return false;
+                        }
+                        if (!this.field.value[0].quantity < 1){
+                            // console.log('location');
+                            return false;
+                        }
+                    } else {
+                        if (!this.field.value.cloud_id) {
+                                // console.log('cloud')
+                                return false;
+                            }
+                        if (!this.field.value.image_id){
+                            // console.log('machine');
+                            return false;
+                        }
+                        if (!this.field.value.key_id){
+                            // console.log('key');
+                            return false;
+                        }
+                        if (!this.field.value.size_id){
+                            // console.log('size', value.size_id);
+                            return false;
+                        }
+                        if (!this.field.value.location_id){
+                            // console.log('location');
+                            return false;
+                        }
                     }
                 }
                 return true;
