@@ -223,6 +223,11 @@
                 margin: 8px;
             }
 
+            iron-icon.close {
+                float: right;
+                padding: 5px;
+            }
+
         </style>
 
         <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
@@ -239,6 +244,7 @@
         <div class="logs" hidden$="[[!performingAction]]">
             <paper-spinner active></paper-spinner>
             <p id="actionLogs"></p>
+            <iron-icon class="close" icon="close" on-tap="hideLogs"></iron-icon>
         </div>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
@@ -343,6 +349,8 @@
             setJobId: function (e) {
                 if (e.detail.jobId)
                     this.set('jobId', e.detail.jobId);
+                if (e.detail.job_id)
+                    this.set('jobId', e.detail.job_id);
             },
 
             _selectedItemsChanged: function (length) {
@@ -395,12 +403,15 @@
                 }
             },
             startPolling: function (jobid) {
+                // console.log('logs -- startpolling', jobid);
+
                 this.intervalID = setInterval(function () {
                     this.$.getJobLog.generateRequest();
                 }.bind(this), 1000);
-                console.log('startpolling');
             },
             stopPolling: function (logItems) {
+                // console.log('logs -- stopPolling', logItems, this.logItem.action);
+
                 if (this.logItem && this.logItem.action.endsWith('finished')) {
                     //let log finished show
                     if (!this.logItem.error)
@@ -410,6 +421,8 @@
                 }
             },
             resetPolling: function (error) {
+                // console.log('logs -- resetPolling', error);
+
                 if (!error) {
                     this.set('logItem', '');
                 }
@@ -418,7 +431,8 @@
                 this.set('intervalID', false);
             },
             handleGetJobLog: function (e) {
-                console.log('handleGetJobLog', e);
+                // console.log('logs -- handleGetJobLog', e.detail);
+
                 //save last log in logItem
                 this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
             },
@@ -427,19 +441,28 @@
                     return action.replace(/_/g, " ");
             },
             clearLog: function (e) {
+                // console.log('logs -- clearLog',this.logItem);
+
                 this.resetPolling();
                 this.set('logItem', '');
             },
             updateActionLogs: function (e) {
+                // console.log('logs -- updateActionLogs',e.detail);
+
                 this.set('performingAction', true);
                 this.$.actionLogs.textContent = e.detail.log;
             },
             stopActionLogs: function (e) {
+                // console.log('logs -- stopActionLogs',e.detail);
+
                 var success = e.detail.success;
                 this.$.actionLogs.textContent = '';
                 this.set('performingAction', false);
                 if (success)
                     this.clearListSelection();
+            },
+            hideLogs: function(e) {
+                this.set('performingAction', false);
             },
             clearListSelection: function () {
                 this.set('selectedItems', []);
