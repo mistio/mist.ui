@@ -213,8 +213,8 @@ PROVIDERS.push({
         name: "title",
         label: "Title *",
         type: "text",
-        value: "Azure",
-        defaultValue: "Azure",
+        value: "ClearVM",
+        defaultValue: "ClearVM",
         show: true,
         required: true,
         errorMessage: "Please enter title"
