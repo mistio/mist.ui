@@ -151,7 +151,7 @@
                     </paper-menu>
                 </paper-dropdown-menu>
 
-                <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
+                <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[locationNotRequired]]">
                     <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.location}}" class="dropdown-content">
                         <template is="dom-if" if="[[_noOptions(locations)]]" restamp>
                             <paper-item disabled>No locations found</paper-item>
@@ -164,7 +164,7 @@
                     </paper-menu>
                 </paper-dropdown-menu>
 
-                <paper-listbox>
+                <paper-listbox hidden$="[[networkNotRequired]]">
                     <div>[[field.label]] network</div>
                     <template is="dom-if" if="[[_noOptions(networks)]]" restamp>
                         <p secondary>No networks found</p>
@@ -202,6 +202,10 @@
                     type: Array,
                     value: []
                 },
+                cloud: {
+                    type: Object,
+                    value: {}
+                },
                 machines: {
                     type: Array,
                     value: []
@@ -231,6 +235,14 @@
                     value: false
                 },
                 useExistingMachine: {
+                    type: Boolean,
+                    value: false
+                },
+                locationNotRequired: {
+                    type: Boolean,
+                    value: false
+                },
+                networkNotRequired: {
                     type: Boolean,
                     value: false
                 },
@@ -294,12 +306,18 @@
             _selectedCloudChanged: function(cloud) {
                 if (this.field.cloud) {
                     var selectedCloud = this.field.clouds[this.field.cloud];
+                    this.set('cloud', selectedCloud);
                     this.set('machines', this._objectToArray(selectedCloud.machines));
                     this.set('images', this._objectToArray(selectedCloud.images));
                     this.set('sizes', this._objectToArray(selectedCloud.sizes));
                     this.set('locations', this._objectToArray(selectedCloud.locations));
+                    if (!this.cloud.locationsArray.length) {
+                        this.set('locationNotRequired',true)
+                    }
                     this.set('networks', this._objectToArray(selectedCloud.networks));
-
+                    if (!this.cloud.networksArray.length) {
+                        this.set('networkNotRequired',true)
+                    }
                     this.$.machinesDomRepeat.render();
                     this.$.locationsDomRepeat.render();
                     this.$.networksDomRepeat.render();
@@ -383,7 +401,7 @@
                             // console.log('size', value.size_id);
                             return false;
                         }
-                        if (!this.field.value[0].location_id){
+                        if (!this.locationNotRequired && !this.field.value[0].location_id){
                             // console.log('location');
                             return false;
                         }
@@ -408,7 +426,7 @@
                             // console.log('size', value.size_id);
                             return false;
                         }
-                        if (!this.field.value.location_id){
+                        if (!this.locationNotRequired && !this.field.value.location_id){
                             // console.log('location');
                             return false;
                         }
