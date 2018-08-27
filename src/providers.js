@@ -210,6 +210,15 @@ PROVIDERS.push({
     val: 'clearvm',
     className: 'provider-clearvm',
     options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Azure",
+        defaultValue: "Azure",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
         name: "url",
         label: "Url *",
         type: "text",
