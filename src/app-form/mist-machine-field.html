@@ -320,9 +320,6 @@
                     this.set('machines', this._objectToArray(selectedCloud.machines));
                     this.set('images', this._objectToArray(selectedCloud.images));
                     this.set('sizes', this._objectToArray(selectedCloud.sizes));
-                    if (!this.cloud.sizesArray || !this.cloud.sizesArray.length) {
-                        this.set('sizeNotRequired',true)
-                    }
                     this.set('locations', this._objectToArray(selectedCloud.locations));
                     if (!this.cloud.locationsArray || !this.cloud.locationsArray.length) {
                         this.set('locationNotRequired',true)
@@ -342,12 +339,14 @@
                             fields = MACHINE_CREATE_FIELDS.find(function(p) {return p.provider == provider}).fields;
                             this.set('fieldSize.custom', true)
                             this.set('fieldSize.value', "custom")
-                            this.set('fieldSize.customSizeFields',fields.find(function(f){return f.type == "mist_size"}).customSizeFields)
-                    } else if (["docker"].indexOf(selectedCloud.provider) > -1) {
+                            this.set('fieldSize.customSizeFields',fields.find(function(f){return f.type == "mist_size"}).customSizeFields);
+                    } else {
+                        this.set('fieldSize.custom', false);
+                    }
+                    // do not require size if custom are not allowed and there are no size options
+                    if (!this.fieldSize.custom && (!this.fieldSize.options || !this.fieldSize.options.length)) {
                         this.set('sizeNotRequired',true);
                         this.set('hideSize', true);
-                    } else {
-                        this.set('fieldSize.custom', false)
                     }
                 }
             },
