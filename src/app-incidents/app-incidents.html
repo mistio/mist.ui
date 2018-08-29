@@ -23,6 +23,9 @@
                 transform: translate(0, 0);
                 opacity: 1;
                 height: auto;
+            }
+
+            :host[has-incidents] {
                 padding-bottom: 32px;
             }
 
@@ -134,10 +137,6 @@
                 opacity: 0.32;
                 cursor: pointer;
             }
-
-            paper-material {
-                margin-bottom: 32px;
-            }
         </style>
 
         <template is="dom-if" if="[[incidents.length]]" restamp>
@@ -195,6 +194,12 @@
                 type: Array,
                 computed: '_computeOpenIncidents(model.incidentsArray, model.incidentsArray.*, model.incidentsArray.length,  model.incidents,  model.incidents.*)'
             },
+            hasIncidents: {
+                type: Boolean,
+                computed: 'computeHasIncidents(incidents)',
+                value: false,
+                reflectToAttribute: true
+            },
             resolvedCount: {
                 type: Number,
                 computed: '_computeResolvedIncidentCount(model.incidentsArray.*)'
@@ -209,6 +214,9 @@
             setTimeout(function () {
                 this.classList.add('active');
             }.bind(this), (index + 1) * 50);
+        },
+        computeHasIncidents: function(incidents) {
+            return this.incidents && this.incidents.length ? true : false;
         },
         _computeOpenIncidents: function (incidentsArray, incidentsSplices, incidentsLength, incidentsMap, incidentsMapSplices) {
             var all = Object.values(this.model.incidents);
