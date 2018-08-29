@@ -136,7 +136,7 @@
                     </div>
                 </paper-dropdown-menu>
 
-                <mist-size-field id$="app-form-[[id]]-[[field.name]]-size" field="{{fieldSize}}"></mist-size-field>
+                <mist-size-field id$="app-form-[[id]]-[[field.name]]-size" field="{{fieldSize}}" hidden$="[[hideSize]]"></mist-size-field>
 
                 <paper-dropdown-menu label="[[field.label]] key" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
                     <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.key}}" class="dropdown-content">
@@ -164,7 +164,7 @@
                     </paper-menu>
                 </paper-dropdown-menu>
 
-                <paper-listbox hidden$="[[networkNotRequired]]">
+                <paper-listbox hidden$="[[hideNetworks]]">
                     <div>[[field.label]] network</div>
                     <template is="dom-if" if="[[_noOptions(networks)]]" restamp>
                         <p secondary>No networks found</p>
@@ -238,11 +238,19 @@
                     type: Boolean,
                     value: false
                 },
+                hideSize: {
+                    type: Boolean,
+                    value: false
+                },
+                sizeNotRequired: {
+                    type: Boolean,
+                    value: false
+                },
                 locationNotRequired: {
                     type: Boolean,
                     value: false
                 },
-                networkNotRequired: {
+                hideNetworks: {
                     type: Boolean,
                     value: false
                 },
@@ -254,6 +262,7 @@
                     type: Object,
                     value: function(){
                         return {
+                            name: 'fieldSize',
                             label: 'size',
                             type: 'mist_size',
                             options: [],
@@ -273,7 +282,7 @@
                 '_fieldCloudsChanged(field, field.clouds, field.clouds.*)',
                 '_fieldKeysChanged(field, field.keys, field.keys.*)',
                 '_selectedCloudChanged(field.cloud)',
-                '_fieldSizeChanged(fieldSize.value.*)',
+                '_fieldSizeChanged(fieldSize.*)',
                 '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.machinesList, field.image, field.size, field.location, field.networks, field.key, field.quantity)'
             ],
 
@@ -285,6 +294,7 @@
             },
 
             _fieldChanged: function(field) {
+                this.set('fieldSize.name', this.field.name + 'Size');
                 this.set('fieldSize.label', this.field.label + ' size');
                 this.set('multi', this.field.multi || false);
             },
@@ -295,7 +305,7 @@
             },
 
             _fieldSizeChanged: function(fieldSizeValue) {
-                this.set('field.size_id', this.fieldSize.value == 'custom' ? this.fieldSize.customValue : this.fieldSize.value);
+                this.set('field.size', this.fieldSize.value == "custom" ? this.fieldSize.customValue : this.fieldSize.value);
             },
 
             _fieldKeysChanged: function(keys) {
@@ -311,27 +321,32 @@
                     this.set('images', this._objectToArray(selectedCloud.images));
                     this.set('sizes', this._objectToArray(selectedCloud.sizes));
                     this.set('locations', this._objectToArray(selectedCloud.locations));
-                    if (!this.cloud.locationsArray.length) {
+                    if (!this.cloud.locationsArray || !this.cloud.locationsArray.length) {
                         this.set('locationNotRequired',true)
                     }
                     this.set('networks', this._objectToArray(selectedCloud.networks));
-                    if (!this.cloud.networksArray.length) {
-                        this.set('networkNotRequired',true)
+                    if (!this.cloud.networksArray || !this.cloud.networksArray.length) {
+                        this.set('hideNetworks',true)
                     }
                     this.$.machinesDomRepeat.render();
                     this.$.locationsDomRepeat.render();
                     this.$.networksDomRepeat.render();
 
-                    // update field consumed by mist-list
+                    // update field consumed by mist-size-field
                     this.set('fieldSize.options', selectedCloud.sizesArray ? selectedCloud.sizesArray : [])
                     if (["onapp", "vsphere", "libvirt"].indexOf(selectedCloud.provider) > -1) {
                         var provider = selectedCloud.provider,
                             fields = MACHINE_CREATE_FIELDS.find(function(p) {return p.provider == provider}).fields;
                             this.set('fieldSize.custom', true)
                             this.set('fieldSize.value', "custom")
-                            this.set('fieldSize.customSizeFields',fields.find(function(f){return f.type == "mist_size"}).customSizeFields)
+                            this.set('fieldSize.customSizeFields',fields.find(function(f){return f.type == "mist_size"}).customSizeFields);
                     } else {
-                        this.set('fieldSize.custom', false)
+                        this.set('fieldSize.custom', false);
+                    }
+                    // do not require size if custom are not allowed and there are no size options
+                    if (!this.fieldSize.custom && (!this.fieldSize.options || !this.fieldSize.options.length)) {
+                        this.set('sizeNotRequired',true);
+                        this.set('hideSize', true);
                     }
                 }
             },
@@ -349,7 +364,7 @@
                         this.set('field.value', [{cloud_id: this.field.cloud,
                                             key_id: this.field.key,
                                             image_id: this.field.image,
-                                            size_id: this.field.size_id,
+                                            size_id: this.field.size,
                                             location_id: this.field.location,
                                             networks: this.field.networks,
                                             quantity: parseInt(this.field.quantity) && parseInt(this.field.quantity) > 0 ? parseInt(this.field.quantity) : 1}]);
@@ -357,7 +372,7 @@
                         this.set('field.value', {cloud_id: this.field.cloud,
                                             key_id: this.field.key,
                                             image_id: this.field.image,
-                                            size_id: this.field.size_id,
+                                            size_id: this.field.size,
                                             location_id: this.field.location,
                                             networks: this.field.networks});
                     }
@@ -397,7 +412,7 @@
                             // console.log('key');
                             return false;
                         }
-                        if (!this.field.value[0].size_id){
+                        if (!this.sizeNotRequired && !this.field.value[0].size_id){
                             // console.log('size', value.size_id);
                             return false;
                         }
@@ -422,7 +437,7 @@
                             // console.log('key');
                             return false;
                         }
-                        if (!this.field.value.size_id){
+                        if (!this.sizeNotRequired && !this.field.value.size_id){
                             // console.log('size', value.size_id);
                             return false;
                         }
