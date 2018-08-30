@@ -87,7 +87,7 @@
             }
 
             #newrule {
-                padding-left: 48px;
+                padding-left: 8px;
                 padding-right: 8px;
             }
 
@@ -98,7 +98,7 @@
             span.if,
             span.then,
             span.on {
-                margin-left: -48px;
+                margin-left: -8px;
             }
 
             paper-dropdown-menu::content #dropdown {
@@ -176,19 +176,8 @@
 
         <div class="rule-edit">
             <span class="rule-id">[[_computeId(rule.title)]]</span>
-            <div id="norule" class="rule" hidden$="[[!isNoData]]">
-                <span class="keyword"> no data alerts </span>
-                <span class="keyword evaluate">evaluate every</span>
-                <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
-                <paper-dropdown-menu class="dropdown-block frequencyPeriod" on-value-changed="_validateRule">
-                    <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
-                        <paper-item value="minutes">minutes</paper-item>
-                        <paper-item value="hours">hours</paper-item>
-                    </paper-menu>
-                </paper-dropdown-menu>
-            </div>
-            <div id="newrule" class="rule" hidden$="[[isNoData]]">
-                <div hidden$=[[resource]]>
+            <div id="newrule" class="rule">
+                <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
                     <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on">
                         <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
@@ -210,59 +199,86 @@
                         <paper-input class="tags" value="{{tags}}"></paper-input>
                     </div>
                 </div>
-                <span class="keyword if">if</span>
-                <template is="dom-repeat" items="[[rule.queries]]" as="query">
-                    <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator"
-                        on-selected-item-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
-                            <template is="dom-repeat" items="[[availableMetrics]]" as="option">
-                                <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-                            </template>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-                    <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold"
-                        on-selected-item-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
-                            <paper-item value="gt"> &gt; </paper-item>
-                            <paper-item value="lt"> &lt; </paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-                    <span>
-                        <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
-                            type="number" on-value-changed="_validateRule"></paper-input>
-                        [[_computeUnits(newMetric, availableMetrics)]]
-                    </span>
-                    <span hidden$=[[!query.threshold]]>
+                <span hidden$="[[!isNoData]]">
+                    <span class="keyword if">if</span>
+                    <span class="keyword"> no monitoring data </span>
+                    <span hidden$=[[!rule.window]]>
                         <span class="keyword">for</span>
-                        <paper-dropdown-menu class="dropdown-block aggregation" on-selected-item-changed="_validateRule">
-                            <paper-menu slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}"
-                                class="dropdown-content aggregation">
-                                <paper-item value=""> any </paper-item>
-                                <paper-item value="all"> every </paper-item>
-                                <paper-item value="avg"> average </paper-item>
+                        <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                        <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                                <paper-item value="minutes">minutes</paper-item>
+                                <paper-item value="hours">hours</paper-item>
                             </paper-menu>
                         </paper-dropdown-menu>
-                        <span class="keyword">value</span>
-                        <span hidden$=[[!rule.window]]>
-                            <span class="keyword">within</span>
-                            <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
-                            <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                                <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
-                                    <paper-item value="minutes">minutes</paper-item>
-                                    <paper-item value="hours">hours</paper-item>
+                    </span>
+                </span>
+                <span hidden$="[[isNoData]]">
+                    <span class="keyword if">if</span>
+                    <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                        <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator"
+                            on-selected-item-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
+                                <template is="dom-repeat" items="[[availableMetrics]]" as="option">
+                                    <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                                </template>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold"
+                            on-selected-item-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
+                                <paper-item value="gt"> &gt; </paper-item>
+                                <paper-item value="lt"> &lt; </paper-item>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                        <span>
+                            <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
+                                type="number" on-value-changed="_validateRule"></paper-input>
+                            [[_computeUnits(newMetric, availableMetrics)]]
+                        </span>
+                        <span hidden$=[[!query.threshold]]>
+                            <span class="keyword">for</span>
+                            <paper-dropdown-menu class="dropdown-block aggregation" on-selected-item-changed="_validateRule">
+                                <paper-menu slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}"
+                                    class="dropdown-content aggregation">
+                                    <paper-item value=""> any </paper-item>
+                                    <paper-item value="all"> every </paper-item>
+                                    <paper-item value="avg"> average </paper-item>
                                 </paper-menu>
                             </paper-dropdown-menu>
-                        </span>
-                </template>
+                            <span class="keyword">value</span>
+                            <span hidden$=[[!rule.window]]>
+                                <span class="keyword">within</span>
+                                <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                                <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                                    <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                                        <paper-item value="minutes">minutes</paper-item>
+                                        <paper-item value="hours">hours</paper-item>
+                                    </paper-menu>
+                                </paper-dropdown-menu>
+                            </span>
+                    </template>
+                </span>
+                <div hidden$=[[!rule.frequency]]>
+                    <span class="keyword on">on</span>
+                    <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                    <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                        <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                            <paper-item value="minutes">minutes</paper-item>
+                            <paper-item value="hours">hours</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <span class="keyword"> evaluation basis </span>
+                </div>
                 <div hidden$="[[!_isConditionValid(rule.queries.*, rule.queries.0.threshold)]]">
                     <span class="keyword then">then</span>
                     <span id="actionsDropdown">
                         <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
                             <span class="and" hidden$="[[!index]]"> AND </span>
-                            <paper-dropdown-menu class="dropdown-block ruleAction" on-value-changed="_validateRule">
+                            <paper-dropdown-menu class="dropdown-block ruleAction" on-value-changed="_validateRule" disabled$="[[isNoData]]">
                                 <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" class="dropdown-content">
                                     <template is="dom-repeat" items=[[actions]] as="action">
-                                        <paper-item value=[[action]]>[[action]]</paper-item>
+                                        <paper-item value=[[action]] disabled$="[[_hideAction(action,isNoData)]]">[[_actionName(action)]]</paper-item>
                                     </template>
                                 </paper-menu>
                             </paper-dropdown-menu>
@@ -330,7 +346,11 @@
                 currentRule: {
                     type: Object
                 },
-                resource: Object, // machine, cloud or other later
+                resource: Object, // machine, cloud or other later,
+                hideApplyOn: {
+                    type: Boolean,
+                    computed: '_computeHideApplyOn(resource, isNoData)'
+                },
                 updateExistingRule: Boolean,
                 availableMetrics: {
                     type: Array
@@ -349,7 +369,7 @@
                 actions: {
                     type: Array,
                     value: function () {
-                        return ['alert', 'reboot', 'destroy', 'run'];
+                        return ['alert', 'reboot', 'destroy', 'run', 'no_data'];
                     }
                 },
                 isValidRule: {
@@ -369,6 +389,9 @@
             },
             _computeIsNoData: function (rule) {
                 return rule.title == 'NoData';
+            },
+            _computeHideApplyOn: function(resource, isNoData){
+                return resource || isNoData;
             },
             _isSpecific: function(type) {
                 return type == 'specific';
@@ -496,7 +519,7 @@
                 return selectedAction == 'alert';
             },
             _isConditionValid: function (queries, threshold) {
-                if (this.rule.queries.length && this.rule.queries[this.rule.queries.length - 1].threshold)
+                if (this.rule.queries.length && this.rule.queries[this.rule.queries.length - 1].threshold != undefined)
                     return true;
                 return false;
             },
@@ -628,6 +651,12 @@
                 console.log(e.detail.request.xhr.responseText);
                 this.set('formMessage', e.detail.request.xhr.responseText)
                 this.set('formError', true);
+            },
+            _hideAction: function (action, isNoData) {
+                return action == "no_data" && !this.isNoData;
+            },
+            _actionName: function (action) {
+                return action == "no_data" ? 'no data alert' : action;
             }
 
         })

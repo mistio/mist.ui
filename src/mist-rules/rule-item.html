@@ -146,22 +146,27 @@
             <div id="[[rule.id]]" class$="flex incident-[[openIncident]]">
                 <span class="rule-id">[[rule.title]]</span>
                 <iron-icon id="alert" icon="icons:warning" hidden$="[[!openIncident]]"></iron-icon>
-                <span class="rule" hidden$="[[!isNoData]]">
-                    No data alerts evaluate every [[rule.frequency.every]] [[rule.frequency.period]]
-                </span>
-                <span class="rule" hidden$="[[isNoData]]">
-                    <template is="dom-repeat" items="[[rule.queries]]" as="query">
-                        <span class="and" hidden$="[[!index]]"> AND </span>
+                <span class="rule">
+                    <span hidden$="[[isNoData]]">
+                        <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                            <span class="and" hidden$="[[!index]]"> AND </span>
+                            <span class="keyword if">if</span>
+                            <span class="strong">
+                                [[_computeTargetName(query.target, availableMetrics)]] [[_computeOperator(query.operator)]] [[query.threshold]][[_computeUnit(query.target,
+                                availableMetrics)]]
+                            </span>
+                            <span class="keyword">for</span> [[_computeAggregation(query.aggregation)]] value
+                            <span hidden$="[[!_hasWindow(query.aggregation)]]">
+                                <span class="keyword">within</span> [[rule.window.start]] [[rule.window.period]]
+                            </span>
+                        </template>
+                    </span>
+                    <span hidden$="[[!isNoData]]">
                         <span class="keyword if">if</span>
-                        <span class="strong">
-                            [[_computeTargetName(query.target, availableMetrics)]] [[_computeOperator(query.operator)]] [[query.threshold]][[_computeUnit(query.target,
-                            availableMetrics)]]
-                        </span>
-                        <span class="keyword">for</span> [[_computeAggregation(query.aggregation)]] value
-                        <span hidden$="[[!_hasWindow(query.aggregation)]]">
-                            <span class="keyword">within</span> [[rule.window.start]] [[rule.window.period]]
-                        </span>
-                    </template>
+                        <span class="strong"> no monitoring data </span>
+                        <span class="keyword"> for </span> [[rule.window.start]] [[rule.window.period]]
+                        <span class="keyword"> on </span> [[rule.frequency.every]] [[rule.frequency.period]] evaluation basis
+                    </span>
                     <span class="keyword then">&nbsp;then&nbsp;</span>
                     <template is="dom-repeat" items="[[rule.actions]]" as="action">
                         <span class="and" hidden$="[[!index]]">&nbsp;AND&nbsp;</span>
@@ -343,6 +348,8 @@
                     verb = '';
                 else if (action == 'command')
                     verb = 'run command';
+                else if (action == 'no_data')
+                    verb = 'alert';
                 return verb;
             },
             deleteRule: function (e) {
