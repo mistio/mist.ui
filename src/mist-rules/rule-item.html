@@ -146,7 +146,10 @@
             <div id="[[rule.id]]" class$="flex incident-[[openIncident]]">
                 <span class="rule-id">[[rule.title]]</span>
                 <iron-icon id="alert" icon="icons:warning" hidden$="[[!openIncident]]"></iron-icon>
-                <span class="rule">
+                <span class="rule" hidden$="[[!isNoData]]">
+                    No data alerts evaluate every [[rule.frequency.every]] [[rule.frequency.period]]
+                </span>
+                <span class="rule" hidden$="[[isNoData]]">
                     <template is="dom-repeat" items="[[rule.queries]]" as="query">
                         <span class="and" hidden$="[[!index]]"> AND </span>
                         <span class="keyword if">if</span>
@@ -219,6 +222,11 @@
                     value: false
                 },
                 rule: Object,
+                isNoData: {
+                    type: Boolean,
+                    computed: '_computeIsNoData(rule)',
+                    value: false
+                },
                 availableMetrics: {
                     type: Array
                 },
@@ -250,6 +258,9 @@
                 }
             },
             ready: function () {},
+            _computeIsNoData: function (rule) {
+                return rule.title == 'NoData';
+            },
             _computeCanEdit: function (rule, resource) {
                 var that = this;
                 if (resource) {

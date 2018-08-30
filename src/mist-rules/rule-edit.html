@@ -91,6 +91,10 @@
                 padding-right: 8px;
             }
 
+            #norule {
+                padding-right: 8px;
+            }
+
             span.if,
             span.then,
             span.on {
@@ -172,7 +176,18 @@
 
         <div class="rule-edit">
             <span class="rule-id">[[_computeId(rule.title)]]</span>
-            <div id="newrule" class="rule">
+            <div id="norule" class="rule" hidden$="[[!isNoData]]">
+                <span class="keyword"> no data alerts </span>
+                <span class="keyword evaluate">evaluate every</span>
+                <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                <paper-dropdown-menu class="dropdown-block frequencyPeriod" on-value-changed="_validateRule">
+                    <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                        <paper-item value="minutes">minutes</paper-item>
+                        <paper-item value="hours">hours</paper-item>
+                    </paper-menu>
+                </paper-dropdown-menu>
+            </div>
+            <div id="newrule" class="rule" hidden$="[[isNoData]]">
                 <div hidden$=[[resource]]>
                     <span class="keyword on">apply on</span>
                     <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on">
@@ -228,7 +243,7 @@
                             </paper-menu>
                         </paper-dropdown-menu>
                         <span class="keyword">value</span>
-                        <span hidden$=[[!rule.aggregation]]>
+                        <span hidden$=[[!rule.window]]>
                             <span class="keyword">within</span>
                             <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
                             <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
@@ -300,6 +315,11 @@
                     type: String,
                     value: false
                 },
+                isNoData: {
+                    type: Boolean,
+                    computed: '_computeIsNoData(rule)',
+                    value: false
+                },
                 tags: String,
                 machineId: String,
                 machines: Array,
@@ -343,8 +363,12 @@
                 "_initialiseEdit(currentRule,resource, rule.id)"
             ],
             ready: function () {
-                if (!this.rule)
+                if (!this.rule) {
                     this._resetRule();
+                }
+            },
+            _computeIsNoData: function (rule) {
+                return rule.title == 'NoData';
             },
             _isSpecific: function(type) {
                 return type == 'specific';
@@ -363,7 +387,7 @@
                             this.set('ruleType', "tagged");
                             this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
                         }
-                        else if (selector.ids.length == 1) {
+                        else if (selector.ids && selector.ids.length == 1) {
                             this.set('ruleType', "specific");
                             this.set('machineId', selector.ids[0]);
                         }
@@ -393,6 +417,10 @@
                         period: this.currentRule.window.period || 'minutes',
                         start: this.currentRule.start || 1
                         //stop: this.currentRule.stop
+                    },
+                    frequency: {
+                        period: this.currentRule.frequency.period || 'minutes',
+                        every: this.currentRule.every || 2
                     }
                 });
             },
@@ -414,6 +442,13 @@
                         result.push({
                             type: 'run',
                             command: actions[i].command
+                        });
+                    } else if (actions[i].type == 'no_data') {
+                        result.push({
+                            type: 'no_data',
+                            users: actions[i].users.slice(),
+                            teams: actions[i].teams.slice(),
+                            emails: actions[i].emails.slice()
                         });
                     }
                 }
@@ -438,7 +473,11 @@
                     window: {
                         period: 'minutes',
                         start: 1
-                    }
+                    },
+                    frequency: {
+                        every: 2,
+                        period: 'minutes'
+                    },
                 });
                 this.set('formError', false);
             },
@@ -512,8 +551,8 @@
                     start: parseInt(this.rule.window.start) || 1
                 };
                 payload.frequency = {
-                    period: this.rule.window.period || 'minutes',
-                    every: parseInt(this.rule.window.start) || 1
+                    period: this.rule.frequency.period || 'minutes',
+                    every: parseInt(this.rule.frequency.every) || 2
                 };
                 for (var i = 0; i < this.rule.queries.length; i++) {
                     payload.queries[i] = {
@@ -548,6 +587,9 @@
                             type: 'machine_action',
                             action: this.rule.actions[i].type
                         };
+                    } else if (this.rule.actions[i].type == 'no_data') {
+                        delete payload.actions;
+                        delete payload.queries;
                     }
                 }
                 if (!this.rule.id) { // Add new rule

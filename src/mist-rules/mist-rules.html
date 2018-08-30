@@ -152,7 +152,7 @@
             },
             ready: function () {},
             isObj: function (tag) {
-                return typeof tag == "object";
+                return typeof tag == "object" && tag.type != 'field';
             },
             isStr: function (id) {
                 return typeof id == "string";
@@ -184,18 +184,19 @@
             _ruleInCategory: function(r,category) {
                 if (category.type == 'specific_machines') {
                     for (var p in r.selectors) {
-                        if (r.selectors[p].type == 'machines' && r.selectors[p].ids.length == 1)
+                        if (r.selectors[p].type == 'machines' && r.selectors[p].ids.length == 1) {
                             return true;
+                        }
                     }
-                }
-                else if (category.type == 'all_machines') {
-                    if (!r.selectors || !r.selectors.length)
+                } else if (category.type == 'all_machines') {
+                    if (!r.selectors || !r.selectors.length) {
                         return true;
-                }
-                else if (category.type == 'tagged_machines') {
+                    }
+                } else if (category.type == 'tagged_machines') {
                     for (var p in r.selectors) {
-                        if (r.selectors[p].type == 'tags')
+                        if (r.selectors[p].type == 'tags') {
                             return true;
+                        }
                     }
                 }
                 return false;
@@ -240,8 +241,8 @@
                 });
                 rulesArray.forEach(function(r){
                     var s = r.selectors;
-                    // rule applies on all machines
-                    if (!s.length) {
+                    // rule applies on all machines or rule is no-data-rule
+                    if (!s.length || r.title == "NoData") {
                         if (!categories.find(function(c){return c.type == "all_machines"}))
                             categories.push({
                                 name: 'Apply on all machines',
