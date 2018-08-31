@@ -630,12 +630,8 @@
         },
 
         _updateLocations: function (data) {
+            console.log('UPDATE LOCATIONS', data);
             return this._updateModel('clouds.' + data.cloud_id + '.locations', data.locations);
-        },
-
-        _updateVolumes: function (data) {
-            console.log('UPDATE VOLUMES', data);
-            return this._updateModel('clouds.' + data.cloud_id + '.volumes', data.volumes);
         },
 
         _updateImages: function (data) {
@@ -726,6 +722,53 @@
                 this.set('model.sectionsArray.' + i + '.count', allMachines.length);
                 this.set('model.sections.machines.count', allMachines.length);
             }
+        },
+
+        _updateVolumes: function (data) {
+            console.log('UPDATE VOLUMES', data);
+
+            //update cloud's networks
+            var cloudVolumes = [];
+            if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider && data.volumes) {
+                data.volumes.volumes.forEach(function (vol) {
+                    if (vol.id) {
+                        vol["provider"] = this.model.clouds[data.cloud_id].provider;
+                        vol["cloud_id"] = data.cloud_id;
+                        cloudVolumes.push(vol);
+                    }
+                }, this);
+            }
+
+            var changed = this._updateModel('clouds.' + data.cloud_id + '.volumes',  data.volumes.volumes);
+
+            if (!changed)
+                return false;
+
+            this.set('model.clouds.' + data.cloud_id + '.volumesArray', data.volumes.volumes);
+            this.set('model.clouds.' + data.cloud_id + '.volumes', _generateMap(data.volumes.volumes));
+
+            //update all networks array
+            var allVolumes = [];
+            if (this.model != undefined) {
+                this.model.cloudsArray.forEach(function (cloud) {
+                    if (cloud.volumesArray != undefined && cloud.enabled) {
+                        cloud.volumesArray.forEach(function (vol) {
+                            allVolumes.push(vol);
+                        })
+                    }
+                });
+            }
+            this.set('model.volumesArray', allVolumes);
+            this.set('model.volumes', _generateMap(allVolumes));
+            // update section count, necessary for propagating changes to sidebar & dashboard counters
+            var i = this.model.sectionsArray.findIndex(function (i) {
+                return i.id == 'volumes'
+            });
+            if (i != -1) {
+                this.set('model.sectionsArray.' + i + '.count', allVolumes.length);
+                this.set('model.sections.volumes.count', allVolumes.length);
+            }
+
         },
 
         _updateNetworks: function (data) {
@@ -1092,6 +1135,9 @@
 
             this.set('model.networksArray', newNetworksArray);
             this.set('model.networks', _generateMap(newNetworksArray));
+
+            this.set('model.volumesArray', newVolumesArray);
+            this.set('model.volumes', _generateMap(newVolumesArray));
         }
     });
 

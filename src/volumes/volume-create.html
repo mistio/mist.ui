@@ -1,0 +1,213 @@
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+
+<link rel="import" href="../app-form/app-form.html">
+<!-- <script type="text/javascript" src="../volume-create-fields.js" inline></script> -->
+
+<dom-module id="volume-create">
+    <template>
+        <style include="shared-styles forms single-page">
+             :host {
+                display: block;
+            }
+
+            #content {
+                max-width: 900px;
+            }
+
+            paper-material {
+                display: block;
+                padding: 24px;
+            }
+
+            paper-progress {
+                position: absolute;
+                bottom: 85px;
+                width: 100%;
+                left: 0;
+                right: 0;
+            }
+
+            :host>::content paper-input-container {
+                padding-top: 16px;
+                padding-bottom: 16px;
+            }
+
+            .dropdown-with-logos paper-item img {
+                margin-right: 16px;
+            }
+
+            .single-head {
+                @apply --volume-page-head-mixin
+            }
+        </style>
+        <div id="content">
+            <paper-material class="single-head layout horizontal">
+                <span class="icon">
+                    <iron-icon icon="[[section.icon]]"></iron-icon>
+                </span>
+                <div class="title flex">
+                    <h2>
+                        Create Volume
+                    </h2>
+                    <div class="subtitle">
+                    </div>
+                </div>
+            </paper-material>
+            <paper-material hidden$="[[hasCloudsWithVolumes]]">
+                <p>To add a volume you need to have an enabled Openstack, GCE or EC2 cloud in your account.
+                    <br/> Add a cloud using the
+                    <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">add cloud form</a>
+                    or enable your Openstack or GCE clouds available in <a href="/dashboard" is="pushstate-anchor" class="blue-link regular">dashboard</a>.
+                </p>
+            </paper-material>
+            <paper-material hidden$=[[!hasCloudsWithVolumes]]>
+                <div class="grid-row">
+                    <paper-dropdown-menu class="dropdown-block l6 xs12 dropdown-with-logos" label="Select Cloud" horizontal-align="left">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{selectedCloud::iron-select}}" class="dropdown-content">
+                            <template is="dom-repeat" items="[[providers]]" as="provider">
+                                <paper-item value="[[provider.id]]" disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]">
+                                    <img src="[[_computeProviderLogo(provider.provider)]]" width="24px">[[provider.title]]</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+            </paper-material>
+            <template is="dom-if" if="[[selectedCloud]]" restamp>
+                <paper-material>
+                    <app-form id="volume_add" fields="{{fields}}" form="[[form]]" url="/api/v1/clouds/[[selectedCloud]]/volumes" on-response="_handleCreateVolumeResponse"
+                        on-error="_handleError" format-payload></app-form>
+                </paper-material>
+            </template>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'volume-create',
+
+            properties: {
+                section: {
+                    type: Object
+                },
+                model: {
+                    type: Object
+                },
+                providers: Array,
+                form: {
+                    type: Object,
+                    value: function () {
+                        return {}
+                    },
+                    notify: true
+                },
+                fields: {
+                    type: Array,
+                    value: [],
+                    notify: true
+                },
+                volumesFields: {
+                    type: Array,
+                    value: function () {
+                        // return VOLUME_CREATE_FIELDS;
+                    },
+                    notify: true
+                },
+                hasCloudsWithVolumes: {
+                    type: Boolean,
+                    value: false
+                },
+                selectedCloud: {
+                    type: String,
+                    value: false
+                },
+            },
+            observers: [
+                '_cloudsChanged(model.clouds.*)',
+                '_cloudChanged(selectedCloud)'
+            ],
+            listeners: {
+                'format-payload': 'updatePayload'
+            },
+            _cloudsChanged: function (clouds) {
+                var volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
+                    return ['openstack', 'gce', 'ec2'].indexOf(cloud.provider) > -1;
+                });
+                this.set('providers', volumeClouds);
+                this.set('hasCloudsWithVolumes', volumeClouds && volumeClouds.length > 0 ? true : false);
+            },
+            _computeProviderLogo: function (className) {
+                var identifier = className.split('_')[0];
+                return 'assets/providers/provider-' + identifier + '.png';
+            },
+            _isOnline: function (cloud, state, clouds) {
+                return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
+            },
+            _cloudChanged: function (selectedCloud) {
+                // clear to reset
+                this.set('machineFields', []);
+                var volumeFields = [];
+                if (this.selectedCloud) {
+                    var cloudName = this.model.clouds[selectedCloud].provider;
+                    volumeFields = this.volumesFields.find(function (c) {
+                        return c.provider == cloudName;
+                    });
+                }
+                // add cloud fields
+                if (volumeFields.fields)
+                    this.set('fields', volumeFields.fields);
+
+                // add locations fields
+                if (this.fieldIndexByName('region') > -1 || this.fieldIndexByName('availability_zone') > -1)
+                    var fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
+                    if (cloudName == "ec2")
+                        this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', this.model.clouds[selectedCloud].locationsArray);
+                    if (cloudName == "gce") {
+                        var regionsArr = [], regions = [];
+                        if (this.model.clouds[selectedCloud].locationsArray)
+                            this.model.clouds[selectedCloud].locationsArray.forEach(function(l){
+                                if (!regionsArr.includes(l.extra.region)) {
+                                    regionsArr.push(l.extra.region);
+                                    regions.push({name:l.extra.region, id:l.extra.region});
+                                }
+                            });
+                        this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', regions);
+                    }
+            },
+            updatePayload: function () {
+                if (this.fields.length) {
+                    var payload = {},
+                        provider = this.model.clouds[this.selectedCloud].provider;
+                    payload['volume'] = {};
+                    // create volume
+                    for (var i = 0; i < this.fields.length; i++) {
+                        if (this.fields[i].inPayloadGroup == "volume")
+                            payload.volume[this.fields[i].name] = this.fields[i].value;
+                    }
+                    this.set('form', payload);
+                }
+            },
+            fieldIndexByName: function (name) {
+                var field = this.fields.findIndex(function (f) {
+                    return f.name == name;
+                });
+                return field;
+            },
+            _handleCreateVolumeResponse: function (e) {
+                var response = JSON.parse(e.detail.xhr.response);
+                this.fire('go-to', {
+                    url: '/volumes'
+                });
+            },
+            _handleError: function (e) {
+                console.log(e);
+                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+                this.set('formError', true);
+            },
+            _goBack: function () {
+                history.back();
+            }
+        });
+    </script>
+</dom-module>
