@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
@@ -40,13 +41,13 @@
       },
       'attach': {
         'name': 'attach',
-        'icon': 'icons:redo',
+        'icon': 'av:album',
         'confirm': false,
         'multi': true
       },
       'detach': {
         'name': 'detach',
-        'icon': 'icons:redo',
+        'icon': 'icons:eject',
         'confirm': false,
         'multi': true
       },
@@ -95,7 +96,11 @@
         if (volume) {
           arr.push('delete');
           arr.push('tag');
-          arr.push('attach');
+          if (volume.state == "available") {
+            arr.push('attach');
+          } else if (volume.state == "inuse") {
+            arr.push('detach');
+          }
           if (this.org.ownership_enabled && (volume.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
           }
