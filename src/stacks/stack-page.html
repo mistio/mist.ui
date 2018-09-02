@@ -242,6 +242,7 @@
                 max-width: 100%;
                 overflow: hidden;
                 position: relative;
+                margin: 0 auto;
             }
 
             .resource-head {
@@ -526,12 +527,12 @@
 
                     <div id="workflowsView" class="pad">
                         <template is="dom-repeat" items="[[workflows]]" as="workflow">
-                            <div id$="[[workflow.name]]show" class="wf-item">
+                            <div id$="[[workflow.name]]show" class="wf-item" show="[[!index]]">
 
                                 <template is="dom-if" if=[[workflow.params.length]]>
                                     <h2 class="pad app-form-title">[[workflow.name]]</h2>
                                     <div class="pad">
-                                        <orchestration-form id$="[[workflow.name]]" model=[[model]] fields="{{workflow.params}}" workflow="[[workflow.name]]" url$="/api/v1/stacks/[[stack.id]]" on-request="handleWorkflowRequest"
+                                        <orchestration-form id$="[[workflow.name]]" model="[[model]]" fields="{{workflow.params}}" workflow="[[workflow.name]]" url$="/api/v1/stacks/[[stack.id]]" on-request="handleWorkflowRequest"
                                             on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]">[[workflow.name]]</orchestration-form>
                                     </div>
                                 </template>
@@ -726,7 +727,8 @@
                 },
                 template: {
                     type: Object,
-                    computed: '_computeTemplate(stack.template, model.templates)'
+                    computed: '_computeTemplate(stack.template, model.templates)',
+                    value: false
                 },
                 machines: {
                     type: Array,
@@ -754,7 +756,7 @@
                 },
                 workflows: {
                     type: Array,
-                    computed: '_computeWorkflows(template)'
+                    computed: '_computeWorkflows(stack,template)'
                 },
                 timestamp: {
                     type: String,
@@ -1150,18 +1152,54 @@
                 }
                 return keys;
             },
-            _computeWorkflows: function (template) {
+            _computeWorkflows: function (stack,template) {
                 console.log('_computeWorkflows');
                 var workflows = [];
-                if (this.template) {
+                if (this.template && this.template.workflows) {
                     workflows = this.template.workflows.filter(function (wf) {
                         return wf.name != 'scale' && wf.name != 'execute_operation';
                     });
                 }
-                workflows.forEach(function (wf) {
-                    var yaml_inputs = '';
-                    if (wf.params.length > 0) {
-                        wf.params.forEach(function (wp) {
+                var param1 = {
+                    name: "yaml_or_form",
+                    label: "YAML or form",
+                    type: "radio",
+                    value: "form",
+                    defaultValue: "yaml",
+                    helptext: "Choose the way you want to insert inputs",
+                    errorMessage: "Choose an input format",
+                    show: true,
+                    required: true,
+                    options: [{
+                        title: "YAML",
+                        val: "yaml"
+                    }, {
+                        title: "Form",
+                        val: "form"
+                    }]
+                };
+                var param2 = {
+                    name: "stackinputs",
+                    label: "Workflow Inputs YAML",
+                    type: "textarea",
+                    value: yaml_inputs,
+                    defaultValue: yaml_inputs,
+                    placeholder: "",
+                    helptext: "Enter the stack inputs in yaml format",
+                    errorMessage: "Please enter stacks's inputs",
+                    show: true,
+                    required: true,
+                    showIf: {
+                        fieldName: "yaml_or_form",
+                        fieldValues: ["yaml"]
+                    }
+                };
+                for (var i=0; i<workflows.length; i++) {
+                    var yaml_inputs = '',
+                        wf = workflows[i];
+                    if (wf.params && wf.params.length > 0) {
+                        for (var j=0; j<wf.params.length; j++) {
+                            var wp = wf.params[j];
                             yaml_inputs += wp.name + ': ' + wp.default+'\n';
                             wp.showIf = {
                                 fieldName: "yaml_or_form",
@@ -1169,44 +1207,13 @@
                             }
                             wp.label = wp.name;
                             wp.value = wp.defaultValue = wp.default;
-                        });
-                        var param1 = {
-                            name: "yaml_or_form",
-                            label: "YAML or form",
-                            type: "radio",
-                            value: "form",
-                            defaultValue: "yaml",
-                            helptext: "Choose the way you want to insert inputs",
-                            errorMessage: "Choose an input format",
-                            show: true,
-                            required: true,
-                            options: [{
-                                title: "YAML",
-                                val: "yaml"
-                            }, {
-                                title: "Form",
-                                val: "form"
-                            }]
-                        };
-                        var param2 = {
-                            name: "stackinputs",
-                            label: "Workflow Inputs YAML",
-                            type: "textarea",
-                            value: yaml_inputs,
-                            defaultValue: yaml_inputs,
-                            placeholder: "",
-                            helptext: "Enter the stack inputs in yaml format",
-                            errorMessage: "Please enter stacks's inputs",
-                            show: true,
-                            required: true,
-                            showIf: {
-                                fieldName: "yaml_or_form",
-                                fieldValues: ["yaml"]
-                            }
-                        };
-                        wf.params.unshift(param1, param2);
+                        }
+                        var radioField = wf.params.find(function(p){ return p.name == "yaml_or_form"});
+                        if (!radioField) {
+                            wf.params.unshift(param1, param2);
+                        }
                     }
-                });
+                }
                 return workflows;
             },
             _computeReadableDate: function (date) {

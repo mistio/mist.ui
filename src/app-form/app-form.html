@@ -25,6 +25,7 @@
 <link rel="import" href="sub-form.html">
 <link rel="import" href="mist-size-field.html">
 <link rel="import" href="mist-machine-field.html">
+<link rel="import" href="mist-tags-field.html">
 
 <script src="../../bower_components/yaml.js/dist/yaml.min.js"></script>
 
@@ -429,6 +430,9 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_machine', field.show)]]" restamp>
                             <mist-machine-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-machine-field>
+                        </template>
+                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_tags', field.show)]]" restamp>
+                            <mist-tags-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-tags-field>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_dropdown', field.show)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
@@ -871,11 +875,13 @@
                         return el.show && el.required ? this._validateMistSize(el) : true;
                     } else if (el.type == "mist_machine") {
                         return el.show && el.required ? el.valid : true;
-                    } else if (el.type != "toggle"){
+                    } else if (el.type == "toggle" || el.type == "radio"){
+                        return  true;
+                    } else {
                         if (el.show && el.required && (el.value == undefined || !el.value.length)) {
                             console.warn(el.type, 'not valid', el.name, el.value);
                         }
-                        return el.show && el.required ? el.value != undefined : true;
+                        return el.show && el.required ? (el.value && el.value.length ? el.value : false) : true;
                     }
                     return true;
                 }, this);
