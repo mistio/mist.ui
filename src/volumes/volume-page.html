@@ -161,7 +161,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <volume-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></volume-actions>
+            <volume-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[machinesVolumeIsAttachedTo]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[volume.provider]]"></volume-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
@@ -199,6 +199,12 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
+                    <div hidden$="[[!machinesVolumeIsAttachedTo.length]]">
+                        <h3 class="n-info-head">Attached to machines:</h3>
+                        <template is="dom-repeat" items="[[machinesVolumeIsAttachedTo]]" as="machine">
+                            <a href$="/machines/[[machine.id]]">[[machine.name]]</a>
+                        </template>
+                    </div>
                     <div hidden$="[[!volume.tags.length]]">
                         <h3 class="n-info-head">TAGS:</h3>
                         <template is="dom-repeat" items="[[volume.tags]]">
@@ -246,6 +252,14 @@
                     type: String,
                     computed: '_computeVolumeCloud(volume, model.clouds)'
                 },
+                machinesVolumeIsAttachedTo: {
+                    type: Array,
+                    computed: '_computedMachinesVolumeIsAttachedTo(volume.machine_ids, model.machines)'
+                },
+                machinesVolumeCanAttachTo: {
+                    type: Array,
+                    computed: '_computedMachinesVolumeCanAttachTo(volume.provider, model.machinesArray)'
+                },
                 itemArray: Array
             },
             observers: [
@@ -259,16 +273,25 @@
                     this.set('itemArray', [this.volume]);
             },
             _computeVolumeCloud: function (volume, clouds) {
-                if (volume)
-                    return this.model.clouds[this.volume.cloud].title
-            },
-            _computedAttachedMachine: function (volume){
-                if (volume) {
-                    if (volume.provider == 'gce') {
-                        // find machine with machine_id == instance_id
-                        // return volume.extra.instance_id && this.model.clouds[volume.cloud] && this.model.clouds[volume.cloud].machines[volume.extra.instance_id] && this.model.clouds[volume.cloud].machines[volume.extra.instance_id].name;
-                    }
+                if (this.volume) {
+                    return this.model.clouds[this.volume.cloud].title;
                 }
+            },
+            _computedMachinesVolumeCanAttachTo: function(provide, machines) {
+                if (this.volume) {
+                    return this.model.clouds[this.volume.cloud].machinesArray;
+                }
+            },
+            _computedMachinesVolumeIsAttachedTo: function(volume_machines_ids, machines){
+                if (this.volume && this.volume.machine_ids && this.model.machines) {
+                    var machines = this.model.machines;
+                    return this.volume.machine_ids.map(function(id){
+                        return machines[id]; 
+                    }).filter(function(m){
+                        return m && m.id;
+                    });
+                }
+                return [];
             },
             _editVolume: function (e) {
                 console.log(e);

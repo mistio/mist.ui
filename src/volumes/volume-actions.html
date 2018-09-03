@@ -8,6 +8,8 @@
 
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
+<link rel="import" href="attach-volume.html">
+<link rel="import" href="detach-volume.html">
 
 <dom-module id="volume-actions">
   <template>
@@ -21,7 +23,8 @@
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
-
+    <attach-volume id="attachVolume" volume="[[items]]" provider="[[provider]]" machines="[[machinesToAttachTo]]"></attach-volume>
+    <detach-volume id="detachVolume" volume="[[items]]" machines="[[machines]]"></detach-volume>
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
 
   </template>
@@ -43,13 +46,13 @@
         'name': 'attach',
         'icon': 'av:album',
         'confirm': false,
-        'multi': true
+        'multi': false
       },
       'detach': {
         'name': 'detach',
         'icon': 'icons:eject',
         'confirm': false,
-        'multi': true
+        'multi': false
       },
       'delete': {
         'name': 'delete',
@@ -65,11 +68,20 @@
           type: Array,
           value: []
         },
+        machines: {
+          type: Array,
+          value: []
+        },
+        machinesToAttachTo: {
+          type: Array,
+          value: []
+        },
         actions: {
           type: Array,
           value: [],
           notify: true
         },
+        provider: String,
         type: {
           type: String,
           value: 'volume'
@@ -96,10 +108,10 @@
         if (volume) {
           arr.push('delete');
           arr.push('tag');
-          if (['gce','openstack','ec2'].indexOf(volume.provider) > -1) {
-            if (volume.state == "available" || volume.state == "READY") {
+          if (['gce','openstack','ec2', 'digitalocean'].indexOf(volume.provider) > -1) {
+            if (volume.provider == "digitalocean" || volume.machine_ids &&volume.machine_ids.length == 0 ) {
               arr.push('attach');
-            } else if (volume.state == "inuse") {
+            } else if (volume.machine_ids.length) {
               arr.push('detach');
             }
           }
@@ -175,6 +187,10 @@
             this.$.ownershipdialog._openDialog();
           } else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
+          } else if (action.name == "attach") {
+            this.$.attachVolume._openDialog();
+          } else if (action.name == "detach") {
+            this.$.detachVolume._openDialog();
           } else {
             this.performAction(this.action, this.items);
           }
