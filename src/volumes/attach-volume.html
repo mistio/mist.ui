@@ -1,0 +1,148 @@
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+
+<dom-module id="attach-volume">
+    <template>
+        <style include="shared-styles dialogs">
+        :host {
+            display: block;
+            width: 100%;
+        }
+        paper-dialog {
+            min-width: 360px;
+        }
+        :host .btn-group {
+            margin: 0 0 24px 0;
+        }
+        .grey {
+            opacity: 0.54;
+        }
+        :host paper-dropdown-menu ::content .dropdown-content {
+            top: 55px !important;
+        }
+        </style>
+        <paper-dialog id="attachDialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <h2>Attach volume to machine</h2>
+            <paper-dialog-scrollable>
+                <p>
+                    <template is="dom-if" if="[[!machines.length]]">
+                        <span class="grey">No [[provider]]-machines found</span>
+                        <br/>
+                        <a href="/machines/+create">Create a machine</a>
+                        <br/><br/>
+                    </template>
+                    <template is="dom-if" if="[[machines.length]]">
+                        <span class="grey"> Choose from your existing machines. </span>
+                        <paper-dropdown-menu label="Select machine" horizontal-align="left">
+                            <paper-menu slot="dropdown-content" id="machine" attr-for-selected="value" selected="{{selected}}" class="dropdown-content">                            
+                                <template is="dom-repeat" items="[[machines]]" as="script">
+                                    <paper-item value="[[machine.id]]">[[machine.name]]</paper-item>
+                                </template>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                    </template>
+                </p>
+            </paper-dialog-scrollable>
+            <div class="clearfix btn-group">
+                <paper-button dialog-dismiss>
+                    Cancel
+                </paper-button>
+                <paper-button class="blue" on-tap="attachVolume" dialog-confirm disabled$="[[!selectedMachineId]]">
+                    Attach to machine
+                </paper-button>
+            </div>
+        </paper-dialog>
+
+        <iron-ajax id="attachVolumeRequest" url="/api/v1/volumes/[[selectedMachineId]]" method="POST" on-response="_attachVolumeResponse" on-error="_attachVolumeError" on-request="_attachVolumeRequest" handle-as="xml"></iron-ajax>
+
+    </template>
+</dom-module>
+<script>
+Polymer({
+    is: 'attach-volume',
+
+    properties: {
+        items: {
+            type: Array,
+            notify: true
+        },
+        provider: String,
+        selected: String,
+        selectedMachineId: {
+            type: String,
+            value: false
+        },
+        machines: {
+            type: Array,
+            value: []
+        }
+    },
+    listeners: {
+        'iron-select' : 'computedSelectedMachineId'
+    },
+    ready: function(){
+    },
+    computedSelectedMachineId: function(selected){
+        this.set('selectedMachineId', this.querySelector('#machines').selected || '');
+    },
+    _openDialog: function(e) {
+        this.set('selected', false);
+        this.set('selectedMachineId', false);
+        this.$.attachDialogModal.open();
+    },
+    _closeDialog: function(e) {
+        this.$.attachDialogModal.close();
+    },
+    attachVolume: function(e){
+        var request = this.$.attachVolumeRequest;
+        console.log('attachVolume',request.id, items);
+
+        var items = this.items.slice(0);
+        var run = function(el) {
+            var item = items.shift(),
+                itemType,
+                itemId;
+            if (item.length) {
+                chunks = item.split(':'),
+                itemId = chunks[2],
+                cloudId = chunks[1];
+            }
+            else {
+                itemId = item.id;
+                cloudId = item.cloud.id;
+            }
+            request.body = {
+                machine_uuid: itemId
+            }
+            request.headers["Content-Type"] = 'application/json';
+            request.headers["Csrf-Token"] = CSRF_TOKEN;
+            request.generateRequest();
+
+            if (items.length) {
+                run(el);
+            }
+        }
+        run(this); 
+    },
+    _attachVolumeRequest: function() {
+        var logMessage = 'Sending request to attach volume on machine.';
+        this.fire('performing-action', {log: logMessage});
+    },
+    _attachVolumeResponse: function(e){
+        console.log(e, e.detail);
+        this.fire('action-finished', {success: true});
+        this.fire('toast', {msg: 'Attach request sent successfully. Review in machine logs.', duration: 5000});        
+    },
+    _attachVolumeError: function(e){
+        console.log(e, e.detail);
+        this.fire('action-finished', {success: false});
+        this.fire('toast', {msg: e.detail.xhr.response, duration: 5000});
+    }
+});
+</script>
