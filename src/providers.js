@@ -204,17 +204,17 @@ PROVIDERS.push({
     }]
 });
 
-// CLEARVM
+// CLEARAPI
 PROVIDERS.push({
-    title: 'ClearVM',
-    val: 'clearvm',
-    className: 'provider-clearvm',
+    title: 'ClearAPI',
+    val: 'clearapi',
+    className: 'provider-clearapi',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "ClearVM",
-        defaultValue: "ClearVM",
+        value: "ClearAPI",
+        defaultValue: "ClearAPI",
         show: true,
         required: true,
         errorMessage: "Please enter title"
@@ -222,7 +222,7 @@ PROVIDERS.push({
         name: "url",
         label: "Url *",
         type: "text",
-        value: "ClearVM",
+        value: "ClearAPI",
         defaultValue: "",
         show: true,
         required: true,
