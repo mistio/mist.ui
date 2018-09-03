@@ -96,10 +96,12 @@
         if (volume) {
           arr.push('delete');
           arr.push('tag');
-          if (volume.state == "available") {
-            arr.push('attach');
-          } else if (volume.state == "inuse") {
-            arr.push('detach');
+          if (['gce','openstack','ec2'].indexOf(volume.provider) > -1) {
+            if (volume.state == "available" || volume.state == "READY") {
+              arr.push('attach');
+            } else if (volume.state == "inuse") {
+              arr.push('detach');
+            }
           }
           if (this.org.ownership_enabled && (volume.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
