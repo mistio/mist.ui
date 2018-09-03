@@ -216,7 +216,12 @@
     },
 
     attached: function() {
-      var filter = localStorage.getItem('mist-filter');
+      var filter;
+      try {
+        filter = localStorage.getItem('mist-filter');
+      } catch(e) {
+        console.warn(e);
+      }
       if (filter) {
           this.set('filter', filter);
       }
@@ -246,8 +251,12 @@
       }
     },
     updateLocalStorage: function(e) {
+      try {
         if (typeof this.filter == 'string' && localStorage.getItem('mist-filter') != this.filter)
           localStorage.setItem('mist-filter', this.filter);
+      } catch(e) {
+        console.warn(e);
+      }
     },
     _queryChanged: function(q) {
       if (!q.length) 
