@@ -1021,20 +1021,32 @@
             }
         },
 
-        cleanUpResources: function (id) {
+        cleanUpResources: function (cloud_id) {
             var newImagesArray = [],
-                newNetworksArray = [];
-            if (id) {
+                newNetworksArray = [],
+                _this = this;
+            if (cloud_id) {
                 // images
                 newImagesArray = this.model.imagesArray.filter(function (im) {
-                    return im.cloud && im.cloud.id != id;
+                    return im.cloud && im.cloud.id != cloud_id;
                 });
 
                 // networks
                 newNetworksArray = this.model.networksArray.filter(function (n) {
-                    return n.cloud_id != id;
+                    return n.cloud_id != cloud_id;
                 });
             }
+
+            // machines
+            Object.keys(this.model.machines).forEach(function(machine_id) {
+                var machine = _this.model.machines[machine_id];
+                if (!cloud_id || machine.cloud == cloud_id) {
+                    if (_this.model.clouds[machine.cloud] && _this.model.clouds[machine.cloud].machines && _this.model.clouds[machine.cloud].machines[machine.machine_id])
+                        delete _this.model.clouds[machine.cloud].machines[machine.machine_id];
+                    if (_this.model.machines && _this.model.machines[machine_id])
+                        delete _this.model.machines[machine_id];
+                }
+            });
 
             this.set('model.imagesArray', newImagesArray);
             this.set('model.images', _generateMap(newImagesArray));
