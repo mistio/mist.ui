@@ -330,16 +330,20 @@
                     new_cloud_machine_external_ids = Object.keys(new_cloud_machines),
                     new_cloud_machine_ids = new_cloud_machine_external_ids.map(i => new_cloud_machines[i].id);
 
+                // Cleanup deleted machine refs
                 for (var i=0; i < old_cloud_machine_ids.length; i++) {
-                    if (new_cloud_machines[old_cloud_machine_ids[i]] != undefined) {
-                        if (_this.model.machines[old_cloud_machine_ids[i]])
-                            delete _this.model.machines[old_cloud_machine_ids[i]];
+                    if (new_cloud_machines[old_cloud_machine_external_ids[i]] == undefined
+                        && _this.model.machines[old_cloud_machine_ids[i]] != undefined) {
+                        delete _this.model.machines[old_cloud_machine_ids[i]];
+                        _this.notifyPath('model.machines.' + old_cloud_machine_ids[i]);
+                        //_this.notifyPath('model.machines');
                     }
                 }
 
+                // Link paths of new machines for easy global lookup
                 for (var i=0; i < new_cloud_machine_ids.length; i++) {
                     if (_this.model.machines[new_cloud_machine_ids[i]] == undefined) {
-                        //_this.set('model.machines.' + new_cloud_machine_ids[i], _this.model.clouds[cloud_id].machines[new_cloud_machine_external_ids[i]]);
+                        _this.set('model.machines.' + new_cloud_machine_ids[i], _this.model.clouds[cloud_id].machines[new_cloud_machine_external_ids[i]]);
                         _this.linkPaths('model.machines.' + new_cloud_machine_ids[i], 'model.clouds.' + cloud_id + '.machines.' + new_cloud_machine_external_ids[i]);
                     }
                 }
