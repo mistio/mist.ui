@@ -51,7 +51,7 @@
             </div>
         </paper-dialog>
 
-        <iron-ajax id="detachVolumeRequest" url="/api/v1/volumes/[[selectedMachineId]]" method="POST" on-response="_detachVolumeResponse" on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="detachVolumeRequest" method="DELETE" on-response="_detachVolumeResponse" on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml"></iron-ajax>
 
     </template>
 </dom-module>
@@ -106,11 +106,9 @@ Polymer({
             }
             else {
                 itemId = item.id;
-                cloudId = item.cloud.id;
+                cloudId = item.cloud;
             }
-            request.body = {
-                machine_uuid: itemId
-            }
+            request.url = "/api/v1/clouds/"+ cloudId +"/volumes/"+ itemId +"/machines/"+selectedMachineId;
             request.headers["Content-Type"] = 'application/json';
             request.headers["Csrf-Token"] = CSRF_TOKEN;
             request.generateRequest();

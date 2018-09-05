@@ -26,6 +26,7 @@
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.volumes,model.clouds)]]
                 route={{route}} user-filter=[[model.sections.volumes.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="volume" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                <!-- TODO: add 'machine' & `machines-to-attach-to` property to volume actions-->
                 <volume-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></volume-actions>
                 <p slot="no-items-found">No volumes found.</p>
             </mist-list>
@@ -34,7 +35,7 @@
             </div>
         </template>
         <volume-create model="[[model]]" section="[[model.sections.volumes]]" hidden$=[[!_isAddPageActive(route.path)]]></volume-create>
-        <volume-page model="[[model]]" volume="[[_getNetwork(data.volume, model.volumesArray.length)]]" resource-id="[[data.volume]]" section="[[model.sections.volumes]]"
+        <volume-page model="[[model]]" volume="[[_getVolume(data.volume, model.volumesArray.length)]]" resource-id="[[data.volume]]" section="[[model.sections.volumes]]"
             hidden$=[[!_isDetailsPageActive(route.path)]]></volume-page>
     </template>
 
@@ -76,7 +77,7 @@
                 return !path;
             },
             
-            _getNetwork: function (id) {
+            _getVolume: function (id) {
                 if (this.model.volumes)
                     return this.model.volumes[id];
             },
