@@ -112,7 +112,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
     }, {
         name: 'size',
         label: 'Size *',
-        type: 'mist_dropdown',
+        type: 'number',
         value: '',
         defaultValue: '',
         show: true,
