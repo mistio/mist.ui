@@ -4,7 +4,7 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 
 <link rel="import" href="../app-form/app-form.html">
-<!-- <script type="text/javascript" src="../volume-create-fields.js" inline></script> -->
+<script type="text/javascript" src="../volume-create-fields.js" inline></script>
 
 <dom-module id="volume-create">
     <template>
@@ -110,7 +110,7 @@
                 volumesFields: {
                     type: Array,
                     value: function () {
-                        // return VOLUME_CREATE_FIELDS;
+                        return VOLUME_CREATE_FIELDS;
                     },
                     notify: true
                 },
@@ -132,7 +132,7 @@
             },
             _cloudsChanged: function (clouds) {
                 var volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
-                    return ['openstack', 'gce', 'ec2'].indexOf(cloud.provider) > -1;
+                    return ['openstack', 'gce', 'ec2', 'digitalocean', 'azure'].indexOf(cloud.provider) > -1;
                 });
                 this.set('providers', volumeClouds);
                 this.set('hasCloudsWithVolumes', volumeClouds && volumeClouds.length > 0 ? true : false);
@@ -158,32 +158,48 @@
                 if (volumeFields.fields)
                     this.set('fields', volumeFields.fields);
 
-                // add locations fields
-                if (this.fieldIndexByName('region') > -1 || this.fieldIndexByName('availability_zone') > -1)
-                    var fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
-                    if (cloudName == "ec2")
-                        this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', this.model.clouds[selectedCloud].locationsArray);
-                    if (cloudName == "gce") {
-                        var regionsArr = [], regions = [];
-                        if (this.model.clouds[selectedCloud].locationsArray)
-                            this.model.clouds[selectedCloud].locationsArray.forEach(function(l){
-                                if (!regionsArr.includes(l.extra.region)) {
-                                    regionsArr.push(l.extra.region);
-                                    regions.push({name:l.extra.region, id:l.extra.region});
-                                }
-                            });
-                        this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', regions);
-                    }
+                // set values by provider
+                this._updateFields(selectedCloud);
+            },
+            _updateFields: function(selectedCloud) {
+                if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this
+                        .selectedCloud]) {
+                    var cloudId = this.selectedCloud;
+                    this.fields.forEach(function (f, index) {
+                        if (f.name.endsWith("location")) {
+                            var locations = this.model.clouds[cloudId].locationsArray.slice();
+                            if (locations.length == 1 && locations[0].name == '') {
+                                // If there's a single location preselct it and hide the field
+                                f.value = locations[0].id;
+                                f.show = false;
+                                locations = [];
+                            }
+                            f.options = locations;
+                        }
+
+                        if (f.name.endsWith("size")) {
+                            f.options = this.model.clouds[cloudId].sizesArray.sort(function(a,b){
+                                    if (a.cpus < b.cpus) {
+                                        return -1;
+                                    }
+                                    if (a.cpus > b.cpus) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                }) || [];
+                        }
+                    }.bind(this));
+                }
             },
             updatePayload: function () {
                 if (this.fields.length) {
                     var payload = {},
                         provider = this.model.clouds[this.selectedCloud].provider;
-                    payload['volume'] = {};
+                    payload= {};
                     // create volume
+                    payload.cloud = this.selectedCloud;
                     for (var i = 0; i < this.fields.length; i++) {
-                        if (this.fields[i].inPayloadGroup == "volume")
-                            payload.volume[this.fields[i].name] = this.fields[i].value;
+                        payload[this.fields[i].name] = this.fields[i].value;
                     }
                     this.set('form', payload);
                 }
