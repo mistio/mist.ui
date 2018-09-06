@@ -88,10 +88,10 @@
           <div hidden$="[[showCustomSizeForm]]">
             <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
               <template is="dom-repeat" items="[[plans]]" as="plan">
-                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan)]]">
+                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan, machine.size)]]">
                   [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
                   <br/>
-                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[displayPrice(plan)]]/hour</div>
+                  <div class='sup'>RAM [[displayNumber(plan.ram)]], Disk [[displayNumber(plan.disk)]], Price $[[displayPrice(plan)]]/hour</div>
                 </paper-radio-button>
               </template>
             </paper-radio-group>
@@ -290,6 +290,13 @@
       clearSelection: function(){
         this.set('selectedPlan', undefined);
         this.set('formReady', false);
+      },
+      displayNumber: function(n) {
+        if (!n) {
+          return n;
+        } else if (typeof(n) == 'number') {
+          return n.formatMoney(0,',','.');
+        }
       },
       displayPrice: function(plan){
         var price = plan.price || plan.extra.price;
