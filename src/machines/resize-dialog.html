@@ -88,10 +88,10 @@
           <div hidden$="[[showCustomSizeForm]]">
             <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
               <template is="dom-repeat" items="[[plans]]" as="plan">
-                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan.id)]]">
+                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan)]]">
                   [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
                   <br/>
-                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[displayPrice(plan.price)]]/hour</div>
+                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[displayPrice(plan)]]/hour</div>
                 </paper-radio-button>
               </template>
             </paper-radio-group>
@@ -242,6 +242,7 @@
           return ['onapp'].indexOf(this.machine.cloud.provider) > -1;
       },
       _updatePlans: function(machine, clouds){
+        console.log('update plans', clouds.path, clouds.path == 'clouds.'+this.machine.cloud.id+'.sizesArray');
         if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.'+this.machine.cloud.id+'.sizesArray')) {
             console.log('update plans', clouds.path);
             this.set('plans', this.clouds[this.machine.cloud.id].sizesArray);
@@ -283,22 +284,28 @@
         this.$.dialogModal.refit();
       },
       _resizeMachineRequest: function(e) {},
-      isCurrent: function(id){
-        return id == this.machine.size;
+      isCurrent: function(plan){
+        return plan.id == this.machine.size || plan.name == this.machine.size;
       },
       clearSelection: function(){
         this.set('selectedPlan', undefined);
         this.set('formReady', false);
       },
-      displayPrice: function(price){
-        if (typeof(price) == 'string')
+      displayPrice: function(plan){
+        var price = plan.price || plan.extra.price;
+        console.log('extra.price',price, plan.extra.price);
+        if (typeof(price) == 'string') {
           return price;
-        else if (typeof(price) == 'object' && this.machine.os_type == 'windows' && price.mswin)
+        } else if (typeof(price) == 'number'){
+          return price.formatMoney();
+        } else if (typeof(price) == 'object' && this.machine.os_type == 'windows' && price.mswin) {
           return price.mswin;
-        else if (price && typeof(price) == 'object' && price.linux) // && this.machine.os_type == 'unix' //show linux price for all other machines
+        } else if (price && typeof(price) == 'object' && price.linux){
+          // && this.machine.os_type == 'unix' //show linux price for all other machines
           return price.linux;
-        else
+        } else {
           return JSON.stringify(price);
+        }
       },
       hotkeys: function(e) {
         console.log('hotkeys',e);
