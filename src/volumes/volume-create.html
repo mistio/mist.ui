@@ -82,7 +82,7 @@
             <template is="dom-if" if="[[selectedCloud]]" restamp>
                 <paper-material>
                     <app-form id="volume_add" fields="{{fields}}" form="[[form]]" url="/api/v1/clouds/[[selectedCloud]]/volumes" on-response="_handleCreateVolumeResponse"
-                        on-error="_handleError" format-payload></app-form>
+                        on-error="_handleError"></app-form>
                 </paper-material>
             </template>
         </div>
@@ -131,9 +131,6 @@
                 '_cloudsChanged(model.clouds.*)',
                 '_cloudChanged(selectedCloud)'
             ],
-            listeners: {
-                'format-payload': 'updatePayload'
-            },
             _cloudsChanged: function (clouds) {
                 var volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
                     return ['openstack', 'gce', 'ec2', 'digitalocean', 'azure'].indexOf(cloud.provider) > -1;
@@ -180,31 +177,7 @@
                             }
                             f.options = locations;
                         }
-
-                        if (f.name.endsWith("size")) {
-                            f.options = this.model.clouds[cloudId].sizesArray.sort(function(a,b){
-                                    if (a.cpus < b.cpus) {
-                                        return -1;
-                                    }
-                                    if (a.cpus > b.cpus) {
-                                        return 1;
-                                    }
-                                    return 0;
-                                }) || [];
-                        }
                     }.bind(this));
-                }
-            },
-            updatePayload: function () {
-                if (this.fields.length) {
-                    var payload = {},
-                        provider = this.model.clouds[this.selectedCloud].provider;
-                    payload= {};
-                    // create volume
-                    for (var i = 0; i < this.fields.length; i++) {
-                        payload[this.fields[i].name] = this.fields[i].value;
-                    }
-                    this.set('form', payload);
                 }
             },
             fieldIndexByName: function (name) {
