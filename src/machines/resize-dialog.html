@@ -91,7 +91,7 @@
                 <paper-radio-button name="[[size.id]]" disabled$="[[isCurrent(size.id)]]">
                   [[size.name]] <span class='sup' hidden$="[[!isCurrent(size.id)]]">Current machine size</span>
                   <br/>
-                  <div class='sup'>RAM [[size.ram]], Disk [[size.disk]], Price $[[displayPrice(size.price)]]/hour</div>
+                  <div class='sup'>RAM [[size.ram]], Disk [[size.disk]], Price $[[displayPrice(size)]]/hour</div>
                 </paper-radio-button>
               </template>
             </paper-radio-group>
@@ -283,8 +283,8 @@
         this.$.dialogModal.refit();
       },
       _resizeMachineRequest: function(e) {},
-      isCurrent: function(plan){
-        return plan.id == this.machine.size || plan.name == this.machine.size;
+      isCurrent: function(size){
+        return size.id == this.machine.size || size.name == this.machine.size;
       },
       clearSelection: function(){
         this.set('selectedSize', undefined);
@@ -297,9 +297,9 @@
           return n.formatMoney(0,',','.');
         }
       },
-      displayPrice: function(plan){
-        var price = plan.price || plan.extra.price;
-        console.log('extra.price',price, plan.extra.price);
+      displayPrice: function(size){
+        var price = size.price || size.extra.price;
+        console.log('extra.price',price, size.extra.price);
         if (typeof(price) == 'string') {
           return price;
         } else if (typeof(price) == 'number'){
@@ -319,8 +319,7 @@
           //arrow up
           if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus+1, 1))}
           if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory+5, 256))}
-        }
-        else if (e.keyCode === 40) {
+        } else if (e.keyCode === 40) {
           //arrow down
           if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus-1, 1))}
           if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory-5, 256))}
