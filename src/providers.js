@@ -204,6 +204,42 @@ PROVIDERS.push({
     }]
 });
 
+// CLEARAPI
+PROVIDERS.push({
+    title: 'ClearAPI',
+    val: 'clearapi',
+    className: 'provider-clearapi',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "ClearAPI",
+        defaultValue: "ClearAPI",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "url",
+        label: "Url *",
+        type: "text",
+        value: "ClearAPI",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter url"
+    }, {
+        name: "api_key",
+        label: "API key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API key",
+        helptext: ""
+    }]
+});
+
 // DIGITALOCEAN
 PROVIDERS.push({
     title: 'Digital Ocean',
