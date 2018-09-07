@@ -88,10 +88,10 @@
           <div hidden$="[[showCustomSizeForm]]">
             <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
               <template is="dom-repeat" items="[[plans]]" as="plan">
-                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan)]]">
+                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan, machine.size)]]">
                   [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
                   <br/>
-                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[displayPrice(plan)]]/hour</div>
+                  <div class='sup'>RAM [[displayNumber(plan.ram)]], Disk [[displayNumber(plan.disk)]], Price $[[displayPrice(plan)]]/hour</div>
                 </paper-radio-button>
               </template>
             </paper-radio-group>
@@ -102,7 +102,6 @@
         <div class="progress">
             <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
             <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-            <hr class="appform"/>
             <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
         </div>
         <div class="btn-group">
@@ -246,6 +245,7 @@
         if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.'+this.machine.cloud.id+'.sizesArray')) {
             console.log('update plans', clouds.path);
             this.set('plans', this.clouds[this.machine.cloud.id].sizesArray);
+            this.$.dialogModal.refit();
         }
       },
       _selectedPlanChanged: function(){
@@ -290,6 +290,13 @@
       clearSelection: function(){
         this.set('selectedPlan', undefined);
         this.set('formReady', false);
+      },
+      displayNumber: function(n) {
+        if (!n) {
+          return n;
+        } else if (typeof(n) == 'number') {
+          return n.formatMoney(0,',','.');
+        }
       },
       displayPrice: function(plan){
         var price = plan.price || plan.extra.price;
