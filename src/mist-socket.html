@@ -570,19 +570,22 @@
                     }
 
                     // remove disassociated keys from machines
-                    this.model.machinesArray.forEach(function (m, index) {
-                        var associationIndexMachine, associationIndexKey;
-                        associationIndexMachine = m.key_associations.findIndex(function (k) {
+                    var machine_ids = [];
+                    if (this.model && this.model.machines)
+                        machine_ids = Object.keys(this.model.machines);
+                    machine_ids.forEach(function (m, index) {
+                        var associationIndexMachine, associationIndexKey, machine = _this.model.machines[m];
+                        associationIndexMachine = machine.key_associations.findIndex(function (k) {
                             return k.keypair == key.id;
                         });
                         if (associationIndexMachine > -1) {
                             associationIndexKey = key.machines.findIndex(function (ka) {
-                                return ka[0] == m.cloud.id && ka[1] == m.machine_id && ka[3] ==
-                                    m.key_associations[associationIndexMachine].ssh_user &&
-                                    ka[5] == m.key_associations[associationIndexMachine].port;
+                                return ka[0] == machine.cloud && ka[1] == machine.machine_id && ka[3] ==
+                                    machine.key_associations[associationIndexMachine].ssh_user &&
+                                    ka[5] == machine.key_associations[associationIndexMachine].port;
                             });
                             if (associationIndexKey == -1) {
-                                _this.model.machines[m.id].key_associations.splice(
+                                _this.model.machines[m].key_associations.splice(
                                     associationIndexMachine, 1);
                             }
                         }
