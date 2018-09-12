@@ -217,11 +217,16 @@
         }
       },
       handleResponse: function (e) {
-        if (this.$.request && this.$.request.body && this.$.request.body.action)
+        // console.log('on-response', e, this.$.request, this.$.request.body)
+        if (this.$.request && this.$.request.body && this.$.request.body.action) {
           this.fire('toast', {
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
           })
+        }
+        if (e.target && e.target.__data__ && e.target.__data__.method == "DELETE") {
+          this.fire('go-to', {url:'/volumes'});
+        }
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
           this.fire('action-finished');
