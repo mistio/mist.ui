@@ -127,7 +127,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         name: 'size',
         label: 'Size in GB *',
         type: 'number',
-        pattern: '[1-9]\d*',
+        min: 1,
         value: '1',
         defaultValue: '1',
         suffix: ' GB',
