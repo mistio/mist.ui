@@ -82,18 +82,32 @@ VOLUME_CREATE_FIELDS.push({
             title: 'standard',
             val: 'standard',
         }, {
-            title: 'io1',
-            val: 'io1'
-        }, {
-            title: 'gp2',
+            title: 'General Purpose SSD (gp2)',
             val: 'gp2'
         }, {
-            title: 'sc1', 
-            val: 'sc1'
+            title: 'Provisioned IOPS SSD (io1)',
+            val: 'io1'
         }, {
-            title: 'st1',
+            title: 'Throughput Optimized HDD (st1)',
             val: 'st1'
+        }, {
+            title: 'Cold HDD (sc1)',
+            val: 'sc1'
         }]
+    }, {
+        name: "ex_iops",
+        label: "Number of I/O operations per second",
+        type: 'number',
+        value: "",
+        defaultValue: "",
+        required: false,
+        show: true,
+        errorMessage: "Please enter volume's iops",
+        helptext: "Maximum ratio is 50 IOPS/GiB. Range is 100 to 32000 IOPS for volumes in most regions",
+        showIf: {
+            fieldName: 'ex_volume_type',
+            fieldValues: ['io1'],
+        }
     }]
 });
 
