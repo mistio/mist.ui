@@ -46,13 +46,15 @@
         'name': 'attach',
         'icon': 'av:album',
         'confirm': false,
-        'multi': false
+        'multi': false,
+        'single': true
       },
       'detach': {
         'name': 'detach',
         'icon': 'icons:eject',
         'confirm': false,
-        'multi': false
+        'multi': false,
+        'single': true
       },
       'delete': {
         'name': 'delete',
@@ -86,6 +88,10 @@
           type: String,
           value: 'volume'
         },
+        inSingleView: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
         members: Array,
         user: String,
         org: Object
@@ -108,12 +114,15 @@
         if (volume) {
           arr.push('tag');
           // TODO: add 'digitalocean' 'azure' when backend ready
-          if (['gce','openstack','ec2'].indexOf(volume.provider) > -1) { 
+          if (this.inSingleView && ['gce','openstack','ec2'].indexOf(volume.provider) > -1) {
             if (volume.provider == "digitalocean" || volume.attached_to.length == 0 ) {
               arr.push('attach');
             } else if (volume.attached_to.length) {
               arr.push('detach');
             }
+          }
+          if (!volume.attached_to || !volume.attached_to.length) {
+            arr.push('delete');
           }
           if (this.org.ownership_enabled && (volume.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
