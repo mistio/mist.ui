@@ -23,6 +23,40 @@
         .grey {
             opacity: 0.54;
         }
+        .progress {
+            margin: 24px -24px 24px -24px;
+            width: 100%;
+        }
+
+        .progress paper-progress {
+            width: 100%;
+        }
+
+        paper-progress.progresserror ::content #primaryProgress {
+            background-color: var(--red-color);
+        }
+
+        .error {
+            color: var(--red-color);
+            align-self: flex-end;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+
+        iron-icon {
+            color: inherit;
+        }
+
+        .errormsg-container {
+            color: var(--red-color);
+            padding-left: 24px;
+            padding-right: 24px;
+            margin-bottom: 0;
+        }
+
+        .errormsg-container iron-icon {
+            color: inherit;
+        }
         :host paper-dropdown-menu ::content .dropdown-content {
             top: 55px !important;
         }
@@ -41,17 +75,22 @@
                     </paper-dropdown-menu>
                 </p>
             </paper-dialog-scrollable>
+            <div class="progress">
+                <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
+                <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+            </div>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>
                     Cancel
                 </paper-button>
-                <paper-button class="blue" on-tap="detachVolume" dialog-confirm disabled$="[[!selectedMachineId]]">
+                <paper-button class="blue" on-tap="detachVolume" disabled$="[[!selectedMachineId]]">
                     Detach from machine
                 </paper-button>
             </div>
         </paper-dialog>
 
-        <iron-ajax id="detachVolumeRequest" method="DELETE" on-response="_detachVolumeResponse" on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="detachVolumeRequest" method="DELETE" on-response="_detachVolumeResponse" on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
 
     </template>
 </dom-module>
@@ -71,6 +110,14 @@ Polymer({
         machines: {
             type: Array,
             value: []
+        },
+        loading: {
+            type: Boolean,
+            value: false
+        },
+        formError: {
+            type: Boolean,
+            value: false
         }
     },
     listeners: {
@@ -83,9 +130,11 @@ Polymer({
     },
     _openDialog: function(e) {
         this.set('selectedMachineId', false);
+        this.set('formError', false);
         this.$.detachDialogModal.open();
     },
     _closeDialog: function(e) {
+        this.set('formError', false);
         this.$.detachDialogModal.close();
     },
     detachVolume: function(e){
@@ -117,18 +166,25 @@ Polymer({
         run(this); 
     },
     _detachVolumeRequest: function() {
+        this.clearError();
         var logMessage = 'Sending request to detach volume on machine.';
         this.fire('performing-action', {log: logMessage});
     },
     _detachVolumeResponse: function(e){
         console.log(e, e.detail);
+        this._closeDialog();
         this.fire('action-finished', {success: true});
         this.fire('toast', {msg: 'Detach request sent successfully. Review in machine logs.', duration: 5000});        
     },
     _detachVolumeError: function(e){
         console.log(e, e.detail);
-        this.fire('action-finished', {success: false});
-        this.fire('toast', {msg: e.detail.request.xhr.response, duration: 5000});
-    }
+        this.$.errormsg.textContent = e.detail.request.xhr.response;
+        this.set('formError', true);
+    },
+    clearError: function(){
+        this.set('formError', false);
+        this.$.errormsg.textContent = '';
+        this.$.detachDialogModal.refit();
+      },
 });
 </script>
