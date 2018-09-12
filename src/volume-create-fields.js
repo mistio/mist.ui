@@ -100,7 +100,7 @@ VOLUME_CREATE_FIELDS.push({
         type: 'number',
         value: "",
         defaultValue: "",
-        required: false,
+        required: true,
         show: true,
         errorMessage: "Please enter volume's iops",
         helptext: "Maximum ratio is 50 IOPS/GiB. Range is 100 to 32000 IOPS for volumes in most regions",
