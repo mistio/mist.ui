@@ -279,7 +279,14 @@
             },
             _computedMachinesVolumeCanAttachTo: function(provide, machines) {
                 if (this.volume) {
-                    return this.model.clouds[this.volume.cloud].machinesArray;
+                    if (this.volume.provider != 'gce') {
+                        return this.model.clouds[this.volume.cloud].machinesArray;
+                    } else {
+                        return this.model.clouds[this.volume.cloud].machinesArray.filter(function(m){
+                            console.log('m.location', m.location,  this.volume.location);
+                            return this.model.clouds[this.volume.cloud].locations[m.location].name == this.volume.location
+                        }.bind(this));
+                    }
                 }
             },
             _computedMachinesVolumeIsAttachedTo: function(volume_machines_ids, machines){
