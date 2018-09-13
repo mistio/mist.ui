@@ -248,9 +248,9 @@
         </div>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" items="[[model.machinesArray]]"
+            <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" item-map="[[model.machines]]"
                 name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers()]]
                 route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]" user="[[model.user]]" org="[[model.org]]"></machine-actions>
@@ -264,7 +264,7 @@
         <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]
             docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-            <machine-page model="[[model]]" machine="[[_getMachine(data.machine,model.machines)]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]"
+            <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]"
                 hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
         </template>
         <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
@@ -324,6 +324,10 @@
                 sorters: {
                     type: Array,
                     value: function() { return [['state', 'asc']]; }
+                },
+                currentMachine: {
+                    type: Object,
+                    computed: '_getMachine(data.machine, model.machines, model.machines.*)'
                 }
             },
             listeners: {
@@ -479,7 +483,7 @@
                 return ret;
             },
 
-            _getRenderers: function (machines, clouds, incidents) {
+            _getRenderers: function () {
                 var _this = this;
                 return {
                     'indicator': {
@@ -504,7 +508,9 @@
                     },
                     'icon': {
                         'body': function (item, row) {
-                            return './assets/providers/provider-' + row.cloud.provider.replace("_", "")
+                            if (!_this.model.clouds[row.cloud])
+                                return '';
+                            return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
                                 .replace(" ", "") + '.png';
                         }
                     },
@@ -768,7 +774,7 @@
 
             _machineHasIncidents: function (machine, incidents) {
                 var machineIncidents = incidents ? incidents.filter(function (inc) {
-                    return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud.id && !inc.finished_at
+                    return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud && !inc.finished_at
                 }) : [];
                 return machineIncidents ? machineIncidents.length * 1000 : 0;
             },

@@ -379,7 +379,7 @@
 
                 <template is="dom-if" if="[[filteredItems]]" restamp>
                     <mist-list id="machinesList"
-                        selectable column-menu multi-sort
+                        selectable
                         items="[[filteredItems]]"
                         name="Machines"
                         selected-items="{{selectedItems}}"
@@ -387,7 +387,7 @@
                         apiurl="/api/v1/machines"
                         frozen=[[_getFrozenLogColumn()]]
                         visible=[[_getVisibleColumns()]]
-                        renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                        renderers=[[_getRenderers(model.machines.*,model.cloudsArray.*,model.incidentsArray.*)]]
                         route={{route}}
                         primary-field-name="id" hidden$="[[!filteredItems]]">
                         <mist-actions slot="action-buttons" actions="{{machineActions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
@@ -540,7 +540,7 @@
             },
             observers: [
                 '_scheduleChanged(schedule)',
-                '_computeMachines(schedule.*, model.machinesArray)'
+                '_computeMachines(schedule.*, model.machines)'
             ],
             listeners: {
                 'confirmation': '_actionConfirmed',
@@ -743,7 +743,7 @@
             _computeMachines: function(schedule, machines) {
                 var filteredMachines = [],
                     missingMachines = [];
-                filteredMachines = this.model.machinesArray.filter(function(m){
+                filteredMachines = Object.values(this.model.machines).filter(function(m){
                     return this.condition(m);
                 }, this);
 

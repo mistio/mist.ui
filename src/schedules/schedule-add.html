@@ -462,7 +462,7 @@
                 },
                 actions: {
                     type: Array,
-                    computed: "_computeActions(model.machinesArray)"
+                    computed: "_computeActions(model.machines)"
                 },
                 docs: {
                     type: String,
@@ -483,7 +483,7 @@
                     }
                 }
             },
-            _computeActions: function (machinesArray) {
+            _computeActions: function (machines) {
                 var ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; //'suspend', 'resume',
 
                 var actions = [];
@@ -499,20 +499,23 @@
 
                 return actions;
             },
-            _atLeastOne: function (action) {
-                return this.model.machinesArray.find(function (m) {
-                    return m[action];
-                });
-            },
             _updateFields: function (fields, model) {
                 if (this.model && this.fields) {
+                    var _this = this;
                     this.fields.forEach(function (f, index) {
                         if (f.name == "script_id") {
                             f.options = this.model.scriptsArray || [];
                         }
 
                         if (f.name == "machines_uuids") {
-                            f.options = this.model.machinesArray || [];
+                            f.options = this.model && this.model.machines && Object.keys(this.model.machines).map(function(m) {
+                                var machine = _this.model.machines[m];
+                                return {
+                                    id: m,
+                                    name: machine.name,
+                                    img: 'assets/providers/provider-' + _this.model.clouds[machine.cloud].provider.replace('_', '') + '.png'
+                                }
+                            }) || [];
                             this._updateCheckboxes();
                         }
 

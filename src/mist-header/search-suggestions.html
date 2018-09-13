@@ -83,15 +83,15 @@
                     <a class="more" on-tap="goDashboard" href="/dashboard">view dashboard</a>
                 </ul>
             </div>
-            <div class="section xs6" hidden$="[[!results.machinesArray.length]]">
+            <div class="section xs6" hidden$="[[!results.machines.length]]">
                 <h2>Machines</h2>
                 <ul>
-                    <template is="dom-repeat" items="[[results.machinesArray]]">
+                    <template is="dom-repeat" items="[[results.machines]]">
                         <li class="truncate">
                             <iron-icon icon="hardware:computer"></iron-icon>
                             <a href="/machines/[[item.id]]" on-tap="closeSuggestions">[[item.name]]</a></li>
                     </template>
-                    <a class="more" on-tap="goToResultsList" href="/machines">view all [[results.machinesArrayFullLength]] results</a>
+                    <a class="more" on-tap="goToResultsList" href="/machines">view all [[results.machinesFullLength]] results</a>
                 </ul>
             </div>
             <div class="section xs6" hidden$="[[!results.imagesArray.length]]">
@@ -251,12 +251,17 @@
 
         queryChanged: function(query) {
             if (this.query && this.query.length > 2) {
-                var results = {};
+                var results = {}, result;
                 for (var prop in this.model) {
                     if (prop.endsWith('Array') && this.model[prop].constructor === Array) {
-                        results[prop + 'FullLength'] = this.filterItems(this.model[prop]).length;
-                        results[prop] = this.filterItems(this.model[prop]).splice(0, 3);
+                        result = this.filterItems(this.model[prop]);
+                    } else if (prop == 'machines') {
+                        result = this.filterItems(Object.values(this.model[prop]));
+                    } else {
+                        continue;
                     }
+                    results[prop + 'FullLength'] = result.length;
+                    results[prop] = result.splice(0, 3);
                 }
                 this.set('results', results);
                 if (!this.hide)
