@@ -753,7 +753,7 @@
                     </table>
                 </div>
             </paper-material>
-            <paper-material class="info-card" hidden$=[[!_hasExtra(machine)]]>
+            <paper-material class="info-card" hidden$=[[!_hasPowerInfo(machine)]]>
                 <h2 class="machine-page-head">Power Info</h2>
                 <div class="card-content">
                     <element-for-in content="[[machine.extra.power_supply_info.Status]]"></element-for-in>
@@ -769,7 +769,7 @@
             </paper-material>
             <paper-material class="machine-logs" hidden$=[[!count]]>
                 <template is="dom-if" if=[[machine.machine_id]] restamp>
-                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide apiurl="/api/v1/logs"
+                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1/logs"
                         name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]]
                         primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
                 </template>
@@ -1550,6 +1550,12 @@
             if (this.machine && this.machine.extra)
                 return Object.keys(this.machine.extra).length
             return false
+        },
+
+        _hasPowerInfo: function (machine) {
+            return this._hasExtra(machine) && (
+                this.machine.extra.power_control_info ||
+                this.machine.extra.power_supply_info);
         },
 
         _filterMachinesIncidents: function (incarray) {
