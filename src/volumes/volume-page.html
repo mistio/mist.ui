@@ -256,7 +256,7 @@
                 },
                 machinesVolumeCanAttachTo: {
                     type: Array,
-                    computed: '_computedMachinesVolumeCanAttachTo(volume.provider, model.machinesArray)'
+                    computed: '_computedMachinesVolumeCanAttachTo(volume.provider, model.machines)'
                 },
                 itemArray: Array
             },
@@ -277,10 +277,11 @@
             },
             _computedMachinesVolumeCanAttachTo: function(provide, machines) {
                 if (this.volume) {
+                    var machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
                     if (['gce','ec2'].indexOf(this.volume.provider) == -1) {
-                        return this.model.clouds[this.volume.cloud].machinesArray;
+                        return machinesArray;
                     } else {
-                        return this.model.clouds[this.volume.cloud].machinesArray.filter(function(m){
+                        return machinesArray.filter(function(m){
                             return this.model.clouds[this.volume.cloud].locations[m.location].name == this.volume.location
                         }.bind(this));
                     }
@@ -313,7 +314,9 @@
             _computeIsloading: function (volume) {
                 return !this.volume ? true : false;
             },
-
+            _toArray: function (x, z) {
+                return Object.keys(x).map(y => x[y])
+            },
         });
     </script>
 </dom-module>
