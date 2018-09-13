@@ -3,8 +3,6 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
-<link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 <link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
@@ -186,19 +184,6 @@
                 color: rgba(255,255,255,0.54);
                 border-top: 1px solid #555;
             }
-            paper-date-picker::content #heading,
-            paper-time-picker::content #heading {
-                background-color: #424242;
-            }
-            paper-date-picker ::content .day-item.selected.paper-calendar {
-                background: var(--mist-blue) !important;
-            }
-            paper-time-picker ::content .line.paper-clock-selector {
-                stroke: var(--mist-blue) !important;
-            }
-            paper-time-picker ::content .disc-large.paper-clock-selector {
-                fill: var(--mist-blue) !important;
-            }
             paper-dialog > * {
                 margin: 0 !important;
                 padding: 0 !important;
@@ -355,12 +340,14 @@
                     <span class="m-info-head">Starts:</span>
                     <span hidden$="[[!schedule.start_after]]">[[_computeAbsoluteDateText(schedule.start_after)]]</span>
                     <span hidden$="[[schedule.start_after.length]]">Now</span>
-                    <paper-button id="editStart" on-tap="_selectDate" data-field="start_after" class="simple-button blue-link smaller" noink disabled$=f"[[hasExpired]]">change</paper-button>
+                    <paper-button id="editStart" on-tap="_selectDate" data-field="start_after" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
+                    <paper-input id="datetimeStarts" type="datetime-local" value="{{datetimeStarts}}"></paper-input>
                 </div>
                 <div><span class="m-info-head">Expires:</span>
                     <span hidden$="[[schedule.expires.length]]">Never</span>
                     <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
                     <paper-button id="editExpiration" on-tap="_selectDate" data-field="expires" class="simple-button blue-link smaller" noink>change</paper-button>
+                    <paper-input id="datetimeExpires" type="datetime-local" value="{{datetimeExpires}}"></paper-input>
                 </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
@@ -412,25 +399,6 @@
             </paper-material>
         </div>
         <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
-        <paper-dialog id="dateTimePickers" exit-animation="fade-out-animation" with-backdrop>
-            <div class="pickers">
-                <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
-                <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
-                <div class="never-expire">
-                    <paper-checkbox checked="{{neverExpire}}">Clear</paper-checkbox>
-                </div>
-            </div>
-            <div class="progress">
-                <paper-progress id="progress" indeterminate active="{{expLoading}}" hidden$="[[!expLoading]]"></paper-progress>
-                <paper-progress id="progresserror" value="100" hidden$="[[!expError]]"></paper-progress>
-                <p class="errormsg-container" hidden$="[[!expError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-            </div>
-            <div class="bottom-actions">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button id="dateTimePickersApplyButton" class="blue" on-tap="_applyDateTime">Apply</paper-button>
-            </div>
-        </paper-dialog>
-
         <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
         <schedule-edit-mrc id="editMaxRunCount" schedule="[[schedule]]"></schedule-edit-mrc>
         <schedule-edit-task id="editScheduleTask" schedule="[[schedule]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
@@ -581,7 +549,6 @@
             },
             attached: function() {
                 this.isLoading = false;
-                this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
             },
             _displayUser: function (id, members) {
                 return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
@@ -874,53 +841,6 @@
             },
             _computeAbsoluteDateText: function(time) {
                 return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
-            },
-            _selectDate: function(e) {
-                var field = e.target.dataset.field;
-                console.log('selectDate',e, e.target.dataset.field);
-
-                if (field) {
-                    if (moment(this.schedule[field]).isValid()){
-                        this.$.pickDate.date = moment.utc(this.schedule[field]).local().toDate();
-                        this.$.pickTime.time = moment.utc(this.schedule[field]).local().format('hh:mm a').toString();
-                    }
-                    else {
-                        this.$.pickDate.date = new Date();
-                        this.$.pickTime.time = moment().format('hh:mm a').toString();
-                    }
-                    this.expError = false;
-                    this.$.dateTimePickersApplyButton.setAttribute('data-field', field);
-                    this.$.dateTimePickers.open();
-                }
-            },
-            _applyDateTime: function(e) {
-                var payload = {};
-                var field = e.target.dataset.field;
-                if (field){
-                    if (!this.neverExpire){
-                        var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
-                        var combinedDate = date +" "+ moment(this.$.pickTime.time, 'hh:mm:ss A').format("HH:mm:ss")
-                        payload[field] = moment(combinedDate).utc().format('YYYY-MM-DD HH:mm:ss').toString()
-                    }
-                    else {
-                        payload[field] = "";
-                    }
-                    // we need to reset start if hasExpired and expires if start has passed
-                    if (this.hasExpired) {
-                        if (field == "start_after") {
-                            payload.expires = "";
-                        }
-                        else if (field == "expires" && (moment().diff(moment.utc(this.schedule.start_after).local()) > 0 || this.schedule.start_after == "")) {
-                            payload.start_after = "";
-                        }
-                    }
-                    this.$.editExpirationSchedule.body = payload;
-                    this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
-                    this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.editExpirationSchedule.generateRequest();
-
-                    this.expError = false;
-                }
             },
             _handleScheduleEditExpirationResponse: function() {
                 var message = 'Updating date...';
