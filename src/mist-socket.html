@@ -309,47 +309,55 @@
         _patchModel: function (patch) {
             console.debug('patch_model', patch);
             var _this = this;
-            patch.forEach(function (operation) {
-                // apply patch to the model
-                jsonpatch.applyOperation(_this.model, operation, true);
 
-                // let's also update the machinesArray if necessary 
-                var cloud_id, machine_id, resource_id;
-                if (operation.path.indexOf('/clouds/') > -1) {
+            patch.forEach(function (operation) {
+                // let's figure out which cloud the patch applies to
+                var cloud_id, machine_id, resource_id, property_path;
+                if (operation.path.search('/clouds/') > -1) {
                     path = operation.path.split('/clouds/')[1].split('/');
                     cloud_id = path[0];
                 }
                 if (cloud_id && operation.path && operation.path.split('/machines/')[1]) {
                     path = operation.path.split('/machines/')[1].split('/');
-                    machine_id = path[0];
+                    machine_external_id = path[0];
+                    property_path = operation.path.split(machine_external_id)[1].replace(/\//g, '.');
                 }
-                if (machine_id && path.length == 1) {
-                    if (operation.op == 'remove') {
-                        console.log('remove', operation.path);
-                        var i = _this.model.clouds[cloud_id].machinesArray.findIndex(
-                            function (item) {
-                                return item.machine_id == machine_id
-                            }
-                        );
-                        _this.model.clouds[cloud_id].machinesArray.splice(i, 1);
+
+                var old_cloud_machine_external_ids = Object.keys(_this.model.clouds[cloud_id].machines || {}),
+                    old_cloud_machine_ids = old_cloud_machine_external_ids.map(i => _this.model.clouds[cloud_id].machines[i].id);
+
+                // apply patch to the model
+                jsonpatch.applyOperation(_this.model, operation, true);
+
+                var new_cloud_machines = _this.model.clouds[cloud_id].machines,
+                    new_cloud_machine_external_ids = Object.keys(new_cloud_machines),
+                    new_cloud_machine_ids = new_cloud_machine_external_ids.map(i => new_cloud_machines[i].id);
+
+                // Cleanup deleted machine refs
+                for (var i=0; i < old_cloud_machine_ids.length; i++) {
+                    if (new_cloud_machines[old_cloud_machine_external_ids[i]] == undefined
+                        && _this.model.machines[old_cloud_machine_ids[i]] != undefined) {
+                        delete _this.model.machines[old_cloud_machine_ids[i]];
+                        _this.notifyPath('model.machines.' + old_cloud_machine_ids[i]);
+                        //_this.notifyPath('model.machines');
                     }
-                    if (operation.op == 'add') {
-                        console.log('add', operation.path);
-                        _this.model.clouds[cloud_id].machinesArray.push(_this.model.clouds[cloud_id]
-                            .machines[machine_id])
+                }
+
+                // Link paths of new machines for easy global lookup
+                for (var i=0; i < new_cloud_machine_ids.length; i++) {
+                    if (_this.model.machines[new_cloud_machine_ids[i]] == undefined) {
+                        _this.set('model.machines.' + new_cloud_machine_ids[i], _this.model.clouds[cloud_id].machines[new_cloud_machine_external_ids[i]]);
+                        _this.linkPaths('model.machines.' + new_cloud_machine_ids[i], 'model.clouds.' + cloud_id + '.machines.' + new_cloud_machine_external_ids[i]);
                     }
-                    // not sure if this is necessary
-                    if (operation.op == 'replace') {
-                        _this.set('model' + operation.path.replace(/\//g, "."), operation.value);
-                    }
+                }
+
+                //_this.notifyPath('model.machines.' + _this.model.clouds[cloud_id].machines[machine_external_id].id);
+                //console.log('notifyPath ' + 'model' + operation.path.replace(/\//g, '.'));
+                if (property_path) {
+                    _this.notifyPath('model.machines.' + _this.model.clouds[cloud_id].machines[machine_external_id].id + property_path);
                 }
             });
-            this.debounce('updateAllMachines', function () {
-                var _this = this;
-                requestIdleCallback(function () {
-                    _this._updateAllMachines();
-                });
-            }, 500);
+            this.set('model.sections.machines.count', Object.keys(this.model.machines).length);
         },
 
         _updateModel: function (section, data, primaryField) {
@@ -421,13 +429,7 @@
                 this.set('model.' + section + 'Array', data);
 
                 // update section count, necessary for propagating changes to sidebar & dashboard counters
-                var i = this.model.sectionsArray.findIndex(function (i) {
-                    return i.id == section
-                });
-                if (i != -1) {
-                    this.set('model.sectionsArray.' + i + '.count', data.length || 0);
-                    this.set('model.sections.' + section + '.count', data.length || 0);
-                }
+                this.set('model.sections.' + section + '.count', data.length || 0);
             } else {
                 if (DEBUG_SOCKET)
                     console.debug('no need to update', section);
@@ -571,19 +573,22 @@
                     }
 
                     // remove disassociated keys from machines
-                    this.model.machinesArray.forEach(function (m, index) {
-                        var associationIndexMachine, associationIndexKey;
-                        associationIndexMachine = m.key_associations.findIndex(function (k) {
+                    var machine_ids = [];
+                    if (this.model && this.model.machines)
+                        machine_ids = Object.keys(this.model.machines);
+                    machine_ids.forEach(function (m, index) {
+                        var associationIndexMachine, associationIndexKey, machine = _this.model.machines[m];
+                        associationIndexMachine = machine.key_associations.findIndex(function (k) {
                             return k.keypair == key.id;
                         });
                         if (associationIndexMachine > -1) {
                             associationIndexKey = key.machines.findIndex(function (ka) {
-                                return ka[0] == m.cloud.id && ka[1] == m.machine_id && ka[3] ==
-                                    m.key_associations[associationIndexMachine].ssh_user &&
-                                    ka[5] == m.key_associations[associationIndexMachine].port;
+                                return ka[0] == machine.cloud && ka[1] == machine.machine_id && ka[3] ==
+                                    machine.key_associations[associationIndexMachine].ssh_user &&
+                                    ka[5] == machine.key_associations[associationIndexMachine].port;
                             });
                             if (associationIndexKey == -1) {
-                                _this.model.machines[m.id].key_associations.splice(
+                                _this.model.machines[m].key_associations.splice(
                                     associationIndexMachine, 1);
                             }
                         }
@@ -664,63 +669,33 @@
             this.set('model.imagesArray', allImages);
             this.set('model.images', _generateMap(allImages));
             // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function (i) {
-                return i.id == 'images'
-            });
-            if (i != -1) {
-                this.set('model.sectionsArray.' + i + '.count', allImages.length);
-                this.set('model.sections.images.count', allImages.length);
-            }
+            this.set('model.sections.images.count', allImages.length);
         },
 
         _updateMachines: function (data) {
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.machines', data.machines,
-                'machine_id');
-            // console.log('machines',data.machines);
-            if (!changed)
-                return false;
-            this.debounce('updateAllMachines', function () {
-                this._updateAllMachines();
-            }, 300);
-        },
+            if (this.model.clouds[data.cloud_id].machines == undefined)
+                this.model.clouds[data.cloud_id].machines = {};
+            var old_cloud_machine_external_ids = Object.keys(this.model.clouds[data.cloud_id].machines),
+                old_cloud_machine_ids = old_cloud_machine_external_ids.map(i => this.model.clouds[data.cloud_id].machines[i].id),
+                new_cloud_machines = data.machines.reduce((map, obj) => (map[obj.machine_id] = obj, map), {}),
+                new_cloud_machine_external_ids = Object.keys(new_cloud_machines),
+                new_cloud_machine_ids = new_cloud_machine_external_ids.map(i => new_cloud_machines[i].id); 
 
-        _updateAllMachines: function () {
-            var allMachines = [];
-            if (this.model != undefined && this.model.cloudsArray.length > 0) {
-                this.model.cloudsArray.forEach(
-                    function (cloud) {
-                        if (cloud.machinesArray != undefined && cloud.enabled) {
-                            cloud.machinesArray.forEach(function (machine) {
-                                machine.cloud = {
-                                    'id': cloud.id,
-                                    'title': cloud.title,
-                                    'provider': cloud.provider
-                                };
-                                // machine.keys = this._machineKeys(machine.machine_id, machine.cloud.id) || [];
-                                machine.rules = this._machineRules(machine.machine_id, machine.cloud
-                                    .id);
-                            }, this);
+            this.set('model.clouds.' + data.cloud_id + '.machines', new_cloud_machines);
 
-                            return allMachines = allMachines.concat(cloud.machinesArray != undefined ?
-                                cloud.machinesArray : [])
-                        }
-                    }, this);
+            for (var i=0; i<old_cloud_machine_ids.length; i++) {
+                if (old_cloud_machine_ids[i].indexOf(new_cloud_machine_ids) == -1) {
+                    delete this.model.machines[old_cloud_machine_ids[i]];
+                }
             }
 
-            if (allMachines.length && this.get('model.onboarding.hasMachines') != true)
-                this.set('model.onboarding.hasMachines', true);
-
-            this.set('model.onboarding.isLoadingMachines', false);
-            this.set('model.machinesArray', allMachines);
-            this.set('model.machines', _generateMap(allMachines));
-            // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function (i) {
-                return i.id == 'machines'
-            });
-            if (i != -1) {
-                this.set('model.sectionsArray.' + i + '.count', allMachines.length);
-                this.set('model.sections.machines.count', allMachines.length);
+            for (var i=0; i < new_cloud_machine_ids.length; i++) {
+                if (this.model.machines[new_cloud_machine_ids[i]] == undefined) {
+                    this.set('model.machines.' + new_cloud_machine_ids[i], this.model.clouds[data.cloud_id].machines[new_cloud_machine_external_ids[i]]);
+                    this.linkPaths('model.machines.' + new_cloud_machine_ids[i], 'this.model.clouds.' + data.cloud_id + '.machines.' + new_cloud_machine_external_ids[i]);
+                }
             }
+            this.set('model.sections.machines.count', Object.keys(this.model.machines).length);
         },
 
         _updateVolumes: function (data) {
@@ -825,13 +800,7 @@
             this.set('model.networksArray', allNetworks);
             this.set('model.networks', _generateMap(allNetworks));
             // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function (i) {
-                return i.id == 'networks'
-            });
-            if (i != -1) {
-                this.set('model.sectionsArray.' + i + '.count', allNetworks.length);
-                this.set('model.sections.networks.count', allNetworks.length);
-            }
+            this.set('model.sections.networks.count', allNetworks.length);
         },
 
         _updateZones: function (data) {
@@ -940,13 +909,7 @@
             this.set('model.zones', _generateMap(allZones));
             this.set('model.records', _generateMap(allRecords));
             // update section count, necessary for propagating changes to sidebar & dashboard counters
-            var i = this.model.sectionsArray.findIndex(function (i) {
-                return i.id == 'zones'
-            });
-            if (i != -1) {
-                this.set('model.sectionsArray.' + i + '.count', allZones.length);
-                this.set('model.sections.zones.count', allZones.length);
-            }
+            this.set('model.sections.zones.count', allZones.length);
         },
 
         _updateTunnels: function (data) {
@@ -1105,29 +1068,33 @@
             }
         },
 
-        cleanUpResources: function (id) {
-            var newMachinesArray = [],
-                newImagesArray = [],
+        cleanUpResources: function (cloud_id) {
+            var newImagesArray = [],
                 newNetworksArray = [],
                 newVolumesArray = [];
-            if (id) {
-                // machines
-                newMachinesArray = this.model.machinesArray.filter(function (m) {
-                    return m.cloud && m.cloud.id != id;
-                });
-
+                _this = this;
+            if (cloud_id) {
                 // images
                 newImagesArray = this.model.imagesArray.filter(function (im) {
-                    return im.cloud && im.cloud.id != id;
+                    return im.cloud && im.cloud.id != cloud_id;
                 });
 
                 // networks
                 newNetworksArray = this.model.networksArray.filter(function (n) {
-                    return n.cloud_id != id;
+                    return n.cloud_id != cloud_id;
                 });
             }
-            this.set('model.machinesArray', newMachinesArray);
-            this.set('model.machines', _generateMap(newMachinesArray));
+
+            // machines
+            Object.keys(this.model.machines).forEach(function(machine_id) {
+                var machine = _this.model.machines[machine_id];
+                if (!cloud_id || machine.cloud == cloud_id) {
+                    if (_this.model.clouds[machine.cloud] && _this.model.clouds[machine.cloud].machines && _this.model.clouds[machine.cloud].machines[machine.machine_id])
+                        delete _this.model.clouds[machine.cloud].machines[machine.machine_id];
+                    if (_this.model.machines && _this.model.machines[machine_id])
+                        delete _this.model.machines[machine_id];
+                }
+            });
 
             this.set('model.imagesArray', newImagesArray);
             this.set('model.images', _generateMap(newImagesArray));

@@ -23,7 +23,7 @@
         font-weight: normal;
         opacity: 0.54;
       }
-      .plan .sup {
+      .size .sup {
         padding-left: 16px;
       }
       .btn-group {
@@ -86,12 +86,12 @@
           </div>
 
           <div hidden$="[[showCustomSizeForm]]">
-            <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
-              <template is="dom-repeat" items="[[plans]]" as="plan">
-                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan, machine.size)]]">
-                  [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
+            <paper-radio-group attr-for-selected="name" selected="{{selectedSize}}">
+              <template is="dom-repeat" items="[[sizes]]" as="size">
+                <paper-radio-button name="[[size.id]]" disabled$="[[isCurrent(size.id)]]">
+                  [[size.name]] <span class='sup' hidden$="[[!isCurrent(size.id)]]">Current machine size</span>
                   <br/>
-                  <div class='sup'>RAM [[displayNumber(plan.ram)]], Disk [[displayNumber(plan.disk)]], Price $[[displayPrice(plan)]]/hour</div>
+                  <div class='sup'>RAM [[size.ram]], Disk [[size.disk]], Price $[[displayPrice(size)]]/hour</div>
                 </paper-radio-button>
               </template>
             </paper-radio-group>
@@ -167,10 +167,10 @@
         },
         showCustomSizeForm: {
           type: Boolean,
-          computed: 'computeShowCustomSizeForm(machine.cloud.provider)'
+          computed: 'computeShowCustomSizeForm(machine.cloud, clouds)'
         },
-        plans: Array,
-        selectedPlan: String
+        sizes: Array,
+        selectedSize: String
       },
       listeners: {
         input: 'clearError',
@@ -178,10 +178,10 @@
       },
       observers:[
         '_updateFormReadyOnapp(machine, current_cpus, current_memory, cpus, memory)',
-        '_updateFormReady(machine, selectedPlan)',
+        '_updateFormReady(machine, selectedSize)',
         '_updateShowNotification(machine, memory)',
-        '_updatePlans(machine, clouds.*)',
-        '_selectedPlanChanged(selectedPlan)'
+        '_updateSizes(machine, clouds.*)',
+        '_selectedSizeChanged(selectedSize)'
       ],
       ready: function() {},
       attached: function() {},
@@ -195,7 +195,7 @@
         else if (!this.showCustomSizeForm){
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
-          this.$.resizeMachine.body = {"action": "resize", "plan_id": this.selectedPlan};
+          this.$.resizeMachine.body = {"action": "resize", "size": this.selectedSize};
           this.$.resizeMachine.generateRequest();
         }
       },
@@ -217,7 +217,7 @@
             this.set('size', 'Current '+this.machine.extra.size);
           }
           else {
-            var currentSize = this.plans.find(function(p){return p.id == this.machine.size}.bind(this)),
+            var currentSize = this.sizes.find(function(p){return p.id == this.machine.size}.bind(this)),
                 name = currentSize ? currentSize.name : "";
             this.set('size', name.length ? 'Current '+ name : '');
           }
@@ -236,19 +236,18 @@
           return this.machine.extra.memory;
         }
       },
-      computeShowCustomSizeForm: function(provider){
-        if (this.machine && this.machine.cloud && this.machine.cloud.provider)
-          return ['onapp'].indexOf(this.machine.cloud.provider) > -1;
+      computeShowCustomSizeForm: function(machine_cloud, clouds){
+        if (this.machine && this.machine.cloud && this.clouds && this.clouds[this.machine.cloud] && this.clouds[this.machine.cloud].provider)
+          return ['onapp'].indexOf(this.clouds[this.machine.cloud].provider) > -1;
       },
-      _updatePlans: function(machine, clouds){
-        console.log('update plans', clouds.path, clouds.path == 'clouds.'+this.machine.cloud.id+'.sizesArray');
-        if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.'+this.machine.cloud.id+'.sizesArray')) {
-            console.log('update plans', clouds.path);
-            this.set('plans', this.clouds[this.machine.cloud.id].sizesArray);
+      _updateSizes: function(machine, clouds){
+        if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.'+this.machine.cloud+'.sizesArray')) {
+            console.log('update sizes', clouds.path);
+            this.set('sizes', this.clouds[this.machine.cloud].sizesArray);
             this.$.dialogModal.refit();
         }
       },
-      _selectedPlanChanged: function(){
+      _selectedSizeChanged: function(){
         this.clearError();
       },
       clearError: function(){
@@ -261,8 +260,8 @@
           this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
         }
       },
-      _updateFormReady: function(machine, selectedPlan){
-        if (!this.showCustomSizeForm && this.selectedPlan != undefined){
+      _updateFormReady: function(machine, selectedSize){
+        if (!this.showCustomSizeForm && this.selectedSize != undefined){
           this.set('formReady', true);
         }
       },
@@ -284,11 +283,11 @@
         this.$.dialogModal.refit();
       },
       _resizeMachineRequest: function(e) {},
-      isCurrent: function(plan){
-        return plan.id == this.machine.size || plan.name == this.machine.size;
+      isCurrent: function(size){
+        return size.id == this.machine.size || size.name == this.machine.size;
       },
       clearSelection: function(){
-        this.set('selectedPlan', undefined);
+        this.set('selectedSize', undefined);
         this.set('formReady', false);
       },
       displayNumber: function(n) {
@@ -298,9 +297,9 @@
           return n.formatMoney(0,',','.');
         }
       },
-      displayPrice: function(plan){
-        var price = plan.price || plan.extra.price;
-        console.log('extra.price',price, plan.extra.price);
+      displayPrice: function(size){
+        var price = size.price || size.extra.price;
+        console.log('extra.price',price, size.extra.price);
         if (typeof(price) == 'string') {
           return price;
         } else if (typeof(price) == 'number'){
@@ -320,8 +319,7 @@
           //arrow up
           if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus+1, 1))}
           if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory+5, 256))}
-        }
-        else if (e.keyCode === 40) {
+        } else if (e.keyCode === 40) {
           //arrow down
           if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus-1, 1))}
           if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory-5, 256))}
