@@ -700,27 +700,35 @@
 
         _updateVolumes: function (data) {
             console.log('UPDATE VOLUMES', data);
+            this._updateCloudResources(data,'volumes')
+        },
 
-            //update cloud's networks
-            if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider && data.volumes) {
-                data.volumes.forEach(function (vol) {
-                    if (vol.id) {
-                        vol["provider"] = this.model.clouds[data.cloud_id].provider;
-                        // update model.volumes
-                        this.model.volumes[vol.id] = vol;
-                    }
-                }, this);
+        _updateCloudResources: function (data, section) {
+            if (this.model.clouds[data.cloud_id][section] == undefined)
+                this.model.clouds[data.cloud_id][section] = {};
+            var sectionSingular = section.slice(-1),
+                old_cloud_resources_external_ids = Object.keys(this.model.clouds[data.cloud_id][section]),
+                old_cloud_resources_ids = old_cloud_resources_external_ids.map(i => this.model.clouds[data.cloud_id][section][i].id),
+                new_cloud_resources = data[section], //.reduce((map, obj) => (map[obj[sectionSingular+'_id']] = obj, map), {}),
+                new_cloud_resources_external_ids = Object.keys(new_cloud_resources),
+                new_cloud_resources_ids = new_cloud_resources_external_ids.map(i => new_cloud_resources[i].id); 
+
+            this.set('model.clouds.' + data.cloud_id + '.' + section, new_cloud_resources);
+
+            for (var i=0; i<old_cloud_resources_ids.length; i++) {
+                if (old_cloud_resources_ids[i].indexOf(new_cloud_resources_ids) == -1) {
+                    delete this.model[section][old_cloud_resources_ids[i]];
+                }
             }
 
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.volumes',  data.volumes);
-
-            if (!changed)
-                return false;
-
-            this.set('model.clouds.' + data.cloud_id + '.volumes', _generateMap(data.volumes));
-            this.set('model.sections.volumes.count', Object.keys(this.model.volumes).length);
-
-        },
+            for (var i=0; i < new_cloud_resources_ids.length; i++) {
+                if (this.model[section][new_cloud_resources_ids[i]] == undefined) {
+                    this.set('model.' + section + '.' + new_cloud_resources_ids[i], this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]]);
+                    this.linkPaths('model.'+ section + '.' + new_cloud_resources_ids[i], 'this.model.clouds.' + data.cloud_id + '.' + section + '.' + new_cloud_resources_external_ids[i]);
+                }
+            }
+            this.set('model.sections.' + section + '.count', Object.keys(this.model[section]).length);
+        },        
 
         _updateNetworks: function (data) {
             this.set('model.onboarding.isLoadingNetworks', false);
