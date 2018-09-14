@@ -700,16 +700,15 @@
 
         _updateVolumes: function (data) {
             console.log('UPDATE VOLUMES', data);
-            this._updateCloudResources(data,'volumes')
+            this._updateCloudResources(data,'volumes','external_id')
         },
 
-        _updateCloudResources: function (data, section) {
+        _updateCloudResources: function (data, section, externalId) {
             if (this.model.clouds[data.cloud_id][section] == undefined)
                 this.model.clouds[data.cloud_id][section] = {};
-            var sectionSingular = section.slice(-1),
-                old_cloud_resources_external_ids = Object.keys(this.model.clouds[data.cloud_id][section]),
+            var old_cloud_resources_external_ids = Object.keys(this.model.clouds[data.cloud_id][section]),
                 old_cloud_resources_ids = old_cloud_resources_external_ids.map(i => this.model.clouds[data.cloud_id][section][i].id),
-                new_cloud_resources = data[section], //.reduce((map, obj) => (map[obj[sectionSingular+'_id']] = obj, map), {}),
+                new_cloud_resources = data[section].reduce((map, obj) => (map[obj[externalId]] = obj, map), {}),
                 new_cloud_resources_external_ids = Object.keys(new_cloud_resources),
                 new_cloud_resources_ids = new_cloud_resources_external_ids.map(i => new_cloud_resources[i].id); 
 
@@ -723,6 +722,7 @@
 
             for (var i=0; i < new_cloud_resources_ids.length; i++) {
                 if (this.model[section][new_cloud_resources_ids[i]] == undefined) {
+                    this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]].provider = this.model.clouds[data.cloud_id].provider;
                     this.set('model.' + section + '.' + new_cloud_resources_ids[i], this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]]);
                     this.linkPaths('model.'+ section + '.' + new_cloud_resources_ids[i], 'this.model.clouds.' + data.cloud_id + '.' + section + '.' + new_cloud_resources_external_ids[i]);
                 }
