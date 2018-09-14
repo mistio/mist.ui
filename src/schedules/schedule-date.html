@@ -1,0 +1,104 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<dom-module id="schedule-date">
+    <template>
+        <style include="shared-styles single-page tags-and-labels forms">
+        :host {
+        	display: inline-block;
+        	position: relative;
+        }
+		.dateinput {
+		    position: absolute;
+		    top: -3px;
+		    left: 0;
+		    width: 400px;
+		}
+        paper-input {
+        	display: inline-block;
+		    background-color: #fff;
+		    width: 190px;
+		    height: 28px;
+		    font-size: 11px;
+        }
+        paper-button.blue-link[disabled] {
+            color: rgba(0, 0, 0, 0.32) !important;
+            display: inline-block;
+        }
+        paper-button.blue-link {
+            background-color: transparent !important;
+            font-weight: 400 !important;
+            color: var(--mist-blue) !important;
+            margin: 0;
+            padding: 0;
+        }
+        paper-input ::content input {
+        	font-size: 14px;
+        }
+        paper-input ::content paper-input-container {
+        	padding: 0;
+        }
+        </style>
+        <span hidden$="[[!date]]">[[_computeAbsoluteDateText(date)]]</span>
+        <span hidden$="[[date.length]]">[[nullText]]</span>
+        <paper-button id="edit" on-tap="_edit" data-field="start_after" class="simple-button blue-link smaller" noink disabled$="[[disabledEdit]]" hidden$="[[editing]]">change</paper-button>
+        <span class="dateinput" hidden$="[[!editing]]">
+            <paper-input id="dateInput" type="datetime-local" value="{{value}}" no-label-float></paper-input>
+            <paper-button class="simple-button blue-link smaller" on-tap="_saveDate" noink>save</paper-button>
+            <paper-button class="simple-button blue-link smaller" on-tap="_stopEdit" noink>cancel</paper-button>
+        </span>
+
+    </template>
+    <script>
+    Polymer({
+        is: 'schedule-date',
+        properties: {
+        	url: {
+        		type: String
+        	},
+        	field: {
+        		type: String
+        	},
+        	nullText: {
+        		type: String
+        	},
+        	date: {
+        		type: String	
+        	},
+        	value: {
+        		type: String	
+        	},
+        	editing: {
+        		type: Boolean,
+        		value: false
+        	},
+        	disabledEdit: {
+        		type: Boolean,
+        		value: false
+        	}
+        },
+        _computeAbsoluteDateText: function (time) {
+        	console.log('time: ',moment(time).format("MMMM D YYYY HH:mm:ss"));
+        	console.log('time utc: ',moment.utc(time).format("MMMM D YYYY HH:mm:ss"));
+        	console.log('time local: ',moment(time).local().format("MMMM D YYYY HH:mm:ss"));
+        	console.log('time utc local: ',moment.utc(time).local().format("MMMM D YYYY HH:mm:ss"));
+        	return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
+        },
+        _saveDate: function() {
+        	if (this.value) {
+        		this.fire('save-date', {name: this.field, date: this.value});
+        		this.set('editing', false);
+        	}
+        },
+        _edit: function() {
+        	this.set('editing', true);
+        },
+        _stopEdit: function() {
+        	this.set('editing', false);
+        }
+
+    });
+    </script>
+</dom-module>

@@ -736,7 +736,7 @@
                 },
                 listMachines: {
                     type: Array,
-                    computed: '_listMachines(stack.node_instances.*, model.machinesArray.*)',
+                    computed: '_listMachines(stack.node_instances.*, model.machines.*)',
                     notify: true
                 },
                 networks: {
@@ -853,14 +853,6 @@
                 var parent = this.querySelector("div#cfyshell");
                 parent.insertBefore(xterm, parent.firstChild);
                 console.warn('xterm open', xterm);
-            },
-            test: function () {
-                var newmach = {
-                    mist_type: "machine",
-                    info: this.model.machinesArray[3]
-                }
-                this.stack.node_instances.push(newmach);
-                console.log(newmach, this.stack.node_instances);
             },
             enhanceWorkflowLogs: function (workflows) {
                 var workflowLogs = this.stack ? this.stack.workflows : [];
@@ -1058,7 +1050,7 @@
                 if (nis) {
                     nis.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'machine') {
-                            var mac = this.model.machinesArray.find(function (mach) {
+                            var mac = Object.values(this.model.machines).find(function (mach) {
                                 return mach.id == rtpy.runtime_properties.info.id;
                             });
 

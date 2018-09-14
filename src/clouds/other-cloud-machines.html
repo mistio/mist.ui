@@ -12,13 +12,13 @@
         <p>Select any host to remove it from this cloud.</p>
         <mist-list id="otherServerMachinesList"
             selectable column-menu multi-sort
-            items="[[_filterMachines(cloud,machines)]]"
+            item-map=[[machines]]
             name="Machines"
             selected-items="{{selectedMachineItems}}"
             frozen=[[_getFrozenLogColumn()]]
             visible=[[_getVisibleColumns()]]
             renderers=[[_getRenderers()]]>
-            <mist-actions slot="action-buttons" actions="[[machineActions]]" type="machine" items="[[selectedMachineItems]]" model="[[model]]"></mist-actions>
+            <mist-actions slot="action-buttons" actions="[[machineActions]]" type="machine" items="[[selectedMachineItems]]"></mist-actions>
             <other-cloud-machine-actions slot="actions" items="[[selectedMachineItems]]" actions="{{machineActions}}"></other-cloud-machine-actions>
         </mist-list>
     </template>
@@ -39,23 +39,27 @@
                 type: Array,
                 notify: true
             },
-            machines: Array
+            machines: {
+                type: Object,
+                computed: '_transformMachines(cloud, cloud.machines.*)'
+            }
         },
         listeners: {
             'select-action': 'selectAction'
         },
         observers: [
-            'machinesChanged(cloud.*, machines.length)'
+            'machinesChanged(cloud.*, machines.*)'
         ],
-        _filterMachines: function(cloud,machines){
-            var ms = this.machines.filter(function(m){
-                return m.cloud.id == this.cloud.id;
-            }.bind(this));
-            return ms;
-        },
         machinesChanged: function(c,m){
             if (this.querySelector('mist-list'))
                 this.querySelector('mist-list').fire('resize');
+        },
+        _transformMachines: function(cloud, machines) {
+            // Use machine unique id as key of the map
+            return Object.values(this.cloud.machines).reduce(function(result, item, index, array) {
+                result[item.id] = item;
+                return result;
+            }, {})
         },
         _getFrozenLogColumn: function(){
             return ['name'];
@@ -68,36 +72,36 @@
             return {
                 'name': {
                     'body': function(item) {
-                        return '<strong class="name">'+ item + '</strong>';
+                        return '<strong class="name">' + item + '</strong>';
                     }
                 },
                 'missing_since': {
                     'title': function(item, row){
-                    return 'missing since';
+                        return 'missing since';
                     },
                     'body': function(item, row) {
-                    return item;
+                        return item;
                     }
                 },
                 'public_ips': {
                     'title': function(item, row){
-                    return 'public IP';
+                        return 'public IP';
                     },
                     'body': function(item, row) {
-                    return item[0];
+                        return item[0];
                     }
                 },
                 'tags': {
                     'body': function(item, row) {
-                    var tags = item,
-                        display = "";
-                    for (var i=0; i<tags.length; i++){
-                        display += "<span class='tag'>"+tags[i].key;
-                        if (tags[i].value != undefined && tags[i].value != "")
-                        display += "=" + tags[i].value;
-                        display += "</span>";
-                    }
-                    return display;
+                        var tags = item,
+                            display = "";
+                        for (var i=0; i<tags.length; i++){
+                            display += "<span class='tag'>"+tags[i].key;
+                            if (tags[i].value != undefined && tags[i].value != "")
+                            display += "=" + tags[i].value;
+                            display += "</span>";
+                        }
+                        return display;
                     }
                 }
             }

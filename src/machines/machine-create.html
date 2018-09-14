@@ -224,7 +224,7 @@
                 newImage: String,
                 scheduleActions: {
                     type: Array,
-                    computed: '_computeActions(model.machinesArray)'
+                    computed: '_computeActions(model.machines)'
                 },
             },
             observers: [
@@ -250,7 +250,7 @@
                         image: image
                     });
             },
-            _computeActions: function (machinesArray) {
+            _computeActions: function (machines) {
                 var ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; //'suspend', 'resume',
 
                 var actions = [];
@@ -547,16 +547,18 @@
                         // clear previous selection
                         this.set('machineFields.'+subid+'.value', '');
                         var subnets = [];
-                        for (var i=0; i<this.model.clouds[this.selectedCloud].networksArray.length; i++){
-                            var network = this.model.clouds[this.selectedCloud].networksArray[i];
-                            if (network.subnets && network.subnets.length)
-                                for (var j=0; j<network.subnets.length; j++) {
-                                    var subnet =  network.subnets[j];
-                                    if (subnet.availability_zone == this.model.clouds[this.selectedCloud].locations[changeRecord.value].name) {
-                                        subnet.suffix = network.name;
-                                        subnets.push(subnet);
+                        if (this.model.clouds[this.selectedCloud] && this.model.clouds[this.selectedCloud].networksArray) {
+                            for (var i=0; i<this.model.clouds[this.selectedCloud].networksArray.length; i++){
+                                var network = this.model.clouds[this.selectedCloud].networksArray[i];
+                                if (network.subnets && network.subnets.length)
+                                    for (var j=0; j<network.subnets.length; j++) {
+                                        var subnet =  network.subnets[j];
+                                        if (subnet.availability_zone == this.model.clouds[this.selectedCloud].locations[changeRecord.value].name) {
+                                            subnet.suffix = network.name;
+                                            subnets.push(subnet);
+                                        }
                                     }
-                                }
+                            }
                         }
                         this.set('machineFields.'+subid+'.options', subnets);
                     }
@@ -1029,7 +1031,7 @@
             },
             _updateGceSubnets: function (networkId) {
                 var subnetsInd = this._fieldIndexByName('subnetwork'),
-                    network = this.model.clouds[this.selectedCloud].networks[networkId];
+                    network = networkId && this.model.clouds[this.selectedCloud].networks[networkId];
                 if (subnetsInd && network && network.extra.mode == 'custom') {
                     var subnetsOptions = this.model.clouds[this.selectedCloud].networks[networkId].subnets.map(
                         x => x.name).filter((v, i, a) => a.indexOf(v) === i).map(x => {

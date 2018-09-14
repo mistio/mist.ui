@@ -38,7 +38,8 @@ machinesListBehavior = {
             },
             'icon': {
                 'body': function(item, row) {
-                    return './assets/providers/provider-' + row.cloud.provider.replace("_", "").replace(" ", "") + '.png';
+                    var provider = _this.model.clouds[row.cloud].provider.replace("_", "").replace(" ", "");
+                    return './assets/providers/provider-' + provider + '.png';
                 }
             },
             'name': {
@@ -209,20 +210,6 @@ machinesListBehavior = {
 
         return "";
     },
-    sortedMachines: function(machines) {
-        return this.model.machinesArray.sort(function(a, b) {
-            //if both properties exist
-            var aW = this._getMachineWeight(a, this.model),
-                bW = this._getMachineWeight(b, this.model);
-            if (aW > bW) {
-                return -1;
-            }
-            if (aW < bW) {
-                return 1;
-            }
-            return 0;
-        }.bind(this));
-    },
     _getMachineWeight: function(machine, model) {
         var weight = 0;
         var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
@@ -236,7 +223,7 @@ machinesListBehavior = {
 
     _machineHasIncidents: function(machine, incidents) {
         var machineIncidents = incidents ? incidents.filter(function(inc) {
-            return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud.id
+            return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud
         }) : [];
         return machineIncidents ? machineIncidents.length * 1000 : 0;
     },

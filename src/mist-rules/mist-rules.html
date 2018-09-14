@@ -122,7 +122,7 @@
                     value: false
                 },
                 machines: {
-                    type: Array,
+                    type: Object,
                     value: false
                 },
                 rules: Object,
@@ -169,7 +169,7 @@
                 return arr;
             },
             printMachine: function (id, machines) {
-                return this.machines && this.machines.find(function(m) {return m.id == id}) ? this.machines.find(function(m) {return m.id == id}).name : '';
+                return this.machines && this.machines[id] ? this.machines[id].name : '';
             },
             _computeResourceRulesArray: function (rules, resource, category) {
                 var rulesArray = [];
@@ -247,7 +247,7 @@
                             categories.push({
                                 name: 'Apply on all machines',
                                 type: 'all_machines', 
-                                count: this.machines.length, 
+                                count: Object.keys(this.machines).length,
                                 rules: [r],
                                 selectors: []})
                         else {
@@ -313,10 +313,9 @@
 
                 if (resource) {
                     return resource.name;
-                }
-                else if (machines){
+                } else if (machines){
                     for (var i=0; i<ids.length; i++) {
-                        var m = machines.find(function(m){ return m.id == ids[i]});
+                        var m = machines[ids[i]];
                         if (m)
                             names.push(m.name);
                         else
@@ -336,7 +335,7 @@
                     for (var q in this.customMetrics) {
                         if (this.customMetrics[q].machines) {
                             var machineHasCustomMetric = this.resource && this.customMetrics[q].machines.find(function (m) {
-                                return m[0] == this.resource.cloud.id && m[1] == this.resource.machine_id;
+                                return m[0] == this.resource.cloud && m[1] == this.resource.machine_id;
                             }, this);
                             if (machineHasCustomMetric || !this.resource)
                                 metrics.push(this.customMetrics[q])

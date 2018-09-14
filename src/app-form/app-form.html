@@ -5,8 +5,6 @@
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
-<link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 
 <!-- needed for the forms' inputs -->
@@ -91,6 +89,12 @@
                 opacity: 0.54;
                 width: 36px;
                 height: 36px;
+            }
+
+            paper-icon-button.clear-datetime {
+                padding: 0;
+                width: 24px;
+                height: 24px;
             }
 
             paper-item.button-true {
@@ -193,11 +197,6 @@
                 border-top: 1px solid #555;
             }
 
-            paper-date-picker::content #heading,
-            paper-time-picker::content #heading {
-                background-color: #424242;
-            }
-
             paper-toggle-button {
                 margin-top: 16px;
                 margin-bottom: 16px;
@@ -219,19 +218,11 @@
 
             .date {
                 @apply --layout-horizontal;
-                align-items: center;
+                align-items: baseline;
             }
 
-            paper-date-picker ::content .day-item.selected.paper-calendar {
-                background: var(--mist-blue) !important;
-            }
-
-            paper-time-picker ::content .line.paper-clock-selector {
-                stroke: var(--mist-blue) !important;
-            }
-
-            paper-time-picker ::content .disc-large.paper-clock-selector {
-                fill: var(--mist-blue) !important;
+            .date-label {
+                margin-right: 8px;
             }
 
             paper-dialog>* {
@@ -299,6 +290,18 @@
 
             paper-checkbox .item-img {
                 position: absolute;
+            }
+
+            paper-input[type="datetime-local"] {
+                display: inline-block;
+                margin-left: 8px;
+                max-width: 200px;
+            }
+            #date.valid-false {
+                color: var(--red-color) !important;
+            }
+            #date.valid-false iron-icon {
+                fill: var(--red-color) !important;
             }
 
             @media (max-width: 991px) {
@@ -393,8 +396,7 @@
                         <template is="dom-if" if="[[_compareFieldType(field, 'checkboxes', field.show)]]">
                             <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" hidden$="[[field.hidden]]">
                                 <div hidden$="[[!_noOptions(field.options, field.options.length)]]">
-                                    <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]
-                                            <span hidden$="[[field.noPluralisation]]">s </span> found</paper-item>
+                                    <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                 </div>
                                 <div hidden$="[[_noOptions(field.options, field.options.length)]]">
                                     <span class="checkboxes-label" hidden$="[[field.label]]">[[field.name]]:</span>
@@ -416,8 +418,7 @@
                                 <paper-menu slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]
-                                            <span hidden$="[[field.noPluralisation]]">s </span> found</paper-item>
+                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                     </template>
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
                                         <paper-item value="[[option.val]]">[[option.title]]</paper-item>
@@ -440,8 +441,7 @@
                                 <paper-menu slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]
-                                            <span hidden$="[[field.noPluralisation]]">s</span>&nbsp;found</paper-item>
+                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                     </template>
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
                                         <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
@@ -465,7 +465,7 @@
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
                                     <paper-menu id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
                                         <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                            <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]s found</paper-item>
+                                            <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                         </template>
                                         <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
                                             <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
@@ -508,13 +508,12 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'date', field.show)]]">
                             <div class$="xs12 m6 date [[field.class]]">
-                                <span>[[field.label]]</span>
-                                <paper-button id$="app-form-[[id]]-[[field.name]]" on-tap="_selectDate" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
-                                    class="simple-button">
-                                    <iron-icon icon="[[field.icon]]" hidden$="[[!field.icon]]"></iron-icon>
+                                <div class="date-label">[[field.label]]</div>
+                                <div id="date" class$="simple-button valid-[[_validateDatetime(field, field.value)]]">
+                                    <iron-icon icon="schedule"></iron-icon>
                                     [[_displayDate(field, field.value)]]
-                                </paper-button>
-                                <paper-icon-button icon="icons:close" on-tap="_clearDate" hidden$="[[!field.value.length]]"></paper-icon-button>
+                                    <paper-input id$="app-form-[[id]]-[[field.name]]" type="datetime-local" value="{{field.value}}" placeholder="dd/mm/yyyy --:--"></paper-input>
+                                </div>
                             </div>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'list', field.show)]]">
@@ -569,17 +568,6 @@
                 </div>
             </template>
         </div>
-
-        <paper-dialog id="dateTimePickers" with-backdrop>
-            <div class="pickers">
-                <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
-                <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
-            </div>
-            <div class="bottom-actions">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button class="blue" on-tap="_applyDateTime">Apply</paper-button>
-            </div>
-        </paper-dialog>
 
         <iron-ajax id="formAjax" url="[[url]]" contentType="application/json" handle-as="{{handleas}}" method="[[method]]" on-request="_handleRequest"
             on-response="_handleResponse" on-error="_handleError"></iron-ajax>
@@ -692,9 +680,6 @@
             ready: function () {
                 this.fields = [];
             },
-            attached: function () {
-                this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
-            },
             _computeLayoutClass: function (layout) {
                 return this.horizontalLayout ? 'horizontal-grid' : '';
             },
@@ -799,6 +784,8 @@
                                     textToArray));
                             } else if (el.type == "checkboxes") {
                                 that.set('form.' + el.name, el.value || []);
+                            } else if (el.type == "date" && el.value) {
+                                that.set('form.' + el.name, el.value && el.value.replace('T',' ')+':00');
                             } else {
                                 that.set('form.' + el.name, el.value);
                             }
@@ -812,6 +799,8 @@
                                     textToArray));
                             } else if (el.type == "checkboxes") {
                                 that.set('form.' + el.name, el.value || []);
+                            } else if (el.type == "date" && el.value) {
+                                that.set('form.' + el.name, el.value.replace('T',' ')+':00');
                             } else {
                                 that.set('form.' + el.name, el.value);
                             }
@@ -849,14 +838,16 @@
                         return el.show && el.required ? this.validatecidr(el.value, index) :
                             true;
                     } else if (el.type == "checkboxes") {
-                        // console.log('validation', el.value && el.value.length);
+                        // console.log('validation', el.type, el.value && el.value.length);
                         return el.show && el.required ? el.value && el.value.length : true;
                     } else if (el.type == "machines_tags") {
+                        // console.log('validate ',el.type, el.show && el.required ? JSON.stringify(this._constructTagsValue(
+                        // textToArray)).length > 2 : true);
                         var textToArray = el.value.split(',');
                         return el.show && el.required ? JSON.stringify(this._constructTagsValue(
                             textToArray)).length > 2 : true;
-                    } else if (el.type == "date") {
-                        return el.show && el.required ? moment(el.value).isValid() : true;
+                    } else if (el.type == "date" ) {
+                        return this._validateDatetime(el);
                     } else if (el.type == 'list') {
                         return el.min && el.show && el.required ? this._allItemsValid(el) :
                             true;
@@ -865,8 +856,6 @@
                     } else if (el.name == "cloud_init") {
                         return typeof el.value == "string" && (el.value.startsWith("#!/bin/bash") || el.value.startsWith(
                                                     "#cloud-config") || el.value.trim() == "");
-                    } else if (el.name == "schedule_entry") {
-                        return !el.excludeFromPayload ? el.value : true;
                     } else if (el.name == "libvirt_disk_size" && el.pattern) {
                         return this._validatePatternedField(el);
                     } else if (el.type == "password" && el.pattern && el.required) {
@@ -876,6 +865,7 @@
                     } else if (el.type == "mist_machine") {
                         return el.show && el.required ? el.valid : true;
                     } else if (el.type == "toggle" || el.type == "radio"){
+                        // console.log('validate ',el.type, true);
                         return  true;
                     } else {
                         if (el.show && el.required && (el.value == undefined || !el.value.length)) {
@@ -885,6 +875,16 @@
                     }
                     return true;
                 }, this);
+            },
+            _validateDatetime: function(el) {
+                if (el.validate == "inFuture") {
+                    var now = moment();
+                    console.log('validate ',el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true);
+                    return el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true;
+                } else {
+                    console.log('validate ',el.show && el.value ? moment(el.value).isValid() : true);
+                    return el.show && el.value ? moment(el.value).isValid() : true;
+                }
             },
             _validateMistSize: function (el) {
                 return el.value == "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length; 
@@ -1129,59 +1129,18 @@
                     fieldname: e.model.field.name
                 });
             },
-            _computeResourceTypeForField: function (str) {
-                return str ? str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("ids", "").replace("id", "").trim() : '';
-            },
-            _selectDate: function (e) {
-                var event = Polymer.dom(e),
-                    field = this._getFieldNameById(event.rootTarget.id);
-                // save the triggering field
-                this.set('dateTriggerField', field);
-                if (moment(this.form[field]).isValid())
-                    this.$.pickDate.date = moment(this.form[field]).toDate();
+            _computeResourceTypeForField: function (str, length) {
+                var ret = str ? str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("uuids", "").replace("ids", "").replace("id", "").trim() : '';
+                if (length != undefined && length > 1)
+                    ret += 's';
+                return ret;
 
-                this.$.pickTime.time = moment().format('hh:mm a');
-                this.$.dateTimePickers.open();
-            },
-            _applyDateTime: function (e) {
-                var ind;
-                var datefield = this.fields.find(function (f, index) {
-                    ind = index;
-                    return f.name == this.dateTriggerField
-                }, this);
-
-                // apply date to the trigger fields
-                if (ind) {
-                    var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
-                    var combinedDate = date + " " + moment(this.$.pickTime.time, 'hh:mm:ss A').format(
-                        "HH:mm:ss")
-
-                    this.set('fields.' + ind + '.value', moment(combinedDate).utc().format().toString()
-                        .replace('T', ' ').replace('Z', ''));
-                }
-
-                this.$.dateTimePickers.close();
             },
             _displayDate: function (field, value) {
                 if (!moment(field.value).isValid() || (field.value && field.value.trim() == ""))
-                    return field.placeholder ? field.placeholder : "select date";
+                    return field.placeholder ? field.placeholder : "SELECT DATE";
                 else {
-                    return moment.utc(field.value).local().fromNow() + ', ' + moment.utc(field.value)
-                        .local().format('YYYY-MM-DD hh:mm').toString().replace('T', ' ').replace(
-                            'Z', '');
-                }
-            },
-            _clearDate: function (e) {
-                // console.log('_clearDate',e, e.model.item.name);
-                var fieldIndex,
-                    fieldname = e.model.field.name;
-
-                var el = this.fields.find(function (f, index) {
-                    fieldIndex = index;
-                    return f.name == fieldname;
-                });
-                if (fieldIndex) {
-                    this.set('fields.' + fieldIndex + '.value', "");
+                    return moment.utc(field.value).local().fromNow();
                 }
             },
             _constructCheckboxValue: function (fieldname) {
