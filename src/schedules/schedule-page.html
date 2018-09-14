@@ -15,6 +15,7 @@
 <link rel="import" href="../machines/machine-actions.html">
 <link rel="import" href="../helpers/machines-list-behavior.html">
 
+<link rel="import" href="schedule-date.html">
 <link rel="import" href="schedule-actions.html">
 <link rel="import" href="schedule-edit.html">
 <link rel="import" href="schedule-edit-mrc.html">
@@ -341,16 +342,28 @@
                 </div>
                 <div>
                     <span class="m-info-head">Starts:</span>
+                    <schedule-date field="start_after" date="{{schedule.start_after}}" null-text="Now" value="{{newStartDate}}" disabled-edit="[[hasExpired]]" url="/api/v1/schedules/[[schedule.id]]"></schedule-date>
+<!-- 
                     <span hidden$="[[!schedule.start_after]]">[[_computeAbsoluteDateText(schedule.start_after)]]</span>
                     <span hidden$="[[schedule.start_after.length]]">Now</span>
-                    <paper-button id="editStart" on-tap="_selectDate" data-field="start_after" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
-                    <paper-input id="datetimeStarts" type="datetime-local" value="{{datetimeStarts}}"></paper-input>
+                    <paper-button id="editStart" on-tap="_editStartsDate" data-field="start_after" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]" hidden$="[[editingStartDate]]">change</paper-button>
+                    <span hidden$="[[!editingStartDate]]">
+                        <paper-input id="datetimeStarts" type="datetime-local" value="{{datetimeStarts}}"></paper-input>
+                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditStartsDate" noink>ok</paper-button>
+                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditStartsDate" noink>cancel</paper-button>
+                    </span> -->
                 </div>
                 <div><span class="m-info-head">Expires:</span>
-                    <span hidden$="[[schedule.expires.length]]">Never</span>
+                    <schedule-date field="expires" date="{{schedule.expires}}" null-text="Never" value="{{newExpiresDate}}" url="/api/v1/schedules/[[schedule.id]]"></schedule-date>
+
+                    <!-- <span hidden$="[[schedule.expires.length]]">Never</span>
                     <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
-                    <paper-button id="editExpiration" on-tap="_selectDate" data-field="expires" class="simple-button blue-link smaller" noink>change</paper-button>
-                    <paper-input id="datetimeExpires" type="datetime-local" value="{{datetimeExpires}}"></paper-input>
+                    <paper-button id="editExpiration" on-tap="_editExpiresDate" class="simple-button blue-link smaller" noink hidden$="[[editingExpiresDate]]">change</paper-button>
+                    <span hidden$="[[!editingExpiresDate]]">
+                        <paper-input id="datetimeExpires" type="datetime-local" value="{{datetimeExpires}}"></paper-input>
+                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditExpiresDate" noink>ok</paper-button>
+                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditExpiresDate" noink>cancel</paper-button>
+                    </span> -->
                 </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
@@ -548,7 +561,8 @@
             listeners: {
                 'confirmation': '_actionConfirmed',
                 'edit': '_editSchedule',
-                'run': '_runOnceDialog'
+                'run': '_runOnceDialog',
+                'save-date': '_applyDateTime'
             },
             attached: function() {
                 this.isLoading = false;
@@ -661,6 +675,49 @@
                         duration = 'day';
                 }
                 return machineAge +" "+ duration;
+            },
+            _applyDateTime: function(e) {
+                var payload = {};
+                var field = e.detail.name;
+                if (field){
+                    if (!this.neverExpire){
+                        payload[field] = moment(e.detail.date).utc().format('YYYY-MM-DD HH:mm:ss').toString();
+                    }
+                    else {
+                        payload[field] = "";
+                    }
+                    // we need to reset start if hasExpired and expires if start has passed
+                    if (this.hasExpired) {
+                        if (field == "start_after") {
+                            payload.expires = "";
+                        }
+                        else if (field == "expires" && (moment().diff(moment.utc(this.schedule.start_after).local()) > 0 || this.schedule.start_after == "")) {
+                            payload.start_after = "";
+                        }
+                    }
+                    this.$.editExpirationSchedule.body = payload;
+                    this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.editExpirationSchedule.generateRequest();
+
+                    this.expError = false;
+                }
+            },
+            _handleScheduleEditExpirationResponse: function() {
+                var message = 'Updating date...';
+                this.fire('toast', { msg: message, duration: 3000 });
+
+                this.$.dateTimePickers.close();
+                this.expError = false;
+                this.neverExpire = false;
+            },
+            _handleScheduleEditExpirationError: function(e) {
+                console.log('_handleScheduleEditToggleError',e);
+                var message = e.detail.request.xhr.response;
+                this.fire('toast', { msg: message, duration: 5000 });
+                this.expError = true;
+
+                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
             },
             _editSchedule: function(e) {
                 e.stopImmediatePropagation();
@@ -845,22 +902,6 @@
             },
             _computeAbsoluteDateText: function(time) {
                 return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
-            },
-            _handleScheduleEditExpirationResponse: function() {
-                var message = 'Updating date...';
-                this.fire('toast', { msg: message, duration: 3000 });
-
-                this.$.dateTimePickers.close();
-                this.expError = false;
-                this.neverExpire = false;
-            },
-            _handleScheduleEditExpirationError: function(e) {
-                console.log('_handleScheduleEditToggleError',e);
-                var message = e.detail.request.xhr.response;
-                this.fire('toast', { msg: message, duration: 5000 });
-                this.expError = true;
-
-                this.$.errormsg.textContent = e.detail.request.xhr.responseText;
             },
             _changeCondition: function() {
                 this.$.editScheduleCondition._openEditScheduleModal();
