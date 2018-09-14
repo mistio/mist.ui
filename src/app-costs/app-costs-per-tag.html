@@ -129,7 +129,7 @@ Polymer({
         },
         tags: {
             type: Array,
-            computed: '_computeTags(model.cloudsArray.*, model.machinesArray.*)'
+            computed: '_computeTags(model.cloudsArray.*, model.machines.*)'
         }
     },
     attached: function() {
@@ -141,8 +141,8 @@ Polymer({
     },
     _computeTags: function(clouds, machines) {
         var tagsArray = [];
-        if (machines.base.length > 0) {
-            this.model.machinesArray.forEach(function(m){
+        if (Object.keys(this.model.machines).length > 0) {
+            Object.values(this.model.machines).forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && m.tags.length  && mcost){
                     m.tags.forEach(function(t){
@@ -150,10 +150,9 @@ Polymer({
                             return prevt.key == t.key && prevt.value == t.value;
                         });
                         if (tagExists){
-                                tagExists.count ++;
-                                tagExists.cost = tagExists.cost + Math.round(parseInt(mcost));
-                            }
-                        else {
+                            tagExists.count ++;
+                            tagExists.cost = tagExists.cost + Math.round(parseInt(mcost));
+                        } else {
                             var tag = t;
                             tag.cost = Math.round(parseInt(mcost));
                             tag.count = 1;

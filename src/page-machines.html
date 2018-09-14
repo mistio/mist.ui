@@ -223,6 +223,11 @@
                 margin: 8px;
             }
 
+            iron-icon.close {
+                float: right;
+                padding: 5px;
+            }
+
         </style>
 
         <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
@@ -239,14 +244,14 @@
         <div class="logs" hidden$="[[!performingAction]]">
             <paper-spinner active></paper-spinner>
             <p id="actionLogs"></p>
+            <iron-icon class="close" icon="close" on-tap="hideLogs"></iron-icon>
         </div>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" items="[[model.machinesArray]]"
+            <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" item-map="[[model.machines]]"
                 name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.machinesArray.*,model.cloudsArray.*,model.incidentsArray.*)]]
-                route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]" 
-                preset-filters="[[presetFilters]]">
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers()]]
+                route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]" user="[[model.user]]" org="[[model.org]]"></machine-actions>
                 <p slot="no-items-found">No machines found.</p>
@@ -259,7 +264,7 @@
         <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]
             docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-            <machine-page model="[[model]]" machine="[[_getMachine(data.machine,model.machines)]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]"
+            <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]"
                 hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
         </template>
         <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
@@ -322,7 +327,11 @@
                 },
                 presetFilters:{
                     type: Array,
-                    value: []
+                    value: function() { return []; }
+                },
+                currentMachine: {
+                    type: Object,
+                    computed: '_getMachine(data.machine, model.machines, model.machines.*)'
                 }
             },
             listeners: {
@@ -336,8 +345,7 @@
             observers: [
                 '_jobIdChanged(jobId)',
                 '_pathChanged(path)',
-                'stopPolling(logItem)',
-                '_selectedItemsChanged(selectedItems.length)'
+                'stopPolling(logItem)'
             ],
 
             _getMachine: function (id, machines) {
@@ -348,10 +356,8 @@
             setJobId: function (e) {
                 if (e.detail.jobId)
                     this.set('jobId', e.detail.jobId);
-            },
-
-            _selectedItemsChanged: function (length) {
-                console.log('_selectedItemsChanged', length);
+                if (e.detail.job_id)
+                    this.set('jobId', e.detail.job_id);
             },
 
             _isAddPageActive: function (path) {
@@ -400,12 +406,15 @@
                 }
             },
             startPolling: function (jobid) {
+                // console.log('logs -- startpolling', jobid);
+
                 this.intervalID = setInterval(function () {
                     this.$.getJobLog.generateRequest();
                 }.bind(this), 1000);
-                console.log('startpolling');
             },
             stopPolling: function (logItems) {
+                // console.log('logs -- stopPolling', logItems, this.logItem.action);
+
                 if (this.logItem && this.logItem.action.endsWith('finished')) {
                     //let log finished show
                     if (!this.logItem.error)
@@ -415,6 +424,8 @@
                 }
             },
             resetPolling: function (error) {
+                // console.log('logs -- resetPolling', error);
+
                 if (!error) {
                     this.set('logItem', '');
                 }
@@ -423,7 +434,8 @@
                 this.set('intervalID', false);
             },
             handleGetJobLog: function (e) {
-                console.log('handleGetJobLog', e);
+                // console.log('logs -- handleGetJobLog', e.detail);
+
                 //save last log in logItem
                 this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
             },
@@ -432,19 +444,28 @@
                     return action.replace(/_/g, " ");
             },
             clearLog: function (e) {
+                // console.log('logs -- clearLog',this.logItem);
+
                 this.resetPolling();
                 this.set('logItem', '');
             },
             updateActionLogs: function (e) {
+                // console.log('logs -- updateActionLogs',e.detail);
+
                 this.set('performingAction', true);
                 this.$.actionLogs.textContent = e.detail.log;
             },
             stopActionLogs: function (e) {
+                // console.log('logs -- stopActionLogs',e.detail);
+
                 var success = e.detail.success;
                 this.$.actionLogs.textContent = '';
                 this.set('performingAction', false);
                 if (success)
                     this.clearListSelection();
+            },
+            hideLogs: function(e) {
+                this.set('performingAction', false);
             },
             clearListSelection: function () {
                 this.set('selectedItems', []);
@@ -466,7 +487,7 @@
                 return ret;
             },
 
-            _getRenderers: function (machines, clouds, incidents) {
+            _getRenderers: function () {
                 var _this = this;
                 return {
                     'indicator': {
@@ -491,7 +512,9 @@
                     },
                     'icon': {
                         'body': function (item, row) {
-                            return './assets/providers/provider-' + row.cloud.provider.replace("_", "")
+                            if (!_this.model.clouds[row.cloud])
+                                return '';
+                            return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
                                 .replace(" ", "") + '.png';
                         }
                     },
@@ -755,7 +778,7 @@
 
             _machineHasIncidents: function (machine, incidents) {
                 var machineIncidents = incidents ? incidents.filter(function (inc) {
-                    return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud.id && !inc.finished_at
+                    return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud && !inc.finished_at
                 }) : [];
                 return machineIncidents ? machineIncidents.length * 1000 : 0;
             },

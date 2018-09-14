@@ -109,7 +109,7 @@
                     }
                 },
                 observers: [
-                    '_cloudsChanged(fields.length, model.cloudsArray.*, model.machinesArray.*, model.keysArray.*)'
+                    '_cloudsChanged(fields.length, model.cloudsArray.*, model.machines.*, model.keysArray.*)'
                 ],
                 listeners: {
                     'iron-select': '_fieldsChanged'
@@ -157,7 +157,7 @@
                     this.set('fields', fields);
                 },
                 _computeMachinesOptions: function(clouds) {
-                    return this.model.machinesArray.filter(function(cloud) {
+                    return Object.values(this.model.machines).filter(function(cloud) {
                             return cloud.enabled;
                         });
                 },
@@ -180,13 +180,9 @@
                         return f.name.startsWith("cloud");
                     });
                     if (machine && machine.value) {
-                        var machineID = machine.value;
-                        var machineCloud = this.model.machinesArray.find(function(m){
-                            return m.id == machineID;
-                        });
-                        console.log('_fieldsChanged', machineCloud.cloud.id, machineCloud);
-                        this.set("machine", machineCloud);
-                        this.set('fields.1.value', machineCloud.cloud.id);
+                        var machineId = machine.value;
+                        this.set("machine", this.model.machines[machineId]);
+                        this.set('fields.1.value', this.model.machines[machineId].cloud);
                     };
 
                 },
@@ -195,7 +191,7 @@
                 },
                 _cloudsChanged: function(fieldsLength, clouds, machines, keys) {
 
-                    this.set('fields.0.options', this.model.machinesArray);
+                    this.set('fields.0.options', Object.values(this.model.machines));
 
                     if (this.fields && this.fields[0] && this.fields[0].options) {
                         this.fields[0].options.forEach(function(o, index){

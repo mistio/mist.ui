@@ -138,6 +138,18 @@
                 margin-bottom: 16px;
             }
 
+            .cost {
+                margin-bottom: 0;
+                font-size: 23px;
+                color: rgba(0,0,0,.87);
+                padding: 8px;
+                display: inline-block;
+            }
+
+            .cost-head {
+                display: inline !important;
+            }
+
              :host .tag {
                 display: inline !important;
                 padding: 4px;
@@ -518,21 +530,13 @@
                 <paper-material id="leftcolumn resource-description" class="left">
                     <div class="resource-info">
                         <div class="table">
-                            <div class="row" hidden$="[[!machine.cloud.title]]">
+                            <div class="row" hidden$="[[!machine.cloud]]">
                                 <div class="cell">
                                     <h4>Cloud:</h4>
                                 </div>
                                 <div class="cell">
-                                    <iron-icon class="cloud icon" src$="[[_computeCloudIcon(machine.cloud.provider)]]"></iron-icon>
-                                    [[machine.cloud.title]]
-                                </div>
-                            </div>
-                            <div class="row" hidden$="[[!machine.owned_by.length]]">
-                                <div class="cell">
-                                    <h4>Owner:</h4>
-                                </div>
-                                <div class="cell">
-                                    <a class="blue-link" href$="/members/[[machine.owned_by]]">[[_displayUser(machine.owned_by,model.members)]]</a>
+                                    <iron-icon class="cloud icon" src$="[[_computeCloudIcon(cloud.provider)]]"></iron-icon>
+                                    [[cloud.title]]
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!cloud.tenant]]">
@@ -568,17 +572,7 @@
                                     [[_getLocationName(machine,cloud)]]
                                 </div>
                             </div>
-                            <div class="row" hidden$="[[!machine.created]]">
-                                <div class="cell">
-                                    <h4>Created:</h4>
-                                </div>
-                                <div class="cell">
-                                    [[_fromNow(machine.created)]]
-                                    <span hidden$="[[!machine.created_by]]"> 
-                                        by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
-                                    </span>
-                                </div>
-                            </div>
+                            <br/>
                             <div class="row" hidden$="[[!machine.probe.ssh.updated_at]]">
                                 <div class="cell" hidden$="[[!machine.probe.ssh.loadavg]]">
                                     <h4>Load:</h4>
@@ -593,7 +587,7 @@
                                     <h4>RTT:</h4>
                                 </div>
                                 <div class="cell">
-                                    <span class="smaller">min/avg/max/std = [[machine.probe.ping.rtt_min]]/[[machine.probe.ping.rtt_avg]]/[[machine.probe.ping.rtt_max]]/[[machine.probe.ping.rtt_std]]
+                                    <span class="smaller" hidden$=[[!machine.probe.ping.rtt_avg]]>min/avg/max/std = [[machine.probe.ping.rtt_min]]/[[machine.probe.ping.rtt_avg]]/[[machine.probe.ping.rtt_max]]/[[machine.probe.ping.rtt_std]]
                                         ms
                                     </span>
                                     <span class="smaller packetloss" hidden$=[[!machine.probe.ping.packets_loss]]>-- [[_computePacketLossPercent(machine.probe.ping.packets_loss)]]% packet loss --</span>
@@ -640,12 +634,32 @@
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
                     <div hidden$="[[!machine.cost.monthly]]">
-                        <div class="m-info-head">Monthly Cost:</div>
+                        <div class="m-info-head cost-head">Monthly Cost:</div>
                         <div class="cost">
                             $[[_toFixed(machine.cost.monthly)]]
                         </div>
                     </div>
-                    <div hidden$="[[!machineKeys.length]]">
+                    <div class="row" hidden$="[[!machine.owned_by.length]]">
+                        <div class="cell">
+                            <h4>Owner:</h4>
+                        </div>
+                        <div class="cell">
+                            <a class="blue-link" href$="/members/[[machine.owned_by]]">[[_displayUser(machine.owned_by,model.members)]]</a>
+                        </div>
+                    </div>
+                    <div class="row" hidden$="[[!machine.created]]">
+                        <div class="cell">
+                            <h4>Created:</h4>
+                        </div>
+                        <div class="cell">
+                            [[_fromNow(machine.created)]]
+                            <span hidden$="[[!machine.created_by]]">
+                                by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
+                            </span>
+                        </div>
+                    </div>
+                    <br/>
+                    <div hidden$="[[!machineKeys]]">
                         <div class="m-info-head">Associated Keys:</div>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
@@ -687,7 +701,7 @@
                         portal-name="[[portalName]]"></mist-monitoring>
                     <mist-rules
                         id="monitoringRules"
-                        cloud="[[machine.cloud.id]]"
+                        cloud="[[machine.cloud]]"
                         builtin-metrics="[[model.monitoring.builtin_metrics]]"
                         custom-metrics="[[model.monitoring.custom_metrics]]"
                         incidents="[[model.incidentsArray]]"
@@ -739,15 +753,23 @@
                     </table>
                 </div>
             </paper-material>
+            <paper-material class="info-card" hidden$=[[!_hasPowerInfo(machine)]]>
+                <h2 class="machine-page-head">Power Info</h2>
+                <div class="card-content">
+                    <element-for-in content="[[machine.extra.power_supply_info.Status]]"></element-for-in>
+                    <element-for-in content="[[machine.extra.power_control_info]]"></element-for-in>
+                    <element-for-in content="[[machine.extra.power_supply_info]]"></element-for-in>
+                </div>
+            </paper-material>
             <paper-material class="info-card" hidden$=[[!_hasExtra(machine)]]>
                 <h2 class="machine-page-head">More Info</h2>
                 <div class="card-content">
-                    <element-for-in content="[[machine.extra]]"></element-for-in>
+                    <element-for-in content="[[machine.extra]]" ignore="power_"></element-for-in>
                 </div>
             </paper-material>
             <paper-material class="machine-logs" hidden$=[[!count]]>
                 <template is="dom-if" if=[[machine.machine_id]] restamp>
-                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide apiurl="/api/v1/logs"
+                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1/logs"
                         name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]]
                         primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
                 </template>
@@ -873,7 +895,7 @@
             },
             cloud: {
                 type: Object,
-                computed: '_getMachineCloud(model.clouds.*, machine.cloud.id)'
+                computed: '_getMachineCloud(model.clouds.*, machine.cloud)'
             },
             sections: {
                 type: Array
@@ -900,7 +922,7 @@
             },
             machineState: {
                 type: String,
-                computed: "_computeMachineState(machine.*, model.machines.*)"
+                computed: "_computeMachineState(machine.state, model.machines.*)"
             },
             machineSize: {
                 type: String,
@@ -936,8 +958,7 @@
                 computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
                 value: function () {
                     return []
-                },
-                notify: true
+                }
             },
             itemUid: {
                 type: Array,
@@ -1123,7 +1144,7 @@
         _isMonitored: function (machine, monitoredMachines) {
             if (monitoredMachines) {
                 var mach = monitoredMachines.base.find(function (m) {
-                    return m[1] == machine.id && m[0] == machine.cloud.id;
+                    return m[1] == machine.id && m[0] == machine.cloud;
                 }, this);
             }
             if (monitoredMachines && mach) {
@@ -1372,14 +1393,14 @@
             return '';
         },
         _getSizeName: function (machine, ret) {
-            return this.model.clouds[machine.cloud.id].sizes && this.model.clouds[machine.cloud.id].sizes[
-                ret] && this.model.clouds[machine.cloud.id].sizes[ret].name ? this.model.clouds[machine
-                .cloud.id].sizes[ret].name : ret;
+            return this.model.clouds[machine.cloud].sizes && this.model.clouds[machine.cloud].sizes[
+                ret] && this.model.clouds[machine.cloud].sizes[ret].name ? this.model.clouds[machine
+                .cloud].sizes[ret].name : ret;
         },
         _getLocationName: function (machine, cloud) {
-            return this.model.clouds[machine.cloud.id].locations && this.model.clouds[machine.cloud.id].locations[
-                    machine.location] && this.model.clouds[machine.cloud.id].locations[machine.location].name != undefined ?
-                this.model.clouds[machine.cloud.id].locations[machine.location].name : machine.location;
+            return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
+                    machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name != undefined ?
+                this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
         },
         _probeMachine: function (e) {
             var payload = {
@@ -1401,7 +1422,7 @@
         _computeMachineLogFilter: function (machine) {
             if (machine)
                 return {
-                    "cloud_id": machine.cloud.id,
+                    "cloud_id": machine.cloud,
                     "machine_id": machine.machine_id
                 }
         },
@@ -1531,6 +1552,12 @@
             return false
         },
 
+        _hasPowerInfo: function (machine) {
+            return this._hasExtra(machine) && (
+                this.machine.extra.power_control_info ||
+                this.machine.extra.power_supply_info);
+        },
+
         _filterMachinesIncidents: function (incarray) {
             if (this.model && this.model.incidentsArray)
                 return this.model.incidentsArray.filter(function (inc) {
@@ -1540,7 +1567,7 @@
 
         _isMachinesIncident: function (inc) {
             if (this.machine)
-                return this.machine.machine_id == inc.machine_id && this.machine.cloud.id == inc.cloud_id;
+                return this.machine.machine_id == inc.machine_id && this.machine.cloud == inc.cloud_id;
         },
 
         // redirect events
@@ -1579,7 +1606,7 @@
         _computePacketLossPercent: function () {
             if (!this.machine || !this.machine.probe || !this.machine.probe.ping)
                 return 0;
-            return 100 * (this.machine.probe.ping.packets_loss / this.machine.probe.ping.packets_tx);
+            return this.machine.probe.ping.packets_loss;
         },
 
         _computeProbeString: function () {

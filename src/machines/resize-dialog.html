@@ -23,7 +23,7 @@
         font-weight: normal;
         opacity: 0.54;
       }
-      .plan .sup {
+      .size .sup {
         padding-left: 16px;
       }
       .btn-group {
@@ -86,12 +86,12 @@
           </div>
 
           <div hidden$="[[showCustomSizeForm]]">
-            <paper-radio-group attr-for-selected="name" selected="{{selectedPlan}}">
-              <template is="dom-repeat" items="[[plans]]" as="plan">
-                <paper-radio-button name="[[plan.id]]" disabled$="[[isCurrent(plan.id)]]">
-                  [[plan.name]] <span class='sup' hidden$="[[!isCurrent(plan.id)]]">Current machine size</span>
+            <paper-radio-group attr-for-selected="name" selected="{{selectedSize}}">
+              <template is="dom-repeat" items="[[sizes]]" as="size">
+                <paper-radio-button name="[[size.id]]" disabled$="[[isCurrent(size.id)]]">
+                  [[size.name]] <span class='sup' hidden$="[[!isCurrent(size.id)]]">Current machine size</span>
                   <br/>
-                  <div class='sup'>RAM [[plan.ram]], Disk [[plan.disk]], Price $[[displayPrice(plan.price)]]/hour</div>
+                  <div class='sup'>RAM [[size.ram]], Disk [[size.disk]], Price $[[displayPrice(size)]]/hour</div>
                 </paper-radio-button>
               </template>
             </paper-radio-group>
@@ -102,7 +102,6 @@
         <div class="progress">
             <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
             <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-            <hr class="appform"/>
             <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
         </div>
         <div class="btn-group">
@@ -168,10 +167,10 @@
         },
         showCustomSizeForm: {
           type: Boolean,
-          computed: 'computeShowCustomSizeForm(machine.cloud.provider)'
+          computed: 'computeShowCustomSizeForm(machine.cloud, clouds)'
         },
-        plans: Array,
-        selectedPlan: String
+        sizes: Array,
+        selectedSize: String
       },
       listeners: {
         input: 'clearError',
@@ -179,10 +178,10 @@
       },
       observers:[
         '_updateFormReadyOnapp(machine, current_cpus, current_memory, cpus, memory)',
-        '_updateFormReady(machine, selectedPlan)',
+        '_updateFormReady(machine, selectedSize)',
         '_updateShowNotification(machine, memory)',
-        '_updatePlans(machine, clouds.*)',
-        '_selectedPlanChanged(selectedPlan)'
+        '_updateSizes(machine, clouds.*)',
+        '_selectedSizeChanged(selectedSize)'
       ],
       ready: function() {},
       attached: function() {},
@@ -196,7 +195,7 @@
         else if (!this.showCustomSizeForm){
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
-          this.$.resizeMachine.body = {"action": "resize", "plan_id": this.selectedPlan};
+          this.$.resizeMachine.body = {"action": "resize", "size": this.selectedSize};
           this.$.resizeMachine.generateRequest();
         }
       },
@@ -218,7 +217,7 @@
             this.set('size', 'Current '+this.machine.extra.size);
           }
           else {
-            var currentSize = this.plans.find(function(p){return p.id == this.machine.size}.bind(this)),
+            var currentSize = this.sizes.find(function(p){return p.id == this.machine.size}.bind(this)),
                 name = currentSize ? currentSize.name : "";
             this.set('size', name.length ? 'Current '+ name : '');
           }
@@ -237,17 +236,18 @@
           return this.machine.extra.memory;
         }
       },
-      computeShowCustomSizeForm: function(provider){
-        if (this.machine && this.machine.cloud && this.machine.cloud.provider)
-          return ['onapp'].indexOf(this.machine.cloud.provider) > -1;
+      computeShowCustomSizeForm: function(machine_cloud, clouds){
+        if (this.machine && this.machine.cloud && this.clouds && this.clouds[this.machine.cloud] && this.clouds[this.machine.cloud].provider)
+          return ['onapp'].indexOf(this.clouds[this.machine.cloud].provider) > -1;
       },
-      _updatePlans: function(machine, clouds){
-        if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.'+this.machine.cloud.id+'.sizesArray')) {
-            console.log('update plans', clouds.path);
-            this.set('plans', this.clouds[this.machine.cloud.id].sizesArray);
+      _updateSizes: function(machine, clouds){
+        if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.'+this.machine.cloud+'.sizesArray')) {
+            console.log('update sizes', clouds.path);
+            this.set('sizes', this.clouds[this.machine.cloud].sizesArray);
+            this.$.dialogModal.refit();
         }
       },
-      _selectedPlanChanged: function(){
+      _selectedSizeChanged: function(){
         this.clearError();
       },
       clearError: function(){
@@ -260,8 +260,8 @@
           this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
         }
       },
-      _updateFormReady: function(machine, selectedPlan){
-        if (!this.showCustomSizeForm && this.selectedPlan != undefined){
+      _updateFormReady: function(machine, selectedSize){
+        if (!this.showCustomSizeForm && this.selectedSize != undefined){
           this.set('formReady', true);
         }
       },
@@ -283,22 +283,35 @@
         this.$.dialogModal.refit();
       },
       _resizeMachineRequest: function(e) {},
-      isCurrent: function(id){
-        return id == this.machine.size;
+      isCurrent: function(size){
+        return size.id == this.machine.size || size.name == this.machine.size;
       },
       clearSelection: function(){
-        this.set('selectedPlan', undefined);
+        this.set('selectedSize', undefined);
         this.set('formReady', false);
       },
-      displayPrice: function(price){
-        if (typeof(price) == 'string')
+      displayNumber: function(n) {
+        if (!n) {
+          return n;
+        } else if (typeof(n) == 'number') {
+          return n.formatMoney(0,',','.');
+        }
+      },
+      displayPrice: function(size){
+        var price = size.price || size.extra.price;
+        console.log('extra.price',price, size.extra.price);
+        if (typeof(price) == 'string') {
           return price;
-        else if (typeof(price) == 'object' && this.machine.os_type == 'windows' && price.mswin)
+        } else if (typeof(price) == 'number'){
+          return price.formatMoney();
+        } else if (typeof(price) == 'object' && this.machine.os_type == 'windows' && price.mswin) {
           return price.mswin;
-        else if (price && typeof(price) == 'object' && price.linux) // && this.machine.os_type == 'unix' //show linux price for all other machines
+        } else if (price && typeof(price) == 'object' && price.linux){
+          // && this.machine.os_type == 'unix' //show linux price for all other machines
           return price.linux;
-        else
+        } else {
           return JSON.stringify(price);
+        }
       },
       hotkeys: function(e) {
         console.log('hotkeys',e);
@@ -306,8 +319,7 @@
           //arrow up
           if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus+1, 1))}
           if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory+5, 256))}
-        }
-        else if (e.keyCode === 40) {
+        } else if (e.keyCode === 40) {
           //arrow down
           if (e.path.indexOf(this.$.cpus)>-1) { this.set('cpus', Math.max(this.cpus-1, 1))}
           if (e.path.indexOf(this.$.memory)>-1) { this.set('memory', Math.max(this.memory-5, 256))}
