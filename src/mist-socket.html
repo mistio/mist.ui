@@ -722,7 +722,6 @@
 
             for (var i=0; i < new_cloud_resources_ids.length; i++) {
                 if (this.model[section][new_cloud_resources_ids[i]] == undefined) {
-                    this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]].provider = this.model.clouds[data.cloud_id].provider;
                     this.set('model.' + section + '.' + new_cloud_resources_ids[i], this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]]);
                     this.linkPaths('model.'+ section + '.' + new_cloud_resources_ids[i], 'this.model.clouds.' + data.cloud_id + '.' + section + '.' + new_cloud_resources_external_ids[i]);
                 }
@@ -1056,8 +1055,7 @@
 
         cleanUpResources: function (cloud_id) {
             var newImagesArray = [],
-                newNetworksArray = [],
-                newVolumesArray = [];
+                newNetworksArray = [];
                 _this = this;
             if (cloud_id) {
                 // images
@@ -1082,14 +1080,26 @@
                 }
             });
 
+            // volumes
+            this.cleanUpCloudResources('volumes');
+
             this.set('model.imagesArray', newImagesArray);
             this.set('model.images', _generateMap(newImagesArray));
 
             this.set('model.networksArray', newNetworksArray);
             this.set('model.networks', _generateMap(newNetworksArray));
-
-            this.set('model.volumesArray', newVolumesArray);
-            this.set('model.volumes', _generateMap(newVolumesArray));
+        },
+        cleanUpCloudResources: function(section, externalId) {
+            var _this = this;
+            Object.keys(this.model[section]).forEach(function(resource_id) {
+                var resource = _this.model[section][resource_id];
+                if (!cloud_id || resource.cloud == cloud_id) {
+                    if (_this.model.clouds[resource.cloud] && _this.model.clouds[resource.cloud][section] && _this.model.clouds[resource.cloud][section][resource[externalId]])
+                        delete _this.model.clouds[resource.cloud][section][resource[externalId]];
+                    if (_this.model[section] && _this.model[section][resource_id])
+                        delete _this.model[section][resource_id];
+                }
+            });
         }
     });
 
