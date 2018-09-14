@@ -470,7 +470,7 @@
                 }
             },
             observers: [
-                // '_fieldsChanged(fields.*)',
+                '_fieldsChanged(fields.*)',
                 '_updateFields(fields, model.*)'
             ],
             listeners: {
@@ -531,7 +531,7 @@
                     '.value');
                 //if there are selected checkboxes, keep selection on update
                 if (checkedMachines && checkedMachines.length) {
-                    var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
+                    var checkboxes = this.$.scheduleAddForm.querySelectorAll('#app-form-scheduleAddForm-machines_uuids paper-checkbox');
                     [].forEach.call(checkboxes, function (el, index) {
                         if (checkedMachines.indexOf(el.id) > -1)
                             el.checked = true;
@@ -580,7 +580,7 @@
 
                     // changing uuids
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith("machines_uuids")) {
-                        console.log('changeRecord.value', changeRecord.value);
+                        // console.log('changeRecord.value', changeRecord.value);
                         this._updateObjectInConditions('machines', 'ids', changeRecord.value);
                         this._removeObjectFromConditions('tags');
                     }
@@ -660,7 +660,7 @@
                     // date in shedule entry
                     if (this.get(changeRecord.path.replace('.value', '')).name == "schedule_entry_one_off") {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        this.set('fields.' + entryInd + '.value', changeRecord.value);
+                        this.set('fields.' + entryInd + '.value', changeRecord.value.replace('T',' ')+':00');
                     }
 
                     // crontab in schedule entry
@@ -712,13 +712,14 @@
             },
 
             _updateObjectInConditions: function (field, attr, value, operator) {
+                // console.log('_updateObjectInConditions', field, attr, value, operator);
                 var conditions = this.get('fields.' + this._fieldIndexByName("conditions") + '.value'),
                     conditionsField = conditions.find(function (con) {
                         return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field :
                             con.type == field;
                     }),
                     index = conditions.indexOf(conditionsField);
-                console.log('index', index);
+                // console.log('index', index);
                 if (index > -1) {
                     this.set('fields.' + this._fieldIndexByName("conditions") + '.value.' + index + '.' +
                         attr, value);
@@ -823,24 +824,20 @@
                 }, 500)
             },
             _handleError: function (e) {
-                console.log(e);
+                // console.log(e);
                 this.$.errormsg.textContent = e.detail.request.xhr.responseText;
                 this.set('formError', true);
             },
             _fieldIndexByName: function (name) {
-                var index;
-                var passField = this.fields.find(function (f, ind) {
-                    if (f.name == name)
-                        index = ind;
+                return this.fields.findIndex(function (f) {
                     return f.name == name;
                 });
-                return index;
             },
             _goBack: function () {
                 history.back();
             },
             updateScripts: function (e) {
-                console.log('updateScripts', e)
+                // console.log('updateScripts', e)
                 var scriptInd = this._fieldIndexByName("script_id");
                 this.async(function () {
                     this.set('fields.' + scriptInd + '.options', this.model.scriptsArray);
