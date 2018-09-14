@@ -702,12 +702,12 @@
             console.log('UPDATE VOLUMES', data);
 
             //update cloud's networks
-            var cloudVolumes = [];
             if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider && data.volumes) {
                 data.volumes.forEach(function (vol) {
                     if (vol.id) {
                         vol["provider"] = this.model.clouds[data.cloud_id].provider;
-                        cloudVolumes.push(vol);
+                        // update model.volumes
+                        this.model.volumes[vol.id] = vol;
                     }
                 }, this);
             }
@@ -717,23 +717,8 @@
             if (!changed)
                 return false;
 
-            this.set('model.clouds.' + data.cloud_id + '.volumesArray', data.volumes);
             this.set('model.clouds.' + data.cloud_id + '.volumes', _generateMap(data.volumes));
-
-            //update all volumes array
-            var allVolumes = [];
-            if (this.model != undefined) {
-                this.model.cloudsArray.forEach(function (cloud) {
-                    if (cloud.volumesArray != undefined && cloud.enabled) {
-                        cloud.volumesArray.forEach(function (vol) {
-                            allVolumes.push(vol);
-                        })
-                    }
-                });
-            }
-            this.set('model.volumesArray', allVolumes);
-            this.set('model.volumes', _generateMap(allVolumes));
-            this.set('model.sections.volumes.count', allVolumes.length);
+            this.set('model.sections.volumes.count', Object.keys(this.model.volumes).length);
 
         },
 
