@@ -3,15 +3,14 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
-
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
+<link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-actions.html">
 
-<link rel="import" href="network-actions.html">
-<link rel="import" href="subnet-item.html">
+<link rel="import" href="volume-actions.html">
 
-<dom-module id="network-page">
+<dom-module id="volume-page">
     <template>
         <style include="shared-styles tags-and-labels single-page">
             :host {
@@ -154,7 +153,7 @@
             }
 
             .single-head {
-                @apply --network-page-head-mixin
+                @apply --volume-page-head-mixin
             }
         </style>
 
@@ -162,97 +161,75 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <network-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
+            <volume-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[volume.attached_to]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[volume.provider]]" in-single-view></volume-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
                 </span>
                 <div class="title flex">
-                    <h2>[[network.name]]</h2>
+                    <h2>[[volume.name]]</h2>
                     <div class="subtitle">
-                        [[networkCloud]]
+                        [[volumeCloud]], [[volume.location]]
                     </div>
                 </div>
-                <mist-actions actions="[[actions]]" type="network" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <mist-actions actions="[[actions]]" type="volume" items="[[itemArray]]" model="[[model]]" use-half-width hidden$="[[isMissing]]"></mist-actions>
             </paper-material>
             <div class="columns">
                 <paper-material id="leftcolumn resource-description" class="left">
-                    <div class="missing" hidden$="[[!isMissing]]">Network not found.</div>
-                    <div>
-                        <h4 class="id n-info-head">Network CIDR:</h4>
-                        <span class="id">[[network.cidr]]</span>
-                    </div>
-                    <div>
-                        <h4 class="id n-info-head">Network ID:</h4>
-                        <span class="id">[[network.id]]</span>
-                    </div>
-                    <div hidden$="[[!network.owned_by.length]]">
-                        <h4 class="id n-info-head">Owner:</h4>
-                        <span class="id"><a href$="/members/[[network.owned_by]]">[[_displayUser(network.owned_by,model.members)]]</a></span>
-                    </div>
-                    <div hidden$="[[!network.created_by.length]]">
-                        <h4 class="id n-info-head">Created by:</h4>
-                        <span class="id"><a href$="/members/[[network.created_by]]">[[_displayUser(network.created_by,model.members)]]</a></span>
+                    <div class="missing" hidden$="[[!isMissing]]">Volume not found.</div>
+                    <div hidden$="[[isMissing]]">
+                        <div hidden$="[[!volume.state]]">
+                            <h4 class="id n-info-head">State:</h4>
+                            <span class="id">[[volume.state]] [[_computedAttachedMachine(volume)]]</span>
+                        </div>
+                        <div>
+                            <h4 class="id n-info-head">Size:</h4>
+                            <span class="id">[[volume.size]]</span>
+                        </div>
+                        <div>
+                            <h4 class="id n-info-head">Volume ID:</h4>
+                            <span class="id">[[volume.id]]</span>
+                        </div>
+                        <div hidden$="[[!volume.owned_by.length]]">
+                            <h4 class="id n-info-head">Owner:</h4>
+                            <span class="id"><a href$="/members/[[volume.owned_by]]">[[_displayUser(volume.owned_by,model.members)]]</a></span>
+                        </div>
+                        <div hidden$="[[!volume.created_by.length]]">
+                            <h4 class="id n-info-head">Created by:</h4>
+                            <span class="id"><a href$="/members/[[volume.created_by]]">[[_displayUser(volume.created_by,model.members)]]</a></span>
+                        </div>
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
-                    <div hidden$="[[!network.tags.length]]">
+                    <div hidden$="[[!volume.attached_to.length]]">
+                        <h3 class="n-info-head">Attached to machines:</h3>
+                        <template is="dom-repeat" items="[[volume.attached_to]]" as="machine">
+                            <a href$="/machines/[[machine.id]]">[[machine.name]]</a>
+                        </template>
+                    </div>
+                    <div hidden$="[[!volume.tags.length]]">
                         <h3 class="n-info-head">TAGS:</h3>
-                        <template is="dom-repeat" items="[[network.tags]]">
+                        <template is="dom-repeat" items="[[volume.tags]]">
                             <span class="tag">[[item.key]]
                                 <span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
                     </div>
                 </paper-material>
             </div>
-            <paper-material>
-                <h4 class="id">Network Info</h4>
-                <div class="info-table">
-                    <div class="info-body info-group">
-                        <div class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">Name</div>
-                            <div class="flexchild">[[network.name]]</div>
-                        </div>
-                        <div class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">ID</div>
-                            <div class="flexchild">[[network.id]]</div>
-                        </div>
-                        <div hidden$=[[!network.status]] class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">Status</div>
-                            <div class="flexchild">[[network.status]]</div>
-                        </div>
-                        <div class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">Subnets</div>
-                            <div class="flexchild">
-                                <template is="dom-if" if="[[!hasSubnets]]">
-                                    0
-                                </template>
-                                <template is="dom-if" if="[[hasSubnets]]">
-                                    [[network.subnets.length]]
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </paper-material>
-            <paper-material hidden$="[[!hasSubnets]]">
-                <h4 class="id">Subnets</h4>
-                <div class="info-table">
-                    <div class="info-body">
-                        <template is="dom-repeat" items="[[network.subnets]]" as="subnet">
-                            <subnet-item subnet="[[subnet]]" itemindex="{{index}}"></subnet-item>
-                        </template>
-                    </div>
+            <paper-material class="no-pad" hidden$=[[!volume.extra]]>
+                <h2 class="id n-info-head">More Info</h2>
+                <div class="card-content" hidden$="[[isMissing]]">
+                    <element-for-in content="[[volume.extra]]"></element-for-in>
                 </div>
             </paper-material>
         </div>
-        <iron-ajax id="networkDeleteAjaxRequest" url="/api/v1/clouds/[[network.cloud_id]]/networks/[[network.id]]" method="DELETE"
-            on-response="_handleNetworDeletekAjaxResponse"></iron-ajax>
+        <iron-ajax id="volumeDeleteAjaxRequest" url="/api/v1/clouds/[[volume.cloud]]/volumes/[[volume.id]]" method="DELETE"
+            on-response="_handleVolumeDeletekAjaxResponse"></iron-ajax>
         <dialog-element></dialog-element>
     </template>
     <script>
         Polymer({
-            is: 'network-page',
+            is: 'volume-page',
             behaviors: [
                 mistLoadingBehavior
             ],
@@ -265,56 +242,66 @@
                 section: {
                     type: Object
                 },
-                network: {
+                volume: {
                     type: Object
-                },
-                hasSubnets: {
-                    type: Boolean,
-                    computed: '_computeHasSubnets(network.subnets)'
                 },
                 isLoading: {
                     type: Boolean,
-                    computed: '_computeIsloading(network)',
+                    computed: '_computeIsloading(volume)',
                     value: true
                 },
-                networkCloud: {
+                volumeCloud: {
                     type: String,
-                    computed: '_computeNetworkCloud(network, model.clouds)'
+                    computed: '_computeVolumeCloud(volume, model.clouds)'
+                },
+                machinesVolumeCanAttachTo: {
+                    type: Array,
+                    computed: '_computedMachinesVolumeCanAttachTo(volume.provider, model.machines)'
                 },
                 itemArray: Array
             },
             observers: [
-                '_change(network)'
+                '_change(volume)'
             ],
             _displayUser: function (id, members) {
                 return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _change: function (item) {
                 if (item)
-                    this.set('itemArray', [this.network]);
+                    this.set('itemArray', [this.volume]);
             },
-            _computeHasSubnets: function (subnets) {
-                return subnets && subnets.length;
+            _computeVolumeCloud: function (volume, clouds) {
+                if (this.volume) {
+                    return this.model.clouds[this.volume.cloud].title;
+                }
             },
-            _computeNetworkCloud: function (network, clouds) {
-                if (network)
-                    return this.model.clouds[this.network.cloud_id].title
+            _computedMachinesVolumeCanAttachTo: function(provide, machines) {
+                if (this.volume) {
+                    var machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
+                    if (['gce','ec2'].indexOf(this.volume.provider) == -1) {
+                        return machinesArray;
+                    } else {
+                        return machinesArray.filter(function(m){
+                            return this.model.clouds[this.volume.cloud].locations[m.location].name == this.volume.location
+                        }.bind(this));
+                    }
+                }
             },
-            _editNetwork: function (e) {
+            _editVolume: function (e) {
                 console.log(e);
             },
-            _deleteNetwork: function (e) {
+            _deleteVolume: function (e) {
                 this._showDialog({
-                    title: 'Delete Network?',
-                    body: "Deleting networks cannot be undone. You are about to delete network: '" +
-                        this.network.name + "'.",
+                    title: 'Delete Volume?',
+                    body: "Deleting volumes cannot be undone. You are about to delete volume: '" +
+                        this.volume.name + "'.",
                     danger: true,
-                    reason: "network.delete"
+                    reason: "volume.delete"
                 });
             },
-            _handleNetworDeletekAjaxResponse: function (e) {
+            _handleVolumeDeletekAjaxResponse: function (e) {
                 this.fire('go-to', {
-                    url: '/networks'
+                    url: '/volumes'
                 });
             },
             _showDialog: function (info) {
@@ -324,10 +311,12 @@
                 }
                 dialog._openDialog();
             },
-            _computeIsloading: function (network) {
-                return !this.network ? true : false;
+            _computeIsloading: function (volume) {
+                return !this.volume ? true : false;
             },
-
+            _toArray: function (x, z) {
+                return Object.keys(x).map(y => x[y])
+            },
         });
     </script>
 </dom-module>
