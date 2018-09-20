@@ -68,6 +68,16 @@
                 width: 100%;
             }
 
+            iron-image {
+                width: 40px;
+                height: 40px;
+                background-color: lightgray;
+            }
+
+            paper-item {
+                width: 100%;
+            }
+
             paper-item:not(.context) {
                 padding: 8px 16px 8px 24px;
                 width: inherit;
@@ -190,7 +200,9 @@
             <div class="dropdown-content" slot="dropdown-content">
                 <div class="grid-row current context">
                     <div class="logo xs4">
-                        <iron-icon class="user-menu-icon" icon="social:person"></iron-icon>
+                        <iron-icon class="user-menu-icon" icon="social:person" hidden$="[[_computeLogo(org)]]"></iron-icon>
+                        <iron-image class="logo" src$="[[_computeLogo(org)]]" sizing="contain" fade alt$="[[portal_name]] Logo" tabindex="0"
+                        hidden$="[[!_computeLogo(org)]]"></iron-image>
                     </div>
                     <div class="org xs8">
                         <h4 style$="[[_computeOrganizationNameStyle(org.name)]]">[[_computeOrganizationName(org.name)]]</h4>
@@ -204,7 +216,8 @@
                     <template is="dom-repeat" items="{{orgsList}}" as="organization" restamp>
                         <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row" tabindex="-1">
                             <paper-item class="context" hidden$=[[_isCurrentOrg(organization)]]>
-                                <iron-icon class="user-menu-icon" icon$="[[_computeOrganizationIcon(organization)]]"></iron-icon>
+                                <iron-icon class="user-menu-icon" icon="[[_computeOrganizationIcon(organization)]]" hidden$="[[_computeLogo(organization)]]"></iron-icon>
+                                <iron-image class="logo" src$="[[_computeLogo(organization)]]" sizing="contain" fade alt$="[[portal_name]] Logo" tabindex="0" hidden$="[[!_computeLogo(organization)]]"></iron-image>
                                 <div class="org-name">[[_computeOrganizationName(organization.name)]]</div>
                             </paper-item>
                         </a>
@@ -292,6 +305,11 @@
                 type: String,
                 value: ''
             }
+        },
+        _computeLogo: function (org) {
+            if (!org || !org.avatar)
+                return false;
+            return '/api/v1/avatars/' + org.avatar;
         },
         _computeGravatar: function (email, size, placeholder) {
             var avatarString = md5(email),
