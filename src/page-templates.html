@@ -21,7 +21,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="templatesList" selectable resizable column-menu multi-sort apiurl="/api/v1/templates" items="[[model.templatesArray]]"
                 name="Templates" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.templates)]]
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.templates)]]
                 route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="template" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" org="[[model.org]]" members="[[model.membersArray]]"></template-actions>
@@ -101,9 +101,9 @@
             },
 
             _getVisibleColumns: function () {
-                var ret = ['exec_type', 'location_type', 'owned_by', 'created_by', 'tags'];
-                if (this.model.org && this.model.org.ownership_enabled != true)
-                    ret.splice(ret.indexOf('owned_by'), 1);
+                var ret = ['exec_type', 'location_type', 'created_by', 'tags'];
+                if (this.model.org && this.model.org.ownership_enabled == true)
+                    ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
                 return ret;
             },
 
