@@ -301,6 +301,9 @@
 
         _selectedCloudChanged: function(cloud) {
             if (this.field.cloud) {
+                // clear field.value
+                this._clearField();
+
                 var selectedCloud = this.field.clouds[this.field.cloud];
                 this.set('cloud', selectedCloud);
                 this.set('machines', this._objectToArray(selectedCloud.machines));
@@ -335,6 +338,33 @@
                     this.set('hideSize', true);
                 }
             }
+        },
+
+        _clearField: function() {
+            var fieldValues = ['key', 'image', 'size', 'location', 'networks', 'quantity'];
+            for (var i = 0; i < fieldValues.length; i ++ ) {
+                if (this.field[fieldValues[i]]) {
+                    var typeOfVal = typeof this.field[fieldValues[i]];
+                    if (typeOfVal == 'string') {
+                        this.field[fieldValues[i]] = "";
+                    } else if (typeOfVal == 'array') {
+                        this.field[fieldValues[i]] = [];
+                    } else if (typeOfVal == 'object') {
+                        this.field[fieldValues[i]] = null;
+                    }
+
+                }
+                this.set('field.value', {});
+            }
+            this.set('machines', []);
+            this.set('images', []);
+            this.set('sizes', []);
+            this.set('locations', []);
+            this.set('networks', []);
+
+            this.set('sizeNotRequired', false);
+            this.set('hideNetworks', false);
+            this.set('hideSize', false);
         },
 
         _updateFieldValue: function(useExistingMachine, cloud, machine, machineList, image, size, location, networks, key, quantity) {
