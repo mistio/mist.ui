@@ -213,6 +213,16 @@
                         </paper-dropdown-menu>
                     </span>
                 </span>
+                <div hidden$=[[!ruleType]]>
+                    <span class="keyword on">check every</span>
+                    <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                    <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                        <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                            <paper-item value="minutes">minutes</paper-item>
+                            <paper-item value="hours">hours</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
                 <span hidden$="[[isNoData]]">
                     <span class="keyword if">if</span>
                     <template is="dom-repeat" items="[[rule.queries]]" as="query">
@@ -259,17 +269,6 @@
                             </span>
                     </template>
                 </span>
-                <div hidden$=[[!rule.frequency]]>
-                    <span class="keyword on">on</span>
-                    <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
-                    <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
-                            <paper-item value="minutes">minutes</paper-item>
-                            <paper-item value="hours">hours</paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-                    <span class="keyword"> evaluation basis </span>
-                </div>
                 <div hidden$="[[!_isConditionValid(rule.queries.*, rule.queries.0.threshold)]]">
                     <span class="keyword then">then</span>
                     <span id="actionsDropdown">
@@ -418,12 +417,13 @@
                 }
             },
             _computeMonitoredMachines: function (machines) {
-                if (machines)
+                if (machines) {
                     return Object.values(machines).filter(function(m){
                         return m.monitoring;
                     });
-                else
-                    return []
+                } else {
+                    return [];
+                }
             },
             _removeBrackets: function (string) {
                 return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
