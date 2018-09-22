@@ -12,4 +12,4 @@ if ! diff -q bower.json /bower.json; then
     GIT_DIR= bower install --config.interactive=false --allow-root
 fi
 cp /ui/container/nginx.conf /etc/nginx/nginx.conf
-nginx
+exec nginx

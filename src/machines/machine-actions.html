@@ -196,10 +196,10 @@
       },
       itemActions: function (machine) {
         var arr = [];
-        if (machine.cloud.provider == 'vsphere')
+        if (['vsphere', 'openstack'].indexOf(this.model.clouds[machine.cloud].provider) > -1)
           arr.push('console');
         if (machine) {
-          if (machine.os_type != 'windows') {
+          if (machine.os_type != 'windows' && machine.machine_type != 'ilo-host') {
             arr.push('shell');
             arr.push('associate-key');
           }
@@ -419,9 +419,18 @@
                 // for machines destroy only and only if in machine page
                 if (action.name == "destroy" && document.querySelector('app-location').path.split(
                     '/machines/')[1] == item.id) {
-                  this.fire('go-to', {
-                    url: '/machines'
-                  });
+                  // kvm machines
+                  if (item.provider != 'kvm') {
+                    this.fire('go-to', {
+                      url: '/machines'
+                    });
+                  }
+                }
+                if (item.provider == 'kvm' && action.name == "undefine" && document.querySelector('app-location').path.split(
+                    '/machines/')[1] == item.id) {
+                    this.fire('go-to', {
+                      url: '/machines'
+                    });
                 }
               } else {
                 console.error(action, 'failed');

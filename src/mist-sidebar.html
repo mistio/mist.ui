@@ -124,7 +124,7 @@
         }
 
         #section-list {
-            padding: 16px 0 10px;
+            padding: 20px 0 10px;
         }
 
         :host[smallscreen] #section-list {
@@ -198,6 +198,13 @@
             display: none;
         }
 
+        a {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.018em;
+            line-height: 24px;
+        }
+
         a.section:focus {
             outline: 0;
         }
@@ -232,6 +239,7 @@
         a#stacks    {color: var(--stacks-section-color);}
         a#keys      {color: var(--keys-section-color);}
         a#networks  {color: var(--networks-section-color);}
+        a#volumes   {color: var(--volumes-section-color);}
         a#tunnels   {color: var(--tunnels-section-color);}
         a#zones     {color: var(--zones-section-color);}
         a#scripts   {color: var(--scripts-section-color);}
@@ -246,17 +254,17 @@
         <div class="content">
             <div id="section-list">
                 <nav>
-                    <template is="dom-repeat" items="[[model.sectionsArray]]">
-                        <template is="dom-if" if="[[item.sidebar]]">
-                            <a id="[[item.id]]" class="section" is="pushstate-anchor" on-tap="clearSearch"
+                    <template is="dom-repeat" items="[[sectionsArray]]">
+                        <template is="dom-if" if="[[item.sidebar]]" restamp>
+                            <a id="[[item.id]]" class="section" on-tap="clearSearch"
                                 id$="[[item.id]]" href$="/[[item.id]]"
-                                hidden$="[[_isHidden(item.hideZero, item.count)]]"
+                                hidden$="[[_isHidden(item,sectionsArray)]]"
                                 active$="[[_isEqual(current, item.id)]]" tabindex="1">
                                 <div class="flex-1 layout horizontal center">
                                     <section-symbol aria-hidden="true" icon="[[item.icon]]"></section-symbol>
                                     <span class="title flex-1">
                                         <span class="title-text flex-1">[[item.id]]</span>
-                                        <span class="count">[[item.count]]</span>
+                                        <span class="count">[[_getSectionCount(item.id, sectionsArray)]]</span>
                                     </span>
                                 </div>
                             </a>
@@ -305,6 +313,10 @@
             hasStacks: {
                 type: Boolean,
                 computed: "_computeHasStacks(model.stacksArray)"
+            },
+            sectionsArray: {
+                type: Array,
+                computed: '_toArray(model.sections, model.sections.*)'
             }
         },
         style: function(color) {
@@ -358,13 +370,19 @@
         _getSections: function(sections) {
             return this.model.sectionsArray;
         },
-        _isHidden: function(hideZero, count) {
-            if (hideZero && count == 0)
+        _isHidden: function(item) {
+            if (item.hideZero && item.count == 0)
                 return true;
             return false;
         },
         clearSearch: function(e){
             this.fire('preserve-filters');
+        },
+        _toArray: function (x, z) {
+            return Object.keys(this.model.sections).map(y => this.model.sections[y])
+        },
+        _getSectionCount: function (name, sections) {
+            return this.model.sections[name].count;
         }
     });
     </script>

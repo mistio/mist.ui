@@ -204,6 +204,42 @@ PROVIDERS.push({
     }]
 });
 
+// CLEARAPI
+PROVIDERS.push({
+    title: 'ClearAPI',
+    val: 'clearapi',
+    className: 'provider-clearapi',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "ClearAPI",
+        defaultValue: "ClearAPI",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "url",
+        label: "Url *",
+        type: "text",
+        value: "ClearAPI",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter url"
+    }, {
+        name: "api_key",
+        label: "API key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API key",
+        helptext: ""
+    }]
+});
+
 // DIGITALOCEAN
 PROVIDERS.push({
     title: 'Digital Ocean',
@@ -465,6 +501,59 @@ PROVIDERS.push({
         helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
+
+
+
+// AWS
+PROVIDERS.push({
+    title: 'Alibaba Cloud',
+    val: 'aliyun_ecs',
+    className: 'provider-aliyunecs',
+    options: [{
+        name: "region",
+        label: "Region *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: [{
+            'title': 'China East 1 (Hangzhou)',
+            'val': 'cn-hangzhou'
+        }, {
+            'title': 'EU Central 1 (Frankfurt)',
+            'val': 'eu-central-1'
+        }]
+    }, {
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Aliyun ECS",
+        defaultValue: "Aliyun ECS",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: 'You can find your API key on your Alibaba Cloud console'
+    }, {
+        name: "apisecret",
+        label: "API Secret *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: 'You can find your API secret on your Alibaba Cloud console'
+    }]
+});
+
 
 // GCE
 PROVIDERS.push({

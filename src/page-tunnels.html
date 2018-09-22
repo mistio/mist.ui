@@ -23,7 +23,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="tunnelsList" selectable resizable column-menu multi-sort apiurl="/api/v1/tunnels" items="[[model.tunnelsArray]]"
                 name="Tunnels" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]]
-                visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.tunnels)]] route={{route}} user-filter=[[model.sections.tunnels.q]]
+                visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.tunnels)]] route={{route}} user-filter=[[model.sections.tunnels.q]]
                 primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="tunnel" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <tunnel-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></tunnel-actions>
@@ -88,9 +88,9 @@
             },
 
             _getVisibleColumns: function () {
-                var ret = ['cidrs', 'owned_by', 'created_by', 'id', 'tags'];
-                if (this.model.org && this.model.org.ownership_enabled != true)
-                    ret.splice(ret.indexOf('owned_by'), 1);
+                var ret = ['cidrs', 'created_by', 'id', 'tags'];
+                if (this.model.org && this.model.org.ownership_enabled == true)
+                    ret.push('owned_by');
                 return ret;
             },
             _getRenderers: function (tunnels) {

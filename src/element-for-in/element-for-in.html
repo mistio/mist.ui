@@ -21,10 +21,13 @@
             :host > div {
                 word-break: break-all;
             }
+            view-json {
+                --background-color: #fff;
+            }
         </style>
     </template>
 </dom-module>
-
+<script src="../../bower_components/view-json/view-json.js"></script>
 <script>
     Polymer({
         is: 'element-for-in',
@@ -45,13 +48,10 @@
                 // loop through pairs
                 for (el in obj) {
                     if (obj[el]) {
-                        // If the value is not object or array
-                        if (!(obj[el] instanceof Array) && !(obj[el] instanceof Object)) {
-                            newObj.push({
-                                key: el,
-                                value: obj[el]
-                            });
-                        }
+                        newObj.push({
+                            key: el,
+                            value: obj[el]
+                        });
                     }
                 }
 
@@ -79,9 +79,13 @@
             var tpl = '';
 
             for (var i = 0, len = content.length; i < len; i++) {
+                if (content[i].key.indexOf(this.getAttribute('ignore')) == 0)
+                    continue;
                 tpl += "<div class='info-item flex-horizontal-with-ratios'>";
                 tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
-                if (content[i].key.indexOf("password") > -1)
+                if (content[i].value instanceof Object || content[i].value instanceof Array)
+                    tpl += "<div class='flexchild' style='width: 70%'><view-json>" + JSON.stringify(content[i].value) + "</view-json></div>";
+                else if (content[i].key.indexOf("password") > -1)
                     tpl += "<div class='flexchild'>" + content[i].value.replace('<', '&lt;').replace('>', '&gt;') +"</div>";
                 else if (content[i].key.indexOf("power_state") > -1 && content[i].value == 1)
                     tpl += "<div class='flexchild'>running</div>";

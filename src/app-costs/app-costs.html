@@ -115,6 +115,7 @@
             font-size: 0.8em;
             color: var(--app-costs-sub-text-color);
             display: block;
+            margin-top: -10px;
         }
         .zero-clouds {
             padding: 0 12px 12px;
@@ -163,10 +164,7 @@
                     </template>
                 </table>
                 <div class="zero-clouds" hidden$="[[!zeroCostClouds.length]]">
-                    and [[zeroCostClouds.length]] more clouds of $0 cost:
-                    <template is="dom-repeat" items="[[zeroCostClouds]]">
-                        <span class="zero-cloud">[[item.name]]</span>
-                    </template>
+                    and [[zeroCostClouds.length]] more clouds of $0 cost
                 </div>
             </div>
             <div id="tags" hidden$="[[showClouds]]">
@@ -192,11 +190,11 @@ Polymer({
         },
         totalCost: {
             type: Number,
-            computed: '_computeTotalCost(model.machinesArray.*)'
+            computed: '_computeTotalCost(model.machines.*)'
         },
         topClouds: {
             type: Array,
-            computed: '_computeTopClouds(model.cloudsArray.*, model.machinesArray.*)'
+            computed: '_computeTopClouds(model.cloudsArray.*, model.machines.*)'
         },
         zeroCostClouds: {
             type: Array
@@ -218,7 +216,7 @@ Polymer({
         }
     },
     observers: [
-        '_computeTags(model.cloudsArray, model.machinesArray)'
+        '_computeTags(model.cloudsArray, model.machines)'
     ],
     attached: function() {
         var rows = this.parentNode.querySelectorAll('block');
@@ -229,9 +227,9 @@ Polymer({
     },
     _computeTotalCost: function(machines) {
         var cost = 0;
-        if (machines.base.length > 0){
+        if (Object.keys(this.model.machines).length > 0){
             // map machines costs in an array
-            var machinesWithCost = this.model.machinesArray.map(function(m){
+            var machinesWithCost = Object.values(this.model.machines).map(function(m){
                 return m.cost && m.cost.monthly ? m.cost.monthly : 0;
             });
             // add all cost values
@@ -292,8 +290,8 @@ Polymer({
     },
     _computeTags: function(clouds, machines) {
         var tagsArray = [];
-        if (this.model && this.model.machinesArray && this.model.machinesArray.length > 0) {
-            this.model.machinesArray.forEach(function(m){
+        if (this.model && this.model.machines) {
+            Object.values(this.model.machines).forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && m.tags.length  && mcost){
                     m.tags.forEach(function(t){

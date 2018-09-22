@@ -171,6 +171,7 @@
                 <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
                 <page-keys name="keys" route="{{subroute}}" model="[[model]]" config=[[config]]></page-keys>
                 <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
+                <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
                 <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
                 <template is="dom-if" if="[[config.features.tunnels]]">
                     <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
@@ -527,11 +528,12 @@
             _configUpdated: function (config) {
                 console.log('Config updated');
                 var model = {
+                    machines: {},
                     cloudsArray: [],
-                    machinesArray: [],
                     imagesArray: [],
                     keysArray: [],
                     networksArray: [],
+                    volumes: {},
                     zonesArray: [],
                     tunnelsArray: [],
                     scriptsArray: [],
@@ -553,7 +555,6 @@
                     probes: {},
                     monitoring: {},
                     sections: {},
-                    sectionsArray: [],
                     onboarding: {
                         isLoadingClouds: true,
                         isLoadingMachines: true,
@@ -605,6 +606,15 @@
                             'edit_tags',
                             'edit_subnets',
                             'read_logs',
+                        ],
+                        'volume': [
+                            'add',
+                            'read',
+                            'remove',
+                            'attach',
+                            'detach',
+                            'read_logs',
+                            'edit_tags'
                         ],
                         'script': [
                             'add',
@@ -689,7 +699,7 @@
                     model.teams = model.teamsArray[i].teams[i].id;
                 };
 
-                model.sectionsArray = [{
+                let sectionsArray = [{
                     id: 'dashboard',
                     icon: 'icons:dashboard',
                     color: '#424242',
@@ -709,7 +719,8 @@
                     sidebar: this.config.features.orchestration,
                     tile: this.config.features.orchestration,
                     count: 0,
-                    hideZero: true
+                    hideZero: true,
+                    hideTileIfZero: true
                 }, {
                     id: 'machines',
                     color: '#8c76d1',
@@ -719,13 +730,23 @@
                     tile: true,
                     count: 0
                 }, {
+                    id: 'volumes',
+                    color: '#795548',
+                    icon: 'device:storage',
+                    add: '/volumes/+add',
+                    sidebar: true,
+                    tile: true,
+                    count: 0,
+                    hideTileIfZero: true
+                }, {
                     id: 'networks',
                     color: '#795548',
                     icon: 'hardware:device-hub',
                     add: '/networks/+add',
                     sidebar: true,
                     tile: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'zones',
                     color: '#3F51B5',
@@ -733,7 +754,8 @@
                     add: '/zones/+add',
                     sidebar: true,
                     tile: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'keys',
                     color: '#009688',
@@ -742,7 +764,8 @@
                     sidebar: true,
                     tile: true,
                     hr: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'images',
                     color: '#0099cc',
@@ -758,7 +781,8 @@
                     sidebar: true,
                     tile: true,
                     hr: !this.config.features.orchestration,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'templates',
                     color: '#0097A7',
@@ -767,7 +791,8 @@
                     sidebar: this.config.features.orchestration,
                     tile: this.config.features.orchestration,
                     hr: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'tunnels',
                     color: '#795548',
@@ -775,7 +800,8 @@
                     add: '/tunnels/+add',
                     sidebar: this.config.features.tunnels,
                     tile: false,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'schedules',
                     color: '#43A047',
@@ -823,7 +849,7 @@
                     tile: false
                 }];
 
-                model.sections = _generateMap(model.sectionsArray);
+                model.sections = _generateMap(sectionsArray);
 
                 this.set('model', model);
                 if (!this.config.features.docs) {
