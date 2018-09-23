@@ -18,6 +18,8 @@
 <link rel="import" href="resize-dialog.html">
 <link rel="import" href="machine-edit.html">
 
+<script type="text/javascript" src="../volume-create-fields.js" inline></script>
+
 <dom-module id="machine-actions">
   <template>
     <style include="shared-styles">
@@ -30,6 +32,7 @@
     <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
     <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
+    <attach-volume id="attachvolumedialog" items="[[items]]" model="[[model]]"></attach-volume>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(model.membersArray,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
@@ -40,6 +43,12 @@
   </template>
   <script>
     MACHINE_ACTIONS = {
+      'attach-volume': {
+        'name': 'attach volume',
+        'icon': 'device:storage',
+        'confirm': false,
+        'multi': false
+      },
       'shell': {
         'name': 'shell',
         'icon': 'vaadin:terminal',
@@ -177,7 +186,17 @@
         type: {
           type: String,
           value: 'machine'
-        }
+        },
+        providersWithVolumes: {
+          type: Array,
+          computed: 'computeProvidersWithVolumes(volumesFields)'
+        },
+        volumesFields: {
+            type: Array,
+            value: function () {
+                return VOLUME_CREATE_FIELDS;
+            }
+        },
       },
       listeners: {
         'rename-machine': 'renameAction',
@@ -194,6 +213,9 @@
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
+      computeProvidersWithVolumes: function(fields) {
+        return fields.map(i => i.provider) || [];
+      },
       itemActions: function (machine) {
         var arr = [];
         if (['vsphere', 'openstack'].indexOf(this.model.clouds[machine.cloud].provider) > -1)
@@ -202,6 +224,9 @@
           if (machine.os_type != 'windows' && machine.machine_type != 'ilo-host') {
             arr.push('shell');
             arr.push('associate-key');
+          }
+          if (this.providersWithVolumes.map(i => i.provider).indexOf(machine.provider) > -1) {
+            arr.push('attach-volume');
           }
         }
         if (machine && machine.actions) {
