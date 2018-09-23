@@ -657,8 +657,8 @@
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
                             </span>
                         </div>
+                        <br/>
                     </div>
-                    <br/>
                     <div hidden$="[[!machine.key_associations.length]]">
                         <div class="m-info-head">Associated Keys:</div>
                         <div class="associatedKeys">
@@ -668,6 +668,20 @@
                                         <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
                                     <iron-icon icon="icons:cancel" on-tap="disassociateKey"
                                         class="delete"></iron-icon>
+                                </div>
+                            </template>
+                            <div class="machine-key" id="pendingKeyRequest">
+                                <paper-spinner active hidden$="[[!isPendingKeyRequest]]"></paper-spinner>
+                            </div>
+                        </div>
+                    </div>
+                    <div hidden$="[[!volumes.length]]">
+                        <div class="m-info-head">Attached Volumes:</div>
+                        <div class="associatedKeys">
+                            <template is="dom-repeat" items="{{volumes}}" as="volumeId">
+                                <div class="machine-key">
+                                    <a class="regular blue-link flexchild" href$="/volumes/[[volumeId]]">
+                                        <iron-icon icon="device:storage"></iron-icon>[[_computeVolumeName(volumeId)]]</a>
                                 </div>
                             </template>
                             <div class="machine-key" id="pendingKeyRequest">
@@ -897,6 +911,10 @@
                 type: Object,
                 computed: '_getMachineCloud(model.clouds.*, machine.cloud)'
             },
+            volumes: {
+                type: Array,
+                computed: '_getMachineVolumes(model.volumes.*, machine)'
+            },
             sections: {
                 type: Array
             },
@@ -1058,6 +1076,12 @@
         _getMachineCloud: function (clouds, id) {
             return this.model.clouds[id];
         },
+        _getMachineVolumes: function (volumes, machine) {
+            var that = this;
+            return vols = Object.keys(that.model.volumes).filter(function(k){
+                    return that.model.volumes[k].attached_to.map(i => machine.id).indexOf(that.machine.id) > -1;
+                });
+        },
         _displayUser: function (id, members) {
             return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
         },
@@ -1121,6 +1145,10 @@
         _computeKeyName: function (keyid) {
             if (this.model.keys[keyid])
                 return this.model.keys[keyid].name || 'not found';
+        },
+        _computeVolumeName: function (id) {
+            if (this.model.volumes[id])
+                return this.model.volumes[id].name || 'not found';
         },
         _computeThisItemUid: function (machine) {
             var itemUidInArray = [];
