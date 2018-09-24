@@ -161,7 +161,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <volume-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[volume.attached_to]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[volume.provider]]" in-single-view></volume-actions>
+            <volume-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[volume.attached_to]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
@@ -256,7 +256,7 @@
                 },
                 machinesVolumeCanAttachTo: {
                     type: Array,
-                    computed: '_computedMachinesVolumeCanAttachTo(volume.provider, model.machines)'
+                    computed: '_computedMachinesVolumeCanAttachTo(volume, model.machines)'
                 },
                 itemArray: Array
             },
@@ -275,16 +275,17 @@
                     return this.model.clouds[this.volume.cloud].title;
                 }
             },
+            _computeVolumeProvider: function (volume, clouds){
+                if (this.volume) {
+                    return this.model.clouds[this.volume.cloud].provider;
+                }
+            },
             _computedMachinesVolumeCanAttachTo: function(provide, machines) {
                 if (this.volume) {
                     var machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
-                    if (['gce','ec2'].indexOf(this.volume.provider) == -1) {
-                        return machinesArray;
-                    } else {
-                        return machinesArray.filter(function(m){
-                            return this.model.clouds[this.volume.cloud].locations[m.location].name == this.volume.location
-                        }.bind(this));
-                    }
+                    return machinesArray.filter(function(m){
+                        return this.model.clouds[this.volume.cloud].locations[m.location].name == this.volume.location
+                    }.bind(this));
                 }
             },
             _editVolume: function (e) {
