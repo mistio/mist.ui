@@ -2,15 +2,15 @@
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
-<link rel="import" href="networks/network-create.html">
-<link rel="import" href="networks/network-page.html">
-<link rel="import" href="networks/network-actions.html">
+<link rel="import" href="volumes/volume-create.html">
+<link rel="import" href="volumes/volume-page.html">
+<link rel="import" href="volumes/volume-actions.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 
-<dom-module id="page-networks">
+<dom-module id="page-volumes">
     <template>
         <style>
             :host {
@@ -18,29 +18,30 @@
             }
         </style>
 
-        <app-route route="{{route}}" pattern="/:network" data="{{data}}"></app-route>
+        <app-route route="{{route}}" pattern="/:volume" data="{{data}}"></app-route>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" items="[[model.networksArray]]"
+            <mist-list id="volumesList" selectable resizable column-menu multi-sort apiurl="/api/v1/volumes" item-map="[[model.volumes]]"
                 name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.networks,model.clouds)]]
-                route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
-                <p slot="no-items-found">No networks found.</p>
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.volumes,model.clouds)]]
+                route={{route}} user-filter=[[model.sections.volumes.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
+                <mist-actions slot="action-buttons" actions="[[actions]]" type="volume" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                <!-- TODO: add 'machine' & `machines-to-attach-to` property to volume actions-->
+                <volume-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></volume-actions>
+                <p slot="no-items-found">No volumes found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
-                <paper-fab id="networkAdd" icon="add" on-tap="_addResource"></paper-fab>
+                <paper-fab id="volumeAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
-        <network-create model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-create>
-        <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networksArray.length)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
-            hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
+        <volume-create model="[[model]]" section="[[model.sections.volumes]]" hidden$=[[!_isAddPageActive(route.path)]]></volume-create>
+        <volume-page model="[[model]]" volume="[[_getVolume(data.volume, model.volumes.*)]]" resource-id="[[data.volume]]" section="[[model.sections.volumes]]"
+            hidden$=[[!_isDetailsPageActive(route.path)]]></volume-page>
     </template>
 
     <script>
         Polymer({
-            is: 'page-networks',
+            is: 'page-volumes',
             behaviors: [
                 mistListsBehavior,
                 ownerFilterBehavior
@@ -67,8 +68,8 @@
             },
             
             _isDetailsPageActive: function (path) {
-                if (path && path != '/+add' && this.querySelector('network-page'))
-                    this.querySelector('network-page').updateState();
+                if (path && path != '/+add' && this.querySelector('volume-page'))
+                    this.querySelector('volume-page').updateState();
                 return path && path != '/+add';
             },
             
@@ -76,14 +77,14 @@
                 return !path;
             },
             
-            _getNetwork: function (id) {
-                if (this.model.networks)
-                    return this.model.networks[id];
+            _getVolume: function (id) {
+                if (this.model.volumes)
+                    return this.model.volumes[id];
             },
             
             _addResource: function (e) {
                 this.fire('go-to', {
-                    url: this.model.sections.networks.add
+                    url: this.model.sections.volumes.add
                 });
             },
             
@@ -92,13 +93,13 @@
             },
 
             _getVisibleColumns: function () {
-                var ret = ['provider', 'created_by', 'network_type', 'subnets', 'state', 'tags'];
-                if (this.model.org && this.model.org.ownership_enabled == true)
-                    ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+                var ret = ['provider', 'owned_by', 'created_by', 'size', 'state', 'tags'];
+                if (this.model.org && this.model.org.ownership_enabled != true)
+                    ret.splice(ret.indexOf('owned_by'), 1);
                 return ret;
             },
 
-            _getRenderers: function (networks, clouds) {
+            _getRenderers: function (volumes, clouds) {
                 var _this = this;
                 return {
                     'name': {
@@ -111,8 +112,8 @@
                             return 'cloud';
                         },
                         'body': function (item, row) {
-                            return _this.model && _this.model.clouds && _this.model.clouds[row.cloud_id] ?
-                                _this.model.clouds[row.cloud_id].title : item;
+                            return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
+                                _this.model.clouds[row.cloud].title : item;
                         }
                     },
                     'owned_by': {
@@ -131,28 +132,14 @@
                             return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
-                    'network_type': {
-                        'title': function (item, row) {
-                            return 'network type';
-                        },
+                    'size': {
                         'body': function (item, row) {
-                            return item;
-                        }
-                    },
-                    'subnets': {
-                        'body': function (item, row) {
-                            return item ? item.length : '';
+                            return '<span style="display:block;text-align:right;">'+item + ' GΒ</span>';
                         }
                     },
                     'state': {
                         'body': function (item, row) {
-                            if (row.provider == 'ec2')
-                                return row.extra && row.extra.state != undefined ? row.extra.state : '';
-                            else if (row.provider == 'openstack')
-                                return row.admin_state_up != undefined ? 'admin state up:' + row.admin_state_up :
-                                    '';
-                            else
-                                return '';
+                            return row.state;
                         }
                     },
                     'tags': {
@@ -175,8 +162,8 @@
             // redirect events
             selectAction: function (e) {
                 e.stopImmediatePropagation();
-                if (this.querySelector('network-actions')) {
-                    this.querySelector('network-actions').selectAction(e);
+                if (this.querySelector('volume-actions')) {
+                    this.querySelector('volume-actions').selectAction(e);
                 }
             }
 
