@@ -777,26 +777,6 @@
                 return false;
 
             this.set('model.clouds.' + data.cloud_id + '.networks', data.networks);
-
-            //update all networks array
-            this._updateAllNetworks();
-        },
-
-        _updateAllNetworks: function() {
-            var allNetworks = [];
-            if (this.model != undefined) {
-                this.model.cloudsArray.forEach(function (cloud) {
-                    if (cloud.networksArray != undefined && cloud.enabled) {
-                        cloud.networksArray.forEach(function (net) {
-                            allNetworks.push(net);
-                        })
-                    }
-                });
-            }
-            this.set('model.networksArray', allNetworks);
-            this.set('model.networks', _generateMap(allNetworks));
-            // update section count, necessary for propagating changes to sidebar & dashboard counters
-            this.set('model.sections.networks.count', allNetworks.length);
         },
 
         _updateZones: function (data) {
@@ -1066,17 +1046,11 @@
 
         cleanUpResources: function (cloud_id) {
             var newImagesArray = [],
-                newNetworksArray = [];
                 _this = this;
             if (cloud_id) {
                 // images
                 newImagesArray = this.model.imagesArray.filter(function (im) {
                     return im.cloud && im.cloud.id != cloud_id;
-                });
-
-                // networks
-                newNetworksArray = this.model.networksArray.filter(function (n) {
-                    return n.cloud_id != cloud_id;
                 });
             }
 
@@ -1091,15 +1065,15 @@
                 }
             });
 
+            // networks
+            this.cleanUpCloudResources('networks');
             // volumes
             this.cleanUpCloudResources('volumes');
 
             this.set('model.imagesArray', newImagesArray);
             this.set('model.images', _generateMap(newImagesArray));
-
-            this.set('model.networksArray', newNetworksArray);
-            this.set('model.networks', _generateMap(newNetworksArray));
         },
+
         cleanUpCloudResources: function(section, externalId) {
             var _this = this;
             Object.keys(this.model[section]).forEach(function(resource_id) {
