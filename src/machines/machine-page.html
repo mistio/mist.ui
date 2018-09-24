@@ -138,6 +138,10 @@
                 margin-bottom: 16px;
             }
 
+            .tags {
+                margin-bottom: 8px;
+            }
+
             .cost {
                 margin-bottom: 0;
                 font-size: 23px;
@@ -181,7 +185,7 @@
                 margin: 0 0 0 4px;
             }
 
-            .machine-key, .machine-volume {
+            .machine-key {
                 line-height: 24px;
                 display: inline-block;
                 vertical-align: top;
@@ -674,6 +678,7 @@
                                 <paper-spinner active hidden$="[[!isPendingKeyRequest]]"></paper-spinner>
                             </div>
                         </div>
+                        <br/>
                     </div>
                     <div hidden$="[[!volumes.length]]">
                         <div class="m-info-head">Attached Volumes:</div>
@@ -682,21 +687,17 @@
                                 <div class="machine-volume">
                                     <a class="regular blue-link flexchild" href$="/volumes/[[volumeId]]">
                                         <iron-icon icon="device:storage"></iron-icon>[[_computeVolumeName(volumeId)]]</a>
-                                        <iron-icon icon="icons:cancel" class="delete">
-                                </div>
-                                <div class="machine-volume">
-                                    <a class="regular blue-link flexchild" href$="/volumes/[[volumeId]]">
-                                        <iron-icon icon="device:storage"></iron-icon>[[_computeVolumeName(volumeId)]]</a>
-                                        <iron-icon icon="icons:cancel" class="delete">
+                                        <iron-icon icon="icons:cancel" class="delete" on-tap="detachVolume">
                                 </div>
                             </template>
-                            <div class="machine-key" id="pendingKeyRequest">
-                                <paper-spinner active hidden$="[[!isPendingKeyRequest]]"></paper-spinner>
+                            <div class="machine-volume" id="pendingVolumeRequest">
+                                <paper-spinner active hidden$="[[!isPendingVolumeRequest]]"></paper-spinner>
                             </div>
                         </div>
+                        <br/>
                     </div>
                     <div hidden$="[[!machine.tags.length]]">
-                        <h3 class="m-info-head">TAGS:</h3>
+                        <div class="m-info-head tags">TAGS:</div>
                         <template is="dom-repeat" items="[[machine.tags]]">
                             <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
@@ -800,6 +801,8 @@
             on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse"
             on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]/machines/[[machine.id]]" method="DELETE" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}"
+            on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml"></iron-ajax>
         <iron-ajax id="probeMachine" url="/api/v1/machines/[[machine.id]]/probe" method="POST" loading="{{probeLoading}}" on-error="_probeError"
             handle-as="xml"></iron-ajax>
         <paper-toast></paper-toast>
@@ -971,8 +974,15 @@
             disassociateKeyId: {
                 type: String
             },
+            detachVolumeId: {
+                type: String
+            },
             isPendingKeyRequest: {
                 type: Boolean
+            },
+            isPendingVolumeRequest: {
+                type: Boolean,
+                value: false
             },
             hideAssociatedKeys: {
                 type: Boolean
@@ -1258,7 +1268,7 @@
         _disassociateKeyResponse: function (e) {
             this.set('isPendingKeyRequest', false);
             this.fire('toast', {
-                msg: 'Key was removed from machine!',
+                msg: 'Key was removed from machine',
                 duration: 3000
             });
         },
@@ -1269,10 +1279,42 @@
                 duration: 3000
             });
         },
+        detachVolume: function (e) {
+            var volumeId = e.model.volumeId;
+            var volumeName = this._computeVolumeName(volumeId);
+
+            this.set('dettachVolumeId', volumeId);
+
+            this._showDialog({
+                title: 'Detach volume',
+                body: "Detaching volume '" + volumeName +
+                    "' from machine.",
+                danger: true,
+                reason: "detach.volume",
+                action: 'detach',
+                volume: volumeId
+            });
+        },
+        _detachVolumeResponse: function (e) {
+            this.set('isPendingVolumeRequest', false);
+            this.fire('toast', {
+                msg: 'Volume was detached from machine',
+                duration: 3000
+            });
+        },
+        _detachVolumeError: function (e) {
+            this.fire('toast', {
+                msg: e.detail.request.xhr.responseText,
+                duration: 3000
+            });
+        },
         _machineActionConfirmation: function (e) {
             if (e.detail.response.confirmed && e.detail.reason == "disassociate.key") {
                 this.$.disassociateKeyRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.disassociateKeyRequest.generateRequest();
+            } else if (e.detail.response.confirmed && e.detail.reason == "detach.volume") {
+                this.$.detachVolumeRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.detachVolumeRequest.generateRequest();
             }
         },
         _updateKeyLoader: function (e) {
