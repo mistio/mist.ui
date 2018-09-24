@@ -801,7 +801,7 @@
             on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse"
             on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
-        <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]/machines/[[machine.id]]" method="DELETE" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}"
+        <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]" method="DELETE" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}"
             on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml"></iron-ajax>
         <iron-ajax id="probeMachine" url="/api/v1/machines/[[machine.id]]/probe" method="POST" loading="{{probeLoading}}" on-error="_probeError"
             handle-as="xml"></iron-ajax>
@@ -1283,7 +1283,7 @@
             var volumeId = e.model.volumeId;
             var volumeName = this._computeVolumeName(volumeId);
 
-            this.set('dettachVolumeId', volumeId);
+            this.set('dettachVolumeId', this.model.volumes[volumeId].external_id);
 
             this._showDialog({
                 title: 'Detach volume',
@@ -1314,6 +1314,7 @@
                 this.$.disassociateKeyRequest.generateRequest();
             } else if (e.detail.response.confirmed && e.detail.reason == "detach.volume") {
                 this.$.detachVolumeRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.detachVolumeRequest.body = {action: 'detach', machines: [this.machine.id]};
                 this.$.detachVolumeRequest.generateRequest();
             }
         },
