@@ -96,7 +96,7 @@
                 <div class="tag-list">
                     <p hidden$="[[!showEmpty]]"><em>No tags. Save to clear all tags.</em></p>
                     <template is="dom-repeat" items="[[tags]]" as="tag">
-                        <tag-item tag="[[tag]]" index=[[index]]></tag-item>
+                        <tag-item tag="[[tag]]" existing-tags="[[existingTags]]" index=[[index]]></tag-item>
                     </template>
                 </div>
             </paper-dialog-scrollable>
@@ -129,6 +129,11 @@
                 properties: {
                     resource: String,
                     model: Object,
+                    existingTags: {
+                        type: Array,
+                        value: [],
+                        computed: '_computeExistingTags(model.machines)'
+                    },
                     items: {
                         type: Array,
                         notify: true
@@ -179,6 +184,29 @@
                     this.set('showProgress', false);
                     this.set('hasError', false);
                     this.$.errormsg.textContent = '';
+                },
+                _computeExistingTags: function(model) {
+                    var existingTags = [];
+                    for (var resources in this.model) {
+                        for (var resource in this.model[resources]) {
+                            if (this.model[resources][resource] && this.model[resources][resource].tags) {
+                                existingTags = this._addTags(existingTags, this.model[resources][resource].tags);
+                            }
+                        }
+                    }
+                    return existingTags;
+                },
+                _addTags: function(arr, tags){
+                    if (arr && tags.length) {
+                        for (var i=0; i<tags.length; i++) {
+                            // push if is first tag.key appearence or if tag exists but has different value
+                            var index = arr.map(tag=>tag.key).indexOf(tags[i].key);
+                            if (index == -1 || (index > -1 && arr[index].value != tags[i].value)){
+                                arr.push(tags[i]);
+                            }
+                        }
+                    }
+                    return arr;
                 },
                 selectedItemsChanged: function(splices){
                     // console.log('selectedItemsChanged', splices);

@@ -7,6 +7,7 @@
              :host {
                 @apply --layout-horizontal;
                 align-items: flex-end;
+                position: relative;
             }
 
             strong {
@@ -21,12 +22,26 @@
             paper-input {
                 padding-right: 8px;
             }
+
+            #suggestedTags {
+                /*position: fixed;*/
+                /*left: 0;
+                top: 50px;*/
+            }
         </style>
 
         <strong>[[newIndex]].</strong>
         <paper-input label="key" value="{{tag.key}}" class="flex key"></paper-input>
         <paper-input label="value" value="{{tag.value}}" class="flex value"></paper-input>
         <paper-icon-button icon="delete" on-tap="_deleteTag"></paper-icon-button>
+
+        <paper-menu-button vertical-offset="48" hidden$="[[!typing]]">
+          <paper-listbox id="suggestedTags" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{tag}}" selectedAttribute="selected">
+            <template is="dom-repeat" items="[[existingTags]]" as="existingTag">
+                <paper-item value="[[existingTag.key]]:[[existingTag.value]]">[[existingTag.key]] = [[existingTag.value]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-menu-button>
 
     </template>
 </dom-module>
@@ -38,6 +53,13 @@
             tag: {
                 type: Object,
                 notify: true
+            },
+            typing: {
+                type: Boolean,
+                value: true
+            },
+            existingTags: {
+                type: Array
             },
             oldTag: {
                 type: Object,
