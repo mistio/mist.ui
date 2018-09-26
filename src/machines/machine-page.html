@@ -801,8 +801,8 @@
             on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse"
             on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
-        <iron-ajax id="detachVolumeRequest" url="/api/v1/volumes/[[dettachVolumeId]]" method="POST" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}"
-            on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]" method="PUT" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}"
+            on-error="_detachVolumeError" handle-as="xml"></iron-ajax>
         <iron-ajax id="probeMachine" url="/api/v1/machines/[[machine.id]]/probe" method="POST" loading="{{probeLoading}}" on-error="_probeError"
             handle-as="xml"></iron-ajax>
         <paper-toast></paper-toast>
@@ -1095,7 +1095,7 @@
         _getMachineVolumes: function (volumes, machine) {
             var that = this;
             return Object.keys(that.model.volumes).filter(function(k){
-                return that.model.volumes[k].attached_to.map(i => i.id).indexOf(that.machine.id) > -1;
+                return that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
             });
         },
         _displayUser: function (id, members) {
@@ -1283,7 +1283,7 @@
             var volumeId = e.model.volumeId;
             var volumeName = this._computeVolumeName(volumeId);
 
-            this.set('dettachVolumeId', this.model.volumes[volumeId].id);
+            this.set('dettachVolumeId', this.model.volumes[volumeId].external_id);
 
             this._showDialog({
                 title: 'Detach volume',
@@ -1314,7 +1314,7 @@
                 this.$.disassociateKeyRequest.generateRequest();
             } else if (e.detail.response.confirmed && e.detail.reason == "detach.volume") {
                 this.$.detachVolumeRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.detachVolumeRequest.body = {action: 'detach', machines: [this.machine.id]};
+                this.$.detachVolumeRequest.body = {action: 'detach', machine: this.machine.id};
                 this.$.detachVolumeRequest.generateRequest();
             }
         },

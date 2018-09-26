@@ -110,7 +110,7 @@
                 </paper-button>
             </div>
         </paper-dialog>
-        <iron-ajax id="attachVolumeRequest" method="POST" on-response="_attachVolumeResponse" on-error="_attachVolumeError" on-request="_attachVolumeRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
+        <iron-ajax id="attachVolumeRequest" method="PUT" on-response="_attachVolumeResponse" on-error="_attachVolumeError" on-request="_attachVolumeRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
     </template>
 </dom-module>
 <script>
@@ -182,7 +182,7 @@ Polymer({
                         itemId = chunks[2],
                         cloudId = chunks[1];
                 } else {
-                    itemId = item.id;
+                    itemId = item.external_id;
                     cloudId = item.cloud;
                 }
                 if (!hideDeviceInput) {
@@ -190,8 +190,11 @@ Polymer({
                         device: device
                     };
                 }
-                request.url = "/api/v1/volumes/" + itemId;
-                request.body = {action: 'attach', machines: [selectedMachineId]};
+                request.url = "/api/v1/clouds/"+cloudId+"/volumes/" + itemId;
+                request.body = {action: 'attach', machine: selectedMachineId};
+                if (!hideDeviceInput) {
+                    request.body.device = device;
+                }
                 request.headers["Content-Type"] = 'application/json';
                 request.headers["Csrf-Token"] = CSRF_TOKEN;
                 request.generateRequest();

@@ -92,6 +92,7 @@
                                 </template>
                             </paper-menu>
                         </paper-dropdown-menu>
+                        <paper-input id="device" value="{{device}}" hidden$="[[hideDeviceInput]]"></paper-input>
                     </template>
                 </p>
             </paper-dialog-scrollable>
@@ -109,7 +110,7 @@
                 </paper-button>
             </div>
         </paper-dialog>
-        <iron-ajax id="attachVolumeRequest" method="POST" on-response="_attachVolumeResponse" on-error="_attachVolumeError" on-request="_attachVolumeRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
+        <iron-ajax id="attachVolumeRequest" method="PUT" on-response="_attachVolumeResponse" on-error="_attachVolumeError" on-request="_attachVolumeRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
     </template>
 </dom-module>
 <script>
@@ -124,6 +125,15 @@ Polymer({
         selectedVolumeId: {
             type: String,
             value: false
+        },
+        hideDeviceInput: {
+            type: Boolean,
+            value: false,
+            computed: '_computeHideDeviceInput(model.clouds,machine)'
+        },
+        device: {
+            type: String,
+            value: "/dev/xvda"
         },
         volumes: {
             type: Array,
@@ -144,24 +154,29 @@ Polymer({
         this.set('selectedMachineId', this.querySelector('#machines').selected || '');
     },
     _computeVolumes: function(machine, volumes){
-        var that = this,
-            volumeIds = Object.keys(this.model.volumes).filter(function(v){ 
-                return that._isOfSameCloud(v) && that._isOfSameLocation(v);
+        var that = this;
+        var volumeIds = [];
+        if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) { 
+            var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v){ 
+                return that._isOfSameLocation(v);
             });
-        console.log('volumeIds',volumeIds);
+        }
         return volumeIds;
     },
-    _isOfSameCloud: function(volumeId) {
-        return this.model.volumes[volumeId].cloud == this.machine.cloud;
-    },
     _isOfSameLocation: function(volumeId) {
-        return this.model.volumes[volumeId].location == this.machine.location;
+        if (this.machine) {
+            return this.model.clouds[this.machine.cloud].volumes[volumeId].location == this.machine.location;
+        }
+        return false;
     },
     _isAlreadyAttached: function(volumeId, machine) {
-        return this.model.volumes[volumeId].attached_to.map(i => i.id).indexOf(this.machine.id) > -1;
+        if (this.machine) {
+            return this.model.clouds[this.machine.cloud].volumes[volumeId].attached_to.map(i => i.id).indexOf(this.machine.id) > -1;
+        }
+        return false;
     },
     _computeVolumeName: function(volumeId) {
-        return this.model.volumes[volumeId].name;
+        return this.model.clouds[this.machine.cloud].volumes[volumeId].name;
     },
     _openDialog: function(e) {
         this.clearError();
@@ -172,10 +187,19 @@ Polymer({
         this.$.attachDialogModal.close();
         this.clearError();
     },
+    _computeHideDeviceInput: function(clouds, machine) {
+        if (this.machine) {
+            return this.model.clouds && this.model.clouds[this.machine.cloud].provider != "ec2";
+        }
+        return false;
+    },
     attachVolume: function(e) {
         var request = this.$.attachVolumeRequest;
-        request.url = "/api/v1/volumes/" + this.selectedVolumeId;
-        request.body = {action: 'attach', machines: [this.machine.id]};
+        request.url = "/api/v1/clouds/"+ this.machine.cloud +"/volumes/" + this.selectedVolumeId;
+        request.body = {action: 'attach', machine: this.machine.id};
+        if (!this.hideDeviceInput) {
+            request.body.device = this.device;
+        }
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
         request.generateRequest();
