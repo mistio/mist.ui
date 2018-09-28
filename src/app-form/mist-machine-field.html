@@ -295,8 +295,11 @@
         },
 
         _fieldKeysChanged: function(keys) {
+            console.log('field Keys Changed');
             this.set('keys', this._objectToArray(this.field.keys));
-            this.$.keysDomRepeat.render();
+            this.async(function(){
+                this.$.keysDomRepeat.render();
+            }.bind(this), 200);
         },
 
         _selectedCloudChanged: function(cloud) {
@@ -344,15 +347,17 @@
             var fieldValues = ['key', 'image', 'size', 'location', 'networks', 'quantity'];
             for (var i = 0; i < fieldValues.length; i ++ ) {
                 if (this.field[fieldValues[i]]) {
+                    // this.set('field.'+[fieldValues[i]], null);
                     var typeOfVal = typeof this.field[fieldValues[i]];
                     if (typeOfVal == 'string') {
-                        this.field[fieldValues[i]] = "";
+                        this.set('field.'+[fieldValues[i]], "");
                     } else if (typeOfVal == 'array') {
-                        this.field[fieldValues[i]] = [];
+                        this.set('field.'+[fieldValues[i]],[]);
                     } else if (typeOfVal == 'object') {
-                        this.field[fieldValues[i]] = null;
+                        this.set('field.'+[fieldValues[i]], null);
+                    } else if (typeOfVal == 'number') {
+                        this.set('field.'+[fieldValues[i]], 1);
                     }
-
                 }
                 this.set('field.value', {});
             }
@@ -458,7 +463,7 @@
                         return false;
                     }
                     if (!this.sizeNotRequired && !this.field.value.size_id) {
-                        // console.log('size', value.size_id);
+                        // console.log('size', this.field.value.size_id);
                         return false;
                     }
                     if (!this.locationNotRequired && !this.field.value.location_id) {
