@@ -582,6 +582,7 @@
             on-response="_handleResponse" on-error="_handleError"></iron-ajax>
     </template>
     <script>
+        DEBUG_FORM = false;
         Polymer({
             is: 'app-form',
             /**
@@ -851,17 +852,26 @@
                         return el.show && el.required ? this.validatecidr(el.value, index) :
                             true;
                     } else if (el.type == "checkboxes") {
-                        // console.log('validation', el.type, el.value && el.value.length);
+                        if (DEBUG_FORM) {
+                            console.log('validation', el.type, el.value && el.value.length);
+                        }
                         return el.show && el.required ? el.value && el.value.length : true;
                     } else if (el.type == "machines_tags") {
-                        // console.log('validate ',el.type, el.show && el.required ? JSON.stringify(this._constructTagsValue(
-                        // textToArray)).length > 2 : true);
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.type, el.show && el.required ? JSON.stringify(this._constructTagsValue(textToArray)).length > 2 : true);
+                        }
                         var textToArray = el.value.split(',');
                         return el.show && el.required ? JSON.stringify(this._constructTagsValue(
                             textToArray)).length > 2 : true;
                     } else if (el.type == "date" ) {
+                        if (DEBUG_FORM) {
+                            console.log('validate ', el.name, el.type, this._validateDatetime(el))
+                        }
                         return this._validateDatetime(el);
                     } else if (el.type == 'list') {
+                        if (DEBUG_FORM) {
+                            console.log('validate ', el.name, el.type, this._allItemsValid(el));
+                        }
                         return el.min && el.show && el.required ? this._allItemsValid(el) :
                             true;
                     } else if (el.name == "admin_state_up") {
@@ -870,24 +880,41 @@
                         return typeof el.value == "string" && (el.value.startsWith("#!/bin/bash") || el.value.startsWith(
                                                     "#cloud-config") || el.value.trim() == "");
                     } else if (el.name == "libvirt_disk_size" && el.pattern) {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type, this._validatePatternedField(el))
+                        }
                         return this._validatePatternedField(el);
                     } else if (el.type == "password" && el.pattern && el.required) {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type,this._validatePatternedField(el))
+                        }
                         return this._validatePatternedField(el);
                     } else if (el.type == "mist_size") {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type, el.show && el.required ? this._validateMistSize(el) : true);
+                        }
                         return el.show && el.required ? this._validateMistSize(el) : true;
                     } else if (el.type == "mist_machine") {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type, el.valid);
+                        }
                         return el.show && el.required ? el.valid : true;
                     } else if (el.type == "toggle" || el.type == "radio"){
-                        // console.log('validate ',el.type, true);
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name,el.type, true);
+                        }
                         return  true;
                     } else {
                         if (el.show && el.required && (el.value == undefined || !el.value.length)) {
                             console.warn(el.type, 'not valid', el.name, el.value);
                         }
+                        if (DEBUG_FORM) {
+                            console.log('validate ', el.name, el.type, el.show, el.required,  el.value);
+                        }
                         return el.show && el.required ? (el.value && el.value.length ? el.value : false) : true;
                     }
                     return true;
-                }, this);
+                }.bind(this));
             },
             _validateDatetime: function(el) {
                 if (el.validate == "inFuture") {
@@ -1000,7 +1027,7 @@
                             }
                             payload[field.name] = subformPayload;
                         }
-                    }, this);
+                    }.bind(this));
 
                     // clean up form for payload
                     var excludeFields = this.fields.filter(function (el) {
@@ -1058,7 +1085,7 @@
 
                     // Reset Form Fields Validation
                     this._resetField(el, index);
-                }, this);
+                }.bind(this));
 
                 this.fire('reset-form');
             },
@@ -1083,7 +1110,7 @@
                     if (el.showIf && el.showIf.fieldName == name) {
                         this.set('fields.' + index + '.options', []);
                     }
-                }, this);
+                }.bind(this));
             },
 
             validateip: function (value, field) {
