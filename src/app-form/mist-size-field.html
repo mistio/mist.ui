@@ -50,8 +50,8 @@
                 <div hidden="[[csfield.hidden]]">[[csfield.label]]
                     <span class="field-helptext">min [[csfield.min]], max [[csfield.max]] [[csfield.unit]]</span>
                 </div>
-                <paper-slider id$="[[field.name]]-[[csfield.name]]" disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
-                max="[[csfield.max]]" value="{{csfield.value}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
+                <paper-slider id$="[[id]]-[[field.name]]-[[csfield.name]]" disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
+                max="[[csfield.max]]" value="{{field.customSizeFields.#[[index]].value}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
             </template>
         </template>
     </template>
@@ -60,6 +60,9 @@
             is: 'mist-size-field',
 
             properties: {
+                id: {
+                    type: String
+                },
                 field: {
                     type: Object,
                     notify: true
@@ -70,7 +73,8 @@
                 'change': '_updateCustomValue'
             },
             observers: [
-                'initializeValues(field, field.customSizeFields)'
+                'initializeValues(field, field.customSizeFields)',
+                '_csFieldChanged(field.customSizeFields.*)'
             ],
 
             ready: function() {
@@ -86,6 +90,10 @@
                     this.set('field.value', 'custom');
                 }
                 this._updateCustomValue();
+            },
+
+            _csFieldChanged: function(changeRecord) {
+                console.log('_csFieldChanged',changeRecord, this.field.customSizeFields);
             },
 
             showOption: function (option) {
@@ -117,7 +125,7 @@
                 } else if (this.field.custom && this.field.customSizeFields) {
                     var cv = {};
                     for (var i=0; i<this.field.customSizeFields.length; i++){
-                        var el = this.querySelector("paper-slider#"+this.field.name+"-"+this.field.customSizeFields[i].name);
+                        var el = this.querySelector("paper-slider#"+this.id+"-"+this.field.name+"-"+this.field.customSizeFields[i].name);
                         cv[this.field.customSizeFields[i].name] = el && el.value ? el.value : this.field.customSizeFields[i].min;
                     }
                     this.set('field.customValue', cv);
