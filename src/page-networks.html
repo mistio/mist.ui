@@ -21,7 +21,7 @@
         <app-route route="{{route}}" pattern="/:network" data="{{data}}"></app-route>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" items="[[model.networks.private]]"
+            <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" item-map=[[model.networks]]
                 name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.networks,model.clouds)]]
                 route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
@@ -34,7 +34,7 @@
             </div>
         </template>
         <network-create model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-create>
-        <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networksArray.length)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
+        <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networks)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
             hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
     </template>
 
@@ -111,8 +111,8 @@
                             return 'cloud';
                         },
                         'body': function (item, row) {
-                            return _this.model && _this.model.clouds && _this.model.clouds[row.cloud_id] ?
-                                _this.model.clouds[row.cloud_id].title : item;
+                            return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
+                                _this.model.clouds[row.cloud].title : item;
                         }
                     },
                     'owned_by': {

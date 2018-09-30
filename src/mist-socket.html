@@ -141,12 +141,6 @@
                     list_tags: function (data) {
                         that._updateTags(data);
                     },
-                    ping: function (data) {
-                        that._ping(data);
-                    },
-                    probe: function (data) {
-                        that._probe(data);
-                    },
                     monitoring: function (data) {
                         that._updateMonitoring(data);
                     },
@@ -677,34 +671,18 @@
         },
 
         _updateMachines: function (data) {
-            if (this.model.clouds[data.cloud_id].machines == undefined)
-                this.model.clouds[data.cloud_id].machines = {};
-            var old_cloud_machine_external_ids = Object.keys(this.model.clouds[data.cloud_id].machines),
-                old_cloud_machine_ids = old_cloud_machine_external_ids.map(i => this.model.clouds[data.cloud_id].machines[i].id),
-                new_cloud_machines = data.machines.reduce((map, obj) => (map[obj.machine_id] = obj, map), {}),
-                new_cloud_machine_external_ids = Object.keys(new_cloud_machines),
-                new_cloud_machine_ids = new_cloud_machine_external_ids.map(i => new_cloud_machines[i].id); 
+            this.set('model.onboarding.isLoadingMachines', false);
+            this._updateCloudResources(data, 'machines', 'machine_id');
+        },
 
-            this.set('model.clouds.' + data.cloud_id + '.machines', new_cloud_machines);
-
-            for (var i=0; i<old_cloud_machine_ids.length; i++) {
-                if (old_cloud_machine_ids[i].indexOf(new_cloud_machine_ids) == -1) {
-                    delete this.model.machines[old_cloud_machine_ids[i]];
-                }
-            }
-
-            for (var i=0; i < new_cloud_machine_ids.length; i++) {
-                if (this.model.machines[new_cloud_machine_ids[i]] == undefined) {
-                    this.set('model.machines.' + new_cloud_machine_ids[i], this.model.clouds[data.cloud_id].machines[new_cloud_machine_external_ids[i]]);
-                    this.linkPaths('model.machines.' + new_cloud_machine_ids[i], 'this.model.clouds.' + data.cloud_id + '.machines.' + new_cloud_machine_external_ids[i]);
-                }
-            }
-            this.set('model.sections.machines.count', Object.keys(this.model.machines).length);
+        _updateNetworks: function (data) {
+            this.set('model.onboarding.isLoadingNetworks', false);
+            this._updateCloudResources(data, 'networks', 'network_id');
         },
 
         _updateVolumes: function (data) {
             console.log('UPDATE VOLUMES', data);
-            this._updateCloudResources(data,'volumes','external_id')
+            this._updateCloudResources(data, 'volumes', 'external_id')
         },
 
         _updateCloudResources: function (data, section, externalId) {
@@ -732,52 +710,6 @@
             }
             this.set('model.sections.' + section + '.count', Object.keys(this.model[section]).length);
         },        
-
-        _updateNetworks: function (data) {
-            this.set('model.onboarding.isLoadingNetworks', false);
-            //update cloud's networks
-            var cloudNetworks = [],
-                pcloudNetworks = []
-                rcloudNetworks = [];
-            if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider) {
-                var privateNets = data.networks.private || {},
-                    publicNets = data.networks.public || {},
-                    routersNets = data.networks.routers || {};
-                for (var pnetId in privateNets) {
-                    if (privateNets[pnetId].id) {
-                        privateNets[pnetId]["network_type"] = "private";
-                        privateNets[pnetId]["provider"] = this.model.clouds[data.cloud_id].provider;
-                        privateNets[pnetId]["cloud_id"] = data.cloud_id;
-                        pcloudNetworks.push(privateNets[pnetId]);
-                    }
-                }
-                for (var netId in publicNets) {
-                    if (publicNets[netId].id) {
-                        publicNets[netId]["network_type"] = "public";
-                        publicNets[netId]["provider"] = this.model.clouds[data.cloud_id].provider;
-                        publicNets[netId]["cloud_id"] = data.cloud_id;
-                        cloudNetworks.push(publicNets[netId]);
-                    }
-                }
-                for (var netId in routersNets) {
-                    if (routersNets[netId].id) {
-                        routersNets[netId]["network_type"] = "router";
-                        routersNets[netId]["provider"] = this.model.clouds[data.cloud_id].provider;
-                        routersNets[netId]["cloud_id"] = data.cloud_id;
-                        rcloudNetworks.push(routersNets[netId]);
-                    }
-                }
-            }
-
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.networks.private', pcloudNetworks) ||
-                          this._updateModel('clouds.' + data.cloud_id + '.networks.public', cloudNetworks) ||
-                          this._updateModel('clouds.' + data.cloud_id + '.networks.routers', rcloudNetworks);
-
-            if (!changed)
-                return false;
-
-            this.set('model.clouds.' + data.cloud_id + '.networks', data.networks);
-        },
 
         _updateZones: function (data) {
             this.set('model.onboarding.isLoadingZones', false);
@@ -972,25 +904,6 @@
             });
             this.set('model.incidentsArray', Object.values(target.incidents || {}));
             this.notifyPath('model.incidentsArray');
-        },
-
-
-        _probe: function (data) {
-            if (!this.model.probes)
-                this.set('model.probes', {})
-            console.log('probe', data);
-            try {
-                var cloud = this.model.clouds[data.cloud_id],
-                    machine = cloud.machines[data.machine_id];
-                this.set('model.probes.' + machine.id, data.result);
-            } catch (e) {
-                console.log('cannot find id for machine with cloud_id ', data.cloud_id, ' and machine_id',
-                    data.machine_id);
-            }
-        },
-
-        _ping: function (data) {
-            // TODO
         },
 
         _generateIcon: function (data) {
