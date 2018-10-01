@@ -78,11 +78,7 @@
             this.handlers = {
                 main: {
                     patch_model: function (data) {
-                        requestIdleCallback(function () {
-                            that._patchModel(data);
-                        }, {
-                            timeout: 5000
-                        });
+                        that._patchModel(data);
                     },
                     list_clouds: function (data) {
                         that._updateClouds(data);
@@ -302,59 +298,61 @@
 
         _patchModel: function (patch) {
             var _this = this;
+            patch.forEach(function(operation) {
+                var idleCallbackId = requestIdleCallback(function () {
+                    var cloud_id, resource_type, resource_id, resource_external_id, path, property_path, old_cloud_resource_external_ids, old_cloud_resource_ids;
 
-            // Apply patches one by one
-            patch.forEach(function (operation) {
-                var cloud_id, resource_type, resource_id, resource_external_id, path, property_path, old_cloud_resource_external_ids, old_cloud_resource_ids;
+                    // Let's figure out if the patch applies to a cloud and which one
+                    if (operation.path.search('/clouds/') > -1) {
+                        path = operation.path.split('/clouds/')[1].split('/');
+                        cloud_id = path[0];
 
-                // Let's figure out if the patch applies to a cloud and which one
-                if (operation.path.search('/clouds/') > -1) {
-                    path = operation.path.split('/clouds/')[1].split('/');
-                    cloud_id = path[0];
+                        // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
+                        if (['machines', 'networks', 'volumes', 'zones'].indexOf(path[1]) > -1) {
+                            resource_type = path[1];
+                            path = operation.path.split('/' + resource_type + '/')[1].split('/');
+                            resource_external_id = path[0];
+                            property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
+                            old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloud_id][resource_type] || {})
+                            old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloud_id][resource_type][i].id);
 
-                    // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
-                    if (path[1].indexOf(['machines', 'networks', 'volumes', 'zones']) > -1) {
-                        resource_type = path[1];
-                        path = operation.path.split('/' + resource_type + '/')[1].split('/');
-                        resource_external_id = path[0];
-                        property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
-                        old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloud_id][resource_type] || {})
-                        old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloud_id][resource_type][i].id);
-
-                    }
-                }
-
-                // Apply patch operation to the model
-                jsonpatch.applyOperation(_this.model, operation, true);
-
-                if (resource_type) {
-                    var new_cloud_resources = _this.model.clouds[cloud_id][resource_type],
-                        new_cloud_resource_external_ids = Object.keys(new_cloud_resources),
-                        new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
-
-                    // Cleanup deleted resource refs
-                    for (var i=0; i < old_cloud_resource_ids.length; i++) {
-                        if (new_cloud_resources[old_cloud_resource_external_ids[i]] == undefined
-                            && _this.model[resource_type][old_cloud_resource_ids[i]] != undefined) {
-                            delete _this.model[resource_type][old_cloud_resource_ids[i]];
-                            _this.notifyPath('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
                         }
                     }
 
-                    // Link paths of new resources for easy global lookup
-                    for (var i=0; i < new_cloud_resource_ids.length; i++) {
-                        if (_this.model[resource_type][new_cloud_resource_ids[i]] == undefined) {
-                            _this.set('model.' + resource_type + '.' + new_cloud_resource_ids[i], _this.model.clouds[cloud_id][resource_type][new_cloud_resource_external_ids[i]]);
-                            _this.linkPaths('model.'+ resource_type + '.' + new_cloud_resource_ids[i], 'model.clouds.' + cloud_id + '.' + resource_type + '.' + new_cloud_resource_external_ids[i]);
+                    // Apply patch operation to the model
+                    jsonpatch.applyOperation(_this.model, operation, true);
+
+                    if (resource_type) {
+                        var new_cloud_resources = _this.model.clouds[cloud_id][resource_type],
+                            new_cloud_resource_external_ids = Object.keys(new_cloud_resources),
+                            new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
+
+                        // Cleanup deleted resource refs
+                        for (var i=0; i < old_cloud_resource_ids.length; i++) {
+                            if (new_cloud_resources[old_cloud_resource_external_ids[i]] == undefined
+                                && _this.model[resource_type][old_cloud_resource_ids[i]] != undefined) {
+                                delete _this.model[resource_type][old_cloud_resource_ids[i]];
+                                _this.notifyPath('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
+                            }
                         }
-                    }
 
-                    if (property_path) {
-                        _this.notifyPath('model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_path);
-                    }
+                        // Link paths of new resources for easy global lookup
+                        for (var i=0; i < new_cloud_resource_ids.length; i++) {
+                            if (_this.model[resource_type][new_cloud_resource_ids[i]] == undefined) {
+                                _this.set('model.' + resource_type + '.' + new_cloud_resource_ids[i], _this.model.clouds[cloud_id][resource_type][new_cloud_resource_external_ids[i]]);
+                                _this.linkPaths('model.'+ resource_type + '.' + new_cloud_resource_ids[i], 'model.clouds.' + cloud_id + '.' + resource_type + '.' + new_cloud_resource_external_ids[i]);
+                            }
+                        }
 
-                    this.set('model.sections.' + resource_type + '.count', Object.keys(this.model[resource_type]).length);
-                }
+                        if (property_path) {
+                            _this.notifyPath('model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_path);
+                        }
+
+                        _this.set('model.sections.' + resource_type + '.count', Object.keys(_this.model[resource_type]).length);
+                    }
+                }, {
+                    timeout: 5000
+                });
             });
         },
 
@@ -979,15 +977,15 @@
             });
 
             // networks
-            this.cleanUpCloudResources('networks');
+            this.cleanUpCloudResources(cloud_id, 'networks', 'network_id');
             // volumes
-            this.cleanUpCloudResources('volumes');
+            this.cleanUpCloudResources(cloud_id, 'volumes', 'external_id');
 
             this.set('model.imagesArray', newImagesArray);
             this.set('model.images', _generateMap(newImagesArray));
         },
 
-        cleanUpCloudResources: function(section, externalId) {
+        cleanUpCloudResources: function(cloud_id, section, externalId) {
             var _this = this;
             Object.keys(this.model[section]).forEach(function(resource_id) {
                 var resource = _this.model[section][resource_id];
