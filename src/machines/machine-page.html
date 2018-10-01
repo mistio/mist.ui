@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
+<link rel="import" href="../helpers/gauge-info.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../mist-monitoring.html">
@@ -780,6 +781,22 @@
                     <element-for-in content="[[machine.extra.power_supply_info.Status]]"></element-for-in>
                     <element-for-in content="[[machine.extra.power_control_info]]"></element-for-in>
                     <element-for-in content="[[machine.extra.power_supply_info]]"></element-for-in>
+                </div>
+            </paper-material>
+            <paper-material class="info-card" hidden$=[[!_hasTemperatureInfo(machine)]]>
+                <h2 class="machine-page-head">Temperatures</h2>
+                <div class="card-content">
+                    <template is="dom-repeat" items="[[machine.extra.temperatures]]">
+                        <gauge-info data="[[item]]" type="temperature"></gauge-info>
+                    </template>
+                </div>
+            </paper-material>
+            <paper-material class="info-card" hidden$=[[!_hasFansInfo(machine)]]>
+                <h2 class="machine-page-head">Fans</h2>
+                <div class="card-content">
+                    <template is="dom-repeat" items="[[machine.extra.fans]]">
+                        <gauge-info data="[[item]]" type="fan"></gauge-info>
+                    </template>
                 </div>
             </paper-material>
             <paper-material class="info-card" hidden$=[[!_hasExtra(machine)]]>
@@ -1633,6 +1650,14 @@
             return this._hasExtra(machine) && (
                 this.machine.extra.power_control_info ||
                 this.machine.extra.power_supply_info);
+        },
+
+        _hasTemperatureInfo: function (machine) {
+            return this._hasExtra(machine) && this.machine.extra.temperatures;
+        },
+
+        _hasFansInfo: function (machine) {
+            return this._hasExtra(machine) && this.machine.extra.fans;
         },
 
         _filterMachinesIncidents: function (incarray) {
