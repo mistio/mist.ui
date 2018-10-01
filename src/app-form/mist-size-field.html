@@ -46,12 +46,12 @@
             </paper-menu>
         </paper-dropdown-menu>
         <template is="dom-if" if="[[field.custom]]" restamp>
-            <template is="dom-repeat" items="{{field.customSizeFields}}" as="csfield">
-                <div hidden="[[csfield.hidden]]">[[csfield.label]]
-                    <span class="field-helptext">min [[csfield.min]], max [[csfield.max]] [[csfield.unit]]</span>
+            <template is="dom-repeat" items="{{field.customSizeFields}}">
+                <div hidden="[[item.hidden]]">[[item.label]]
+                    <span class="field-helptext">min [[item.min]], max [[item.max]] [[item.unit]]</span>
                 </div>
-                <paper-slider id$="[[id]]-[[field.name]]-[[csfield.name]]" disabled="[[csfield.disabled]]" hidden="[[csfield.hidden]]" min="[[csfield.min]]"
-                max="[[csfield.max]]" value="{{field.customSizeFields.[[index]].value}}" step="[[csfield.step]]" pin snaps editable></paper-slider>
+                <paper-slider id$="[[id]]-[[field.name]]-[[item.name]]" disabled="[[item.disabled]]" hidden="[[item.hidden]]" min="[[item.min]]"
+                max="[[item.max]]" value="{{item.value}}" step="[[item.step]]" pin snaps editable></paper-slider>
             </template>
         </template>
     </template>
@@ -73,23 +73,8 @@
                 'change': '_updateCustomValue'
             },
             observers: [
-                'initializeValues(field, field.customSizeFields)'
+                '_updateCustomValue(field.customSizeFields.*)'
             ],
-
-            ready: function() {
-                this.initializeValues();
-            },
-
-            initializeValues: function (cr) {
-                if (!this.field.custom || !this.field.customSizeFields) {
-                    this.set('field.value', '');
-                    this.set('field.customSizeFields', null);
-                }
-                else if (this.field.custom) {
-                    this.set('field.value', 'custom');
-                }
-                this._updateCustomValue();
-            },
 
             showOption: function (option) {
                 if (option.name)
@@ -120,8 +105,7 @@
                 } else if (this.field.custom && this.field.customSizeFields) {
                     var cv = {};
                     for (var i=0; i<this.field.customSizeFields.length; i++){
-                        var el = this.querySelector("paper-slider#"+this.id+"-"+this.field.name+"-"+this.field.customSizeFields[i].name);
-                        cv[this.field.customSizeFields[i].name] = el && el.value ? el.value : this.field.customSizeFields[i].min;
+                        cv[this.field.customSizeFields[i].name] = this.field.customSizeFields[i].value;
                     }
                     this.set('field.customValue', cv);
                 }
