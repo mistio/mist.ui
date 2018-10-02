@@ -375,6 +375,16 @@
                     max: '100'
                 }];
                 tooltip = {formatter:  "{a} <br/>{b} : {c}%"}
+            } else if (this.type == "power") {
+                series = [{
+                    name:this.type,
+                    type:'gauge',
+                    detail : {formatter:'{value}Watt'},
+                    center: ['50%', '39%'],
+                    data: [{value: this.data.LastPowerOutputWatts || 0, name:''}],
+                    max: this.data.PowerCapacityWatts || 500
+                }];
+                tooltip = {formatter:  "{a} <br/>{b} : {c}Watt"}
             }
 
             this.set('gaugeOptions.series', series);
@@ -395,10 +405,12 @@
         _class: function(data) {
             if (this.data.Status.Health == "OK") {
                 return "green";
+            } else if (this.data.Status.Health == "Warning") {
+                return "orange";
             } else if (this.data.Status.State == "Absent") {
                 return "";
             } else {
-                return "orange";
+                return "";
             }
         },
         _stringify: function(data) {
