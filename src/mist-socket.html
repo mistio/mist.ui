@@ -237,7 +237,12 @@
 
         heartbeat: function () {
             console.debug('got heartbeat');
-            this.send('h'); // reply with empty frame
+            var _this=this;
+            requestIdleCallback(function () {
+                _this.send('h'); // reply with empty frame
+            }, {
+                timeout: 5000
+            });
         },
 
         getStats: function (data, callback) {
@@ -331,8 +336,9 @@
                         for (var i=0; i < old_cloud_resource_ids.length; i++) {
                             if (new_cloud_resources[old_cloud_resource_external_ids[i]] == undefined
                                 && _this.model[resource_type][old_cloud_resource_ids[i]] != undefined) {
-                                delete _this.model[resource_type][old_cloud_resource_ids[i]];
+                                _this.set('model.' + resource_type + '.' + old_cloud_resource_ids[i], null);
                                 _this.notifyPath('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
+                                delete _this.model[resource_type][old_cloud_resource_ids[i]];
                             }
                         }
 
