@@ -52,14 +52,14 @@
             <span class$="tag [[_class(data)]]" hidden="[[isAbsent]]">Health: [[data.Status.Health]]</span>
         </h2>
         
-        <div id="gauge" style="width:270px; height:270px; margin:-20px auto 0 auto;" hidden="[[isAbsent]]"></div>
+        <div id="gauge" style="width:280px; height:280px; margin:-20px auto 0 auto;" hidden="[[isAbsent]]"></div>
         <!-- <div class="absent-gauge" style="width:270px; height:270px;" hidden="[[!isAbsent]]"></div> -->
 
     </template>
     <script>
     GAUGE_INFO_OPTIONS = {
         tooltip: {
-            formatter:  "{a} <br/>{b} : {c}%"
+            formatter:  "{a} <br/>{b} : {c}"
         },
         toolbox: {
             show: true,
@@ -75,7 +75,7 @@
             {
                 name:'fan/temperature',
                 type:'gauge',
-                detail : {formatter:'{value}%'},
+                detail : {formatter:'{value}'},
                 data:[{value: 50, name: 'data ena'}]
             }
         ]
@@ -319,16 +319,34 @@
             if (this.type == "temperature") {
                 this.set('gaugeOptions.series.0.name', this.type);
                 this.set('gaugeOptions.series.0.data', [{value: data.ReadingCelsius, name:data.PhysicalContext}]);
+                
+                if (!this.get('gaugeOptions.tooltip.formatter').endsWith("℃")) {
+                    this.set('gaugeOptions.tooltip.formatter', this.gaugeOptions.tooltip.formatter+"℃");
+                }
+                if (!this.get('gaugeOptions.series.0.detail.formatter').endsWith("℃")) {
+                    this.set('gaugeOptions.series.0.detail.formatter', this.gaugeOptions.series[0].detail.formatter.replace("%","")+"℃");
+                }
             } else if (this.type == "fan") { 
                 this.set('gaugeOptions.series.0.name', this.type);
                 this.set('gaugeOptions.series.0.data', [{value: data.Reading, name:''}]);
+                
+                if (!this.get('gaugeOptions.tooltip.formatter').endsWith("%")) {
+                    this.set('gaugeOptions.tooltip.formatter', this.gaugeOptions.tooltip.formatter+"%");
+                }
+                if (!this.get('gaugeOptions.series.0.detail.formatter').endsWith("%")) {
+                    this.set('gaugeOptions.series.0.detail.formatter', this.gaugeOptions.series[0].detail.formatter.replace("℃","")+"%");
+                }
             }
 
-            if (this.gauge && data.Status.State == "Absent") {
-                console.log('absent');
-                echarts.dispose(this.$.gauge);
-                this.initCharts('gray');
-            }
+            // if (this.gauge && data.Status.State == "Absent") {
+            //     console.log('absent');
+            //     echarts.dispose(this.$.gauge);
+            //     this.initCharts('gray');
+            // }
+
+            // if (this.gauge) {
+            //     this.gauge.setOption(this.gaugeOptions);
+            // }
         },
         _class: function(data) {
             if (this.data.Status.Health == "OK") {
