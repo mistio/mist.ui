@@ -82,8 +82,8 @@
 
         <paper-icon-button icon="icons:visibility" class="toggle" on-tap="toggleData"></paper-icon-button>
         
-        <div id="gauge" style="width:280px; height:280px; margin: 0 auto;" hidden="[[isAbsent]]"></div>
-        <div class="absent-gauge" hidden="[[!isAbsent]]"></div>
+        <div id="gauge" style="width:280px; height:280px; margin: 0 auto;"></div>
+        <!-- <div class="absent-gauge" hidden="[[!isAbsent]]"></div> -->
 
         <div hidden="[[!dataOpen]]">
             <view-json class="gaugeInfo">[[_stringify(data)]]</view-json>
@@ -300,7 +300,7 @@
         properties: {
             data: {
                 type: Object,
-                observer: '_dataChanged'
+                // observer: '_dataChanged'
             },
             type: {
                 type: String
@@ -327,6 +327,9 @@
                 value: false
             }
         },
+        observers: [
+            '_dataChanged(data.*)'
+        ],
         attached: function(){
             
         },
@@ -338,8 +341,8 @@
             return this.data && this.data.Status.State == "Absent";
         },
         initCharts: function(theme) {
-            // var grayTheme = GRAY_GAUGE_THEME; 
-            // echarts.registerTheme('gray', grayTheme);
+            var grayTheme = GRAY_GAUGE_THEME; 
+            echarts.registerTheme('gray', grayTheme);
             if (!theme) {
                 var theme = "default";
             }
@@ -356,7 +359,8 @@
                 this.resizeGraph();
             }
         },
-        _dataChanged: function() {
+        _dataChanged: function(data) {
+            console.log('data changed');
             var series = [{}],
                 tooltip = {}
             if (this.type == "temperature") {
@@ -384,11 +388,17 @@
             this.set('gaugeOptions.series', series);
             this.set('gaugeOptions.tooltip', tooltip);
 
-            if (this.gauge) {
-                this.gauge.setOption(this.gaugeOptions, true);
+            if (this.gauge && this.gauge.id) {
+                console.log('options changed');
+                this.gauge.setOption(this.gaugeOptions, true, true);
+            } else {
+                if (this.data.Status.State == "Absent") {
+                    this.initCharts('gray');
+                } else {
+                    this.initCharts();
+                }
             }
-
-            this.initCharts();
+            
         },
         _class: function(data) {
             if (this.data.Status.Health == "OK") {
