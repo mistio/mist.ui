@@ -13,8 +13,14 @@
     <template>
         <style include="shared-styles tags-and-labels">
             :host {
-                display: inline;
-                height: 200px;
+                display: inline-block;
+                height: 330px;
+                min-width: 30%;
+                vertical-align: top;
+            }
+            .title {
+                text-align: center;
+                line-height: 1.6;
             }
             .tag {
                 display: inline;
@@ -38,14 +44,15 @@
             }
         </style>
 
-        <h2>
-            <strong>[[data.Name]]</strong> 
+        <h2 class="title">
+            <strong>[[data.Name]]</strong> <br/>
             <span class="tag" hidden="[[!isAbsent]]">[[data.Status.State]]</span>
             <span class$="tag [[_class(data)]]" hidden="[[isAbsent]]">Health: [[data.Status.Health]]</span>
         </h2>
-        <div id="gauge" style="width:270px; height:270px;" hidden="[[isAbsent]]">
-        </div>
-        <div class="absent-gauge" hidden="[[!isAbsent]]"></div>
+        
+        <div id="gauge" style="width:270px; height:270px; margin-top:-20px" hidden="[[isAbsent]]"></div>
+
+        <!-- <div class="absent-gauge" style="width:270px; height:270px;" hidden="[[!isAbsent]]"></div> -->
 
     </template>
     <script>
@@ -323,7 +330,13 @@
             }
         },
         _class: function(data) {
-            return this.data.Status.Health == "OK" ? "green" : 'orange';
+            if (this.data.Status.Health == "OK") {
+                return "green";
+            } else if (this.data.Status.State == "Absent") {
+                return "";
+            } else {
+                return "orange";
+            }
         }
     });
     </script>
