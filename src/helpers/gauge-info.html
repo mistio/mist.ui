@@ -1,29 +1,34 @@
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <script src='../../bower_components/moment/min/moment.min.js'></script>
 <script src='../../bower_components/timerange-picker/relative.time.parser.js'></script>
 
 <script src='../../bower_components/echarts/dist/echarts.js'></script>
-
-<link rel="import" href="../element-for-in/element-for-in.html">
+<!-- <script src="../../bower_components/view-json/view-json.js"></script> -->
 
 <dom-module id="gauge-info">
     <template>
         <style include="shared-styles tags-and-labels">
             :host {
                 display: inline-block;
-                height: 330px;
-                min-width: 30%;
+                min-width: 32%;
+                height: 355px;
                 vertical-align: top;
+                position: relative;
+                overflow-y: scroll;
             }
+
             .title {
                 line-height: 1.6;
             }
+
             .text-center {
                 text-align: center;
             }
+
             .tag {
                 display: inline;
                 line-height: 1.6em;
@@ -44,6 +49,21 @@
                 background-color: var(--orange-color);
                 color: #444;
             }
+
+            .gaugeInfo {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+            paper-icon-button.toggle {
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 1;
+                opacity: 0.54;
+            }
         </style>
 
         <h2 class="title text-center">
@@ -51,9 +71,15 @@
             <span class="tag" hidden="[[!isAbsent]]">[[data.Status.State]]</span>
             <span class$="tag [[_class(data)]]" hidden="[[isAbsent]]">Health: [[data.Status.Health]]</span>
         </h2>
+
+        <paper-icon-button icon="icons:visibility" class="toggle" on-tap="toggleData"></paper-icon-button>
         
-        <div id="gauge" style="width:280px; height:280px; margin:-20px auto 0 auto;" hidden="[[isAbsent]]"></div>
+        <div id="gauge" style="width:280px; height:280px;" hidden="[[isAbsent]]"></div>
         <!-- <div class="absent-gauge" style="width:270px; height:270px;" hidden="[[!isAbsent]]"></div> -->
+
+        <div hidden="[[!dataOpen]]">
+            <view-json class="gaugeInfo">[[_stringify(data)]]</view-json>
+        </div>
 
     </template>
     <script>
@@ -76,6 +102,7 @@
                 name:'fan/temperature',
                 type:'gauge',
                 detail : {formatter:'{value}'},
+                center: ['50%', '39%'],
                 data:[{value: 50, name: 'data ena'}]
             }
         ]
@@ -285,6 +312,10 @@
             gaugeWidth: {
                 type: Number,
                 value: 200
+            },
+            dataOpen: {
+                type: Boolean,
+                value: false
             }
         },
         observers:[
@@ -356,6 +387,12 @@
             } else {
                 return "orange";
             }
+        },
+        _stringify: function(data) {
+            return JSON.stringify(this.data);
+        },
+        toggleData: function() {
+            this.set('dataOpen', !this.dataOpen);
         }
     });
     </script>
