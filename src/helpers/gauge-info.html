@@ -357,31 +357,32 @@
             }
         },
         _dataChanged: function() {
+            var series = [{}],
+                tooltip = {}
             if (this.type == "temperature") {
-                this.set('gaugeOptions.series.0.name', this.type);
-                this.set('gaugeOptions.series.0.max', this.data.UpperThresholdFatal || this.data.UpperThresholdCritical || '100');
-                this.set('gaugeOptions.series.0.data', [{value: this.data.ReadingCelsius, name:this.data.PhysicalContext}]);
-                
-                if (!this.get('gaugeOptions.tooltip.formatter').endsWith("℃")) {
-                    this.set('gaugeOptions.tooltip.formatter', this.gaugeOptions.tooltip.formatter+"℃");
-                }
-                if (!this.get('gaugeOptions.series.0.detail.formatter').endsWith("℃")) {
-                    this.set('gaugeOptions.series.0.detail.formatter', this.gaugeOptions.series[0].detail.formatter.replace("%","")+"℃");
-                }
+                series = [{
+                    name:this.type,
+                    type:'gauge',
+                    detail : {formatter:'{value}℃'},
+                    center: ['50%', '39%'],
+                    data: [{value: this.data.ReadingCelsius, name:this.data.PhysicalContext}],
+                    max: this.data.UpperThresholdFatal || this.data.UpperThresholdCritical || '100'
+                }];
+                tooltip = {formatter:  "{a} <br/>{b} : {c}℃"}
             } else if (this.type == "fan") { 
-                this.set('gaugeOptions.series.0.name', this.type);
-                this.set('gaugeOptions.series.0.data', [{value: this.data.Reading, name:''}]);
-                
-                if (!this.get('gaugeOptions.tooltip.formatter').endsWith("%")) {
-                    this.set('gaugeOptions.tooltip.formatter', this.gaugeOptions.tooltip.formatter+"%");
-                }
-                if (!this.get('gaugeOptions.series.0.detail.formatter').endsWith("%")) {
-                    this.set('gaugeOptions.series.0.detail.formatter', this.gaugeOptions.series[0].detail.formatter.replace("℃","")+"%");
-                }
-            } else {
-                this.set('gaugeOptions.series.0.name', '');
-                this.set('gaugeOptions.series.0.data', [{value: 0, name:'missing'}]);
+                series = [{
+                    name:this.type,
+                    type:'gauge',
+                    detail : {formatter:'{value}%'},
+                    center: ['50%', '39%'],
+                    data: [{value: this.data.Reading, name:''}],
+                    max: '100'
+                }];
+                tooltip = {formatter:  "{a} <br/>{b} : {c}%"}
             }
+
+            this.set('gaugeOptions.series', series);
+            this.set('gaugeOptions.tooltip', tooltip);
 
             if (this.gauge) {
                 this.gauge.setOption(this.gaugeOptions, true);
