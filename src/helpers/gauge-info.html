@@ -14,7 +14,7 @@
         <style include="shared-styles tags-and-labels">
             :host {
                 display: inline-block;
-                min-width: 32%;
+                width: 32%;
                 height: 355px;
                 vertical-align: top;
                 position: relative;
@@ -299,7 +299,8 @@
         is: 'gauge-info',
         properties: {
             data: {
-                type: Object
+                type: Object,
+                observer: '_dataChanged'
             },
             type: {
                 type: String
@@ -326,11 +327,12 @@
                 value: false
             }
         },
-        observers:[
-            '_dataChanged(data)'
-        ],
         attached: function(){
-            this.initCharts();
+            
+        },
+        detach: function(){
+            echarts.dispose(this.gauge);
+            console.debug('dashboard detached');
         },
         _computedIsAbsent: function(state) {
             return this.data && this.data.Status.State == "Absent";
@@ -354,11 +356,11 @@
                 this.resizeGraph();
             }
         },
-        _dataChanged: function(data) {
+        _dataChanged: function() {
             if (this.type == "temperature") {
                 this.set('gaugeOptions.series.0.name', this.type);
-                this.set('gaugeOptions.series.0.max', data.UpperThresholdFatal || data.UpperThresholdCritical);
-                this.set('gaugeOptions.series.0.data', [{value: data.ReadingCelsius, name:data.PhysicalContext}]);
+                this.set('gaugeOptions.series.0.max', this.data.UpperThresholdFatal || this.data.UpperThresholdCritical || '100');
+                this.set('gaugeOptions.series.0.data', [{value: this.data.ReadingCelsius, name:this.data.PhysicalContext}]);
                 
                 if (!this.get('gaugeOptions.tooltip.formatter').endsWith("℃")) {
                     this.set('gaugeOptions.tooltip.formatter', this.gaugeOptions.tooltip.formatter+"℃");
@@ -368,7 +370,7 @@
                 }
             } else if (this.type == "fan") { 
                 this.set('gaugeOptions.series.0.name', this.type);
-                this.set('gaugeOptions.series.0.data', [{value: data.Reading, name:''}]);
+                this.set('gaugeOptions.series.0.data', [{value: this.data.Reading, name:''}]);
                 
                 if (!this.get('gaugeOptions.tooltip.formatter').endsWith("%")) {
                     this.set('gaugeOptions.tooltip.formatter', this.gaugeOptions.tooltip.formatter+"%");
@@ -376,17 +378,16 @@
                 if (!this.get('gaugeOptions.series.0.detail.formatter').endsWith("%")) {
                     this.set('gaugeOptions.series.0.detail.formatter', this.gaugeOptions.series[0].detail.formatter.replace("℃","")+"%");
                 }
+            } else {
+                this.set('gaugeOptions.series.0.name', '');
+                this.set('gaugeOptions.series.0.data', [{value: 0, name:'missing'}]);
             }
 
-            // if (this.gauge && data.Status.State == "Absent") {
-            //     console.log('absent');
-            //     echarts.dispose(this.$.gauge);
-            //     this.initCharts('gray');
-            // }
+            if (this.gauge) {
+                this.gauge.setOption(this.gaugeOptions, true);
+            }
 
-            // if (this.gauge) {
-            //     this.gauge.setOption(this.gaugeOptions);
-            // }
+            this.initCharts();
         },
         _class: function(data) {
             if (this.data.Status.Health == "OK") {
