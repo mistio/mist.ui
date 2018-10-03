@@ -18,6 +18,7 @@
 <link rel="import" href="resize-dialog.html">
 <link rel="import" href="machine-edit.html">
 <link rel="import" href="attach-volume-on-machine.html">
+<link rel="import" href="power-reset.html">
 
 <script type="text/javascript" src="../volume-create-fields.js" inline></script>
 
@@ -36,6 +37,7 @@
     <attach-volume-on-machine id="attachvolumedialog" machine="[[items.0]]" model="[[model]]"></attach-volume-on-machine>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
+    <power-reset id="powerresetdialog" items="[[items]]"></power-reset>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(model.membersArray,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <resize-dialog id="resizedialog" machine="[[_getMachine(items.length)]]" clouds="[[model.clouds]]"></resize-dialog>
 
@@ -96,6 +98,12 @@
       'stop': {
         'name': 'stop',
         'icon': 'av:stop',
+        'confirm': true,
+        'multi': true
+      },
+      'power_reset': {
+        'name': 'power reset',
+        'icon': 'av:replay',
         'confirm': true,
         'multi': true
       },
@@ -297,7 +305,7 @@
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', "webconfig"].indexOf(action.name) ==
+          if (action.confirm && ['tag', 'rename', 'power reset', 'run script', 'associate key', 'resize', "webconfig"].indexOf(action.name) ==
             -1) {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
               plural = this.items.length == 1 ? '' : 's',
@@ -324,6 +332,8 @@
             this.$.ownershipdialog._openDialog();
           } else if (action.name == 'rename') {
             this.$['renamedialog']._openDialog();
+          } else if (action.name == 'power reset') {
+            this.$['powerresetdialog']._openDialog();
           } else if (action.name == 'webconfig') {
             this._openWebconfig(this.items);
           } else if (action.name == 'run script') {
