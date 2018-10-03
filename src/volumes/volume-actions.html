@@ -113,9 +113,8 @@
         var arr = [];
         if (volume) {
           arr.push('tag');
-          // TODO: add 'digitalocean' 'azure' when backend ready
-          if (this.inSingleView && ['gce','openstack','ec2'].indexOf(volume.provider) > -1) {
-            if (volume.provider == "digitalocean" || volume.attached_to.length == 0 ) {
+          if (this.inSingleView && VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(this.provider) > -1) {
+            if (volume.attached_to.length == 0 ) {
               arr.push('attach');
             } else if (volume.attached_to.length) {
               arr.push('detach');
@@ -154,7 +153,7 @@
         this.$.request.method = "DELETE";
 
         for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/volumes/" + this.items[i].id
+          this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/volumes/" + this.items[i].external_id;
           this.$.request.generateRequest();
           this.fire('toast', {
             msg: 'Deleting ' + this.items[i].name,
