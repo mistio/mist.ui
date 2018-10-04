@@ -299,7 +299,7 @@
                 filterOwner = q.indexOf('owner:') > -1,
                 ownerRegex = /owner:(\S*)\s?/,
                 owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1],
-                queryTerms;
+                queryTerms, str;
 
             if (filterOwner && owner && owner.length) {
                 q = q.replace('owner:', '').replace(owner + '', '');
@@ -317,12 +317,16 @@
             }
 
             queryTerms = q.split(' ');
+            str = JSON.stringify(item);
+            if (this.model && this.model.clouds && item.cloud && this.model.clouds[item.cloud]) {
+                str += this.model.clouds[item.cloud].provider+''+this.model.clouds[item.cloud].title;
+            }
 
             if (q && q.trim().length > 0) {
                 // Check if all terms exist in stringified item
                 for (var i = 0; i < queryTerms.length; i++) {
                     if (queryTerms[i] && queryTerms[i].length &&
-                        JSON.stringify(item).toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
+                        str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
                         return false;
                     }
                 }
