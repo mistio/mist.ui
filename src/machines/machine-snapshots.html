@@ -172,10 +172,13 @@ Polymer({
             computed: '_computeIsRevertTo(action)'
         },
     },
+    observers: [
+        '_preselectSnapshot(snapshots, isCreate)'
+    ],
     ready: function() {},
     _openDialog: function(e) {
         this.clearError();
-        this.set('snapshotName', "");
+        this._preselectSnapshot();
         this.$.createSnapshotModal.open();
     },
     _closeDialog: function(e) {
@@ -191,6 +194,13 @@ Polymer({
     },
     _computeIsRevertTo: function(action) {
         return this.action == 'revert to snapshot';
+    },
+    _preselectSnapshot: function() {
+        if (!this.isCreate && this.snapshots && this.snapshots.length) {
+            this.set('snapshotName', this.snapshots[this.snapshots.length - 1].name);
+        } else {
+            this.set('snapshotName','');
+        }
     },
     createSnapshot: function(e) {
         var request = this.$.snapshotRequest;
