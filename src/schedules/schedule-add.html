@@ -34,7 +34,7 @@
             }
 
             .single-head {
-                @apply(--schedule-page-head-mixin)
+                @apply --schedule-page-head-mixin
             }
         </style>
         <div id="content">
@@ -153,7 +153,7 @@
                         value: "",
                         defaultValue: "",
                         show: true,
-                        required: false,
+                        required: true,
                         helptext: "Choose one from the available tasks to schedule.",
                         options: [],
                     }, {
@@ -164,7 +164,7 @@
                         defaultValue: "",
                         add: true,
                         show: false,
-                        required: false,
+                        required: true,
                         helptext: "Schedule an existing script to run.",
                         options: [],
                         showIf: {
@@ -384,6 +384,7 @@
                         type: "date",
                         value: "",
                         defaultValue: "",
+                        validate: "inFuture",
                         class: "bind-top background",
                         icon: "schedule",
                         excludeFromPayload: true,
@@ -400,6 +401,7 @@
                         value: "",
                         placeholder: "now",
                         defaultValue: "",
+                        validate: "inFuture",
                         helptext: "",
                         icon: "schedule",
                         show: false,
@@ -417,6 +419,7 @@
                         placeholder: "never",
                         excludeFromPayload: true,
                         defaultValue: "",
+                        validate: "inFuture",
                         helptext: "",
                         icon: "schedule",
                         show: true,
@@ -459,7 +462,7 @@
                 },
                 actions: {
                     type: Array,
-                    computed: "_computeActions(model.machinesArray)"
+                    computed: "_computeActions(model.machines)"
                 },
                 docs: {
                     type: String,
@@ -480,7 +483,7 @@
                     }
                 }
             },
-            _computeActions: function (machinesArray) {
+            _computeActions: function (machines) {
                 var ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; //'suspend', 'resume',
 
                 var actions = [];
@@ -496,20 +499,23 @@
 
                 return actions;
             },
-            _atLeastOne: function (action) {
-                return this.model.machinesArray.find(function (m) {
-                    return m[action];
-                });
-            },
             _updateFields: function (fields, model) {
                 if (this.model && this.fields) {
+                    var _this = this;
                     this.fields.forEach(function (f, index) {
                         if (f.name == "script_id") {
                             f.options = this.model.scriptsArray || [];
                         }
 
                         if (f.name == "machines_uuids") {
-                            f.options = this.model.machinesArray || [];
+                            f.options = this.model && this.model.machines && Object.keys(this.model.machines).map(function(m) {
+                                var machine = _this.model.machines[m];
+                                return {
+                                    id: m,
+                                    name: machine.name,
+                                    img: 'assets/providers/provider-' + _this.model.clouds[machine.cloud].provider.replace('_', '') + '.png'
+                                }
+                            }) || [];
                             this._updateCheckboxes();
                         }
 
@@ -525,9 +531,9 @@
                     '.value');
                 //if there are selected checkboxes, keep selection on update
                 if (checkedMachines && checkedMachines.length) {
-                    var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
+                    var checkboxes = this.$.scheduleAddForm.querySelectorAll('#app-form-scheduleAddForm-machines_uuids paper-checkbox');
                     [].forEach.call(checkboxes, function (el, index) {
-                        if (checkedMachines.indexOf(el.dataValue) > -1)
+                        if (checkedMachines.indexOf(el.id) > -1)
                             el.checked = true;
                         else
                             el.checked = false;
@@ -574,7 +580,7 @@
 
                     // changing uuids
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith("machines_uuids")) {
-                        console.log('changeRecord.value', changeRecord.value);
+                        // console.log('changeRecord.value', changeRecord.value);
                         this._updateObjectInConditions('machines', 'ids', changeRecord.value);
                         this._removeObjectFromConditions('tags');
                     }
@@ -654,7 +660,7 @@
                     // date in shedule entry
                     if (this.get(changeRecord.path.replace('.value', '')).name == "schedule_entry_one_off") {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        this.set('fields.' + entryInd + '.value', changeRecord.value);
+                        this.set('fields.' + entryInd + '.value', changeRecord.value.replace('T',' ')+':00');
                     }
 
                     // crontab in schedule entry
@@ -706,13 +712,14 @@
             },
 
             _updateObjectInConditions: function (field, attr, value, operator) {
+                // console.log('_updateObjectInConditions', field, attr, value, operator);
                 var conditions = this.get('fields.' + this._fieldIndexByName("conditions") + '.value'),
                     conditionsField = conditions.find(function (con) {
                         return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field :
                             con.type == field;
                     }),
                     index = conditions.indexOf(conditionsField);
-                console.log('index', index);
+                // console.log('index', index);
                 if (index > -1) {
                     this.set('fields.' + this._fieldIndexByName("conditions") + '.value.' + index + '.' +
                         attr, value);
@@ -817,24 +824,20 @@
                 }, 500)
             },
             _handleError: function (e) {
-                console.log(e);
+                // console.log(e);
                 this.$.errormsg.textContent = e.detail.request.xhr.responseText;
                 this.set('formError', true);
             },
             _fieldIndexByName: function (name) {
-                var index;
-                var passField = this.fields.find(function (f, ind) {
-                    if (f.name == name)
-                        index = ind;
+                return this.fields.findIndex(function (f) {
                     return f.name == name;
                 });
-                return index;
             },
             _goBack: function () {
                 history.back();
             },
             updateScripts: function (e) {
-                console.log('updateScripts', e)
+                // console.log('updateScripts', e)
                 var scriptInd = this._fieldIndexByName("script_id");
                 this.async(function () {
                     this.set('fields.' + scriptInd + '.options', this.model.scriptsArray);

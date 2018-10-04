@@ -1,0 +1,333 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
+<link rel="import" href="../element-for-in/element-for-in.html">
+<link rel="import" href="../mist-actions.html">
+
+<link rel="import" href="volume-actions.html">
+
+<dom-module id="volume-page">
+    <template>
+        <style include="shared-styles tags-and-labels single-page">
+            :host {
+                display: block;
+            }
+
+            paper-material {
+                display: block;
+                padding: 20px;
+            }
+
+            .columns {
+                @apply --layout-horizontal;
+                flex: 1 100%;
+                margin-bottom: 16px;
+            }
+
+            .columns paper-material>.break {
+                word-break: break-all;
+            }
+
+            .left {
+                /*line-height: 1.6em;*/
+            }
+
+            .left,
+            .right {
+                @apply --layout-vertical;
+                align-items: flex-start;
+                flex-direction: column;
+                flex: 1 100%;
+            }
+
+            .left h3,
+            .right h3 {
+                margin-bottom: 0;
+            }
+
+            paper-menu-button paper-button {
+                display: block;
+            }
+
+            .flex-horizontal-with-ratios {
+                @apply --layout-horizontal;
+            }
+
+            .flexchild {
+                @apply --layout-flex;
+            }
+
+            .command-container {
+                background-color: #444;
+                color: #fff;
+                font-family: monospace;
+                padding: 10px;
+            }
+
+            a {
+                color: black;
+                text-decoration: none;
+            }
+
+            .paper-header [paper-drawer-toggle] {
+                margin-left: 10px;
+            }
+
+            .paper-header {
+                display: flex;
+                flex-direction: row;
+            }
+
+            .paper-header {
+                height: 60px;
+                font-size: 24px;
+                line-height: 60px;
+                padding: 0 10px;
+                color: white;
+                transition: height 0.2s;
+                transition: font-size 0.2s;
+            }
+
+            .paper-header.tall {
+                height: 320px;
+                font-size: 16px;
+            }
+
+            .paper-header h2 {
+                margin-left: 20px;
+                display: flex;
+                flex-direction: row;
+                text-transform: capitalize;
+            }
+
+            .paper-header .toggleViewButton {
+                --paper-icon-button-ink-color: transparent;
+            }
+
+            .paper-header .cartButton {
+                margin-right: 10px;
+            }
+
+            #content {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            paper-icon-button {
+                transition: all 200ms;
+            }
+
+            paper-icon-button.active-sort {
+                transform: rotate(180deg);
+            }
+
+            paper-icon-button.active-sort::content iron-icon {
+                color: #D48900 !important;
+            }
+
+
+            .n-info-head {
+                text-transform: uppercase;
+                font-weight: bold;
+                font-size: 0.8em;
+                display: inline-block;
+                width: 100px;
+                opacity: 0.54;
+                margin: 0;
+            }
+
+            #rightcolumn .n-info-head {
+                width: 100%;
+            }
+
+            paper-icon-bottom.bottom {
+                padding-right: 8px;
+            }
+
+            :host .info-item,
+            :host ::content .info-item {
+                word-break: break-all;
+            }
+
+            .single-head {
+                @apply --volume-page-head-mixin
+            }
+        </style>
+
+        <div id="content">
+            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
+                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
+            </div> -->
+            <volume-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeVolumeMachines(volume.attached_to,model.machines)]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
+            <paper-material class="single-head layout horizontal">
+                <span class="icon">
+                    <iron-icon icon="[[section.icon]]"></iron-icon>
+                </span>
+                <div class="title flex">
+                    <h2>[[volume.name]]</h2>
+                    <div class="subtitle">
+                        [[volumeCloud]], [[_computeLocationsName(model,volume.location)]]
+                    </div>
+                </div>
+                <mist-actions actions="[[actions]]" type="volume" items="[[itemArray]]" model="[[model]]" use-half-width hidden$="[[isMissing]]"></mist-actions>
+            </paper-material>
+            <div class="columns">
+                <paper-material id="leftcolumn resource-description" class="left">
+                    <div class="missing" hidden$="[[!isMissing]]">Volume not found.</div>
+                    <div hidden$="[[isMissing]]">
+                        <div hidden$="[[!volume.state]]">
+                            <h4 class="id n-info-head">State:</h4>
+                            <span class="id">[[volume.state]] [[_computedAttachedMachine(volume)]]</span>
+                        </div>
+                        <div>
+                            <h4 class="id n-info-head">Size:</h4>
+                            <span class="id">[[volume.size]]</span>
+                        </div>
+                        <div>
+                            <h4 class="id n-info-head">Volume ID:</h4>
+                            <span class="id">[[volume.id]]</span>
+                        </div>
+                        <div hidden$="[[!volume.owned_by.length]]">
+                            <h4 class="id n-info-head">Owner:</h4>
+                            <span class="id"><a href$="/members/[[volume.owned_by]]">[[_displayUser(volume.owned_by,model.members)]]</a></span>
+                        </div>
+                        <div hidden$="[[!volume.created_by.length]]">
+                            <h4 class="id n-info-head">Created by:</h4>
+                            <span class="id"><a href$="/members/[[volume.created_by]]">[[_displayUser(volume.created_by,model.members)]]</a></span>
+                        </div>
+                    </div>
+                </paper-material>
+                <paper-material id="rightcolumn" class="right">
+                    <div hidden$="[[!volume.attached_to.length]]">
+                        <h4 class="n-info-head">Attached to machines:</h4>
+                        <template is="dom-repeat" items="[[_computeVolumeMachines(volume.attached_to,model.machines.*)]]" as="machine">
+                            <a class="blue-link" href$="/machines/[[machine.id]]">[[machine.name]]</a>
+                        </template>
+                    </div>
+                    <div hidden$="[[!volume.tags.length]]">
+                        <h4 class="n-info-head">TAGS:</h4>
+                        <template is="dom-repeat" items="[[volume.tags]]">
+                            <span class="tag">[[item.key]]
+                                <span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
+                        </template>
+                    </div>
+                </paper-material>
+            </div>
+            <paper-material class="no-pad" hidden$=[[!volume.extra]]>
+                <h2 class="id n-info-head">More Info</h2>
+                <div class="card-content" hidden$="[[isMissing]]">
+                    <element-for-in content="[[volume.extra]]"></element-for-in>
+                </div>
+            </paper-material>
+        </div>
+        <iron-ajax id="volumeDeleteAjaxRequest" url="/api/v1/clouds/[[volume.cloud]]/volumes/[[volume.id]]" method="DELETE"
+            on-response="_handleVolumeDeletekAjaxResponse"></iron-ajax>
+        <dialog-element></dialog-element>
+    </template>
+    <script>
+        Polymer({
+            is: 'volume-page',
+            behaviors: [
+                mistLoadingBehavior
+            ],
+
+            properties: {
+                model: {
+                    type: Object,
+                    notify: true
+                },
+                section: {
+                    type: Object
+                },
+                volume: {
+                    type: Object
+                },
+                isLoading: {
+                    type: Boolean,
+                    computed: '_computeIsloading(volume)',
+                    value: true
+                },
+                volumeCloud: {
+                    type: String,
+                    computed: '_computeVolumeCloud(volume, model.clouds)'
+                },
+                machinesVolumeCanAttachTo: {
+                    type: Array,
+                    computed: '_computedMachinesVolumeCanAttachTo(volume, model.machines)'
+                },
+                itemArray: Array
+            },
+            observers: [
+                '_change(volume)'
+            ],
+            _displayUser: function (id, members) {
+                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+            },
+            _change: function (item) {
+                if (item)
+                    this.set('itemArray', [this.volume]);
+            },
+            _computeLocationsName: function(model,loc) {
+                return this.model.clouds && this.model.clouds[this.volume.cloud] && this.model.clouds[this.volume.cloud].locations[this.volume.location] && this.model.clouds[this.volume.cloud].locations[this.volume.location].name;
+            },
+            _computeVolumeMachines: function(machineIds,machines){
+                return this.model.machines ? machineIds.map(i=>this.model.machines[i] || {name:'missing'}) : [];
+            },
+            _computeVolumeCloud: function (volume, clouds) {
+                if (this.volume) {
+                    return this.model.clouds[this.volume.cloud].title;
+                }
+            },
+            _computeVolumeProvider: function (volume, clouds){
+                if (this.volume) {
+                    return this.model.clouds[this.volume.cloud].provider;
+                }
+            },
+            _computedMachinesVolumeCanAttachTo: function(provide, machines) {
+                if (this.volume) {
+                    var that = this,
+                        machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
+                    return machinesArray.filter(function(m){
+                        return m.cloud == that.volume.cloud && m.location == that.volume.location
+                    });
+                }
+            },
+            _editVolume: function (e) {
+                console.log(e);
+            },
+            _deleteVolume: function (e) {
+                this._showDialog({
+                    title: 'Delete Volume?',
+                    body: "Deleting volumes cannot be undone. You are about to delete volume: '" +
+                        this.volume.name + "'.",
+                    danger: true,
+                    reason: "volume.delete"
+                });
+            },
+            _handleVolumeDeletekAjaxResponse: function (e) {
+                this.fire('go-to', {
+                    url: '/volumes'
+                });
+            },
+            _showDialog: function (info) {
+                var dialog = this.querySelector('dialog-element');
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
+                dialog._openDialog();
+            },
+            _computeIsloading: function (volume) {
+                return !this.volume ? true : false;
+            },
+            _toArray: function (x, z) {
+                if (x) {
+                    return Object.keys(x).map(y => x[y])
+                }
+                return [];
+            },
+        });
+    </script>
+</dom-module>

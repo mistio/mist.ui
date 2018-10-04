@@ -5,8 +5,6 @@
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
-<link rel="import" href="../../bower_components/paper-time-picker/paper-time-picker.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 
 <!-- needed for the forms' inputs -->
@@ -24,6 +22,8 @@
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="sub-form.html">
 <link rel="import" href="mist-size-field.html">
+<link rel="import" href="mist-machine-field.html">
+<link rel="import" href="mist-tags-field.html">
 
 <script src="../../bower_components/yaml.js/dist/yaml.min.js"></script>
 
@@ -89,6 +89,12 @@
                 opacity: 0.54;
                 width: 36px;
                 height: 36px;
+            }
+
+            paper-icon-button.clear-datetime {
+                padding: 0;
+                width: 24px;
+                height: 24px;
             }
 
             paper-item.button-true {
@@ -191,11 +197,6 @@
                 border-top: 1px solid #555;
             }
 
-            paper-date-picker::content #heading,
-            paper-time-picker::content #heading {
-                background-color: #424242;
-            }
-
             paper-toggle-button {
                 margin-top: 16px;
                 margin-bottom: 16px;
@@ -216,20 +217,12 @@
             }
 
             .date {
-                @apply(--layout-horizontal);
-                align-items: center;
+                @apply --layout-horizontal;
+                align-items: baseline;
             }
 
-            paper-date-picker ::content .day-item.selected.paper-calendar {
-                background: var(--mist-blue) !important;
-            }
-
-            paper-time-picker ::content .line.paper-clock-selector {
-                stroke: var(--mist-blue) !important;
-            }
-
-            paper-time-picker ::content .disc-large.paper-clock-selector {
-                fill: var(--mist-blue) !important;
+            .date-label {
+                margin-right: 8px;
             }
 
             paper-dialog>* {
@@ -266,11 +259,49 @@
                 font-size: 18px;
             }
 
+            .item-desc:before {
+                content: attr(data-prefix);
+                opacity: 0.67;
+                font-size: .8em;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
             .item-desc:after {
                 content: attr(data-suffix);
                 opacity: 0.67;
                 font-size: .8em;
                 margin-left: 10px;
+            }
+
+            paper-checkbox {
+                position: relative;
+                margin-bottom: 8px; 
+            }
+
+            paper-checkbox .item-desc{
+                display: inline-block;
+                vertical-align: top;
+            }
+
+            paper-checkbox .item-desc.noimg-false {
+                padding-left: 24px;
+            }
+
+            paper-checkbox .item-img {
+                position: absolute;
+            }
+
+            paper-input[type="datetime-local"] {
+                display: inline-block;
+                margin-left: 8px;
+                max-width: 200px;
+            }
+            #date.valid-false {
+                color: var(--red-color) !important;
+            }
+            #date.valid-false iron-icon {
+                fill: var(--red-color) !important;
             }
 
             @media (max-width: 991px) {
@@ -310,6 +341,11 @@
                 align-self: flex-start;
             }
 
+            paper-menu img {
+                margin-right: 8px;
+                vertical-align: middle;
+            }
+
             @media screen and (max-width: 800px) {
                 .horizontal-grid .grid-row {
                     flex-direction: column;
@@ -330,8 +366,17 @@
                                 value="{{field.value}}" auto-validate auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
                                 placeholder=[[field.placeholder]]>
-                                <div suffix hidden$="[[!field.suffix]]">[[field.suffix]]</div>
-                                <div prefix hidden$="[[!field.prefix]]">[[field.prefix]]</div>
+                                <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
+                                <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
+                            </paper-input>
+                        </template>
+                        <template is="dom-if" if="[[_compareFieldType(field, 'number', field.show)]]">
+                            <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" type="number" min="{{field.min}}"
+                                max="{{field.max}}" value="{{field.value}}" auto-validate auto-validate allowed-pattern="[[field.pattern]]" required="[[field.required]]"
+                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
+                                placeholder=[[field.placeholder]]>
+                                <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
+                                <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
                             </paper-input>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'password', field.show)]]">
@@ -358,14 +403,21 @@
                             </paper-radio-group>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'checkboxes', field.show)]]">
-                            <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" horizontal-align="left"
-                                hidden$="[[field.hidden]]">
+                            <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" hidden$="[[field.hidden]]">
+                                <div hidden$="[[!_noOptions(field.options, field.options.length)]]">
+                                    <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
+                                </div>
                                 <div hidden$="[[_noOptions(field.options, field.options.length)]]">
                                     <span class="checkboxes-label" hidden$="[[field.label]]">[[field.name]]:</span>
                                     <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                                 </div>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-checkbox name$="[[field.name]]" data-value="[[option.id]]">[[option.name]]</paper-checkbox>
+                                    <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]">
+                                        <template is="dom-if" if="[[option.img]]">
+                                            <img class="item-img" src="[[option.img]]" width="24px"/>
+                                        </template>
+                                        <span class$="item-desc noimg-[[!option.img]]" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[option.name]]</span>
+                                    </paper-checkbox>
                                 </template>
                             </div>
                         </template>
@@ -375,8 +427,7 @@
                                 <paper-menu slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]
-                                            <span hidden$="[[field.noPluralisation]]">s </span> found</paper-item>
+                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                     </template>
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
                                         <paper-item value="[[option.val]]">[[option.title]]</paper-item>
@@ -387,25 +438,32 @@
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_size', field.show)]]" restamp>
                             <mist-size-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-size-field>
                         </template>
+                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_machine', field.show)]]" restamp>
+                            <mist-machine-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-machine-field>
+                        </template>
+                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_tags', field.show)]]" restamp>
+                            <mist-tags-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-tags-field>
+                        </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_dropdown', field.show)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]" required="[[field.required]]">
                                 <paper-menu slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]
-                                            <span hidden$="[[field.noPluralisation]]">s</span>&nbsp;found</paper-item>
+                                        <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                     </template>
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
                                         <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
                                             <template is="dom-if" if="[[option.icon]]">
                                                 <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
                                             </template>
-                                            <span class="flex item-desc" data-suffix$=[[option.suffix]]>[[showOption(option)]]</span> 
-                                            <!-- <span hidden$="[[!option.suffix]]" class="item-desc secondary">  </span> -->
+                                            <template is="dom-if" if="[[option.img]]">
+                                                <img src="[[option.img]]" width="24px" />
+                                            </template>
+                                            <span class="flex item-desc" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[showOption(option)]]</span> 
                                         </paper-item>
                                     </template>
-                                    <paper-button on-tap="_addInput" data-add="[[field.name]]" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
+                                    <paper-button on-tap="_addInput" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
                                 </paper-menu>
                             </paper-dropdown-menu>
                         </template>
@@ -416,7 +474,7 @@
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
                                     <paper-menu id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
                                         <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
-                                            <paper-item disabled>No [[_computeResourceTypeForField(field.name)]]s found</paper-item>
+                                            <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                         </template>
                                         <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
                                             <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
@@ -426,7 +484,7 @@
                                                 <span class="flex">[[showOption(option)]]</span>
                                             </paper-item>
                                         </template>
-                                        <paper-button on-tap="_addInput" data-add="[[field.name]]" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
+                                        <paper-button on-tap="_addInput" class="blue" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
                                     </paper-menu>
                                 </div>
                             </paper-dropdown-menu>
@@ -459,13 +517,12 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'date', field.show)]]">
                             <div class$="xs12 m6 date [[field.class]]">
-                                <span>[[field.label]]</span>
-                                <paper-button id$="app-form-[[id]]-[[field.name]]" on-tap="_selectDate" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
-                                    class="simple-button">
-                                    <iron-icon icon="[[field.icon]]" hidden$="[[!field.icon]]"></iron-icon>
+                                <div class="date-label">[[field.label]]</div>
+                                <div id="date" class$="simple-button valid-[[_validateDatetime(field, field.value)]]">
+                                    <iron-icon icon="schedule"></iron-icon>
                                     [[_displayDate(field, field.value)]]
-                                </paper-button>
-                                <paper-icon-button icon="icons:close" on-tap="_clearDate" data-value="[[field.name]]" hidden$="[[!field.value.length]]"></paper-icon-button>
+                                    <paper-input id$="app-form-[[id]]-[[field.name]]" type="datetime-local" value="{{field.value}}" placeholder="dd/mm/yyyy --:--"></paper-input>
+                                </div>
                             </div>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'list', field.show)]]">
@@ -521,21 +578,11 @@
             </template>
         </div>
 
-        <paper-dialog id="dateTimePickers" with-backdrop>
-            <div class="pickers">
-                <paper-date-picker id="pickDate" class="date-button"></paper-date-picker>
-                <paper-time-picker id="pickTime" class="time-button"></paper-time-picker>
-            </div>
-            <div class="bottom-actions">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button class="blue" on-tap="_applyDateTime">Apply</paper-button>
-            </div>
-        </paper-dialog>
-
         <iron-ajax id="formAjax" url="[[url]]" contentType="application/json" handle-as="{{handleas}}" method="[[method]]" on-request="_handleRequest"
             on-response="_handleResponse" on-error="_handleError"></iron-ajax>
     </template>
     <script>
+        DEBUG_FORM = false;
         Polymer({
             is: 'app-form',
             /**
@@ -554,10 +601,9 @@
              * @event leadchange
              */
             properties: {
-                model: {
-                    type: Object
+                id: {
+                    type: String
                 },
-                id: String,
                 sections: {
                     type: Object
                 },
@@ -638,14 +684,11 @@
                 '_fieldsChanged(fields.*, sendingData)'
             ],
             listeners: {
-                'change': '_updateCheckboxesField',
-                'fields-changed': 'runFieldsChanged'
+                'fields-changed': 'runFieldsChanged',
+                'field-value-changed': 'runValidateFields'
             },
             ready: function () {
                 this.fields = [];
-            },
-            attached: function () {
-                this.$.pickDate.minDate = moment().add(-1, 'days').toDate();
             },
             _computeLayoutClass: function (layout) {
                 return this.horizontalLayout ? 'horizontal-grid' : '';
@@ -691,6 +734,10 @@
             },
             runFieldsChanged: function () {
                 this._fieldsChanged()
+            },
+            runValidateFields: function() {
+                var valid = this._validateFields();
+                this.set('formReady', valid && !this.sendingData);
             },
             _fieldsChanged: function (fields, sendingData) {
                 if (this.formError) {
@@ -746,8 +793,11 @@
                                 that.set('form.' + el.name, that._constructTagsValue(
                                     textToArray));
                             } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, that._constructCheckboxValue(
-                                    el.name));
+                                that.set('form.' + el.name, el.value || []);
+                            } else if (el.type == "number") {
+                                that.set('form.' + el.name, parseInt(el.value));
+                            } else if (el.type == "date" && el.value) {
+                                that.set('form.' + el.name, el.value && el.value.replace('T',' ')+':00');
                             } else {
                                 that.set('form.' + el.name, el.value);
                             }
@@ -760,8 +810,11 @@
                                 that.set('form.' + el.name, that._constructTagsValue(
                                     textToArray));
                             } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, that._constructCheckboxValue(
-                                    el.name));
+                                that.set('form.' + el.name, el.value || []);
+                            } else if (el.type == "number") {
+                                that.set('form.' + el.name, parseInt(el.value));
+                            } else if (el.type == "date" && el.value) {
+                                that.set('form.' + el.name, el.value.replace('T',' ')+':00');
                             } else {
                                 that.set('form.' + el.name, el.value);
                             }
@@ -793,20 +846,32 @@
                 });
             },
             _validateFields: function (fields) {
-                return fields.every(function (el, index) {
+                var fieldsToValidate = fields || this.fields;
+                return fieldsToValidate.every(function (el, index) {
                     if (el.type == "ip_textarea") {
                         return el.show && el.required ? this.validatecidr(el.value, index) :
                             true;
                     } else if (el.type == "checkboxes") {
-                        return el.show && el.required ? this._constructCheckboxValue(el.name)
-                            .length : true;
+                        if (DEBUG_FORM) {
+                            console.log('validation', el.type, el.value && el.value.length);
+                        }
+                        return el.show && el.required ? el.value && el.value.length : true;
                     } else if (el.type == "machines_tags") {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.type, el.show && el.required ? JSON.stringify(this._constructTagsValue(textToArray)).length > 2 : true);
+                        }
                         var textToArray = el.value.split(',');
                         return el.show && el.required ? JSON.stringify(this._constructTagsValue(
                             textToArray)).length > 2 : true;
-                    } else if (el.type == "date") {
-                        return el.show && el.required ? moment(el.value).isValid() : true;
+                    } else if (el.type == "date" ) {
+                        if (DEBUG_FORM) {
+                            console.log('validate ', el.name, el.type, this._validateDatetime(el))
+                        }
+                        return this._validateDatetime(el);
                     } else if (el.type == 'list') {
+                        if (DEBUG_FORM) {
+                            console.log('validate ', el.name, el.type, this._allItemsValid(el));
+                        }
                         return el.min && el.show && el.required ? this._allItemsValid(el) :
                             true;
                     } else if (el.name == "admin_state_up") {
@@ -814,20 +879,52 @@
                     } else if (el.name == "cloud_init") {
                         return typeof el.value == "string" && (el.value.startsWith("#!/bin/bash") || el.value.startsWith(
                                                     "#cloud-config") || el.value.trim() == "");
-                    } else if (el.name == "schedule_entry") {
-                        return !el.excludeFromPayload ? el.value : true;
                     } else if (el.name == "libvirt_disk_size" && el.pattern) {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type, this._validatePatternedField(el))
+                        }
                         return this._validatePatternedField(el);
                     } else if (el.type == "password" && el.pattern && el.required) {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type,this._validatePatternedField(el))
+                        }
                         return this._validatePatternedField(el);
                     } else if (el.type == "mist_size") {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type, el.show && el.required ? this._validateMistSize(el) : true);
+                        }
                         return el.show && el.required ? this._validateMistSize(el) : true;
+                    } else if (el.type == "mist_machine") {
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name, el.type, el.valid);
+                        }
+                        return el.show && el.required ? el.valid : true;
+                    } else if (el.type == "toggle" || el.type == "radio"){
+                        if (DEBUG_FORM) {
+                            console.log('validate ',el.name,el.type, true);
+                        }
+                        return  true;
                     } else {
-                        if (el.show && el.required && (!el.value || !el.value.length))
+                        if (el.show && el.required && (el.value == undefined || !el.value.length)) {
                             console.warn(el.type, 'not valid', el.name, el.value);
-                        return el.show && el.required ? el.value && el.value.length : true;
+                        }
+                        if (DEBUG_FORM) {
+                            console.log('validate ', el.name, el.type, el.show, el.required,  el.value);
+                        }
+                        return el.show && el.required ? (el.value && el.value.length ? el.value : false) : true;
                     }
-                }, this);
+                    return true;
+                }.bind(this));
+            },
+            _validateDatetime: function(el) {
+                if (el.validate == "inFuture") {
+                    var now = moment();
+                    console.log('validate ',el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true);
+                    return el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true;
+                } else {
+                    console.log('validate ',el.show && el.value ? moment(el.value).isValid() : true);
+                    return el.show && el.value ? moment(el.value).isValid() : true;
+                }
             },
             _validateMistSize: function (el) {
                 return el.value == "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length; 
@@ -854,8 +951,9 @@
                     if (!this._validateFields(el.items[i])) {
                         allItemsValid = false;
                         break;
-                    } else
+                    } else {
                         allItemsValid = true;
+                    }
                 }
                 // console.log("validate list", allItemsValid);
                 return allItemsValid;
@@ -877,13 +975,20 @@
                 if (this.workflow) {
                     var inps = YAML.parse(this.form.stackinputs);
                     for (var p in inps) {
-                        if (p.startsWith('mist_location')) {
-                            inps[p] = inps[p] != undefined ? inps[p].toString() : '';
-                        }
-                        if (p.startsWith('mist_size')) {
-                            var sizeField = this.fields.find(function(f){return f.name == p})
-                            if (sizeField && sizeField.type == 'mist_size' && sizeField.value == 'custom') {
-                                inps[p] = sizeField.customValue;
+                        var field = this.fields.find(function(f){return f.name == p});
+                        if (field.excludeFromPayload == true) {
+                            delete inps[p];
+                        } else {
+                            if (p.startsWith('mist_location')) {
+                                inps[p] = inps[p] != undefined ? inps[p].toString() : '';
+                            }
+                            if (p.startsWith('mist_size')) {
+                                if (field && field.type == 'mist_size' && field.value == 'custom') {
+                                    inps[p] = field.customValue;
+                                }
+                            }
+                            if (field.preformatPayloadValue != undefined && field.preformatPayloadValue.apply) {
+                                inps[p] = field.preformatPayloadValue.apply(field.value);
                             }
                         }
                     }
@@ -922,7 +1027,7 @@
                             }
                             payload[field.name] = subformPayload;
                         }
-                    }, this);
+                    }.bind(this));
 
                     // clean up form for payload
                     var excludeFields = this.fields.filter(function (el) {
@@ -980,7 +1085,7 @@
 
                     // Reset Form Fields Validation
                     this._resetField(el, index);
-                }, this);
+                }.bind(this));
 
                 this.fire('reset-form');
             },
@@ -1005,7 +1110,7 @@
                     if (el.showIf && el.showIf.fieldName == name) {
                         this.set('fields.' + index + '.options', []);
                     }
-                }, this);
+                }.bind(this));
             },
 
             validateip: function (value, field) {
@@ -1061,81 +1166,48 @@
             _addInput: function (e) {
                 this.fire('add-input', {
                     event: e,
-                    fieldname: e.target.dataAdd
+                    fieldname: e.model.field.name
                 });
             },
-            _computeResourceTypeForField: function (str) {
-                return str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("id", "").trim();
-            },
-            _selectDate: function (e) {
-                var event = Polymer.dom(e),
-                    field = this._getFieldNameById(event.rootTarget.id);
-                // save the triggering field
-                this.set('dateTriggerField', field);
-                if (moment(this.form[field]).isValid())
-                    this.$.pickDate.date = moment(this.form[field]).toDate();
+            _computeResourceTypeForField: function (str, length) {
+                var ret = str ? str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("uuids", "").replace("ids", "").replace("id", "").replace(/s$/,'').trim() : '';
+                if (length != undefined && length > 1)
+                    ret += 's';
+                return ret;
 
-                this.$.pickTime.time = moment().format('hh:mm a');
-                this.$.dateTimePickers.open();
-            },
-            _applyDateTime: function (e) {
-                var ind;
-                var datefield = this.fields.find(function (f, index) {
-                    ind = index;
-                    return f.name == this.dateTriggerField
-                }, this);
-
-                // apply date to the trigger fields
-                if (ind) {
-                    var date = moment(this.$.pickDate.date).format('YYYY-MM-DD');
-                    var combinedDate = date + " " + moment(this.$.pickTime.time, 'hh:mm:ss A').format(
-                        "HH:mm:ss")
-
-                    this.set('fields.' + ind + '.value', moment(combinedDate).utc().format().toString()
-                        .replace('T', ' ').replace('Z', ''));
-                }
-
-                this.$.dateTimePickers.close();
             },
             _displayDate: function (field, value) {
                 if (!moment(field.value).isValid() || (field.value && field.value.trim() == ""))
-                    return field.placeholder ? field.placeholder : "select date";
+                    return field.placeholder ? field.placeholder : "SELECT DATE";
                 else {
-                    return moment.utc(field.value).local().fromNow() + ', ' + moment.utc(field.value)
-                        .local().format('YYYY-MM-DD hh:mm').toString().replace('T', ' ').replace(
-                            'Z', '');
-                }
-            },
-            _clearDate: function (e) {
-                var fieldIndex,
-                    fieldname;
-
-                if (e.target.tagName == "IRON-ICON") {
-                    fieldname = e.target.parentNode.dataValue;
-                } else if (e.target.tagName == "PAPER-ICON-BUTTON") {
-                    fieldname = e.target.dataValue;
-                }
-                var el = this.fields.find(function (f, index) {
-                    fieldIndex = index;
-                    return f.name == fieldname;
-                });
-                if (fieldIndex) {
-                    this.set('fields.' + fieldIndex + '.value', "");
+                    return moment.utc(field.value).local().fromNow();
                 }
             },
             _constructCheckboxValue: function (fieldname) {
                 var checkboxes = this.querySelectorAll('paper-checkbox[name=' + fieldname + ']'); // get checkboxes
                 var arr = [];
-                var index = -1;
-                var field = this.fields.find(function (f, ind) {
-                    index = ind;
-                    return f.name == fieldname;
-                })
                 checkboxes.forEach(function (c) {
                     if (c.checked)
                         arr.push(c.dataValue);
                 })
+                // console.log('_constructCheckboxValue',arr);
                 return arr;
+            },
+            _updateCheckboxesField: function (e) {
+                // console.log('_updateCheckboxesField', e, e.model);
+                var fieldInd = this.fields.findIndex(function (f) {
+                    return f.name == e.model.field.name;
+                })
+                var arr = this.get('fields.' + fieldInd + '.value') || [];
+                if (fieldInd > -1) {
+                    if (e.target.checked && arr.indexOf(e.model.option.id) == -1)
+                        arr.push(e.model.option.id);
+                    else if (!e.target.checked && arr.indexOf(e.model.option.id) > -1)
+                        arr.splice(arr.indexOf(e.model.option.id),1)
+
+                    this.set('fields.' + fieldInd + '.value', arr);
+                }
+                // console.log('_updateCheckboxesField', arr);
             },
             _constructTagsValue: function (tagStringsArray) {
                 var arr = {};
@@ -1149,26 +1221,6 @@
                     }
                 });
                 return arr;
-            },
-            _updateCheckboxesField: function (e) {
-                if (e.target.tagName == "PAPER-CHECKBOX") {
-                    // console.log(e, e.target, e.target.tagName == "PAPER-CHECKBOX");
-                    var name = e.target.name;
-                    var fieldIndex;
-                    var el = this.fields.find(function (f, index) {
-                        fieldIndex = index;
-                        return f.name == name;
-                    });
-                    if (fieldIndex) {
-                        var arr = this.querySelectorAll('paper-checkbox[name=' + name +
-                            '][checked]');
-                        var arrvalue = Array.prototype.map.call(arr, function (c) {
-                            return c.dataValue
-                        });
-                        // console.log('_updateCheckboxesField',arrvalue);
-                        this.set('fields.' + fieldIndex + '.value', arrvalue);
-                    }
-                }
             },
             _helpTap: function (e) {
                 this.fire('user-action', 'open help ' + e.model.field.helpHref);

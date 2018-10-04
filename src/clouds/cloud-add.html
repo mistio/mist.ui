@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 
+<link rel="import" href="../account/plan-purchase.html">
 <link rel="import" href="../app-form/app-form.html">
 
 <dom-module id="cloud-add">
@@ -43,6 +44,14 @@
                 margin-top: 20px;
             }
 
+            .progress {
+                position: relative;
+                width: 100%;
+                left: 0;
+                right: 0;
+                margin-left: -24px;
+            }
+
             .dropdown-with-logos paper-item img {
                 margin-right: 16px;
             }
@@ -56,14 +65,14 @@
                 max-height: 400px !important;
             }
 
-             :host paper-menu.providers paper-item {
+            :host paper-menu.providers paper-item {
                 display: inline-block;
                 width: 20%;
                 min-width: 160px;
                 line-height: 48px;
             }
 
-             :host paper-menu.providers img {
+            :host paper-menu.providers img {
                 margin-right: 8px;
                 vertical-align: middle;
             }
@@ -85,7 +94,7 @@
             }
 
             .single-head {
-                @apply(--cloud-page-head-mixin)
+                @apply --cloud-page-head-mixin
             }
         </style>
 
@@ -132,7 +141,7 @@
                 </div>
             </paper-material>
         </div>
-
+        <plan-purchase id="ccRequired" org="[[org]]" persist></plan-purchase>
     </template>
     <script>
         Polymer({
@@ -171,22 +180,59 @@
                 },
                 clouds: Array,
                 enableMonitoring: Boolean,
+                enableBilling: Boolean,
+                disableAddCloud: {
+                    type: Boolean,
+                    computed: '_computeDisableAddCloud(enableBilling, org.*)',
+                    value: false
+                },
                 portalName: 'Mist.io',
                 docs: {
                     type: String,
                     value: ''
-                }
+                },
+                org: Object,
+                selectedPlan: {
+                    type: String
+                },
+                hidden: Boolean
             },
             observers: [
                 '_providerChanged(selectedProvider, providers)',
-                '_keysChanged(keys.*, providerFields)'
+                '_keysChanged(keys.*, providerFields)',
+                '_hiddenChanged(hidden)'
             ],
             listeners: {
                 'iron-select': '_updateCloudTitle',
-                'reset-form': '_resetProvider'
+                'reset-form': '_resetProvider',
+                'reset-form': '_resetProvider',
+                'open-cc-required': '_openCcRequired',
+                'close-cc-required': '_closeCcRequired'
             },
             ready: function () {
 
+            },
+            attached: function() {
+                if (this.disableAddCloud)
+                    this._openCcRequired();
+            },
+            _hiddenChanged: function(hidden) {
+                if (this.disableAddCloud) {
+                    if (!hidden)
+                        this.querySelector('#ccRequired').open();
+                    else if (hidden)
+                        this.querySelector('#ccRequired').close();
+                }
+            },
+            _computeDisableAddCloud: function (enableBilling, org) {
+                return enableBilling && !this.org.card && !this.org.current_plan;
+            },
+            _openCcRequired: function() {
+                // e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
+                this.querySelector('#ccRequired').open();
+            },
+            _closeCcRequired: function() {
+                this.querySelector('#ccRequired').close();
             },
             _cloudAddAjaxResponse: function (response) {
                 this._unsetProvider();

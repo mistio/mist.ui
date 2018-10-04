@@ -1,0 +1,178 @@
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+
+<link rel="import" href="volumes/volume-create.html">
+<link rel="import" href="volumes/volume-page.html">
+<link rel="import" href="volumes/volume-actions.html">
+
+<link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
+<link rel="import" href="mist-actions.html">
+
+<dom-module id="page-volumes">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+
+        <app-route route="{{route}}" pattern="/:volume" data="{{data}}"></app-route>
+
+        <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+            <mist-list id="volumesList" selectable resizable column-menu multi-sort apiurl="/api/v1/volumes" item-map="[[model.volumes]]"
+                name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers()]]
+                route={{route}} user-filter=[[model.sections.volumes.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
+                <mist-actions slot="action-buttons" actions="[[actions]]" type="volume" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                <!-- TODO: add 'machine' & `machines-to-attach-to` property to volume actions-->
+                <volume-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></volume-actions>
+                <p slot="no-items-found">No volumes found.</p>
+            </mist-list>
+            <div class="absolute-bottom-right">
+                <paper-fab id="volumeAdd" icon="add" on-tap="_addResource"></paper-fab>
+            </div>
+        </template>
+        <volume-create model="[[model]]" section="[[model.sections.volumes]]" hidden$=[[!_isAddPageActive(route.path)]]></volume-create>
+        <volume-page model="[[model]]" volume="[[_getVolume(data.volume, model.volumes.*)]]" resource-id="[[data.volume]]" section="[[model.sections.volumes]]"
+            hidden$=[[!_isDetailsPageActive(route.path)]]></volume-page>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'page-volumes',
+            behaviors: [
+                mistListsBehavior,
+                ownerFilterBehavior
+            ],
+
+            properties: {
+                model: Object,
+                actions: {
+                    type: Array,
+                    notify: true
+                },
+                selectedItems: {
+                    type: Array,
+                    notify: true
+                }
+            },
+            
+            listeners: {
+                'select-action': 'selectAction',
+            },
+            
+            _isAddPageActive: function (path) {
+                return path == '/+add';
+            },
+            
+            _isDetailsPageActive: function (path) {
+                if (path && path != '/+add' && this.querySelector('volume-page'))
+                    this.querySelector('volume-page').updateState();
+                return path && path != '/+add';
+            },
+            
+            _isListActive: function (path) {
+                return !path;
+            },
+            
+            _getVolume: function (id) {
+                if (this.model.volumes)
+                    return this.model.volumes[id];
+            },
+            
+            _addResource: function (e) {
+                this.fire('go-to', {
+                    url: this.model.sections.volumes.add
+                });
+            },
+            
+            _getFrozenLogColumn: function () {
+                return ['name'];
+            },
+
+            _getVisibleColumns: function () {
+                var ret = ['provider', 'owned_by', 'created_by', 'size', 'volume_type', 'state', 'attached_to', 'tags'];
+                if (this.model.org && this.model.org.ownership_enabled != true)
+                    ret.splice(ret.indexOf('owned_by'), 1);
+                return ret;
+            },
+
+            _getRenderers: function (volumes, clouds) {
+                var _this = this;
+                return {
+                    'name': {
+                        'body': function (item, row) {
+                            return '<strong class="name">' + item + '</strong>';
+                        }
+                    },
+                    'provider': {
+                        'title': 'cloud',
+                        'body': function (item, row) {
+                            return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
+                                _this.model.clouds[row.cloud].title : item;
+                        }
+                    },
+                    'owned_by': {
+                        'title': 'owner',
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        }
+                    },
+                    'created_by': {
+                        'title': 'created by',
+                        'body': function (item, row) {
+                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        }
+                    },
+                    'size': {
+                        'body': function (item, row) {
+                            return '<span style="display:block;text-align:right;">'+item + ' GΒ</span>';
+                        }
+                    },
+                    'attached_to': {
+                        'title': 'attached to',
+                        'body': function (item, row) {
+                            return item.map(x => _this.model.machines[x].name).join(' ');
+                        }
+                    },
+                    'volume_type': {
+                        'title': 'volume type',
+                        'body': function (item, row) {
+                            return row && row.extra && row.extra.volume_type || '';
+                        }
+                    },
+                    'state': {
+                        'body': function (item, row) {
+                            return row && row.extra && row.extra.state || '';
+                        }
+                    },
+                    'tags': {
+                        'body': function (item, row) {
+                            var tags = item,
+                                display = "";
+                            if (item != undefined) {
+                                for (var i = 0; i < tags.length; i++) {
+                                    display += "<span class='tag'>" + tags[i].key;
+                                    if (tags[i].value != undefined && tags[i].value != "")
+                                        display += "=" + tags[i].value;
+                                    display += "</span>";
+                                }
+                            }
+                            return display;
+                        }
+                    }
+                }
+            },
+            // redirect events
+            selectAction: function (e) {
+                e.stopImmediatePropagation();
+                if (this.querySelector('volume-actions')) {
+                    this.querySelector('volume-actions').selectAction(e);
+                }
+            }
+
+        });
+    </script>
+</dom-module>

@@ -35,12 +35,12 @@
             }
 
             .flex-horizontal-with-ratios {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
                 align-content: stretch;
             }
 
             .flexchild {
-                @apply(--layout-flex);
+                @apply --layout-flex;
             }
 
             .command-container {
@@ -64,7 +64,7 @@
             }
 
             .paper-header {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
             }
 
             .paper-header {
@@ -84,7 +84,7 @@
 
             .paper-header h2 {
                 margin-left: 20px;
-                @apply(--layout-flex);
+                @apply --layout-flex;
                 text-transform: capitalize;
             }
 
@@ -203,7 +203,7 @@
                 display: inline;
             }
             .single-head {
-                @apply(--template-page-head-mixin)
+                @apply --template-page-head-mixin
             }
         </style>
 
@@ -212,7 +212,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <template-actions items="[[itemArray]]" actions="{{actions}}" user="[[user]]" members="[[members]]" in-single-view></template-actions>
+            <template-actions org="[[model.org]]" items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" in-single-view></template-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -221,9 +221,10 @@
                     </h2>
                     <div class="subtitle">
                         <span hidden$="[[!isInline]]">Inline Template</span>
-                        <span hidden$="[[isInline]]">Script source <a href$="[[template.template]]" target="_blank" class="regular"> [[template.template]] <iron-icon icon="icons:link"></iron-icon>
-                                </a>
-                            </span>
+                        <span hidden$="[[isInline]]">
+                            Script source
+                            <a href$="[[template.template]]" target="_blank" class="regular"> [[template.template]] <iron-icon icon="icons:link"></iron-icon></a>
+                        </span>
                     </div>
                 </div>
                 <mist-actions actions="[[actions]]" type="template" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
@@ -247,7 +248,7 @@
             </paper-material>
 
             <paper-material class="flex-horizontal-with-ratios">
-                <div class="missing" hidden$="[[!isMissing]]">Key not found.</div>
+                <div class="missing" hidden$="[[!isMissing]]">Template not found.</div>
                 <div class="page-block" hidden$="[[!template.description.length]]">
                     <h3 class="smallcaps">Description</h3>
                     <p>[[template.description]]</p>
@@ -260,11 +261,11 @@
                 </div>
                 <div class="page-block" hidden$="[[!template.owned_by.length]]">
                     <h3 class="smallcaps">Owner</h3>
-                    <p><a href$="/members/[[template.owned_by]]">[[_displayUser(template.owned_by,model.members)]]</p>
+                    <p><a href$="/members/[[template.owned_by]]">[[_displayUser(template.owned_by,model.members)]]</a></p>
                 </div>
                 <div class="page-block" hidden$="[[!template.created_by.length]]">
                     <h3 class="smallcaps">Created by</h3>
-                    <p><a href$="/members/[[template.created_by]]">[[_displayUser(template.created_by,model.members)]]</p>
+                    <p><a href$="/members/[[template.created_by]]">[[_displayUser(template.created_by,model.members)]]</a></p>
                 </div>
                 <div class="page-block" hidden$="[[!template.tags.length]]">
                     <h3 class="smallcaps">Tags
@@ -365,7 +366,7 @@
                 <div class="page">
                     <div class="section">
                         <h3 class="smallcaps">Template Inputs </h3>
-                        <p> The template will require you to insert the following inputs in order to create a stack from</p>
+                        <p> The template will require you to insert the following inputs to create a stack.</p>
                         <p class="required"><span class="red">*</span> required fields</p>
                         <paper-material class="no-pad">
                             <table class="info-table">
@@ -384,7 +385,7 @@
             <template is="dom-if" if="[[template.workflows.length]]">
                 <div class="page section">
                     <h3 class="smallcaps">Available Workflows </h3>
-                    <p> This template offers the following workflows to be run on stacks created form</p>
+                    <p> This template offers the following workflows.</p>
                     <paper-material class="no-pad">
                         <table class="info-table">
                             <template is="dom-repeat" items="[[template.workflows]]" as="[[item]]">
@@ -417,8 +418,6 @@
                 ],
 
                 properties: {
-                    user: String,
-                    members: Array,
                     sections: {
                         type: Object
                     },
@@ -431,8 +430,12 @@
                     model: {
                         type: Object
                     },
+                    templateId: {
+                        type: String
+                    },
                     template: {
                         type: Object,
+                        computed: '_computeTemplate(templateId, model.templates)'
                     },
                     stacks: {
                         type: Array,
@@ -470,6 +473,10 @@
                     var wh = window.innerHeight;
                     this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
                 },
+                _computeTemplate: function(id, templates) {
+                    if (this.model.templates)
+                        return this.model.templates[id];
+                },
                 _displayUser: function (id, members) {
                     return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
                 },
@@ -481,9 +488,6 @@
                         return this.stacks.length > 0;
                     else
                         return false;
-                },
-                _computeTemplate: function(templateid, templates) {
-                    return templates.base[templateid];
                 },
                 _computeIsInline: function(source) {
                     return source == 'inline';

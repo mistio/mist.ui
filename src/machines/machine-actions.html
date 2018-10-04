@@ -17,6 +17,9 @@
 <link rel="import" href="run-script-on-machine.html">
 <link rel="import" href="resize-dialog.html">
 <link rel="import" href="machine-edit.html">
+<link rel="import" href="attach-volume-on-machine.html">
+
+<script type="text/javascript" src="../volume-create-fields.js" inline></script>
 
 <dom-module id="machine-actions">
   <template>
@@ -30,6 +33,7 @@
     <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
     <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
+    <attach-volume-on-machine id="attachvolumedialog" machine="[[items.0]]" model="[[model]]"></attach-volume-on-machine>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(model.membersArray,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
@@ -40,6 +44,13 @@
   </template>
   <script>
     MACHINE_ACTIONS = {
+      'attach-volume': {
+        'name': 'attach volume',
+        'icon': 'device:storage',
+        'confirm': false,
+        'multi': false,
+        'single': true
+      },
       'shell': {
         'name': 'shell',
         'icon': 'vaadin:terminal',
@@ -173,11 +184,22 @@
           },
           notify: true
         },
+        inSinglePage: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
         action: Object,
         type: {
           type: String,
           value: 'machine'
-        }
+        },
+        providersWithVolumes: {
+            type: Array,
+            value: function () {
+                return VOLUME_CREATE_FIELDS.map(i => i.provider);
+            }
+        },
       },
       listeners: {
         'rename-machine': 'renameAction',
@@ -196,12 +218,15 @@
       },
       itemActions: function (machine) {
         var arr = [];
-        if (machine.cloud.provider == 'vsphere')
+        if (['vsphere', 'openstack'].indexOf(this.model.clouds[machine.cloud].provider) > -1)
           arr.push('console');
         if (machine) {
-          if (machine.os_type != 'windows') {
+          if (machine.os_type != 'windows' && machine.machine_type != 'ilo-host') {
             arr.push('shell');
             arr.push('associate-key');
+          }
+          if (this.inSinglePage && this.providersWithVolumes.map(i => i.provider).indexOf(machine.provider) > -1) {
+            arr.push('attach-volume');
           }
         }
         if (machine && machine.actions) {
@@ -293,6 +318,8 @@
             this.$.resizedialog._openDialog();
           } else if (action.name == 'tag') {
             this.$.tagsdialog._openDialog();
+          } else if (action.name == 'attach volume') {
+            this.$.attachvolumedialog._openDialog();
           } else if (action.name == 'transfer ownership') {
             this.$.ownershipdialog._openDialog();
           } else if (action.name == 'rename') {
@@ -419,9 +446,18 @@
                 // for machines destroy only and only if in machine page
                 if (action.name == "destroy" && document.querySelector('app-location').path.split(
                     '/machines/')[1] == item.id) {
-                  this.fire('go-to', {
-                    url: '/machines'
-                  });
+                  // kvm machines
+                  if (item.provider != 'kvm') {
+                    this.fire('go-to', {
+                      url: '/machines'
+                    });
+                  }
+                }
+                if (item.provider == 'kvm' && action.name == "undefine" && document.querySelector('app-location').path.split(
+                    '/machines/')[1] == item.id) {
+                    this.fire('go-to', {
+                      url: '/machines'
+                    });
                 }
               } else {
                 console.error(action, 'failed');

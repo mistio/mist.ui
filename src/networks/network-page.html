@@ -24,7 +24,7 @@
             }
 
             .columns {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
                 flex: 1 100%;
                 margin-bottom: 16px;
             }
@@ -39,7 +39,7 @@
 
             .left,
             .right {
-                @apply(--layout-vertical);
+                @apply --layout-vertical;
                 align-items: flex-start;
                 flex-direction: column;
                 flex: 1 100%;
@@ -55,11 +55,11 @@
             }
 
             .flex-horizontal-with-ratios {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
             }
 
             .flexchild {
-                @apply(--layout-flex);
+                @apply --layout-flex;
             }
 
             .command-container {
@@ -154,7 +154,7 @@
             }
 
             .single-head {
-                @apply(--network-page-head-mixin)
+                @apply --network-page-head-mixin
             }
         </style>
 
@@ -239,14 +239,14 @@
                 <h4 class="id">Subnets</h4>
                 <div class="info-table">
                     <div class="info-body">
-                        <template is="dom-repeat" items="[[network.subnets]]" as="subnet">
+                        <template is="dom-repeat" items="[[_mapToArray(network.subnets)]]" as="subnet">
                             <subnet-item subnet="[[subnet]]" itemindex="{{index}}"></subnet-item>
                         </template>
                     </div>
                 </div>
             </paper-material>
         </div>
-        <iron-ajax id="networkDeleteAjaxRequest" url="/api/v1/clouds/[[network.cloud_id]]/networks/[[network.id]]" method="DELETE"
+        <iron-ajax id="networkDeleteAjaxRequest" url="/api/v1/clouds/[[network.cloud]]/networks/[[network.id]]" method="DELETE"
             on-response="_handleNetworDeletekAjaxResponse"></iron-ajax>
         <dialog-element></dialog-element>
     </template>
@@ -281,7 +281,11 @@
                     type: String,
                     computed: '_computeNetworkCloud(network, model.clouds)'
                 },
-                itemArray: Array
+                itemArray: Array,
+                hidden: Boolean
+            },
+            listeners: {
+                'network-deleted': '_networkDeleted'
             },
             observers: [
                 '_change(network)'
@@ -298,7 +302,7 @@
             },
             _computeNetworkCloud: function (network, clouds) {
                 if (network)
-                    return this.model.clouds[this.network.cloud_id].title
+                    return this.model.clouds[this.network.cloud].title
             },
             _editNetwork: function (e) {
                 console.log(e);
@@ -306,7 +310,7 @@
             _deleteNetwork: function (e) {
                 this._showDialog({
                     title: 'Delete Network?',
-                    body: "Deleting scripts cannot be undone. You are about to delete network: '" +
+                    body: "Deleting networks cannot be undone. You are about to delete network: '" +
                         this.network.name + "'.",
                     danger: true,
                     reason: "network.delete"
@@ -327,7 +331,14 @@
             _computeIsloading: function (network) {
                 return !this.network ? true : false;
             },
-
+            _mapToArray: function(subnets) {
+                return mapToArray(subnets);
+            },
+            _networkDeleted: function(e) {
+                console.log(e);
+                if (!this.hidden && e.detail.responseURL.endsWith(this.network.id))
+                    this.fire('go-to', {url: '/networks'});
+            }
         });
     </script>
 </dom-module>

@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="account/details-page.html">
 <link rel="import" href="account/password-page.html">
 <link rel="import" href="account/plans-list.html">
@@ -35,17 +36,13 @@
                 max-width: 900px;
             }
 
-            paper-tabs ::content #tabsContent {
-                overflow-x: scroll;
-            }
-
             paper-tab {
                 min-width: min-content;
             }
         </style>
         <app-route route="{{route}}" pattern="/:page" data="{{data}}"></app-route>
         <div id="content">
-            <paper-tabs attr-for-selected="name" selected="{{data.page}}">
+            <paper-tabs attr-for-selected="name" selected="{{data.page}}" scrollable>
                 <paper-tab id="profile" name="profile" data-route="0">Profile</paper-tab>
                 <paper-tab id="password" name="password" data-route="1">Password</paper-tab>
                 <paper-tab id="billing" name="billing" data-route="2" hidden$="[[!_showBilling(org.is_owner, config.features.billing)]]">Billing</paper-tab>
@@ -60,7 +57,7 @@
             <iron-pages attr-for-selected="name" selected="{{data.page}}">
                 <details-page config=[[config]] name="profile" org="[[org]]" user="[[user]]" data-route="0"></details-page>
                 <password-page name="password" user="[[user]]" data-route="1"></password-page>
-                <plans-list name="billing" org="[[org]]" user="[[user]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list>
+                <plans-list name="billing" org="[[org]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list>
                 <sessions-list name="sessions" org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
                 <tokens-list name="tokens" org="[[org]]" user="[[user]]" data-route="4"></tokens-list>
                 <whitelisted-ips name="ips" user="[[user]]" data-route="5"></whitelisted-ips>
@@ -84,13 +81,12 @@
             tokens: Array,
             sessions: Array,
             location: Object,
-            data: Object
-        },
-        observer: [
-        ],
-        attached: function(){
-            if (this.data == undefined || this.data.page == undefined)
-                this.set('data', {page: 'profile'});
+            data: {
+                type: Object,
+                value: function () {
+                    return {page: 'profile'};
+                }
+            }
         },
         _showBilling: function(is_owner, has_billing) {
             return is_owner && has_billing;

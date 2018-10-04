@@ -24,7 +24,7 @@
                 frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.templates)]]
                 route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="template" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></template-actions>
+                <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" org="[[model.org]]" members="[[model.membersArray]]"></template-actions>
                 <p slot="no-items-found">No templates found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -32,9 +32,9 @@
             </div>
         </template>
         <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
-        <template-page model="[[model]]" template$="[[_getTemplate(data.template, model.templates)]]" resource-id="[[data.template]]"
-            stacks$="[[_getTemplateStacks(data.template, model.templates, model.stacks)]]" section="[[model.sections.templates]]"
-            hidden$=[[!_isDetailsPageActive(route.path)]] user="[[model.user.id]]" members="[[_otherMembers(model.membersArray)]]"></template-page>
+        <template-page model="[[model]]" template-id="[[data.template]]" resource-id="[[data.template]]"
+            stacks="[[_getTemplateStacks(data.template, model.templates, model.stacks)]]" section="[[model.sections.templates]]"
+            hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
     </template>
 
     <script>
@@ -73,11 +73,6 @@
                 });
                 this.querySelector('template-page').fire('edit');
             },
-            _otherMembers: function (members) {
-                return members.filter(function(m) {
-                    return m.id != this.model.user.id && !m.pending;
-                }.bind(this));
-            },
             _isAddPageActive: function (path) {
                 return path == '/+add';
             },
@@ -88,10 +83,6 @@
             },
             _isListActive: function (path) {
                 return !path;
-            },
-            _getTemplate: function (id) {
-                if (this.model.templates)
-                    return this.model.templates[id];
             },
             _addResource: function (e) {
                 this.fire('go-to', {
@@ -110,9 +101,9 @@
             },
 
             _getVisibleColumns: function () {
-                var ret = ['exec_type', 'location_type', 'owned_by', 'created_by', 'tags'];
-                if (this.model.org.ownership_enabled != true)
-                    ret.splice(ret.indexOf('owned_by'), 1);
+                var ret = ['exec_type', 'location_type', 'created_by', 'tags'];
+                if (this.model.org && this.model.org.ownership_enabled == true)
+                    ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
                 return ret;
             },
 

@@ -90,12 +90,12 @@
             }
 
             .head {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
                 align-items: center;
             }
 
             h4.key {
-                @apply(--layout-flex);
+                @apply --layout-flex;
                 text-transform: uppercase;
                 font-size: 0.9rem;
                 font-weight: 700;
@@ -163,7 +163,7 @@
                 }
             }
             .single-head {
-                @apply(--key-page-head-mixin)
+                @apply --key-page-head-mixin
             }
         </style>
         <div id="content">
@@ -230,14 +230,15 @@
                 </paper-material>
                 <br/>
                 <paper-material class="machines-list" hidden$="[[!keyHasMachines]]">
-                    <h4 class="key">Machine<span hidden$="[[!keyHasMachinesMoreThanOne]]">s <span>([[keyMachines.length]])</span></span> associated with this key</h4>
+                    <h4 class="key"><span>([[keyMachines.length]])</span> Machine<span hidden$="[[!keyHasMachinesMoreThanOne]]">s</span> associated with this key</h4>
                     <ul>
-                        <template is="dom-repeat" items="[[keyMachines]]" as="machine">
+                        <template is="dom-repeat" items={{keyMachines}}>
                             <li>
-                                <iron-icon icon='hardware:laptop'></iron-icon> <a href="[[getMachineUrl(machine)]]" class="machine">[[getMachineName(machine)]]</a>
+                                <iron-icon icon='hardware:laptop'></iron-icon>
                                 <span class="machine-info">
-                                    <span hidden="[[!machine.1]]">: id: [[machine.1]] </span>
-                                    <!-- <span hidden="[[!machine.3]]">image: [[machine.3]]</span> -->
+                                    <span hidden$="[[!item.3]]">[[item.3]] @</span> <a hidden$=[[!getMachineUrl(item,model.machines.*)]] href="[[getMachineUrl(item,model.machines.*)]]" class="machine">[[getMachineName(item, model.machines.*)]]</a>
+                                    <template is="dom-if" if="[[!getMachineName(item,model.machines.*)]]" restamp><abbr title$=[[item.1]]>missing machine</abbr></template>
+                                    <span>([[getCloudTitle(item)]])</span> <span hidden="[[!item.5]]">: [[item.5]]</span>
                                 </span>
                             </li>
                         </template>
@@ -292,7 +293,7 @@
                     },
                     keyMachines: {
                         type: Array,
-                        computed: '_computeKeyMachines(key)'
+                        computed: '_computeKeyMachines(key, model.machines.*)'
                     },
                     keyHasMachines: {
                         type: Boolean,
@@ -375,18 +376,21 @@
                         return keyMachines.length > 1 ? true : false;
                 },
                 getMachineUrl: function(keymachine) {
-                    var machine = this.model.machinesArray.find(function(machine) {
-                        return machine.cloud.id == keymachine[0] && machine.machine_id == keymachine[1];
-                        console.log('key page', machine.cloud.id, keymachine[0]);
-                    });
-                    return machine ? "/machines/" + machine.id : '';
+                    var cloud = this.model.clouds[keymachine[0]];
+                    if (!cloud) return;
+                    var machine = cloud.machines && cloud.machines[keymachine[1]];
+                    return machine && "/machines/" + machine.id;
                 },
-                getMachineName: function(keymachine) {
-                    var machine = this.model.machinesArray.find(function(machine) {
-                        return machine.cloud.id == keymachine[0] && machine.machine_id == keymachine[1];
-                        console.log('key page', machine.cloud.id, keymachine[0]);
-                    });
-                    return machine ? machine.name : 'missing';
+                getCloudTitle: function(keymachine) {
+                    var cloud = this.model.clouds[keymachine[0]];
+                    if (!cloud) return '';
+                    return cloud.title;
+                },
+                getMachineName: function(keymachine, machines) {
+                    var cloud = this.model.clouds[keymachine[0]];
+                    if (!cloud) return '';
+                    var machine = cloud.machines && cloud.machines[keymachine[1]];
+                    return machine && machine.name;
                 },
                 _computeIsDefault: function(isDefault) {
                     return isDefault;

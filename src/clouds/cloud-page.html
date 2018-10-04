@@ -46,11 +46,11 @@
             }
 
             .flex-horizontal-with-ratios {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
             }
 
             .flexchild {
-                @apply(--layout-flex);
+                @apply --layout-flex;
             }
 
             .command-container {
@@ -79,7 +79,7 @@
             }
 
             .paper-header {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
             }
 
             .paper-header {
@@ -99,7 +99,7 @@
 
             .paper-header h2 {
                 margin-left: 20px;
-                @apply(--layout-flex);
+                @apply --layout-flex;
                 text-transform: capitalize;
             }
 
@@ -204,7 +204,7 @@
             }
 
             .single-head {
-                @apply(--cloud-page-head-mixin)
+                @apply --cloud-page-head-mixin
             }
 
             .view.blue-link {
@@ -300,11 +300,11 @@
                                     <h4>Machines:</h4>
                                 </div>
                                 <div class="cell">
-                                    <span hidden$="[[_computeShowCount(runningMachinesArrayLength)]]">[[runningMachinesArrayLength]] running</span>
-                                    <paper-button class="simple blue-link view" on-tap="viewRunning" hidden$="[[!runningMachinesArrayLength]]">[[runningMachinesArrayLength]] running</paper-button>
+                                    <span hidden$="[[_computeShowCount(runningMachinesLength)]]">[[runningMachinesLength]] running</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewRunning" hidden$="[[!runningMachinesLength]]">[[runningMachinesLength]] running</paper-button>
                                     <br/>
-                                    <span hidden$="[[_computeShowCount(stoppedMachinesArrayLength)]]">[[stoppedMachinesArrayLength]] stopped</span>
-                                    <paper-button class="simple blue-link view" on-tap="viewStopped" hidden$="[[!stoppedMachinesArrayLength]]">[[stoppedMachinesArrayLength]] stopped</paper-button>
+                                    <span hidden$="[[_computeShowCount(stoppedMachinesLength)]]">[[stoppedMachinesLength]] stopped</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewStopped" hidden$="[[!stoppedMachinesLength]]">[[stoppedMachinesLength]] stopped</paper-button>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[_isBareMetal(cloud.provider)]]">
@@ -329,8 +329,8 @@
                                     <h4>Networks:</h4>
                                 </div>
                                 <div class="cell">
-                                    <span hidden$="[[_computeShowCount(networksArrayLength)]]">[[networksArrayLength]]</span>
-                                    <paper-button class="simple blue-link view" on-tap="viewNetworks" hidden$="[[!networksArrayLength]]">[[networksArrayLength]] networks</paper-button>
+                                    <span hidden$="[[_computeShowCount(networksLength)]]">[[networksLength]]</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewNetworks" hidden$="[[!networksLength]]">[[networksLength]] networks</paper-button>
                                 </div>
                             </div>
                         </div>
@@ -386,7 +386,7 @@
             </template>
             <template is="dom-if" if="[[_isBareMetal(cloud.provider)]]" restamp>
                 <paper-material class="separator" hidden$="[[!_isBareMetal(cloud.provider)]]">
-                    <other-cloud-machines cloud="[[cloud]]" machines="[[model.machinesArray]]"></other-cloud-machines>
+                    <other-cloud-machines cloud="[[cloud]]"></other-cloud-machines>
                 </paper-material>
             </template>
         </div>
@@ -431,15 +431,15 @@
                     type: Number,
                     value: 0
                 },
-                networksArrayLength: {
+                networksLength: {
                     type: Number,
                     value: 0
                 },
-                runningMachinesArrayLength: {
+                runningMachinesLength: {
                     type: Number,
                     value: 0
                 },
-                stoppedMachinesArrayLength: {
+                stoppedMachinesLength: {
                     type: Number,
                     value: 0
                 },
@@ -455,7 +455,7 @@
             },
             observers: [
                 '_cloudChanged(cloud, cloud.*)',
-                '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networksArray,cloud.machinesArray)'
+                '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networks,cloud.machines)'
             ],
             ready: function () {},
             _cloudChanged: function (cloud) {
@@ -466,9 +466,7 @@
             _displayUser: function (id, members) {
                 return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
-            _cloudArraysChanged: function (cloud, cloudchange, imagesArray, locationsArray,
-                networksArray, machinesArray) {
-                // console.log('cloudArraysChanaged',cloud,cloudchange,imagesArray,locationsArray,networksArray,machinesArray);
+            _cloudArraysChanged: function (cloud, cloudchange, imagesArray, locationsArray, networks, machines) {
                 if (this.cloud) {
                     this.async(function () {
                         if (this.cloud) {
@@ -476,12 +474,12 @@
                                 .imagesArray.length : 0);
                             this.set('locationsArrayLength', this.cloud.locationsArray ?
                                 this.cloud.locationsArray.length : 0);
-                            this.set('networksArrayLength', this.cloud.networksArray ? this
-                                .cloud.networksArray.length : 0);
-                            this.set('runningMachinesArrayLength', this._computeRunningMachines(
-                                this.cloud.machinesArray));
-                            this.set('stoppedMachinesArrayLength', this._computeStoppedMachines(
-                                this.cloud.machinesArray));
+                            this.set('networksLength', this.cloud.networks ? Object.keys(this
+                                .cloud.networks).length : 0);
+                            this.set('runningMachinesLength', this._computeRunningMachines(
+                                this.cloud.machines));
+                            this.set('stoppedMachinesLength', this._computeStoppedMachines(
+                                this.cloud.machines));
                         }
                     }.bind(this), 1000);
                 }
@@ -509,14 +507,16 @@
                 console.log('_computeShowCount', c);
                 return c != 0 ? true : false;
             },
-            _computeRunningMachines: function (machinesArray) {
-                return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function (m) {
-                    return m.state == 'running';
+            _computeRunningMachines: function (machines) {
+                var _this = this;
+                return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
+                    return _this.cloud.machines[m].state == 'running'
                 }).length : 0;
             },
-            _computeStoppedMachines: function (machinesArray) {
-                return this.cloud.machinesArray ? this.cloud.machinesArray.filter(function (m) {
-                    return m.state == 'stopped'
+            _computeStoppedMachines: function (machines) {
+                var _this = this;
+                return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
+                    return _this.cloud.machines[m].state == 'stopped'
                 }).length : 0;
             },
             _computeCloudTitle: function (cloud) {
@@ -528,7 +528,7 @@
             },
             _computeItemImage: function (item) {
                 if (item && item.provider) {
-                    var provider = item.provider.split('_')[0];
+                    var provider = item.provider.replace('_', '');
                     return 'assets/providers/provider-' + provider + '.png';
                 }
             },

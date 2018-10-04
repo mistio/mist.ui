@@ -68,8 +68,26 @@
                 width: 100%;
             }
 
+            iron-image {
+                width: 40px;
+                height: 40px;
+                background-color: transparent;
+            }
+
+            paper-item {
+                width: 100%;
+            }
+
             paper-item:not(.context) {
                 padding: 8px 16px 8px 24px;
+                width: inherit;
+            }
+
+            paper-item {
+                font-size: 14px;
+                font-weight: 500;
+                letter-spacing: 0.018em;
+                line-height: 24px;
             }
 
             .context iron-icon {
@@ -178,11 +196,13 @@
             }
         </style>
         <paper-menu-button horizontal-align="right" vertical-offset="56" opened="{{opened}}">
-            <paper-icon-button src="[[gravatar]]" class="gravatar dropdown-trigger"></paper-icon-button>
-            <div class="dropdown-content">
+            <paper-icon-button src="[[gravatar]]" class="gravatar dropdown-trigger" slot="dropdown-trigger"></paper-icon-button>
+            <div class="dropdown-content" slot="dropdown-content">
                 <div class="grid-row current context">
                     <div class="logo xs4">
-                        <iron-icon class="user-menu-icon" icon="social:person"></iron-icon>
+                        <iron-icon class="user-menu-icon" icon="social:group" hidden$="[[_hasLogo(org)]]"></iron-icon>
+                        <iron-image class="logo" src$="[[_computeLogo(org)]]" sizing="contain" fade alt$="[[portal_name]] Logo" tabindex="0"
+                            hidden$=[[!_hasLogo(org)]]></iron-image>
                     </div>
                     <div class="org xs8">
                         <h4 style$="[[_computeOrganizationNameStyle(org.name)]]">[[_computeOrganizationName(org.name)]]</h4>
@@ -194,34 +214,35 @@
                 </div>
                 <paper-menu>
                     <template is="dom-repeat" items="{{orgsList}}" as="organization" restamp>
-                        <paper-item class="context" hidden$=[[_isCurrentOrg(organization)]]>
-                            <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row">
-                                <iron-icon class="user-menu-icon" icon$="[[_computeOrganizationIcon(organization)]]"></iron-icon>
+                        <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row" tabindex="-1">
+                            <paper-item class="context" hidden$=[[_isCurrentOrg(organization)]]>
+                                <iron-icon class="user-menu-icon" icon="social:group" hidden$=[[_hasLogo(organization)]]></iron-icon>
+                                <iron-image class="logo" src$="[[_computeLogo(organization)]]" sizing="contain" fade alt$="[[portal_name]] Logo" tabindex="0" hidden$=[[!_hasLogo(organization)]] style="margin-right: 22px; width: 30px; height: 30px;"></iron-image>
                                 <div class="org-name">[[_computeOrganizationName(organization.name)]]</div>
-                            </a>
-                        </paper-item>
+                            </paper-item>
+                        </a>
                     </template>
-                    <paper-item class="noborder add-org">
-                        <a href="javascript:void(0)" on-tap="_addOrg" class="grid-row">
-                            <iron-icon icon="icons:add-circle-outline"></iron-icon>Add Organisation
-                        </a>
-                    </paper-item>
+                    <a href="javascript:void(0)" on-tap="_addOrg" class="grid-row" tabindex="-1">
+                        <paper-item class="noborder add-org">
+                            <iron-icon icon="icons:add-circle-outline"></iron-icon>Add Organization
+                        </paper-item>
+                    </a>
                     <hr/>
-                    <paper-item hidden$=[[!supportUri.length]]>
-                        <a href="[[supportUri]]" target="_blank" class="flex">
+                    <a href="[[supportUri]]" target="_blank" class="flex" tabindex="-1">
+                        <paper-item hidden$=[[!supportUri.length]]>
                             <iron-icon icon="question-answer"></iron-icon>Support
-                        </a>
-                    </paper-item>
-                    <paper-item hidden$=[[!docsUri.length]]>
-                        <a href="[[docsUri]]" target="_blank" class="flex">
+                        </paper-item>
+                    </a>
+                    <a href="[[docsUri]]" target="_blank" class="flex">
+                        <paper-item hidden$=[[!docsUri.length]]>
                             <iron-icon icon="description"></iron-icon>Docs
-                        </a>
-                    </paper-item>
-                    <paper-item>
-                        <a href="/my-account" class="flex" id="Account">
+                        </paper-item>
+                    </a>
+                    <a href="/my-account/profile" class="flex" id="Account" tabindex="-1">
+                        <paper-item>
                             <iron-icon icon="account-circle"></iron-icon>Account
-                        </a>
-                    </paper-item>
+                        </paper-item>
+                    </a>
                     <hr/>
                     <paper-item on-tap="_logout">
                         <iron-icon icon="power-settings-new"></iron-icon> Logout
@@ -285,6 +306,12 @@
                 value: ''
             }
         },
+        _hasLogo: function(org) {
+            return org && org.avatar && org.avatar.length ? true : false;
+        },
+        _computeLogo: function (org) {
+            return org && org.avatar && '/api/v1/avatars/' + org.avatar;
+        },
         _computeGravatar: function (email, size, placeholder) {
             var avatarString = md5(email),
                 url = '//www.gravatar.com/avatar/' + avatarString + '.jpg?s=' + size + '&d=' + placeholder;
@@ -304,24 +331,20 @@
             return ret;
         },
         _computeOrganizationsList: function (user, org) {
-            if (user.orgs) {
-                var curOrgName = org.name;
-                var organizations = user.orgs.filter(function (o) {
-                    return o.name != curOrgName;
-                }, this).sort(function (a, b) {
-                    if (a.name > b.name) {
-                        return 1;
-                    }
-                    if (a.name < b.name) {
-                        return -1;
-                    }
-                    return 0;
-                });
-            }
-            return organizations;
-        },
-        _computeOrganizationIcon: function (organization) {
-            return organization.id ? 'social:group' : 'social:person';
+            if (!user || !user.orgs)
+                return [];
+
+            return user.orgs.filter(function (o) {
+                return o.name != org.name;
+            }, this).sort(function (a, b) {
+                if (a.name > b.name) {
+                    return 1;
+                }
+                if (a.name < b.name) {
+                    return -1;
+                }
+                return 0;
+            })
         },
         _computeOrganizationName: function (name) {
             return name && name.length ? name : '[ untitled org ]';
@@ -330,7 +353,7 @@
             return !name && 'opacity: .5' || '';
         },
         _isCurrentOrg: function (organization) {
-            return organization.id == this.org.id;
+            return organization && this.org && organization.id == this.org.id;
         },
         _addOrg: function (e) {
             this.fire('add-org');

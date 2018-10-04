@@ -21,9 +21,9 @@
         <app-route route="{{route}}" pattern="/:network" data="{{data}}"></app-route>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" items="[[model.networksArray]]"
+            <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" item-map="[[model.networks]]"
                 name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.networks,model.clouds)]]
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers()]]
                 route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
@@ -34,7 +34,7 @@
             </div>
         </template>
         <network-create model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-create>
-        <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networksArray.length)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
+        <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networks)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]"
             hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
     </template>
 
@@ -92,9 +92,9 @@
             },
 
             _getVisibleColumns: function () {
-                var ret = ['provider', 'owned_by', 'created_by', 'network_type', 'subnets', 'state', 'tags'];
-                if (this.model.org.ownership_enabled != true)
-                    ret.splice(ret.indexOf('owned_by'), 1);
+                var ret = ['provider', 'created_by', 'subnets', 'state', 'tags'];
+                if (this.model.org && this.model.org.ownership_enabled == true)
+                    ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
                 return ret;
             },
 
@@ -107,48 +107,35 @@
                         }
                     },
                     'provider': {
-                        'title': function (item, row) {
-                            return 'cloud';
-                        },
+                        'title': 'cloud',
                         'body': function (item, row) {
-                            return _this.model && _this.model.clouds && _this.model.clouds[row.cloud_id] ?
-                                _this.model.clouds[row.cloud_id].title : item;
+                            return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
+                                _this.model.clouds[row.cloud].title : item;
                         }
                     },
                     'owned_by': {
-                        'title': function (item, row) {
-                            return 'owner';
-                        },
+                        'title': 'owner',
                         'body': function (item, row) {
                             return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
                     'created_by': {
-                        'title': function (item, row) {
-                            return 'created by';
-                        },
+                        'title': 'created by',
                         'body': function (item, row) {
                             return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
-                    'network_type': {
-                        'title': function (item, row) {
-                            return 'network type';
-                        },
-                        'body': function (item, row) {
-                            return item;
-                        }
-                    },
                     'subnets': {
                         'body': function (item, row) {
-                            return item ? item.length : '';
+                            return item && Object.keys(item) ? Object.keys(item).length : '';
                         }
                     },
                     'state': {
                         'body': function (item, row) {
-                            if (row.provider == 'ec2')
+                            var provider = _this.model.clouds[row.cloud].provider;
+                            if (provider == 'ec2')
                                 return row.extra && row.extra.state != undefined ? row.extra.state : '';
-                            else if (row.provider == 'openstack')
+                            else if (provider == 'openstack')
                                 return row.admin_state_up != undefined ? 'admin state up:' + row.admin_state_up :
                                     '';
                             else

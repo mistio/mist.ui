@@ -31,9 +31,9 @@
                 <stack-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></stack-actions>
                 <p slot="no-items-found">No stacks found.</p>
             </mist-list>
-            <div class="absolute-bottom-right">
+            <!-- <div class="absolute-bottom-right">
                 <paper-fab id="stackAdd" icon="add" on-tap="_addResource"></paper-fab>
-            </div>
+            </div> -->
         </template>
         <stack-create model="[[model]]" section="[[model.sections.stacks]]" params="[[route.__queryParams]]" hidden$=[[!_isAddPageActive(route.path)]]></stack-create>
         <stack-page model="[[model]]" stack$="[[_getStack(data.stack, model.stacks)]]" resource-id="[[data.stack]]" section="[[model.sections.stacks]]"
@@ -87,9 +87,9 @@
             },
 
             _getVisibleColumns: function () {
-                var ret = ['template', 'status', 'owned_by', 'created_by', 'tags'];
-                if (this.model.org.ownership_enabled != true)
-                    ret.splice(ret.indexOf('owned_by'), 1);
+                var ret = ['template', 'status', 'created_by', 'tags'];
+                if (this.model.org && this.model.org.ownership_enabled == true)
+                    ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
                 return ret;
             },
 

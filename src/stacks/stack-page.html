@@ -19,7 +19,7 @@
 <link rel="import" href="stack-machine-item.html">
 <link rel="import" href="stack-network-item.html">
 <link rel="import" href="stack-key-item.html">
-<link rel="import" href="mist-form.html">
+<link rel="import" href="orchestration-form.html">
 
 
 <dom-module id="stack-page">
@@ -66,7 +66,7 @@
             paper-material.form-view {
                 position: relative;
             }
-            mist-form {
+            orchestration-form {
                 max-width: 100%;
                 position: relative;
             }
@@ -86,13 +86,13 @@
             }
 
             .flex-horizontal-with-ratios {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
                 align-content: stretch;
                 flex: 100%;
             }
 
             .flexchild {
-                @apply(--layout-flex);
+                @apply --layout-flex;
             }
 
             .command-container {
@@ -112,7 +112,7 @@
             }
 
             .paper-header {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
             }
 
             .paper-header {
@@ -132,7 +132,7 @@
 
             .paper-header h2 {
                 margin-left: 20px;
-                @apply(--layout-flex);
+                @apply --layout-flex;
                 text-transform: capitalize;
             }
 
@@ -230,7 +230,7 @@
             }
 
             #workflows-panel {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
             }
 
             #workflowsNavigation {
@@ -242,6 +242,7 @@
                 max-width: 100%;
                 overflow: hidden;
                 position: relative;
+                margin: 0 auto;
             }
 
             .resource-head {
@@ -448,7 +449,7 @@
             }
 
             .single-head {
-                @apply(--stack-page-head-mixin)
+                @apply --stack-page-head-mixin
             }
             .inStartCreationState-true {
                 opacity: 0.3;
@@ -480,11 +481,11 @@
                 <div class="missing" hidden$="[[!isMissing]]">Stack not found.</div>
                 <div class="flex-horizontal-with-ratios">
                     <div class="page-block" hidden$="[[!stack.description.length]]">
-                        <h3 class="smallcaps">Stack Description</h3>
+                        <span class="smallcaps">Stack Description</span>
                         <p>[[stack.description]]</p>
                     </div>
                     <div class="page-block">
-                        <h3 class="smallcaps">Created</h3>
+                        <span class="smallcaps">Created</span>
                         <p>[[_computeReadableDate(stack.created_at)]]</p>
                     </div>
                     <div class="page-block" hidden$="[[!stack.owned_by.length]]">
@@ -526,13 +527,13 @@
 
                     <div id="workflowsView" class="pad">
                         <template is="dom-repeat" items="[[workflows]]" as="workflow">
-                            <div id$="[[workflow.name]]show" class="wf-item">
+                            <div id$="[[workflow.name]]show" class="wf-item" show="[[!index]]">
 
                                 <template is="dom-if" if=[[workflow.params.length]]>
                                     <h2 class="pad app-form-title">[[workflow.name]]</h2>
                                     <div class="pad">
-                                        <mist-form model=[[model]] fields="{{workflow.params}}" workflow="[[workflow.name]]" url$="/api/v1/stacks/[[stack.id]]" on-request="handleWorkflowRequest"
-                                            on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]">[[workflow.name]]</mist-form>
+                                        <orchestration-form id$="[[workflow.name]]" model="[[model]]" fields="{{workflow.params}}" workflow="[[workflow.name]]" url$="/api/v1/stacks/[[stack.id]]" on-request="handleWorkflowRequest"
+                                            on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]">[[workflow.name]]</orchestration-form>
                                     </div>
                                 </template>
 
@@ -726,7 +727,8 @@
                 },
                 template: {
                     type: Object,
-                    computed: '_computeTemplate(stack.template, model.templates)'
+                    computed: '_computeTemplate(stack.template, model.templates)',
+                    value: false
                 },
                 machines: {
                     type: Array,
@@ -734,12 +736,12 @@
                 },
                 listMachines: {
                     type: Array,
-                    computed: '_listMachines(stack.node_instances.*, model.machinesArray.*)',
+                    computed: '_listMachines(stack.node_instances.*, model.machines.*)',
                     notify: true
                 },
                 networks: {
                     type: Array,
-                    computed: '_listNetworks(stack.node_instances.*, model.networksArray.*)',
+                    computed: '_listNetworks(stack.node_instances.*, model.networks.*)',
                     notify: true
                 },
                 zones: {
@@ -754,7 +756,7 @@
                 },
                 workflows: {
                     type: Array,
-                    computed: '_computeWorkflows(template)'
+                    computed: '_computeWorkflows(stack,template)'
                 },
                 timestamp: {
                     type: String,
@@ -851,14 +853,6 @@
                 var parent = this.querySelector("div#cfyshell");
                 parent.insertBefore(xterm, parent.firstChild);
                 console.warn('xterm open', xterm);
-            },
-            test: function () {
-                var newmach = {
-                    mist_type: "machine",
-                    info: this.model.machinesArray[3]
-                }
-                this.stack.node_instances.push(newmach);
-                console.log(newmach, this.stack.node_instances);
             },
             enhanceWorkflowLogs: function (workflows) {
                 var workflowLogs = this.stack ? this.stack.workflows : [];
@@ -1056,7 +1050,7 @@
                 if (nis) {
                     nis.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'machine') {
-                            var mac = this.model.machinesArray.find(function (mach) {
+                            var mac = Object.values(this.model.machines).find(function (mach) {
                                 return mach.id == rtpy.runtime_properties.info.id;
                             });
 
@@ -1085,9 +1079,7 @@
                 if (nis) {
                     nis.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'network') {
-                            var net = this.model.networksArray.find(function (net) {
-                                return net.id == rtpy.runtime_properties.info.id
-                            }, this);
+                            var net = this.model.networks[rtpy.runtime_properties.info.id];
                             if (net)
                                 networks.push(net);
                         }
@@ -1150,18 +1142,54 @@
                 }
                 return keys;
             },
-            _computeWorkflows: function (template) {
+            _computeWorkflows: function (stack,template) {
                 console.log('_computeWorkflows');
                 var workflows = [];
-                if (this.template) {
+                if (this.template && this.template.workflows) {
                     workflows = this.template.workflows.filter(function (wf) {
                         return wf.name != 'scale' && wf.name != 'execute_operation';
                     });
                 }
-                workflows.forEach(function (wf) {
-                    var yaml_inputs = '';
-                    if (wf.params.length > 0) {
-                        wf.params.forEach(function (wp) {
+                var param1 = {
+                    name: "yaml_or_form",
+                    label: "YAML or form",
+                    type: "radio",
+                    value: "form",
+                    defaultValue: "yaml",
+                    helptext: "Choose the way you want to insert inputs",
+                    errorMessage: "Choose an input format",
+                    show: true,
+                    required: true,
+                    options: [{
+                        title: "YAML",
+                        val: "yaml"
+                    }, {
+                        title: "Form",
+                        val: "form"
+                    }]
+                };
+                var param2 = {
+                    name: "stackinputs",
+                    label: "Workflow Inputs YAML",
+                    type: "textarea",
+                    value: yaml_inputs,
+                    defaultValue: yaml_inputs,
+                    placeholder: "",
+                    helptext: "Enter the stack inputs in yaml format",
+                    errorMessage: "Please enter stacks's inputs",
+                    show: true,
+                    required: true,
+                    showIf: {
+                        fieldName: "yaml_or_form",
+                        fieldValues: ["yaml"]
+                    }
+                };
+                for (var i=0; i<workflows.length; i++) {
+                    var yaml_inputs = '',
+                        wf = workflows[i];
+                    if (wf.params && wf.params.length > 0) {
+                        for (var j=0; j<wf.params.length; j++) {
+                            var wp = wf.params[j];
                             yaml_inputs += wp.name + ': ' + wp.default+'\n';
                             wp.showIf = {
                                 fieldName: "yaml_or_form",
@@ -1169,44 +1197,13 @@
                             }
                             wp.label = wp.name;
                             wp.value = wp.defaultValue = wp.default;
-                        });
-                        var param1 = {
-                            name: "yaml_or_form",
-                            label: "YAML or form",
-                            type: "radio",
-                            value: "form",
-                            defaultValue: "yaml",
-                            helptext: "Choose the way you want to insert inputs",
-                            errorMessage: "Choose an input format",
-                            show: true,
-                            required: true,
-                            options: [{
-                                title: "YAML",
-                                val: "yaml"
-                            }, {
-                                title: "Form",
-                                val: "form"
-                            }]
-                        };
-                        var param2 = {
-                            name: "stackinputs",
-                            label: "Workflow Inputs YAML",
-                            type: "textarea",
-                            value: yaml_inputs,
-                            defaultValue: yaml_inputs,
-                            placeholder: "",
-                            helptext: "Enter the stack inputs in yaml format",
-                            errorMessage: "Please enter stacks's inputs",
-                            show: true,
-                            required: true,
-                            showIf: {
-                                fieldName: "yaml_or_form",
-                                fieldValues: ["yaml"]
-                            }
-                        };
-                        wf.params.unshift(param1, param2);
+                        }
+                        var radioField = wf.params.find(function(p){ return p.name == "yaml_or_form"});
+                        if (!radioField) {
+                            wf.params.unshift(param1, param2);
+                        }
                     }
-                });
+                }
                 return workflows;
             },
             _computeReadableDate: function (date) {

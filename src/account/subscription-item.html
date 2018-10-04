@@ -21,11 +21,11 @@
             }
 
             .flex-horizontal-with-ratios {
-                @apply(--layout-horizontal);
+                @apply --layout-horizontal;
             }
 
             .flexchild {
-                @apply(--layout-flex);
+                @apply --layout-flex;
             }
             paper-item {
                 align-items: baseline;
@@ -63,7 +63,7 @@
                     },
                     titleText: {
                         type: String,
-                        computed: '_computeTitleText(subscription.title, subscription.isTrial, subscription.promo_code)'
+                        computed: '_computeTitleText(subscription.title, subscription)'
                     },
                     dateText: {
                         type: String,
@@ -93,8 +93,11 @@
                     );
                     return classes.join(' ');
                 },
-                _computeTitleText: function(title, isTrial, promoCode) {
-                    return title + (promoCode ? ' (promo)' : '');
+                _computeTitleText: function(title, subscription) {
+                    var ret = title;
+                    if (subscription.promo_code)
+                        ret += ' (promo)';
+                    return ret;
                 },
                 _computeDateText: function(time) {
                     var date = new Date(time * 1000);

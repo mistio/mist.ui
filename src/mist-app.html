@@ -33,6 +33,7 @@
 <link rel="import" href="mist-notice.html">
 <link rel="import" href="mist-icons.html">
 <link rel="import" href="organizations/organization-add.html">
+<link rel="import" href="account/plan-purchase.html">
 
 <script type="text/javascript" src="providers.js" inline></script>
 
@@ -164,12 +165,13 @@
                 <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen$="{{xsmallscreen}}"
                     docs=[[config.features.docs]]></page-dashboard>
                 <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]]
-                    portal-name="[[config.portal_name]]"></page-clouds>
+                    portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
                 <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]] docs=[[config.features.docs]]
                     portal-name="[[config.portal_name]]"></page-machines>
                 <page-images name="images" route="{{subroute}}" model="[[model]]"></page-images>
                 <page-keys name="keys" route="{{subroute}}" model="[[model]]" config=[[config]]></page-keys>
                 <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
+                <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
                 <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
                 <template is="dom-if" if="[[config.features.tunnels]]">
                     <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
@@ -200,6 +202,8 @@
         <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
 
         <organization-add current-org="[[model.org]]"></organization-add>
+
+        <plan-purchase id="mistAppCcRequired" org="[[org]]" button-text="Enable"></plan-purchase>
     </template>
 
     <script>
@@ -270,6 +274,11 @@
                 config: Object,
 
                 userMenuOpened: Boolean,
+                ccRequired: {
+                    type: Boolean,
+                    value: false,
+                    computed: '_computeCcRequired(config.features.*, model.org.*, model.cloudsArray.length)'
+                },
                 visibleSuggestions: {
                     type: Boolean,
                     value: false
@@ -292,16 +301,41 @@
                 'mist-list-filtered-items-length-changed': 'setHeaderCount',
                 'export-list-csv': '_exportCsvMessage',
                 'add-org': '_addOrg',
-                'tap': 'closeIfClickedElsewhere'
+                'tap': 'closeIfClickedElsewhere',
+                'cc-dismiss': '_ccDismissed'
             },
 
             observers: [
                 '_routePageChanged(routeData.page, subroute.path)',
                 '_sizeChanged(smallscreen)',
-                '_configUpdated(config)'
+                '_configUpdated(config)',
+                '_ccRequiredChanged(ccRequired)'
             ],
 
-            attached: function () {},
+            attached: function () {
+                if (this.ccRequired){
+                    this._ccDismissed();
+                }
+            },
+
+            _computeCcRequired: function(org, clouds) {
+                if (!this.config.features.billing || this.model.org.card || this.model.org.current_plan)
+                    return false;
+                return this.model.cloudsArray.length ? true : false;
+            },
+
+            _ccRequiredChanged: function(required) {
+                if (required)
+                    this.querySelector('#mistAppCcRequired').open();
+            },
+
+            _ccDismissed: function() {
+                if (this.ccRequired)
+                    this.async(function () {
+                        if (this.ccRequired)
+                            this.querySelector('#mistAppCcRequired').open();
+                    }.bind(this), 1000*60);
+            },
 
             _sizeChanged: function (smallscreen) {
                 console.log('updateResize');
@@ -321,7 +355,6 @@
                 else if (this.querySelector('cloud-page'))
                     this.querySelector('cloud-page')._cloudArraysChanged();
             },
-
 
             setLocationPath: function (e) {
                 if (e.detail.url && this.querySelector('app-location')) {
@@ -495,11 +528,12 @@
             _configUpdated: function (config) {
                 console.log('Config updated');
                 var model = {
+                    machines: {},
                     cloudsArray: [],
-                    machinesArray: [],
                     imagesArray: [],
                     keysArray: [],
-                    networksArray: [],
+                    networks: {},
+                    volumes: {},
                     zonesArray: [],
                     tunnelsArray: [],
                     scriptsArray: [],
@@ -521,7 +555,6 @@
                     probes: {},
                     monitoring: {},
                     sections: {},
-                    sectionsArray: [],
                     onboarding: {
                         isLoadingClouds: true,
                         isLoadingMachines: true,
@@ -573,6 +606,15 @@
                             'edit_tags',
                             'edit_subnets',
                             'read_logs',
+                        ],
+                        'volume': [
+                            'add',
+                            'read',
+                            'remove',
+                            'attach',
+                            'detach',
+                            'read_logs',
+                            'edit_tags'
                         ],
                         'script': [
                             'add',
@@ -657,7 +699,7 @@
                     model.teams = model.teamsArray[i].teams[i].id;
                 };
 
-                model.sectionsArray = [{
+                let sectionsArray = [{
                     id: 'dashboard',
                     icon: 'icons:dashboard',
                     color: '#424242',
@@ -677,7 +719,8 @@
                     sidebar: this.config.features.orchestration,
                     tile: this.config.features.orchestration,
                     count: 0,
-                    hideZero: true
+                    hideZero: true,
+                    hideTileIfZero: true
                 }, {
                     id: 'machines',
                     color: '#8c76d1',
@@ -687,13 +730,23 @@
                     tile: true,
                     count: 0
                 }, {
+                    id: 'volumes',
+                    color: '#795548',
+                    icon: 'device:storage',
+                    add: '/volumes/+add',
+                    sidebar: true,
+                    tile: true,
+                    count: 0,
+                    hideTileIfZero: true
+                }, {
                     id: 'networks',
                     color: '#795548',
                     icon: 'hardware:device-hub',
                     add: '/networks/+add',
                     sidebar: true,
                     tile: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'zones',
                     color: '#3F51B5',
@@ -701,7 +754,8 @@
                     add: '/zones/+add',
                     sidebar: true,
                     tile: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'keys',
                     color: '#009688',
@@ -710,7 +764,8 @@
                     sidebar: true,
                     tile: true,
                     hr: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'images',
                     color: '#0099cc',
@@ -726,7 +781,8 @@
                     sidebar: true,
                     tile: true,
                     hr: !this.config.features.orchestration,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'templates',
                     color: '#0097A7',
@@ -735,7 +791,8 @@
                     sidebar: this.config.features.orchestration,
                     tile: this.config.features.orchestration,
                     hr: true,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'tunnels',
                     color: '#795548',
@@ -743,7 +800,8 @@
                     add: '/tunnels/+add',
                     sidebar: this.config.features.tunnels,
                     tile: false,
-                    count: 0
+                    count: 0,
+                    hideTileIfZero: true
                 }, {
                     id: 'schedules',
                     color: '#43A047',
@@ -791,7 +849,7 @@
                     tile: false
                 }];
 
-                model.sections = _generateMap(model.sectionsArray);
+                model.sections = _generateMap(sectionsArray);
 
                 this.set('model', model);
                 if (!this.config.features.docs) {
@@ -804,7 +862,7 @@
             },
 
             _onUserAction: function (event) {
-                console.log('user-action', event);
+                // console.log('user-action', event);
                 if (typeof gtag == 'function') {
                     gtag('event', event.detail, {
                         'event_category': 'ui'
@@ -905,6 +963,14 @@
             if (item_type == 'incident')
                 itemId = item.incident_id
             return item_type + ':' + cloudId + ':' + itemId;
+        }
+
+        function mapToArray(obj) {
+            var arr = [];
+            for (var id in obj){
+                arr.push(obj[id]);
+            }
+            return arr;
         }
 
         Number.prototype.formatMoney = function (c, d, t) {
