@@ -1,0 +1,232 @@
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<dom-module id="machine-snapshots">
+    <template>
+        <style include="shared-styles dialogs">
+         :host {
+            display: block;
+            width: 100%;
+        }
+
+        paper-dialog {
+            min-width: 360px;
+        }
+
+         :host .btn-group {
+            margin: 0 0 24px 0;
+        }
+
+        .grey {
+            opacity: 0.54;
+        }
+
+        .progress {
+            margin: 24px -24px 24px -24px;
+            width: 100%;
+        }
+
+        .progress paper-progress {
+            width: 100%;
+        }
+
+        paper-progress.progresserror ::content #primaryProgress {
+            background-color: var(--red-color);
+        }
+
+        .error {
+            color: var(--red-color);
+            align-self: flex-end;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+
+        iron-icon {
+            color: inherit;
+        }
+
+        .errormsg-container {
+            color: var(--red-color);
+            padding-left: 24px;
+            padding-right: 24px;
+            margin-bottom: 0;
+        }
+
+        .errormsg-container iron-icon {
+            color: inherit;
+            padding-right: 8px;
+        }
+
+        p.red {
+            padding: 4px;
+            margin-top: 0;
+        }
+        .title {
+            text-transform: capitalize;
+        }
+
+         :host paper-dropdown-menu ::content .dropdown-content {
+            top: 55px !important;
+        }
+        </style>
+        <paper-dialog id="createSnapshotModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <h2 class="title">[[action]]</h2>
+            <paper-dialog-scrollable hidden$="[[!isCreate]]">
+                <p> Fill in a name for the snapshot.
+                    <paper-input label="Snapshot name" value="{{snapshotName}}"></paper-input>
+                    <paper-textarea label="Snapshot description (optional)" value="{{snapshotDescription}}"></paper-textarea><br/>
+                    <paper-radio-button checked="{{snapshotDumpMemory}}">Dump memory</paper-radio-button><br/><br/>
+                    <paper-radio-button checked="{{snapshotQuiesce}}">Snapshot quiesce</paper-radio-button>
+                </p>
+            </paper-dialog-scrollable>
+            <paper-dialog-scrollable hidden$="[[isCreate]]">
+                <paper-dropdown-menu label="Select a snapshot">
+                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{snapshotName}}" class="dropdown-content">
+                        <template is="dom-repeat" items="[[machine.extra.snapshots]]">
+                            <paper-item value="[[item.name]]">[[item.name]]</paper-item>
+                        </template>
+                    </paper-menu>
+                </paper-dropdown-menu>
+
+            </paper-dialog-scrollable>
+            <div class="progress">
+                <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
+                <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+            </div>
+            <div class="clearfix btn-group">
+                <paper-button dialog-dismiss>
+                    Cancel
+                </paper-button>
+                <paper-button class="blue" on-tap="createSnapshot" disabled$="[[!snapshotName]]">
+                    [[action]]
+                </paper-button>
+            </div>
+        </paper-dialog>
+        <iron-ajax id="createSnapshotRequest" method="POST" on-response="_createSnapshotResponse" on-error="_createSnapshotError" on-request="_createSnapshotRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
+    </template>
+</dom-module>
+<script>
+Polymer({
+    is: 'machine-snapshots',
+
+    properties: {
+        machine: {
+            type: Array,
+            notify: true
+        },
+        snapshotName: {
+            type: String,
+            value: ""
+        },
+        action: {
+            type: String,
+            value: ""
+        },
+        snapshotDescription: {
+            type: String,
+            value: ""
+        },
+        snapshotDumpMemory: {
+            type: Boolean,
+            value: false
+        },
+        snapshotQuiesce: {
+            type: Boolean,
+            value: false
+        },
+        loading: {
+            type: Boolean,
+            value: false
+        },
+        formError: {
+            type: Boolean,
+            value: false
+        },
+        isCreate:{
+            type: Boolean,
+            value: false,
+            computed: '_computeIsCreate(action)'
+        },
+        isRemove:{
+            type: Boolean,
+            value: false,
+            computed: '_computeIsRemove(action)'
+        },
+        isRevertTo:{
+            type: Boolean,
+            value: false,
+            computed: '_computeIsRevertTo(action)'
+        },
+    },
+    ready: function() {},
+    _openDialog: function(e) {
+        this.clearError();
+        this.set('snapshotName', "");
+        this.$.createSnapshotModal.open();
+    },
+    _closeDialog: function(e) {
+        this.$.createSnapshotModal.close();
+        this.clearError();
+        this.set('action', "");
+    },
+    _computeIsCreate: function(action) {
+        return this.action == 'create snapshot';
+    },
+    _computeIsRemove: function(action) {
+        return this.action == 'remove snapshot';
+    },
+    _computeIsRevertTo: function(action) {
+        return this.action == 'revert to snapshot';
+    },
+    createSnapshot: function(e) {
+        var request = this.$.createSnapshotRequest;
+        request.url = "/api/v1/machines/"+ this.machine.id;
+        request.headers["Content-Type"] = 'application/json';
+        request.headers["Csrf-Token"] = CSRF_TOKEN;
+        if (this.isCreate) {
+            request.body = {action: 'create_snapshot', 
+                            snapshot_name: this.snapshotName, 
+                            snapshot_dump_memory: this.snapshotDumpMemory,
+                            snapshot_quiesce: this.snapshotQuiesce};
+        } else if (this.isRemove) {
+            request.body = {action: 'remove_snapshot', 
+                            snapshot_name: this.snapshotName};
+        } else if (this.isRevertTo) {
+            request.body = {action: 'revert_to_snapshot', 
+                            snapshot_name: this.snapshotName};
+        }
+        request.generateRequest();
+    },
+    _createSnapshotRequest: function() {
+        this.clearError();
+        var logMessage = 'Sending request to create snapshot.';
+        this.fire('performing-action', { log: logMessage });
+    },
+    _createSnapshotResponse: function(e) {
+        console.log(e, e.detail);
+        this._closeDialog();
+        this.fire('action-finished', { success: true });
+        this.fire('toast', { msg: 'Snapshot request sent successfully.', duration: 5000 });
+    },
+    _createSnapshotError: function(e) {
+        console.log(e, e.detail);
+        var message = e.detail.request.xhr.response || e.detail.error.message;
+        this.$.errormsg.textContent = message;
+        this.set('formError', true);
+        this.fire('action-finished', { success: false });
+    },
+    clearError: function(){
+        this.set('formError', false);
+        this.$.errormsg.textContent = '';
+        this.$.createSnapshotModal.refit();
+      },
+});
+</script>
