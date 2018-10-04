@@ -18,6 +18,7 @@
 <link rel="import" href="resize-dialog.html">
 <link rel="import" href="machine-edit.html">
 <link rel="import" href="attach-volume-on-machine.html">
+<link rel="import" href="create-snapshot.html">
 
 <script type="text/javascript" src="../volume-create-fields.js" inline></script>
 
@@ -33,6 +34,9 @@
     <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
     <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
+    <create-snapshot id="createsnapshotdialog" machine="[[items.0]]" model="[[model]]"></create-snapshot>
+    <remove-snapshot id="removesnapshotdialog" machine="[[items.0]]" model="[[model]]"></remove-snapshot>
+    <revert-to-snapshot id="reverttosnapshotdialog" machine="[[items.0]]" model="[[model]]"></revert-to-snapshot>
     <attach-volume-on-machine id="attachvolumedialog" machine="[[items.0]]" model="[[model]]"></attach-volume-on-machine>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
@@ -50,6 +54,24 @@
         'confirm': false,
         'multi': false,
         'single': true
+      },
+      'create_snapshot': {
+        'name': 'create snapshot',
+        'icon': 'image:camera-alt',
+        'confirm': true,
+        'multi': false
+      },
+      'remove_snapshot': {
+        'name': 'remove snapshot',
+        'icon': 'image:camera-alt',
+        'confirm': true,
+        'multi': false
+      },
+      'revert_to_snapshot': {
+        'name': 'create snapshot',
+        'icon': 'image:camera-alt',
+        'confirm': true,
+        'multi': false
       },
       'shell': {
         'name': 'shell',
@@ -297,7 +319,7 @@
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', "webconfig"].indexOf(action.name) ==
+          if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
             -1) {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
               plural = this.items.length == 1 ? '' : 's',
@@ -322,6 +344,12 @@
             this.$.attachvolumedialog._openDialog();
           } else if (action.name == 'transfer ownership') {
             this.$.ownershipdialog._openDialog();
+          } else if (action.name == 'create snapshot') {
+            this.$['createsnapshotdialog']._openDialog();
+          } else if (action.name == 'remove snapshot') {
+            this.$['removesnapshotdialog']._openDialog();
+          } else if (action.name == 'revert to snapshot') {
+            this.$['reverttonapshotdialog']._openDialog();
           } else if (action.name == 'rename') {
             this.$['renamedialog']._openDialog();
           } else if (action.name == 'webconfig') {
