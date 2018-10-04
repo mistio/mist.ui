@@ -23,7 +23,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="volumesList" selectable resizable column-menu multi-sort apiurl="/api/v1/volumes" item-map="[[model.volumes]]"
                 name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers(model.volumes,model.clouds)]]
+                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns(model.org)]] renderers=[[_getRenderers()]]
                 route={{route}} user-filter=[[model.sections.volumes.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="volume" items="[[selectedItems]]" model="[[model]]"></mist-actions>
                 <!-- TODO: add 'machine' & `machines-to-attach-to` property to volume actions-->
@@ -93,7 +93,7 @@
             },
 
             _getVisibleColumns: function () {
-                var ret = ['provider', 'owned_by', 'created_by', 'size', 'state', 'tags'];
+                var ret = ['provider', 'owned_by', 'created_by', 'size', 'volume_type', 'state', 'attached_to', 'tags'];
                 if (this.model.org && this.model.org.ownership_enabled != true)
                     ret.splice(ret.indexOf('owned_by'), 1);
                 return ret;
@@ -108,26 +108,20 @@
                         }
                     },
                     'provider': {
-                        'title': function (item, row) {
-                            return 'cloud';
-                        },
+                        'title': 'cloud',
                         'body': function (item, row) {
                             return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
                                 _this.model.clouds[row.cloud].title : item;
                         }
                     },
                     'owned_by': {
-                        'title': function (item, row) {
-                            return 'owner';
-                        },
+                        'title': 'owner',
                         'body': function (item, row) {
                             return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
                     },
                     'created_by': {
-                        'title': function (item, row) {
-                            return 'created by';
-                        },
+                        'title': 'created by',
                         'body': function (item, row) {
                             return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
                         }
@@ -137,9 +131,21 @@
                             return '<span style="display:block;text-align:right;">'+item + ' GΒ</span>';
                         }
                     },
+                    'attached_to': {
+                        'title': 'attached to',
+                        'body': function (item, row) {
+                            return item.map(x => _this.model.machines[x].name).join(' ');
+                        }
+                    },
+                    'volume_type': {
+                        'title': 'volume type',
+                        'body': function (item, row) {
+                            return row && row.extra && row.extra.volume_type || '';
+                        }
+                    },
                     'state': {
                         'body': function (item, row) {
-                            return row.state;
+                            return row && row.extra && row.extra.state || '';
                         }
                     },
                     'tags': {

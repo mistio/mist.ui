@@ -111,6 +111,7 @@
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "DELETE";
+        this.$.request.body = null;
 
         for (var i = 0; i < this.items.length; i++) {
           this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/networks/" + this.items[i].id
@@ -180,6 +181,8 @@
         }
       },
       handleResponse: function (e) {
+        this.fire('action-finished');
+        // console.log('handleResponse',e);
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
@@ -187,11 +190,13 @@
           })
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.fire('action-finished');
           this.fire('toast', {
             msg: 'Successfull ownership transfer',
             duration: 3000
           });
+        }
+        if (!this.$.request.body || !this.$.request.body.action && this.$.request.method == "DELETE") {
+          this.fire('network-deleted', {responseURL: e.detail.xhr.responseURL});
         }
       },
       _mapPolicyToActions: function (items) {
