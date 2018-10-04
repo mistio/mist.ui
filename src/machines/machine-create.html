@@ -414,8 +414,8 @@
 
                         // for openstack this should be multi selection
                         if (f.name.endsWith("networks")) {
-                            f.options = this.model.clouds[cloudId].networksArray ? this.model.clouds[
-                                cloudId].networksArray.slice() : [];
+                            f.options = this.model.clouds[cloudId].networks ? Object.values(this.model.clouds[
+                                cloudId].networks).slice() : [];
                             if (f.options.length < 2)
                                 this.set('machineFields.' + index + '.required', false);
                         }
@@ -423,8 +423,9 @@
                         // for ec2 subnet selection
                         if (f.name == "subnet_id") {
                             var subnets = [];
-                            for (var i=0; i<this.model.clouds[cloudId].networksArray.length; i++){
-                                var network = this.model.clouds[cloudId].networksArray[i];
+                            var networks = this.model.clouds[cloudId].networks ? Object.values(this.model.clouds[cloudId].networks) : [];
+                            for (var i=0; i<networks.length; i++){
+                                var network = networks[i];
                                 if (network.subnets && network.subnets.length)
                                     for (var j=0; j<network.subnets.length; j++) {
                                         var subnet =  network.subnets[j];
@@ -547,9 +548,10 @@
                         // clear previous selection
                         this.set('machineFields.'+subid+'.value', '');
                         var subnets = [];
-                        if (this.model.clouds[this.selectedCloud] && this.model.clouds[this.selectedCloud].networksArray) {
-                            for (var i=0; i<this.model.clouds[this.selectedCloud].networksArray.length; i++){
-                                var network = this.model.clouds[this.selectedCloud].networksArray[i];
+                        if (this.model.clouds[this.selectedCloud] && this.model.clouds[this.selectedCloud].networks) {
+                            var networks = Object.values(this.model.clouds[this.selectedCloud].networks);
+                            for (var i=0; i<networks.length; i++){
+                                var network = networks[i];
                                 if (network.subnets)
                                     for (var subnetId in network.subnets) {
                                         var subnet =  network.subnets[subnetId];
@@ -578,10 +580,10 @@
                         this.set('machineFields.' + storageInd + '.options', locationAccounts);
 
                         // update networks
-                        var networks = this.model.clouds[cloudId].networksArray.slice() || [];
+                        var networks = this.model.clouds[cloudId].networks ? Object.values(this.model.clouds[cloudId].networks).slice() : [];
                         var locationNetworks = networks.filter(function (el) {
                             return el.location == location
-                        })
+                        });
                         var networkInd = this._fieldIndexByName('networks');
                         this.set('machineFields.' + networkInd + '.options', locationNetworks);
                     }
