@@ -8,7 +8,7 @@
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
-<dom-module id="power-reset">
+<dom-module id="bios-update">
     <template>
         <style include="shared-styles dialogs">
          :host {
@@ -76,21 +76,10 @@
             width: 90%;
         }
         </style>
-        <paper-dialog id="powerDialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Power reset</h2>
+        <paper-dialog id="biosDialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <h2>Bios update</h2>
             <paper-dialog-scrollable>
-                <p>
-                    Choose type of power reset.
-                </p>
-                <paper-radio-group attr-for-selected="name" selected="{{selectedType}}">
-                    <paper-radio-button name="On">On</paper-radio-button>
-                    <paper-radio-button name="GracefulShutdown">Graceful Shutdown</paper-radio-button>
-                    <paper-radio-button name="GracefulRestart">Graceful Restart</paper-radio-button>
-                    <paper-radio-button name="ForceOff">Force Off</paper-radio-button>
-                    <paper-radio-button name="PushPowerButton">Push Power Button</paper-radio-button>
-                    <paper-radio-button name="ForceOn">Force On</paper-radio-button>
-                    <paper-radio-button name="ForceRestart">Force Restart</paper-radio-button>
-                </paper-radio-group>
+                
             </paper-dialog-scrollable>
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
@@ -101,17 +90,17 @@
                 <paper-button dialog-dismiss>
                     Cancel
                 </paper-button>
-                <paper-button class="blue" on-tap="powerReset" disabled$="[[!selectedType]]">
-                    Power reset
+                <paper-button class="blue" on-tap="biosUpdate" disabled$="[[!selectedType]]">
+                    Bios update
                 </paper-button>
             </div>
         </paper-dialog>
-        <iron-ajax id="powerResetRequest" method="PUT" on-response="_powerResetResponse" on-error="_powerResetError" on-request="_powerResetRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
+        <iron-ajax id="biosUpdateRequest" method="PUT" on-response="_biosUpdateResponse" on-error="_biosUpdateError" on-request="_biosUpdateRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
     </template>
 </dom-module>
 <script>
 Polymer({
-    is: 'power-reset',
+    is: 'bios-update',
     properties: {
         items: {
             type: Array,
@@ -125,7 +114,7 @@ Polymer({
             type: Boolean,
             value: false
         },
-        selectedType: {
+        firmware: {
             type: String,
             value: ''
         }
@@ -134,32 +123,32 @@ Polymer({
     _openDialog: function(e) {
         this.clearError();
         this.set('selectedType', '');
-        this.$.powerDialogModal.open();
+        this.$.biosDialogModal.open();
     },
     _closeDialog: function(e) {
-        this.$.powerDialogModal.close();
+        this.$.biosDialogModal.close();
         this.clearError();
     },
-    powerReset: function(e) {
-        var request = this.$.powerResetRequest;
+    biosUpdate: function(e) {
+        var request = this.$.biosUpdateRequest;
         request.url = "/api/v1//machines/" + this.items[0].id;
-        request.body = {action: 'power_reset', type: this.selectedType};
+        request.body = {action: 'bios_update', firmware: this.firmware};
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
         request.generateRequest();
     },
-    _powerResetRequest: function() {
+    _biosUpdateRequest: function() {
         this.clearError();
-        var logMessage = 'Sending request for power reset.';
+        var logMessage = 'Sending request for bios update.';
         this.fire('performing-action', { log: logMessage });
     },
-    _powerResetResponse: function(e) {
+    _biosUpdateResponse: function(e) {
         console.log(e, e.detail);
         this._closeDialog();
         this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Power reset request sent successfully. Review in machine logs.', duration: 5000 });
+        this.fire('toast', { msg: 'Bios update request sent successfully. Review in machine logs.', duration: 5000 });
     },
-    _powerResetError: function(e) {
+    _biosUpdateError: function(e) {
         console.log(e, e.detail);
         var message = e.detail.request.xhr.response || e.detail.error.message;
         this.$.errormsg.textContent = message;
@@ -169,7 +158,7 @@ Polymer({
     clearError: function(){
         this.set('formError', false);
         this.$.errormsg.textContent = '';
-        this.$.powerDialogModal.refit();
+        this.$.biosDialogModal.refit();
       },
 });
 </script>
