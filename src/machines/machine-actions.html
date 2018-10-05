@@ -18,6 +18,7 @@
 <link rel="import" href="resize-dialog.html">
 <link rel="import" href="machine-edit.html">
 <link rel="import" href="attach-volume-on-machine.html">
+<link rel="import" href="machine-snapshots.html">
 
 <script type="text/javascript" src="../volume-create-fields.js" inline></script>
 
@@ -33,6 +34,7 @@
     <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
     <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
+    <machine-snapshots id="snapshotdialog" machine="[[items.0]]" snapshots="" action=""></machine-snapshots>
     <attach-volume-on-machine id="attachvolumedialog" machine="[[items.0]]" model="[[model]]"></attach-volume-on-machine>
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
@@ -50,6 +52,24 @@
         'confirm': false,
         'multi': false,
         'single': true
+      },
+      'create_snapshot': {
+        'name': 'create snapshot',
+        'icon': 'image:add-a-photo',
+        'confirm': true,
+        'multi': false
+      },
+      'remove_snapshot': {
+        'name': 'remove snapshot',
+        'icon': 'image:monochrome-photos',
+        'confirm': true,
+        'multi': false
+      },
+      'revert_to_snapshot': {
+        'name': 'revert to snapshot',
+        'icon': 'social:party-mode',
+        'confirm': true,
+        'multi': false
       },
       'shell': {
         'name': 'shell',
@@ -244,7 +264,41 @@
         if (machine) {
           arr.push('tag');
         }
-        return arr;
+        return arr.sort(this._sortActions.bind(this));
+      },
+      _sortActions: function(a,b){
+        var sortOrder = [
+          'console',
+          'shell',
+          'webconfig',      
+          'start', 
+          'stop',
+          'suspend',
+          'resume',
+          'reboot', 
+          'resize',
+          'undefine',
+          'remove',
+          'destroy',
+          'delete',
+          'attach-volume',
+          'create_snapshot', 
+          'revert_to_snapshot',
+          'remove_snapshot',
+          'associate-key', 
+          'rename', 
+          'run-script',
+          'transfer-ownership',
+          'tag'
+        ];
+        if (sortOrder.indexOf(a)<sortOrder.indexOf(b)) {
+          return -1;
+        }
+        if (sortOrder.indexOf(a)>sortOrder.indexOf(b)) {
+          return 1;
+        }
+        // a must be equal to b
+        return 0;
       },
       _otherMembers: function (members,items) {
         if (this.items && members) {
@@ -297,7 +351,7 @@
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', "webconfig"].indexOf(action.name) ==
+          if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
             -1) {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
               plural = this.items.length == 1 ? '' : 's',
@@ -322,6 +376,17 @@
             this.$.attachvolumedialog._openDialog();
           } else if (action.name == 'transfer ownership') {
             this.$.ownershipdialog._openDialog();
+          } else if (action.name == 'create snapshot') {
+            this.$['snapshotdialog'].action = action.name;
+            this.$['snapshotdialog']._openDialog();
+          } else if (action.name == 'remove snapshot') {
+            this.$['snapshotdialog'].snapshots = this.items[0].extra.snapshots;
+            this.$['snapshotdialog'].action = action.name;
+            this.$['snapshotdialog']._openDialog();
+          } else if (action.name == 'revert to snapshot') {
+            this.$['snapshotdialog'].snapshots = this.items[0].extra.snapshots;
+            this.$['snapshotdialog'].action = action.name;
+            this.$['snapshotdialog']._openDialog();
           } else if (action.name == 'rename') {
             this.$['renamedialog']._openDialog();
           } else if (action.name == 'webconfig') {
