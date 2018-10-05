@@ -87,14 +87,18 @@
             }
 
             #newrule {
-                padding-left: 48px;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            #norule {
                 padding-right: 8px;
             }
 
             span.if,
             span.then,
             span.on {
-                margin-left: -48px;
+                margin-left: -8px;
             }
 
             paper-dropdown-menu::content #dropdown {
@@ -173,7 +177,7 @@
         <div class="rule-edit">
             <span class="rule-id">[[_computeId(rule.title)]]</span>
             <div id="newrule" class="rule">
-                <div hidden$=[[resource]]>
+                <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
                     <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on">
                         <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
@@ -185,8 +189,8 @@
                     <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
                         <paper-dropdown-menu class="dropdown-block">
                             <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
-                                <template is="dom-repeat" items="[[monitoredMachines]]" as="machine">
-                                    <paper-item value="[[machine.id]]">[[machine.name]]</paper-item>
+                                <template id="monitoredMachinesRepeat" is="dom-repeat" items="[[monitoredMachines]]">
+                                    <paper-item value="[[item.id]]">[[item.name]]</paper-item>
                                 </template>
                             </paper-menu>
                         </paper-dropdown-menu>
@@ -195,59 +199,95 @@
                         <paper-input class="tags" value="{{tags}}"></paper-input>
                     </div>
                 </div>
-                <span class="keyword if">if</span>
-                <template is="dom-repeat" items="[[rule.queries]]" as="query">
-                    <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator"
-                        on-selected-item-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
-                            <template is="dom-repeat" items="[[availableMetrics]]" as="option">
-                                <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-                            </template>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-                    <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold"
-                        on-selected-item-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
-                            <paper-item value="gt"> &gt; </paper-item>
-                            <paper-item value="lt"> &lt; </paper-item>
-                        </paper-menu>
-                    </paper-dropdown-menu>
-                    <span>
-                        <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
-                            type="number" on-value-changed="_validateRule"></paper-input>
-                        [[_computeUnits(newMetric, availableMetrics)]]
-                    </span>
-                    <span hidden$=[[!query.threshold]]>
+                <div hidden$="[[!isNoData]]">
+                    <span class="keyword if">if</span>
+                    <span class="keyword"> no monitoring data </span>
+                    <span hidden$=[[!rule.window]]>
                         <span class="keyword">for</span>
-                        <paper-dropdown-menu class="dropdown-block aggregation" on-selected-item-changed="_validateRule">
-                            <paper-menu slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}"
-                                class="dropdown-content aggregation">
-                                <paper-item value=""> any </paper-item>
-                                <paper-item value="all"> every </paper-item>
-                                <paper-item value="avg"> average </paper-item>
+                        <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                        <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                                <paper-item value="minutes">minutes</paper-item>
+                                <paper-item value="hours">hours</paper-item>
                             </paper-menu>
                         </paper-dropdown-menu>
-                        <span class="keyword">value</span>
-                        <span hidden$=[[!rule.aggregation]]>
-                            <span class="keyword">within</span>
-                            <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
-                            <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                                <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
-                                    <paper-item value="minutes">minutes</paper-item>
-                                    <paper-item value="hours">hours</paper-item>
+                    </span>
+                    <div>
+                        <span class="keyword on">check every</span>
+                        <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                        <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                                <paper-item value="minutes">minutes</paper-item>
+                                <paper-item value="hours">hours</paper-item>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                    </div>
+                </div>
+                <div hidden$=[[!ruleType]]>
+                    <span class="keyword on">check every</span>
+                    <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                    <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                        <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                            <paper-item value="minutes">minutes</paper-item>
+                            <paper-item value="hours">hours</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+                <span hidden$="[[isNoData]]">
+                    <span class="keyword if">if</span>
+                    <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                        <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator"
+                            on-selected-item-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
+                                <template is="dom-repeat" items="[[availableMetrics]]" as="option">
+                                    <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                                </template>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold"
+                            on-selected-item-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
+                                <paper-item value="gt"> &gt; </paper-item>
+                                <paper-item value="lt"> &lt; </paper-item>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                        <span>
+                            <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
+                                type="number" on-value-changed="_validateRule"></paper-input>
+                            [[_computeUnits(newMetric, availableMetrics)]]
+                        </span>
+                        <span hidden$=[[!query.threshold]]>
+                            <span class="keyword">for</span>
+                            <paper-dropdown-menu class="dropdown-block aggregation" on-selected-item-changed="_validateRule">
+                                <paper-menu slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}"
+                                    class="dropdown-content aggregation">
+                                    <paper-item value=""> any </paper-item>
+                                    <paper-item value="all"> every </paper-item>
+                                    <paper-item value="avg"> average </paper-item>
                                 </paper-menu>
                             </paper-dropdown-menu>
-                        </span>
-                </template>
+                            <span class="keyword">value</span>
+                            <span hidden$=[[!rule.window]]>
+                                <span class="keyword">within</span>
+                                <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                                <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                                    <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                                        <paper-item value="minutes">minutes</paper-item>
+                                        <paper-item value="hours">hours</paper-item>
+                                    </paper-menu>
+                                </paper-dropdown-menu>
+                            </span>
+                    </template>
+                </span>
                 <div hidden$="[[!_isConditionValid(rule.queries.*, rule.queries.0.threshold)]]">
                     <span class="keyword then">then</span>
                     <span id="actionsDropdown">
                         <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
                             <span class="and" hidden$="[[!index]]"> AND </span>
-                            <paper-dropdown-menu class="dropdown-block ruleAction" on-value-changed="_validateRule">
+                            <paper-dropdown-menu class="dropdown-block ruleAction" on-value-changed="_validateRule" disabled$="[[isNoData]]">
                                 <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" class="dropdown-content">
                                     <template is="dom-repeat" items=[[actions]] as="action">
-                                        <paper-item value=[[action]]>[[action]]</paper-item>
+                                        <paper-item value=[[action]] hidden$="[[_hideAction(action,isNoData)]]">[[_actionName(action)]]</paper-item>
                                     </template>
                                 </paper-menu>
                             </paper-dropdown-menu>
@@ -300,17 +340,31 @@
                     type: String,
                     value: false
                 },
-                tags: String,
-                machineId: String,
-                machines: Object,
+                isNoData: {
+                    type: Boolean,
+                    computed: '_computeIsNoData(rule)',
+                    value: false
+                },
+                tags: {
+                    type: String
+                },
+                machineId: {
+                    type: String
+                },
+                machines: {
+                    type: Object
+                },
                 monitoredMachines: {
-                    type: Array,
-                    computed: '_computeMonitoredMachines(machines)'
+                    type: Array
                 },
                 currentRule: {
                     type: Object
                 },
-                resource: Object, // machine, cloud or other later
+                resource: Object, // machine, cloud or other later,
+                hideApplyOn: {
+                    type: Boolean,
+                    computed: '_computeHideApplyOn(resource, isNoData)'
+                },
                 updateExistingRule: Boolean,
                 availableMetrics: {
                     type: Array
@@ -329,7 +383,7 @@
                 actions: {
                     type: Array,
                     value: function () {
-                        return ['alert', 'reboot', 'destroy', 'run'];
+                        return ['alert', 'reboot', 'destroy', 'run', 'no_data'];
                     }
                 },
                 isValidRule: {
@@ -340,11 +394,19 @@
             observers: [
                 "_focusOnMetricName(active)",
                 "_currentRuleUpdated(currentRule.*)",
-                "_initialiseEdit(currentRule,resource, rule.id)"
+                "_initialiseEdit(currentRule,resource, rule.id)",
+                "_computeMonitoredMachines(machines.*)"
             ],
             ready: function () {
-                if (!this.rule)
+                if (!this.rule) {
                     this._resetRule();
+                }
+            },
+            _computeIsNoData: function (rule) {
+                return rule.title == 'NoData';
+            },
+            _computeHideApplyOn: function(resource, isNoData){
+                return resource || isNoData;
             },
             _isSpecific: function(type) {
                 return type == 'specific';
@@ -363,7 +425,7 @@
                             this.set('ruleType', "tagged");
                             this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
                         }
-                        else if (selector.ids.length == 1) {
+                        else if (selector.ids && selector.ids.length == 1) {
                             this.set('ruleType', "specific");
                             this.set('machineId', selector.ids[0]);
                         }
@@ -371,12 +433,14 @@
                 }
             },
             _computeMonitoredMachines: function (machines) {
-                if (machines)
-                    return Object.values(machines).filter(function(m){
+                var monitoredMachines = [], that = this;
+                if (this.machines && Object.values(this.machines).length) {
+                    monitoredMachines = Object.values(this.machines).filter(function(m){
                         return m.monitoring;
                     });
-                else
-                    return []
+                }
+                this.set('monitoredMachines', monitoredMachines);
+                this.$.monitoredMachinesRepeat.render();
             },
             _removeBrackets: function (string) {
                 return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
@@ -391,8 +455,16 @@
                         .queries[0].aggregation,
                     window: {
                         period: this.currentRule.window.period || 'minutes',
-                        start: this.currentRule.start || 1
+                        start: this.currentRule.window.start || 1
                         //stop: this.currentRule.stop
+                    },
+                    frequency: {
+                        period: this.currentRule.frequency.period || 'minutes',
+                        every: this.currentRule.frequency.every || 2
+                    },
+                    trigger_after: {
+                        period: this.currentRule.trigger_after.period || 'minutes',
+                        offset: this.currentRule.trigger_after.offset || 0,
                     }
                 });
             },
@@ -414,6 +486,13 @@
                         result.push({
                             type: 'run',
                             command: actions[i].command
+                        });
+                    } else if (actions[i].type == 'no_data') {
+                        result.push({
+                            type: 'no_data',
+                            users: actions[i].users.slice(),
+                            teams: actions[i].teams.slice(),
+                            emails: actions[i].emails.slice()
                         });
                     }
                 }
@@ -438,7 +517,11 @@
                     window: {
                         period: 'minutes',
                         start: 1
-                    }
+                    },
+                    frequency: {
+                        every: 2,
+                        period: 'minutes'
+                    },
                 });
                 this.set('formError', false);
             },
@@ -453,7 +536,7 @@
                 return selectedAction == 'alert';
             },
             _isConditionValid: function (queries, threshold) {
-                if (this.rule.queries.length && this.rule.queries[this.rule.queries.length - 1].threshold)
+                if (this.rule.queries.length && this.rule.queries[this.rule.queries.length - 1].threshold != undefined)
                     return true;
                 return false;
             },
@@ -512,8 +595,8 @@
                     start: parseInt(this.rule.window.start) || 1
                 };
                 payload.frequency = {
-                    period: this.rule.window.period || 'minutes',
-                    every: parseInt(this.rule.window.start) || 1
+                    period: this.rule.frequency.period || 'minutes',
+                    every: parseInt(this.rule.frequency.every) || 2
                 };
                 for (var i = 0; i < this.rule.queries.length; i++) {
                     payload.queries[i] = {
@@ -548,6 +631,9 @@
                             type: 'machine_action',
                             action: this.rule.actions[i].type
                         };
+                    } else if (this.rule.actions[i].type == 'no_data') {
+                        delete payload.actions;
+                        delete payload.queries;
                     }
                 }
                 if (!this.rule.id) { // Add new rule
@@ -581,6 +667,12 @@
                 console.log(e.detail.request.xhr.responseText);
                 this.set('formMessage', e.detail.request.xhr.responseText)
                 this.set('formError', true);
+            },
+            _hideAction: function (action, isNoData) {
+                return action == "no_data" && !this.isNoData;
+            },
+            _actionName: function (action) {
+                return action == "no_data" ? 'no data alert' : action;
             }
 
         })
