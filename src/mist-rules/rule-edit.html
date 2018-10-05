@@ -199,7 +199,7 @@
                         <paper-input class="tags" value="{{tags}}"></paper-input>
                     </div>
                 </div>
-                <span hidden$="[[!isNoData]]">
+                <div hidden$="[[!isNoData]]">
                     <span class="keyword if">if</span>
                     <span class="keyword"> no monitoring data </span>
                     <span hidden$=[[!rule.window]]>
@@ -212,7 +212,17 @@
                             </paper-menu>
                         </paper-dropdown-menu>
                     </span>
-                </span>
+                    <div>
+                        <span class="keyword on">check every</span>
+                        <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                        <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                            <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                                <paper-item value="minutes">minutes</paper-item>
+                                <paper-item value="hours">hours</paper-item>
+                            </paper-menu>
+                        </paper-dropdown-menu>
+                    </div>
+                </div>
                 <div hidden$=[[!ruleType]]>
                     <span class="keyword on">check every</span>
                     <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
@@ -335,9 +345,15 @@
                     computed: '_computeIsNoData(rule)',
                     value: false
                 },
-                tags: String,
-                machineId: String,
-                machines: Object,
+                tags: {
+                    type: String
+                },
+                machineId: {
+                    type: String
+                },
+                machines: {
+                    type: Object
+                },
                 monitoredMachines: {
                     type: Array,
                     computed: '_computeMonitoredMachines(machines)'
@@ -438,7 +454,7 @@
                         .queries[0].aggregation,
                     window: {
                         period: this.currentRule.window.period || 'minutes',
-                        start: this.currentRule.start || 1
+                        start: this.currentRule.window.start || 1
                         //stop: this.currentRule.stop
                     },
                     frequency: {
