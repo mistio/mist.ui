@@ -7,7 +7,7 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
-<dom-module id="attach-volume">
+<dom-module id="attach-volume-on-machine">
     <template>
         <style include="shared-styles dialogs">
          :host {
@@ -76,19 +76,19 @@
             <h2>Attach volume to machine</h2>
             <paper-dialog-scrollable>
                 <p>
-                    <template is="dom-if" if="[[!machines.length]]">
-                        <span class="grey">No [[provider]]-machines in same region found</span>
+                    <template is="dom-if" if="[[!volumes.length]]">
+                        <span class="grey">No volumes in same region found.</span>
                         <br/>
-                        <a href="/machines/+create">Create a machine</a>
+                        <a href="/volumes/+create">Create a volume</a>
                         <br/>
                         <br/>
                     </template>
-                    <template is="dom-if" if="[[machines.length]]">
-                        <span class="grey"> Choose from your existing machines. </span>
-                        <paper-dropdown-menu label="Select machine" horizontal-align="left">
-                            <paper-menu slot="dropdown-content" id="machines" attr-for-selected="value" selected="{{selectedMachineId}}" class="dropdown-content">
-                                <template is="dom-repeat" items="[[machines]]" as="machine">
-                                    <paper-item value="[[machine.id]]">[[machine.name]]</paper-item>
+                    <template is="dom-if" if="[[volumes.length]]">
+                        <span class="grey"> Choose from your existing volumes in the machine's region. </span>
+                        <paper-dropdown-menu label="Select volume" horizontal-align="left">
+                            <paper-menu slot="dropdown-content" id="volumes" attr-for-selected="value" selected="{{selectedVolumeId}}" class="dropdown-content">
+                                <template is="dom-repeat" items="[[volumes]]" as="volumeId">
+                                    <paper-item value="[[volumeId]]" disabled="[[_isAlreadyAttached(volumeId,machine)]]">[[_computeVolumeName(volumeId)]]</paper-item>
                                 </template>
                             </paper-menu>
                         </paper-dropdown-menu>
@@ -105,7 +105,7 @@
                 <paper-button dialog-dismiss>
                     Cancel
                 </paper-button>
-                <paper-button class="blue" on-tap="attachVolume" disabled$="[[!selectedMachineId]]">
+                <paper-button class="blue" on-tap="attachVolume" disabled$="[[!selectedVolumeId]]">
                     Attach to machine
                 </paper-button>
             </div>
@@ -115,30 +115,30 @@
 </dom-module>
 <script>
 Polymer({
-    is: 'attach-volume',
+    is: 'attach-volume-on-machine',
 
     properties: {
-        items: {
+        machine: {
             type: Array,
             notify: true
         },
-        provider: String,
+        selectedVolumeId: {
+            type: String,
+            value: false
+        },
         hideDeviceInput: {
             type: Boolean,
             value: false,
-            computed: '_computeHideDeviceInput(provider, items.*)'
-        },
-        selectedMachineId: {
-            type: String,
-            value: false
+            computed: '_computeHideDeviceInput(model.clouds,machine)'
         },
         device: {
             type: String,
             value: "/dev/xvda"
         },
-        machines: {
+        volumes: {
             type: Array,
-            value: []
+            value: [],
+            computed: '_computeVolumes(machine, model.volumes.*)'
         },
         loading: {
             type: Boolean,
@@ -153,58 +153,56 @@ Polymer({
     computedSelectedMachineId: function(selected) {
         this.set('selectedMachineId', this.querySelector('#machines').selected || '');
     },
-    _computeHideDeviceInput: function(provider) {
-        return this.provider != "ec2";
+    _computeVolumes: function(machine, volumes){
+        var that = this;
+        var volumeIds = [];
+        if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) { 
+            var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v){ 
+                return that._isOfSameLocation(v);
+            });
+        }
+        return volumeIds;
+    },
+    _isOfSameLocation: function(volumeId) {
+        if (this.machine) {
+            return this.model.clouds[this.machine.cloud].volumes[volumeId].location == this.machine.location;
+        }
+        return false;
+    },
+    _isAlreadyAttached: function(volumeId, machine) {
+        if (this.machine) {
+            return this.model.clouds[this.machine.cloud].volumes[volumeId].attached_to.map(i => i.id).indexOf(this.machine.id) > -1;
+        }
+        return false;
+    },
+    _computeVolumeName: function(volumeId) {
+        return this.model.clouds[this.machine.cloud].volumes[volumeId].name;
     },
     _openDialog: function(e) {
         this.clearError();
         this.set('selectedMachineId', false);
-        this.set('device', '/dev/xvda');
         this.$.attachDialogModal.open();
     },
     _closeDialog: function(e) {
         this.$.attachDialogModal.close();
         this.clearError();
     },
+    _computeHideDeviceInput: function(clouds, machine) {
+        if (this.machine) {
+            return this.model.clouds && this.model.clouds[this.machine.cloud].provider != "ec2";
+        }
+        return false;
+    },
     attachVolume: function(e) {
         var request = this.$.attachVolumeRequest;
-        if (this.items) {
-            var items = this.items.slice(0),
-                selectedMachineId = this.selectedMachineId,
-                device = this.device,
-                hideDeviceInput = this.hideDeviceInput;
-            var run = function(el) {
-                var item = items.shift(),
-                    itemType,
-                    itemId;
-                if (item.length) {
-                    chunks = item.split(':'),
-                        itemId = chunks[2],
-                        cloudId = chunks[1];
-                } else {
-                    itemId = item.external_id;
-                    cloudId = item.cloud;
-                }
-                if (!hideDeviceInput) {
-                    request.body = {
-                        device: device
-                    };
-                }
-                request.url = "/api/v1/clouds/"+cloudId+"/volumes/" + itemId;
-                request.body = {action: 'attach', machine: selectedMachineId};
-                if (!hideDeviceInput) {
-                    request.body.device = device;
-                }
-                request.headers["Content-Type"] = 'application/json';
-                request.headers["Csrf-Token"] = CSRF_TOKEN;
-                request.generateRequest();
-
-                if (items.length) {
-                    run(el);
-                }
-            }
-            run(this);
+        request.url = "/api/v1/clouds/"+ this.machine.cloud +"/volumes/" + this.selectedVolumeId;
+        request.body = {action: 'attach', machine: this.machine.id};
+        if (!this.hideDeviceInput) {
+            request.body.device = this.device;
         }
+        request.headers["Content-Type"] = 'application/json';
+        request.headers["Csrf-Token"] = CSRF_TOKEN;
+        request.generateRequest();
     },
     _attachVolumeRequest: function() {
         this.clearError();

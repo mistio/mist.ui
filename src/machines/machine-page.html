@@ -138,6 +138,10 @@
                 margin-bottom: 16px;
             }
 
+            .tags {
+                margin-bottom: 8px;
+            }
+
             .cost {
                 margin-bottom: 0;
                 font-size: 23px;
@@ -187,13 +191,13 @@
                 vertical-align: top;
             }
 
-            .machine-key iron-icon {
+            .machine-key iron-icon, .machine-volume iron-icon {
                 margin-right: 8px;
                 opacity: 0.32;
                 cursor: pointer;
             }
 
-            .machine-key iron-icon.delete {
+            .machine-key iron-icon.delete, .machine-volume iron-icon.delete {
                 opacity: 0.13;
                 margin-right: 16px;
                 height: 12px;
@@ -201,7 +205,7 @@
                 transition: opacity 100 ease-in;
             }
 
-            .machine-key:hover iron-icon.delete {
+            .machine-key:hover iron-icon.delete, .machine-volume:hover iron-icon.delete {
                 opacity: 0.32;
             }
 
@@ -382,7 +386,7 @@
             }
 
             @media (max-width: 1024px) {
-                .machine-key {
+                .machine-key, .machine-volume {
                     display: block;
                 }
                 .tag {
@@ -496,7 +500,7 @@
             }
 
             .resource-info {
-                padding-right: 36px;
+                padding-right: 8px;
                 vertical-align: top;
             }
         </style>
@@ -504,7 +508,7 @@
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
             </div> -->
-            <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" ></machine-actions>
+            <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" in-single-page></machine-actions>
             <paper-material class="single-head layout horizontal machine-page-head">
                 <span class="icon">
                     <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
@@ -519,8 +523,8 @@
                     </div>
                 </div>
                 <template is="dom-if" if="[[itemArray]]" restamp>
-                    <mist-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" use-half-width>
-                        </mists-actions>
+                    <mist-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="[[actions]]" use-half-width>
+                        </mist-actions>
                 </template>
             </paper-material>
             <paper-material hidden$="[[!isMissing]]">
@@ -657,9 +661,9 @@
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
                             </span>
                         </div>
+                        <br/>
                     </div>
-                    <br/>
-                    <div hidden$="[[!machineKeys]]">
+                    <div hidden$="[[!machine.key_associations.length]]">
                         <div class="m-info-head">Associated Keys:</div>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
@@ -674,9 +678,26 @@
                                 <paper-spinner active hidden$="[[!isPendingKeyRequest]]"></paper-spinner>
                             </div>
                         </div>
+                        <br/>
+                    </div>
+                    <div hidden$="[[!volumes.length]]">
+                        <div class="m-info-head">Attached Volumes:</div>
+                        <div class="associatedVolumes">
+                            <template is="dom-repeat" items="{{volumes}}" as="volumeId">
+                                <div class="machine-volume">
+                                    <a class="regular blue-link flexchild" href$="/volumes/[[volumeId]]">
+                                        <iron-icon icon="device:storage"></iron-icon>[[_computeVolumeName(volumeId)]]</a>
+                                        <iron-icon icon="icons:cancel" class="delete" on-tap="detachVolume">
+                                </div>
+                            </template>
+                            <div class="machine-volume" id="pendingVolumeRequest">
+                                <paper-spinner active hidden$="[[!isPendingVolumeRequest]]"></paper-spinner>
+                            </div>
+                        </div>
+                        <br/>
                     </div>
                     <div hidden$="[[!machine.tags.length]]">
-                        <h3 class="m-info-head">TAGS:</h3>
+                        <div class="m-info-head tags">TAGS:</div>
                         <template is="dom-repeat" items="[[machine.tags]]">
                             <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
@@ -780,105 +801,14 @@
             on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse"
             on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]" method="PUT" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}"
+            on-error="_detachVolumeError" handle-as="xml"></iron-ajax>
         <iron-ajax id="probeMachine" url="/api/v1/machines/[[machine.id]]/probe" method="POST" loading="{{probeLoading}}" on-error="_probeError"
             handle-as="xml"></iron-ajax>
         <paper-toast></paper-toast>
     </template>
 </dom-module>
 <script>
-    MACHINEACTIONS = {
-        'shell': {
-            'name': 'shell',
-            'icon': 'vaadin:terminal',
-            'confirm': false,
-            'multi': true
-        },
-        'tag': {
-            'name': 'tag',
-            'icon': 'label',
-            'confirm': true,
-            'multi': true
-        },
-        'run-script': {
-            'name': 'run script',
-            'icon': 'image:movie-creation',
-            'confirm': true,
-            'multi': false
-        },
-        'associate-key': {
-            'name': 'associate key',
-            'icon': 'communication:vpn-key',
-            'confirm': true,
-            'multi': true
-        },
-        'reboot': {
-            'name': 'reboot',
-            'icon': 'av:replay',
-            'confirm': true,
-            'multi': true
-        },
-        'start': {
-            'name': 'start',
-            'icon': 'av:replay',
-            'confirm': true,
-            'multi': true
-        },
-        'stop': {
-            'name': 'stop',
-            'icon': 'av:stop',
-            'confirm': true,
-            'multi': true
-        },
-        'suspend': {
-            'name': 'suspend',
-            'icon': 'av:stop',
-            'confirm': true,
-            'multi': true
-        },
-        'rename': {
-            'name': 'rename',
-            'icon': 'editor:mode-edit',
-            'confirm': true,
-            'multi': false
-        },
-        'resume': {
-            'name': 'resume',
-            'icon': 'av:replay',
-            'confirm': true,
-            'multi': true
-        },
-        'undefine': {
-            'name': 'undefine',
-            'icon': 'image:panorama-fish-eye',
-            'confirm': true,
-            'multi': true
-        },
-        'transfer-ownership': {
-            'name': 'transfer ownership',
-            'icon': 'icons:redo',
-            'confirm': false,
-            'multi': true
-        },
-        'webconfig': {
-            'name': 'ClearOS Web UI',
-            'icon': 'image:panorama-fish-eye',
-            'confirm': false,
-            'multi': false
-        },
-        'destroy': {
-            'name': 'destroy',
-            'icon': 'delete',
-            'confirm': true,
-            'multi': true
-        },
-        'probe': {
-            'name': 'probe',
-            'icon': 'icons:compare-arrows',
-            'confirm': false,
-            'multi': true
-        }
-    };
-
     Polymer({
         is: 'machine-page',
         behaviors: [
@@ -896,6 +826,10 @@
             cloud: {
                 type: Object,
                 computed: '_getMachineCloud(model.clouds.*, machine.cloud)'
+            },
+            volumes: {
+                type: Array,
+                computed: '_getMachineVolumes(model.volumes.*, machine)'
             },
             sections: {
                 type: Array
@@ -947,8 +881,15 @@
             disassociateKeyId: {
                 type: String
             },
+            detachVolumeId: {
+                type: String
+            },
             isPendingKeyRequest: {
                 type: Boolean
+            },
+            isPendingVolumeRequest: {
+                type: Boolean,
+                value: false
             },
             hideAssociatedKeys: {
                 type: Boolean
@@ -965,8 +906,8 @@
                 computed: '_computeThisItemUid(machine)'
             },
             actions: {
-                type: Array,
-                computed: '_computeActions(machine, machine.*, model.machines.*, user)'
+                type: Array
+                // computed: '_computeActions(machine, machine.*, model.machines.*, user)'
             },
             dirtyCowAlert: {
                 type: String,
@@ -1059,6 +1000,12 @@
         _getMachineCloud: function (clouds, id) {
             return this.model.clouds[id];
         },
+        _getMachineVolumes: function (volumes, machine) {
+            var that = this;
+            return Object.keys(that.model.volumes).filter(function(k){
+                return that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
+            });
+        },
         _displayUser: function (id, members) {
             return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
         },
@@ -1068,47 +1015,6 @@
                 'item': this.machine,
                 'caller': "machine_page"
             });
-        },
-        _computeActions: function (item) {
-            var ret = [];
-            if (item && ['running', 'unknown'].indexOf(item.state) > -1) {
-                // if key then add shell / run script
-                // if not monitoring then enable monitoring
-                ret.push('shell');
-                ret.push('associate-key');
-                if (this.hideAssociatedKeys)
-                    ret.push('run-script');
-            }
-            if (item) {
-                if (item.owned_by == this.user)
-                    ret.push('transfer-ownership');
-                if (item.actions.tag)
-                    ret.push('tag');
-                if (item.actions.start)
-                    ret.push('start');
-                if (item.actions.stop)
-                    ret.push('stop');
-                if (item.actions.suspend)
-                    ret.push('suspend');
-                if (item.actions.reboot)
-                    ret.push('reboot');
-                if (item.actions.resume)
-                    ret.push('resume');
-                if (item.actions.rename)
-                    ret.push('rename');
-                if (item.actions.webconfig)
-                    ret.push('webconfig');
-                if (item.actions.destroy)
-                    ret.push('destroy');
-                if (item.actions.undefine)
-                    ret.push('undefine');
-            }
-            var actions = [];
-            for (var i = 0; i < ret.length; i++) {
-                actions.push(MACHINEACTIONS[ret[i]]);
-            }
-
-            return actions;
         },
         _machineChanged: function (machine) {
             // console.log('perform action machine changed', machine);
@@ -1122,6 +1028,10 @@
         _computeKeyName: function (keyid) {
             if (this.model.keys[keyid])
                 return this.model.keys[keyid].name || 'not found';
+        },
+        _computeVolumeName: function (id) {
+            if (this.model.volumes[id])
+                return this.model.volumes[id].name || 'not found';
         },
         _computeThisItemUid: function (machine) {
             var itemUidInArray = [];
@@ -1225,7 +1135,7 @@
         _disassociateKeyResponse: function (e) {
             this.set('isPendingKeyRequest', false);
             this.fire('toast', {
-                msg: 'Key was removed from machine!',
+                msg: 'Key was removed from machine',
                 duration: 3000
             });
         },
@@ -1236,10 +1146,43 @@
                 duration: 3000
             });
         },
+        detachVolume: function (e) {
+            var volumeId = e.model.volumeId;
+            var volumeName = this._computeVolumeName(volumeId);
+
+            this.set('dettachVolumeId', this.model.volumes[volumeId].external_id);
+
+            this._showDialog({
+                title: 'Detach volume',
+                body: "Detaching volume '" + volumeName +
+                    "' from machine.",
+                danger: true,
+                reason: "detach.volume",
+                action: 'detach',
+                volume: volumeId
+            });
+        },
+        _detachVolumeResponse: function (e) {
+            this.set('isPendingVolumeRequest', false);
+            this.fire('toast', {
+                msg: 'Volume was detached from machine',
+                duration: 3000
+            });
+        },
+        _detachVolumeError: function (e) {
+            this.fire('toast', {
+                msg: e.detail.request.xhr.responseText,
+                duration: 3000
+            });
+        },
         _machineActionConfirmation: function (e) {
             if (e.detail.response.confirmed && e.detail.reason == "disassociate.key") {
                 this.$.disassociateKeyRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.disassociateKeyRequest.generateRequest();
+            } else if (e.detail.response.confirmed && e.detail.reason == "detach.volume") {
+                this.$.detachVolumeRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.detachVolumeRequest.body = {action: 'detach', machine: this.machine.id};
+                this.$.detachVolumeRequest.generateRequest();
             }
         },
         _updateKeyLoader: function (e) {

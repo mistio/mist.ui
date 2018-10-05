@@ -552,7 +552,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 value: 256,
                 defaultValue: 256,
                 min: 256,
-                max: 6223,
+                max: 15872,
                 step: 256,
                 show: true,
                 required: false,

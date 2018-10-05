@@ -295,11 +295,15 @@
         },
 
         _fieldKeysChanged: function(keys) {
+            console.log('field Keys Changed');
             this.set('keys', this._objectToArray(this.field.keys));
-            this.$.keysDomRepeat.render();
+            this.async(function(){
+                this.$.keysDomRepeat.render();
+            }.bind(this), 200);
         },
 
         _selectedCloudChanged: function(cloud) {
+            this._fieldKeysChanged(this.field.keys);
             if (this.field.cloud) {
                 // clear field.value
                 this._clearField();
@@ -314,7 +318,7 @@
                     this.set('locationNotRequired', true)
                 }
                 this.set('networks', this._objectToArray(selectedCloud.networks));
-                if (!this.cloud.networksArray || !this.cloud.networksArray.length) {
+                if (!this.cloud.networks || !Object.keys(this.cloud.networks).length) {
                     this.set('hideNetworks', true)
                 }
                 this.$.machinesDomRepeat.render();
@@ -344,15 +348,17 @@
             var fieldValues = ['key', 'image', 'size', 'location', 'networks', 'quantity'];
             for (var i = 0; i < fieldValues.length; i ++ ) {
                 if (this.field[fieldValues[i]]) {
+                    // this.set('field.'+[fieldValues[i]], null);
                     var typeOfVal = typeof this.field[fieldValues[i]];
                     if (typeOfVal == 'string') {
-                        this.field[fieldValues[i]] = "";
+                        this.set('field.'+[fieldValues[i]], "");
                     } else if (typeOfVal == 'array') {
-                        this.field[fieldValues[i]] = [];
+                        this.set('field.'+[fieldValues[i]],[]);
                     } else if (typeOfVal == 'object') {
-                        this.field[fieldValues[i]] = null;
+                        this.set('field.'+[fieldValues[i]], null);
+                    } else if (typeOfVal == 'number') {
+                        this.set('field.'+[fieldValues[i]], 1);
                     }
-
                 }
                 this.set('field.value', {});
             }
@@ -405,64 +411,92 @@
             if (this.useExistingMachine) {
                 if (this.multi) {
                     if (!this.field.value.length) {
-                        // console.log('machine')
+                        if (DEBUG_FORM) {
+                            console.log('useExistingMachine multi machine')
+                        }
                         return false;
                     }
                 } else {
                     if (!this.field.value.cloud_id) {
-                        // console.log('cloud')
+                        if (DEBUG_FORM) {
+                            console.log('useExistingMachine cloud')
+                        }
                         return false;
                     }
                     if (!this.field.value.machine_id) {
-                        // console.log('machine')
+                        if (DEBUG_FORM) {
+                            console.log('useExistingMachine machine')
+                        }
                         return false;
                     }
                 }
             } else if (!this.useExistingMachine) {
                 if (this.multi) {
                     if (!this.field.value[0].cloud_id) {
-                        // console.log('cloud')
+                        if (DEBUG_FORM) {
+                            console.log('cloud multi')
+                        }
                         return false;
                     }
                     if (!this.field.value[0].image_id) {
-                        // console.log('machine');
+                        if (DEBUG_FORM) {
+                            console.log('image multi')
+                        }
                         return false;
                     }
                     if (!this.field.value[0].key_id) {
-                        // console.log('key');
+                        if (DEBUG_FORM) {
+                            console.log('key multi')
+                        }
                         return false;
                     }
                     if (!this.sizeNotRequired && !this.field.value[0].size_id) {
-                        // console.log('size', value.size_id);
+                        if (DEBUG_FORM) {
+                            console.log('size multi');
+                        }
                         return false;
                     }
                     if (!this.locationNotRequired && !this.field.value[0].location_id) {
-                        // console.log('location');
+                        if (DEBUG_FORM) {
+                            console.log('location multi');
+                        }
                         return false;
                     }
                     if (this.field.value[0].quantity < 1) {
-                        // console.log('location');
+                        if (DEBUG_FORM) {
+                            console.log('quantity multi');
+                        }
                         return false;
                     }
                 } else {
                     if (!this.field.value.cloud_id) {
-                        // console.log('cloud')
+                        if (DEBUG_FORM) {
+                            console.log('cloud');
+                        }
                         return false;
                     }
                     if (!this.field.value.image_id) {
-                        // console.log('machine');
+                        if (DEBUG_FORM) {
+                            console.log('machine');
+                        }
                         return false;
                     }
                     if (!this.field.value.key_id) {
-                        // console.log('key');
+                        if (DEBUG_FORM) {
+                            console.log('key');
+                        }
                         return false;
                     }
                     if (!this.sizeNotRequired && !this.field.value.size_id) {
-                        // console.log('size', value.size_id);
+                        if (DEBUG_FORM) {
+                            console.log('size');
+                        }
                         return false;
                     }
                     if (!this.locationNotRequired && !this.field.value.location_id) {
-                        // console.log('location');
+                        if (DEBUG_FORM) {
+                            console.log('location');
+                        }
                         return false;
                     }
                 }

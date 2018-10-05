@@ -116,15 +116,15 @@
                     <a class="more" on-tap="goToResultsList" href="/keys">view all [[results.keysArrayFullLength]] results</a>
                 </ul>
             </div>
-            <div class="section xs6" hidden$="[[!results.networksArray.length]]">
+            <div class="section xs6" hidden$="[[!results.networks.length]]">
                 <h2> Networks </h2>
                 <ul>
-                    <template is="dom-repeat" items="[[results.networksArray]]">
+                    <template is="dom-repeat" items="[[results.networks]]">
                         <li class="truncate">
                             <iron-icon icon="hardware:device-hub"></iron-icon>
                             <a href="/networks/[[item.id]]" on-tap="closeSuggestions">[[item.name]]</a></li>
                     </template>
-                    <a class="more" on-tap="goToResultsList" href="/networks">view all [[results.networksArrayFullLength]] results</a>
+                    <a class="more" on-tap="goToResultsList" href="/networks">view all [[results.networksFullLength]] results</a>
                 </ul>
             </div>
             <div class="section xs6" hidden$="[[!results.tunnelsArray.length]]">
@@ -255,7 +255,7 @@
                 for (var prop in this.model) {
                     if (prop.endsWith('Array') && this.model[prop].constructor === Array) {
                         result = this.filterItems(this.model[prop]);
-                    } else if (prop == 'machines') {
+                    } else if (['machines', 'networks', 'volumes'].indexOf(prop) > -1) {
                         result = this.filterItems(Object.values(this.model[prop]));
                     } else {
                         continue;
@@ -299,7 +299,7 @@
                 filterOwner = q.indexOf('owner:') > -1,
                 ownerRegex = /owner:(\S*)\s?/,
                 owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1],
-                queryTerms;
+                queryTerms, str;
 
             if (filterOwner && owner && owner.length) {
                 q = q.replace('owner:', '').replace(owner + '', '');
@@ -317,12 +317,16 @@
             }
 
             queryTerms = q.split(' ');
+            str = JSON.stringify(item);
+            if (this.model && this.model.clouds && item.cloud && this.model.clouds[item.cloud]) {
+                str += this.model.clouds[item.cloud].provider+''+this.model.clouds[item.cloud].title;
+            }
 
             if (q && q.trim().length > 0) {
                 // Check if all terms exist in stringified item
                 for (var i = 0; i < queryTerms.length; i++) {
                     if (queryTerms[i] && queryTerms[i].length &&
-                        JSON.stringify(item).toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
+                        str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
                         return false;
                     }
                 }
