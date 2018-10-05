@@ -189,8 +189,8 @@
                     <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
                         <paper-dropdown-menu class="dropdown-block">
                             <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
-                                <template is="dom-repeat" items="[[monitoredMachines]]" as="machine">
-                                    <paper-item value="[[machine.id]]">[[machine.name]]</paper-item>
+                                <template id="monitoredMachinesRepeat" is="dom-repeat" items="[[monitoredMachines]]">
+                                    <paper-item value="[[item.id]]">[[item.name]]</paper-item>
                                 </template>
                             </paper-menu>
                         </paper-dropdown-menu>
@@ -355,8 +355,7 @@
                     type: Object
                 },
                 monitoredMachines: {
-                    type: Array,
-                    computed: '_computeMonitoredMachines(machines)'
+                    type: Array
                 },
                 currentRule: {
                     type: Object
@@ -395,7 +394,8 @@
             observers: [
                 "_focusOnMetricName(active)",
                 "_currentRuleUpdated(currentRule.*)",
-                "_initialiseEdit(currentRule,resource, rule.id)"
+                "_initialiseEdit(currentRule,resource, rule.id)",
+                "_computeMonitoredMachines(machines.*)"
             ],
             ready: function () {
                 if (!this.rule) {
@@ -433,13 +433,14 @@
                 }
             },
             _computeMonitoredMachines: function (machines) {
-                if (machines) {
-                    return Object.values(machines).filter(function(m){
+                var monitoredMachines = [], that = this;
+                if (this.machines && Object.values(this.machines).length) {
+                    monitoredMachines = Object.values(this.machines).filter(function(m){
                         return m.monitoring;
                     });
-                } else {
-                    return [];
                 }
+                this.set('monitoredMachines', monitoredMachines);
+                this.$.monitoredMachinesRepeat.render();
             },
             _removeBrackets: function (string) {
                 return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
@@ -459,7 +460,7 @@
                     },
                     frequency: {
                         period: this.currentRule.frequency.period || 'minutes',
-                        every: this.currentRule.every || 2
+                        every: this.currentRule.frequency.every || 2
                     },
                     trigger_after: {
                         period: this.currentRule.trigger_after.period || 'minutes',
