@@ -329,8 +329,8 @@
                                     <h4>Networks:</h4>
                                 </div>
                                 <div class="cell">
-                                    <span hidden$="[[_computeShowCount(networksArrayLength)]]">[[networksArrayLength]]</span>
-                                    <paper-button class="simple blue-link view" on-tap="viewNetworks" hidden$="[[!networksArrayLength]]">[[networksArrayLength]] networks</paper-button>
+                                    <span hidden$="[[_computeShowCount(networksLength)]]">[[networksLength]]</span>
+                                    <paper-button class="simple blue-link view" on-tap="viewNetworks" hidden$="[[!networksLength]]">[[networksLength]] networks</paper-button>
                                 </div>
                             </div>
                         </div>
@@ -431,7 +431,7 @@
                     type: Number,
                     value: 0
                 },
-                networksArrayLength: {
+                networksLength: {
                     type: Number,
                     value: 0
                 },
@@ -455,7 +455,7 @@
             },
             observers: [
                 '_cloudChanged(cloud, cloud.*)',
-                '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networksArray,cloud.machines)'
+                '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networks,cloud.machines)'
             ],
             ready: function () {},
             _cloudChanged: function (cloud) {
@@ -466,9 +466,7 @@
             _displayUser: function (id, members) {
                 return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
-            _cloudArraysChanged: function (cloud, cloudchange, imagesArray, locationsArray,
-                networksArray, machines) {
-                // console.log('cloudArraysChanaged',cloud,cloudchange,imagesArray,locationsArray,networksArray,machines);
+            _cloudArraysChanged: function (cloud, cloudchange, imagesArray, locationsArray, networks, machines) {
                 if (this.cloud) {
                     this.async(function () {
                         if (this.cloud) {
@@ -476,8 +474,8 @@
                                 .imagesArray.length : 0);
                             this.set('locationsArrayLength', this.cloud.locationsArray ?
                                 this.cloud.locationsArray.length : 0);
-                            this.set('networksArrayLength', this.cloud.networksArray ? this
-                                .cloud.networksArray.length : 0);
+                            this.set('networksLength', this.cloud.networks ? Object.keys(this
+                                .cloud.networks).length : 0);
                             this.set('runningMachinesLength', this._computeRunningMachines(
                                 this.cloud.machines));
                             this.set('stoppedMachinesLength', this._computeStoppedMachines(

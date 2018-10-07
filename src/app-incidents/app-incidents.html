@@ -25,6 +25,10 @@
                 height: auto;
             }
 
+            :host[has-incidents] {
+                padding-bottom: 32px;
+            }
+
             :host[xsmallscreen] {
                 flex-wrap: wrap;
             }
@@ -64,6 +68,20 @@
 
             .list-item.red .machine {
                 color: var(--red-color);
+            }
+
+            .expression > * {
+                margin: 0 4px;
+                font-size: .9em;
+            }
+
+            .expression .rule-condition {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .rule-condition {
+                flex: 1 100%;
             }
 
             .list-item .expression>iron-icon {
@@ -119,10 +137,11 @@
             span.rule-condition {
                 font-weight: normal;
                 color: rgba(0, 0, 0, 0.54);
+
             }
 
             span.time {
-                float: right;
+                color: rgba(0, 0, 0, 0.54);
             }
 
             a.main-section {
@@ -133,10 +152,6 @@
                 margin: 8px;
                 opacity: 0.32;
                 cursor: pointer;
-            }
-
-            paper-material {
-                margin-bottom: 32px;
             }
         </style>
 
@@ -156,12 +171,12 @@
                                     <iron-icon icon="[[model.sections.machines.icon]]"></iron-icon>
                                     <span class="machine flexchild">[[_computeMachineName(item, model.cloudsArray, model.machines.*)]]</span>
                                     <span class="rule-condition">[[_computeRuleCondition(item)]]</span>
+                                    <span class="time">
+                                        <template is="dom-if" if="[[!item.finished_at]]">
+                                            <iron-timeago datetime="[[_computeIncidentDuration(item)]]"></iron-timeago>
+                                        </template>
+                                    </span>
                                 </div>
-                                <span class="time">
-                                    <template is="dom-if" if="[[!item.finished_at]]">
-                                        <iron-timeago datetime="[[_computeIncidentDuration(item)]]"></iron-timeago>
-                                    </template>
-                                </span>
                             </a>
                             <div class="delBtn">
                                 <iron-icon icon="close" on-tap="deleteIncident"></iron-icon>
@@ -195,6 +210,12 @@
                 type: Array,
                 computed: '_computeOpenIncidents(model.incidentsArray, model.incidentsArray.*, model.incidentsArray.length,  model.incidents,  model.incidents.*)'
             },
+            hasIncidents: {
+                type: Boolean,
+                computed: 'computeHasIncidents(incidents)',
+                value: false,
+                reflectToAttribute: true
+            },
             resolvedCount: {
                 type: Number,
                 computed: '_computeResolvedIncidentCount(model.incidentsArray.*)'
@@ -209,6 +230,9 @@
             setTimeout(function () {
                 this.classList.add('active');
             }.bind(this), (index + 1) * 50);
+        },
+        computeHasIncidents: function(incidents) {
+            return this.incidents && this.incidents.length ? true : false;
         },
         _computeOpenIncidents: function (incidentsArray, incidentsSplices, incidentsLength, incidentsMap, incidentsMapSplices) {
             var all = Object.values(this.model.incidents);
