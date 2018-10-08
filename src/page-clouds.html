@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 
+<link rel="import" href="helpers/owner-filter-behavior.html">
+
 <link rel="import" href="clouds/cloud-add.html">
 <link rel="import" href="clouds/cloud-page.html">
 
@@ -15,11 +17,17 @@
     <app-route route="{{route}}" pattern="/:cloud" data="{{data}}"></app-route>
 
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list apiurl="/api/v1/clouds" selectable resizable column-menu multi-sort items="[[model.cloudsArray]]" selected-items="{{selectedItems}}"
-        hidden$=[[!_isListActive(route.path)]] frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]>
+      <mist-list id="cloudsList" apiurl="/api/v1/clouds" selectable resizable column-menu multi-sort
+        items="[[model.cloudsArray]]" selected-items="{{selectedItems}}"
+        renderers=[[_getRenderers()]] frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
+        route={{route}} user-filter=[[model.sections.clouds.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]"
+        hidden$=[[!_isListActive(route.path)]]>
         <p slot="no-items-found">No clouds found.</p>
       </mist-list>
     </template>
+    <div class="absolute-bottom-right">
+        <paper-fab id="cloudAdd" icon="add" on-tap="_addResource"></paper-fab>
+    </div>
     <cloud-add providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]"
       enable-monitoring="[[enableMonitoring]]" hidden$=[[!_isAddPageActive(route.path)]] portal-name=[[portalName]] docs=[[docs]] org="[[model.org]]" enable-billing=[[enableBilling]]></cloud-add>
     <cloud-page model="[[model]]" cloud="[[cloud]]" resource-id="[[data.cloud]]" section="[[model.sections.clouds]]" hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
@@ -29,6 +37,9 @@
   <script>
     Polymer({
       is: 'page-clouds',
+      behaviors: [
+        ownerFilterBehavior
+      ],
 
       properties: {
         model: Object,
@@ -54,10 +65,65 @@
       },
 
       _getVisibleColumns: function () {
-        var ret = ['title', 'id', 'provider'];
+        var ret = ['state', 'provider', 'region', 'machines', 'volumes', 'locations', 'id'];
         if (this.model.org && this.model.org.ownership_enabled == true)
           ret.splice(ret.length-1,0,'owned_by');
         return ret;
+      },
+
+      _getRenderers: function(keys) {
+          var _this = this;
+          return {
+              'title': {
+                  'body': function(item, row) {
+                      return '<strong class="name">'+ item + '</strong>';
+                  }
+              },
+              'machines': {
+                  'body': function(item, row) {
+                    return item && Object.keys(item).length || 0;
+                  }
+              },
+              'volumes': {
+                  'body': function(item, row) {
+                    return item && Object.keys(item).length || 0;
+                  }
+              },
+              'locations': {
+                  'body': function(item, row) {
+                    return item && Object.keys(item).length || 0;
+                  }
+              },
+              'owned_by': {
+                  'title': function (item, row) {
+                      return 'owner';
+                  },
+                  'body': function (item, row) {
+                      return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                  }
+              },
+              'created_by': {
+                  'title': function (item, row) {
+                      return 'created by';
+                  },
+                  'body': function (item, row) {
+                      return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                  }
+              },
+              'tags': {
+                  'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (var i=0; i<tags.length; i++){
+                      display += "<span class='tag'>"+tags[i].key;
+                      if (tags[i].value != undefined && tags[i].value != "")
+                        display += "=" + tags[i].value;
+                      display += "</span>";
+                    }
+                    return display;
+                  }
+              }
+          }
       },
 
       _isAddPageActive: function (path) {
@@ -76,6 +142,9 @@
       _getCloud: function (id) {
         if (this.model.clouds)
           return this.model.clouds[id];
+      },
+      _addResource: function(e) {
+          this.fire('go-to', {url: this.model.sections.clouds.add});
       }
 
     });
