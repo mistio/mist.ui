@@ -88,8 +88,8 @@
         <paper-dialog id="biosDialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
             <h2 class="title">[[action.name]]</h2>
             <paper-dialog-scrollable>
-                <!-- isCreate -->
-                <template is="dom-if" if="[[isCreate]]">
+                <!-- isUpdate -->
+                <template is="dom-if" if="[[isUpdate]]">
                     <p hidden="[[!firmwareList.length]]">Choose from available firmwares.</p>
                     <paper-radio-group selected="{{firmware}}" hidden="[[!firmwareList.length]]">
                         <template is="dom-repeat" items="[[firmwareList]]">
@@ -152,10 +152,10 @@ Polymer({
         action: {
             type: Object
         },
-        isCreate: {
+        isUpdate: {
             type: Boolean,
             value: false,
-            computed: '_computeIsCreate(action)'
+            computed: '_computeisUpdate(action)'
         },
         isUpload: {
             type: Boolean,
@@ -234,7 +234,7 @@ Polymer({
     _getClass: function(action){
         return this.action.name == 'delete firmware' ? 'red' : 'blue';
     },
-    _computeIsCreate: function(action) {
+    _computeisUpdate: function(action) {
         return action.name == 'bios update';
     },
     _computeIsUpload: function(action) {
@@ -269,7 +269,18 @@ Polymer({
     biosUpdate: function(e) {
         var request = this.$.biosUpdateRequest;
         request.url = "/api/v1//machines/" + this.machine.id;
-        request.body = {action: 'bios_update', firmware: this.firmware};
+        if (this.isUpdate) {
+            request.body = {action: 'select_firmware', firmware: this.firmware};
+        }
+        if (this.isUpload) {
+            request.body = {action: 'upload_firmware', firmware: this.file};
+        }
+        if (this.isBackup) {
+            request.body = {action: 'backup_firmware'};
+        }
+        if (this.isDelete) {
+            request.body = {action: 'delete_firmware', firmwares: this.firmwaresToDelete.map(f=>f.id)};
+        }
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
         request.generateRequest();
@@ -301,7 +312,7 @@ Polymer({
         return {'Csrf-Token': CSRF_TOKEN, 'Accept': 'application/json'};
     },
     _enableButton: function(action, firmware, firmwaresToDelete, isBackup, isUpload) {
-        if (this.isCreate) {
+        if (this.isUpdate) {
             return this.firmware.length > 0;
         }
         if (this.isUpload) {
