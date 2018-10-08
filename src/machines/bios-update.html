@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
@@ -22,6 +23,10 @@
 
          :host .btn-group {
             margin: 0 0 24px 0;
+        }
+
+        .title {
+            text-transform: capitalize;
         }
 
         .grey {
@@ -75,11 +80,50 @@
         paper-radio-button {
             width: 90%;
         }
+        paper-checkbox {
+           --paper-checkbox-checked-color: var(--mist-blue) !important;
+           --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+        }
         </style>
         <paper-dialog id="biosDialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Bios update</h2>
+            <h2 class="title">[[action.name]]</h2>
             <paper-dialog-scrollable>
-                
+                <!-- isCreate -->
+                <template is="dom-if" if="[[isCreate]]">
+                    <p hidden="[[!firmwareList.length]]">Choose from available firmwares.</p>
+                    <paper-radio-group selected="{{firmware}}" hidden="[[!firmwareList.length]]">
+                        <template is="dom-repeat" items="[[firmwareList]]">
+                            <paper-radio-button name="[[item.id]]">[[item.name]]</paper-radio-button>
+                        </template>
+                    </paper-radio-group>
+                    <p hidden="[[firmwareList.length]]">No available firmwares found.</p>
+                </template>
+                <!-- isDelete -->
+                <template is="dom-if" if="[[isDelete]]">
+                    <p>Choose firmwares to delete.</p>
+                    <template is="dom-repeat" items="[[firmwareList]]">
+                        <br/><paper-checkbox on-checked-changed="_updateFirmwaresToDelete" value="[[item.id]]">[[item.name]]</paper-checkbox><br/>
+                    </template>
+                </template>
+                <!-- isBackup -->
+                <template is="dom-if" if="[[isBackup]]">
+                    <p>A copy of the current bios firmware will be saved. It will then be available in the machines firmware list.</p>
+                </template>
+                <!-- isUpload -->
+                <template is="dom-if" if="[[isUpload]]">
+                    <p>Upload a firmware from your computer.</p>
+                    <vaadin-upload id="firmwareUpload" max-files="1" accept="image/png" max-file-size="262144"
+                    headers="[[_computeUploadHeaders()]]"
+                    target="/api/v1/machines/[[machine.id]]">
+                        <div class="drop-label">
+                            <iron-icon icon="file-upload"></iron-icon>
+                            Drop file here.
+                        </div>
+                        <div class="file-container">
+                            <!-- <iron-image src$="[[_computeAvatarURL(orgAvatar)]]" fades hidden$="[[!orgAvatar]]" sizing="contain" class="avatar-preview"></iron-image> -->
+                        </div>
+                    </vaadin-upload>
+                </template>
             </paper-dialog-scrollable>
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
@@ -90,25 +134,51 @@
                 <paper-button dialog-dismiss>
                     Cancel
                 </paper-button>
-                <paper-button class="blue" on-tap="biosUpdate" disabled$="[[!selectedType]]">
-                    Bios update
+                <paper-button class$="[[_getClass(action)]]" on-tap="biosUpdate" disabled="[[!_enableButton(action, firmware, firmwaresToDelete.length, isBackup, isUpload)]]">
+                    [[action.name]]
                 </paper-button>
             </div>
         </paper-dialog>
-        <iron-ajax id="biosUpdateRequest" method="PUT" on-response="_biosUpdateResponse" on-error="_biosUpdateError" on-request="_biosUpdateRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
+        <iron-ajax id="biosUpdateRequest" method="POST" on-response="_biosUpdateResponse" on-error="_biosUpdateError" on-request="_biosUpdateRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
     </template>
 </dom-module>
 <script>
 Polymer({
     is: 'bios-update',
     properties: {
-        items: {
-            type: Array,
-            notify: true
+        machine: {
+            type: Object
+        },
+        action: {
+            type: Object
+        },
+        isCreate: {
+            type: Boolean,
+            value: false,
+            computed: '_computeIsCreate(action)'
+        },
+        isUpload: {
+            type: Boolean,
+            value: false,
+            computed: '_computeIsUpload(action)'
+        },
+        isBackup: {
+            type: Boolean,
+            value: false,
+            computed: '_computeIsBackup(action)'
+        },
+        isDelete: {
+            type: Boolean,
+            value: false,
+            computed: '_computeIsDelete(action)'
         },
         loading: {
             type: Boolean,
             value: false
+        },
+        firmwareList: {
+            type: Array,
+            value: []
         },
         formError: {
             type: Boolean,
@@ -116,10 +186,66 @@ Polymer({
         },
         firmware: {
             type: String,
+            value: ''       
+        },
+        file: {
+            type: String,
             value: ''
+        },
+        firmwaresToDelete: {
+            type: Array,
+            value: []
         }
     },
+    listeners: {
+        // 'check': '_updateFirmwaresToDelete'
+    },
+    observers: [
+        '_firmwareListChanged(firmwareList)'
+    ],
     ready: function() {},
+    // 'select_firmware': {
+    //     'name': 'bios update',
+    //     'icon': 'icons:system-update-alt',
+    //     'confirm': true,
+    //     'multi': false
+    //   },
+    //   'upload_firmware': {
+    //     'name': 'upload firmware',
+    //     'icon': 'icons:system-update-alt',
+    //     'confirm': true,
+    //     'multi': false
+    //   },
+    //   'backup_firmware': {
+    //     'name': 'backup current firmware',
+    //     'icon': 'icons:system-update-alt',
+    //     'confirm': true,
+    //     'multi': false
+    //   },
+    //   'delete_firmware': {
+    //     'name': 'delete firmware',
+    //     'icon': 'icons:system-update-alt',
+    //     'confirm': true,
+    //     'multi': false
+    //   },
+    _firmwareListChanged: function(list) {
+        this.$.biosDialogModal.refit();
+    },
+    _getClass: function(action){
+        return this.action.name == 'delete firmware' ? 'red' : 'blue';
+    },
+    _computeIsCreate: function(action) {
+        return action.name == 'bios update';
+    },
+    _computeIsUpload: function(action) {
+        return action.name == 'upload firmware';
+    },
+    _computeIsBackup: function(action) {
+        return action.name == 'backup current firmware';
+    },
+    _computeIsDelete: function(action) {
+        return action.name == 'delete firmware';
+    },
     _openDialog: function(e) {
         this.clearError();
         this.set('selectedType', '');
@@ -129,9 +255,20 @@ Polymer({
         this.$.biosDialogModal.close();
         this.clearError();
     },
+    _updateFirmwaresToDelete: function(e) {
+        var item = e.model.item;
+        if (e.detail.value) {
+            this.push('firmwaresToDelete', item);
+        }
+        if (!e.detail.value) {
+            var index = this.firmwaresToDelete.indexOf(item);
+            this.splice('firmwaresToDelete', index, 1);
+        }
+        console.log('update Firmwares To Delete', this.firmwaresToDelete.length);
+    },
     biosUpdate: function(e) {
         var request = this.$.biosUpdateRequest;
-        request.url = "/api/v1//machines/" + this.items[0].id;
+        request.url = "/api/v1//machines/" + this.machine.id;
         request.body = {action: 'bios_update', firmware: this.firmware};
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -139,7 +276,7 @@ Polymer({
     },
     _biosUpdateRequest: function() {
         this.clearError();
-        var logMessage = 'Sending request for bios update.';
+        var logMessage = 'Sending request.';
         this.fire('performing-action', { log: logMessage });
     },
     _biosUpdateResponse: function(e) {
@@ -159,6 +296,24 @@ Polymer({
         this.set('formError', false);
         this.$.errormsg.textContent = '';
         this.$.biosDialogModal.refit();
-      },
+    },
+    _computeUploadHeaders: function() {
+        return {'Csrf-Token': CSRF_TOKEN, 'Accept': 'application/json'};
+    },
+    _enableButton: function(action, firmware, firmwaresToDelete, isBackup, isUpload) {
+        if (this.isCreate) {
+            return this.firmware.length > 0;
+        }
+        if (this.isUpload) {
+            return this.file.length;   
+        }
+        if (this.isBackup) {
+            return true;
+        }
+        if (this.isDelete) {
+            return this.firmwaresToDelete.length > 0;
+        }
+        return false;
+    }
 });
 </script>

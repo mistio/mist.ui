@@ -41,7 +41,7 @@
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
     <power-reset id="powerresetdialog" items="[[items]]"></power-reset>
-    <bios-update id="biosupdatedialog" items="[[items]]"></bios-update>
+    <bios-update id="biosupdatedialog" machine="[[items.0]]" firmwareList="" action=""></bios-update>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(model.membersArray,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <resize-dialog id="resizedialog" machine="[[_getMachine(items.length)]]" clouds="[[model.clouds]]"></resize-dialog>
 
@@ -129,11 +129,29 @@
         'confirm': true,
         'multi': true
       },
-      'bios_update': {
+      'select_firmware': {
         'name': 'bios update',
         'icon': 'icons:system-update-alt',
         'confirm': true,
-        'multi': true
+        'multi': false
+      },
+      'upload_firmware': {
+        'name': 'upload firmware',
+        'icon': 'icons:system-update-alt',
+        'confirm': true,
+        'multi': false
+      },
+      'backup_firmware': {
+        'name': 'backup current firmware',
+        'icon': 'icons:system-update-alt',
+        'confirm': true,
+        'multi': false
+      },
+      'delete_firmware': {
+        'name': 'delete firmware',
+        'icon': 'icons:system-update-alt',
+        'confirm': true,
+        'multi': false
       },
       'suspend': {
         'name': 'suspend',
@@ -267,7 +285,7 @@
         }
         if (machine && machine.actions) {
           for (var action in machine.actions) {
-            if (machine.actions[action])
+            if (machine.actions[action] == true)
               arr.push(action);
           }
         }
@@ -301,6 +319,10 @@
           'create_snapshot', 
           'revert_to_snapshot',
           'remove_snapshot',
+          'select_firmware',
+          'upload_firmware',
+          'backup_firmware', 
+          'delete_firmware',
           'associate-key', 
           'rename', 
           'run-script',
@@ -367,7 +389,7 @@
           var action = e.detail.action;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag', 'rename', 'power reset', 'bios update', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
+          if (action.confirm && ['tag', 'rename', 'power reset', 'bios update', 'upload firmware', 'backup current firmware', 'delete firmware', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
             -1) {
             var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
               plural = this.items.length == 1 ? '' : 's',
@@ -407,7 +429,10 @@
             this.$['renamedialog']._openDialog();
           } else if (action.name == 'power reset') {
             this.$['powerresetdialog']._openDialog();
-          } else if (action.name == 'bios update') {
+          } else if (['bios update', 'upload firmware', 'backup current firmware', 'delete firmware'].indexOf(action.name)>-1) {
+            // this.$['biosupdatedialog'].firmware_list = this.items[0].extra.firmware_list || [];
+            this.$['biosupdatedialog'].firmwareList = [{id:"1", name:"firmware 0.1"},{id:"2", name:"firmware 0.2"},{id:"3", name:"firmware 0.3"}];
+            this.$['biosupdatedialog'].action = action;
             this.$['biosupdatedialog']._openDialog();
           } else if (action.name == 'webconfig') {
             this._openWebconfig(this.items);
