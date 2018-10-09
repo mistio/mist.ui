@@ -9,7 +9,7 @@
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
-<dom-module id="bios-update">
+<dom-module id="firmware-update">
     <template>
         <style include="shared-styles dialogs">
          :host {
@@ -85,7 +85,7 @@
            --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
         }
         </style>
-        <paper-dialog id="biosDialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+        <paper-dialog id="firmwareDialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
             <h2 class="title">[[action.name]]</h2>
             <paper-dialog-scrollable>
                 <!-- isUpdate -->
@@ -107,7 +107,7 @@
                 </template>
                 <!-- isBackup -->
                 <template is="dom-if" if="[[isBackup]]">
-                    <p>A copy of the current bios firmware will be saved. It will then be available in the machines firmware list.</p>
+                    <p>A copy of the current firmware will be saved. It will then be available in the machines firmware list.</p>
                 </template>
                 <!-- isUpload -->
                 <template is="dom-if" if="[[isUpload]]">
@@ -134,17 +134,17 @@
                 <paper-button dialog-dismiss>
                     Cancel
                 </paper-button>
-                <paper-button class$="[[_getClass(action)]]" on-tap="biosUpdate" disabled="[[!_enableButton(action, firmware, firmwaresToDelete.length, isBackup, isUpload)]]">
+                <paper-button class$="[[_getClass(action)]]" on-tap="firmwareUpdate" disabled="[[!_enableButton(action, firmware, firmwaresToDelete.length, isBackup, isUpload)]]">
                     [[action.name]]
                 </paper-button>
             </div>
         </paper-dialog>
-        <iron-ajax id="biosUpdateRequest" method="POST" on-response="_biosUpdateResponse" on-error="_biosUpdateError" on-request="_biosUpdateRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
+        <iron-ajax id="firmwareUpdateRequest" method="POST" on-response="_firmwareUpdateResponse" on-error="_firmwareUpdateError" on-request="_firmwareUpdateRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
     </template>
 </dom-module>
 <script>
 Polymer({
-    is: 'bios-update',
+    is: 'firmware-update',
     properties: {
         machine: {
             type: Object
@@ -205,7 +205,7 @@ Polymer({
     ],
     ready: function() {},
     // 'select_firmware': {
-    //     'name': 'bios update',
+    //     'name': 'firmware update',
     //     'icon': 'icons:system-update-alt',
     //     'confirm': true,
     //     'multi': false
@@ -229,13 +229,13 @@ Polymer({
     //     'multi': false
     //   },
     _firmwareListChanged: function(list) {
-        this.$.biosDialogModal.refit();
+        this.$.firmwareDialogModal.refit();
     },
     _getClass: function(action){
         return this.action.name == 'delete firmware' ? 'red' : 'blue';
     },
     _computeisUpdate: function(action) {
-        return action.name == 'bios update';
+        return action.name == 'update firmware';
     },
     _computeIsUpload: function(action) {
         return action.name == 'upload firmware';
@@ -249,10 +249,10 @@ Polymer({
     _openDialog: function(e) {
         this.clearError();
         this.set('selectedType', '');
-        this.$.biosDialogModal.open();
+        this.$.firmwareDialogModal.open();
     },
     _closeDialog: function(e) {
-        this.$.biosDialogModal.close();
+        this.$.firmwareDialogModal.close();
         this.clearError();
     },
     _updateFirmwaresToDelete: function(e) {
@@ -266,8 +266,8 @@ Polymer({
         }
         console.log('update Firmwares To Delete', this.firmwaresToDelete.length);
     },
-    biosUpdate: function(e) {
-        var request = this.$.biosUpdateRequest;
+    firmwareUpdate: function(e) {
+        var request = this.$.firmwareUpdateRequest;
         request.url = "/api/v1//machines/" + this.machine.id;
         if (this.isUpdate) {
             request.body = {action: 'select_firmware', firmware: this.firmware};
@@ -285,18 +285,18 @@ Polymer({
         request.headers["Csrf-Token"] = CSRF_TOKEN;
         request.generateRequest();
     },
-    _biosUpdateRequest: function() {
+    _firmwareUpdateRequest: function() {
         this.clearError();
         var logMessage = 'Sending request.';
         this.fire('performing-action', { log: logMessage });
     },
-    _biosUpdateResponse: function(e) {
+    _firmwareUpdateResponse: function(e) {
         console.log(e, e.detail);
         this._closeDialog();
         this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Bios update request sent successfully. Review in machine logs.', duration: 5000 });
+        this.fire('toast', { msg: 'Firmware update request sent successfully. Review in machine logs.', duration: 5000 });
     },
-    _biosUpdateError: function(e) {
+    _firmwareUpdateError: function(e) {
         console.log(e, e.detail);
         var message = e.detail.request.xhr.response || e.detail.error.message;
         this.$.errormsg.textContent = message;
@@ -306,7 +306,7 @@ Polymer({
     clearError: function(){
         this.set('formError', false);
         this.$.errormsg.textContent = '';
-        this.$.biosDialogModal.refit();
+        this.$.firmwareDialogModal.refit();
     },
     _computeUploadHeaders: function() {
         return {'Csrf-Token': CSRF_TOKEN, 'Accept': 'application/json'};
