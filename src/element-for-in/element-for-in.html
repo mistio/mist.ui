@@ -38,7 +38,7 @@
                 observer: '_contentChanged'
             },
             ignore: {
-                type: Array
+                type: String
             }
         },
         _contentChanged: function(newValue, oldValue) {
@@ -50,6 +50,7 @@
             if (obj && Object.keys(obj).length > 0) {
                 // loop through pairs
                 for (el in obj) {
+                    console.log('ignore ', el, !this.ignore || this.ignore.indexOf(el) == -1)
                     if (!this.ignore || this.ignore.indexOf(el) == -1) {
                         if (obj[el]) {
                             newObj.push({
@@ -59,7 +60,6 @@
                         }
                     }
                 }
-
                 this.sortArr(newObj);
             }
 
@@ -84,8 +84,6 @@
             var tpl = '';
 
             for (var i = 0, len = content.length; i < len; i++) {
-                if (content[i].key.indexOf(this.getAttribute('ignore')) == 0)
-                    continue;
                 tpl += "<div class='info-item flex-horizontal-with-ratios'>";
                 tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
                 if (content[i].value instanceof Object || content[i].value instanceof Array)
