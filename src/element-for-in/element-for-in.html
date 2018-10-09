@@ -1,3 +1,4 @@
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <dom-module id="element-for-in">
     <template>
         <style is="custom-style" include="shared-styles">
@@ -21,8 +22,21 @@
             :host > div {
                 word-break: break-all;
             }
+            :host ::content .info-item {
+                max-height: 86px;
+                overflow: hidden;
+                position: relative;
+            }
+            :host ::content .info-item[open] {
+                max-height: 10000px;
+            }
             view-json {
                 --background-color: #fff;
+            }
+            :host ::content paper-icon-button {
+                position: absolute;
+                top: 16px;
+                right: 20px;
             }
         </style>
     </template>
@@ -40,6 +54,9 @@
             ignore: {
                 type: String
             }
+        },
+        listeners: {
+            'click': "toggleData"
         },
         _contentChanged: function(newValue, oldValue) {
             var newObj = [],
@@ -86,8 +103,10 @@
             for (var i = 0, len = content.length; i < len; i++) {
                 tpl += "<div class='info-item flex-horizontal-with-ratios'>";
                 tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
-                if (content[i].value instanceof Object || content[i].value instanceof Array)
+                if (content[i].value instanceof Object || content[i].value instanceof Array) {
                     tpl += "<div class='flexchild' style='width: 70%'><view-json>" + JSON.stringify(content[i].value) + "</view-json></div>";
+                    tpl += '<paper-icon-button icon="icons:visibility" class="toggle"></paper-icon-button>';
+                }
                 else if (content[i].key.indexOf("password") > -1)
                     tpl += "<div class='flexchild'>" + content[i].value.replace('<', '&lt;').replace('>', '&gt;') +"</div>";
                 else if (content[i].key.indexOf("power_state") > -1 && content[i].value == 1)
@@ -124,6 +143,16 @@
             return str.replace(/\w\S*/g, function(txt) {
                 return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
             });
+        },
+        toggleData: function(e) {
+            console.log('toggleData', e);
+            // this.set('dataOpen', !this.dataOpen);
+            var div = e.path.find(function(el){return el.classList.contains('info-item') })
+            if (div.hasAttribute('open')) {
+                div.removeAttribute('open');
+            } else {
+                div.setAttribute('open',true);
+            }
         }
     });
 </script>
