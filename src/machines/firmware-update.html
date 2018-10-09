@@ -94,17 +94,20 @@
                     <p hidden="[[!firmwareList.length]]">Choose from available firmwares.</p>
                     <paper-radio-group selected="{{firmware}}" hidden="[[!firmwareList.length]]">
                         <template is="dom-repeat" items="[[firmwareList]]">
-                            <paper-radio-button name="[[item.id]]">[[item.name]]</paper-radio-button>
+                            <paper-radio-button name="[[item.firmware_id]]">[[item.key]] <br/>([[item.size]])</paper-radio-button>
                         </template>
                     </paper-radio-group>
                     <p hidden="[[firmwareList.length]]">No available firmwares found.</p>
                 </template>
                 <!-- isDelete -->
                 <template is="dom-if" if="[[isDelete]]">
-                    <p>Choose firmwares to delete.</p>
-                    <template is="dom-repeat" items="[[firmwareList]]">
-                        <br/><paper-checkbox on-checked-changed="_updateFirmwaresToDelete" value="[[item.id]]">[[item.name]]</paper-checkbox><br/>
-                    </template>
+                    <p hidden="[[!firmwareList.length]]">Choose firmwares to delete.</p>
+                    <paper-radio-group selected="{{firmwareToDelete}}" hidden="[[!firmwareList.length]]">
+                        <template is="dom-repeat" items="[[firmwareList]]">
+                            <paper-radio-button name="[[item.firmware_id]]">[[item.key]] <br/>([[item.size]])</paper-radio-button>
+                        </template>
+                    </paper-radio-group>
+                    <p hidden="[[firmwareList.length]]">No available firmwares found.</p>
                 </template>
                 <!-- isBackup -->
                 <template is="dom-if" if="[[isBackup]]">
@@ -135,7 +138,7 @@
                 <paper-button dialog-dismiss>
                     Cancel
                 </paper-button>
-                <paper-button class$="[[_getClass(action)]]" on-tap="firmwareUpdate" disabled="[[!_enableButton(action, firmware, firmwaresToDelete.length, isBackup, isUpload)]]">
+                <paper-button class$="[[_getClass(action)]]" on-tap="firmwareUpdate" disabled="[[!_enableButton(action, firmware, firmwareToDelete, isBackup, isUpload)]]">
                     [[action.name]]
                 </paper-button>
             </div>
@@ -193,13 +196,10 @@ Polymer({
             type: String,
             value: ''
         },
-        firmwaresToDelete: {
-            type: Array,
-            value: []
+        firmwareToDelete: {
+            type: String,
+            value: ''
         }
-    },
-    listeners: {
-        // 'check': '_updateFirmwaresToDelete'
     },
     observers: [
         '_firmwareListChanged(firmwareList)'
@@ -232,17 +232,6 @@ Polymer({
         this.$.firmwareDialogModal.close();
         this.clearError();
     },
-    _updateFirmwaresToDelete: function(e) {
-        var item = e.model.item;
-        if (e.detail.value) {
-            this.push('firmwaresToDelete', item);
-        }
-        if (!e.detail.value) {
-            var index = this.firmwaresToDelete.indexOf(item);
-            this.splice('firmwaresToDelete', index, 1);
-        }
-        console.log('update Firmwares To Delete', this.firmwaresToDelete.length);
-    },
     firmwareUpdate: function(e) {
         var request = this.$.firmwareUpdateRequest;
         request.url = "/api/v1/machines/" + this.machine.id;
@@ -256,7 +245,7 @@ Polymer({
             request.body = {action: 'backup_firmware'};
         }
         if (this.isDelete) {
-            request.body = {action: 'delete_firmware', firmwares: this.firmwaresToDelete.map(f=>f.id)};
+            request.body = {action: 'delete_firmware', firmware: this.firmwareToDelete};
         }
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -288,9 +277,9 @@ Polymer({
     _computeUploadHeaders: function() {
         return {'Csrf-Token': CSRF_TOKEN, 'Accept': 'application/json'};
     },
-    _enableButton: function(action, firmware, firmwaresToDelete, isBackup, isUpload) {
+    _enableButton: function(action, firmware, firmwareToDelete, isBackup, isUpload) {
         if (this.isUpdate) {
-            return this.firmware.length > 0;
+            return this.firmware ? true : false;
         }
         if (this.isUpload) {
             return this.file.length;   
@@ -299,7 +288,7 @@ Polymer({
             return true;
         }
         if (this.isDelete) {
-            return this.firmwaresToDelete.length > 0;
+            return this.firmwareToDelete ? true : false;
         }
         return false;
     }
