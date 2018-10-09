@@ -36,6 +36,9 @@
                 type: Object,
                 value: {},
                 observer: '_contentChanged'
+            },
+            ignore: {
+                type: Array
             }
         },
         _contentChanged: function(newValue, oldValue) {
@@ -47,11 +50,13 @@
             if (obj && Object.keys(obj).length > 0) {
                 // loop through pairs
                 for (el in obj) {
-                    if (obj[el]) {
-                        newObj.push({
-                            key: el,
-                            value: obj[el]
-                        });
+                    if (!this.ignore || this.ignore.indexOf(el) == -1) {
+                        if (obj[el]) {
+                            newObj.push({
+                                key: el,
+                                value: obj[el]
+                            });
+                        }
                     }
                 }
 
