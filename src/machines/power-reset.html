@@ -83,13 +83,9 @@
                     Choose type of power reset.
                 </p>
                 <paper-radio-group attr-for-selected="name" selected="{{selectedType}}">
-                    <paper-radio-button name="On">On</paper-radio-button>
-                    <paper-radio-button name="GracefulShutdown">Graceful Shutdown</paper-radio-button>
-                    <paper-radio-button name="GracefulRestart">Graceful Restart</paper-radio-button>
-                    <paper-radio-button name="ForceOff">Force Off</paper-radio-button>
-                    <paper-radio-button name="PushPowerButton">Push Power Button</paper-radio-button>
-                    <paper-radio-button name="ForceOn">Force On</paper-radio-button>
-                    <paper-radio-button name="ForceRestart">Force Restart</paper-radio-button>
+                    <template is="dom-repeat" items="[[types]]">
+                        <paper-radio-button name="[[item.key]]">[[item.value]]</paper-radio-button>
+                    </template>
                 </paper-radio-group>
             </paper-dialog-scrollable>
             <div class="progress">
@@ -114,8 +110,7 @@ Polymer({
     is: 'power-reset',
     properties: {
         items: {
-            type: Array,
-            notify: true
+            type: Array
         },
         loading: {
             type: Boolean,
@@ -128,9 +123,35 @@ Polymer({
         selectedType: {
             type: String,
             value: ''
+        },
+        types: {
+            type: Array,
+            value: [],
+            computed: '_computeTypes(items.*)'
         }
     },
     ready: function() {},
+    _computeTypes: function(items) {
+        var types = {}; //new swiftSet.Set()
+
+        if (this.items.length > 0) {
+            types = this.items[0].extra.power_reset_type;
+        }
+
+        for (var i = 1; i < this.items.length; i++) {
+            var newTypes = this.items[i].extra.power_reset_type;
+            if (newTypes) {
+                for (var p in types) {
+                    if (newTypes[p] == undefined) {
+                        delete types[p]
+                    }
+                }
+            } else {
+                return [];
+            }
+        }
+        return this.typesToArray(types);
+    },
     _openDialog: function(e) {
         this.clearError();
         this.set('selectedType', '');
@@ -141,12 +162,15 @@ Polymer({
         this.clearError();
     },
     powerReset: function(e) {
-        var request = this.$.powerResetRequest;
-        request.url = "/api/v1/machines/" + this.items[0].id;
-        request.body = {action: 'power_reset', reset_type: this.selectedType};
-        request.headers["Content-Type"] = 'application/json';
-        request.headers["Csrf-Token"] = CSRF_TOKEN;
-        request.generateRequest();
+        for (var i = 0; i < this.items.length; i++) {
+            var item = this.items[i],
+                request = this.$.powerResetRequest;
+            request.url = "/api/v1/machines/" + item.id;
+            request.body = {action: 'power_reset', reset_type: this.selectedType};
+            request.headers["Content-Type"] = 'application/json';
+            request.headers["Csrf-Token"] = CSRF_TOKEN;
+            request.generateRequest();
+        }
     },
     _powerResetRequest: function() {
         this.clearError();
@@ -170,6 +194,13 @@ Polymer({
         this.set('formError', false);
         this.$.errormsg.textContent = '';
         this.$.powerDialogModal.refit();
-      },
+    },
+    typesToArray: function(obj) {
+        var arr = [];
+        for (var p in obj) {
+            arr.push({key: p, value: obj[p]});
+        }
+        return arr;
+    }
 });
 </script>
