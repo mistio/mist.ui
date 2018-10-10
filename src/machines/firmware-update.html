@@ -116,15 +116,17 @@
                 <!-- isUpload -->
                 <template is="dom-if" if="[[isUpload]]">
                     <p>Upload a firmware from your computer.</p>
-                    <vaadin-upload id="firmwareUpload" max-files="1" accept="zip" max-file-size="262144"
-                    headers="[[_computeUploadHeaders()]]"
-                    target="/api/v1/machines/[[machine.id]]">
+                    <vaadin-upload id="firmwareUpload" max-files="1" accept=".zip"
+                        headers="[[_computeUploadHeaders()]]"
+                        target$="/api/v1/machines/[[machine.id]]"
+                        on-upload-request="_handleUploadRequest"
+                        form-data-name="firmware_zip"
+                        method="POST">
                         <div class="drop-label">
                             <iron-icon icon="file-upload"></iron-icon>
                             Drop file here.
                         </div>
                         <div class="file-container">
-                            <!-- <iron-image src$="[[_computeAvatarURL(orgAvatar)]]" fades hidden$="[[!orgAvatar]]" sizing="contain" class="avatar-preview"></iron-image> -->
                         </div>
                     </vaadin-upload>
                 </template>
@@ -204,7 +206,10 @@ Polymer({
     observers: [
         '_firmwareListChanged(firmwareList)'
     ],
-    ready: function() {},
+    ready: function () {},
+    _handleUploadRequest: function (event) {
+        event.detail.formData.append('action', 'upload_firmware');
+    },
     _firmwareListChanged: function(list) {
         this.$.firmwareDialogModal.refit();
     },
@@ -236,7 +241,7 @@ Polymer({
         var request = this.$.firmwareUpdateRequest;
         request.url = "/api/v1/machines/" + this.machine.id;
         if (this.isUpdate) {
-            request.body = {action: 'put_firmware', firmware: this.firmware};
+            request.body = {action: 'put_firmware', firmware_id: this.firmware};
         }
         if (this.isUpload) {
             request.body = {action: 'upload_firmware', firmware: this.file};
@@ -245,7 +250,7 @@ Polymer({
             request.body = {action: 'backup_firmware'};
         }
         if (this.isDelete) {
-            request.body = {action: 'delete_firmware', firmware: this.firmwareToDelete};
+            request.body = {action: 'delete_firmware', firmware_id: this.firmwareToDelete};
         }
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
