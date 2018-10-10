@@ -19,7 +19,7 @@ RUN cp bower.json /
 
 COPY . /ui
 
-RUN node --max_old_space_size=4096 /usr/local/bin/polymer build && cp bower_components/echarts/dist/echarts.common.min.js build/bundled/bower_components/echarts/dist/
+RUN node --max_old_space_size=4096 /usr/local/bin/polymer build && cp bower_components/echarts/dist/echarts.min.js build/bundled/bower_components/echarts/dist/
 
 COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
