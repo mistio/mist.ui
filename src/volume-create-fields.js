@@ -25,11 +25,6 @@ var VOLUME_CREATE_FIELDS = []
 //   type: string
 //   description: EC2-specific. Needs to be specified if volume_type='io1'
 
-// AZURE
-VOLUME_CREATE_FIELDS.push({
-    provider: 'azure',
-    fields: []
-});
 
 // DIGITAL OCEAN
 VOLUME_CREATE_FIELDS.push({

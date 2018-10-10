@@ -78,11 +78,7 @@
             this.handlers = {
                 main: {
                     patch_model: function (data) {
-                        requestIdleCallback(function () {
-                            that._patchModel(data);
-                        }, {
-                            timeout: 5000
-                        });
+                        that._patchModel(data);
                     },
                     list_clouds: function (data) {
                         that._updateClouds(data);
@@ -140,12 +136,6 @@
                     },
                     list_tags: function (data) {
                         that._updateTags(data);
-                    },
-                    ping: function (data) {
-                        that._ping(data);
-                    },
-                    probe: function (data) {
-                        that._probe(data);
                     },
                     monitoring: function (data) {
                         that._updateMonitoring(data);
@@ -247,7 +237,12 @@
 
         heartbeat: function () {
             console.debug('got heartbeat');
-            this.send('h'); // reply with empty frame
+            var _this=this;
+            requestIdleCallback(function () {
+                _this.send('h'); // reply with empty frame
+            }, {
+                timeout: 5000
+            });
         },
 
         getStats: function (data, callback) {
@@ -307,57 +302,64 @@
         },
 
         _patchModel: function (patch) {
-            console.debug('patch_model', patch);
             var _this = this;
+            patch.forEach(function(operation) {
+                var idleCallbackId = requestIdleCallback(function () {
+                    var cloud_id, resource_type, resource_id, resource_external_id, path, property_path, old_cloud_resource_external_ids, old_cloud_resource_ids;
 
-            patch.forEach(function (operation) {
-                // let's figure out which cloud the patch applies to
-                var cloud_id, machine_id, resource_id, property_path;
-                if (operation.path.search('/clouds/') > -1) {
-                    path = operation.path.split('/clouds/')[1].split('/');
-                    cloud_id = path[0];
-                }
-                if (cloud_id && operation.path && operation.path.split('/machines/')[1]) {
-                    path = operation.path.split('/machines/')[1].split('/');
-                    machine_external_id = path[0];
-                    property_path = operation.path.split(machine_external_id)[1].replace(/\//g, '.');
-                }
+                    // Let's figure out if the patch applies to a cloud and which one
+                    if (operation.path.search('/clouds/') > -1) {
+                        path = operation.path.split('/clouds/')[1].split('/');
+                        cloud_id = path[0];
 
-                var old_cloud_machine_external_ids = Object.keys(_this.model.clouds[cloud_id].machines || {}),
-                    old_cloud_machine_ids = old_cloud_machine_external_ids.map(i => _this.model.clouds[cloud_id].machines[i].id);
+                        // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
+                        if (['machines', 'networks', 'volumes', 'zones'].indexOf(path[1]) > -1) {
+                            resource_type = path[1];
+                            path = operation.path.split('/' + resource_type + '/')[1].split('/');
+                            resource_external_id = path[0];
+                            property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
+                            old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloud_id][resource_type] || {})
+                            old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloud_id][resource_type][i].id);
 
-                // apply patch to the model
-                jsonpatch.applyOperation(_this.model, operation, true);
-
-                var new_cloud_machines = _this.model.clouds[cloud_id].machines,
-                    new_cloud_machine_external_ids = Object.keys(new_cloud_machines),
-                    new_cloud_machine_ids = new_cloud_machine_external_ids.map(i => new_cloud_machines[i].id);
-
-                // Cleanup deleted machine refs
-                for (var i=0; i < old_cloud_machine_ids.length; i++) {
-                    if (new_cloud_machines[old_cloud_machine_external_ids[i]] == undefined
-                        && _this.model.machines[old_cloud_machine_ids[i]] != undefined) {
-                        delete _this.model.machines[old_cloud_machine_ids[i]];
-                        _this.notifyPath('model.machines.' + old_cloud_machine_ids[i]);
-                        //_this.notifyPath('model.machines');
+                        }
                     }
-                }
 
-                // Link paths of new machines for easy global lookup
-                for (var i=0; i < new_cloud_machine_ids.length; i++) {
-                    if (_this.model.machines[new_cloud_machine_ids[i]] == undefined) {
-                        _this.set('model.machines.' + new_cloud_machine_ids[i], _this.model.clouds[cloud_id].machines[new_cloud_machine_external_ids[i]]);
-                        _this.linkPaths('model.machines.' + new_cloud_machine_ids[i], 'model.clouds.' + cloud_id + '.machines.' + new_cloud_machine_external_ids[i]);
+                    // Apply patch operation to the model
+                    jsonpatch.applyOperation(_this.model, operation, true);
+
+                    if (resource_type) {
+                        var new_cloud_resources = _this.model.clouds[cloud_id][resource_type],
+                            new_cloud_resource_external_ids = Object.keys(new_cloud_resources),
+                            new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
+
+                        // Cleanup deleted resource refs
+                        for (var i=0; i < old_cloud_resource_ids.length; i++) {
+                            if (new_cloud_resources[old_cloud_resource_external_ids[i]] == undefined
+                                && _this.model[resource_type][old_cloud_resource_ids[i]] != undefined) {
+                                _this.set('model.' + resource_type + '.' + old_cloud_resource_ids[i], null);
+                                _this.notifyPath('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
+                                delete _this.model[resource_type][old_cloud_resource_ids[i]];
+                            }
+                        }
+
+                        // Link paths of new resources for easy global lookup
+                        for (var i=0; i < new_cloud_resource_ids.length; i++) {
+                            if (_this.model[resource_type][new_cloud_resource_ids[i]] == undefined) {
+                                _this.set('model.' + resource_type + '.' + new_cloud_resource_ids[i], _this.model.clouds[cloud_id][resource_type][new_cloud_resource_external_ids[i]]);
+                                _this.linkPaths('model.'+ resource_type + '.' + new_cloud_resource_ids[i], 'model.clouds.' + cloud_id + '.' + resource_type + '.' + new_cloud_resource_external_ids[i]);
+                            }
+                        }
+
+                        if (property_path) {
+                            _this.notifyPath('model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_path);
+                        }
+
+                        _this.set('model.sections.' + resource_type + '.count', Object.keys(_this.model[resource_type]).length);
                     }
-                }
-
-                //_this.notifyPath('model.machines.' + _this.model.clouds[cloud_id].machines[machine_external_id].id);
-                //console.log('notifyPath ' + 'model' + operation.path.replace(/\//g, '.'));
-                if (property_path) {
-                    _this.notifyPath('model.machines.' + _this.model.clouds[cloud_id].machines[machine_external_id].id + property_path);
-                }
+                }, {
+                    timeout: 5000
+                });
             });
-            this.set('model.sections.machines.count', Object.keys(this.model.machines).length);
         },
 
         _updateModel: function (section, data, primaryField) {
@@ -673,34 +675,18 @@
         },
 
         _updateMachines: function (data) {
-            if (this.model.clouds[data.cloud_id].machines == undefined)
-                this.model.clouds[data.cloud_id].machines = {};
-            var old_cloud_machine_external_ids = Object.keys(this.model.clouds[data.cloud_id].machines),
-                old_cloud_machine_ids = old_cloud_machine_external_ids.map(i => this.model.clouds[data.cloud_id].machines[i].id),
-                new_cloud_machines = data.machines.reduce((map, obj) => (map[obj.machine_id] = obj, map), {}),
-                new_cloud_machine_external_ids = Object.keys(new_cloud_machines),
-                new_cloud_machine_ids = new_cloud_machine_external_ids.map(i => new_cloud_machines[i].id); 
+            this.set('model.onboarding.isLoadingMachines', false);
+            this._updateCloudResources(data, 'machines', 'machine_id');
+        },
 
-            this.set('model.clouds.' + data.cloud_id + '.machines', new_cloud_machines);
-
-            for (var i=0; i<old_cloud_machine_ids.length; i++) {
-                if (old_cloud_machine_ids[i].indexOf(new_cloud_machine_ids) == -1) {
-                    delete this.model.machines[old_cloud_machine_ids[i]];
-                }
-            }
-
-            for (var i=0; i < new_cloud_machine_ids.length; i++) {
-                if (this.model.machines[new_cloud_machine_ids[i]] == undefined) {
-                    this.set('model.machines.' + new_cloud_machine_ids[i], this.model.clouds[data.cloud_id].machines[new_cloud_machine_external_ids[i]]);
-                    this.linkPaths('model.machines.' + new_cloud_machine_ids[i], 'this.model.clouds.' + data.cloud_id + '.machines.' + new_cloud_machine_external_ids[i]);
-                }
-            }
-            this.set('model.sections.machines.count', Object.keys(this.model.machines).length);
+        _updateNetworks: function (data) {
+            this.set('model.onboarding.isLoadingNetworks', false);
+            this._updateCloudResources(data, 'networks', 'network_id');
         },
 
         _updateVolumes: function (data) {
             console.log('UPDATE VOLUMES', data);
-            this._updateCloudResources(data,'volumes','external_id')
+            this._updateCloudResources(data, 'volumes', 'external_id')
         },
 
         _updateCloudResources: function (data, section, externalId) {
@@ -728,65 +714,6 @@
             }
             this.set('model.sections.' + section + '.count', Object.keys(this.model[section]).length);
         },        
-
-        _updateNetworks: function (data) {
-            this.set('model.onboarding.isLoadingNetworks', false);
-
-            //update cloud's networks
-            var cloudNetworks = [];
-            if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider && data.networks) {
-                data.networks.private && data.networks.private.forEach(function (net) {
-                    if (net.id) {
-                        net["network_type"] = "private";
-                        net["provider"] = this.model.clouds[data.cloud_id].provider;
-                        net["cloud_id"] = data.cloud_id;
-                        cloudNetworks.push(net);
-                    }
-                }, this);
-                data.networks.public && data.networks.public.forEach(function (net) {
-                    if (net.id) {
-                        net["network_type"] = "public";
-                        net["provider"] = this.model.clouds[data.cloud_id].provider;
-                        net["cloud_id"] = data.cloud_id;
-                        cloudNetworks.push(net);
-                    }
-                }, this);
-            }
-            // data.networks.routers.forEach(function(net){
-            //     if (net.id){
-            //         net["network_type"] = "router";
-            //         net["provider"] = this.model.clouds[data.cloud_id].provider;
-            //         net["cloud_id"] = data.cloud_id;
-            //         cloudNetworks.push(net);
-            //     }
-            // }, this);
-
-            // console.log(data);
-
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.networks', cloudNetworks);
-
-            if (!changed)
-                return false;
-
-            this.set('model.clouds.' + data.cloud_id + '.networksArray', cloudNetworks);
-            this.set('model.clouds.' + data.cloud_id + '.networks', _generateMap(cloudNetworks));
-
-            //update all networks array
-            var allNetworks = [];
-            if (this.model != undefined) {
-                this.model.cloudsArray.forEach(function (cloud) {
-                    if (cloud.networksArray != undefined && cloud.enabled) {
-                        cloud.networksArray.forEach(function (net) {
-                            allNetworks.push(net);
-                        })
-                    }
-                });
-            }
-            this.set('model.networksArray', allNetworks);
-            this.set('model.networks', _generateMap(allNetworks));
-            // update section count, necessary for propagating changes to sidebar & dashboard counters
-            this.set('model.sections.networks.count', allNetworks.length);
-        },
 
         _updateZones: function (data) {
             this.set('model.onboarding.isLoadingZones', false);
@@ -983,25 +910,6 @@
             this.notifyPath('model.incidentsArray');
         },
 
-
-        _probe: function (data) {
-            if (!this.model.probes)
-                this.set('model.probes', {})
-            console.log('probe', data);
-            try {
-                var cloud = this.model.clouds[data.cloud_id],
-                    machine = cloud.machines[data.machine_id];
-                this.set('model.probes.' + machine.id, data.result);
-            } catch (e) {
-                console.log('cannot find id for machine with cloud_id ', data.cloud_id, ' and machine_id',
-                    data.machine_id);
-            }
-        },
-
-        _ping: function (data) {
-            // TODO
-        },
-
         _generateIcon: function (data) {
             var lexicon = ["ubuntu", "mongo", "aws", "suse", "fedora", "linux"];
             var keywords = [];
@@ -1055,17 +963,11 @@
 
         cleanUpResources: function (cloud_id) {
             var newImagesArray = [],
-                newNetworksArray = [];
                 _this = this;
             if (cloud_id) {
                 // images
                 newImagesArray = this.model.imagesArray.filter(function (im) {
                     return im.cloud && im.cloud.id != cloud_id;
-                });
-
-                // networks
-                newNetworksArray = this.model.networksArray.filter(function (n) {
-                    return n.cloud_id != cloud_id;
                 });
             }
 
@@ -1080,16 +982,16 @@
                 }
             });
 
+            // networks
+            this.cleanUpCloudResources(cloud_id, 'networks', 'network_id');
             // volumes
-            this.cleanUpCloudResources('volumes');
+            this.cleanUpCloudResources(cloud_id, 'volumes', 'external_id');
 
             this.set('model.imagesArray', newImagesArray);
             this.set('model.images', _generateMap(newImagesArray));
-
-            this.set('model.networksArray', newNetworksArray);
-            this.set('model.networks', _generateMap(newNetworksArray));
         },
-        cleanUpCloudResources: function(section, externalId) {
+
+        cleanUpCloudResources: function(cloud_id, section, externalId) {
             var _this = this;
             Object.keys(this.model[section]).forEach(function(resource_id) {
                 var resource = _this.model[section][resource_id];
