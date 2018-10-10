@@ -94,7 +94,7 @@
                     <p hidden="[[!firmwareList.length]]">Choose from available firmwares.</p>
                     <paper-radio-group selected="{{firmware}}" hidden="[[!firmwareList.length]]">
                         <template is="dom-repeat" items="[[firmwareList]]">
-                            <paper-radio-button name="[[item.firmware_id]]">[[item.key]] <br/>([[item.size]])</paper-radio-button>
+                            <paper-radio-button name="[[item.key]]">[[item.key]] <br/>([[item.size]])</paper-radio-button>
                         </template>
                     </paper-radio-group>
                     <p hidden="[[firmwareList.length]]">No available firmwares found.</p>
@@ -104,7 +104,7 @@
                     <p hidden="[[!firmwareList.length]]">Choose firmwares to delete.</p>
                     <paper-radio-group selected="{{firmwareToDelete}}" hidden="[[!firmwareList.length]]">
                         <template is="dom-repeat" items="[[firmwareList]]">
-                            <paper-radio-button name="[[item.firmware_id]]">[[item.key]] <br/>([[item.size]])</paper-radio-button>
+                            <paper-radio-button name="[[item.key]]">[[item.key]] <br/>([[item.size]])</paper-radio-button>
                         </template>
                     </paper-radio-group>
                     <p hidden="[[firmwareList.length]]">No available firmwares found.</p>
@@ -140,7 +140,7 @@
                 <paper-button dialog-dismiss>
                     Cancel
                 </paper-button>
-                <paper-button class$="[[_getClass(action)]]" on-tap="firmwareUpdate" disabled="[[!_enableButton(action, firmware, firmwareToDelete, isBackup, isUpload)]]">
+                <paper-button class$="[[_getClass(action)]]" on-tap="firmwareUpdate" disabled="[[!_enableButton(action, firmware, firmwareToDelete, isBackup, isUpload)]]" hidden$="[[isUpload]]">
                     [[action.name]]
                 </paper-button>
             </div>
@@ -242,9 +242,6 @@ Polymer({
         request.url = "/api/v1/machines/" + this.machine.id;
         if (this.isUpdate) {
             request.body = {action: 'put_firmware', firmware_id: this.firmware};
-        }
-        if (this.isUpload) {
-            request.body = {action: 'upload_firmware', firmware: this.file};
         }
         if (this.isBackup) {
             request.body = {action: 'backup_firmware'};
