@@ -709,7 +709,7 @@
                 <machine-r12ns r12ns=[[r12ns]] can-resize=[[machine.actions.resize]]></machine-r12ns>
             </paper-material>
             <template is="dom-if" if=[[monitoring]]>
-                <paper-material id="monitoringBlock" class="info-card">
+                <paper-material id="monitoringBlock" class="info-card" hidden$="[[!canBeMonitored]]">
                     <mist-monitoring
                         id="mistMonitoring"
                         resource="[[machine]]"
@@ -954,7 +954,11 @@
                 },
                 computed: '_computeMachineR12ns(machine, model.notificationsArray.length)'
             },
-            portalName: 'Mist.io'
+            portalName: 'Mist.io',
+            canBeMonitored: {
+                type: Boolean,
+                computed: '_computeCanBeMonitored(machine)'
+            }
         },
         observers: [
             '_isMonitored(machine, model.monitoring.machines.*)',
@@ -969,6 +973,10 @@
         ready: function () {
             this.set('hideAssociatedKeys', true);
             this.set('isPendingKeyRequest', false);
+        },
+        _computeCanBeMonitored: function(machine) {
+            var machineTypesThatCannotBeMonitored = ['ilo-host'];
+            return machineTypesThatCannotBeMonitored.indexOf(this.machine.machine_type) == -1;
         },
         _rulesApplyOnMachine: function (rules, machine) {
             var machineRules = {}, check;
