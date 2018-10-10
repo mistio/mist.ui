@@ -1,0 +1,153 @@
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<script src='../../bower_components/moment/min/moment.min.js'></script>
+<script src='../../bower_components/timerange-picker/relative.time.parser.js'></script>
+
+<script src='../../bower_components/echarts/dist/echarts.common.min.js'></script>
+<!-- <script src="../../bower_components/view-json/view-json.js"></script> -->
+
+<dom-module id="ethernet-info">
+    <template>
+        <style include="shared-styles tags-and-labels">
+            :host {
+                display: block;
+                vertical-align: top;
+                position: relative;
+                overflow: hidden;
+                padding: 16px;
+            }
+
+            .title {
+                line-height: 1.6;
+                margin: 0 auto;
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-block;
+            }
+
+            .text-center {
+                text-align: center;
+            }
+
+            .tag {
+                display: inline;
+                font-size: 14px !important;
+                line-height: 1.6em;
+                padding: 4px 8px;
+                margin-right: 8px;
+            }
+            .green {
+                background-color: var(--green-color);
+                color: #fff;
+            }
+
+            .red {
+                background-color: var(--red-color);
+                color: #fff;
+            }
+
+            .orange {
+                background-color: var(--orange-color);
+                color: #444;
+            }
+
+            #gaugeInfo {
+                position: relative;
+                overflow-y: scroll;
+                height: auto;
+            }
+
+            #gaugeInfo view-json {
+
+            }
+
+            paper-icon-button.toggle {
+                display: inline-block;
+                z-index: 1;
+                opacity: 0.54;
+            }
+
+            .absent-true {
+                opacity: 0.3;
+            }
+        </style>
+
+        <paper-icon-button icon="icons:expand-more" class="toggle" on-tap="toggleData" alt="Details"></paper-icon-button>
+
+        <h2 class="title">
+            [[data.Name]] [[data.BootString]]
+            <span hidden$="[[!isEthernet]]">
+                <span class="tag" hidden="[[!isDisabled]]">[[data.Status.State]]</span>
+                <span class$="tag [[_class(data)]]" hidden="[[isDisabled]]">Health: [[data.Status.Health]]</span>
+            </span>
+        </h2>
+
+        <div id="gaugeInfo" hidden="[[!dataOpen]]">
+            <view-json>[[_stringify(data)]]</view-json>
+        </div>
+
+    </template>
+    <script>
+    Polymer({
+        is: 'ethernet-info',
+        properties: {
+            data: {
+                type: Object
+            },
+            type: {
+                type: String
+            },
+            isEthernet: {
+                type: Boolean,
+                value: false,
+                computed: '_computeIsEthernet(data)'
+            },
+            isBootsource: {
+                type: Boolean,
+                value: false,
+                computed: '_computeIsBootsource(data)'
+            },
+            isDisabled: {
+                type: Boolean,
+                value: false,
+                computed: '_computedIsDisabled(data)'
+            },
+            dataOpen: {
+                type: Boolean,
+                value: false,
+                reflectToAttribute: true
+            }
+        },
+        _computedIsDisabled: function(state) {
+            return this.data && this.data.Status && this.data.Status.State == "Disabled";
+        },
+        _class: function(data) {
+            if (this.data.Status) {
+                if (this.data.Status.Health == "OK") {
+                    return "green";
+                } else if (this.data.Status.Health == "Warning") {
+                    return "orange";
+                } else if (!this.data.Status.State || this.data.Status.State == "Absent") {
+                    return "";
+                }
+            }
+            return "";
+        },
+        _computeIsBootsource:  function(data) {
+            return this.type == 'bootsource';
+        },
+        _computeIsEthernet: function(data) {
+            return this.type == 'ethernet';
+        },
+        _stringify: function(data) {
+            return JSON.stringify(this.data);
+        },
+        toggleData: function() {
+            this.set('dataOpen', !this.dataOpen);
+        }
+    });
+    </script>
+</dom-module>

@@ -6,6 +6,7 @@
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../helpers/gauge-info.html">
+<link rel="import" href="../helpers/ethernet-info.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../mist-monitoring.html">
@@ -76,6 +77,10 @@
 
             paper-material.info-card {
                 padding: 0;
+            }
+
+            paper-material.info-card.pad {
+                padding: 16px 0;
             }
 
             paper-material>h2 {
@@ -504,6 +509,9 @@
                 padding-right: 8px;
                 vertical-align: top;
             }
+            ethernet-info:nth-child(even){
+                background-color: #f2f2f2;
+            }
         </style>
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
@@ -799,10 +807,26 @@
                     </template>
                 </div>
             </paper-material>
+            <paper-material class="info-card" hidden$=[[!_hasEthernetInfo(machine)]]>
+                <h2 class="machine-page-head">Ethernet Interfaces</h2>
+                <div class="card-content pad">
+                    <template is="dom-repeat" items="[[machine.extra.ethernet_interfaces.list]]">
+                        <ethernet-info data="[[item]]" type="ethernet"></ethernet-info>
+                    </template>
+                </div>
+            </paper-material>
+            <paper-material class="info-card" hidden$=[[!_hasBootSourcesInfo(machine)]]>
+                <h2 class="machine-page-head">Boot Sources</h2>
+                <div class="card-content pad">
+                    <template is="dom-repeat" items="[[_sortBootsources(machine.extra.bios.BootSources)]]">
+                        <ethernet-info data="[[item]]" type="bootsource"></ethernet-info>
+                    </template>
+                </div>
+            </paper-material>
             <paper-material class="info-card" hidden$=[[!_hasExtra(machine)]]>
                 <h2 class="machine-page-head">More Info</h2>
                 <div class="card-content">
-                    <element-for-in content="[[machine.extra]]" ignore="fans temperatures power_supply_info"></element-for-in>
+                    <element-for-in content="[[machine.extra]]" ignore="fans temperatures power_supply_info ethernet_interfaces"></element-for-in>
                 </div>
             </paper-material>
             <paper-material class="machine-logs" hidden$=[[!count]]>
@@ -973,6 +997,16 @@
         ready: function () {
             this.set('hideAssociatedKeys', true);
             this.set('isPendingKeyRequest', false);
+        },
+        _sortBootsources: function (bootsources){
+            if (bootsources) {
+                return bootsources.sort(function(a, b) {
+                    if (parseInt(a.BootOptionNumber, 16) > parseInt(b.BootOptionNumber, 16)) { return -1; }
+                    if (parseInt(a.BootOptionNumber, 16) < parseInt(b.BootOptionNumber, 16)) { return 1; }
+                    return 0;
+                })
+            }
+            return bootsources;
         },
         _computeCanBeMonitored: function(machine) {
             var machineTypesThatCannotBeMonitored = ['ilo-host'];
@@ -1525,6 +1559,18 @@
             return this._hasExtra(machine) && (
                 this.machine.extra.power_control_info ||
                 this.machine.extra.power_supply_info);
+        },
+
+        _hasEthernetInfo: function (machine) {
+            return this._hasExtra(machine) && 
+                this.machine.extra.ethernet_interfaces &&
+                this.machine.extra.ethernet_interfaces.list.length;
+        },
+
+        _hasBootSourcesInfo: function (machine) {
+            return this._hasExtra(machine) && 
+                this.machine.extra.bios &&
+                this.machine.extra.bios.BootSources.length;  
         },
 
         _hasTemperatureInfo: function (machine) {
