@@ -132,7 +132,7 @@
                     existingTags: {
                         type: Array,
                         value: [],
-                        computed: '_computeExistingTags(model.machines)'
+                        computed: '_computeExistingTags(model.*)'
                     },
                     items: {
                         type: Array,
@@ -166,12 +166,16 @@
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
                     'tag-delete': '_tagDeleteHandler',
-                    'tag-change': '_tagUpdate'
+                    'tag-change': '_tagUpdate',
+                    'refit': '_refit'
                 },
                 ready: function(){
                     this.set('items', []);
                     this.set('tags', []);
                     this.set('tagsToDelete', []);
+                },
+                _refit: function() {
+                    this.$.tagsModal.refit();
                 },
                 _openDialog: function(e) {
                     this.querySelector('paper-dialog').open();
@@ -188,9 +192,11 @@
                 _computeExistingTags: function(model) {
                     var existingTags = [];
                     for (var resources in this.model) {
-                        for (var resource in this.model[resources]) {
-                            if (this.model[resources][resource] && this.model[resources][resource].tags) {
-                                existingTags = this._addTags(existingTags, this.model[resources][resource].tags);
+                        for (var id in this.model[resources]) {
+                            // console.log('in loop 2', this.model[resources][id] && this.model[resources][id].tags);
+                            if (this.model[resources][id] && this.model[resources][id].tags) {
+                                var foo = existingTags;
+                                existingTags = this._addTags(foo, this.model[resources][id].tags);
                             }
                         }
                     }
@@ -198,9 +204,10 @@
                 },
                 _addTags: function(arr, tags){
                     if (arr && tags.length) {
+                        var keys = arr.map(tag=>tag.key);
                         for (var i=0; i<tags.length; i++) {
                             // push if is first tag.key appearence or if tag exists but has different value
-                            var index = arr.map(tag=>tag.key).indexOf(tags[i].key);
+                            var index = keys.indexOf(tags[i].key);
                             if (index == -1 || (index > -1 && arr[index].value != tags[i].value)){
                                 arr.push(tags[i]);
                             }
@@ -307,7 +314,7 @@
                     var tin = this.tagsToDelete.find(function(t){
                         return t.key == tag.key;
                     })
-                    console.log('tin', tin);
+                    // console.log('tin', tin);
                     return tin ? true : false;
                 },
                 _saveTags: function() {
