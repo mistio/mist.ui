@@ -34,7 +34,7 @@
             }
 
             paper-listbox {
-                max-height: 300px;
+                max-height: 200px;
                 overflow-y: scroll;
                 margin: 0;
                 padding: 0;
@@ -117,11 +117,13 @@
             return oldTag;
         },
         _existingTagChanged: function(existingTagIndex) {
-            console.log('_existingTagChanged', this.existingTags[existingTagIndex]);
-            this.set('tag.key', this.existingTags[existingTagIndex].key);
-            this.set('tag.value', this.existingTags[existingTagIndex].value || null);
-            this.set('typing', false);
-            this.fire('refit');
+            if (existingTagIndex != undefined) {
+                console.log('_existingTagChanged', this.existingTags[existingTagIndex]);
+                this.set('tag.key', this.existingTags[existingTagIndex].key);
+                this.set('tag.value', this.existingTags[existingTagIndex].value || null);
+                this.set('typing', false);
+                this.fire('refit');
+            }
         },
         _startTyping: function() {
             this.set('typing', true);
@@ -146,6 +148,18 @@
                 'newTag': this.tag,
                 'index': this.index
             });
-        }
+        },
+        _filterOutCurrent: function(existingTags) {
+            if (this.existingTags && this.tag.key) {
+                return this.existingTags.filter(function(t) {
+                    return t.key != this.tag.key || (t.key == this.tag.key && this._nonEqualTagValues(t.value, this.tag.value));
+                }.bind(this));
+            }
+            return existingTags;
+        },
+        _nonEqualTagValues: function(val1,val2){
+            var val1 = val1 || '', val2 = val2 || '';
+            return val1 != val2;
+        },
     });
 </script>
