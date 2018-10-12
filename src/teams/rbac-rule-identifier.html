@@ -259,8 +259,13 @@
             _computeRuleDD: function (rtype, model) {
                 if (rtype) {
                     if (rtype != 'record'){
-                        this.set('placeholder', this.model[rtype+"sArray"].length ? "" : "no "+rtype+"s found");
-                        return this.model[rtype + 'sArray'];
+                        if (['machine','network'].indexOf(rtype) == -1) {
+                            this.set('placeholder', this.model[rtype+"sArray"].length ? "" : "no "+rtype+"s found");
+                            return this.model[rtype + 'sArray'];
+                        } else {
+                            this.set('placeholder', mapToArray(this.model[rtype+"s"]).length ? "" : "no "+rtype+"s found");
+                            return mapToArray(this.model[rtype+"s"]);
+                        }
                     }
                     if (rtype == 'record') {
                         var records = this._computeRecords();

@@ -11,7 +11,7 @@
             var valid = true,
                 validActions,
                 validQueries;
-            if (!this.rule.actions || !this.rule.queries) {
+            if (!this.rule || !this.rule.actions || !this.rule.queries) {
                 valid = false;
             } else {
                 for (var p in this.rule) {
@@ -20,14 +20,13 @@
                         break;
                     }
                 }
-
                 for (var i = 0; i < this.rule.actions.length; i++) {
                     validActions = this._validateAction(this.rule.actions[i]);
                     if (!validActions)
                         break;
                 }
-                for (var i = 0; i < this.rule.queries.length; i++) {
-                    validQueries = this._validateQuery(this.rule.queries[i]);
+                for (var j = 0; j < this.rule.queries.length; j++) {
+                    validQueries = this._validateQuery(this.rule.queries[j]);
                     if (!validQueries)
                         break;
                 }
@@ -36,7 +35,6 @@
         },
         _validateAction: function (action) {
             var valid = false;
-
             if (action.type == 'reboot' || action.type == 'destroy') {
                 valid = true;
             } else if (action.type == 'alert') {
@@ -49,12 +47,14 @@
                 if (action.command && action.command.length) {
                     valid = true;
                 }
+            } else if (action.type == 'no_data') {
+                valid = true;
             }
             return valid;
         },
         _validateQuery: function (query) {
             var valid = false;
-            if (query.target && query.operator && query.threshold)
+            if (query.target && query.operator && query.threshold != undefined)
                 valid = true;
             return valid;
         },
