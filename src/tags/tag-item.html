@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 
 <dom-module id="tag-item">
     <template>
@@ -46,24 +47,18 @@
                 padding: 0;
             }
 
+            vaadin-combo-box {
+                margin-right: 8px;
+            }
+
         </style>
 
         <div class="input-box">
             <strong>[[newIndex]].</strong>
-            <paper-input label="key" value="{{tag.key}}" class="flex key"></paper-input>
-            <paper-input label="value" value="{{tag.value}}" class="flex value"></paper-input>
+            <vaadin-combo-box value="{{tag.key}}" items="[[existingTagKeys]]" filter="[[tag.key]]" allow-custom-value></vaadin-combo-box>
+            <vaadin-combo-box value="{{tag.value}}" items="[[existingTagValues]]" filter="[[tag.value]]" allow-custom-value></vaadin-combo-box>
             <paper-icon-button icon="delete" on-tap="_deleteTag"></paper-icon-button>
         </div>
-
-        <paper-material hidden$="[[!typing]]">
-            <paper-listbox id="suggestedTags" selected="{{existingTagIndex}}">
-                <template id="existingTagsRepeat" is="dom-repeat" items="[[existingTags]]">
-                    <paper-item>
-                        <span class="tag">[[item.key]] <span hidden$="[[!item.value]]"> = [[item.value]]</span></span>
-                    </paper-item>
-                </template>
-            </paper-listbox>
-        <paper-material>
 
     </template>
 </dom-module>
@@ -76,16 +71,10 @@
                 type: Object,
                 notify: true
             },
-            existingTagIndex: {
-                type: Number,
-                notify: true,
-                observer: '_existingTagChanged'
+            existingTagKeys: {
+                type: Array
             },
-            typing: {
-                type: Boolean,
-                value: false
-            },
-            existingTags: {
+            existingTagValues: {
                 type: Array
             },
             oldTag: {
@@ -101,13 +90,7 @@
         },
         listeners: {
             'change': '_tagChange',
-            'input': '_startTyping',
-            'blur': '_stopTyping'
         },
-        observer: [
-            '_existingTagsRepeat(existingTags.*)'
-        ],
-        ready: function () {},
         storeOldTag: function (tag) {
             //store tag
             var oldTag = {};
@@ -115,24 +98,6 @@
             oldTag.value = this.tag.value;
 
             return oldTag;
-        },
-        _existingTagChanged: function(existingTagIndex) {
-            if (existingTagIndex != undefined) {
-                console.log('_existingTagChanged', this.existingTags[existingTagIndex]);
-                this.set('tag.key', this.existingTags[existingTagIndex].key);
-                this.set('tag.value', this.existingTags[existingTagIndex].value || null);
-                this.set('typing', false);
-                this.fire('refit');
-            }
-        },
-        _startTyping: function() {
-            this.set('typing', true);
-        },
-        _stopTyping: function() {
-            this.set('typing', false);
-        },
-        _existingTagsRepeat: function(existingTags) {
-            this.$.existingTagsRepeat.render();
         },
         _computeNewIndex: function (index) {
             return index + 1;
@@ -148,18 +113,6 @@
                 'newTag': this.tag,
                 'index': this.index
             });
-        },
-        _filterOutCurrent: function(existingTags) {
-            if (this.existingTags && this.tag.key) {
-                return this.existingTags.filter(function(t) {
-                    return t.key != this.tag.key || (t.key == this.tag.key && this._nonEqualTagValues(t.value, this.tag.value));
-                }.bind(this));
-            }
-            return existingTags;
-        },
-        _nonEqualTagValues: function(val1,val2){
-            var val1 = val1 || '', val2 = val2 || '';
-            return val1 != val2;
-        },
+        }
     });
 </script>

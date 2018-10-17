@@ -90,13 +90,13 @@
             }
         </style>
 
-        <paper-dialog id="tagsModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+        <paper-dialog id="tagsModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" modal with-backdrop>
             <h2>Tags</h2>
             <paper-dialog-scrollable>
                 <div class="tag-list">
                     <p hidden$="[[!showEmpty]]"><em>No tags. Save to clear all tags.</em></p>
                     <template is="dom-repeat" items="[[tags]]" as="tag">
-                        <tag-item tag="[[tag]]" existing-tags="[[existingTags]]" index=[[index]]></tag-item>
+                        <tag-item tag="[[tag]]" existing-tag-keys="[[existingTagKeys]]" existing-tag-values="[[existingTagValues]]" index=[[index]]></tag-item>
                     </template>
                 </div>
             </paper-dialog-scrollable>
@@ -133,6 +133,16 @@
                         type: Array,
                         value: [],
                         computed: '_computeExistingTags(model.*)'
+                    },
+                    existingTagKeys: {
+                        type: Array,
+                        value: [],
+                        computed: '_computeExistingTagKeys(existingTags.*)'
+                    },
+                    existingTagValues: {
+                        type: Array,
+                        value: [],
+                        computed: '_computeExistingTagValues(existingTags.*)'
                     },
                     items: {
                         type: Array,
@@ -180,7 +190,8 @@
                 _openDialog: function(e) {
                     this.querySelector('paper-dialog').open();
                 },
-                _closeDialog: function() {
+                _closeDialog: function(e) {
+                    console.log('_closeDialog',e);
                     this.querySelector('paper-dialog').close();
                 },
                 _modalClosed: function(e) {
@@ -201,6 +212,12 @@
                         }
                     }
                     return existingTags;
+                },
+                _computeExistingTagKeys: function(existingTags) {
+                    return this.existingTags.map(t=>t.key).filter(function(v,i,s){return s.indexOf(v) === i;});
+                },
+                _computeExistingTagValues: function(existingTags) {
+                    return this.existingTags.map(t=>t.value).filter(function(v,i,s){return v && s.indexOf(v) === i;});
                 },
                 _addTags: function(arr, tags){
                     if (arr && tags.length) {
@@ -367,6 +384,7 @@
                     this.set('showProgress', true);
                 },
                 _handleTagsAjaxResponse: function(e) {
+                    console.log('_handleTagsAjaxResponse');
                     this._closeDialog();
                     this.fire('action-finished', {success: true});
                     this.fire('toast',{msg:'Tags were updated!',duration:3000});
