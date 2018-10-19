@@ -320,7 +320,6 @@
                             property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
                             old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloud_id][resource_type] || {})
                             old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloud_id][resource_type][i].id);
-
                         }
                     }
 
@@ -351,7 +350,17 @@
                         }
 
                         if (property_path) {
-                            _this.notifyPath('model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_path);
+                            var resource_global_path = 'model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_path
+                            _this.notifyPath(resource_global_path);
+                            var property_sub_path = property_path.split('.');
+                            property_sub_path.pop();
+                            if (property_sub_path.length > 1) {
+                                property_sub_path = property_sub_path.join('.');
+                                property_sub_path = 'model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_sub_path
+                                setTimeout(function() {
+                                    _this.notifyPath(property_sub_path);
+                                }, 50);
+                            }
                         }
 
                         _this.set('model.sections.' + resource_type + '.count', Object.keys(_this.model[resource_type]).length);
@@ -689,6 +698,11 @@
             this._updateCloudResources(data, 'volumes', 'external_id')
         },
 
+        _updateZones: function (data) {
+            this.set('model.onboarding.isLoadingNetworks', false);
+            this._updateCloudResources(data, 'zones', 'zone_id');
+        },
+
         _updateCloudResources: function (data, section, externalId) {
             if (this.model.clouds[data.cloud_id][section] == undefined)
                 this.model.clouds[data.cloud_id][section] = {};
@@ -714,115 +728,6 @@
             }
             this.set('model.sections.' + section + '.count', Object.keys(this.model[section]).length);
         },        
-
-        _updateZones: function (data) {
-            this.set('model.onboarding.isLoadingZones', false);
-
-            //update cloud's Zones
-            var cloudZones = [];
-            if (this.model.clouds && this.model.clouds[data.cloud_id] && this.model.clouds[data.cloud_id].provider) {
-                data.zones.forEach(function (zone) {
-                    if (zone.id) {
-                        zone['cloud_id'] = data.cloud_id;
-                        zone['zone_type'] = zone['type'];
-                        zone.records.forEach(function (record) {
-                            record['record_type'] = record['type'];
-                            record['zone_id'] = zone['id'];
-                            record['cloud_id'] = zone['cloud_id'];
-                            delete record['type'];
-                        })
-                        delete zone['type'];
-                        if (this.model.clouds[data.cloud_id].provider == 'gce') {
-                            zone['provider'] = 'Google';
-                        } else if (this.model.clouds[data.cloud_id].provider == 'ec2') {
-                            zone['provider'] = 'Route53';
-                            zone.records.forEach(function (record) {
-                                if (record['name'].length == 0) {
-                                    record['name'] = zone.domain;
-                                } else {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
-                        } else if (this.model.clouds[data.cloud_id].provider == 'digitalocean') {
-                            zone['provider'] = 'Digital Ocean';
-                            zone.records.forEach(function (record) {
-                                if (record['name'] != '@') {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
-
-                        } else if (this.model.clouds[data.cloud_id].provider == 'linode') {
-                            zone['provider'] = 'Linode';
-                            zone.records.forEach(function (record) {
-                                record['name'] += '.' + zone.domain;
-                            })
-
-                        } else if (this.model.clouds[data.cloud_id].provider == 'softlayer') {
-                            zone['provider'] = 'SoftLayer';
-                            zone.records.forEach(function (record) {
-                                if (record['name'] != '@') {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
-
-                        } else if (this.model.clouds[data.cloud_id].provider == 'rackspace') {
-                            zone['provider'] = 'Rackspace';
-                            zone.records.forEach(function (record) {
-                                if (record['name'].length == 0) {
-                                    record['name'] = zone.domain;
-                                } else {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
-
-                        } else if (this.model.clouds[data.cloud_id].provider == 'vultr') {
-                            zone['provider'] = 'Vultr';
-                            zone.records.forEach(function (record) {
-                                if (record['name'].length == 0) {
-                                    record['name'] = zone.domain;
-                                } else {
-                                    record['name'] += '.' + zone.domain;
-                                }
-                            })
-
-                        } else {
-                            zone['provider'] = this.model.clouds[data.cloud_id].provider;
-                        }
-                        cloudZones.push(zone);
-                    }
-                }, this);
-            }
-            // console.log(data);
-
-            var changed = this._updateModel('clouds.' + data.cloud_id + '.zones', cloudZones);
-
-            if (!changed)
-                return false;
-
-            this.set('model.clouds.' + data.cloud_id + '.zonesArray', cloudZones);
-            this.set('model.clouds.' + data.cloud_id + '.zones', _generateMap(cloudZones));
-
-            //update all zones array
-            var allZones = [];
-            var allRecords = [];
-            if (this.model != undefined) {
-                this.model.cloudsArray.forEach(function (cloud) {
-                    if (cloud.zonesArray != undefined && cloud.enabled) {
-                        cloud.zonesArray.forEach(function (zone) {
-                            allZones.push(zone);
-                            zone.records.forEach(function (record) {
-                                allRecords.push(record);
-                            })
-                        })
-                    }
-                });
-            }
-            this.set('model.zonesArray', allZones);
-            this.set('model.zones', _generateMap(allZones));
-            this.set('model.records', _generateMap(allRecords));
-            // update section count, necessary for propagating changes to sidebar & dashboard counters
-            this.set('model.sections.zones.count', allZones.length);
-        },
 
         _updateTunnels: function (data) {
             this.set('model.onboarding.isLoadingTunnels', false);

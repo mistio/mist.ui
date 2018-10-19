@@ -149,10 +149,10 @@
                     <div class="missing" hidden$="[[!isMissing]]">Script not found.</div>
                     <div class="info-table">
                         <div class="info-body info-group">
-                            <template is="dom-if" if="[[script.tags.length]]">
+                            <template is="dom-if" if="[[scriptTags.length]]">
                                 <div class="info-item flex-horizontal-with-ratios">
                                     <h4 class="id tags">Tags</h4>
-                                    <template is="dom-repeat" items="[[script.tags]]">
+                                    <template is="dom-repeat" items="[[scriptTags]]">
                                         <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
                                     </template>
                                 </div>
@@ -235,6 +235,10 @@
             },
             script: {
                 type: Object
+            },
+            scriptTags: {
+                type: Array,
+                computed: '_computeScriptTags(script, script.tags, script.tags.*, model.scripts.*)'
             },
             isInline: {
                 type: Boolean,
@@ -336,6 +340,10 @@
 
         _computeIsloading: function(script) {
             return !this.script ? true : false;
+        },
+
+        _computeScriptTags: function (script, scriptTags) {
+            return Object.entries(this.script.tags).map(([key, value]) => ({key,value}));;
         },
 
         _getVisibleColumns: function () {

@@ -194,9 +194,9 @@
                     <h4 class="id" hidden$="[[!key.owned_by.length]]">Owner:</h4><span class="id">[[_displayUser(
                     key.owned_by,model.members)]]</span>
                     <h4 class="id" hidden$="[[!key.created_by.length]]">Created by:</h4><span class="id">[[_displayUser(key.created_by,model.members)]]</span>
-                    <template is="dom-if" if="[[tagsExist]]">
+                    <template is="dom-if" if="[[keyTags.length]]">
                         <h4 class="id tags">Tags </h4>
-                        <template is="dom-repeat" items="[[key.tags]]">
+                        <template is="dom-repeat" items="[[keyTags]]">
                             <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
                         </template>
                     </template>
@@ -307,10 +307,9 @@
                         type: Boolean,
                         value: false
                     },
-                    tagsExist: {
-                        type: Boolean,
-                        computed: '_computeTagsExist(key, key.tags.*)',
-                        value: false
+                    keyTags: {
+                        type: Array,
+                        computed: '_computeKeyTags(key, key.tags, key.tags.*, model.keys)'
                     },
                     itemsfortags: {
                         type: Array,
@@ -347,13 +346,9 @@
                 _getHeaderStyle: function(section) {
                     return 'background-color: ' + section.color + '; color: #fff;';
                 },
-                _computeTagsExist: function(key, tags){
-                    if (this.key.tags.length > 0 && this.key.tags[0] && this.key.tags[0]['key'] && this.key.tags[0]['key'] != "") {
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
+                _computeKeyTags: function(key, tags){
+                    return Object.entries(this.key.tags).map(([key, value]) => ({key,value}));;
+
                 },
                 computeTagItems: function(key){
                     if (key) {

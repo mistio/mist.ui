@@ -496,20 +496,18 @@
                         <span class="smallcaps">Created by </span>
                         <p><a href$="/members/[[stack.created_by]]">[[_displayUser(stack.created_by,model.members)]]</a></p>
                     </div>
-                    <div class="page-block" hidden$="[[isEmpty(stack.tags)]]">
+                    <div class="page-block" hidden$="[[isEmpty(stackTags)]]">
                         <h3 class="smallcaps">Tags
-                            <template is="dom-if" if="[[stack.tags]]">
-                                <span class="id">([[stack.tags.length]])</span>
+                            <template is="dom-if" if="[[stackTags]]">
+                                <span class="id">([[stackTags.length]])</span>
                             </template>
-                            <template is="dom-if" if="[[!stack.tags]]">
+                            <template is="dom-if" if="[[!stackTags]]">
                                 <span class="id">(0)</span>
                             </template>
                         </h3>
-                        <template is="dom-if" if="[[stack.tags]]">
-                            <template is="dom-repeat" items="[[stack.tags]]">
-                                <span class="id tag">[[item.key]]
-                                    <span hidden$="[[!item.value]]">= [[item.value]]</span>
-                                </span>
+                        <template is="dom-if" if="[[stackTags]]">
+                            <template is="dom-repeat" items="[[stackTags]]">
+                                <span class="id tag">[[item.key]]<span hidden$="[[!item.value]]">=[[item.value]]</span></span>
                             </template>
                         </template>
                     </div>
@@ -812,6 +810,10 @@
                 workflowsOpen: {
                     type: Boolean,
                     value: false
+                },
+                stackTags: {
+                    type: Array,
+                    computed: '_computeStackTags(stack, stack.tags, stack.tags.*, model.stacks.*)'
                 }
             },
             observers: [
@@ -964,6 +966,9 @@
                         value: outputs[key]
                     }
                 });
+            },
+            _computeStackTags: function (stack, stackTags) {
+                return Object.entries(this.stack.tags).map(([key, value]) => ({key,value}));;
             },
             _stackStateChanged: function(status) {
                 this.set('inStartCreationState', false) 

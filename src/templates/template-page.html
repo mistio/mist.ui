@@ -267,18 +267,18 @@
                     <h3 class="smallcaps">Created by</h3>
                     <p><a href$="/members/[[template.created_by]]">[[_displayUser(template.created_by,model.members)]]</a></p>
                 </div>
-                <div class="page-block" hidden$="[[!template.tags.length]]">
+                <div class="page-block" hidden$="[[!templateTags.length]]">
                     <h3 class="smallcaps">Tags
-                        <template is="dom-if" if="[[template.tags]]">
-                            <span class="id">([[template.tags.length]])</span>
+                        <template is="dom-if" if="[[templateTags]]">
+                            <span class="id">([[templateTags.length]])</span>
                         </template>
-                        <template is="dom-if" if="[[!template.tags]]">
+                        <template is="dom-if" if="[[!templateTags]]">
                             <span class="id">(0)</span>
                         </template>
                     </h3>
-                    <template is="dom-if" if="[[template.tags]]">
-                        <template is="dom-repeat" items="[[template.tags]]">
-                            <span class="id tag">[[item.key]] <span hidden$="[[!item.value]]">= [[item.value]]</span></span>
+                    <template is="dom-if" if="[[templateTags]]">
+                        <template is="dom-repeat" items="[[templateTags]]">
+                            <span class="id tag">[[item.key]]<span hidden$="[[!item.value]]">=[[item.value]]</span></span>
                         </template>
                     </template>
                 </div>
@@ -437,6 +437,10 @@
                         type: Object,
                         computed: '_computeTemplate(templateId, model.templates)'
                     },
+                    templateTags: {
+                        type: Array,
+                        computed: '_computeTemplateTags(template, template.tags, template.tags.*, model.templates.*)'
+                    },
                     stacks: {
                         type: Array,
                     },
@@ -491,6 +495,9 @@
                 },
                 _computeIsInline: function(source) {
                     return source == 'inline';
+                },
+                _computeTemplateTags: function (template, templateTags) {
+                    return Object.entries(this.template.tags).map(([key, value]) => ({key,value}));;
                 },
                 _class: function(isinline) {
                     return isinline ? "command-container" : "";

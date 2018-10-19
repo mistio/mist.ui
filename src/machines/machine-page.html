@@ -696,9 +696,9 @@
                         </div>
                         <br/>
                     </div>
-                    <div hidden$="[[!machine.tags.length]]">
+                    <div hidden$="[[!machineTags.length]]">
                         <div class="m-info-head tags">TAGS:</div>
-                        <template is="dom-repeat" items="[[machine.tags]]">
+                        <template is="dom-repeat" items=[[machineTags]]>
                             <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
                     </div>
@@ -862,6 +862,10 @@
                 type: String,
                 computed: "_computeMachineSize(machine, machine.*, model.machines.*, cloud.*)"
             },
+            machineTags: {
+                type: Array,
+                computed: "_computeMachineTags(machine, machine.tags, machine.tags.*, model.machines.*)"
+            },
             dashboard: {
                 type: Object
             },
@@ -971,14 +975,12 @@
                                 check = true;
                             else
                                 check = false;
-                        }
-                        // applies on tags
-                        else if (selector.type == 'tags' ){
-                            if (!machine.tags.length)
+                        } else if (selector.type == 'tags' ) { // applies on tags
+                            if (!this.machineTags.length)
                                 check = false; // machine has no tags
                             else {
                                 for (var q in selector.tags) {
-                                    var mtag = machine.tags.find(function(t){ return t.key == q });
+                                    var mtag = machineTags.find(function(t){ return t.key == q });
                                     if (!mtag) // machine has no such tag
                                         check = false;
                                     else { 
@@ -1081,6 +1083,9 @@
         },
         _computeMachineState: function (machine) {
             return this.machine && this.machine.state || '';
+        },
+        _computeMachineTags: function (machine, machineTags) {
+            return Object.entries(this.machine.tags).map(([key, value]) => ({key,value}));;
         },
         confirmAction: function (action) {
             this._showDialog({
