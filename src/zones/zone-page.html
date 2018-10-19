@@ -118,10 +118,10 @@
                         <div class='resource-info' hidden$="[[!zone.created_by.length]]">
                             <h4 class="id">Created by:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.created_by,model.members)]]</a></span>
                         </div>
-                        <template is="dom-if" if="[[tagsExist]]">
+                        <template is="dom-if" if="[[zoneTags.length]]">
                             <div class='resource-info'>
                                 <h4 class="id tags">Tags </h4>
-                                <template is="dom-repeat" items="[[zone.tags]]">
+                                <template is="dom-repeat" items="[[zoneTags]]">
                                     <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
                                 </template>
                             </div>
@@ -154,12 +154,7 @@
                                 <div class="info-item flex-horizontal-with-ratios">
                                     <div class="flexchild">Records</div>
                                     <div class="flexchild">
-                                        <template is="dom-if" if="[[!hasRecords]]">
-                                            0
-                                        </template>
-                                        <template is="dom-if" if="[[hasRecords]]">
-                                            [[zone.records.length]]
-                                        </template>
+                                        [[_computeRecordsLength(zone.records)]]
                                     </div>
                                 </div>
                             </div>
@@ -170,14 +165,14 @@
                         <template is="dom-if" if="[[renderRecordsList]]" restamp>
                             <mist-list id="recordsList" class$="[[zone.id]]"
                                 selectable column-menu multi-sort
-                                items="[[zone.records]]"
+                                items=[[_computeRecords(zone.records,model.zones,model.zones.*)]]
                                 name="Records"
                                 selected-items="{{selectedRecordItems}}"
                                 frozen=[[_getFrozenLogColumn()]]
                                 visible=[[_getVisibleColumns()]]
                                 renderers=[[_getRenderers()]]>
                                 <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
-                                <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}"></record-actions>
+                                <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]></record-actions>
                           </mist-list>
                       </template>
                     </paper-material>
@@ -188,7 +183,7 @@
             <!-- </div> -->
             <record-add model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-add>
         </div>
-        <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud_id]]/dns/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
+        <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
         <dialog-element class='zone-dialog'></dialog-element>
         <tags-list model="[[model]]"></tags-list>
     </template>
@@ -237,6 +232,10 @@
                     zoneCloud: {
                         type: String,
                         computed: '_computeZoneCloud(zone, model.clouds)' 
+                    },
+                    zoneTags: {
+                        type: Array,
+                        computed: '_computeZoneTags(zone, zone.tags, zone.tags.*, model.zones.*)'
                     },
                     tagsExist: {
                         type: Boolean,
@@ -291,11 +290,20 @@
                 _computeHasRecords: function(records) {
                     if (this.$.recordsList)
                             this.$.recordsList.fire('resize');
-                    return records && records.length;
+                    return records && Object.keys(records).length;
                 },
                 _computeZoneCloud: function(zone, clouds){
                     if (zone)
-                        return this.model.clouds[this.zone.cloud_id].title
+                        return this.model.clouds[this.zone.cloud].title
+                },
+                _computeZoneTags: function (zone, zoneTags) {
+                    return Object.entries(this.zone.tags).map(([key, value]) => ({key,value}));;
+                },
+                _computeRecordsLength: function(records) {
+                    return records ? Object.keys(records).length : 0
+                },
+                _computeRecords: function(records) {
+                    return Object.values(this.zone.records);
                 },
                 _editZone: function(e) {
                     console.log(e);
@@ -373,7 +381,7 @@
                 },
 
                 _getVisibleColumns: function(){
-                  return ['record_type', 'id', 'ttl', 'rdata', 'tags'];
+                  return ['type', 'id', 'ttl', 'rdata'];
                 },
 
                 _getRenderers: function() {
@@ -389,27 +397,25 @@
                             return item.join(', ');
                           }
                       },
-                      'record_type': {
-                          'title': function(item, row){
-                            return 'record type';
-                          },
+                      'type': {
+                          'title': 'record type',
                           'body': function(item, row) {
                             return item;
                           }
                       },
                       'tags': {
-                          'body': function(item, row) {
-                            var tags = item,
-                                display = "";
-                            for (var i=0; i<tags.length; i++){
-                              display += "<span class='tag'>"+tags[i].key;
-                              if (tags[i].value != undefined && tags[i].value != "")
-                                display += "=" + tags[i].value;
-                              display += "</span>";
+                            'body': function (item, row) {
+                                var tags = item,
+                                    display = "";
+                                for (key in tags) {
+                                    display += "<span class='tag'>" + key;
+                                    if (tags[key] != undefined && tags[key] != "")
+                                        display += "=" + tags[key];
+                                    display += "</span>";
+                                }
+                                return display;
                             }
-                            return display;
-                          }
-                      }
+                        }
                   }
                 },
                 _showDialog: function(info) {

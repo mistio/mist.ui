@@ -207,11 +207,11 @@ Script:</code></pre>
                             <div class="flexchild">TUNNEL ID</div>
                             <div class="flexchild">[[tunnel.tunnel_id]]</div>
                         </div>
-                        <template is="dom-if" if="[[tunnel.tags]]">
+                        <template is="dom-if" if="[[tunnelTags]]">
                             <div class="info-item flex-horizontal-with-ratios">
                                 <div class="flexchild">TAGS</div>
                                 <div class="flexchild">
-                                    <template is="dom-repeat" items="[[tunnel.tags]]">
+                                    <template is="dom-repeat" items="[[tunnelTags]]">
                                         <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
                                     </template>
                                 </div>
@@ -278,6 +278,10 @@ Script:</code></pre>
                 tunnel: {
                     type: Object
                 },
+                tunnelTags: {
+                    type: Array,
+                    computed: '_computeTunnelTags(tunnel, tunnel.tags, tunnel.tags.*, model.tunnels.*)'
+                },
                 isInline: {
                     type: Boolean,
                     value: true
@@ -317,6 +321,9 @@ Script:</code></pre>
                 else
                     return true;
             },
+            _computeTunnelTags: function (tunnel, tunnelTags) {
+                    return Object.entries(this.tunnel.tags).map(([key, value]) => ({key,value}));;
+                },
             _displayUser: function (id, members) {
                 return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
