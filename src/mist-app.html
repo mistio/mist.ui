@@ -162,7 +162,7 @@
         <app-header-layout mode="standard" class="fit" fullbleed>
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
             <app-header slot="header" fixed shadow>
-                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}} ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
+                <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}} ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}" filters="{{filters}}"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]"
                         isclosed="{{sidebarIsClosed}}"></mist-sidebar>
@@ -215,6 +215,17 @@
     </template>
 
     <script>
+    MIST_PRESET_FILTERS = [{
+            filter: "",
+            name: "All resources",
+            default: true,
+            clear: "owner:$me"
+        }, {
+            filter: "owner:$me",
+            name: "Your resources",
+            default: true,
+            hr: true
+        }];
         Polymer.Settings.passiveTouchGestures = true;
         Polymer({
             is: 'mist-app',
@@ -290,6 +301,21 @@
                 visibleSuggestions: {
                     type: Boolean,
                     value: false
+                },
+                userSavedFilters: {
+                    type: Array,
+                    value: []
+                },
+                presetFilters: {
+                    type: Array,
+                    value: function() {
+                        return MIST_PRESET_FILTERS;
+                    }
+                },
+                filters: {
+                    type: Array,
+                    value: [],
+                    computed: '_combinedFilters(presetFilters,userSavedFilters)'
                 }
             },
 
@@ -310,7 +336,11 @@
                 'export-list-csv': '_exportCsvMessage',
                 'add-org': '_addOrg',
                 'tap': 'closeIfClickedElsewhere',
-                'cc-dismiss': '_ccDismissed'
+                'cc-dismiss': '_ccDismissed',
+                'open-save-filter-dialog': '_saveFilter',
+                'filter-delete': '_deleteFilter',
+                'list-attached': '_initialiseList',
+                'filter-change': '_updateUserSavedFilters',
             },
 
             observers: [
@@ -462,6 +492,9 @@
                     this.clearSearchPreservingFilters(); 
                     this.async(function(){this.set('visibleSuggestions', false);}.bind(this),100);
                 }
+                if (this.model && this.model.org && this.model.org.ownership_enabled) {
+                    this._updateUserSavedFilters();
+                }
                 this.set('count', null);
             },
 
@@ -507,6 +540,9 @@
                 // Load page import on demand. Show 404 page if fails
                 var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
                 this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
+                if (page && page != "dashboard") {
+                    this._updateUserSavedFilters();
+                }
             },
 
             _hideLoader: function () {
@@ -953,9 +989,51 @@
                 var dialog = this.querySelector('organization-add');
                 dialog.openDialog();
             },
+
             closeIfClickedElsewhere: function(e) {
                 if (this.visibleSuggestions && e.path.indexOf(this.querySelector('mist-header')) == -1)
                     this.set('visibleSuggestions', false);
+            },
+
+            _combinedFilters: function(presetFilters,userSavedFilters) {
+                return this.presetFilters.concat(this.userSavedFilters);
+            },
+
+            _saveFilter: function(e) {
+                if (["", "dashboard"].indexOf(this.page) == -1 && this.querySelector('page-'+this.page+' mist-list')) {
+                    this.querySelector('page-'+this.page+' mist-list')._openDialogSaveFilter();
+                }
+            },
+
+            _deleteFilter: function(e) {
+                e.stopImmediatePropagation();
+                var deleteFilter = e.detail.filter,
+                    index = this.userSavedFilters.findIndex(function(f){
+                        return f.filter == deleteFilter.filter && f.name == deleteFilter.name && f.default == deleteFilter.default});
+                if (index > -1) {
+                    this.querySelector('page-'+this.page+' mist-list').deleteFilter(index);
+                }
+                if (this.q == deleteFilter.filter) {
+                    this.fire('search', '');
+                }
+            },
+
+            _initialiseList: function() {
+                var el = this.querySelector('page-'+this.page+' mist-list#'+this.page+'List');
+                if (el) {
+                    this.async(function(){
+                        el.userFilter = this.q;
+                    }.bind(this),1000);
+                }
+                this._updateUserSavedFilters();
+            },
+
+            _updateUserSavedFilters: function(page) {
+                var el = this.querySelector('page-'+this.page+' mist-list#'+this.page+'List');
+                this.set('userSavedFilters',[]);
+                if (el && this.page && this.page != "dashboard") {
+                    this.set('userSavedFilters', el.userSavedFilters);
+                }
             }
         });
 
