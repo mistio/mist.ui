@@ -726,7 +726,7 @@
                         builtin-metrics="[[model.monitoring.builtin_metrics]]"
                         custom-metrics="[[model.monitoring.custom_metrics]]"
                         incidents="[[model.incidentsArray]]"
-                        rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine)]]"
+                        rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]"
                         teams="[[model.teamsArray]]"
                         users="[[model.membersArray]]"
                         resource="[[machine]]"
@@ -958,7 +958,7 @@
             this.set('hideAssociatedKeys', true);
             this.set('isPendingKeyRequest', false);
         },
-        _rulesApplyOnMachine: function (rules, machine) {
+        _rulesApplyOnMachine: function (rules, machine, machineTags) {
             var machineRules = {}, check;
             for (var p in rules) {
                 var noData = rules[p].actions.find(function(a){return a.type == 'no_data'}) != undefined;
@@ -980,7 +980,7 @@
                                 check = false; // machine has no tags
                             else {
                                 for (var q in selector.tags) {
-                                    var mtag = machineTags.find(function(t){ return t.key == q });
+                                    var mtag = this.machineTags.find(function(t){ return t.key == q });
                                     if (!mtag) // machine has no such tag
                                         check = false;
                                     else { 
