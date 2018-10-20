@@ -336,7 +336,7 @@
                             if (new_cloud_resources[old_cloud_resource_external_ids[i]] == undefined
                                 && _this.model[resource_type][old_cloud_resource_ids[i]] != undefined) {
                                 _this.set('model.' + resource_type + '.' + old_cloud_resource_ids[i], null);
-                                _this.notifyPath('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
+                                _this._pathEffector('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
                                 delete _this.model[resource_type][old_cloud_resource_ids[i]];
                             }
                         }
@@ -360,11 +360,11 @@
                                 property_sub_path = property_sub_path.join('.');
                                 property_sub_path = 'model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_sub_path
                                 setTimeout(function() {
-                                    _this.notifyPath(property_sub_path);
+                                    _this._pathEffector(property_sub_path);
                                 }, 50);
                             }
                         }
-
+                        _this._pathEffector('model.' + resource_type);
                         _this.set('model.sections.' + resource_type + '.count', Object.keys(_this.model[resource_type]).length);
                     }
                 }, {
@@ -470,9 +470,7 @@
 
             if (this.model != undefined && data) {
                 data.forEach(function (c) {
-                    if (!c.enabled) {
-                        this.cleanUpResources(c.id);
-                    }
+                    this.cleanUpResources(c.id);
                 }, this)
             }
             if (!data || this.model.cloudsArray.length == 0) {
@@ -877,25 +875,17 @@
                     return im.cloud && im.cloud.id != cloud_id;
                 });
             }
+            this.set('model.imagesArray', newImagesArray);
+            this.set('model.images', _generateMap(newImagesArray));
 
             // machines
-            Object.keys(this.model.machines).forEach(function(machine_id) {
-                var machine = _this.model.machines[machine_id];
-                if (!cloud_id || machine.cloud == cloud_id) {
-                    if (_this.model.clouds[machine.cloud] && _this.model.clouds[machine.cloud].machines && _this.model.clouds[machine.cloud].machines[machine.machine_id])
-                        delete _this.model.clouds[machine.cloud].machines[machine.machine_id];
-                    if (_this.model.machines && _this.model.machines[machine_id])
-                        delete _this.model.machines[machine_id];
-                }
-            });
-
+            this.cleanUpCloudResources(cloud_id, 'machines', 'machine_id');
             // networks
             this.cleanUpCloudResources(cloud_id, 'networks', 'network_id');
             // volumes
             this.cleanUpCloudResources(cloud_id, 'volumes', 'external_id');
-
-            this.set('model.imagesArray', newImagesArray);
-            this.set('model.images', _generateMap(newImagesArray));
+            // zones
+            this.cleanUpCloudResources(cloud_id, 'zones', 'zone_id');
         },
 
         cleanUpCloudResources: function(cloud_id, section, externalId) {
@@ -909,6 +899,7 @@
                         delete _this.model[section][resource_id];
                 }
             });
+            this.set('model.sections.' + section + '.count', Object.keys(this.model[section]).length);
         }
     });
 
