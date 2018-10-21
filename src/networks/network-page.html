@@ -196,11 +196,10 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
-                    <div hidden$="[[!network.tags.length]]">
+                    <div hidden$="[[!networkTags.length]]">
                         <h3 class="n-info-head">TAGS:</h3>
-                        <template is="dom-repeat" items="[[network.tags]]">
-                            <span class="tag">[[item.key]]
-                                <span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
+                        <template is="dom-repeat" items="[[networkTags]]">
+                            <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
                     </div>
                 </paper-material>
@@ -281,6 +280,10 @@
                     type: String,
                     computed: '_computeNetworkCloud(network, model.clouds)'
                 },
+                networkTags: {
+                    type: Array,
+                    computed: '_computeNetworkTags(network, network.tags, network.tags.*, model.networks.*)'
+                },
                 itemArray: Array,
                 hidden: Boolean
             },
@@ -303,6 +306,9 @@
             _computeNetworkCloud: function (network, clouds) {
                 if (network)
                     return this.model.clouds[this.network.cloud].title
+            },
+            _computeNetworkTags: function (network, networkTags) {
+                return Object.entries(this.network.tags).map(([key, value]) => ({key,value}));
             },
             _editNetwork: function (e) {
                 console.log(e);
