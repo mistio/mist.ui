@@ -207,11 +207,10 @@
                             <a class="blue-link" href$="/machines/[[machine.id]]">[[machine.name]]</a>
                         </template>
                     </div>
-                    <div hidden$="[[!volume.tags.length]]">
+                    <div hidden$="[[!volumeTags.length]]">
                         <h4 class="n-info-head">TAGS:</h4>
-                        <template is="dom-repeat" items="[[volume.tags]]">
-                            <span class="tag">[[item.key]]
-                                <span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
+                        <template is="dom-repeat" items="[[volumeTags]]">
+                            <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
                     </div>
                 </paper-material>
@@ -244,6 +243,10 @@
                 },
                 volume: {
                     type: Object
+                },
+                volumeTags: {
+                    type: Array,
+                    computed: '_computeVolumeTags(volume, volume.tags, volume.tags.*, model.volumes.*)'
                 },
                 isLoading: {
                     type: Boolean,
@@ -294,6 +297,9 @@
                         return m.cloud == that.volume.cloud && m.location == that.volume.location
                     });
                 }
+            },
+            _computeVolumeTags: function (volume, volumeTags) {
+                return Object.entries(this.volume.tags).map(([key, value]) => ({key,value}));;
             },
             _editVolume: function (e) {
                 console.log(e);

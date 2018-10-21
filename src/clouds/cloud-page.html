@@ -361,15 +361,13 @@
                                     <span><a href$="/members/[[cloud.created_by]]">[[_displayUser(cloud.created_by,model.members)]]</a></span>
                                 </div>
                             </div>
-                            <div class="row" hidden$="[[!cloud.tags.length]]">
+                            <div class="row" hidden$="[[!cloudTags.length]]">
                                 <div class="cell">
                                     <h4>Tags:</h4>
                                 </div>
                                 <div class="cell">
-                                    <template is="dom-repeat" items="[[cloud.tags]]">
-                                        <span class="tag">[[item.key]]
-                                            <span hidden="[[!item.value]]">= [[item.value]]</span>
-                                        </span>
+                                    <template is="dom-repeat" items="[[cloudTags]]">
+                                        <span class="tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
                                     </template>
                                 </div>
                             </div>
@@ -417,6 +415,10 @@
                 cloudTitle: {
                     type: String,
                     computed: '_computeCloudTitle(cloud)'
+                },
+                cloudTags: {
+                    type: String,
+                    computed: '_computeCloudTags(cloud, cloud.tags, cloud.tags.*, model.clouds.*)'
                 },
                 isLoading: {
                     type: Boolean,
@@ -522,6 +524,9 @@
             _computeCloudTitle: function (cloud) {
                 if (cloud)
                     return cloud.title;
+            },
+            _computeCloudTags: function (cloud, cloudTags) {
+                return Object.entries(this.cloud.tags).map(([key, value]) => ({key,value}));;
             },
             _computeIsloading: function (cloud) {
                 return !this.cloud ? true : false;

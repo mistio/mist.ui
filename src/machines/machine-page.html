@@ -523,8 +523,8 @@
                     </div>
                 </div>
                 <template is="dom-if" if="[[itemArray]]" restamp>
-                    <mist-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="[[actions]]" use-half-width>
-                        </mist-actions>
+                    <mist-actions type="machine" id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="[[actions]]" use-half-width>
+                    </mist-actions>
                 </template>
             </paper-material>
             <paper-material hidden$="[[!isMissing]]">
@@ -696,9 +696,9 @@
                         </div>
                         <br/>
                     </div>
-                    <div hidden$="[[!machine.tags.length]]">
+                    <div hidden$="[[!machineTags.length]]">
                         <div class="m-info-head tags">TAGS:</div>
-                        <template is="dom-repeat" items="[[machine.tags]]">
+                        <template is="dom-repeat" items=[[machineTags]]>
                             <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
                     </div>
@@ -726,7 +726,7 @@
                         builtin-metrics="[[model.monitoring.builtin_metrics]]"
                         custom-metrics="[[model.monitoring.custom_metrics]]"
                         incidents="[[model.incidentsArray]]"
-                        rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine)]]"
+                        rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]"
                         teams="[[model.teamsArray]]"
                         users="[[model.membersArray]]"
                         resource="[[machine]]"
@@ -862,6 +862,10 @@
                 type: String,
                 computed: "_computeMachineSize(machine, machine.*, model.machines.*, cloud.*)"
             },
+            machineTags: {
+                type: Array,
+                computed: "_computeMachineTags(machine, machine.tags, machine.tags.*, model.machines.*)"
+            },
             dashboard: {
                 type: Object
             },
@@ -954,7 +958,7 @@
             this.set('hideAssociatedKeys', true);
             this.set('isPendingKeyRequest', false);
         },
-        _rulesApplyOnMachine: function (rules, machine) {
+        _rulesApplyOnMachine: function (rules, machine, machineTags) {
             var machineRules = {}, check;
             for (var p in rules) {
                 var noData = rules[p].actions.find(function(a){return a.type == 'no_data'}) != undefined;
@@ -971,14 +975,12 @@
                                 check = true;
                             else
                                 check = false;
-                        }
-                        // applies on tags
-                        else if (selector.type == 'tags' ){
-                            if (!machine.tags.length)
+                        } else if (selector.type == 'tags' ) { // applies on tags
+                            if (!this.machineTags.length)
                                 check = false; // machine has no tags
                             else {
                                 for (var q in selector.tags) {
-                                    var mtag = machine.tags.find(function(t){ return t.key == q });
+                                    var mtag = this.machineTags.find(function(t){ return t.key == q });
                                     if (!mtag) // machine has no such tag
                                         check = false;
                                     else { 
@@ -1081,6 +1083,9 @@
         },
         _computeMachineState: function (machine) {
             return this.machine && this.machine.state || '';
+        },
+        _computeMachineTags: function (machine, machineTags) {
+            return Object.entries(this.machine.tags).map(([key, value]) => ({key,value}));;
         },
         confirmAction: function (action) {
             this._showDialog({
