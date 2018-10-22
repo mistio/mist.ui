@@ -119,6 +119,22 @@
         'confirm': true,
         'multi': true
       },
+      'clone': {
+        'name': 'clone',
+        'icon': 'content-copy',
+        'confirm': true,
+        'multi': false,
+        'fields': [{
+          type: 'text',
+          name: 'name',
+          label: "Clone's Name",
+          type: 'text',
+          value: '',
+          defaultValue: '',
+          show: true,
+          required: false,
+        }]
+      },
       'suspend': {
         'name': 'suspend',
         'icon': 'av:stop',
@@ -238,6 +254,7 @@
       },
       itemActions: function (machine) {
         var arr = [];
+        arr.push('clone');
         if (['vsphere', 'openstack'].indexOf(this.model.clouds[machine.cloud].provider) > -1)
           arr.push('console');
         if (machine) {
@@ -273,6 +290,7 @@
           'webconfig',      
           'start', 
           'stop',
+          'clone',
           'suspend',
           'resume',
           'reboot', 
@@ -357,6 +375,9 @@
               plural = this.items.length == 1 ? '' : 's',
               count = this.items.length > 1 ? this.items.length + ' ' : '';
             //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+            if (action.name=="clone" && this.action.fields) {
+              this.set('action.fields.0.value', this.items[0].name+" Clone");
+            }
             this._showDialog({
               title: this.action.name + ' ' + count + this.type + plural + '?',
               body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type +
@@ -364,6 +385,7 @@
               list: this._makeList(this.items, property),
               action: action.name,
               danger: true,
+              fields: this.action.fields || null,
               reason: this.type + "." + this.action.name
             });
           } else if (action.name == 'delete') {
@@ -466,6 +488,12 @@
             payload = {
               'action': action.name,
               'name': name
+            };
+          } else if (action.name == 'clone') {
+            uri = '/api/v1/machines/' + item.id;
+            payload = {
+              'action': action.name,
+              'name': action.fields[0].value
             };
           } else if (action.name == 'probe') {
             uri = '/api/v1/machines/' + item.id + '/probe';
@@ -641,6 +669,8 @@
           return 'renamed'
         else if (action == 'resume')
           return 'resumed'
+        else if (action == 'clone')
+          return 'cloned'
         else if (action == 'undefine')
           return 'undefined'
         else if (action == 'suspend')
