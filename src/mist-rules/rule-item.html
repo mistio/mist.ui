@@ -205,7 +205,7 @@
                     <span class="tag white">on all machines</span>
                 </template> -->
                 <paper-icon-button icon="icons:create" toggles active={{editing}} hidden$="[[!canEdit]]">edit</paper-icon-button>
-                <paper-icon-button icon="delete" data-attr="[[rule.id]]" on-tap="deleteRule" hidden$="[[!canEdit]]"></paper-icon-button>
+                <paper-icon-button icon="delete" data-attr="[[rule.id]]" on-tap="deleteRule" hidden$="[[!canEdit]]" class="delete-btn" disabled$="[[isNoData]]"></paper-icon-button>
             </span>
 
         </div>
@@ -270,6 +270,7 @@
                 var that = this;
                 if (resource) {
                     var ruleExist = this.rule ? true : false,
+                        ruleIsNoData = this.rule.title == "NoData",
                         ruleSelectors = this.rule.selectors && this.rule.selectors.length ? true : false,
                         ruleAppliesOnAllMachines = !this.rule.selectors || !this.rule.selectors.length,
                         ruleAppliesOnTags = this.rule.selectors.filter(function (c) {
@@ -277,7 +278,7 @@
                                             }).length > 0;
                     // console.log('_computeCanEdit', rule.id, ruleExist, ruleSelectors, !ruleAppliesOnAllMachines, !ruleAppliesOnTags);
                     this.set('ruleAppliesOnAllMachines', ruleAppliesOnAllMachines);
-                    return ruleExist && ruleSelectors && !ruleAppliesOnAllMachines && !ruleAppliesOnTags;
+                    return !ruleIsNoData && ruleExist && ruleSelectors && !ruleAppliesOnAllMachines && !ruleAppliesOnTags;
                 }
                 else 
                     return true;

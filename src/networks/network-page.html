@@ -196,11 +196,10 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
-                    <div hidden$="[[!network.tags.length]]">
+                    <div hidden$="[[!networkTags.length]]">
                         <h3 class="n-info-head">TAGS:</h3>
-                        <template is="dom-repeat" items="[[network.tags]]">
-                            <span class="tag">[[item.key]]
-                                <span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
+                        <template is="dom-repeat" items="[[networkTags]]">
+                            <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
                     </div>
                 </paper-material>
@@ -224,10 +223,10 @@
                         <div class="info-item flex-horizontal-with-ratios">
                             <div class="flexchild">Subnets</div>
                             <div class="flexchild">
-                                <template is="dom-if" if="[[!hasSubnets]]">
+                                <template is="dom-if" if="[[!hasSubnets]]" restamp>
                                     0
                                 </template>
-                                <template is="dom-if" if="[[hasSubnets]]">
+                                <template is="dom-if" if="[[hasSubnets]]" restamp>
                                     [[network.subnets.length]]
                                 </template>
                             </div>
@@ -239,7 +238,7 @@
                 <h4 class="id">Subnets</h4>
                 <div class="info-table">
                     <div class="info-body">
-                        <template is="dom-repeat" items="[[_mapToArray(network.subnets)]]" as="subnet">
+                        <template is="dom-repeat" items="[[_mapToArray(network.subnets, network.subnets.*)]]" as="subnet">
                             <subnet-item subnet="[[subnet]]" itemindex="{{index}}"></subnet-item>
                         </template>
                     </div>
@@ -281,6 +280,10 @@
                     type: String,
                     computed: '_computeNetworkCloud(network, model.clouds)'
                 },
+                networkTags: {
+                    type: Array,
+                    computed: '_computeNetworkTags(network, network.tags, network.tags.*, model.networks.*)'
+                },
                 itemArray: Array,
                 hidden: Boolean
             },
@@ -303,6 +306,9 @@
             _computeNetworkCloud: function (network, clouds) {
                 if (network)
                     return this.model.clouds[this.network.cloud].title
+            },
+            _computeNetworkTags: function (network, networkTags) {
+                return Object.entries(this.network.tags).map(([key, value]) => ({key,value}));
             },
             _editNetwork: function (e) {
                 console.log(e);

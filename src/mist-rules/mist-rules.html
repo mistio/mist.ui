@@ -77,7 +77,7 @@
             }
         </style>
         <template is="dom-repeat" items="[[ruleCategories]]" as="cat">
-            <paper-material elevation="0">
+            <paper-material elevation="0" id$=[[cat.id]]>
                 <h2 class="title">
                     [[cat.name]]
                     <template is="dom-repeat" items="[[cat.selectors]]" as="selector">
@@ -99,7 +99,7 @@
                 </template>
             </paper-material>
         </template>
-        <paper-material elevation="0">
+        <paper-material elevation="0" id="add-new-rule-dialog">
             <paper-button toggles active="{{addingRule}}" hidden$="[[addingRule]]">
                 <iron-icon icon="icons:add-circle"></iron-icon> add new rule
             </paper-button>
@@ -261,6 +261,7 @@
                             var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
                             if (!categories.find(function(c){return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags})){
                                 categories.push({
+                                    id: 'apply-on-tags',
                                     name: 'Apply on machines with tags ',
                                     type: 'tagged_machines',
                                     stringifiedTags: stringifiedTags,
@@ -285,6 +286,7 @@
                             });
                             if (!specificCategory)
                                 categories.push({
+                                    id: 'apply-on-' + thisMachine.trim(),
                                     name: 'Apply on ' + thisMachine + 'machine ',
                                     type: 'specific_machines',
                                     rules: [r],
