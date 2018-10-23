@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../app-form/app-form.html">
 
 <dom-module id="dialog-element">
     <template>
@@ -28,20 +29,25 @@
         <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
             <h2>[[title]]</h2>
             <paper-dialog-scrollable>
-                <p>
-                    [[body]]
-                </p>
-                <ul hidden$="[[!list]]">
-                    <template is="dom-repeat" items="[[list]]">
-                        <li>[[item]]</li>
-                    </template>
-                </ul>
-                <p hidden$="[[!alert]]" class="margin">
-                    <strong>[[alert]]</strong>
-                </p>
-                <p hidden$="[[!subscript]]">
-                    [[subscript]]
-                </p>
+                <div hidden$="[[hideText]]">
+                    <p>
+                        [[body]]
+                    </p>
+                    <ul hidden$="[[!list]]">
+                        <template is="dom-repeat" items="[[list]]">
+                            <li>[[item]]</li>
+                        </template>
+                    </ul>
+                    <p hidden$="[[!alert]]" class="margin">
+                        <strong>[[alert]]</strong>
+                    </p>
+                    <p hidden$="[[!subscript]]">
+                        [[subscript]]
+                    </p>
+                </div>
+                <template is="dom-if" if="[[fields]]" restamp>
+                    <app-form fields="{{fields}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
+                </template>
                 <div hidden$="[[!_computeType(type, 'isYesNo')]]" class="clearfix btn-group">
                     <paper-button hidden$="[[danger]]" class="link" dialog-dismiss>
                         <span hidden$="[[!undo]]"> [[undo]] </span>
@@ -109,7 +115,11 @@
                         type: String,
                         value: false
                     },
-                    list: Array
+                    list: Array,
+                    hideText: {
+                        type: Boolean,
+                        value: false
+                    }
                 },
                 listeners: {
                     'iron-overlay-closed': '_modalClosed'
@@ -135,6 +145,9 @@
                             reason: this.reason
                         });
                     }
+                },
+                _calcDisplayButtons: function() {
+                    return false;
                 }
             });
         })();
