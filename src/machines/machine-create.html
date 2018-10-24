@@ -975,21 +975,28 @@
                 var pathInd = this._fieldIndexByName('libvirt_disk_path');
 
                 //hide default image and location field
-                this.set('machineFields.' + imaInd + '.add', true);
-                this.set('machineFields.' + imaInd + '.required', true);
-                this.set('machineFields.' + locInd + '.show', false);
-                this.set('machineFields.' + locInd + '.required', false);
-                this.set('machineFields.' + locInd + '.excludeFromPayload', true);
+                if (imagesInd > -1) {
+                    this.set('machineFields.' + imaInd + '.add', true);
+                    this.set('machineFields.' + imaInd + '.required', true);
+                }
+                if (locIn > -1) {
+                    this.set('machineFields.' + locInd + '.show', false);
+                    this.set('machineFields.' + locInd + '.required', false);
+                    this.set('machineFields.' + locInd + '.excludeFromPayload', true);
+                }
 
                 //change key helptexts
-                this.set('machineFields.' + keyInd + '.helptext',
+                if (keyInd > -1) {
+                    this.set('machineFields.' + keyInd + '.helptext',
                     "Αn ssh key to deploy if using a cloudinit based Linux image");
-                if (this.docs)
-                    this.set('machineFields.' + keyInd + '.helpHref',
-                        "http://docs.mist.io/article/99-managing-kvm-with-mist-io");
+                    if (this.docs)
+                        this.set('machineFields.' + keyInd + '.helpHref',
+                            "http://docs.mist.io/article/99-managing-kvm-with-mist-io");
+                }
 
                 //fill in disk path using images_location
-                this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
+                if (pathInd > -1)
+                    this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
                     .images_location);
             },
             _updateFieldsForAzureArm: function () {
@@ -1162,14 +1169,16 @@
                 }
             },
             _fieldIndexByName: function (name, context) {
-                if (!context)
+                if (!context) {
                     return this.machineFields.findIndex(function (f) {
                         return f.name == name;
                     });
-                else
+                }
+                else {
                     return context.findIndex(function (f) {
                         return f.name == name;
                     });
+                }
             },
             _machineCreateResponse: function (e) {
                 // console.log('creation resp', e);

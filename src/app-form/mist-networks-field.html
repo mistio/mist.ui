@@ -82,7 +82,7 @@
             <div hidden$="[[field.options.length]]">
                 <paper-item disabled>No networks found</paper-item>
             </div>
-            <template is="dom-repeat" items="[[field.options]]" as="option">
+            <template id="mist-networks-item-repeater" is="dom-repeat" items="[[field.options]]" as="option">
                 <mist-networks-item network="[[option]]" value="{{option.fieldValue}}" checked="{{checked}}" valid="{{valid}}" type="{{type}}" on-change="_itemChanged"></mist-networks-item>
             </template>
         </div>
@@ -106,7 +106,7 @@
             'item-value-changed' : '_updateValue'
         },
         observers: [
-            '_fieldChanged(field)'
+            '_fieldChanged(field,field.options)'
         ],
 
         ready: function() {
@@ -114,6 +114,10 @@
         },
 
         _fieldChanged: function(field) {
+            this.set('selectedOptions', []);
+            this.set('field.value', []);
+            this.set('field.valid', !this.field.required);
+            this.$['mist-networks-item-repeater'].render();
         },
 
         _itemChanged: function(e) {
