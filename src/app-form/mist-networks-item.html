@@ -1,0 +1,152 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="app-form.html">
+<dom-module id="mist-networks-item">
+    <template>
+        <style include="shared-styles forms">
+        paper-checkbox {
+            --paper-checkbox-checked-color: var(--mist-blue) !important;
+            --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+        }
+        .options {
+        	margin-left: 24px;
+        }
+        :host app-form#manual-net-form {
+        	margin-left: 130px;
+        }
+        :host app-form#manual-net-form ::content .grid {
+        	width: 100% !important;
+        	max-width: 100% !important;
+        }
+        :host app-form#manual-net-form ::content paper-input-container {
+        	padding: 0;
+        }
+        :host paper-radio-group.options {
+        	display: block;
+        	margin-top: 0 !important;
+        }
+    	</style>
+    	<paper-checkbox on-change="_updateCheckboxesField" id$="[[network.id]]" checked={{checked}}>
+            <template is="dom-if" if="[[network.img]]">
+                <img class="item-img" src="[[network.img]]" width="24px"/>
+            </template>
+            <span class$="item-desc noimg-[[!network.img]]" data-prefix$=[[network.prefix]] data-suffix$=[[network.suffix]]>[[network.name]]</span>
+        </paper-checkbox>
+        <div hidden$="[[!checked]]">
+	        <paper-radio-group class="options" selected="{{type}}">
+	        	<paper-radio-button name="">dhcp</paper-radio-button>
+	        	<paper-radio-button name="manual">manual configuration</paper-radio-button>
+	        </paper-radio-group>
+	        <div hidden$="[[!type]]">
+	        	<app-form id="manual-net-form" form="{{form}}" fields="{{fields}}" form-ready="{{formValid}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
+	        </div>
+	    </div>	
+    </template>
+    <script>
+    NETWORK_MANUAL_CONFIG_FIELDS = [{
+    	name: 'network_ip',
+    	label: 'IP *',
+    	type: 'text',
+    	validator: 'ip-validator',
+    	value: '',
+    	defaultValue: '',
+    	show: true,
+    	required: true,
+    	errorMessage: 'Invalid IP.'
+    },{
+    	name: 'network_name',
+    	label: 'Name',
+    	type: 'text',
+    	value: '',
+    	defaultValue: '',
+    	show: true,
+    	required: false
+    },{
+    	name: 'network_gateway',
+    	label: 'Gateway',
+    	type: 'text',
+    	validator: 'ip-validator',
+    	value: '',
+    	defaultValue: '',
+    	show: true,
+    	required: true,
+    	errorMessage: 'Invalid gateway.'
+    },{
+    	name: 'network_primary',
+    	label: 'Primary',
+    	type: 'text',
+    	value: '',
+    	defaultValue: '',
+    	show: true,
+    	required: false
+    }]
+    Polymer({
+        is: 'mist-networks-item',
+        properties: {
+            network: {
+                type: Object,
+                notify: true
+            },
+            checked: {
+            	type: Boolean,
+            	value: false,
+            	notify: true,
+            	reflectToAttribute: true
+            },
+            type: {
+            	type: String,
+            	value: ""
+            },
+            form: {
+                type: Object,
+                value: {}
+            },
+            fields: {
+            	type: Array,
+            	value: function() {
+            		return NETWORK_MANUAL_CONFIG_FIELDS;
+            	}
+            },
+            formValid: {
+            	type: Boolean,
+            	value: false
+            },
+            valid: {
+            	type: Boolean,
+            	value: true,
+            	notify: true,
+            	reflectToAttribute: true
+            }
+        },
+        listeners: {},
+        observers: [
+        	'_updateValue(type,checked,network,form,formValid)',
+        	'_networkFieldValueChanged(network.fieldValue, network.fieldValue.*, valid)'
+        ],
+        ready: function() {},
+        _updateValue: function() {
+        	if (this.network) {
+	        	if (this.checked) {
+		        	this.set('network.fieldValue', this.type && this.fields ? this.form : this.network.id );
+		        	this.set('valid', this.type ? this.formValid : this.network.fieldValue == this.network.id);
+	        	} else {
+	        		this.set('network.fieldValue', null);
+	        		this.set('valid', false);
+	        	}
+	        }
+        },
+        _networkFieldValueChanged: function(e) {
+        	this.fire('item-value-changed');
+        },
+        _calcDisplayButtons: function() {
+        	return false;
+        }
+    });
+    </script>
+</dom-module>
