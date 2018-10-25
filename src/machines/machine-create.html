@@ -133,7 +133,7 @@
 
         <paper-dialog id="addKvmImage" with-backdrop>
             <h2>Create Image</h2>
-            <paper-input label="Image's path" value="{{newImage}}"></paper-input>
+            <paper-input id="kvmImageInput" label="Image's path" value="{{newImage}}" autofocus></paper-input>
             <div class="btn-group">
                 <paper-button dialog-dismiss>Cancel</paper-button>
                 <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
@@ -235,6 +235,7 @@
             listeners: {
                 // 'change': '_updatePayload',
                 // 'iron-select': '_updateFields',
+                'keyup': 'hotkeys',
                 'add-input': 'addInput'
             },
             ready: function () {
@@ -1243,20 +1244,32 @@
                         url: '/machines',
                         params: qParams
                     });
-                } else if (e.detail.fieldname == 'image')
+                } else if (e.detail.fieldname == 'image') {
                     this.querySelector("paper-dialog#addKvmImage").open();
+                }
             },
             saveNewImage: function (e) {
                 var imaInd = this._fieldIndexByName('image');
                 if (imaInd > -1) {
-                    this.push('machineFields.' + imaInd + '.options', {
+                    var opts = this.get('machineFields.' + imaInd + '.options');
+                    opts.push({
                         name: this.newImage,
                         id: this.newImage
                     });
+                    // hard reset fields
+                    this.set('machineFields.' + imaInd + '.options', []);
+                    this.set('machineFields.' + imaInd + '.options', opts);
                     this.set('machineFields.' + imaInd + '.value', this.newImage);
+                    console.log(this.get('machineFields.' + imaInd + '.value'));
                 }
 
                 this.querySelector("paper-dialog#addKvmImage").close();
+            },
+            hotkeys: function(e) {
+                // ENTER
+                if (e.keyCode === 13 && e.path.indexOf(this.querySelector("paper-dialog#addKvmImage")) > -1) {
+                  this.saveNewImage(e);
+                }
             },
             updateKeys: function (e) {
                 var keyInd = this._fieldIndexByName('key');
