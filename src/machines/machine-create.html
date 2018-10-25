@@ -309,7 +309,6 @@
                 }
                 // add cloud fields
                 if (machineFields.fields){
-                    this.set('machineFields', []);
                     this.set('machineFields', machineFields.fields);
                 }
                 // set values by provider
@@ -545,8 +544,7 @@
                     // if it's ec2 and location is selected filter subnets
                     if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
                             '.value', '')).name == 'location' && changeRecord.value.length) {
-                        var loc = this._fieldIndexByName('location'),
-                            subid = this._fieldIndexByName('subnet_id');
+                        var subid = this._fieldIndexByName('subnet_id');
                         // clear previous selection
                         this.set('machineFields.'+subid+'.value', '');
                         var subnets = [];
@@ -579,7 +577,9 @@
                             return el.extra.primaryLocation == location
                         })
                         var storageInd = this._fieldIndexByName('ex_storage_account');
-                        this.set('machineFields.' + storageInd + '.options', locationAccounts);
+                        if (storageInd > -1) {
+                            this.set('machineFields.' + storageInd + '.options', locationAccounts);
+                        }
 
                         // update networks
                         var networks = this.model.clouds[cloudId].networks ? Object.values(this.model.clouds[cloudId].networks).slice() : [];
@@ -587,7 +587,9 @@
                             return el.location == location
                         });
                         var networkInd = this._fieldIndexByName('networks');
-                        this.set('machineFields.' + networkInd + '.options', locationNetworks);
+                        if (networkInd > -1) {
+                            this.set('machineFields.' + networkInd + '.options', locationNetworks);
+                        }
                     }
                     // if it is azure arm and machine name is changed
                     if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
@@ -658,14 +660,18 @@
                             if (changeRecord.value == true) {
                                 for (var i = 0; i < scheduleFieldFalse.length; i++) {
                                     var index = this._fieldIndexByName(scheduleFieldFalse[i]);
-                                    this.set('machineFields.' + index + '.excludeFromPayload',
+                                    if (index > -1) {
+                                        this.set('machineFields.' + index + '.excludeFromPayload',
                                         false);
+                                    }
                                     //console.log('FALSE', scheduleFieldFalse[i])
                                 }
                             } else {
                                 for (var i = 0; i < scheduleFields.length; i++) {
                                     var index = this._fieldIndexByName(scheduleFields[i]);
-                                    this.set('machineFields.' + index + '.excludeFromPayload', true);
+                                    if (index > -1) {
+                                        this.set('machineFields.' + index + '.excludeFromPayload', true);
+                                    }
                                     //console.log('TRUE', scheduleFields[i])
                                 }
                             }
@@ -677,15 +683,23 @@
                             var scriptInd = this._fieldIndexByName("schedule_script_id");
 
                             if (changeRecord.value == "run script") {
-                                this.set('machineFields.' + scriptInd + '.excludeFromPayload',
+                                if (scriptInd > -1) {
+                                    this.set('machineFields.' + scriptInd + '.excludeFromPayload',
                                     false);
-                                this.set('machineFields.' + actionInd + '.excludeFromPayload', true);
+                                }
+                                if (actionInd > -1) {
+                                    this.set('machineFields.' + actionInd + '.excludeFromPayload', true);
+                                }
                             }
 
                             if (changeRecord.value != "run script") {
-                                this.set('machineFields.' + scriptInd + '.excludeFromPayload', true);
-                                this.set('machineFields.' + actionInd + '.excludeFromPayload',
-                                    false);
+                                if (scriptInd > -1) {
+                                    this.set('machineFields.' + scriptInd + '.excludeFromPayload', true);
+                                }
+                                if (actionInd > -1) {
+                                    this.set('machineFields.' + actionInd + '.excludeFromPayload',
+                                        false);
+                                }
                             }
                         }
 
@@ -699,25 +713,25 @@
                                 entry;
                             if (changeRecord.value == "interval") {
                                 entry = this._processInterval();
-                                this.set('machineFields.' + expInd + '.disabled', false);
-                                this.set('machineFields.' + maxcountInd + '.disabled', false);
-                                this.set('machineFields.' + maxcountInd + '.value', "");
+                                if (expInd > -1) this.set('machineFields.' + expInd + '.disabled', false);
+                                if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', false);
+                                if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', "");
                             } else if (changeRecord.value == "crontab") {
                                 entry = this._processCrotab(this.get('machineFields.' +
                                     entryCronTabInd + '.value')) || this._processCrotab(this.get(
                                     'machineFields.' + entryCronTabInd + '.defaultValue'));
-                                this.set('machineFields.' + expInd + '.disabled', false);
-                                this.set('machineFields.' + maxcountInd + '.disabled', false);
-                                this.set('machineFields.' + maxcountInd + '.value', "");
+                                if (expInd > -1) this.set('machineFields.' + expInd + '.disabled', false);
+                                if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', false);
+                                if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', "");
                             } else if (changeRecord.value == "one_off") {
                                 entry = document.getElementById("schedule_entry_one_off") &&
                                     document.getElementById("schedule_entry_one_off").textContent &&
                                     document.getElementById("schedule_entry_one_off").textContent.split(
                                         ',')[1] ? document.getElementById("schedule_entry_one_off")
                                     .textContent.split(',')[1].trim() + ":00" : "";
-                                this.set('machineFields.' + expInd + '.disabled', true);
-                                this.set('machineFields.' + maxcountInd + '.value', 1);
-                                this.set('machineFields.' + maxcountInd + '.disabled', true);
+                                if (expInd > -1) this.set('machineFields.' + expInd + '.disabled', true);
+                                if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', 1);
+                                if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', true);
                             }
                             this.set('machineFields.' + entryInd + '.value', entry);
                         }
@@ -726,14 +740,14 @@
                         if (this.get(changeRecord.path.replace('.value', '')).name ==
                             "schedule_entry_one_off") {
                             var entryInd = this._fieldIndexByName("schedule_entry");
-                            this.set('machineFields.' + entryInd + '.value', changeRecord.value);
+                            if (entryInd > -1) this.set('machineFields.' + entryInd + '.value', changeRecord.value);
                         }
 
                         // crontab in schedule entry
                         if (this.get(changeRecord.path.replace('.value', '')).name ==
                             "schedule_entry_crontab") {
                             var entryInd = this._fieldIndexByName("schedule_entry");
-                            this.set('machineFields.' + entryInd + '.value', this._processCrotab(
+                            if (entryInd > -1) this.set('machineFields.' + entryInd + '.value', this._processCrotab(
                                 changeRecord.value));
                         }
 
@@ -741,13 +755,13 @@
                         if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
                                 "schedule_entry_interval_")) {
                             var entryInd = this._fieldIndexByName("schedule_entry");
-                            this.set('machineFields.' + entryInd + '.value', this._processInterval());
+                            if (entryInd > -1) this.set('machineFields.' + entryInd + '.value', this._processInterval());
                         }
 
                         if (this.get(changeRecord.path.replace('.value', '')).name == "expires") {
                             var expiresInd = this._fieldIndexByName("expires");
                             var include = changeRecord.value != "" ? false : true;
-                            this.set('machineFields.' + expiresInd + '.excludeFromPayload', include);
+                            if (expiresInd > -1) this.set('machineFields.' + expiresInd + '.excludeFromPayload', include);
                         }
 
                         if (this.get(changeRecord.path.replace('.value', '')).name ==
@@ -755,7 +769,7 @@
                             var maxcountInd = this._fieldIndexByName("max_run_count");
                             if (typeof (this.get('machineFields.' + maxcountInd + '.value')) !=
                                 'number') {
-                                if (parseInt(changeRecord.value) == NaN) {
+                                if (parseInt(changeRecord.value) == NaN && maxcountInd > -1) {
                                     this.set('machineFields.' + maxcountInd + '.excludeFromPayload',
                                         true);
                                     this.set('machineFields.' + maxcountInd + '.value', "");
@@ -814,9 +828,9 @@
                 var indDep = this._fieldIndexByName('docker_exposed_ports');
                 var indDpb = this._fieldIndexByName('docker_port_bindings');
 
-                if (indDep != undefined)
+                if (indDep != undefined && indDep > -1)
                     this.set('machineFields.' + indDep + '.value', docker_exposed_ports);
-                if (indDpb != undefined)
+                if (indDpb != undefined && indDpb > -1)
                     this.set('machineFields.' + indDpb + '.value', docker_port_bindings);
             },
 
@@ -834,7 +848,7 @@
                 if (location) {
                     // save in fields
                     var indLocName = this._fieldIndexByName('location_name');
-                    if (indLocName != undefined)
+                    if (indLocName != undefined && indLocName > -1)
                         this.set('machineFields.' + indLocName + '.value', this.model.clouds[this.selectedCloud]
                             .locations[location].name);
                 }
@@ -851,7 +865,7 @@
                     if (!total)
                         var total = location.extra.max_disk_size;
 
-                    if (total && total - value > 0)
+                    if (total && total - value > 0 && sizeInd > -1)
                         this.set('machineFields.' + sizeInd + '.max', total - value);
                 }
             },
@@ -859,7 +873,7 @@
 
             _updateFieldsForVsphere: function () {
                 var keyInd = this._fieldIndexByName('key');
-                if (this.get('machineFields.' + keyInd + '.required')) {
+                if (keyInd > -1 && this.get('machineFields.' + keyInd + '.required')) {
                     this.set('machineFields.' + keyInd + '.required', false);
                     this.set('machineFields.' + keyInd + '.label', "Key");
                 }
@@ -867,15 +881,19 @@
 
             _updateFieldsForOpenstack: function () {
                 var locInd = this._fieldIndexByName('location');
-                this.set('machineFields.' + locInd + '.required', false);
-                this.set('machineFields.' + locInd + '.label', "Location");
+                if (locInd > -1) {
+                    this.set('machineFields.' + locInd + '.required', false);
+                    this.set('machineFields.' + locInd + '.label', "Location");
+                }
             },
 
             _updateFieldsForOnapp: function () {
                 var keyInd = this._fieldIndexByName('key');
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', "Key");
-                this.set('machineFields.' + keyInd + '.helptext', "Optional.");
+                if (keyInd > -1) {
+                    this.set('machineFields.' + keyInd + '.required', false);
+                    this.set('machineFields.' + keyInd + '.label', "Key");
+                    this.set('machineFields.' + keyInd + '.helptext', "Optional.");
+                }
             },
 
             _updateFieldMinsForOnapp: function (image) {
@@ -890,8 +908,10 @@
                     ramInd = this._fieldIndexByName('size_ram', this.get('machineFields.' + sizeInd + '.customSizeFields')),
                     diskInd = this._fieldIndexByName('size_disk_primary', this.get('machineFields.' + sizeInd + '.customSizeFields'));
 
-                this.set('machineFields.' + sizeInd + '.customSizeFields.' + ramInd + '.min', image.extra.min_memory_size);
-                this.set('machineFields.' + sizeInd + '.customSizeFields.' + diskInd + '.min', image.extra.min_disk_size);
+                if (sizeInd > -1 && ramInd > -1) 
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + ramInd + '.min', image.extra.min_memory_size);
+                if (sizeInd > -1 && diskInd > -1)  
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + diskInd + '.min', image.extra.min_disk_size);
 
                 // console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
             },
@@ -912,9 +932,9 @@
 
                 // update mins maxs
                 if (location.extra) {
-                    this.set('machineFields.' + cpuInd + '.max', location.extra.max_cpu);
-                    this.set('machineFields.' + ramInd + '.max', location.extra.max_memory);
-                    this.set('machineFields.' + hgiInd + '.value', location.extra.hypervisor_group_id);
+                    if (cpuInd > -1) this.set('machineFields.' + cpuInd + '.max', location.extra.max_cpu);
+                    if (ramInd > -1) this.set('machineFields.' + ramInd + '.max', location.extra.max_memory);
+                    if (hgiInd > -1) this.set('machineFields.' + hgiInd + '.value', location.extra.hypervisor_group_id);
 
                     if (location.extra.max_disk_size) {
                         this._updateDiskMax('size_disk_primary', this.get('machineFields.' + this._fieldIndexByName(
@@ -922,18 +942,18 @@
                         this._updateDiskMax('size_disk_swap', this.get('machineFields.' + this._fieldIndexByName(
                             'size_disk_primary') + '.value'), location.extra.max_disk_size);
                     } else {
-                        this.set('machineFields.' + diskInd + '.max', 16);
-                        this.set('machineFields.' + swapInd + '.max', 16);
+                        if (diskInd > -1) this.set('machineFields.' + diskInd + '.max', 16);
+                        if (swapInd > -1) this.set('machineFields.' + swapInd + '.max', 16);
                     }
 
                     var imagesInd = this._fieldIndexByName('image'),
                         networksInd = this._fieldIndexByName('networks');
 
                     // update networks
-                    this.set('machineFields.' + networksInd + '.options', location.extra.networks);
+                    if (networksInd > -1) this.set('machineFields.' + networksInd + '.options', location.extra.networks);
 
                     // filter images
-                    if (location.extra.federated == true)
+                    if (location.extra.federated == true && imagesInd > -1)
                         this.set('machineFields.' + imagesInd + '.options', this._filterImagesByLoc(
                             location.extra.hypervisor_group_id));
                     else
@@ -958,17 +978,20 @@
                 var monInd = this._fieldIndexByName('monitoring');
 
                 //hide size and location
-                this.set('machineFields.' + sizeInd + '.show', false);
-                this.set('machineFields.' + locInd + '.show', false);
+                if (sizeInd > -1) this.set('machineFields.' + sizeInd + '.show', false);
+                if (locInd > -1) this.set('machineFields.' + locInd + '.show', false);
 
                 // optional key
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', 'Key');
-                this.set('machineFields.' + keyInd + '.helptext',
-                    "Optional. Keys are valid only for Mist.io images");
+                if (keyInd > -1) {
+                    this.set('machineFields.' + keyInd + '.required', false);
+                    this.set('machineFields.' + keyInd + '.label', 'Key');
+                    this.set('machineFields.' + keyInd + '.helptext',
+                        "Optional. Keys are valid only for Mist.io images");
+                }
 
                 // disable monitoring by default
-                this.set('machineFields.' + monInd + '.value', false);
+                if (monInd > -1)
+                    this.set('machineFields.' + monInd + '.value', false);
             },
             _updateFieldsForKvm: function () {
                 var imaInd = this._fieldIndexByName('image');
@@ -1003,22 +1026,23 @@
             },
             _updateFieldsForAzureArm: function () {
                 var hostnameInd = this._fieldIndexByName('create_hostname_machine');
-                this.set('machineFields.' + hostnameInd + '.show', false);
+                if (hostnameInd > -1 )
+                    this.set('machineFields.' + hostnameInd + '.show', false);
             },
             _updateKvmDiskPath: function (machinename) {
                 var pathInd = this._fieldIndexByName('libvirt_disk_path');
                 //fill in disk path using images_location and machine name
-                if (machinename.trim().length)
+                if (machinename.trim().length && pathInd > -1)
                     this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
                         .images_location + "/" + machinename.trim() + ".img");
             },
             _updateAzureFields: function (machinename) {
                 var networkInd = this._fieldIndexByName('new_network');
-                this.set('machineFields.' + networkInd + '.value', machinename + '-vnet');
+                if (networkInd > -1 ) this.set('machineFields.' + networkInd + '.value', machinename + '-vnet');
                 var resourceInd = this._fieldIndexByName('new_resource_group');
-                this.set('machineFields.' + resourceInd + '.value', machinename);
+                if (resourceInd > -1 ) this.set('machineFields.' + resourceInd + '.value', machinename);
                 var storageInd = this._fieldIndexByName('new_storage_account');
-                this.set('machineFields.' + storageInd + '.value', machinename + 'disks');
+                if (storageInd > -1 ) this.set('machineFields.' + storageInd + '.value', machinename + 'disks');
             },
             _updateEc2Sizes: function (imageid) {
                 if (this.model.images[imageid] && this.model.images[imageid].extra && this.model.images[
@@ -1035,6 +1059,7 @@
                                 return 1
                             }
                         });
+                    if (sizeInd > -1)
                     this.set('machineFields.' + sizeInd + '.options', sizesOptions);
                     // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
                 }
@@ -1052,11 +1077,11 @@
                         }
                     });
                     this.set('machineFields.' + subnetsInd + '.options', subnetsOptions);
-                    if (subnetsOptions.length) {
+                    if (subnetsOptions.length && subnetsInd> -1) {
                         this.set('machineFields.' + subnetsInd + '.show', true);
                         this.set('machineFields.' + subnetsInd + '.required', true);
                     }
-                } else if (subnetsInd && network) {
+                } else if (subnetsInd && subnetsInd > -1 && network) {
                     this.set('machineFields.' + subnetsInd + '.options', []);
                     this.set('machineFields.' + subnetsInd + '.show', false);
                     this.set('machineFields.' + subnetsInd + '.required', false);
@@ -1069,11 +1094,11 @@
 
                 //if one, exclude the other
                 if (scripttype == "inline") {
-                    this.set('machineFields.' + inlineInd + '.excludeFromPayload', false);
-                    this.set('machineFields.' + selectInd + '.excludeFromPayload', true);
+                    if (inlineInd > -1 ) this.set('machineFields.' + inlineInd + '.excludeFromPayload', false);
+                    if (selectInd > -1 ) this.set('machineFields.' + selectInd + '.excludeFromPayload', true);
                 } else if (scripttype == "select") {
-                    this.set('machineFields.' + selectInd + '.excludeFromPayload', false);
-                    this.set('machineFields.' + inlineInd + '.excludeFromPayload', true);
+                    if (selectInd > -1 ) this.set('machineFields.' + selectInd + '.excludeFromPayload', false);
+                    if (inlineInd > -1 ) this.set('machineFields.' + inlineInd + '.excludeFromPayload', true);
                 }
 
                 // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
@@ -1084,12 +1109,12 @@
 
                 //if one, hide the other
                 if (new_account == true) {
-                    this.set('machineFields.' + newInd + '.show', true);
-                    this.set('machineFields.' + oldInd + '.show', false);
+                    if (newInd > -1 ) this.set('machineFields.' + newInd + '.show', true);
+                    if (oldInd > -1 ) this.set('machineFields.' + oldInd + '.show', false);
 
                 } else if (new_account == false) {
-                    this.set('machineFields.' + newInd + '.show', false);
-                    this.set('machineFields.' + oldInd + '.show', true);
+                    if (newInd > -1 ) this.set('machineFields.' + newInd + '.show', false);
+                    if (oldInd > -1 ) this.set('machineFields.' + oldInd + '.show', true);
                 }
             },
             _toggleNetworkFields: function (new_network) {
@@ -1098,12 +1123,12 @@
 
                 //if one, hide the other
                 if (new_network == true) {
-                    this.set('machineFields.' + newInd + '.show', true);
-                    this.set('machineFields.' + oldInd + '.show', false);
+                    if (newInd > -1 ) this.set('machineFields.' + newInd + '.show', true);
+                    if (oldInd > -1 ) this.set('machineFields.' + oldInd + '.show', false);
 
                 } else if (new_network == false) {
-                    this.set('machineFields.' + newInd + '.show', false);
-                    this.set('machineFields.' + oldInd + '.show', true);
+                    if (newInd > -1 ) this.set('machineFields.' + newInd + '.show', false);
+                    if (oldInd > -1 ) this.set('machineFields.' + oldInd + '.show', true);
                 }
             },
             _toggleResourceGroupFields: function (new_group) {
@@ -1113,15 +1138,15 @@
 
                 //if one, hide the other
                 if (new_group == true) {
-                    this.set('machineFields.' + newInd + '.show', true);
-                    this.set('machineFields.' + oldInd + '.show', false);
+                    if (newInd > -1 ) this.set('machineFields.' + newInd + '.show', true);
+                    if (oldInd > -1 ) this.set('machineFields.' + oldInd + '.show', false);
                     //toggle new storage account
                     this.set('machineFields.' + toggleAccount + '.value', true);
                     this._toggleStorageAccountFields(true);
                     // this.set('machineFields.'+ toggleAccount +'.show', false);
                 } else if (new_group == false) {
-                    this.set('machineFields.' + newInd + '.show', false);
-                    this.set('machineFields.' + oldInd + '.show', true);
+                    if (newInd > -1 ) this.set('machineFields.' + newInd + '.show', false);
+                    if (oldInd > -1 ) this.set('machineFields.' + oldInd + '.show', true);
                     //toggle new storage account
                     this.set('machineFields.' + toggleAccount + '.value', false);
                     this._toggleStorageAccountFields(false);
@@ -1135,16 +1160,16 @@
                 var monitoringInd = this._fieldIndexByName('monitoring');
 
                 if (value && value.toLowerCase().indexOf('win') > -1) {
-                    if (scriptInd != undefined)
+                    if (scriptInd > -1)
                         this.set('machineFields.' + scriptInd + '.show', false);
-                    if (monitoringInd != undefined) {
+                    if (monitoringInd > -1) {
                         this.set('machineFields.' + monitoringInd + '.show', false);
                         this.set('machineFields.' + monitoringInd + '.value', false);
                     }
                 } else {
-                    if (scriptInd != undefined)
+                    if (scriptInd > -1)
                         this.set('machineFields.' + scriptInd + '.show', true);
-                    if (monitoringInd != undefined) {
+                    if (monitoringInd > -1) {
                         this.set('machineFields.' + monitoringInd + '.show', true);
                         this.set('machineFields.' + monitoringInd + '.value', this.get(
                             'machineFields.' + monitoringInd + '.defaultValue'));
@@ -1154,20 +1179,26 @@
             _showPassword: function (value) {
                 var passwordInd = this._fieldIndexByName('machine_password');
                 var keyInd = this._fieldIndexByName('key');
-                if (value && value.toLowerCase().indexOf('win') > -1) {
+                if (value && value.toLowerCase().indexOf('win') > -1 && passwordInd > -1) {
                     this.set('machineFields.' + passwordInd + '.show', true);
                     this.set('machineFields.' + passwordInd + '.required', true);
-
-                    this.set('machineFields.' + keyInd + '.show', false);
-                    this.set('machineFields.' + keyInd + '.required', false);
+                    if (keyInd > -1) {
+                        this.set('machineFields.' + keyInd + '.show', false);
+                        this.set('machineFields.' + keyInd + '.required', false);
+                    }
                 } else {
-                    this.set('machineFields.' + passwordInd + '.show', false);
-                    this.set('machineFields.' + passwordInd + '.required', false);
-
-                    this.set('machineFields.' + keyInd + '.show', true);
+                    if (passwordInd > -1) {
+                        this.set('machineFields.' + passwordInd + '.show', false);
+                        this.set('machineFields.' + passwordInd + '.required', false);
+                    }
+                    if (keyInd > -1) {
+                        this.set('machineFields.' + keyInd + '.show', true);
+                    }
                     //if the provider is Docker or onapp, the key should not be required
                     if (['docker', 'onapp'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
-                        this.set('machineFields.' + keyInd + '.required', true);
+                        if (keyInd > -1) {
+                            this.set('machineFields.' + keyInd + '.required', true);
+                        }
                 }
             },
             _fieldIndexByName: function (name, context) {
@@ -1217,19 +1248,23 @@
             },
             saveNewImage: function (e) {
                 var imaInd = this._fieldIndexByName('image');
-                this.push('machineFields.' + imaInd + '.options', {
-                    name: this.newImage,
-                    id: this.newImage
-                });
-                this.set('machineFields.' + imaInd + '.value', this.newImage);
+                if (imaInd > -1) {
+                    this.push('machineFields.' + imaInd + '.options', {
+                        name: this.newImage,
+                        id: this.newImage
+                    });
+                    this.set('machineFields.' + imaInd + '.value', this.newImage);
+                }
 
                 this.querySelector("paper-dialog#addKvmImage").close();
             },
             updateKeys: function (e) {
                 var keyInd = this._fieldIndexByName('key');
                 this.async(function () {
-                    this.set('machineFields.' + keyInd + '.options', this.model.keysArray);
-                    this.set('machineFields.' + keyInd + '.value', e.detail.key);
+                    if (keyInd > -1) {
+                        this.set('machineFields.' + keyInd + '.options', this.model.keysArray);
+                        this.set('machineFields.' + keyInd + '.value', e.detail.key);
+                    }
                 }.bind(this), 1000);
             },
             _goBack: function () {
@@ -1238,12 +1273,16 @@
             _processInterval: function () {
                 var everyInd = this._fieldIndexByName("schedule_entry_interval_every"),
                     periodInd = this._fieldIndexByName("schedule_entry_interval_period");
-                var every = this.get('machineFields.' + everyInd + '.value').trim().length > 0 ?
-                    this.get('machineFields.' + everyInd + '.value') : this.get('machineFields.' +
-                        everyInd + '.defaultValue');
-                var period = this.get('machineFields.' + periodInd + '.value').trim().length > 0 ?
-                    this.get('machineFields.' + periodInd + '.value') : this.get('machineFields.' +
-                        periodInd + '.defaultValue');
+                if (everyInd > -1) {
+                    var every = this.get('machineFields.' + everyInd + '.value').trim().length > 0 ?
+                        this.get('machineFields.' + everyInd + '.value') : this.get('machineFields.' +
+                            everyInd + '.defaultValue');
+                }
+                if (periodInd > -1) {
+                    var period = this.get('machineFields.' + periodInd + '.value').trim().length > 0 ?
+                        this.get('machineFields.' + periodInd + '.value') : this.get('machineFields.' +
+                            periodInd + '.defaultValue');
+                }
                 var interval = {
                     'every': every,
                     'period': period
@@ -1281,9 +1320,11 @@
             updateScripts: function (e) {
                 var scheduleScriptInd = this._fieldIndexByName("schedule_script_id");
                 this.async(function () {
-                    this.set('machineFields.' + scheduleScriptInd + '.options', this.model.scriptsArray ||
-                        []);
-                    this.set('machineFields.' + scheduleScriptInd + '.value', e.detail.script);
+                    if (scheduleScriptInd > -1) {
+                        this.set('machineFields.' + scheduleScriptInd + '.options', this.model.scriptsArray ||
+                            []);
+                        this.set('machineFields.' + scheduleScriptInd + '.value', e.detail.script);
+                    }
                 }.bind(this), 1000);
             },
             _hasProviders: function (providers) {
