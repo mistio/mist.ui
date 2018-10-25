@@ -58,23 +58,23 @@
     </template>
     <script>
     NETWORK_MANUAL_CONFIG_FIELDS = [{
-    	name: 'network_ip',
-    	label: 'IP *',
-    	type: 'text',
-    	validator: 'ip-validator',
-    	value: '',
-    	defaultValue: '',
-    	show: true,
-    	required: true,
-    	errorMessage: 'Invalid IP.'
+        name: 'network_ip',
+        label: 'IP *',
+        type: 'text',
+        validator: 'ip-validator',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        errorMessage: 'Invalid IP.'
     },{
-    	name: 'network_name',
-    	label: 'Name',
+    	name: 'network_id',
+    	label: 'id',
     	type: 'text',
     	value: '',
     	defaultValue: '',
-    	show: true,
-    	required: false
+    	show: false,
+    	required: true
     },{
     	name: 'network_gateway',
     	label: 'Gateway *',
@@ -87,7 +87,7 @@
     	errorMessage: 'Invalid gateway.'
     },{
     	name: 'network_primary',
-    	label: 'Primary',
+    	label: 'Primary Interface',
     	type: 'text',
     	value: '',
     	defaultValue: '',
@@ -139,8 +139,12 @@
         ],
         ready: function() {},
         _updateValue: function() {
-        	if (this.network) {
+        	if (this.network && this.fields) {
 	        	if (this.checked) {
+                    // set net id
+                    if (this.fields[1].value != this.network.id) {
+                        this.set('fields.1.value', this.network.id);
+                    }
 	        		// make sure required fields have values, fixes initial formValid issue 
 	        		var requiredFieldsHaveValues = this.fields.filter(function(f){
 	        													return f.required;
