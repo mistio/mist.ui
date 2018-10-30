@@ -36,7 +36,7 @@
     <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
     <machine-snapshots id="snapshotdialog" machine="[[items.0]]" snapshots="" action=""></machine-snapshots>
     <attach-volume-on-machine id="attachvolumedialog" machine="[[items.0]]" model="[[model]]"></attach-volume-on-machine>
-    <dialog-element id="confirm"></dialog-element>
+    <dialog-element id="confirm" fields="{{action.fields}}"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="machine"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(model.membersArray,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <resize-dialog id="resizedialog" machine="[[_getMachine(items.length)]]" clouds="[[model.clouds]]"></resize-dialog>
@@ -118,6 +118,22 @@
         'icon': 'av:stop',
         'confirm': true,
         'multi': true
+      },
+      'clone': {
+        'name': 'clone',
+        'icon': 'content-copy',
+        'confirm': true,
+        'multi': false,
+        'fields': [{
+          type: 'text',
+          name: 'name',
+          label: "Clone's Name",
+          type: 'text',
+          value: '',
+          defaultValue: '',
+          show: true,
+          required: false,
+        }]
       },
       'suspend': {
         'name': 'suspend',
@@ -273,6 +289,7 @@
           'webconfig',      
           'start', 
           'stop',
+          'clone',
           'suspend',
           'resume',
           'reboot', 
@@ -357,6 +374,9 @@
               plural = this.items.length == 1 ? '' : 's',
               count = this.items.length > 1 ? this.items.length + ' ' : '';
             //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+            if (action.name=="clone" && this.action.fields) {
+              this.set('action.fields.0.value', this.items[0].value || this.items[0].name + "-clone");
+            }
             this._showDialog({
               title: this.action.name + ' ' + count + this.type + plural + '?',
               body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type +
@@ -364,6 +384,7 @@
               list: this._makeList(this.items, property),
               action: action.name,
               danger: true,
+              hideText: this.action.fields ? true : false,
               reason: this.type + "." + this.action.name
             });
           } else if (action.name == 'delete') {
@@ -466,6 +487,12 @@
             payload = {
               'action': action.name,
               'name': name
+            };
+          } else if (action.name == 'clone') {
+            uri = '/api/v1/machines/' + item.id;
+            payload = {
+              'action': action.name,
+              'name': action.fields[0].value
             };
           } else if (action.name == 'probe') {
             uri = '/api/v1/machines/' + item.id + '/probe';
@@ -641,6 +668,8 @@
           return 'renamed'
         else if (action == 'resume')
           return 'resumed'
+        else if (action == 'clone')
+          return 'cloned'
         else if (action == 'undefine')
           return 'undefined'
         else if (action == 'suspend')
