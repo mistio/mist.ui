@@ -1,0 +1,116 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<dom-module id="mist-filters">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        height: inherit;
+      }
+
+      paper-icon-button {
+        display: block;
+        margin: 4px;
+        float: right;
+      }
+
+      paper-icon-button.clear-filter {
+        opacity: .5;
+        transform: scale(.7);
+        flex: none;
+        margin-right: -10px;
+      }
+      paper-icon-button {
+        align-self: center;
+      }
+    </style>
+    
+    <slot name="filterSelection"></slot>
+    <content select="filterSelection"></content>
+
+    <slot name="searchFields"></slot>
+    <content select="searchFields"></content>
+
+    
+    <paper-icon-button on-tap="_openDialogSaveFilter" icon="icons:save" hidden$="[[hideSaveButton]]" title="Save filter" class="saveFilter" slot="saveFilter"></paper-icon-button>
+
+  </template>
+  <script>
+  Polymer({
+    is: 'mist-filters',
+    properties: {
+      query: {
+        type: String,
+        notify: true,
+        value: ""
+      },
+      filters: {
+        type: Array,
+        value: []
+      },
+      filter: {
+        type: String,
+        value: ''
+      },
+      hideSaveButton: {
+        type: Boolean,
+        value: false
+      }
+    },
+    observers: [
+      '_filterChanged(filter)',
+      '_filtersChanged(filters.*)'
+    ],
+    attached: function() {
+      var filter;
+      try {
+        filter = localStorage.getItem('mist-filter');
+      } catch(e) {
+        console.warn(e);
+      }
+      if (filter) {
+          this.set('filter', filter);
+      }
+    },  
+    _filtersChanged: function(filters){
+      if (this.filters.map(function(m){return m.filter;}).indexOf(this.query) > -1) {
+        this.set('filter',this.query);
+      }
+    },
+    _filterChanged: function(filter) {
+      this.debounce('updateLocalStorageFilter', this.updateLocalStorage, 500);
+      if (filter.length){
+        // this.$.query.focus();
+        this.set('showClear', true);
+        if (this.query != filter)
+          this.fire('search', filter);
+      } 
+      // else {
+      //   this.clearSearch();
+      // }
+      this.fire('search', filter);
+    },
+    updateLocalStorage: function(e) {
+      try {
+        if (typeof this.filter == 'string' && localStorage.getItem('mist-filter') != this.filter)
+          localStorage.setItem('mist-filter', this.filter);
+      } catch(e) {
+        console.warn(e);
+      }
+    },
+    _openDialogSaveFilter: function(e) {
+      this.fire('open-save-filter-dialog', this.query);
+    },
+    _deleteFilter: function(e) {
+      e.stopPropagation();
+      this.fire('filter-delete', {filter: e.model.item});
+    }
+  });
+  </script>
+</dom-module>
