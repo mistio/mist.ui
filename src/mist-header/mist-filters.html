@@ -29,10 +29,34 @@
       paper-icon-button {
         align-self: center;
       }
+      paper-menu-button {
+        padding: 0;
+        background-color: rgba(255,255,255,0.2);
+      }
+      paper-menu-button paper-button {
+        margin: 0;
+        font-size: 16px;
+        padding-left: 24px;
+      }
+      paper-item span {
+        flex: 1;
+      }
     </style>
-    
-    <slot name="filterSelection"></slot>
-    <content select="filterSelection"></content>
+
+    <paper-menu-button vertical-offset="48">
+      
+      <slot name="dropdown-trigger"></slot>
+      <content select="dropdown-trigger"></content>
+
+      <paper-menu id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}">
+          <template is="dom-repeat" items="[[filters]]">
+              <paper-item value="[[item.filter]]" class$="hr-[[item.hr]]" on-tap="updateLocalStorage">
+                <span>[[item.name]]</span>
+                <paper-icon-button class="clear-filter" icon="icons:delete" title="Delete filter" on-tap="_deleteFilter" hidden$="[[item.default]]"></paper-icon-button>
+              </paper-item>
+          </template>
+      </paper-menu>
+    </paper-menu-button>
 
     <slot name="searchFields"></slot>
     <content select="searchFields"></content>
@@ -104,13 +128,32 @@
         console.warn(e);
       }
     },
+    
     _openDialogSaveFilter: function(e) {
       this.fire('open-save-filter-dialog', this.query);
     },
+
+    _saveFilter: function(e) {
+        if (["", "dashboard"].indexOf(this.page) == -1 && this.querySelector('page-'+this.page+' mist-list')) {
+            this.querySelector('page-'+this.page+' mist-list')._openDialogSaveFilter();
+        }
+    },
+
     _deleteFilter: function(e) {
-      e.stopPropagation();
-      this.fire('filter-delete', {filter: e.model.item});
-    }
+        e.stopImmediatePropagation();
+        this.fire('filter-delete', {filter: e.model.item});
+
+        var deleteFilter = e.model.item,
+            index = this.filters.findIndex(function(f){
+                return f.filter == deleteFilter.filter && f.name == deleteFilter.name && f.default == deleteFilter.default});
+        if (index > -1) {
+            this.querySelector('page-'+this.page+' mist-list').deleteFilter(index);
+        }
+        if (this.q == deleteFilter.filter) {
+            this.fire('search', '');
+        }
+    },
+
   });
   </script>
 </dom-module>

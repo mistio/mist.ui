@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
@@ -97,9 +98,29 @@
       paper-icon-button[icon='search'] {
         display: none;
       }
-      paper-menu-button {
-        padding: 0 0 0 0;
-        background-color: rgba(255,255,255,0.2);
+      mist-filters {
+        display: flex;
+        flex: 1 100%;
+      }
+      mist-filters paper-button {
+        text-transform: none;
+        padding: 12px 12px 12px 20px;
+        margin: 0;
+        font-size: 16px;
+      }
+      mist-filters ::content .searchFields .flex-1,
+      mist-filters ::slotted(.searchFields .flex-1) {
+        flex: 1;
+      }
+      mist-filters ::content .searchFields,
+      mist-filters ::slotted(.searchFields) {
+        display: inline-flex;
+        flex: 1 100%;
+      }
+      mist-filters ::content paper-item > paper-icon-button,
+      mist-filters ::slotted(paper-item > paper-icon-button) {
+        opacity: .54;
+        transform: scale(.75);
       }
 
       @media screen and (max-width: 800px) {
@@ -121,7 +142,7 @@
           left: 0;
           right: 0;
           bottom: 0;
-          height: 56px;
+          height: 64px;
           z-index: 99;
           border-radius: 0;
           transition: all 150ms ease-in;
@@ -140,7 +161,10 @@
 
         :host([overflow]) #search {
           display: flex;
-          height: 56px;
+          position: relative;
+          z-index: 100;
+          align-items: center;
+          height: 64px;
           transition: transform 150ms ease-in;
           transform: translate(0,0);
         }
@@ -152,8 +176,8 @@
         :host([overflow]) #query {
           line-height: 56px;
         }
-        paper-menu-button {
-          padding: 8px;
+        mist-filters paper-button {
+          padding: 20px;
         }
       }
       @media screen and (min-width: 600px) and (max-width: 800px){
@@ -167,46 +191,16 @@
           line-height: 64px;
         }
       }
-      paper-menu-button paper-button {
-        margin: 0;
-        text-transform: none;
-        font-size: 16px;
-        padding-left: 24px;
-      }
-      mist-filters {
-        display: flex;
-        flex: 1 100%;
-      }
-      mist-filters ::content .searchFields .flex-1,
-      mist-filters ::slotted(.searchFields .flex-1) {
-        flex: 1;
-      }
-      mist-filters ::content .searchFields,
-      mist-filters ::slotted(.searchFields) {
-        display: inline-flex;
-        flex: 1 100%;
-      }
-      mist-filters ::content paper-item > paper-icon-button,
-      mist-filters ::slotted(paper-item > paper-icon-button) {
-        opacity: .54;
-        transform: scale(.75);
-      }
     </style>
     <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
     <div id="search" class="horizontal layout center">
       <mist-filters id="mistFilters" filters="{{filters}}" filter="{{filter}}" hide-save-button="[[_hideSaveSearch(query, pageTitle, filters.length)]]">
-        <!-- <slot name="filterSelection"></slot> -->
-        <paper-menu-button vertical-offset="48" slot="filterSelection" content="filterSelection">
-          <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon></paper-button>
-          <paper-listbox id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}">
-              <template is="dom-repeat" items="[[filters]]">
-                  <paper-item value="[[item.filter]]" class$="hr-[[item.hr]]" on-tap="updateLocalStorage">
-                    <span>[[item.name]]</span>
-                    <paper-icon-button class="clear-filter" icon="icons:delete" title="Delete filter" on-tap="_deleteFilter" hidden$="[[item.default]]"></paper-icon-button>
-                  </paper-item>
-              </template>
-          </paper-listbox>
-        </paper-menu-button>
+        
+        <!-- <slot name="dropdown-trigger"></slot> -->
+        <paper-button class="dropdown-trigger" slot="dropdown-trigger">
+          Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon>
+        </paper-button>
+
         <!-- <slot name="searchFields"></slot> -->
         <span class="searchFields" slot="searchFields">
           <iron-icon icon="search"></iron-icon>
