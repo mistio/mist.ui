@@ -25,22 +25,32 @@
         transform: scale(.7);
         flex: none;
         margin-right: -10px;
+        pointer-events: all !important;
       }
+
       paper-icon-button {
         align-self: center;
       }
+
       paper-menu-button {
         padding: 0;
         background-color: rgba(255,255,255,0.2);
       }
+
       paper-menu-button paper-button {
         margin: 0;
         font-size: 16px;
         padding-left: 24px;
       }
+
       paper-item span {
         flex: 1;
       }
+
+      paper-item.hr-true:not(:last-of-type) {
+        border-bottom: 1px solid #eee;
+      }
+
     </style>
 
     <paper-menu-button vertical-offset="48">
@@ -61,7 +71,6 @@
     <slot name="searchFields"></slot>
     <content select="searchFields"></content>
 
-    
     <paper-icon-button on-tap="_openDialogSaveFilter" icon="icons:save" hidden$="[[hideSaveButton]]" title="Save filter" class="saveFilter" slot="saveFilter"></paper-icon-button>
 
   </template>
@@ -87,10 +96,12 @@
         value: false
       }
     },
+
     observers: [
       '_filterChanged(filter)',
       '_filtersChanged(filters.*)'
     ],
+
     attached: function() {
       var filter;
       try {
@@ -101,12 +112,14 @@
       if (filter) {
           this.set('filter', filter);
       }
-    },  
+    },
+
     _filtersChanged: function(filters){
       if (this.filters.map(function(m){return m.filter;}).indexOf(this.query) > -1) {
         this.set('filter',this.query);
       }
     },
+
     _filterChanged: function(filter) {
       this.debounce('updateLocalStorageFilter', this.updateLocalStorage, 500);
       if (filter.length){
@@ -120,6 +133,7 @@
       // }
       this.fire('search', filter);
     },
+
     updateLocalStorage: function(e) {
       try {
         if (typeof this.filter == 'string' && localStorage.getItem('mist-filter') != this.filter)
@@ -128,7 +142,7 @@
         console.warn(e);
       }
     },
-    
+
     _openDialogSaveFilter: function(e) {
       this.fire('open-save-filter-dialog', this.query);
     },
@@ -141,13 +155,15 @@
 
     _deleteFilter: function(e) {
         e.stopImmediatePropagation();
+        console.log('delete',e.model.item);
         this.fire('filter-delete', {filter: e.model.item});
 
         var deleteFilter = e.model.item,
             index = this.filters.findIndex(function(f){
+              console.log('filter', f.filter == deleteFilter.filter && f.name == deleteFilter.name && f.default == deleteFilter.default)
                 return f.filter == deleteFilter.filter && f.name == deleteFilter.name && f.default == deleteFilter.default});
         if (index > -1) {
-            this.querySelector('page-'+this.page+' mist-list').deleteFilter(index);
+            this.splice('filters',index,1);
         }
         if (this.q == deleteFilter.filter) {
             this.fire('search', '');
