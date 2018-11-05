@@ -83,7 +83,7 @@
                 <paper-item disabled>No networks found</paper-item>
             </div>
             <template id="mist-networks-item-repeater" is="dom-repeat" items="[[field.options]]" as="option">
-                <mist-networks-item network="[[option]]" value="{{option.fieldValue}}" checked="{{checked}}" valid="{{valid}}" type="{{type}}" on-change="_itemChanged"></mist-networks-item>
+                <mist-networks-item id$="[[option.id]]" network="[[option]]" value="{{option.fieldValue}}" type="{{type}}" on-change="_itemChanged"></mist-networks-item>
             </template>
         </div>
     </template>
@@ -122,12 +122,19 @@
 
         _itemChanged: function(e) {
             e.stopImmediatePropagation();
+
+            console.log("item changed", e);
             
-            var checked = e.model.checked,
-                valid = e.model.valid,
-                item = e.model.option;
+            var item = e.model.option,
+                elementId = e.model.option.id;
 
             var selectedOptionIndex = this.selectedOptions.findIndex(function(option){return option.id == item.id});
+
+            if (this.querySelector('mist-networks-item[id="'+elementId+'"]')) {
+                var el = this.querySelector('mist-networks-item[id="'+elementId+'"]'),
+                    checked = el.checked,
+                    valid = el.valid;
+            }
 
             // add network
             if (checked && selectedOptionIndex == -1) {
@@ -154,6 +161,9 @@
             // console.log('check valid ', checkedItems.length, validItems.length, this.selectedOptions.length)
             if (!checkedItems){
                 return !this.field.required;
+            }
+            if (checkedItems && !validItems){
+                return false;
             }
             if (checkedItems.length == validItems.length == this.selectedOptions.length) {
                 return true;
