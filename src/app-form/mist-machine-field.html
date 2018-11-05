@@ -78,108 +78,110 @@
         }
         </style>
         <div class="title">[[field.label]] machine</div>
-        <paper-dropdown-menu label="[[field.label]] cloud" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
-            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.cloud}}" class="dropdown-content">
-                <template is="dom-if" if="[[_noOptions(clouds)]]" restamp>
-                    <paper-item disabled>No clouds found</paper-item>
-                </template>
-                <template id="cloudsDomRepeat" is="dom-repeat" items="[[clouds]]" as="option">
-                    <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
-                        <span class="flex">[[_showOption(option)]]</span>
-                    </paper-item>
-                </template>
-            </paper-menu>
-        </paper-dropdown-menu>
-        <div hidden$="[[!field.cloud.length]]">
+        <div style="margin-top: 16px">
             <paper-radio-group attr-for-selected="name" selected="{{radioValue}}">
-                <paper-radio-button name="existing">Use existing machine</paper-radio-button>
                 <paper-radio-button name="new">Create new</paper-radio-button>
+                <paper-radio-button name="existing">Use existing</paper-radio-button>
             </paper-radio-group>
         </div>
-        <!-- if useExistingMachine -->
-        <div hidden$="[[!useExistingMachine]]">
-            <span class="selected" hidden$="[[!multi]]">
-                <span hidden$="[[!field.machinesList.length]]">Selected:</span> <strong>[[_computeMachinesNames(field.machinesList,machines)]]</strong>
-            </span>
-        </div>
-        <div hidden$="[[!field.cloud.length]]">
-            <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[!useExistingMachine]]" style="width:100%">
-                <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-items="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
-                    <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
-                        <paper-item disabled>No machines found</paper-item>
+        <div style="padding: 0 16px; width: 95%;">
+            <paper-dropdown-menu label="[[field.label]] cloud" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
+                <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.cloud}}" class="dropdown-content">
+                    <template is="dom-if" if="[[_noOptions(clouds)]]" restamp>
+                        <paper-item disabled>No clouds found</paper-item>
                     </template>
-                    <template id="machinesDomRepeat" is="dom-repeat" items="[[machines]]" as="option">
-                        <paper-item value="[[option.machine_id]]" disabled$="[[option.disabled]]">
+                    <template id="cloudsDomRepeat" is="dom-repeat" items="[[clouds]]" as="option">
+                        <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                             <span class="flex">[[_showOption(option)]]</span>
                         </paper-item>
                     </template>
                 </paper-menu>
             </paper-dropdown-menu>
-        </div>
-        <!-- if !useExistingMachine -->
-        <div hidden$="[[useExistingMachine]]">
+            <!-- if useExistingMachine -->
+            <div hidden$="[[!useExistingMachine]]">
+                <span class="selected" hidden$="[[!multi]]">
+                    <span hidden$="[[!field.machinesList.length]]">Selected:</span> <strong>[[_computeMachinesNames(field.machinesList,machines)]]</strong>
+                </span>
+            </div>
             <div hidden$="[[!field.cloud.length]]">
-                <paper-dropdown-menu label="[[field.label]] image" horizontal-align="left" disabled="[[field.disabled]]" class="fullwidth">
-                    <div slot="dropdown-content" class="dropdown-content">
-                        <paper-input class="search" label="Search images" value="{{imageSearchKeywords}}" hidden$="[[_noOptions(images)]]"></paper-input>
-                        <paper-menu attr-for-selected="value" selected="{{field.image}}">
-                            <template is="dom-if" if="[[_noOptions(images)]]" restamp>
-                                <paper-item disabled>No images found</paper-item>
+                <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[!useExistingMachine]]" style="width:100%">
+                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-items="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
+                        <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
+                            <paper-item disabled>No machines found</paper-item>
+                        </template>
+                        <template id="machinesDomRepeat" is="dom-repeat" items="[[machines]]" as="option">
+                            <paper-item value="[[option.machine_id]]" disabled$="[[option.disabled]]">
+                                <span class="flex">[[_showOption(option)]]</span>
+                            </paper-item>
+                        </template>
+                    </paper-menu>
+                </paper-dropdown-menu>
+            </div>
+            <!-- if !useExistingMachine -->
+            <div hidden$="[[useExistingMachine]]">
+                <div hidden$="[[!field.cloud.length]]">
+                    <paper-dropdown-menu label="[[field.label]] image" horizontal-align="left" disabled="[[field.disabled]]" class="fullwidth">
+                        <div slot="dropdown-content" class="dropdown-content">
+                            <paper-input class="search" label="Search images" value="{{imageSearchKeywords}}" hidden$="[[_noOptions(images)]]"></paper-input>
+                            <paper-menu attr-for-selected="value" selected="{{field.image}}" style="max-height: 300px; overflow: scroll">
+                                <template is="dom-if" if="[[_noOptions(images)]]" restamp>
+                                    <paper-item disabled>No images found</paper-item>
+                                </template>
+                                <template is="dom-repeat" items="[[_filter(images, imageSearchKeywords)]]" as="option">
+                                    <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                                        <span class="flex">[[_showOption(option)]]</span>
+                                    </paper-item>
+                                </template>
+                            </paper-menu>
+                        </div>
+                    </paper-dropdown-menu>
+                    <mist-size-field id$="app-form-[[id]]-[[field.name]]-size" field="{{fieldSize}}" hidden$="[[hideSize]]"></mist-size-field>
+                    <paper-dropdown-menu label="[[field.label]] key" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.key}}" class="dropdown-content">
+                            <template is="dom-if" if="[[_noOptions(keys)]]" restamp>
+                                <paper-item disabled>No keys found</paper-item>
                             </template>
-                            <template is="dom-repeat" items="[[_filter(images, imageSearchKeywords)]]" as="option">
+                            <template id="keysDomRepeat" is="dom-repeat" items="[[keys]]" as="option">
                                 <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
                                     <span class="flex">[[_showOption(option)]]</span>
                                 </paper-item>
                             </template>
                         </paper-menu>
+                    </paper-dropdown-menu>
+                    <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[locationNotRequired]]">
+                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.location}}" class="dropdown-content">
+                            <template is="dom-if" if="[[_noOptions(locations)]]" restamp>
+                                <paper-item disabled>No locations found</paper-item>
+                            </template>
+                            <template id="locationsDomRepeat" is="dom-repeat" items="[[locations]]" as="option">
+                                <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                                    <span class="flex">[[_showOption(option)]]</span>
+                                </paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <paper-listbox hidden$="[[hideNetworks]]">
+                        <div>[[field.label]] network</div>
+                        <template is="dom-if" if="[[_noOptions(networks)]]" restamp>
+                            <p secondary>No networks found</p>
+                        </template>
+                        <template id="networksDomRepeat" is="dom-repeat" items="[[networks]]" as="option">
+                            <paper-item>
+                                <paper-checkbox name="network" on-change="_updateCheckboxesField" id$="[[option.id]]">
+                                    <template is="dom-if" if="[[option.img]]">
+                                        <img class="item-img" src="[[option.img]]" width="24px" />
+                                    </template>
+                                    <span class$="item-desc noimg-[[!option.img]]" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[_showOption(option)]]</span>
+                                </paper-checkbox>
+                            </paper-item>
+                        </template>
+                    </paper-listbox>
+                    <paper-toggle-button hidden$="[[hideFloatingIp]]" checked="{{associateFloatingIp}}">
+                        Associate Floating Ip
+                    </paper-toggle-button>
+                    <div hidden$="[[!multi]]">
+                        <paper-input value="{{field.quantity}}" label="[[field.label]]s quantity" type="number"></paper-input>
                     </div>
-                </paper-dropdown-menu>
-                <mist-size-field id$="app-form-[[id]]-[[field.name]]-size" field="{{fieldSize}}" hidden$="[[hideSize]]"></mist-size-field>
-                <paper-dropdown-menu label="[[field.label]] key" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
-                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.key}}" class="dropdown-content">
-                        <template is="dom-if" if="[[_noOptions(keys)]]" restamp>
-                            <paper-item disabled>No keys found</paper-item>
-                        </template>
-                        <template id="keysDomRepeat" is="dom-repeat" items="[[keys]]" as="option">
-                            <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
-                                <span class="flex">[[_showOption(option)]]</span>
-                            </paper-item>
-                        </template>
-                    </paper-menu>
-                </paper-dropdown-menu>
-                <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[locationNotRequired]]">
-                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.location}}" class="dropdown-content">
-                        <template is="dom-if" if="[[_noOptions(locations)]]" restamp>
-                            <paper-item disabled>No locations found</paper-item>
-                        </template>
-                        <template id="locationsDomRepeat" is="dom-repeat" items="[[locations]]" as="option">
-                            <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
-                                <span class="flex">[[_showOption(option)]]</span>
-                            </paper-item>
-                        </template>
-                    </paper-menu>
-                </paper-dropdown-menu>
-                <paper-listbox hidden$="[[hideNetworks]]">
-                    <div>[[field.label]] network</div>
-                    <template is="dom-if" if="[[_noOptions(networks)]]" restamp>
-                        <p secondary>No networks found</p>
-                    </template>
-                    <template id="networksDomRepeat" is="dom-repeat" items="[[networks]]" as="option">
-                        <paper-item>
-                            <paper-checkbox name="network" on-change="_updateCheckboxesField" id$="[[option.id]]">
-                                <template is="dom-if" if="[[option.img]]">
-                                    <img class="item-img" src="[[option.img]]" width="24px" />
-                                </template>
-                                <span class$="item-desc noimg-[[!option.img]]" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[_showOption(option)]]</span>
-                            </paper-checkbox>
-                        </paper-item>
-                    </template>
-                </paper-listbox>
-                <paper-toggle-button hidden$="[[hideFloatingIp]]" checked="{{associateFloatingIp}}">
-                    Associate Floating Ip
-                </paper-toggle-button>
-                <div hidden$="[[!multi]]">
-                    <paper-input value="{{field.quantity}}" label="[[field.label]]s quantity" type="number"></paper-input>
                 </div>
             </div>
         </div>
@@ -235,7 +237,7 @@
             },
             radioValue: {
                 type: String,
-                value: 'existing'
+                value: 'new'
             },
             useExistingMachine: {
                 type: Boolean,
