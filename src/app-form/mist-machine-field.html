@@ -171,6 +171,9 @@
                         </paper-item>
                     </template>
                 </paper-listbox>
+                <paper-toggle-button hidden$="[[hideFloatingIp]]" checked="{{associateFloatingIp}}">
+                    Associate Floating Ip
+                </paper-toggle-button>
                 <div hidden$="[[!multi]]">
                     <paper-input value="{{field.quantity}}" label="[[field.label]]s quantity" type="number"></paper-input>
                 </div>
@@ -218,6 +221,10 @@
                 type: Array,
                 value: []
             },
+            hideFloatingIp: {
+                type: Boolean,
+                value: true
+            },
             multi: {
                 type: Boolean,
                 value: false
@@ -245,6 +252,10 @@
             imageSearchKeywords: {
                 type: String,
                 value: ''
+            },
+            associateFloatingIp: {
+                type: Boolean,
+                value: false
             },
             fieldSize: {
                 type: Object,
@@ -325,6 +336,7 @@
                 this.$.locationsDomRepeat.render();
                 this.$.networksDomRepeat.render();
 
+                this.set('hideFloatingIp', this.cloud.provider != "openstack" && this.networks.length)
                 // update field consumed by mist-size-field
                 this.set('fieldSize.options', selectedCloud.sizesArray ? selectedCloud.sizesArray : [])
                 if (["onapp", "vsphere", "libvirt"].indexOf(selectedCloud.provider) > -1) {
@@ -392,6 +404,9 @@
                         networks: this.field.networks,
                         quantity: parseInt(this.field.quantity) && parseInt(this.field.quantity) > 0 ? parseInt(this.field.quantity) : 1
                     }]);
+                    if (this.cloud.provider == "openstack") {
+                        this.set('field.value.associate_floating_ip', this.associateFloatingIp);
+                    }
                 } else {
                     this.set('field.value', {
                         cloud_id: this.field.cloud,
@@ -401,6 +416,9 @@
                         location_id: this.field.location,
                         networks: this.field.networks
                     });
+                    if (this.cloud.provider == "openstack") {
+                        this.set('field.value.associate_floating_ip', this.associateFloatingIp);
+                    }
                 }
             }
             this.set('field.valid', this.validateValue());
