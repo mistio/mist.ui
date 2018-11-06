@@ -7,6 +7,8 @@
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="mist-size-field.html">
 <dom-module id="mist-machine-field">
@@ -74,8 +76,17 @@
                 padding: 38px 16px 16px 16px;
             }
         }
+
+        paper-radio-group {
+            margin-top: 16px;
+            margin-left: -8px;
+        }
         </style>
         <div class="title">[[field.label]] machine</div>
+        <paper-radio-group attr-for-selected="name" selected="{{radioValue}}">
+            <paper-radio-button name="new">Create new</paper-radio-button>
+            <paper-radio-button name="existing">Use existing</paper-radio-button>
+        </paper-radio-group>
         <paper-dropdown-menu label="[[field.label]] cloud" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
             <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.cloud}}" class="dropdown-content">
                 <template is="dom-if" if="[[_noOptions(clouds)]]" restamp>
@@ -88,37 +99,33 @@
                 </template>
             </paper-menu>
         </paper-dropdown-menu>
-        <p>
-            <paper-toggle-button checked="{{useExistingMachine}}" hidden$="[[!field.cloud.length]]">
-                <span hidden$="{{useExistingMachine}}"> Create [[field.label]] machine</span>
-                <span hidden$="{{!useExistingMachine}}"> Use existing machine<span hidden$="!multi">s</span> as [[field.label]]</span>
-            </paper-toggle-button>
-        </p>
         <!-- if useExistingMachine -->
         <div hidden$="[[!useExistingMachine]]">
             <span class="selected" hidden$="[[!multi]]">
                 <span hidden$="[[!field.machinesList.length]]">Selected:</span> <strong>[[_computeMachinesNames(field.machinesList,machines)]]</strong>
             </span>
         </div>
-        <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[!useExistingMachine]]">
-            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-items="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
-                <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
-                    <paper-item disabled>No machines found</paper-item>
-                </template>
-                <template id="machinesDomRepeat" is="dom-repeat" items="[[machines]]" as="option">
-                    <paper-item value="[[option.machine_id]]" disabled$="[[option.disabled]]">
-                        <span class="flex">[[_showOption(option)]]</span>
-                    </paper-item>
-                </template>
-            </paper-menu>
-        </paper-dropdown-menu>
+        <div hidden$="[[!field.cloud.length]]">
+            <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[!useExistingMachine]]" style="width:100%">
+                <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-items="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
+                    <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
+                        <paper-item disabled>No machines found</paper-item>
+                    </template>
+                    <template id="machinesDomRepeat" is="dom-repeat" items="[[machines]]" as="option">
+                        <paper-item value="[[option.machine_id]]" disabled$="[[option.disabled]]">
+                            <span class="flex">[[_showOption(option)]]</span>
+                        </paper-item>
+                    </template>
+                </paper-menu>
+            </paper-dropdown-menu>
+        </div>
         <!-- if !useExistingMachine -->
         <div hidden$="[[useExistingMachine]]">
             <div hidden$="[[!field.cloud.length]]">
                 <paper-dropdown-menu label="[[field.label]] image" horizontal-align="left" disabled="[[field.disabled]]" class="fullwidth">
                     <div slot="dropdown-content" class="dropdown-content">
                         <paper-input class="search" label="Search images" value="{{imageSearchKeywords}}" hidden$="[[_noOptions(images)]]"></paper-input>
-                        <paper-menu attr-for-selected="value" selected="{{field.image}}">
+                        <paper-menu attr-for-selected="value" selected="{{field.image}}" style="max-height: 300px; overflow: scroll">
                             <template is="dom-if" if="[[_noOptions(images)]]" restamp>
                                 <paper-item disabled>No images found</paper-item>
                             </template>
@@ -171,6 +178,9 @@
                         </paper-item>
                     </template>
                 </paper-listbox>
+                <paper-toggle-button hidden$="[[hideFloatingIp]]" checked="{{associateFloatingIp}}">
+                    Associate Floating Ip
+                </paper-toggle-button>
                 <div hidden$="[[!multi]]">
                     <paper-input value="{{field.quantity}}" label="[[field.label]]s quantity" type="number"></paper-input>
                 </div>
@@ -218,13 +228,22 @@
                 type: Array,
                 value: []
             },
+            hideFloatingIp: {
+                type: Boolean,
+                value: true
+            },
             multi: {
                 type: Boolean,
                 value: false
             },
+            radioValue: {
+                type: String,
+                value: 'new'
+            },
             useExistingMachine: {
                 type: Boolean,
-                value: false
+                value: true,
+                computed: 'computeUseExistingMachine(radioValue)'
             },
             hideSize: {
                 type: Boolean,
@@ -245,6 +264,10 @@
             imageSearchKeywords: {
                 type: String,
                 value: ''
+            },
+            associateFloatingIp: {
+                type: Boolean,
+                value: false
             },
             fieldSize: {
                 type: Object,
@@ -270,7 +293,7 @@
             '_fieldKeysChanged(field, field.keys, field.keys.*)',
             '_selectedCloudChanged(field.cloud)',
             '_fieldSizeChanged(fieldSize.*)',
-            '_updateFieldValue(useExistingMachine, field.cloud, field.machine, field.machinesList, field.image, field.size, field.location, field.networks, field.key, field.quantity)'
+            '_updateFieldValue(associateFloatingIp,useExistingMachine, field.cloud, field.machine, field.machinesList, field.image, field.size, field.location, field.networks, field.key, field.quantity)'
         ],
 
         ready: function() {
@@ -278,6 +301,10 @@
         },
 
         initializeValues: function(cr) {},
+
+        computeUseExistingMachine: function(radioValue) {
+            return  this.radioValue == 'existing';
+        },
 
         _fieldChanged: function(field) {
             this.set('fieldSize.name', this.field.name + 'Size');
@@ -325,6 +352,7 @@
                 this.$.locationsDomRepeat.render();
                 this.$.networksDomRepeat.render();
 
+                this.set('hideFloatingIp', this.cloud.provider != "openstack" && this.networks.length)
                 // update field consumed by mist-size-field
                 this.set('fieldSize.options', selectedCloud.sizesArray ? selectedCloud.sizesArray : [])
                 if (["onapp", "vsphere", "libvirt"].indexOf(selectedCloud.provider) > -1) {
@@ -373,7 +401,7 @@
             this.set('hideSize', false);
         },
 
-        _updateFieldValue: function(useExistingMachine, cloud, machine, machineList, image, size, location, networks, key, quantity) {
+        _updateFieldValue: function(associateFloatingIp,useExistingMachine, cloud, machine, machineList, image, size, location, networks, key, quantity) {
             // console.log(useExistingMachine, cloud, machine, image, size, location, networks, key);
             if (this.useExistingMachine) {
                 if (this.multi) {
@@ -392,6 +420,9 @@
                         networks: this.field.networks,
                         quantity: parseInt(this.field.quantity) && parseInt(this.field.quantity) > 0 ? parseInt(this.field.quantity) : 1
                     }]);
+                    if (this.cloud.provider == "openstack") {
+                        this.set('field.value.associate_floating_ip', this.associateFloatingIp);
+                    }
                 } else {
                     this.set('field.value', {
                         cloud_id: this.field.cloud,
@@ -401,6 +432,9 @@
                         location_id: this.field.location,
                         networks: this.field.networks
                     });
+                    if (this.cloud.provider == "openstack") {
+                        this.set('field.value.associate_floating_ip', this.associateFloatingIp);
+                    }
                 }
             }
             this.set('field.valid', this.validateValue());
