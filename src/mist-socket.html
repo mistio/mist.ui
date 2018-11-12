@@ -1,3 +1,4 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
 <script src="../bower_components/sockjs-client/dist/sockjs.min.js"></script>
 <script src="../bower_components/fast-json-patch/dist/fast-json-patch.js"></script>
 <script>
@@ -336,7 +337,7 @@
                             if (new_cloud_resources[old_cloud_resource_external_ids[i]] == undefined
                                 && _this.model[resource_type][old_cloud_resource_ids[i]] != undefined) {
                                 _this.set('model.' + resource_type + '.' + old_cloud_resource_ids[i], null);
-                                _this._pathEffector('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
+                                _this.notifyPath('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
                                 delete _this.model[resource_type][old_cloud_resource_ids[i]];
                             }
                         }
@@ -360,11 +361,12 @@
                                 property_sub_path = property_sub_path.join('.');
                                 property_sub_path = 'model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_sub_path
                                 setTimeout(function() {
-                                    _this._pathEffector(property_sub_path);
+                                    console.log('_this', _this, _this._pathEffector);
+                                    _this.notifyPath(property_sub_path);
                                 }, 50);
                             }
                         }
-                        _this._pathEffector('model.' + resource_type);
+                        _this.notifyPath('model.' + resource_type);
                         _this.set('model.sections.' + resource_type + '.count', Object.keys(_this.model[resource_type]).length);
                     }
                 }, {

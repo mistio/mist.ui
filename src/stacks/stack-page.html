@@ -740,22 +740,22 @@
                 listMachines: {
                     type: Array,
                     computed: '_computeListMachines(stack.node_instances.*, model.machines.*)',
-                    notify: true
+                    value: []
                 },
                 networks: {
                     type: Array,
                     computed: '_computeListNetworks(stack.node_instances.*, model.networks.*)',
-                    notify: true
+                    value: []
                 },
                 zones: {
                     type: Array,
                     computed: '_computeListZones(stack.node_instances.*, model.zonesArray.*)',
-                    notify: true
+                    value: []
                 },
                 keys: {
                     type: Array,
                     computed: '_computeListKeys(stack.node_instances.*, model.keys.*)',
-                    notify: true
+                    value: []
                 },
                 workflows: {
                     type: Array,
@@ -958,7 +958,7 @@
                 return this.listMachines.length || this.networks.length || this.keys.length;
             },
             _computeOutputsAreEmpty: function (stack) {
-                if (stack)
+                if (stack && stack.outputs)
                     for (var p in stack.outputs) {
                         return false;
                     }
@@ -1057,7 +1057,6 @@
             },
             _computeListMachines: function (nodeInstances, machines) {
                 var machines = [];
-                console.log('nodeInstances',nodeInstances);
                 if (nodeInstances && nodeInstances.base) {
                     nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'machine') {
@@ -1223,8 +1222,10 @@
             _showDialog: function (info) {
                 var dialog = this.querySelector('dialog-element'),
                     i;
-                for (i in info) {
-                    dialog[i] = info[i];
+                if (info){
+                    for (i in info) {
+                        dialog[i] = info[i];
+                    }
                 }
                 dialog._openDialog();
             },

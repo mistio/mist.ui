@@ -252,16 +252,18 @@
         queryChanged: function(query) {
             if (this.query && this.query.length > 2) {
                 var results = {}, result;
-                for (var prop in this.model) {
-                    if (prop.endsWith('Array') && this.model[prop].constructor === Array) {
-                        result = this.filterItems(this.model[prop]);
-                    } else if (['machines', 'networks', 'volumes'].indexOf(prop) > -1) {
-                        result = this.filterItems(Object.values(this.model[prop]));
-                    } else {
-                        continue;
+                if (this.model) {
+                    for (var prop in this.model) {
+                        if (prop.endsWith('Array') && this.model[prop].constructor === Array) {
+                            result = this.filterItems(this.model[prop]);
+                        } else if (['machines', 'networks', 'volumes'].indexOf(prop) > -1) {
+                            result = this.filterItems(Object.values(this.model[prop]));
+                        } else {
+                            continue;
+                        }
+                        results[prop + 'FullLength'] = result.length;
+                        results[prop] = result.splice(0, 3);
                     }
-                    results[prop + 'FullLength'] = result.length;
-                    results[prop] = result.splice(0, 3);
                 }
                 this.set('results', results);
                 if (!this.hide)
@@ -277,9 +279,11 @@
                 this.set('resultsExist', false);
             } else {
                 var rlen = 0;
-                for (var prop in this.results) {
-                    if (this.results[prop].length > 0) {
-                        rlen += this.results[prop].length;
+                if (this.results) {
+                    for (var prop in this.results) {
+                        if (this.results[prop].length > 0) {
+                            rlen += this.results[prop].length;
+                        }
                     }
                 }
                 this.set('resultsExist', rlen > 0);

@@ -966,42 +966,44 @@
         },
         _rulesApplyOnMachine: function (rules, machine, machineTags) {
             var machineRules = {}, check;
-            for (var p in rules) {
-                var noData = rules[p].actions.find(function(a){return a.type == 'no_data'}) != undefined;
-                // applies on all machines
-                if (!rules[p].selectors.length || noData) {
-                    check = true;
-                }
-                else {
-                    for (var i = 0; i < rules[p].selectors.length; i++) {
-                        var selector = rules[p].selectors[i];
-                        // applies on specific machines
-                        if (selector.type == 'machines' ){
-                            if (selector.ids.indexOf(machine.id) > -1)
-                                check = true;
-                            else
-                                check = false;
-                        } else if (selector.type == 'tags' ) { // applies on tags
-                            if (!this.machineTags.length)
-                                check = false; // machine has no tags
-                            else {
-                                for (var q in selector.tags) {
-                                    var mtag = this.machineTags.find(function(t){ return t.key == q });
-                                    if (!mtag) // machine has no such tag
-                                        check = false;
-                                    else { 
-                                        if (!selector.tags[q])
-                                            check = mtag.value == ""; // if tag value is null machine tag value must be empty string
-                                        else if (selector.tags[q])
-                                            check = selector.tags[q] == mtag.value; // if tag value is !null machine tag value must be equal 
+            if (rules) {
+                for (var p in rules) {
+                    var noData = rules[p].actions.find(function(a){return a.type == 'no_data'}) != undefined;
+                    // applies on all machines
+                    if (!rules[p].selectors.length || noData) {
+                        check = true;
+                    }
+                    else {
+                        for (var i = 0; i < rules[p].selectors.length; i++) {
+                            var selector = rules[p].selectors[i];
+                            // applies on specific machines
+                            if (selector.type == 'machines' ){
+                                if (selector.ids.indexOf(machine.id) > -1)
+                                    check = true;
+                                else
+                                    check = false;
+                            } else if (selector.type == 'tags' ) { // applies on tags
+                                if (!this.machineTags.length)
+                                    check = false; // machine has no tags
+                                else {
+                                    for (var q in selector.tags) {
+                                        var mtag = this.machineTags.find(function(t){ return t.key == q });
+                                        if (!mtag) // machine has no such tag
+                                            check = false;
+                                        else { 
+                                            if (!selector.tags[q])
+                                                check = mtag.value == ""; // if tag value is null machine tag value must be empty string
+                                            else if (selector.tags[q])
+                                                check = selector.tags[q] == mtag.value; // if tag value is !null machine tag value must be equal 
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    if (check == true)
+                        machineRules[p] = rules[p];
                 }
-                if (check == true)
-                    machineRules[p] = rules[p];
             }
             return machineRules;
         },
@@ -1104,8 +1106,10 @@
         },
         _showDialog: function (info) {
             var dialog = this.querySelector('#machinedialog');
-            for (var i in info) {
-                dialog[i] = info[i];
+            if (info) {
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
             }
             dialog._openDialog();
         },
