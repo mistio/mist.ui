@@ -739,22 +739,22 @@
                 },
                 listMachines: {
                     type: Array,
-                    computed: '_listMachines(stack.node_instances.*, model.machines.*)',
+                    computed: '_computeListMachines(stack.node_instances.*, model.machines.*)',
                     notify: true
                 },
                 networks: {
                     type: Array,
-                    computed: '_listNetworks(stack.node_instances.*, model.networks.*)',
+                    computed: '_computeListNetworks(stack.node_instances.*, model.networks.*)',
                     notify: true
                 },
                 zones: {
                     type: Array,
-                    computed: '_listZones(stack.node_instances.*, model.zonesArray.*)',
+                    computed: '_computeListZones(stack.node_instances.*, model.zonesArray.*)',
                     notify: true
                 },
                 keys: {
                     type: Array,
-                    computed: '_listKeys(stack.node_instances.*, model.keys.*)',
+                    computed: '_computeListKeys(stack.node_instances.*, model.keys.*)',
                     notify: true
                 },
                 workflows: {
@@ -973,7 +973,7 @@
                 });
             },
             _computeStackTags: function (stack, stackTags) {
-                return Object.entries(this.stack.tags).map(([key, value]) => ({key,value}));;
+                return this.stack && Object.entries(this.stack.tags).map(([key, value]) => ({key,value}));;
             },
             _stackStateChanged: function(status) {
                 this.set('inStartCreationState', false) 
@@ -1055,10 +1055,11 @@
             _machines: function (stack) {
                 return stack && stack.machines;
             },
-            _listMachines: function (nis) {
+            _computeListMachines: function (nodeInstances, machines) {
                 var machines = [];
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                console.log('nodeInstances',nodeInstances);
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'machine') {
                             var mac = Object.values(this.model.machines).find(function (mach) {
                                 return mach.id == rtpy.runtime_properties.info.id;
@@ -1084,10 +1085,10 @@
                 }
                 return machines;
             },
-            _listNetworks: function (nis) {
+            _computeListNetworks: function (nodeInstances, networks) {
                 var networks = [];
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'network') {
                             var net = this.model.networks[rtpy.runtime_properties.info.id];
                             if (net)
@@ -1097,10 +1098,10 @@
                 }
                 return networks;
             },
-            _listZones: function (nis) {
+            _computeListZones: function (nodeInstances, zones) {
                 var zones = [];
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'zone') {
                             var zone = this.model.zonesArray.find(function (zone) {
                                 return zone.id == rtpy.runtime_properties.info.id
@@ -1112,10 +1113,10 @@
                 }
                 return zones;
             },
-            // _listRecords: function(nis) {
+            // _computeListRecords: function(nodeInstances) {
             //     var records = [];
-            //     if (nis) {
-            //         nis.base.forEach(function(rtpy) {
+            //     if (nodeInstances) {
+            //         nodeInstances.base.forEach(function(rtpy) {
             //             if (rtpy.runtime_properties.mist_type == 'record') {
             //                 var record = this.model.recordsArray.find(function(record) {
             //                     return record.id == rtpy.runtime_properties.info.id
@@ -1127,11 +1128,11 @@
             //     }
             //     return records;
             // },
-            _listKeys: function (nis) {
+            _computeListKeys: function (nodeInstances, keys) {
                 var keys = [];
 
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'keypair') {
                             var key = this.model.keys[rtpy.runtime_properties.key];
 
