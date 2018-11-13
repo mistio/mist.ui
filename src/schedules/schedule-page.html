@@ -636,12 +636,13 @@
                     return this.schedule.conditions && this.schedule.conditions.length > 0 && this._findCondition('tags')  ? true : false;
             },
             _findCondition: function(field) {
-                if (this.schedule.conditions && this.schedule.conditions.length){
+                if (this.schedule && this.schedule.conditions && this.schedule.conditions.length){
                     var field = this.schedule.conditions.find(function(con){
                         return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
                     })
-                    if (field)
+                    if (field) {
                         return true;
+                    }
                     return false;
                 }
                 return false;
@@ -809,7 +810,7 @@
                     return _that.condition(m);
                 });
 
-                if (this.schedule.conditions && this._findCondition('machines')) {
+                if (this.schedule && this.schedule.conditions && this._findCondition('machines')) {
                     for (var i = 0; i < this.machinesIds.length; i++) {
                         var machine = this.schedule.conditions.find(function(c){return c.type == "machines"}).ids[i];
                         if (this.model.machines && !this.model.machines[machine]){

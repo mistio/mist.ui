@@ -3,15 +3,12 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
-
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../mist-actions.html">
-
 <link rel="import" href="team-actions.html">
 <link rel="import" href="team-edit.html">
 <link rel="import" href="team-policy.html">
-
 <dom-module id="team-page">
     <template>
         <style include="shared-styles lists single-page">
@@ -204,7 +201,6 @@
                 @apply(--team-page-head-mixin)
             }
         </style>
-
         <div id="content">
             <!-- <div class="is-loading" hidden$="[[!isLoading]]">
                 <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
@@ -270,7 +266,7 @@
                                             <paper-icon-button id="resend" icon="icons:send" on-tap="_resendMemberInvitation" class="resend-invitation"
                                                 hidden$="[[!item.pending]]" title="Resend invitation."></paper-icon-button>
                                             <span class="pending" hidden$="[[!item.pending]]">pending</span>
-                                            <a href="/members/[[item.id]]" class="pad-left">
+                                        <a href="/members/[[item.id]]" class="pad-left">
                                                 [[item.name]]
                                             </a>
                                         </span>
@@ -281,7 +277,6 @@
                             </template>
                         </paper-material>
                     </template>
-
                     <template is="dom-if" if="[[!hasMembers]]">
                         <paper-material>
                             <div class="text-center">
@@ -293,7 +288,6 @@
                     </template>
                 </div>
             </div>
-
             <div class="flex-horizontal-with-ratios section" hidden$=[[!rbac]]>
                 <div class="width100" hidden$="[[isMissing]]">
                     <paper-material class="no-pad">
@@ -326,155 +320,150 @@
                         <p class="text-center">
                             or contact
                             <a href$="mailto:[[email.sales]]" class="blue-link">[[email.sales]]</a> for details.
-                            <br/>
-                            <br/>
+                            <br />
+                            <br />
                         </p>
                     </paper-material>
                 </div>
             </div>
         </div>
-
         <div class="absolute-bottom-right">
             <paper-fab icon="social:person-add" on-tap="_addMember"></paper-fab>
         </div>
-
         <team-edit team="[[team]]" org="[[model.org]]"></team-edit>
-        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse"
-            on-error="_handleDeleteAjaxError"></iron-ajax>
-        <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE"
-            on-response="_deleteMemberResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
-        <iron-ajax id="_resendInvitation" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members" contentType="application/json"
-            handle-as="document" method="POST" on-response="_handleResendResponse" on-error="_handleResendError"></iron-ajax>
-
+        <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
+        <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
+        <iron-ajax id="_resendInvitation" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members" contentType="application/json" handle-as="document" method="POST" on-response="_handleResendResponse" on-error="_handleResendError"></iron-ajax>
         <dialog-element></dialog-element>
     </template>
     <script>
-        Polymer({
-            is: 'team-page',
-            behaviors: [
-                mistLoadingBehavior
-            ],
+    Polymer({
+        is: 'team-page',
+        behaviors: [
+            mistLoadingBehavior
+        ],
 
-            properties: {
-                section: {
-                    type: Object
-                },
-                model: {
-                    type: Object
-                },
-                hasPending: {
-                    type: Boolean,
-                    notify: true
-                },
-                team: {
-                    type: Object
-                },
-                hasMembers: {
-                    type: Boolean,
-                    value: false
-                },
-                hasOnlyYou: {
-                    type: Boolean,
-                    value: true,
-                    computed: '_hasOnlyYou(team)'
-                },
-                hasOtherMembers: {
-                    type: Boolean,
-                    value: true,
-                    computed: '_hasOtherMembers(team)'
-                },
-                confirmedMembersLength: {
-                    type: Number
-                },
-                members: {
-                    type: Array,
-                    computed: '_computeMembers(team, team.members, model.members.*)'
-                },
-                pendingMembers: {
-                    type: Array
-                },
-                timestamp: {
-                    type: String,
-                    computed: '_getFormattedTimestamp(team)'
-                },
-                memberToDelete: {
-                    type: String,
-                    value: null
-                },
-                isLoading: {
-                    type: Boolean,
-                    computed: '_computeIsloading(team)',
-                    value: true
-                },
-                teamIsOwners: {
-                    type: Boolean,
-                    computed: '_computeIsOwners(team)',
-                },
-                rbac: {
-                    type: Boolean,
-                    value: false
-                },
-                billing: {
-                    type: Boolean,
-                    value: false
-                },
-                itemArray: {
-                    type: Array
-                }
+        properties: {
+            section: {
+                type: Object
             },
+            model: {
+                type: Object
+            },
+            hasPending: {
+                type: Boolean,
+                notify: true
+            },
+            team: {
+                type: Object
+            },
+            hasMembers: {
+                type: Boolean,
+                value: false
+            },
+            hasOnlyYou: {
+                type: Boolean,
+                value: true,
+                computed: '_hasOnlyYou(team)'
+            },
+            hasOtherMembers: {
+                type: Boolean,
+                value: true,
+                computed: '_hasOtherMembers(team)'
+            },
+            confirmedMembersLength: {
+                type: Number
+            },
+            members: {
+                type: Array,
+                computed: '_computeMembers(team, team.members, model.members.*)'
+            },
+            pendingMembers: {
+                type: Array
+            },
+            timestamp: {
+                type: String,
+                computed: '_getFormattedTimestamp(team)'
+            },
+            memberToDelete: {
+                type: String,
+                value: null
+            },
+            isLoading: {
+                type: Boolean,
+                computed: '_computeIsloading(team)',
+                value: true
+            },
+            teamIsOwners: {
+                type: Boolean,
+                computed: '_computeIsOwners(team)',
+            },
+            rbac: {
+                type: Boolean,
+                value: false
+            },
+            billing: {
+                type: Boolean,
+                value: false
+            },
+            itemArray: {
+                type: Array
+            }
+        },
 
-            observers: [
-                '_change(team)'
-            ],
-            listeners: {
-                'confirmation': '_deleteResponse',
-                'edit': '_editTeam',
-                'invite': '_addMember'
-            },
-            ready: function () {
-                var wh = window.innerHeight;
-                this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
-            },
-            _displayUser: function (id, members) {
-                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
-            },
-            _change: function (item) {
-                if (item)
-                    this.set('itemArray', [this.team]);
-            },
-            _getFormattedTimestamp: function (team) {
-                if (team) {
-                    var timestamp = parseInt(team.created_at);
-                    return Date(timestamp).toLocaleString('en-US', {
-                        timeZoneName: 'short'
-                    });
-                }
-            },
-            _hasOnlyYou: function (team) {
-                if (team && team.members && team.members.length == 1 && team.members[0].email == this.model
-                    .user.email) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            _hasOtherMembers: function (team) {
-                if (team && team.members && !this._hasOnlyYou && team.members.length > 0) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            _hasMembers: function (team) {
-                if (team && team.members)
-                    return team.members.length > 0 ? true : false;
-            },
-            _computeMembers: function (team, teamMembers, members) {
-                var teamMembers = [],
-                    pendingMembers = [],
-                    confirmedMembers = [];
+        observers: [
+            '_change(team)'
+        ],
+        listeners: {
+            'confirmation': '_deleteResponse',
+            'edit': '_editTeam',
+            'invite': '_addMember'
+        },
+        ready: function() {
+            var wh = window.innerHeight;
+            this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
+        },
+        _displayUser: function(id, members) {
+            return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+        },
+        _change: function(item) {
+            if (item)
+                this.set('itemArray', [this.team]);
+        },
+        _getFormattedTimestamp: function(team) {
+            if (team) {
+                var timestamp = parseInt(team.created_at);
+                return Date(timestamp).toLocaleString('en-US', {
+                    timeZoneName: 'short'
+                });
+            }
+        },
+        _hasOnlyYou: function(team) {
+            if (team && team.members && team.members.length == 1 && team.members[0].email == this.model
+                .user.email) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+        _hasOtherMembers: function(team) {
+            if (team && team.members && !this._hasOnlyYou && team.members.length > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+        _hasMembers: function(team) {
+            if (team && team.members)
+                return team.members.length > 0 ? true : false;
+        },
+        _computeMembers: function(team, teamMembers, members) {
+            var teamMembers = [],
+                pendingMembers = [],
+                confirmedMembers = [];
 
-                team.members.forEach(function (member) {
+            if (team) {
+                team.members.forEach(function(member) {
                     if (members.base[member] && members.base[member].pending) {
                         pendingMembers.push(members.base[member]);
                     } else {
@@ -482,134 +471,135 @@
                     }
                     teamMembers.push(members.base[member]);
                 });
-
-                if (pendingMembers.length > 0) {
-                    this.set("hasPending", true);
-                } else {
-                    this.set("hasPending", false);
-                }
-
-                if (teamMembers.length > 0) {
-                    this.set("hasMembers", true);
-                } else {
-                    this.set("hasMembers", false);
-                }
-
-                this.set("confirmedMembersLength", teamMembers.length - pendingMembers.length);
-                this.set("pendingMembers", pendingMembers);
-                return teamMembers;
-            },
-            _addMember: function (e) {
-                e.stopImmediatePropagation();
-                this.fire('go-to', {
-                    url: '/teams/' + this.team.id + '/+add'
-                })
-            },
-            _editTeam: function (e) {
-                e.stopImmediatePropagation();
-                var el = this.querySelector('team-edit');
-                el._openEditTeamModal();
-            },
-            _deleteTeam: function (e) {
-                this._showDialog({
-                    title: 'Delete Team?',
-                    body: "Deleting teams cannot be undone. You are about to delete team: " +
-                        this.team
-                        .name,
-                    danger: true,
-                    reason: "team.delete"
-                });
-            },
-            _deleteResponse: function (e) {
-                var reason = e.detail.reason,
-                    response = e.detail.response;
-
-                if (response.confirmed && reason == "team.delete") {
-                    this.$.teamDeleteAjaxRequest.body = {};
-                    this.$.teamDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.teamDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.teamDeleteAjaxRequest.generateRequest();
-                }
-                if (response.confirmed && reason == "member.delete") {
-                    this.$.deleteMember.body = {};
-                    this.$.deleteMember.headers["Content-Type"] = 'application/json';
-                    this.$.deleteMember.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.deleteMember.generateRequest();
-                }
-            },
-            _handleTeamDeleteAjaxResponse: function (e) {
-                this.fire('go-to', {
-                    url: '/teams'
-                })
-            },
-            _handleDeleteAjaxError: function (e) {
-                this.fire('toast', {
-                    msg: e.detail.error.message,
-                    duration: 3000
-                });
-            },
-            _deleteMemberFromTeam: function (e) {
-                var membId = e.target.attributes.memberid.value,
-                    membname = e.target.attributes.membername.value;
-                this.set('memberToDelete', membId);
-                this._showDialog({
-                    title: 'Delete member from team?',
-                    body: "Deleting member " + membname + " from team " + this.team.name +
-                        '. You can always reinvite people by email.',
-                    danger: true,
-                    reason: "member.delete"
-                });
-            },
-            _deleteMemberResponse: function () {
-                this.set('memberToDelete', null);
-                this.fire('toast', {
-                    msg: "Member deleted succesfully",
-                    duration: 3000
-                });
-            },
-            _resendMemberInvitation: function (e) {
-                console.log(e, e.model);
-                var email = e.model.item.email; // || e.target.parentNode['dataEmail'];
-                this.$._resendInvitation.body = {
-                    'emails': email
-                };
-                this.$._resendInvitation.headers["Content-Type"] = 'application/json';
-                this.$._resendInvitation.headers["Csrf-Token"] = CSRF_TOKEN;
-
-                this.$._resendInvitation.generateRequest();
-            },
-            _handleResendResponse: function (e) {
-                console.log(e);
-                this.fire('toast', {
-                    msg: "Invitation resent succesfully",
-                    duration: 3000
-                })
-            },
-            _handleResendError: function (e) {
-                console.log(e);
-                this.fire('toast', {
-                    msg: e.detail.error.message,
-                    duration: 3000
-                })
-            },
-            _showDialog: function (info) {
-                var dialog = this.querySelector('dialog-element');
-                for (var i in info) {
-                    dialog[i] = info[i];
-                }
-                dialog._openDialog();
-            },
-            _computeIsloading: function (team) {
-                return !this.team ? true : false;
-            },
-            _computeIsOwners: function (team) {
-                if (this.team)
-                    return this.team.name == "Owners";
-            },
-            _showMessage: function (rbac, billing) {
-                if (this.team)
-                    return !rbac && !billing;
             }
-        });
+
+            if (pendingMembers.length > 0) {
+                this.set("hasPending", true);
+            } else {
+                this.set("hasPending", false);
+            }
+
+            if (teamMembers.length > 0) {
+                this.set("hasMembers", true);
+            } else {
+                this.set("hasMembers", false);
+            }
+
+            this.set("confirmedMembersLength", teamMembers.length - pendingMembers.length);
+            this.set("pendingMembers", pendingMembers);
+            return teamMembers;
+        },
+        _addMember: function(e) {
+            e.stopImmediatePropagation();
+            this.fire('go-to', {
+                url: '/teams/' + this.team.id + '/+add'
+            })
+        },
+        _editTeam: function(e) {
+            e.stopImmediatePropagation();
+            var el = this.querySelector('team-edit');
+            el._openEditTeamModal();
+        },
+        _deleteTeam: function(e) {
+            this._showDialog({
+                title: 'Delete Team?',
+                body: "Deleting teams cannot be undone. You are about to delete team: " +
+                    this.team
+                    .name,
+                danger: true,
+                reason: "team.delete"
+            });
+        },
+        _deleteResponse: function(e) {
+            var reason = e.detail.reason,
+                response = e.detail.response;
+
+            if (response.confirmed && reason == "team.delete") {
+                this.$.teamDeleteAjaxRequest.body = {};
+                this.$.teamDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+                this.$.teamDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.teamDeleteAjaxRequest.generateRequest();
+            }
+            if (response.confirmed && reason == "member.delete") {
+                this.$.deleteMember.body = {};
+                this.$.deleteMember.headers["Content-Type"] = 'application/json';
+                this.$.deleteMember.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.deleteMember.generateRequest();
+            }
+        },
+        _handleTeamDeleteAjaxResponse: function(e) {
+            this.fire('go-to', {
+                url: '/teams'
+            })
+        },
+        _handleDeleteAjaxError: function(e) {
+            this.fire('toast', {
+                msg: e.detail.error.message,
+                duration: 3000
+            });
+        },
+        _deleteMemberFromTeam: function(e) {
+            var membId = e.target.attributes.memberid.value,
+                membname = e.target.attributes.membername.value;
+            this.set('memberToDelete', membId);
+            this._showDialog({
+                title: 'Delete member from team?',
+                body: "Deleting member " + membname + " from team " + this.team.name +
+                    '. You can always reinvite people by email.',
+                danger: true,
+                reason: "member.delete"
+            });
+        },
+        _deleteMemberResponse: function() {
+            this.set('memberToDelete', null);
+            this.fire('toast', {
+                msg: "Member deleted succesfully",
+                duration: 3000
+            });
+        },
+        _resendMemberInvitation: function(e) {
+            console.log(e, e.model);
+            var email = e.model.item.email; // || e.target.parentNode['dataEmail'];
+            this.$._resendInvitation.body = {
+                'emails': email
+            };
+            this.$._resendInvitation.headers["Content-Type"] = 'application/json';
+            this.$._resendInvitation.headers["Csrf-Token"] = CSRF_TOKEN;
+
+            this.$._resendInvitation.generateRequest();
+        },
+        _handleResendResponse: function(e) {
+            console.log(e);
+            this.fire('toast', {
+                msg: "Invitation resent succesfully",
+                duration: 3000
+            })
+        },
+        _handleResendError: function(e) {
+            console.log(e);
+            this.fire('toast', {
+                msg: e.detail.error.message,
+                duration: 3000
+            })
+        },
+        _showDialog: function(info) {
+            var dialog = this.querySelector('dialog-element');
+            for (var i in info) {
+                dialog[i] = info[i];
+            }
+            dialog._openDialog();
+        },
+        _computeIsloading: function(team) {
+            return !this.team ? true : false;
+        },
+        _computeIsOwners: function(team) {
+            if (this.team)
+                return this.team.name == "Owners";
+        },
+        _showMessage: function(rbac, billing) {
+            if (this.team)
+                return !rbac && !billing;
+        }
+    });
     </script>
 </dom-module>
