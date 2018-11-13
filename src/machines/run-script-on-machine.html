@@ -6,7 +6,6 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
-
 <dom-module id="run-script-on-machine">
     <template>
         <style include="shared-styles dialogs">
@@ -14,12 +13,15 @@
             display: block;
             width: 100%;
         }
+
         :host .btn-group {
             margin: 0 0 24px 0;
         }
+
         .grey {
             opacity: 0.54;
         }
+
         :host paper-dropdown-menu ::content .dropdown-content,
         :host paper-dropdown-menu ::slotted(.dropdown-content) {
             top: 55px !important;
@@ -51,9 +53,7 @@
                 </paper-button>
             </div>
         </paper-dialog>
-
         <iron-ajax id="runScriptRequest" url="/api/v1/scripts/[[selectedScriptId]]" method="POST" on-response="_runScriptResponse" on-error="_runScriptError" on-request="_runScriptRequest" handle-as="xml"></iron-ajax>
-
     </template>
 </dom-module>
 <script>
@@ -81,11 +81,10 @@ Polymer({
         }
     },
     listeners: {
-        'iron-select' : 'computedSelectedScriptId'
+        'iron-select': 'computedSelectedScriptId'
     },
-    ready: function(){
-    },
-    computedSelectedScriptId: function(selected){
+    ready: function() {},
+    computedSelectedScriptId: function(selected) {
         this.set('selectedScriptId', this.querySelector('#scripts').selected || '');
     },
     _paramsChanged: function(params) {
@@ -100,11 +99,11 @@ Polymer({
     _closeDialog: function(e) {
         this.$.scriptDialogModal.close();
     },
-    runScript: function(e){
+    runScript: function(e) {
         var request = this.$.runScriptRequest;
         var scriptparams = this.params || '';
 
-        console.log('runScript',request.id, items, scriptparams);
+        console.log('runScript', request.id, items, scriptparams);
 
         var items = this.items.slice(0);
         var run = function(el) {
@@ -113,10 +112,9 @@ Polymer({
                 itemId;
             if (item.length) {
                 chunks = item.split(':'),
-                itemId = chunks[2],
-                cloudId = chunks[1];
-            }
-            else {
+                    itemId = chunks[2],
+                    cloudId = chunks[1];
+            } else {
                 itemId = item.id;
                 cloudId = item.cloud.id;
             }
@@ -132,21 +130,21 @@ Polymer({
                 run(el);
             }
         }
-        run(this); 
+        run(this);
     },
     _runScriptRequest: function() {
         var logMessage = 'Sending request to run script on machine.';
-        this.fire('performing-action', {log: logMessage});
+        this.fire('performing-action', { log: logMessage });
     },
-    _runScriptResponse: function(e){
+    _runScriptResponse: function(e) {
         console.log(e, e.detail);
-        this.fire('action-finished', {success: true});
-        this.fire('toast', {msg: 'Run script request sent successfully. Review in machine logs.', duration: 5000});        
+        this.fire('action-finished', { success: true });
+        this.fire('toast', { msg: 'Run script request sent successfully. Review in machine logs.', duration: 5000 });
     },
-    _runScriptError: function(e){
+    _runScriptError: function(e) {
         console.log(e, e.detail);
-        this.fire('action-finished', {success: false});
-        this.fire('toast', {msg: e.detail.xhr.response, duration: 5000});
+        this.fire('action-finished', { success: false });
+        this.fire('toast', { msg: e.detail.xhr.response, duration: 5000 });
     }
 });
 </script>

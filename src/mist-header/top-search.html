@@ -5,13 +5,11 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
-
 <link rel="import" href="search-suggestions.html">
-
 <dom-module id="top-search">
-  <template>
-    <style include="shared-styles">
-      :host * {
+    <template>
+        <style include="shared-styles">
+            :host * {
         box-sizing: border-box;
         outline: none;
       }
@@ -147,179 +145,180 @@
         font-size: 16px;
       }
     </style>
-    <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
-    <div id="search" class="horizontal layout center">
-      <paper-menu-button vertical-offset="48" multi="true" hidden$="[[!ownership]]">
-          <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon></paper-button>
-          <paper-listbox id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
-            <paper-item value="owner:$me" on-tap="updateLocalStorage">Your resources</paper-item>
-            <paper-item value="" on-tap="updateLocalStorage">All resources</paper-item>
-          </paper-listbox>
-      </paper-menu-button>
-      <iron-icon icon="search"></iron-icon>
-      <form on-submit="performSearch" class="flex-1">
-          <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
-      </form>
-      <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!showClear]]"></iron-icon>
-    </div>
-    <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
-  </template>
-  <script>
-  Polymer({
-    is: 'top-search',
+        <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
+        <div id="search" class="horizontal layout center">
+            <paper-menu-button vertical-offset="48" multi="true" hidden$="[[!ownership]]">
+                <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon>
+                </paper-button>
+                <paper-listbox id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
+                    <paper-item value="owner:$me" on-tap="updateLocalStorage">Your resources</paper-item>
+                    <paper-item value="" on-tap="updateLocalStorage">All resources</paper-item>
+                </paper-listbox>
+            </paper-menu-button>
+            <iron-icon icon="search"></iron-icon>
+            <form on-submit="performSearch" class="flex-1">
+                <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
+            </form>
+            <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!showClear]]"></iron-icon>
+        </div>
+        <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
+    </template>
+    <script>
+    Polymer({
+        is: 'top-search',
 
-    behaviors: [
-      Polymer.IronResizableBehavior
-    ],
+        behaviors: [
+            Polymer.IronResizableBehavior
+        ],
 
-    properties: {
-      query: {
-        type: String,
-        notify: true,
-        value: ""
-      },
-      model: {
-        type: Object,
-        notify: true
-      },
-      viewingList: {
-          type: Boolean
-      },
-      showClear: {
-        type: Boolean,
-        value: false
-      },
-      overflow: {
-        type: Boolean,
-        reflectToAttribute: true
-      },
-      width: {
-        type: Number
-      },
-      filter: {
-        type: String
-      },
-      ownership: {
-        type: Boolean,
-        value: false
-      },
-      visibleSuggestions: {
-        type: Boolean,
-        notify: true
-      }
-    },
+        properties: {
+            query: {
+                type: String,
+                notify: true,
+                value: ""
+            },
+            model: {
+                type: Object,
+                notify: true
+            },
+            viewingList: {
+                type: Boolean
+            },
+            showClear: {
+                type: Boolean,
+                value: false
+            },
+            overflow: {
+                type: Boolean,
+                reflectToAttribute: true
+            },
+            width: {
+                type: Number
+            },
+            filter: {
+                type: String
+            },
+            ownership: {
+                type: Boolean,
+                value: false
+            },
+            visibleSuggestions: {
+                type: Boolean,
+                notify: true
+            }
+        },
 
-    observers: [
-      '_queryChanged(query)',
-      'overflowChanged(overflow)',
-      '_filterChanged(filter)'
-    ],
+        observers: [
+            '_queryChanged(query)',
+            'overflowChanged(overflow)',
+            '_filterChanged(filter)'
+        ],
 
-    listeners: {
-      'keyup': 'hotkeys',
-      'iron-resize': 'updateWidth'
-    },
+        listeners: {
+            'keyup': 'hotkeys',
+            'iron-resize': 'updateWidth'
+        },
 
-    attached: function() {
-      var filter;
-      try {
-        filter = localStorage.getItem('mist-filter');
-      } catch(e) {
-        console.warn(e);
-      }
-      if (filter) {
-          this.set('filter', filter);
-      }
-    },
+        attached: function() {
+            var filter;
+            try {
+                filter = localStorage.getItem('mist-filter');
+            } catch (e) {
+                console.warn(e);
+            }
+            if (filter) {
+                this.set('filter', filter);
+            }
+        },
 
-    updateWidth: function() {
-        this.debounce('windowResize', function() {
-            this.set('width', this.getBoundingClientRect().width)
-        }, 100);
-    },
+        updateWidth: function() {
+            this.debounce('windowResize', function() {
+                this.set('width', this.getBoundingClientRect().width)
+            }, 100);
+        },
 
-    performSearch: function(e) {
-      e.preventDefault();
-    },
-    _filterChanged: function(filter) {
-      this.debounce('updateLocalStorageFilter', this.updateLocalStorage, 500);
-      if (filter.length){
-        this.$.query.focus();
-        this.set('showClear', true);
-        if (this.query.indexOf(filter)==-1)
-          this.fire('search', filter + ' ' + this.query.replace(/owner:\S*\s/, ''));
-      } else {
-        var newQ = this.query.replace(/owner:\S*\s?/g, '');
-        this.fire('search', newQ);
-        if (!newQ.length)
-          this.clearSearch();
-      }
-    },
-    updateLocalStorage: function(e) {
-      try {
-        if (typeof this.filter == 'string' && localStorage.getItem('mist-filter') != this.filter)
-          localStorage.setItem('mist-filter', this.filter);
-      } catch(e) {
-        console.warn(e);
-      }
-    },
-    _queryChanged: function(q) {
-      if (!q.length) 
-        this.setTypedFilter(q);
-      if (q && q.length) {
-        this.$.query.focus();
-        this.set('showClear', true);
-      } else
-        this.set('showClear', this.overflow || false);
+        performSearch: function(e) {
+            e.preventDefault();
+        },
+        _filterChanged: function(filter) {
+            this.debounce('updateLocalStorageFilter', this.updateLocalStorage, 500);
+            if (filter.length) {
+                this.$.query.focus();
+                this.set('showClear', true);
+                if (this.query.indexOf(filter) == -1)
+                    this.fire('search', filter + ' ' + this.query.replace(/owner:\S*\s/, ''));
+            } else {
+                var newQ = this.query.replace(/owner:\S*\s?/g, '');
+                this.fire('search', newQ);
+                if (!newQ.length)
+                    this.clearSearch();
+            }
+        },
+        updateLocalStorage: function(e) {
+            try {
+                if (typeof this.filter == 'string' && localStorage.getItem('mist-filter') != this.filter)
+                    localStorage.setItem('mist-filter', this.filter);
+            } catch (e) {
+                console.warn(e);
+            }
+        },
+        _queryChanged: function(q) {
+            if (!q.length)
+                this.setTypedFilter(q);
+            if (q && q.length) {
+                this.$.query.focus();
+                this.set('showClear', true);
+            } else
+                this.set('showClear', this.overflow || false);
 
-      this.fire('search', this.query);
-    },
-    setTypedFilter: function(q,caller) {
-      var filterOwner = q.indexOf('owner:')>-1,
-          ownerRegex = /owner:(\S*)\s?/,
-          owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
-      
-      if (!filterOwner || !q.length) {
-          this.$.filterSelection.selected = -1;
-          this.set('filter','');
-        }
+            this.fire('search', this.query);
+        },
+        setTypedFilter: function(q, caller) {
+            var filterOwner = q.indexOf('owner:') > -1,
+                ownerRegex = /owner:(\S*)\s?/,
+                owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
 
-      if (filterOwner && owner && owner.length && this.filter != 'owner:'+owner) {
-          this.set('filter', 'owner:'+owner);
-        }
-      // update localStorage if user is typing
-      if (caller)
-          this.updateLocalStorage();
-    },
-    clearSearch: function(e){
-      this.set('query',"");
-      this.$.query.blur();
-      if (this.overflow)
-        this.set('overflow', false);
-    },
-    hotkeys: function(e) {
-        this.setTypedFilter(this.query,'hotkeys');
-        // ESC
-        if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.$.query) {
-            this.set('query',"");
+            if (!filterOwner || !q.length) {
+                this.$.filterSelection.selected = -1;
+                this.set('filter', '');
+            }
+
+            if (filterOwner && owner && owner.length && this.filter != 'owner:' + owner) {
+                this.set('filter', 'owner:' + owner);
+            }
+            // update localStorage if user is typing
+            if (caller)
+                this.updateLocalStorage();
+        },
+        clearSearch: function(e) {
+            this.set('query', "");
+            this.$.query.blur();
             if (this.overflow)
-              this.set('overflow', false)
+                this.set('overflow', false);
+        },
+        hotkeys: function(e) {
+            this.setTypedFilter(this.query, 'hotkeys');
+            // ESC
+            if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.$.query) {
+                this.set('query', "");
+                if (this.overflow)
+                    this.set('overflow', false)
+            }
+            // ENTER
+            // if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$.query && this.query.length) {}
+        },
+        revealSearch: function(e) {
+            this.set('overflow', true);
+            this.set('showClear', true);
+        },
+        overflowChanged: function(overflow) {
+            if (overflow) {
+                this.updateWidth();
+                this.$.query.focus();
+            } else
+                this.$.query.blur();
+            this.set('showClear', this.overflow);
         }
-        // ENTER
-        // if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$.query && this.query.length) {}
-    },
-    revealSearch: function(e) {
-      this.set('overflow', true);
-      this.set('showClear', true);
-    },
-    overflowChanged: function(overflow) {
-      if (overflow){
-        this.updateWidth();
-        this.$.query.focus();
-      } else
-        this.$.query.blur();
-      this.set('showClear', this.overflow);
-    }
-  });
-  </script>
+    });
+    </script>
 </dom-module>

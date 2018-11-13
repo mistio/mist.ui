@@ -11,39 +11,49 @@
             display: block;
             width: 100%;
         }
+
         :host .btn-group {
             margin: 0 0 24px 0;
         }
+
         .grey {
             opacity: 0.54;
         }
+
         .trigger {
             cursor: pointer;
             padding: 16px 0;
         }
+
         .trigger iron-icon {
             transition: transform 300ms ease-in;
         }
+
         .trigger[open] iron-icon {
             transform: rotate(180deg);
         }
+
         .collapsible {
             height: 0;
             overflow: hidden;
             transition: height 300ms ease-in-out 100ms;
         }
+
         .collapsible[open] {
             height: auto;
         }
+
         :host paper-button.wide.blue {
             margin: 8px;
             text-align: center;
         }
+
         .btn-group {
             margin: 16px 0;
         }
-        
+
         @media screen and (max-width: 450px) {
+
             :host paper-dropdown-menu ::content .dropdown-content,
             :host paper-dropdown-menu ::slotted(.dropdown-content) {
                 top: 0 !important;
@@ -65,7 +75,8 @@
                     </paper-dropdown-menu>
                 </p>
                 <p>
-                    <div class="trigger" on-tap="toggleCollapsble">Advanced Options <iron-icon icon="icons:arrow-drop-down"></iron-icon></div>
+                    <div class="trigger" on-tap="toggleCollapsble">Advanced Options <iron-icon icon="icons:arrow-drop-down"></iron-icon>
+                    </div>
                     <div class="collapsible">
                         <paper-input id="user" label="ssh user" value$="[[user]]" placeholder="root"></paper-input>
                         <paper-input id="port" label="ssh port" value$="[[port]]" placeholder="22"></paper-input>
@@ -81,9 +92,7 @@
                 </paper-button>
             </div>
         </paper-dialog>
-
         <iron-ajax id="associateKeyRequest" method="PUT" on-response="_associateKeyResponse" on-error="_associateKeyError" on-request="_associateKeyRequest" handle-as="xml"></iron-ajax>
-
     </template>
 </dom-module>
 <script>
@@ -123,16 +132,16 @@ Polymer({
         }
     },
     listeners: {
-        'iron-select' : 'computedSelectedKeyId',
+        'iron-select': 'computedSelectedKeyId',
         'change': 'updateInputs',
         // 'open-and-select' : 'openAndSelect'
     },
-    attached: function(){
+    attached: function() {
         if (this.querySelector("iron-dropdown")) {
             this.querySelector("iron-dropdown").setAttribute("vertical-offset", 55);
         }
     },
-    computedSelectedKeyId: function(selected){
+    computedSelectedKeyId: function(selected) {
         this.set('selectedKeyId', this.querySelector('#keys').selected || '');
     },
     _openDialog: function(e) {
@@ -158,7 +167,7 @@ Polymer({
             col.removeAttribute('open');
         }
     },
-    openAndSelect: function(e){
+    openAndSelect: function(e) {
         console.log('openAndSelect', e);
 
         //reset
@@ -174,16 +183,16 @@ Polymer({
 
         this.$.dialogModal.open();
     },
-    _addKey: function(e){
+    _addKey: function(e) {
         this.$.dialogModal.close();
         //set attribute origin
         var origin = window.location.pathname;
         var qParams = {
             'origin': origin
         }
-        this.fire('go-to',{url: '/keys/+add', params: qParams});
+        this.fire('go-to', { url: '/keys/+add', params: qParams });
     },
-    associateKey: function(e){
+    associateKey: function(e) {
 
         var user = this.querySelector('paper-input#user').value || 'root',
             port = this.querySelector('paper-input#port').value || '22',
@@ -202,8 +211,7 @@ Polymer({
                 itemType = item.split(':')[0];
                 itemCloud = item.split(':')[1];
                 itemId = item.split(':')[2];
-            }
-            else {
+            } else {
                 itemCloud = item.cloud.id;
                 itemId = item.id
             }
@@ -215,7 +223,7 @@ Polymer({
             request.url = uri;
             request.headers["Content-Type"] = 'application/json';
             request.headers["Csrf-Token"] = CSRF_TOKEN;
-            request.body = { host: machineHost, user: user, port: port};
+            request.body = { host: machineHost, user: user, port: port };
             request.generateRequest();
 
             if (items.length) {
@@ -226,56 +234,54 @@ Polymer({
         this.$.dialogModal.close();
         e.stopImmediatePropagation();
     },
-    _associateKeyRequest: function(){
+    _associateKeyRequest: function() {
         var logMessage = 'Sending request to associate key with machine.';
-        this.fire('performing-action', {log: logMessage});
+        this.fire('performing-action', { log: logMessage });
     },
-    _associateKeyResponse: function(){
-        this.fire('action-finished', {success: true});
-        this.fire('toast', {msg: 'Key association request sent successfully', duration: 3000});
+    _associateKeyResponse: function() {
+        this.fire('action-finished', { success: true });
+        this.fire('toast', { msg: 'Key association request sent successfully', duration: 3000 });
     },
-    _associateKeyError: function(e){
-        this.fire('action-finished', {success: true});
-        this.fire('toast', {msg: e.detail.request.xhr.responseText, duration: 5000});
+    _associateKeyError: function(e) {
+        this.fire('action-finished', { success: true });
+        this.fire('toast', { msg: e.detail.request.xhr.responseText, duration: 5000 });
     },
-    updateInputs: function(e){
+    updateInputs: function(e) {
         var target = e.target.id;
     },
-    toggleCollapsble: function(){
+    toggleCollapsble: function() {
         var col = this.querySelector('.collapsible');
         var trigger = this.querySelector('.trigger');
         if (col.getAttribute('open')) {
             trigger.removeAttribute('open');
             col.removeAttribute('open');
-        }
-        else {
+        } else {
             trigger.setAttribute('open', true);
             col.setAttribute('open', true);
         }
     },
-    computeKeys: function(model){
+    computeKeys: function(model) {
         return (this.model && this.model.keysArray) ? this.model.keysArray : [];
     },
-    computeModel: function(){
+    computeModel: function() {
         return document.querySelector("app-main") ? document.querySelector("app-main").model : document.querySelector("mist-app").model;
     },
-    itemsHaveThisKey: function(key, items, model){
+    itemsHaveThisKey: function(key, items, model) {
         // test if all items have this key and if so disable
         var count = 0;
         var model = this.model;
-        for (var i=0; i<this.items.length; i++) {
+        for (var i = 0; i < this.items.length; i++) {
             var itemCloud,
                 itemId;
             if (this.items[i].length) {
                 itemCloud = this.items[i].split(':')[1];
                 itemId = this.items[i].split(':')[2];
-            }
-            else {
+            } else {
                 itemCloud = this.items[i].cloud.id;
                 itemId = this.items[i].machine_id;
             }
-            for (var j=0; j<model.keys[key].machines.length; j++) {
-                if (model.keys[key].machines[j][0] == itemCloud && model.keys[key].machines[j][1] == itemId){
+            for (var j = 0; j < model.keys[key].machines.length; j++) {
+                if (model.keys[key].machines[j][0] == itemCloud && model.keys[key].machines[j][1] == itemId) {
                     count++;
                 }
             }

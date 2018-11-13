@@ -11,7 +11,7 @@
 <dom-module id="machine-snapshots">
     <template>
         <style include="shared-styles dialogs">
-         :host {
+        :host {
             display: block;
             width: 100%;
         }
@@ -20,7 +20,7 @@
             min-width: 370px;
         }
 
-         :host .btn-group {
+        :host .btn-group {
             margin: 0 0 24px 0;
         }
 
@@ -69,12 +69,13 @@
             padding: 4px;
             margin-top: 0;
         }
+
         .title {
             text-transform: capitalize;
         }
 
-         :host paper-dropdown-menu ::content .dropdown-content,
-         :host paper-dropdown-menu ::slotted(.dropdown-content) {
+        :host paper-dropdown-menu ::content .dropdown-content,
+        :host paper-dropdown-menu ::slotted(.dropdown-content) {
             top: 55px !important;
         }
         </style>
@@ -83,8 +84,8 @@
             <paper-dialog-scrollable hidden$="[[!isCreate]]">
                 <p> Fill in a name for the snapshot.
                     <paper-input label="Snapshot name" value="{{snapshotName}}"></paper-input>
-                    <paper-textarea label="Snapshot description (optional)" value="{{snapshotDescription}}"></paper-textarea><br/>
-                    <paper-checkbox checked="{{snapshotDumpMemory}}">Dump memory</paper-checkbox><br/><br/>
+                    <paper-textarea label="Snapshot description (optional)" value="{{snapshotDescription}}"></paper-textarea><br />
+                    <paper-checkbox checked="{{snapshotDumpMemory}}">Dump memory</paper-checkbox><br /><br />
                     <paper-checkbox checked="{{snapshotQuiesce}}">Enable guest file system quiescing</paper-checkbox>
                 </p>
             </paper-dialog-scrollable>
@@ -93,9 +94,10 @@
                     <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{snapshotName}}" class="dropdown-content">
                         <template is="dom-repeat" items="[[snapshots]]">
                             <paper-item value="[[item.name]]">
-                              <paper-item-body two-line>
-                                <div>[[item.name]]</div> <div secondary>[[item.description]]</div>
-                              </paper-item-body>
+                                <paper-item-body two-line>
+                                    <div>[[item.name]]</div>
+                                    <div secondary>[[item.description]]</div>
+                                </paper-item-body>
                             </paper-item>
                         </template>
                     </paper-menu>
@@ -104,7 +106,9 @@
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                 <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                </p>
             </div>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>
@@ -158,17 +162,17 @@ Polymer({
             type: Boolean,
             value: false
         },
-        isCreate:{
+        isCreate: {
             type: Boolean,
             value: false,
             computed: '_computeIsCreate(action)'
         },
-        isRemove:{
+        isRemove: {
             type: Boolean,
             value: false,
             computed: '_computeIsRemove(action)'
         },
-        isRevertTo:{
+        isRevertTo: {
             type: Boolean,
             value: false,
             computed: '_computeIsRevertTo(action)'
@@ -201,26 +205,32 @@ Polymer({
         if (!this.isCreate && this.snapshots && this.snapshots.length) {
             this.set('snapshotName', this.snapshots[this.snapshots.length - 1].name);
         } else {
-            this.set('snapshotName','');
+            this.set('snapshotName', '');
         }
     },
     createSnapshot: function(e) {
         var request = this.$.snapshotRequest;
-        request.url = "/api/v1/machines/"+ this.machine.id;
+        request.url = "/api/v1/machines/" + this.machine.id;
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
         if (this.isCreate) {
-            request.body = {action: 'create_snapshot', 
-                            snapshot_description: this.snapshotDescription,
-                            snapshot_name: this.snapshotName, 
-                            snapshot_dump_memory: this.snapshotDumpMemory,
-                            snapshot_quiesce: this.snapshotQuiesce};
+            request.body = {
+                action: 'create_snapshot',
+                snapshot_description: this.snapshotDescription,
+                snapshot_name: this.snapshotName,
+                snapshot_dump_memory: this.snapshotDumpMemory,
+                snapshot_quiesce: this.snapshotQuiesce
+            };
         } else if (this.isRemove) {
-            request.body = {action: 'remove_snapshot', 
-                            snapshot_name: this.snapshotName};
+            request.body = {
+                action: 'remove_snapshot',
+                snapshot_name: this.snapshotName
+            };
         } else if (this.isRevertTo) {
-            request.body = {action: 'revert_to_snapshot', 
-                            snapshot_name: this.snapshotName};
+            request.body = {
+                action: 'revert_to_snapshot',
+                snapshot_name: this.snapshotName
+            };
         }
         request.generateRequest();
     },
@@ -242,7 +252,7 @@ Polymer({
         this.set('formError', true);
         this.fire('action-finished', { success: false });
     },
-    clearError: function(){
+    clearError: function() {
         this.set('formError', false);
         this.$.errormsg.textContent = '';
         this.$.createSnapshotModal.refit();

@@ -4,27 +4,26 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
-
 <dom-module id="machine-edit">
     <template>
         <style include="shared-styles dialogs">
-            :host {
-                display: block;
-            }
+        :host {
+            display: block;
+        }
 
-            paper-card {
-                display: block;
-            }
+        paper-card {
+            display: block;
+        }
 
-            paper-dialog {
-                width: 300px;
-            }
-            .submit-btn {
-                background-color: var(--mist-blue);
-                color: #fff;
-            }
+        paper-dialog {
+            width: 300px;
+        }
+
+        .submit-btn {
+            background-color: var(--mist-blue);
+            color: #fff;
+        }
         </style>
-
         <paper-dialog id="editMachineModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
             <h2>Rename Machine</h2>
             <paper-dialog-scrollable>
@@ -40,81 +39,80 @@
             </paper-dialog-scrollable>
         </paper-dialog>
     </template>
-
     <script>
-        (function() {
-            'use strict';
+    (function() {
+        'use strict';
 
-            Polymer({
-                is: 'machine-edit',
+        Polymer({
+            is: 'machine-edit',
 
-                properties: {
-                    items: {
-                        type: Array
+            properties: {
+                items: {
+                    type: Array
+                },
+                machine: {
+                    type: Object,
+                    value: {
+                        id: null
                     },
-                    machine: {
-                        type: Object,
-                        value: {
-                            id: null
-                        },
-                        notify: true
+                    notify: true
+                },
+                sendingData: {
+                    type: Boolean,
+                    value: false
+                },
+                formReady: {
+                    type: Boolean,
+                    computed: '_computeFormReady(machine.id, sendingData)'
+                }
+            },
+            listeners: {
+                'iron-overlay-closed': '_modalClosed'
+            },
+            _computeFormReady: function(id, sendingData) {
+                var formReady = false;
+
+                if (id) {
+                    formReady = true;
+                }
+
+                if (sendingData) {
+                    formReady = false;
+                }
+
+                return formReady;
+            },
+            _openDialog: function(e) {
+                this.$.editMachineModal.open();
+            },
+            _closeDialog: function(e) {
+                this.$.editMachineModal.close();
+            },
+            _modalClosed: function() {
+                this._formReset();
+            },
+            _submitForm: function(e) {
+                e.stopImmediatePropagation();
+                var item = this.items[0],
+                    action = {
+                        'name': 'rename',
+                        'icon': 'editor:mode-edit',
+                        'confirm': true,
+                        'multi': false
                     },
-                    sendingData: {
-                        type: Boolean,
-                        value: false
-                    },
-                    formReady: {
-                        type: Boolean,
-                        computed: '_computeFormReady(machine.id, sendingData)'
-                    }
-                },
-                listeners: {
-                    'iron-overlay-closed': '_modalClosed'
-                },
-                _computeFormReady: function(id, sendingData) {
-                    var formReady = false;
-
-                    if (id) {
-                        formReady = true;
-                    }
-
-                    if (sendingData) {
-                        formReady = false;
-                    }
-
-                    return formReady;
-                },
-                _openDialog: function(e) {
-                    this.$.editMachineModal.open();
-                },
-                _closeDialog: function(e) {
-                    this.$.editMachineModal.close();
-                },
-                _modalClosed: function() {
-                    this._formReset();
-                },
-                _submitForm: function(e) {
-                    e.stopImmediatePropagation();
-                    var item = this.items[0],
-                        action = {
-                            'name': 'rename',
-                            'icon': 'editor:mode-edit',
-                            'confirm': true,
-                            'multi': false
-                        },
-                        itemName = this.querySelector('#item'+item.id).value;
-                    this.fire('rename-machine', {action: action, name: itemName});
-                    this._closeDialog();
-                },
-                _formReset: function() {
-                      this.set('machine.id', '');
-                },
-                _computeLabel: function(itemname){
-                    var l = itemname.slice(0);
-                    return l;
-                },
-                //from https://github.com/PolymerElements/paper-dialog/issues/7
-            });
-        })();
+                    itemName = this.querySelector('#item' + item.id).value;
+                this.fire('rename-machine', { action: action, name: itemName });
+                this._closeDialog();
+            },
+            _formReset: function() {
+                this.set('machine.id', '');
+            },
+            _computeLabel: function(itemname) {
+                var l = itemname.slice(0);
+                return l;
+            },
+            //from https://github.com/PolymerElements/paper-dialog/issues/7
+        });
+    })();
     </script>
 </dom-module>

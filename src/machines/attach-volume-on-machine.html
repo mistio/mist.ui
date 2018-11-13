@@ -10,7 +10,7 @@
 <dom-module id="attach-volume-on-machine">
     <template>
         <style include="shared-styles dialogs">
-         :host {
+        :host {
             display: block;
             width: 100%;
         }
@@ -19,7 +19,7 @@
             min-width: 360px;
         }
 
-         :host .btn-group {
+        :host .btn-group {
             margin: 0 0 24px 0;
         }
 
@@ -69,8 +69,8 @@
             margin-top: 0;
         }
 
-         :host paper-dropdown-menu ::content .dropdown-content,
-         :host paper-dropdown-menu ::slotted(.dropdown-content) {
+        :host paper-dropdown-menu ::content .dropdown-content,
+        :host paper-dropdown-menu ::slotted(.dropdown-content) {
             top: 55px !important;
         }
         </style>
@@ -80,10 +80,10 @@
                 <p>
                     <template is="dom-if" if="[[!volumes.length]]">
                         <span class="grey">No volumes in same region found.</span>
-                        <br/>
+                        <br />
                         <a href="/volumes/+create">Create a volume</a>
-                        <br/>
-                        <br/>
+                        <br />
+                        <br />
                     </template>
                     <template is="dom-if" if="[[volumes.length]]">
                         <span class="grey"> Choose from your existing volumes in the machine's region. </span>
@@ -101,7 +101,9 @@
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                 <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                </p>
             </div>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>
@@ -155,11 +157,11 @@ Polymer({
     computedSelectedMachineId: function(selected) {
         this.set('selectedMachineId', this.querySelector('#machines').selected || '');
     },
-    _computeVolumes: function(machine, volumes){
+    _computeVolumes: function(machine, volumes) {
         var that = this;
         var volumeIds = [];
-        if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) { 
-            var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v){ 
+        if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) {
+            var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v) {
                 return that._isOfSameLocation(v);
             });
         }
@@ -197,8 +199,8 @@ Polymer({
     },
     attachVolume: function(e) {
         var request = this.$.attachVolumeRequest;
-        request.url = "/api/v1/clouds/"+ this.machine.cloud +"/volumes/" + this.selectedVolumeId;
-        request.body = {action: 'attach', machine: this.machine.id};
+        request.url = "/api/v1/clouds/" + this.machine.cloud + "/volumes/" + this.selectedVolumeId;
+        request.body = { action: 'attach', machine: this.machine.id };
         if (!this.hideDeviceInput) {
             request.body.device = this.device;
         }
@@ -224,10 +226,10 @@ Polymer({
         this.set('formError', true);
         this.fire('action-finished', { success: false });
     },
-    clearError: function(){
+    clearError: function() {
         this.set('formError', false);
         this.$.errormsg.textContent = '';
         this.$.attachDialogModal.refit();
-      },
+    },
 });
 </script>
