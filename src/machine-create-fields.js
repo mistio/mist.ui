@@ -227,8 +227,7 @@ MACHINE_CREATE_FIELDS.push({
 // AWS
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
-    fields: [
-    {
+    fields: [{
         name: 'subnet_id',
         label: 'Subnet',
         type: 'mist_dropdown',
@@ -242,8 +241,7 @@ MACHINE_CREATE_FIELDS.push({
             fieldName: 'location',
             fieldExists: true,
         },
-    },
-    ],
+    }, ],
 });
 
 
@@ -530,8 +528,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: true,
         options: [],
-    }
-    );
+    });
 
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
@@ -1172,8 +1169,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
 
     if (p.provider == 'onapp') {
         let locationField = p.fields.find(function(f) {
-                return f.name == 'location';
-            });
+            return f.name == 'location';
+        });
         let index = p.fields.indexOf(locationField);
         p.fields.splice(1, 0, p.fields.splice(index, 1)[0]);
     }

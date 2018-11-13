@@ -14,13 +14,11 @@
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
-
 <link rel="import" href="metric-menu.html">
-
 <dom-module id="add-graph">
     <template>
         <style include="shared-styles forms">
-         :host {
+        :host {
             display: block;
             position: relative;
         }
@@ -141,18 +139,19 @@
         </style>
         <paper-button on-tap="openDialog" class="add-button">
             <iron-icon icon="icons:add-circle"></iron-icon>
-            </iron-icon> Add Graph</paper-button>
+            </iron-icon> Add Graph
+        </paper-button>
         <paper-dialog id="selectTarget" horizontal-align="right">
             <h2>Select target for graph</h2>
             <paper-dialog-scrollable>
                 <paper-menu class="main">
                     <paper-button id="customButton" on-tap="_showCustomGraphDialog" class="blue">Custom</paper-button>
                     <template is="dom-repeat" items="[[responseMetricsArray]]">
-                      <metric-menu metric=[[item]]></metric-menu>
+                        <metric-menu metric=[[item]]></metric-menu>
                     </template>
                 </paper-menu>
                 <div class="loader" hidden$="{{!loadingMetrics}}">Loading custom server metrics
-                    <br/>
+                    <br />
                     <paper-spinner active="{{loadingMetrics}}"></paper-spinner>
                 </div>
             </paper-dialog-scrollable>
@@ -185,7 +184,8 @@
                 <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
                 <hr class="appform" />
                 <p class="errormsg-container" hidden$="[[!formError]]">
-                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                </p>
             </div>
             <div class="buttons">
                 <paper-button dialog-dismiss>Cancel</paper-button>
@@ -208,7 +208,9 @@
             data: {
                 type: Object
             },
-            machine: Object,
+            machine: {
+                type: Object,
+            },
             responseMetrics: {
                 type: Object,
                 value: null
@@ -249,7 +251,9 @@
                 computed: "computeSshKeyExists(machineKeys)",
                 value: true
             },
-            uri: String,
+            uri: {
+                type: String,
+            },
             metric: {
                 type: Object,
                 value: function() {
@@ -343,23 +347,22 @@
             this.set('responseMetrics', output);
             this.set('responseMetricsArray', this._makeArray(output));
         },
-        _makeArray: function(output){
-          var arr = [];
-          if (output) {
-            if (output && typeof(output) == 'object'){
-              var obj = {};
-              for (var p in output) {
-                if (typeof(output[p]) == 'object'){
-                  obj = {name: p, options: this._makeArray(output[p])};
+        _makeArray: function(output) {
+            var arr = [];
+            if (output) {
+                if (output && typeof(output) == 'object') {
+                    var obj = {};
+                    for (var p in output) {
+                        if (typeof(output[p]) == 'object') {
+                            obj = { name: p, options: this._makeArray(output[p]) };
+                        } else {
+                            obj = { name: output[p], options: [] };
+                        }
+                        arr.push(obj);
+                    }
                 }
-                else {
-                  obj = {name: output[p], options: []};
-                }
-                arr.push(obj);
-              }
             }
-          }
-          return arr;
+            return arr;
         },
         _showCustomGraphDialog: function() {
             var dialog = this.querySelector('#customOptions');
@@ -429,7 +432,7 @@
             this.querySelector('#postCustomgraph').generateRequest();
             this.set('sendingData', true);
         },
-        _metricScriptChanged: function(m){
+        _metricScriptChanged: function(m) {
             // make sure long scripts don't push buttons out of the screen
             this.querySelector('#customOptions').refit();
         }

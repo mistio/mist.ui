@@ -1,173 +1,167 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
-
 <link rel="import" href="scripts/script-add.html">
 <link rel="import" href="scripts/script-page.html">
 <link rel="import" href="scripts/script-actions.html">
-
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
-
 <dom-module id="page-scripts">
-  <template>
-    <style>
-      :host {
+    <template>
+        <style>
+            :host {
         display: block;
       }
     </style>
-
-    <app-route route="{{route}}" pattern="/:script" data="{{data}}"></app-route>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list id="scriptsList" selectable resizable column-menu multi-sort apiurl="/api/v1/scripts" items="[[model.scriptsArray]]"
-        name="Scripts" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-        frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.scripts)]] route={{route}}
-        user-filter=[[model.sections.scripts.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-        <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-        <script-actions slot="actions" items=[[selectedItems]] actions={{actions}} user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></script-actions>
-        <p slot="no-items-found">No scripts found.</p>
-      </mist-list>
-      <div class="absolute-bottom-right">
-        <paper-fab id="scriptAdd" icon="add" on-tap="_addResource"></paper-fab>
-      </div>
+        <app-route route="{{route}}" pattern="/:script" data="{{data}}"></app-route>
+        <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+            <mist-list id="scriptsList" selectable resizable column-menu multi-sort apiurl="/api/v1/scripts" items="[[model.scriptsArray]]" name="Scripts" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.scripts)]] route={{route}} user-filter=[[model.sections.scripts.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
+                <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
+                <script-actions slot="actions" items=[[selectedItems]] actions={{actions}} user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></script-actions>
+                <p slot="no-items-found">No scripts found.</p>
+            </mist-list>
+            <div class="absolute-bottom-right">
+                <paper-fab id="scriptAdd" icon="add" on-tap="_addResource"></paper-fab>
+            </div>
+        </template>
+        <script-add model="[[model]]" section="[[model.sections.scripts]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]]></script-add>
+        <script-page model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" resource-id="[[data.script]]" section="[[model.sections.scripts]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
+        <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
     </template>
-    <script-add model="[[model]]" section="[[model.sections.scripts]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]]></script-add>
-    <script-page model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" resource-id="[[data.script]]" section="[[model.sections.scripts]]"
-      hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
-    <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
-
-  </template>
-
-  <script>
+    <script>
     Polymer({
-      is: 'page-scripts',
-      behaviors: [
-        mistListsBehavior,
-        ownerFilterBehavior
-      ],
+        is: 'page-scripts',
+        behaviors: [
+            mistListsBehavior,
+            ownerFilterBehavior
+        ],
 
-      properties: {
-        model: Object,
-        ownership: Boolean,
-        actions: {
-          type: Array,
-          notify: true
+        properties: {
+            model: {
+                type: Object
+            },
+            ownership: {
+                type: Boolean
+            },
+            actions: {
+                type: Array,
+                notify: true
+            },
+            selectedItems: {
+                type: Array,
+                notify: true
+            }
         },
-        selectedItems: {
-          type: Array,
-          notify: true
-        }
-      },
-      listeners: {
-        'select-action': 'selectAction',
-        'edit': '_editScript',
-      },
-      _isAddPageActive: function (path) {
-        return path == '/+add';
-      },
-      _isDetailsPageActive: function (path) {
-        if (path && path != '/+add' & !path.endsWith('+run') && this.querySelector('script-page'))
-          this.querySelector('script-page').updateState();
-        return path && path != '/+add' & !path.endsWith('+run');
-      },
-      _isRunPageActive: function (path) {
-        return path && path.endsWith('+run');
-      },
-      _isListActive: function (path) {
-        return !path;
-      },
-      _getScript: function (id) {
-        if (this.model) {
-          return this.model.scripts[id];
-        }
-      },
-      _addResource: function (e) {
-        this.fire('go-to', {
-          url: this.model.sections.scripts.add
-        });
-      },
-      _editScript: function (e) {
-        e.stopImmediatePropagation();
-        this.fire('go-to', {
-          url: '/scripts/' + this.selectedItems[0].id
-        });
-        this.querySelector('script-page').fire('edit');
-      },
-      _getFrozenLogColumn: function () {
-        return ['name'];
-      },
+        listeners: {
+            'select-action': 'selectAction',
+            'edit': '_editScript',
+        },
+        _isAddPageActive: function(path) {
+            return path == '/+add';
+        },
+        _isDetailsPageActive: function(path) {
+            if (path && path != '/+add' & !path.endsWith('+run') && this.querySelector('script-page'))
+                this.querySelector('script-page').updateState();
+            return path && path != '/+add' & !path.endsWith('+run');
+        },
+        _isRunPageActive: function(path) {
+            return path && path.endsWith('+run');
+        },
+        _isListActive: function(path) {
+            return !path;
+        },
+        _getScript: function(id) {
+            if (this.model) {
+                return this.model.scripts[id];
+            }
+        },
+        _addResource: function(e) {
+            this.fire('go-to', {
+                url: this.model.sections.scripts.add
+            });
+        },
+        _editScript: function(e) {
+            e.stopImmediatePropagation();
+            this.fire('go-to', {
+                url: '/scripts/' + this.selectedItems[0].id
+            });
+            this.querySelector('script-page').fire('edit');
+        },
+        _getFrozenLogColumn: function() {
+            return ['name'];
+        },
 
-      _getVisibleColumns: function () {
-        var ret = ['exec_type', 'created_by', 'location', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
-          ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-        return ret;
-      },
+        _getVisibleColumns: function() {
+            var ret = ['exec_type', 'created_by', 'location', 'tags'];
+            if (this.model.org && this.model.org.ownership_enabled == true)
+                ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+            return ret;
+        },
 
-      _getRenderers: function (scripts) {
-        var _this = this;
-        return {
-          'name': {
-            'body': function (item, row) {
-              return '<strong class="name">' + item + '</strong>';
+        _getRenderers: function(scripts) {
+            var _this = this;
+            return {
+                'name': {
+                    'body': function(item, row) {
+                        return '<strong class="name">' + item + '</strong>';
+                    }
+                },
+                'exec_type': {
+                    'title': function(item, row) {
+                        return 'exec type';
+                    },
+                    'body': function(item, row) {
+                        return item;
+                    }
+                },
+                'owned_by': {
+                    'title': function(item, row) {
+                        return 'owner';
+                    },
+                    'body': function(item, row) {
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                    }
+                },
+                'created_by': {
+                    'title': function(item, row) {
+                        return 'created by';
+                    },
+                    'body': function(item, row) {
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                    }
+                },
+                'tags': {
+                    'body': function(item, row) {
+                        var tags = item,
+                            display = "";
+                        for (key in tags) {
+                            display += "<span class='tag'>" + key;
+                            if (tags[key] != undefined && tags[key] != "")
+                                display += "=" + tags[key];
+                            display += "</span>";
+                        }
+                        return display;
+                    }
+                },
+                'location': {
+                    'title': function(item, row) {
+                        return 'location type';
+                    },
+                    'body': function(item, row) {
+                        return item.type;
+                    }
+                }
             }
-          },
-          'exec_type': {
-            'title': function (item, row) {
-              return 'exec type';
-            },
-            'body': function (item, row) {
-              return item;
-            }
-          },
-          'owned_by': {
-              'title': function (item, row) {
-                  return 'owner';
-              },
-              'body': function (item, row) {
-                  return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
-              }
-          },
-          'created_by': {
-              'title': function (item, row) {
-                  return 'created by';
-              },
-              'body': function (item, row) {
-                  return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
-              }
-          },
-          'tags': {
-            'body': function (item, row) {
-              var tags = item,
-                display = "";
-              for (key in tags) {
-                display += "<span class='tag'>" + key;
-                if (tags[key] != undefined && tags[key] != "")
-                  display += "=" + tags[key];
-                display += "</span>";
-              }
-              return display;
-            }
-          },
-          'location': {
-            'title': function (item, row) {
-              return 'location type';
-            },
-            'body': function (item, row) {
-              return item.type;
-            }
-          }
-        }
-      },
+        },
 
-      // redirect events
-      selectAction: function (e) {
-        e.stopImmediatePropagation();
-        if (this.querySelector('script-actions')) {
-          this.querySelector('script-actions').selectAction(e);
+        // redirect events
+        selectAction: function(e) {
+            e.stopImmediatePropagation();
+            if (this.querySelector('script-actions')) {
+                this.querySelector('script-actions').selectAction(e);
+            }
         }
-      }
     });
-  </script>
+    </script>
 </dom-module>

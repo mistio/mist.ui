@@ -1,122 +1,109 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
-
 <link rel="import" href="helpers/mist-lists-behavior.html">
-
 <dom-module id="page-incidents">
-  <template>
-    <style include="shared-styles">
-      :host {
-        display: block;
-      }
-      .error {
-          color: #d96557;
-      }
-      h2[slot="header"] {
-          margin: 8px;
-      }
-    </style>
-    <app-route route="{{route}}" data="{{data}}"></app-route>
-
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list id="incidentsList"
-            expands resizable column-menu multi-sort
-            apiurl="/api/v1/incidents"
-            items="[[model.incidentsArray]]"
-            name="Incidents"
-            selected-items="{{selectedItems}}"
-            filtered-items-length="{{filteredItemsLength}}"
-            combined-filter={{combinedFilter}}
-            frozen=[[_getFrozenLogColumn()]]
-            visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers()]]
-            user-filter=[[model.sections.incidents.q]]>
-          <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Incidents </h2>
-          <p slot="no-items-found">Hooray! No Incidents found.</p>
-      </mist-list>
-    </template>
-
-  </template>
-
-  <script>
-    Polymer({
-      is: 'page-incidents',
-      behaviors: [
-        mistListsBehavior
-      ],
-
-      properties: {
-        model: Object
-      },
-      listeners: {
-        click: 'resizeList'
-      },
-      observers: [
-        'incidentsChanged(model.incidents.*)'
-      ],
-      incidentsChanged: function(incidents){
-        if (incidents.path == 'model.incidents' && this.querySelector('mist-list')) {
-          this.querySelector('mist-list').fire('resize');
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
         }
-      },
-      _isListActive: function (path) {
-        return !path;
-      },
-      _getFrozenLogColumn: function(){
-          return ['started_at'];
-      },
 
-      _getVisibleColumns: function(){
-          return ['machine_id','cloud_id', 'id', 'error'];
-      },
+        .error {
+            color: #d96557;
+        }
 
-      _getRenderers: function() {
-          var _this = this;
-          return {
-              'started_at': {
-                  'title': function(item) {
-                    return item ? item.replace(/_/g, " ") : 'started at';
-                  },
-                  'body': function(item, row) {
-                      var active = '';
-                      if (!row.finished_at) {
-                        active = '<strong class="error"> - Active now </strong>'
-                      }
-                      return '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>' + active;
-                  }
-              },
-              'machine_id': {
-                  'title': function(item) {
-                    return item ? item.replace(/_/g, " ") : 'machine';
-                  },
-                  'body': function(item, row) {
-                    var m = _this.model.clouds && _this.model.clouds[row['cloud_id']] && _this.model.clouds[row['cloud_id']].machines && _this.model.clouds[row['cloud_id']].machines[row['machine_id']] ? _this.model.clouds[row['cloud_id']].machines[row['machine_id']] : false;
-                    if (m)
-                      return '<a href="/machines/'+m.id+'" class="regular" style="color: #2196F3;">'+m.name+'</a>'
-                    else
-                      return item;
-                  }
-              },
-              'cloud_id': {
-                  'title': function(item) {
-                    return item ? item.replace(/_/g, " ") : 'cloud';
-                  },
-                  'body': function(item, row) {
-                    return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[item].title : item;
-                  }
-              },
-              'error': {
-                  'body': function(item, row) {
-                    var classname = item ? 'error' : '';
-                    return '<span class="'+classname+'">'+item+'</span>';
-                  }
-              }
-          }
-      },
-      resizeList: function(e){
-        if (e.path.indexOf(this.querySelector('mist-list')))
-          this.querySelector('mist-list').fire('resize');
-      }
+        h2[slot="header"] {
+            margin: 8px;
+        }
+        </style>
+        <app-route route="{{route}}" data="{{data}}"></app-route>
+        <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+            <mist-list id="incidentsList" expands resizable column-menu multi-sort apiurl="/api/v1/incidents" items="[[model.incidentsArray]]" name="Incidents" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers()]] user-filter=[[model.sections.incidents.q]]>
+                <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Incidents </h2>
+                <p slot="no-items-found">Hooray! No Incidents found.</p>
+            </mist-list>
+        </template>
+    </template>
+    <script>
+    Polymer({
+        is: 'page-incidents',
+        behaviors: [
+            mistListsBehavior
+        ],
+        properties: {
+            model: {
+                type: Object
+            }
+        },
+        listeners: {
+            click: 'resizeList'
+        },
+        observers: [
+            'incidentsChanged(model.incidents.*)'
+        ],
+        incidentsChanged: function(incidents) {
+            if (incidents.path == 'model.incidents' && this.querySelector('mist-list')) {
+                this.querySelector('mist-list').fire('resize');
+            }
+        },
+        _isListActive: function(path) {
+            return !path;
+        },
+        _getFrozenLogColumn: function() {
+            return ['started_at'];
+        },
+
+        _getVisibleColumns: function() {
+            return ['machine_id', 'cloud_id', 'id', 'error'];
+        },
+
+        _getRenderers: function() {
+            var _this = this;
+            return {
+                'started_at': {
+                    'title': function(item) {
+                        return item ? item.replace(/_/g, " ") : 'started at';
+                    },
+                    'body': function(item, row) {
+                        var active = '';
+                        if (!row.finished_at) {
+                            active = '<strong class="error"> - Active now </strong>'
+                        }
+                        return '<span title="' + moment(item * 1000).format() + '">' + moment(item * 1000).fromNow() + '</span>' + active;
+                    }
+                },
+                'machine_id': {
+                    'title': function(item) {
+                        return item ? item.replace(/_/g, " ") : 'machine';
+                    },
+                    'body': function(item, row) {
+                        var m = _this.model.clouds && _this.model.clouds[row['cloud_id']] && _this.model.clouds[row['cloud_id']].machines && _this.model.clouds[row['cloud_id']].machines[row['machine_id']] ? _this.model.clouds[row['cloud_id']].machines[row['machine_id']] : false;
+                        if (m)
+                            return '<a href="/machines/' + m.id + '" class="regular" style="color: #2196F3;">' + m.name + '</a>'
+                        else
+                            return item;
+                    }
+                },
+                'cloud_id': {
+                    'title': function(item) {
+                        return item ? item.replace(/_/g, " ") : 'cloud';
+                    },
+                    'body': function(item, row) {
+                        return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[item].title : item;
+                    }
+                },
+                'error': {
+                    'body': function(item, row) {
+                        var classname = item ? 'error' : '';
+                        return '<span class="' + classname + '">' + item + '</span>';
+                    }
+                }
+            }
+        },
+        resizeList: function(e) {
+            if (e.path.indexOf(this.querySelector('mist-list')))
+                this.querySelector('mist-list').fire('resize');
+        }
     });
-  </script>
+    </script>
 </dom-module>
