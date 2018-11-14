@@ -1,7 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/app-layout/app-layout.html">
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../../bower_components/pushstate-anchor/pushstate-anchor.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/iron-image/iron-image.html">
 <link rel="import" href="../app-user-menu/app-user-menu.html">
 <link rel="import" href="../notifications/notifications-indicator.html">
@@ -231,8 +233,8 @@
         }
         </style>
         <app-toolbar id="header" class="dark">
-            <paper-icon-button slot="top" class="top" icon="menu" paper-drawer-toggle on-tap="toggleSidebar" tabindex="0"></paper-icon-button>
-            <div slot="top" class="logo-and-title top layout horizontal">
+            <paper-icon-button icon="menu" paper-drawer-toggle on-tap="toggleSidebar" tabindex="0"></paper-icon-button>
+            <div class="logo-and-title layout horizontal">
                 <a id="logo-link" class$="[[_showDefaultLogoClass(model.org,model.org.avatar)]] regular" href="/" is="pushstate-anchor" on-tap="clearSearch">
                     <iron-image class="logo" src$="[[_computeLogo(model.org)]]" sizing="contain" fade alt$="[[portal_name]] Logo" tabindex="0"
                         hidden$="[[!_computeLogo(model.org)]]"></iron-image>
@@ -242,8 +244,8 @@
             <div class="search layout horizontal">
                 <top-search model="[[model]]" tabindex="3" viewing-list=[[viewingList]] query="{{query}}" ownership="[[ownership]]" visible-suggestions="{{visibleSuggestions}}"></top-search>
             </div>
-            <notifications-indicator slot="top" class="top" id="mist-notifications" notifications="[[model.notificationsArray]]" tabindex="5"></notifications-indicator>
-            <app-user-menu slot="top" class="top" user="[[model.user]]" org="[[model.org]]" teams="[[_computeUserTeams(model.user, model.teamsArray)]]" tabindex="6" opened={{userMenuOpened}}></app-user-menu>
+            <notifications-indicator id="mist-notifications" notifications="[[model.notificationsArray]]" tabindex="5"></notifications-indicator>
+            <app-user-menu user="[[model.user]]" org="[[model.org]]" teams="[[_computeUserTeams(model.user, model.teamsArray)]]" tabindex="6" opened={{userMenuOpened}}></app-user-menu>
         </app-toolbar>
     </template>
     <script>
@@ -301,7 +303,9 @@
             return title.replace("my", "").replace("-", " ");
         },
         toggleSidebar: function() {
-            document.querySelector('mist-sidebar').toggleSidebar(); // update classes
+            if (document.querySelector('mist-sidebar')) {
+                document.querySelector('mist-sidebar').toggleSidebar(); // update classes
+            }
         },
         _computeUserTeams: function(user, teams) {
             if (!teams.length)

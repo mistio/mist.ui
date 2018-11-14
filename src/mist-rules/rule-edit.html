@@ -5,9 +5,9 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-menu/paper-submenu.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="mist-dropdown-multi.html">
 <link rel="import" href="validate-rule-behavior.html">
 <dom-module id="rule-edit">
@@ -177,19 +177,19 @@
                 <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
                     <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
                             <paper-item value="every">every machine</paper-item>
                             <paper-item value="specific">specific machine</paper-item>
                             <paper-item value="tagged">machines with tag </paper-item>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                     <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
                         <paper-dropdown-menu class="dropdown-block">
-                            <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
                                 <template id="monitoredMachinesRepeat" is="dom-repeat" items="[[monitoredMachines]]">
                                     <paper-item value="[[item.id]]">[[item.name]]</paper-item>
                                 </template>
-                            </paper-menu>
+                            </paper-listbox>
                         </paper-dropdown-menu>
                     </div>
                     <div class="inline" hidden$=[[!_isTagged(ruleType)]]>
@@ -203,20 +203,20 @@
                         <span class="keyword">for</span>
                     <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
                     <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
                             <paper-item value="minutes">minutes</paper-item>
                             <paper-item value="hours">hours</paper-item>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                     </span>
                     <div>
                         <span class="keyword on">check every</span>
                         <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
                         <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                            <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                            <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
                                 <paper-item value="minutes">minutes</paper-item>
                                 <paper-item value="hours">hours</paper-item>
-                            </paper-menu>
+                            </paper-listbox>
                         </paper-dropdown-menu>
                     </div>
                 </div>
@@ -224,27 +224,27 @@
                     <span class="keyword on">check every</span>
                     <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
                     <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
                             <paper-item value="minutes">minutes</paper-item>
                             <paper-item value="hours">hours</paper-item>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                 </div>
                 <span hidden$="[[isNoData]]">
                     <span class="keyword if">if</span>
                 <template is="dom-repeat" items="[[rule.queries]]" as="query">
                     <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[availableMetrics]]" as="option">
                                 <paper-item value="[[option.id]]">[[option.name]]</paper-item>
                             </template>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                     <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold" on-selected-item-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
                             <paper-item value="gt"> &gt; </paper-item>
                             <paper-item value="lt"> &lt; </paper-item>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                     <span>
                             <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
@@ -254,21 +254,21 @@
                     <span hidden$=[[!query.threshold]]>
                             <span class="keyword">for</span>
                     <paper-dropdown-menu class="dropdown-block aggregation" on-selected-item-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}" class="dropdown-content aggregation">
+                        <paper-listbox slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}" class="dropdown-content aggregation">
                             <paper-item value=""> any </paper-item>
                             <paper-item value="all"> every </paper-item>
                             <paper-item value="avg"> average </paper-item>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                     <span class="keyword">value</span>
                     <span hidden$=[[!rule.aggregation]]>
                                 <span class="keyword">within</span>
                     <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
                     <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                        <paper-menu slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
                             <paper-item value="minutes">minutes</paper-item>
                             <paper-item value="hours">hours</paper-item>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                     </span>
                 </template>
@@ -279,11 +279,11 @@
                         <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
                             <span class="and" hidden$="[[!index]]"> AND </span>
                     <paper-dropdown-menu class="dropdown-block ruleAction" on-value-changed="_validateRule" disabled$="[[isNoData]]">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" class="dropdown-content">
                             <template is="dom-repeat" items=[[actions]] as="action">
                                 <paper-item value=[[action]] hidden$="[[_hideAction(action,isNoData)]]">[[_actionName(action)]]</paper-item>
                             </template>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                     <template is="dom-if" if="[[_isCommandSelected(ruleAction.type)]]">
                         <paper-textarea id="command" placeholder="command input" value="{{ruleAction.command}}" on-value-changed="_validateRule"></paper-textarea>

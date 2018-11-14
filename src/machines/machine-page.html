@@ -970,21 +970,23 @@ Polymer({
                             else {
                                 for (var q in selector.tags) {
                                     var mtag = this.machineTags.find(function(t) { return t.key == q });
-                                    if (!mtag) // machine has no such tag
+                                    if (!mtag) { // machine has no such tag
                                         check = false;
-                                    else {
-                                        if (!selector.tags[q])
+                                    } else {
+                                        if (!selector.tags[q]) {
                                             check = mtag.value == ""; // if tag value is null machine tag value must be empty string
-                                        else if (selector.tags[q])
+                                        } else if (selector.tags[q]) {
                                             check = selector.tags[q] == mtag.value; // if tag value is !null machine tag value must be equal 
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-                if (check == true)
+                if (check == true) {
                     machineRules[p] = rules[p];
+                }
             }
         }
         return machineRules;
@@ -994,9 +996,11 @@ Polymer({
     },
     _getMachineVolumes: function(volumes, machine) {
         var that = this;
-        return Object.keys(that.model.volumes).filter(function(k) {
-            return that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
-        });
+        if (this.machine) {
+            return Object.keys(that.model.volumes).filter(function(k) {
+                return that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
+            });
+        }
     },
     _displayUser: function(id, members) {
         return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
@@ -1075,7 +1079,9 @@ Polymer({
         return this.machine && this.machine.state || '';
     },
     _computeMachineTags: function(machine, machineTags) {
-        return Object.entries(this.machine.tags).map(([key, value]) => ({ key, value }));;
+        if (this.machine) {
+            return Object.entries(this.machine.tags).map(([key, value]) => ({ key, value }));
+        }
     },
     confirmAction: function(action) {
         this._showDialog({
