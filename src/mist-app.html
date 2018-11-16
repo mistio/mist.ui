@@ -39,6 +39,9 @@
     </slot>
     <template>
         <style include="custom-style">
+        :host [hidden] {
+            display: none !important;
+        }
         :host {
             background-color: var(--base-background-color);
         }
@@ -157,7 +160,7 @@
         <style include="shared-styles"></style>
         <iron-media-query query="(max-width: 1024px)" query-matches="{{smallscreen}}"></iron-media-query>
         <iron-media-query query="(max-width: 600px)" query-matches="{{xsmallscreen}}"></iron-media-query>
-        <app-location route="{{route}}"></app-location>
+        <app-location id="appLocation" route="{{route}}"></app-location>
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
         <app-header-layout mode="standard" class="fit" fullbleed>
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
@@ -360,10 +363,14 @@
         },
 
         setLocationPath: function(e) {
-            if (e.detail.url && this.querySelector('app-location')) {
-                this.querySelector('app-location').set('path', e.detail.url);
-                if (e.detail.params)
-                    this.querySelector('app-location').set('queryParams', e.detail.params);
+            
+            console.log('set location path',e, this.$.appLocation);
+
+            if (e.detail.url && this.$.appLocation) {
+                this.$.appLocation.set('path', e.detail.url);
+                if (e.detail.params) {
+                    this.$.appLocation.set('queryParams', e.detail.params);
+                }
                 if (e.detail.search) {
                     console.log('setLocationPath', e.detail.search)
                     this.async(function() {
@@ -371,7 +378,7 @@
                     }, 200);
                 }
             } else {
-                console.error('redirect url could not be found');
+                console.error('redirect url could not be found...');
             }
         },
 
