@@ -46,7 +46,7 @@
             <div class="absolute-bottom-right">
                 <paper-fab id="imageAdd" icon="search" on-tap="_addResource"></paper-fab>
             </div>
-            <image-provider-search clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
+            <image-provider-search id="imageprovidersearch" clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
         </template>
 
         <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]"
@@ -108,10 +108,7 @@
                 return route.path.slice(1, route.path.length);
             },
             _addResource: function (e) {
-                // maybe a dialog to search images in providers
-                if (this.querySelector('image-provider-search')) {
-                    this.querySelector('image-provider-search')._openDialog();
-                }
+                this.searchOnProviders();
             },
             _getFrozenLogColumn: function () {
                 return ['name'];
@@ -193,7 +190,9 @@
                 }.bind(this));
             },
             searchOnProviders: function () {
-                document.querySelector('image-provider-search')._openDialog();
+                if (this.shadowRoot.querySelector('#imageprovidersearch')) {
+                    this.shadowRoot.querySelector('#imageprovidersearch')._openDialog();
+                }
             },
             // redirect events
             selectAction: function (e) {

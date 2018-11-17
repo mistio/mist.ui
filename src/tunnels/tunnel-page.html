@@ -305,8 +305,8 @@ Script:</code></pre>
                     this.querySelector("#tunnelscommand").textContent = '';
                 if (this.querySelector("#tunnelscript"))
                     this.querySelector("#tunnelscript").textContent = '';
-                this.$.copyscript.removeAttribute('show');
-                this.$.copycurl.removeAttribute('show');
+                this.shadowRoot.querySelector('#copyscript').removeAttribute('show');
+                this.shadowRoot.querySelector('#copycurl').removeAttribute('show');
 
                 if (this.tunnel)
                     this.set('itemArray', [this.tunnel])
@@ -355,10 +355,10 @@ Script:</code></pre>
                     response = e.detail.response;
 
                 if (response.confirmed && reason == "tunnel.delete") {
-                    this.$.tunnelDeleteAjaxRequest.body = {};
-                    this.$.tunnelDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.tunnelDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.tunnelDeleteAjaxRequest.generateRequest();
+                    this.shadowRoot.querySelector('#tunnelDeleteAjaxRequest').body = {};
+                    this.shadowRoot.querySelector('#tunnelDeleteAjaxRequest').headers["Content-Type"] = 'application/json';
+                    this.shadowRoot.querySelector('#tunnelDeleteAjaxRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.shadowRoot.querySelector('#tunnelDeleteAjaxRequest').generateRequest();
                 }
             },
             _handleTunnelDeleteAjaxResponse: function(e) {
@@ -369,17 +369,17 @@ Script:</code></pre>
             },
             // script
             _requestScript: function(){
-                this.$.scriptAjaxRequest.body = {};
-                this.$.scriptAjaxRequest.headers["Content-Type"] = 'application/json';
-                this.$.scriptAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.scriptAjaxRequest.generateRequest();
+                this.shadowRoot.querySelector('#scriptAjaxRequest').body = {};
+                this.shadowRoot.querySelector('#scriptAjaxRequest').headers["Content-Type"] = 'application/json';
+                this.shadowRoot.querySelector('#scriptAjaxRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+                this.shadowRoot.querySelector('#scriptAjaxRequest').generateRequest();
             },
             _handleScriptAjaxRequest: function(e){
                 console.log(e);
                 var response = e.detail.response;
                 if (e.detail.xhr.status == 200){
-                    this.$.tunnelscript.textContent = response;
-                    this.$.copyscript.setAttribute('show', true);
+                    this.shadowRoot.querySelector('#tunnelscript').textContent = response;
+                    this.shadowRoot.querySelector('#copyscript').setAttribute('show', true);
                 }
             },
             _handleScriptAjaxError: function(e){
@@ -387,23 +387,23 @@ Script:</code></pre>
             },
             // command
             _requestCommand: function(){
-                this.$.commandAjaxRequest.body = {};
-                this.$.commandAjaxRequest.headers["Content-Type"] = 'application/json';
-                this.$.commandAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.commandAjaxRequest.generateRequest();
+                this.shadowRoot.querySelector('#commandAjaxRequest').body = {};
+                this.shadowRoot.querySelector('#commandAjaxRequest').headers["Content-Type"] = 'application/json';
+                this.shadowRoot.querySelector('#commandAjaxRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+                this.shadowRoot.querySelector('#commandAjaxRequest').generateRequest();
             },
             _handleCommandAjaxRequest: function(e){
                 console.log(e);
                 var response = e.detail.xhr.responseText;
                 if (e.detail.type != "error"){
-                    this.$.tunnelcommand.textContent = response;
-                    this.$.copycurl.setAttribute('show', true);
+                    this.shadowRoot.querySelector('#tunnelcommand').textContent = response;
+                    this.shadowRoot.querySelector('#copycurl').setAttribute('show', true);
                 }
             },
             _handleCommandAjaxError: function(e){
                 console.log(e);
                 var response = e.detail.error;
-                this.$.tunnelcommand.textContent = response;
+                this.shadowRoot.querySelector('#tunnelcommand').textContent = response;
             },
             _showDialog: function(info) {
                 var dialog = this.querySelector('dialog-element');
@@ -414,7 +414,7 @@ Script:</code></pre>
             },
             copyScript: function(e) {
                 this.clearSelection();
-                var el = this.$.tunnelscript;
+                var el = this.shadowRoot.querySelector('#tunnelscript');
                 this.setSelection(el);
                 var successful = document.execCommand('copy');
                 var message = successful ? 'The script was copied to clipboard!' : 'There was an error copying to clipboard!';
@@ -422,7 +422,7 @@ Script:</code></pre>
             },
             copyCurl: function(e) {
                 this.clearSelection();
-                var el = this.$.tunnelcommand;
+                var el = this.shadowRoot.querySelector('#tunnelcommand');
                 this.setSelection(el);
                 var successful = document.execCommand('copy');
                 var message = successful ? 'The command was copied to clipboard!' : 'There was an error copying to clipboard!';

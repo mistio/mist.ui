@@ -105,9 +105,9 @@
       },
       ready: function () {},
       attached: function () {
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "POST";
       },
       itemActions: function (volume) {
         var arr = [];
@@ -148,13 +148,13 @@
       },
       _delete: function () {
         //set up iron ajax
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "DELETE";
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "DELETE";
 
         for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/volumes/" + this.items[i].external_id;
-          this.$.request.generateRequest();
+          this.shadowRoot.querySelector('#request').url = "/api/v1/clouds/" + this.items[i].cloud + "/volumes/" + this.items[i].external_id;
+          this.shadowRoot.querySelector('#request').generateRequest();
           this.fire('toast', {
             msg: 'Deleting ' + this.items[i].name,
             duration: 1000
@@ -192,13 +192,13 @@
               reason: this.type + "." + this.action.name
             });
           } else if (action.name == 'transfer ownership') {
-            this.$.ownershipdialog._openDialog();
+            this.shadowRoot.querySelector('#ownershipdialog')._openDialog();
           } else if (action.name == "tag") {
-            this.$.tagsdialog._openDialog();
+            this.shadowRoot.querySelector('#tagsdialog')._openDialog();
           } else if (action.name == "attach") {
-            this.$.attachVolume._openDialog();
+            this.shadowRoot.querySelector('#attachVolume')._openDialog();
           } else if (action.name == "detach") {
-            this.$.detachVolume._openDialog();
+            this.shadowRoot.querySelector('#detachVolume')._openDialog();
           } else {
             this.performAction(this.action, this.items);
           }
@@ -211,12 +211,12 @@
         };
         payload.resources[this.type] = this.items.map(function(i){return i.id});
         console.log('transferOwnership', e.detail, payload);
-        this.$.request.url = '/api/v1/ownership';
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
-        this.$.request.body = payload;
-        this.$.request.generateRequest();
+        this.shadowRoot.querySelector('#request').url = '/api/v1/ownership';
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "POST";
+        this.shadowRoot.querySelector('#request').body = payload;
+        this.shadowRoot.querySelector('#request').generateRequest();
       },
       performAction: function (action, items) {
         if (action.name == 'delete') {
@@ -224,10 +224,10 @@
         }
       },
       handleResponse: function (e) {
-        // console.log('on-response', e, this.$.request, this.$.request.body)
-        if (this.$.request && this.$.request.body && this.$.request.body.action) {
+        // console.log('on-response', e, this.shadowRoot.querySelector('#request'), this.shadowRoot.querySelector('#request').body)
+        if (this.shadowRoot.querySelector('#request') && this.shadowRoot.querySelector('#request').body && this.shadowRoot.querySelector('#request').body.action) {
           this.fire('toast', {
-            msg: 'Action: ' + this.$.request.body.action + ' successfull',
+            msg: 'Action: ' + this.shadowRoot.querySelector('#request').body.action + ' successfull',
             duration: 3000
           })
         }
@@ -235,7 +235,7 @@
           this.fire('go-to', {url:'/volumes'});
         }
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
-          this.$.ownershipdialog._closeDialog();
+          this.shadowRoot.querySelector('#ownershipdialog')._closeDialog();
           this.fire('action-finished');
           this.fire('toast', {
             msg: 'Successfull ownership transfer',
@@ -279,7 +279,7 @@
           duration: 5000
         });
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
-          this.$.ownershipdialog._closeDialog();
+          this.shadowRoot.querySelector('#ownershipdialog')._closeDialog();
         }
       },
       _makeList: function (items, property) {

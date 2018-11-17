@@ -78,9 +78,9 @@ ZONE_ACTIONS = {
       },
       ready: function() {},
       attached: function() {
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "POST";
       },
       itemActions: function(zone) {
         var arr = [];
@@ -112,13 +112,13 @@ ZONE_ACTIONS = {
       },
       _delete: function() {
         //set up iron ajax
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "DELETE";
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "DELETE";
 
         for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = '/api/v1/clouds/'+ this.items[i].cloud +'/zones/' + this.items[i].id;
-          this.$.request.generateRequest();
+          this.shadowRoot.querySelector('#request').url = '/api/v1/clouds/'+ this.items[i].cloud +'/zones/' + this.items[i].id;
+          this.shadowRoot.querySelector('#request').generateRequest();
           this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
         }
       },
@@ -153,10 +153,10 @@ ZONE_ACTIONS = {
             });
           } 
           else if (action.name == 'transfer ownership') {
-            this.$.ownershipdialog._openDialog();
+            this.shadowRoot.querySelector('#ownershipdialog')._openDialog();
           }
           else if (action.name == "tag") {
-            this.$.tagsdialog._openDialog();
+            this.shadowRoot.querySelector('#tagsdialog')._openDialog();
           }
           else {
             this.performAction(this.action, this.items);
@@ -170,12 +170,12 @@ ZONE_ACTIONS = {
         };
         payload.resources[this.type] = this.items.map(function(i){return i.id});
         console.log('transferOwnership', e.detail, payload);
-        this.$.request.url = '/api/v1/ownership';
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
-        this.$.request.body = payload;
-        this.$.request.generateRequest();
+        this.shadowRoot.querySelector('#request').url = '/api/v1/ownership';
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "POST";
+        this.shadowRoot.querySelector('#request').body = payload;
+        this.shadowRoot.querySelector('#request').generateRequest();
       },
       performAction: function(action, items) {
         if (action.name == 'delete') {
@@ -183,10 +183,10 @@ ZONE_ACTIONS = {
         }
       },
       handleResponse: function(e) {
-        if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+        if (this.shadowRoot.querySelector('#request') && this.shadowRoot.querySelector('#request').body && this.shadowRoot.querySelector('#request').body.action)
+          this.fire('toast', {msg: 'Action: '+this.shadowRoot.querySelector('#request').body.action+' successfull', duration: 3000})
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
-          this.$.ownershipdialog._closeDialog();
+          this.shadowRoot.querySelector('#ownershipdialog')._closeDialog();
           this.fire('action-finished');
           this.fire('toast', {
             msg: 'Successfull ownership transfer',
@@ -229,7 +229,7 @@ ZONE_ACTIONS = {
         // console.log(e.detail.request.xhr.statusText);
         this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
-          this.$.ownershipdialog._closeDialog();
+          this.shadowRoot.querySelector('#ownershipdialog')._closeDialog();
         }
       },
 

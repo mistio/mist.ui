@@ -244,7 +244,7 @@
         _filterChanged: function(filter) {
             this.debounce('updateLocalStorageFilter', this.updateLocalStorage, 500);
             if (filter.length) {
-                this.$.query.focus();
+                this.shadowRoot.querySelector('#query').focus();
                 this.set('showClear', true);
                 if (this.query.indexOf(filter) == -1)
                     this.fire('search', filter + ' ' + this.query.replace(/owner:\S*\s/, ''));
@@ -267,7 +267,7 @@
             if (!q.length)
                 this.setTypedFilter(q);
             if (q && q.length) {
-                this.$.query.focus();
+                this.shadowRoot.querySelector('#query').focus();
                 this.set('showClear', true);
             } else
                 this.set('showClear', this.overflow || false);
@@ -280,7 +280,7 @@
                 owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
 
             if (!filterOwner || !q.length) {
-                this.$.filterSelection.selected = -1;
+                this.shadowRoot.querySelector('#filterSelection').selected = -1;
                 this.set('filter', '');
             }
 
@@ -293,20 +293,20 @@
         },
         clearSearch: function(e) {
             this.set('query', "");
-            this.$.query.blur();
+            this.shadowRoot.querySelector('#query').blur();
             if (this.overflow)
                 this.set('overflow', false);
         },
         hotkeys: function(e) {
             this.setTypedFilter(this.query, 'hotkeys');
             // ESC
-            if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.$.query) {
+            if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.shadowRoot.querySelector('#query')) {
                 this.set('query', "");
                 if (this.overflow)
                     this.set('overflow', false)
             }
             // ENTER
-            // if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$.query && this.query.length) {}
+            // if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.shadowRoot.querySelector('#query') && this.query.length) {}
         },
         revealSearch: function(e) {
             this.set('overflow', true);
@@ -315,9 +315,9 @@
         overflowChanged: function(overflow) {
             if (overflow) {
                 this.updateWidth();
-                this.$.query.focus();
+                this.shadowRoot.querySelector('#query').focus();
             } else
-                this.$.query.blur();
+                this.shadowRoot.querySelector('#query').blur();
             this.set('showClear', this.overflow);
         }
     });

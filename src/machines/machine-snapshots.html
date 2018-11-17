@@ -184,10 +184,10 @@ Polymer({
     _openDialog: function(e) {
         this.clearError();
         this._preselectSnapshot();
-        this.$.createSnapshotModal.open();
+        this.shadowRoot.querySelector('#createSnapshotModal').open();
     },
     _closeDialog: function(e) {
-        this.$.createSnapshotModal.close();
+        this.shadowRoot.querySelector('#createSnapshotModal').close();
         this.clearError();
         this.set('action', "");
     },
@@ -208,7 +208,7 @@ Polymer({
         }
     },
     createSnapshot: function(e) {
-        var request = this.$.snapshotRequest;
+        var request = this.shadowRoot.querySelector('#snapshotRequest');
         request.url = "/api/v1/machines/" + this.machine.id;
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -247,14 +247,14 @@ Polymer({
     _snapshotError: function(e) {
         console.log(e, e.detail);
         var message = e.detail.request.xhr.response || e.detail.error.message;
-        this.$.errormsg.textContent = message;
+        this.shadowRoot.querySelector('#errormsg').textContent = message;
         this.set('formError', true);
         this.fire('action-finished', { success: false });
     },
     clearError: function() {
         this.set('formError', false);
-        this.$.errormsg.textContent = '';
-        this.$.createSnapshotModal.refit();
+        this.shadowRoot.querySelector('#errormsg').textContent = '';
+        this.shadowRoot.querySelector('#createSnapshotModal').refit();
     },
     _getClass: function(action) {
         return action == "remove snapshot" ? "red" : "blue";

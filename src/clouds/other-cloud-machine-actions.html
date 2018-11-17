@@ -60,9 +60,9 @@
         'select-action': 'selectAction',
       },
       attached: function() {
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "POST";
       },
       itemActions: function(machine) {
         // single record actions
@@ -81,15 +81,15 @@
       },
       _remove: function() {
         //set up iron ajax
-        this.$.request.headers["Content-Type"] = 'application/json';
-        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.request.method = "POST";
+        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
+        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
+        this.shadowRoot.querySelector('#request').method = "POST";
         payload = {'action': 'remove'};
-        this.$.request.body = payload;
+        this.shadowRoot.querySelector('#request').body = payload;
 
         for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/machines/"+this.items[i].id
-          this.$.request.generateRequest();
+          this.shadowRoot.querySelector('#request').url = "/api/v1/machines/"+this.items[i].id
+          this.shadowRoot.querySelector('#request').generateRequest();
           this.fire('toast', {msg: 'Removing ' + this.items[i].name , duration: 1000})
         }
       },
@@ -136,8 +136,8 @@
         }
       },
       handleResponse: function(e) {
-        if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+        if (this.shadowRoot.querySelector('#request') && this.shadowRoot.querySelector('#request').body && this.shadowRoot.querySelector('#request').body.action)
+          this.fire('toast', {msg: 'Action: '+this.shadowRoot.querySelector('#request').body.action+' successfull', duration: 3000})
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection

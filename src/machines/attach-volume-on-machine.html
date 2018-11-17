@@ -184,10 +184,10 @@ Polymer({
     _openDialog: function(e) {
         this.clearError();
         this.set('selectedMachineId', false);
-        this.$.attachDialogModal.open();
+        this.shadowRoot.querySelector('#attachDialogModal').open();
     },
     _closeDialog: function(e) {
-        this.$.attachDialogModal.close();
+        this.shadowRoot.querySelector('#attachDialogModal').close();
         this.clearError();
     },
     _computeHideDeviceInput: function(clouds, machine) {
@@ -197,7 +197,7 @@ Polymer({
         return false;
     },
     attachVolume: function(e) {
-        var request = this.$.attachVolumeRequest;
+        var request = this.shadowRoot.querySelector('#attachVolumeRequest');
         request.url = "/api/v1/clouds/" + this.machine.cloud + "/volumes/" + this.selectedVolumeId;
         request.body = { action: 'attach', machine: this.machine.id };
         if (!this.hideDeviceInput) {
@@ -221,14 +221,14 @@ Polymer({
     _attachVolumeError: function(e) {
         console.log(e, e.detail);
         var message = e.detail.request.xhr.response || e.detail.error.message;
-        this.$.errormsg.textContent = message;
+        this.shadowRoot.querySelector('#errormsg').textContent = message;
         this.set('formError', true);
         this.fire('action-finished', { success: false });
     },
     clearError: function() {
         this.set('formError', false);
-        this.$.errormsg.textContent = '';
-        this.$.attachDialogModal.refit();
+        this.shadowRoot.querySelector('#errormsg').textContent = '';
+        this.shadowRoot.querySelector('#attachDialogModal').refit();
     },
 });
 </script>
