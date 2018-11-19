@@ -126,14 +126,18 @@
         }
 
         app-header-layout::content #wrapper>[slot=header],
-        app-header-layout::slotted*#wrapper>[slot=header]) {
-            z-index: 2;
+        app-header-layout app-header #wrapper ::slotted([slot=header]) {
+            z-index: 2 !important;
         }
 
         app-header-layout::content #contentContainer,
         app-header-layout::slotted(#contentContainer) {
             z-index: auto !important;
         }
+
+        /*app-header ::slotted(#wrapper ::slotted([slot=header])){
+            z-index: 0 !important;
+        }*/
 
         paper-spinner {
             width: 80px;
@@ -143,7 +147,6 @@
         }
 
         @media screen and (max-width: 650px) {
-
             iron-pages::content #content,
             iron-pages::slotted(#content) {
                 padding: 0;
@@ -1006,5 +1009,12 @@
         return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d +
             Math.abs(n - i).toFixed(c).slice(2) : "");
     };
+
+    document.addEventListener('iron-overlay-opened', function moveBackdrop(event) {
+      var dialog = Polymer.dom(event).rootTarget;
+      if (dialog.withBackdrop) {
+        dialog.parentNode.insertBefore(dialog.backdropElement, dialog);
+      }
+    });
     </script>
 </dom-module>
