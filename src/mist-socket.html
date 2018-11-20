@@ -239,7 +239,7 @@
 
         heartbeat: function () {
             console.debug('got heartbeat');
-            var _this=this;
+            var _this = this;
             requestIdleCallback(function () {
                 _this.send('h'); // reply with empty frame
             }, {
@@ -307,6 +307,7 @@
             var _this = this;
             patch.forEach(function(operation) {
                 var idleCallbackId = requestIdleCallback(function () {
+                    console.log('requestIdleCallback =======')
                     var cloud_id, resource_type, resource_id, resource_external_id, path, property_path, old_cloud_resource_external_ids, old_cloud_resource_ids;
 
                     // Let's figure out if the patch applies to a cloud and which one
@@ -320,15 +321,17 @@
                             path = operation.path.split('/' + resource_type + '/')[1].split('/');
                             resource_external_id = path[0];
                             property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
-                            old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloud_id][resource_type] || {})
-                            old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloud_id][resource_type][i].id);
+                            if (_this.model.clouds && _this.model.clouds[cloud_id]) {
+                                old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloud_id][resource_type] || {}) || [];
+                                old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloud_id][resource_type][i].id);
+                            }
                         }
                     }
 
                     // Apply patch operation to the model
                     jsonpatch.applyOperation(_this.model, operation, true);
 
-                    if (resource_type) {
+                    if (resource_type && cloud_id && _this.model.clouds && _this.model.clouds[cloud_id][resource_type]) {
                         var new_cloud_resources = _this.model.clouds[cloud_id][resource_type],
                             new_cloud_resource_external_ids = Object.keys(new_cloud_resources),
                             new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
