@@ -196,15 +196,15 @@
         attached: function() {},
         resizeMachine: function() {
             if (this.showCustomSizeForm) {
-                this.shadowRoot.querySelector('#resizeMachine').headers["Content-Type"] = 'application/json';
-                this.shadowRoot.querySelector('#resizeMachine').headers["Csrf-Token"] = CSRF_TOKEN;
-                this.shadowRoot.querySelector('#resizeMachine').body = { "action": "resize", "cpus": this.cpus, "memory": this.memory };
-                this.shadowRoot.querySelector('#resizeMachine').generateRequest();
+                this.$.resizeMachine.headers["Content-Type"] = 'application/json';
+                this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.resizeMachine.body = { "action": "resize", "cpus": this.cpus, "memory": this.memory };
+                this.$.resizeMachine.generateRequest();
             } else if (!this.showCustomSizeForm) {
-                this.shadowRoot.querySelector('#resizeMachine').headers["Content-Type"] = 'application/json';
-                this.shadowRoot.querySelector('#resizeMachine').headers["Csrf-Token"] = CSRF_TOKEN;
-                this.shadowRoot.querySelector('#resizeMachine').body = { "action": "resize", "size": this.selectedSize };
-                this.shadowRoot.querySelector('#resizeMachine').generateRequest();
+                this.$.resizeMachine.headers["Content-Type"] = 'application/json';
+                this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.resizeMachine.body = { "action": "resize", "size": this.selectedSize };
+                this.$.resizeMachine.generateRequest();
             }
         },
         _updateShowNotification: function(machine, memory) {
@@ -250,7 +250,7 @@
             if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.' + this.machine.cloud + '.sizesArray')) {
                 console.log('update sizes', clouds.path);
                 this.set('sizes', this.clouds[this.machine.cloud].sizesArray);
-                this.shadowRoot.querySelector('#dialogModal').refit();
+                this.$.dialogModal.refit();
             }
         },
         _selectedSizeChanged: function() {
@@ -258,8 +258,8 @@
         },
         clearError: function() {
             this.set('formError', false);
-            this.shadowRoot.querySelector('#errormsg').textContent = '';
-            this.shadowRoot.querySelector('#dialogModal').refit();
+            this.$.errormsg.textContent = '';
+            this.$.dialogModal.refit();
         },
         _updateFormReadyOnapp: function(current_cpus, current_memory, cpus, memory) {
             if (this.showCustomSizeForm) {
@@ -274,10 +274,10 @@
         _openDialog: function(e) {
             //reset
             this.updateValues(this.machine);
-            this.shadowRoot.querySelector('#dialogModal').open();
+            this.$.dialogModal.open();
         },
         _resizeMachineResponse: function(e) {
-            this.shadowRoot.querySelector('#dialogModal').close();
+            this.$.dialogModal.close();
             this.clearSelection();
             this.fire('action-finished', { success: true });
             this.fire('toast', { msg: 'Resize request sent successfully. Updating machine..', duration: 3000 })
@@ -285,8 +285,8 @@
         _resizeMachineError: function(e) {
             this.set('formError', true);
             console.log('error', e)
-            this.shadowRoot.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
-            this.shadowRoot.querySelector('#dialogModal').refit();
+            this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+            this.$.dialogModal.refit();
         },
         _resizeMachineRequest: function(e) {},
         isCurrent: function(size) {
@@ -323,12 +323,12 @@
             console.log('hotkeys', e);
             if (e.keyCode === 38) {
                 //arrow up
-                if (e.path.indexOf(this.shadowRoot.querySelector('#cpus')) > -1) { this.set('cpus', Math.max(this.cpus + 1, 1)) }
-                if (e.path.indexOf(this.shadowRoot.querySelector('#memory')) > -1) { this.set('memory', Math.max(this.memory + 5, 256)) }
+                if (e.path.indexOf(this.$.cpus) > -1) { this.set('cpus', Math.max(this.cpus + 1, 1)) }
+                if (e.path.indexOf(this.$.memory) > -1) { this.set('memory', Math.max(this.memory + 5, 256)) }
             } else if (e.keyCode === 40) {
                 //arrow down
-                if (e.path.indexOf(this.shadowRoot.querySelector('#cpus')) > -1) { this.set('cpus', Math.max(this.cpus - 1, 1)) }
-                if (e.path.indexOf(this.shadowRoot.querySelector('#memory')) > -1) { this.set('memory', Math.max(this.memory - 5, 256)) }
+                if (e.path.indexOf(this.$.cpus) > -1) { this.set('cpus', Math.max(this.cpus - 1, 1)) }
+                if (e.path.indexOf(this.$.memory) > -1) { this.set('memory', Math.max(this.memory - 5, 256)) }
             }
         }
     });

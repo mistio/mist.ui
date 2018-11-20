@@ -134,13 +134,13 @@
       attached: function() {
       },
       _openDialog: function() {
-        this.shadowRoot.querySelector('#providerSearch').open();
+        this.$.providerSearch.open();
       },
       updateFormReady(queryTerm, selectedClouds, loading){
         this.set('formReady', this.queryTerm && this.queryTerm.length && this.selectedClouds.length && !this.loading);
       },
       handleResponse: function(e) {
-        this.shadowRoot.querySelector('#providerSearch').close();
+        this.$.providerSearch.close();
         var newImages = JSON.parse(e.detail.xhr.response);
         console.log('handleResponse',e, newImages.length);
         if (newImages.length) {
@@ -156,7 +156,7 @@
       handleError: function(e) {
         this.set('formError', true);
         console.log('handleError',e)
-        this.shadowRoot.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
+        this.$.errormsg.textContent = e.detail.request.xhr.responseText;
 
         this.set('activeSearchIndex', this.activeSearchIndex+1);
         this.nextSearch(this.activeSearchIndex);
@@ -181,17 +181,17 @@
         var payload = {
             'search_term': this.queryTerm
         }
-        this.shadowRoot.querySelector('#request').body = payload;
+        this.$.request.body = payload;
         this.nextSearch(0);
       },
       nextSearch: function(index){
         console.log('nextSearch', this.clouds.length, index)
-        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
-        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
-        this.shadowRoot.querySelector('#request').method = "POST";
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
         if (this.clouds && this.clouds.length && index < this.clouds.length) {
-          this.shadowRoot.querySelector('#request').url = "/api/v1/clouds/"+ this.get('clouds.'+index+'.id') +"/images";
-          this.shadowRoot.querySelector('#request').generateRequest();
+          this.$.request.url = "/api/v1/clouds/"+ this.get('clouds.'+index+'.id') +"/images";
+          this.$.request.generateRequest();
         }
         else {
           this.set('activeSearchIndex', 0);

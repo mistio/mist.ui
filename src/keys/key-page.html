@@ -190,8 +190,7 @@
                 <paper-material>
                     <div class="missing" hidden$="[[!isMissing]]">Key not found.</div>
                     <h4 class="id">Key ID:</h4><span class="id">[[key.id]]</span>
-                    <h4 class="id" hidden$="[[!key.owned_by.length]]">Owner:</h4><span class="id">[[_displayUser(
-                    key.owned_by,model.members)]]</span>
+                    <h4 class="id" hidden$="[[!key.owned_by.length]]">Owner:</h4><span class="id">[[_displayUser(key.owned_by,model.members)]]</span>
                     <h4 class="id" hidden$="[[!key.created_by.length]]">Created by:</h4><span class="id">[[_displayUser(key.created_by,model.members)]]</span>
                     <template is="dom-if" if="[[keyTags.length]]">
                         <h4 class="id tags">Tags </h4>
@@ -332,10 +331,10 @@
                 },
                 update: function(key){
                     if (key){
-                        this.shadowRoot.querySelector('#keyPublicRequest').headers["Content-Type"] = 'application/json';
-                        this.shadowRoot.querySelector('#keyPublicRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.shadowRoot.querySelector('#keyPublicRequest').body = {};
-                        this.shadowRoot.querySelector('#keyPublicRequest').generateRequest();
+                        this.$.keyPublicRequest.headers["Content-Type"] = 'application/json';
+                        this.$.keyPublicRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.keyPublicRequest.body = {};
+                        this.$.keyPublicRequest.generateRequest();
 
                         this.set('itemArray', [this.key]);
                     }
@@ -346,7 +345,7 @@
                     this.set('visiblePrivateKey', false);
                 },
                 _displayUser: function (id, members) {
-                    return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                    return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
                 },
                 _getHeaderStyle: function(section) {
                     return 'background-color: ' + section.color + '; color: #fff;';
@@ -398,7 +397,7 @@
                 },
                 copyPublicKey: function() {
                     this.clearSelection();
-                    var el = this.shadowRoot.querySelector('#keyPublic');
+                    var el = this.$.keyPublic;
                     this.setSelection(el);
                     var successful = document.execCommand('copy');
                     var message = successful ? 'The Public Key was copied to clipboard!' : 'There was an error copying to clipboard!';
@@ -406,7 +405,7 @@
                 },
                 copyPrivateKey: function() {
                     this.clearSelection();
-                    var el = this.shadowRoot.querySelector('#keyPrivate');
+                    var el = this.$.keyPrivate;
                     this.setSelection(el);
                     var successful = document.execCommand('copy');
                     var message = successful ? 'The Private Key was copied to clipboard!' : 'There was an error copying to clipboard!';
@@ -417,10 +416,10 @@
                     this.set('publicKey', data.detail.response);
                 },
                 showPrivateKey: function() {
-                    this.shadowRoot.querySelector('#keyPrivateRequest').headers["Content-Type"] = 'application/json';
-                    this.shadowRoot.querySelector('#keyPrivateRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#keyPrivateRequest').body = {};
-                    this.shadowRoot.querySelector('#keyPrivateRequest').generateRequest();
+                    this.$.keyPrivateRequest.headers["Content-Type"] = 'application/json';
+                    this.$.keyPrivateRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.keyPrivateRequest.body = {};
+                    this.$.keyPrivateRequest.generateRequest();
                     this.visiblePrivateKey = true;
                 },
                 hidePrivateKey: function() {
@@ -435,10 +434,10 @@
                     el._openEditKeyModal();
                 },
                 _makeDefaultKey: function(e) {
-                    this.shadowRoot.querySelector('#keyMakeDefaultAjaxRequest').headers["Content-Type"] = 'application/json';
-                    this.shadowRoot.querySelector('#keyMakeDefaultAjaxRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#keyMakeDefaultAjaxRequest').body = {};
-                    this.shadowRoot.querySelector('#keyMakeDefaultAjaxRequest').generateRequest();
+                    this.$.keyMakeDefaultAjaxRequest.headers["Content-Type"] = 'application/json';
+                    this.$.keyMakeDefaultAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.keyMakeDefaultAjaxRequest.body = {};
+                    this.$.keyMakeDefaultAjaxRequest.generateRequest();
                 },
                 _handleKeyMakeDefaultAjaxResponse: function(e) {
                     this.fire('toast',{msg:this.key.name + ' has become your default Key!',duration:3000});
@@ -463,10 +462,10 @@
                         response = e.detail.response;
 
                     if (response.confirmed && reason == "key.delete") {
-                        this.shadowRoot.querySelector('#keyDeleteAjaxRequest').body = {};
-                        this.shadowRoot.querySelector('#keyDeleteAjaxRequest').headers["Content-Type"] = 'application/json';
-                        this.shadowRoot.querySelector('#keyDeleteAjaxRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.shadowRoot.querySelector('#keyDeleteAjaxRequest').generateRequest();
+                        this.$.keyDeleteAjaxRequest.body = {};
+                        this.$.keyDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+                        this.$.keyDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.keyDeleteAjaxRequest.generateRequest();
                     }
                 },
                 _handleKeyDeleteAjaxResponse: function(e) {

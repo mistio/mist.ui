@@ -909,7 +909,7 @@
                 run(this);
             },
             _displayUser: function (id, members) {
-                return this.model && id && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _computeStack: function (params) {
                 var stack = {};
@@ -1020,13 +1020,13 @@
                     return stack.status == 'workflow_started' || stack.status == 'start_creation';
             },
             _closeworkflows: function () {
-                this.shadowRoot.querySelector('#workflows').classList.remove('open');
+                this.$.workflows.classList.remove('open');
                 this.set('workflowsOpen', false)
             },
             openWorkflows: function (e) {
-                this.shadowRoot.querySelector('#workflows').classList.toggle('open');
+                this.$.workflows.classList.toggle('open');
                 this.set('workflowsOpen', !this.workflowsOpen);
-                var pages = this.shadowRoot.querySelector('#workflowsView').children;
+                var pages = this.$.workflowsView.children;
                 [].forEach.call(pages, function (p, index) {
                     if (index != 0) {
                         p.setAttribute("show", false);
@@ -1261,12 +1261,12 @@
                     response = e.detail.response;
 
                 if (response.confirmed && reason == "stack.delete") {
-                    this.shadowRoot.querySelector('#deleteStack').body = {
+                    this.$.deleteStack.body = {
                         stack_id: this.stack.id
                     };
-                    this.shadowRoot.querySelector('#deleteStack').headers["Content-Type"] = 'application/json';
-                    this.shadowRoot.querySelector('#deleteStack').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#deleteStack').generateRequest();
+                    this.$.deleteStack.headers["Content-Type"] = 'application/json';
+                    this.$.deleteStack.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.deleteStack.generateRequest();
                 }
             },
             handleDeleteRequest: function (e) {
@@ -1281,9 +1281,9 @@
                 document.querySelector('app-location').set('path', '/stacks');
             },
             _workflowNavigation: function (action) {
-                this.shadowRoot.querySelector('#workflows').classList.add('open');
+                this.$.workflows.classList.add('open');
                 this.set('workflowsOpen', true)
-                var pages = this.shadowRoot.querySelector('#workflowsView').children;
+                var pages = this.$.workflowsView.children;
                 [].forEach.call(pages, function (p, index) {
                     p.setAttribute("show", false);
                 });
@@ -1297,25 +1297,25 @@
             },
             doWorkflow: function (e) {
                 var action = e.target.id;
-                this.shadowRoot.querySelector('#workflows').classList.add('open');
+                this.$.workflows.classList.add('open');
                 this.set('workflowsOpen', true)
 
                 var workflow = this.workflows.find(function (workflow) {
                     return workflow.name == action;
                 });
-                this.shadowRoot.querySelector('#workflowRequest').url = "/api/v1/stacks/" + this.stack.id;
-                this.shadowRoot.querySelector('#workflowRequest').headers = {
+                this.$.workflowRequest.url = "/api/v1/stacks/" + this.stack.id;
+                this.$.workflowRequest.headers = {
                     "csrf-token": CSRF_TOKEN,
                     "Content-Type": "application/json"
                 };
-                this.shadowRoot.querySelector('#workflowRequest').body = {
+                this.$.workflowRequest.body = {
                     "workflow": action
                 };
                 if (action == 'install') {
-                    this.shadowRoot.querySelector('#deploynow').classList.add('hidden');
-                    this.shadowRoot.querySelector('#workflowRequest').body["inputs"] = this.stack.inputs.install;
+                    this.$.deploynow.classList.add('hidden');
+                    this.$.workflowRequest.body["inputs"] = this.stack.inputs.install;
                 }
-                this.shadowRoot.querySelector('#workflowRequest').generateRequest();
+                this.$.workflowRequest.generateRequest();
             },
             deployNowWork: function () {
                 var action = 'install';
@@ -1323,27 +1323,27 @@
                 var workflow = this.workflows.find(function (workflow) {
                     return workflow.name == action;
                 });
-                this.shadowRoot.querySelector('#workflowRequest').url = "/api/v1/stacks/" + this.stack.id;
-                this.shadowRoot.querySelector('#workflowRequest').headers = {
+                this.$.workflowRequest.url = "/api/v1/stacks/" + this.stack.id;
+                this.$.workflowRequest.headers = {
                     "csrf-token": CSRF_TOKEN,
                     "Content-Type": "application/json"
                 };
 
-                this.shadowRoot.querySelector('#workflowRequest').body = {
+                this.$.workflowRequest.body = {
                     "workflow": action,
                     "inputs": this.stack.inputs.install
                 };
 
-                this.shadowRoot.querySelector('#deploynow').classList.add('hidden');
-                this.shadowRoot.querySelector('#workflowRequest').generateRequest();
+                this.$.deploynow.classList.add('hidden');
+                this.$.workflowRequest.generateRequest();
 
             },
             cancelWorkflow: function (e) {
-                this.shadowRoot.querySelector('#cancelJob').headers = {
+                this.$.cancelJob.headers = {
                     "csrf-token": CSRF_TOKEN,
                     "Content-Type": "application/json"
                 };
-                this.shadowRoot.querySelector('#cancelJob').generateRequest();
+                this.$.cancelJob.generateRequest();
             },
             handleCanceled: function (e) {},
             handleWorkflowRequest: function (e) {},
@@ -1352,7 +1352,7 @@
             },
             handleWorkflowError: function (e) {},
             stackoutputsChanged: function (outputs) {
-                this.shadowRoot.querySelector('#stackOutputs').innerHTML = this._makeString(outputs);
+                this.$.stackOutputs.innerHTML = this._makeString(outputs);
             },
             _makeString: function (info) {
                 // console.log(YAML.dump(info));

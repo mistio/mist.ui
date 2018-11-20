@@ -1002,7 +1002,7 @@ Polymer({
         }
     },
     _displayUser: function(id, members) {
-        return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+        return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
     },
     _showRecommendationDialog: function() {
         this.fire("open-recommendation-dialog", {
@@ -1092,7 +1092,7 @@ Polymer({
         });
     },
     _showDialog: function(info) {
-        var dialog = this.shadowRoot.querySelector('#machinedialog');
+        var dialog = this.$.machinedialog;
         if (info) {
             for (var i in info) {
                 dialog[i] = info[i];
@@ -1179,12 +1179,12 @@ Polymer({
     },
     _machineActionConfirmation: function(e) {
         if (e.detail.response.confirmed && e.detail.reason == "disassociate.key") {
-            this.shadowRoot.querySelector('#disassociateKeyRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.shadowRoot.querySelector('#disassociateKeyRequest').generateRequest();
+            this.$.disassociateKeyRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.disassociateKeyRequest.generateRequest();
         } else if (e.detail.response.confirmed && e.detail.reason == "detach.volume") {
-            this.shadowRoot.querySelector('#detachVolumeRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.shadowRoot.querySelector('#detachVolumeRequest').body = { action: 'detach', machine: this.machine.id };
-            this.shadowRoot.querySelector('#detachVolumeRequest').generateRequest();
+            this.$.detachVolumeRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.detachVolumeRequest.body = { action: 'detach', machine: this.machine.id };
+            this.$.detachVolumeRequest.generateRequest();
         }
     },
     _updateKeyLoader: function(e) {
@@ -1352,9 +1352,9 @@ Polymer({
         var payload = {
             'key': this.machineKeys[0].keypair
         };
-        this.shadowRoot.querySelector('#probeMachine').headers["Csrf-Token"] = CSRF_TOKEN;
-        this.shadowRoot.querySelector('#probeMachine').params = payload;
-        this.shadowRoot.querySelector('#probeMachine').generateRequest();
+        this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.probeMachine.params = payload;
+        this.$.probeMachine.generateRequest();
         this.async(function() {
             this.notifyPath('machine.probe.ssh')
         }, 5000);
@@ -1524,7 +1524,7 @@ Polymer({
 
     // this should not be necessary, yet it is :(
     _machineKeysChanged: function(machineKeys) {
-        this.shadowRoot.querySelector('#machineKeysDomRepeat').render();
+        this.$.machineKeysDomRepeat.render();
     },
 
     _computeMachineR12ns: function() {

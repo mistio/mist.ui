@@ -65,9 +65,9 @@
         },
         ready: function() {},
         attached: function() {
-            this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
-            this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.shadowRoot.querySelector('#request').method = "POST";
+            this.$.request.headers["Content-Type"] = 'application/json';
+            this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.request.method = "POST";
         },
         itemActions: function(team) {
             // org policy for actions
@@ -90,13 +90,13 @@
         },
         _delete: function() {
             //set up iron ajax
-            this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
-            this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.shadowRoot.querySelector('#request').method = "DELETE";
+            this.$.request.headers["Content-Type"] = 'application/json';
+            this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.request.method = "DELETE";
 
             for (var i = 0; i < this.items.length; i++) {
-                this.shadowRoot.querySelector('#request').url = "/api/v1/org/" + this.org + "/teams/" + this.items[i].id
-                this.shadowRoot.querySelector('#request').generateRequest();
+                this.$.request.url = "/api/v1/org/" + this.org + "/teams/" + this.items[i].id
+                this.$.request.generateRequest();
                 this.fire('toast', { msg: 'Deleting ' + this.items[i].name, duration: 1000 })
             }
         },
@@ -130,7 +130,7 @@
                         reason: this.type + "." + this.action.name
                     });
                 } else if (action.name == "tag") {
-                    this.shadowRoot.querySelector('#tagsdialog')._openDialog();
+                    this.$.tagsdialog._openDialog();
                 } else {
                     this.performAction(this.action, this.items);
                 }
@@ -146,8 +146,8 @@
             }
         },
         handleResponse: function(e) {
-            if (this.shadowRoot.querySelector('#request') && this.shadowRoot.querySelector('#request').body && this.shadowRoot.querySelector('#request').body.action)
-                this.fire('toast', { msg: 'Action: ' + this.shadowRoot.querySelector('#request').body.action + ' successfull', duration: 3000 })
+            if (this.$.request && this.$.request.body && this.$.request.body.action)
+                this.fire('toast', { msg: 'Action: ' + this.$.request.body.action + ' successfull', duration: 3000 })
         },
         _mapPolicyToActions: function(items) {
             // recompute the actions array property as the intersection

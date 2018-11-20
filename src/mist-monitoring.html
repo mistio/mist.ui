@@ -489,9 +489,9 @@
             payload.no_ssh = !this.resource.key_associations || this.resource.key_associations.length == 0 ?
                 "true" : "";
             console.log("toggleMonitoring", payload);
-            this.shadowRoot.querySelector('#monitoringRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.shadowRoot.querySelector('#monitoringRequest').params = payload;
-            this.shadowRoot.querySelector('#monitoringRequest').generateRequest();
+            this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.monitoringRequest.params = payload;
+            this.$.monitoringRequest.generateRequest();
             this.set("failed", false);
         },
         _monitoringDisableConfirmation: function (e) {
@@ -537,7 +537,7 @@
         },
         startPolling: function (jobid) {
             this.intervalID = setInterval(function () {
-                this.shadowRoot.querySelector('#getJobLog').generateRequest();
+                this.$.getJobLog.generateRequest();
             }.bind(this), 1000);
             console.log('startpolling');
         },
@@ -566,7 +566,7 @@
         },
         _monitoringError: function (e) {
             console.log("_monitoringError", e.detail.request.xhr.responseText);
-            this.shadowRoot.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
+            this.$.errormsg.textContent = e.detail.request.xhr.responseText;
             this.set("monitoringError", true);
         },
         _reset: function (resource) {
@@ -633,7 +633,7 @@
             });
         },
         _showDialog: function (info) {
-            var dialog = this.shadowRoot.querySelector('#monitorindialog');
+            var dialog = this.$.monitorindialog;
             if (info) {
                 for (var i in info) {
                     dialog[i] = info[i];
@@ -646,22 +646,22 @@
 
             targets.forEach(function (target) {
                 if (target.target.startsWith("mist.python")) {
-                    this.shadowRoot.querySelector('#disassociateMetric').url = "/api/v1/machines/" + this.resource.id +
+                    this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id +
                         "/plugins/" + target.target;
-                    this.shadowRoot.querySelector('#disassociateMetric').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#disassociateMetric').params = {
+                    this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.disassociateMetric.params = {
                         plugin_type: "python"
                     };
-                    this.shadowRoot.querySelector('#disassociateMetric').generateRequest();
+                    this.$.disassociateMetric.generateRequest();
                 };
 
                 var payload = {
                     metric_id: target.target
                 };
-                this.shadowRoot.querySelector('#disassociateMetric').url = "/api/v1/machines/" + this.resource.id + "/metrics";
-                this.shadowRoot.querySelector('#disassociateMetric').headers["Csrf-Token"] = CSRF_TOKEN;
-                this.shadowRoot.querySelector('#disassociateMetric').params = payload;
-                this.shadowRoot.querySelector('#disassociateMetric').generateRequest();
+                this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id + "/metrics";
+                this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.disassociateMetric.params = payload;
+                this.$.disassociateMetric.generateRequest();
             }, this);
         },
         _handleAssociateResponse: function (target) {
@@ -681,7 +681,7 @@
         },
         monitoringPolling: function () {
             this.intervalMonitoringID = window.setInterval(function () {
-                this.shadowRoot.querySelector('#getStats').generateRequest();
+                this.$.getStats.generateRequest();
                 console.log('monitoringPolling');
             }.bind(this), 5000);
         },

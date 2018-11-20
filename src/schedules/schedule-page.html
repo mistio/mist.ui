@@ -570,7 +570,7 @@
                 this.isLoading = false;
             },
             _displayUser: function (id, members) {
-                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _viewID: function(e) {
                 this.set('showId', true);
@@ -581,7 +581,7 @@
             _copyId: function() {
                 console.log('copy');
                 this.clearSelection();
-                var el = this.shadowRoot.querySelector('#scheduleId');
+                var el = this.$.scheduleId;
                 this.setSelection(el);
                 var successful = document.execCommand('copy');
                 var message = successful ? 'Copied to clipboard.' : 'There was an error copying to clipboard!';
@@ -698,10 +698,10 @@
                             payload.start_after = "";
                         }
                     }
-                    this.shadowRoot.querySelector('#editExpirationSchedule').body = payload;
-                    this.shadowRoot.querySelector('#editExpirationSchedule').headers["Content-Type"] = 'application/json';
-                    this.shadowRoot.querySelector('#editExpirationSchedule').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#editExpirationSchedule').generateRequest();
+                    this.$.editExpirationSchedule.body = payload;
+                    this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.editExpirationSchedule.generateRequest();
 
                     this.expError = false;
                 }
@@ -710,7 +710,7 @@
                 var message = 'Updating date...';
                 this.fire('toast', { msg: message, duration: 3000 });
 
-                this.shadowRoot.querySelector('#dateTimePickers').close();
+                this.$.dateTimePickers.close();
                 this.expError = false;
                 this.neverExpire = false;
             },
@@ -722,7 +722,7 @@
             },
             _editSchedule: function(e) {
                 e.stopImmediatePropagation();
-                this.shadowRoot.querySelector('#editScheduleDialog')._openEditScheduleModal();
+                this.$.editScheduleDialog._openEditScheduleModal();
             },
             _deleteSchedule: function(e) {
                 this._showDialog({
@@ -738,16 +738,16 @@
                     response = e.detail.response;
 
                 if (response.confirmed && reason == "schedule.delete") {
-                    this.shadowRoot.querySelector('#deleteSchedule').headers["Content-Type"] = 'application/json';
-                    this.shadowRoot.querySelector('#deleteSchedule').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#deleteSchedule').generateRequest();
+                    this.$.deleteSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.deleteSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.deleteSchedule.generateRequest();
                 }
 
                 if (response.confirmed && reason == "schedule.run") {
-                    this.shadowRoot.querySelector('#editToggleSchedule').body = {'run_immediately': true}
-                    this.shadowRoot.querySelector('#editToggleSchedule').headers["Content-Type"] = 'application/json';
-                    this.shadowRoot.querySelector('#editToggleSchedule').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#editToggleSchedule').generateRequest();
+                    this.$.editToggleSchedule.body = {'run_immediately': true}
+                    this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
+                    this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.editToggleSchedule.generateRequest();
                     this.lastrequestedaction = 'run';
                 }
             },
@@ -877,10 +877,10 @@
             },
             toggleEnable: function(){
                 this.lastrequestedaction = 'run';
-                this.shadowRoot.querySelector('#editToggleSchedule').body = {task_enabled: !this.schedule.task_enabled};
-                this.shadowRoot.querySelector('#editToggleSchedule').headers["Content-Type"] = 'application/json';
-                this.shadowRoot.querySelector('#editToggleSchedule').headers["Csrf-Token"] = CSRF_TOKEN;
-                this.shadowRoot.querySelector('#editToggleSchedule').generateRequest();
+                this.$.editToggleSchedule.body = {task_enabled: !this.schedule.task_enabled};
+                this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
+                this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.editToggleSchedule.generateRequest();
             },
             _handleScheduleEditToggleResponse: function() {
                 var message;
@@ -896,7 +896,7 @@
                 console.log('_handleScheduleEditToggleError',e);
                 var message = e.detail.request.xhr.response;
                 this.fire('toast', { msg: message, duration: 5000 });
-                this.shadowRoot.querySelector('#scheduleEnabled').setAttribute('checked', this.schedule.task_enabled);
+                this.$.scheduleEnabled.setAttribute('checked', this.schedule.task_enabled);
             },
             _computeDateFromNow: function(time) {
                 return moment.utc(time).local().fromNow();
@@ -905,10 +905,10 @@
                 return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
             },
             _changeCondition: function() {
-                this.shadowRoot.querySelector('#editScheduleCondition')._openEditScheduleModal();
+                this.$.editScheduleCondition._openEditScheduleModal();
             },
             _editTask: function() {
-                this.shadowRoot.querySelector('#editScheduleTask')._openEditScheduleModal();
+                this.$.editScheduleTask._openEditScheduleModal();
             },
             _runOnceDialog: function(e) {
                 e.stopImmediatePropagation();
@@ -941,7 +941,7 @@
                 }
             },
             _editMaxRunCount: function(e){
-                this.shadowRoot.querySelector('#editMaxRunCount')._openEditScheduleModal();
+                this.$.editMaxRunCount._openEditScheduleModal();
             },
             _hideRunNow: function(hasExpired, max_run_count, total_run_count) {
                 // return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;

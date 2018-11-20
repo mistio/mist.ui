@@ -283,15 +283,15 @@
             this.set('formError', false);
             console.log("CUSTOM GRAPH", data.detail.response);
             this.fire('update-dashboard');
-            this.shadowRoot.querySelector('#customOptions').close();
-            this.shadowRoot.querySelector('#selectTarget').close();
+            this.$.customOptions.close();
+            this.$.selectTarget.close();
         },
         _handleError: function(e, d) {
             this.set('sendingData', false);
             this.set('formError', true);
             console.log('error', e, e.detail)
             var errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
-            this.shadowRoot.querySelector('#errormsg').textContent = errorMessage;
+            this.$.errormsg.textContent = errorMessage;
         },
         _computepluginId: function(name) {
             if (!this.metric.name) return;
@@ -363,16 +363,16 @@
             return arr;
         },
         _showCustomGraphDialog: function() {
-            var dialog = this.shadowRoot.querySelector('#customOptions');
+            var dialog = this.$.customOptions;
             dialog.open();
-            this.shadowRoot.querySelector('#juicyScript').value = this.metric.script;
+            this.$.juicyScript.value = this.metric.script;
         },
         computeSshKeyExists: function(keys) {
             return keys.length > 0;
         },
         _openAddKeyPanel: function() {
-            this.shadowRoot.querySelector('#customOptions').close();
-            this.shadowRoot.querySelector('#selectTarget').close();
+            this.$.customOptions.close();
+            this.$.selectTarget.close();
             this.fire("open-and-select");
         },
         checkIfInGraph: function(i) {
@@ -391,10 +391,10 @@
             var payload = {
                 metric_id: metric
             };
-            this.shadowRoot.querySelector('#associateMetric').url = "/api/v1/machines/" + this.machine.id + "/metrics";
-            this.shadowRoot.querySelector('#associateMetric').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.shadowRoot.querySelector('#associateMetric').params = payload;
-            this.shadowRoot.querySelector('#associateMetric').generateRequest();
+            this.$.associateMetric.url = "/api/v1/machines/" + this.machine.id + "/metrics";
+            this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.associateMetric.params = payload;
+            this.$.associateMetric.generateRequest();
         },
         _handleAssociateResponse: function() {
             this.fire('update-dashboard');
@@ -410,8 +410,8 @@
         _generateCustomgraphrequest() {
             this.set('formError', false);
             this._computeUrl(this.machine.id, this.metric.pluginId);
-            this.metric.script = this.shadowRoot.querySelector('#juicyScript').value;
-            if (this.shadowRoot.querySelector('#derivative').checked) {
+            this.metric.script = this.$.juicyScript.value;
+            if (this.$.derivative.checked) {
                 this.metric.type = "derive";
             } else {
                 this.metric.type = "gauge"
@@ -424,15 +424,15 @@
                 "read_function": this.metric.script,
                 "host": this.machine.public_ips[0]
             };
-            this.shadowRoot.querySelector('#postCustomgraph').contentType = "application/json"
-            this.shadowRoot.querySelector('#postCustomgraph').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.shadowRoot.querySelector('#postCustomgraph').body = payload;
-            this.shadowRoot.querySelector('#postCustomgraph').generateRequest();
+            this.$.postCustomgraph.contentType = "application/json"
+            this.$.postCustomgraph.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.postCustomgraph.body = payload;
+            this.$.postCustomgraph.generateRequest();
             this.set('sendingData', true);
         },
         _metricScriptChanged: function(m) {
             // make sure long scripts don't push buttons out of the screen
-            this.shadowRoot.querySelector('#customOptions').refit();
+            this.$.customOptions.refit();
         }
     });
     </script>

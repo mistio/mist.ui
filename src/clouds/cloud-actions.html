@@ -143,12 +143,12 @@
         'cancel': 'closeDialogs'
       },
       attached: function () {
-        this.shadowRoot.querySelector('#request').headers["Content-Type"] = 'application/json';
-        this.shadowRoot.querySelector('#request').headers["Csrf-Token"] = CSRF_TOKEN;
-        this.shadowRoot.querySelector('#request').method = "POST";
+        this.$.request.headers["Content-Type"] = 'application/json';
+        this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.request.method = "POST";
       },
       closeRenameDialog: function (e) {
-        this.shadowRoot.querySelector('#renameDialog').close();
+        this.$.renameDialog.close();
       },
       itemActions: function (cloud) {
         var arr = [];
@@ -207,24 +207,24 @@
               reason: this.type + "." + this.action.name
             });
           } else if (action.name == 'tag') {
-            this.shadowRoot.querySelector('#tagsdialog')._openDialog();
+            this.$.tagsdialog._openDialog();
           } else if (action.name == 'edit credentials') {
-            this.shadowRoot.querySelector('#credentialsDialog').open();
+            this.$.credentialsDialog.open();
           } else if (action.name == 'add host') {
-            this.shadowRoot.querySelector('#addhostsDialog').open();
+            this.$.addhostsDialog.open();
           } else if (action.name == 'dns') {
-            this.shadowRoot.querySelector('#dnsDialog').open();
+            this.$.dnsDialog.open();
           } else {
             this.performAction(this.action, this.items);
           }
         }
       },
       openEditDialog: function () {
-        this.shadowRoot.querySelector('#credentialsDialog').open();
+        this.$.credentialsDialog.open();
       },
       closeDialog: function () {
         // console.log('closeDialog');
-        this.shadowRoot.querySelector('#credentialsDialog').close()
+        this.$.credentialsDialog.close()
       },
       closeDialogs: function () {
         this.shadowRoot.querySelectorAll('paper-dialog').forEach(function (d) {
@@ -242,23 +242,23 @@
       },
       performAction: function (action, items) {
         if (action.name == 'rename') {
-          this.shadowRoot.querySelector('#renameDialog').open();
+          this.$.renameDialog.open();
         } else if (action.name == 'delete') {
           this._deleteCloud();
         }
       },
       _deleteCloud: function () {
-        this.shadowRoot.querySelector('#cloudDeleteAjaxRequest').headers["Content-Type"] = 'application/json';
-        this.shadowRoot.querySelector('#cloudDeleteAjaxRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-        this.shadowRoot.querySelector('#cloudDeleteAjaxRequest').generateRequest();
+        this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
+        this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.cloudDeleteAjaxRequest.generateRequest();
       },
       handleResponse: function (e) {
         this.fire('action-finished', {
           success: true
         });
-        if (this.shadowRoot.querySelector('#request') && this.shadowRoot.querySelector('#request').body && this.shadowRoot.querySelector('#request').body.action)
+        if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {
-            msg: 'Action: ' + this.shadowRoot.querySelector('#request').body.action + ' successfull',
+            msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
           })
       },

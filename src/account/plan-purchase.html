@@ -237,7 +237,7 @@
             'card-response': '_gotCardResponse'
         },
         attached: function(){
-            this.set('target', this.shadowRoot.querySelector('#form'));
+            this.set('target', this.$.form);
         },
         updateHasCard: function(card){
             if (card) {
@@ -262,10 +262,10 @@
             }
             if ((this.org && this.org.card) || this.plan.price == 0) {
                 var payload = { plan: this.plan.title };
-                this.shadowRoot.querySelector('#purchasePlanRequest').headers["Content-Type"] = 'application/json';
-                this.shadowRoot.querySelector('#purchasePlanRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-                this.shadowRoot.querySelector('#purchasePlanRequest').body = payload;
-                this.shadowRoot.querySelector('#purchasePlanRequest').generateRequest();
+                this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
+                this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.purchasePlanRequest.body = payload;
+                this.$.purchasePlanRequest.generateRequest();
             }
         },
         _onEnter: function(e) {
@@ -283,19 +283,19 @@
                     var payload = { token: e.detail.token };
                     if (this.plan) 
                         payload.plan = this.plan.title
-                    console.log('_gotCardResponse', this.shadowRoot.querySelector('#purchasePlanRequest').url);
-                    this.shadowRoot.querySelector('#purchasePlanRequest').headers["Content-Type"] = 'application/json';
-                    this.shadowRoot.querySelector('#purchasePlanRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.shadowRoot.querySelector('#purchasePlanRequest').body = payload;
-                    this.shadowRoot.querySelector('#purchasePlanRequest').generateRequest();
+                    console.log('_gotCardResponse', this.$.purchasePlanRequest.url);
+                    this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
+                    this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+                    this.$.purchasePlanRequest.body = payload;
+                    this.$.purchasePlanRequest.generateRequest();
                 } else if (card.errors) {
                     this.set('formError', true);
-                    this.shadowRoot.querySelector('#errormsg').textContent = card.errors;
+                    this.$.errormsg.textContent = card.errors;
                 } else {
                     this.set('loading', true)
                 }
             } else
-                this.shadowRoot.querySelector('#form').refit();
+                this.$.form.refit();
         },
         purchaseResponse: function(e){
             this._reset();
@@ -313,7 +313,7 @@
         purchaseError: function(e){
             console.log('purchaseError',e);
             this.set('formError', true);
-            this.shadowRoot.querySelector('#errormsg').textContent = e.detail.error;
+            this.$.errormsg.textContent = e.detail.error;
         },
         displayInt: function(int){
             if (int && int.toString())
