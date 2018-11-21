@@ -244,7 +244,8 @@
             },
             model: {
                 type: Object,
-                value: {}
+                value: {},
+                observer: '_observeModel'
             },
             title: {
                 type: String,
@@ -279,7 +280,8 @@
                 type: Number
             },
             config: {
-                type: Object
+                type: Object,
+                value: {}
             },
             userMenuOpened: {
                 type: Boolean
@@ -329,7 +331,7 @@
         },
 
         _computeCcRequired: function(org, clouds) {
-            if (!this.config || !this.config.features.billing || this.model.org.card || this.model.org.current_plan)
+            if (!this.config || !this.config.features || !this.config.features.billing || this.model.org.card || this.model.org.current_plan)
                 return false;
             return this.model.cloudsArray.length ? true : false;
         },
@@ -718,6 +720,10 @@
                 model.teams = model.teamsArray[i].teams[i].id;
             };
 
+            var orchestration = this.config && this.config.features && this.config.orchestration ? this.config.orchestration : false,
+                tunnels = this.config && this.config.features && this.config.tunnels ? this.config.tunnels : false,
+                insights = this.config && this.config.features && this.config.insights ? this.config.insights : false;
+
             let sectionsArray = [{
                 id: 'dashboard',
                 icon: 'icons:dashboard',
@@ -739,13 +745,13 @@
                 sidebar: true,
                 tile: false,
                 count: 0,
-                hr: !this.config.features.orchestration
+                hr: !orchestration
             }, {
                 id: 'stacks',
                 color: '#0277BD',
                 icon: 'maps:layers',
-                sidebar: this.config.features.orchestration,
-                tile: this.config.features.orchestration,
+                sidebar: orchestration,
+                tile: orchestration,
                 count: 0,
                 hr: true,
                 hideZero: true,
@@ -809,7 +815,7 @@
                 add: '/scripts/+add',
                 sidebar: true,
                 tile: true,
-                hr: !this.config.features.orchestration,
+                hr: !orchestration,
                 count: 0,
                 hideTileIfZero: true
             }, {
@@ -817,8 +823,8 @@
                 color: '#0097A7',
                 icon: 'av:art-track',
                 add: '/templates/+add',
-                sidebar: this.config.features.orchestration,
-                tile: this.config.features.orchestration,
+                sidebar: orchestration,
+                tile: orchestration,
                 hr: true,
                 count: 0,
                 hideTileIfZero: true
@@ -827,7 +833,7 @@
                 color: '#795548',
                 icon: 'editor:merge-type',
                 add: '/tunnels/+add',
-                sidebar: this.config.features.tunnels,
+                sidebar: tunnels,
                 tile: false,
                 count: 0,
                 hideTileIfZero: true
@@ -854,7 +860,7 @@
                 sidebar: true,
                 tile: true,
                 count: 0,
-                hr: this.config.features.insights
+                hr: insights
             }, {
                 id: 'my-account',
                 color: '#2F2F3E',
@@ -869,14 +875,14 @@
                 id: 'insights',
                 color: '#2F2F3E',
                 icon: 'icons:trending-up',
-                sidebar: this.config.features.insights,
+                sidebar: insights,
                 tile: false
             }];
 
             model.sections = _generateMap(sectionsArray);
 
             this.set('model', model);
-            if (!this.config.features.docs) {
+            if (!this.config || !this.config.features || !this.config.features.docs) {
                 for (var i = 0; i < PROVIDERS.length; i++) {
                     for (var j = 0; j < PROVIDERS[i].options.length; j++) {
                         PROVIDERS[i].options[j].helpHref = '';
@@ -892,7 +898,7 @@
                     'event_category': 'ui'
                 });
             }
-            if (!this.config.features.ab)
+            if (!this.config || !this.config.features || !this.config.features.ab)
                 return;
             var xhr = new XMLHttpRequest();
             if (!this.fingerprint) {
@@ -914,7 +920,7 @@
                     };
                     if (document.referrer)
                         payload['referrer'] = document.referrer;
-                    xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+                    xhr.open('GET', this.rootPath+'/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
                     xhr.send();
                 });
             } else {
@@ -922,7 +928,7 @@
                     'action': event.detail,
                     'fingerprint': this.fingerprint
                 };
-                xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+                xhr.open('GET', this.rootPath+'/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
                 xhr.send();
             }
         },
@@ -968,6 +974,9 @@
         closeIfClickedElsewhere: function(e) {
             if (this.visibleSuggestions && e.path.indexOf(this.shadowRoot.querySelector('mist-header')) == -1)
                 this.set('visibleSuggestions', false);
+        },
+        _observeModel: function(oldmodel, newmodel) {
+            console.log('model Changes', oldmodel, newmodel);
         }
     });
 

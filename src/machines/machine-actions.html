@@ -344,7 +344,7 @@
             this.$.request.method = "DELETE";
 
             for (var i = 0; i < this.items.length; i++) {
-                this.$.request.url = "/api/v1/machines/" + this.items[i].id
+                this.$.request.url = this.rootPath+"/api/v1/machines/" + this.items[i].id
                 this.$.request.generateRequest();
                 this.fire('toast', {
                     msg: 'Deleting ' + this.items[i].name,
@@ -440,7 +440,7 @@
             };
             payload.resources[this.type] = this.items.map(function(i) { return i.id });
             console.log('transferOwnership', e.detail, payload);
-            this.$.request.url = '/api/v1/ownership';
+            this.$.request.url = this.rootPath+'/api/v1/ownership';
             this.$.request.headers["Content-Type"] = 'application/json';
             this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.request.method = "POST";
@@ -477,30 +477,30 @@
                     return;
                 } else if (['reboot', 'start', 'stop', 'suspend', 'resume', 'undefine', 'destroy', 'remove'].indexOf(action.name) >
                     -1) {
-                    uri = '/api/v1/machines/' + item.id;
+                    uri = this.rootPath+'/api/v1/machines/' + item.id;
                     payload = {
                         'action': action.name
                     };
                 } else if (action.name == 'rename') {
-                    uri = '/api/v1/machines/' + item.id;
+                    uri = this.rootPath+'/api/v1/machines/' + item.id;
                     payload = {
                         'action': action.name,
                         'name': name
                     };
                 } else if (action.name == 'clone') {
-                    uri = '/api/v1/machines/' + item.id;
+                    uri = this.rootPath+'/api/v1/machines/' + item.id;
                     payload = {
                         'action': action.name,
                         'name': action.fields[0].value
                     };
                 } else if (action.name == 'probe') {
-                    uri = '/api/v1/machines/' + item.id + '/probe';
+                    uri = this.rootPath+'/api/v1/machines/' + item.id + '/probe';
                     payload = {
                         'host': item.public_ips[0],
                         'key': item.key_associations[0]
                     };
                 } else if (action.name == 'console') {
-                    uri = '/api/v1/machines/' + item.id + '/console';
+                    uri = this.rootPath+'/api/v1/machines/' + item.id + '/console';
                     //window.open(uri, 'view');
                     var form = document.createElement("form");
                     form.setAttribute("method", "post");

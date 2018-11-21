@@ -19,8 +19,7 @@
             },
             model: {
                 type: Object,
-                notify: true,
-                value: {}
+                notify: true
             },
             initialized: {
                 type: Boolean,
@@ -314,15 +313,25 @@
                         path = operation.path.split('/clouds/')[1].split('/');
                         cloud_id = path[0];
 
+                        console.log('DEBUG 1 - search cloud', path, cloud_id);
+
                         // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
                         if (['machines', 'networks', 'volumes', 'zones'].indexOf(path[1]) > -1) {
                             resource_type = path[1];
                             path = operation.path.split('/' + resource_type + '/')[1].split('/');
                             resource_external_id = path[0];
                             property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
+
+
+                            console.log('DEBUG 2 - resources of cloud', path, cloud_id);
+
+
                             if (_this.model.clouds && _this.model.clouds[cloud_id]) {
                                 old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloud_id][resource_type] || {}) || [];
                                 old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloud_id][resource_type][i].id);
+
+                                console.log('DEBUG 3 - old ids', old_cloud_resource_external_ids, old_cloud_resource_ids);
+
                             }
                         }
                     }
@@ -334,6 +343,9 @@
                         var new_cloud_resources = _this.model.clouds[cloud_id][resource_type],
                             new_cloud_resource_external_ids = Object.keys(new_cloud_resources),
                             new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
+
+
+                            console.log('DEBUG 4 -  new ids', new_cloud_resources, new_cloud_resource_external_ids, new_cloud_resource_ids);
 
                         // Cleanup deleted resource refs
                         for (var i=0; i < old_cloud_resource_ids.length; i++) {
@@ -372,91 +384,94 @@
                         _this.set('model.sections.' + resource_type + '.count', Object.keys(_this.model[resource_type]).length);
                     }
                 }, {
-                    timeout: 5000
+                    timeout: 500
                 });
             });
         },
 
         _updateModel: function (section, data, primaryField) {
-            var changed = false, // we wont update the model if it hasn't changed
-                pending = this.get('model.pending.' + section);
+            if (this.model) {
+                var changed = false, // we wont update the model if it hasn't changed
+                    pending = this.get('model.pending.' + section);
 
-            // if the received data array has different length than the respective
-            // model array, then things must have changed since last update
-            if (data.length != this.get('model.' + section + 'Array.length')) {
-                // console.debug('0. length', data.length, this.get('model.' + section + 'Array.length'));
-                changed = true;
-            }
-
-            // For each item in the received data array
-            for (var i = 0; i < data.length; i++) {
-                // If we know things have changed no need to keep checking
-                if (changed)
-                    break;
-                // check if _id is used instead of id
-                if (!data[i].id) {
-                    data[i].id = data[i]._id
-                }
-                // Check if item exists in respective model
-                // var item = this.get('model.' + section + '.' + data[i].id);
-                // patch for when data[i].id is of type '127.0.0.1'
-                var path = this.get('model.' + section);
-                var item = path[data[i].id];
-                if (!item) { // If does not exist then model needs to be updated
-                    // console.debug('1. data[i].id', data[i], this.get('model.' + section + '.' + data[i].id));
+                // if the received data array has different length than the respective
+                // model array, then things must have changed since last update
+                if (data.length != this.get('model.' + section + 'Array.length')) {
+                    // console.debug('0. length', data.length, this.get('model.' + section + 'Array.length'));
                     changed = true;
-                    break;
                 }
 
-                // check if all fields of the data item exist in the model item
-                var dataKeys = Object.keys(data[i]),
-                    modelKeys = Object.keys(item);
-                for (var k = 0; k < dataKeys.length; k++) {
-                    // Do not update model just for the last_seen property
-                    if (dataKeys[k] == 'last_seen') {
-                        continue;
+                // For each item in the received data array
+                for (var i = 0; i < data.length; i++) {
+                    // If we know things have changed no need to keep checking
+                    if (changed)
+                        break;
+                    // check if _id is used instead of id
+                    if (!data[i].id) {
+                        data[i].id = data[i]._id
                     }
-                    if (modelKeys.indexOf(dataKeys[k]) == -1) {
-                        // If something is missing the model needs to be updated
-                        console.debug('2. model', modelKeys.indexOf(dataKeys[k]), dataKeys[k]);
+                    // Check if item exists in respective model
+                    // var item = this.get('model.' + section + '.' + data[i].id);
+                    // patch for when data[i].id is of type '127.0.0.1'
+                    var path = this.get('model.' + section);
+                    var item = path[data[i].id];
+                    if (!item) { // If does not exist then model needs to be updated
+                        // console.debug('1. data[i].id', data[i], this.get('model.' + section + '.' + data[i].id));
                         changed = true;
                         break;
                     }
-                    // If some field changed the model needs to be updated
-                    if (data[i][dataKeys[k]] != undefined && JSON.stringify(data[i][dataKeys[k]])
-                        .localeCompare(JSON.stringify(item[dataKeys[k]]))) {
-                        // console.debug('localeCompare',JSON.stringify(data[i][dataKeys[k]]).localeCompare(JSON.stringify(item[dataKeys[k]])));
-                        console.debug('property ', dataKeys[k], ' changed in ', item);
-                        var oldVal = JSON.stringify(item[dataKeys[k]]),
-                            newVal = JSON.stringify(data[i][dataKeys[k]]);
-                        console.debug('Old value: ', oldVal, oldVal.length);
-                        console.debug('New value: ', newVal, newVal.length);
-                        changed = true;
-                        break;
+
+                    // check if all fields of the data item exist in the model item
+                    var dataKeys = Object.keys(data[i]),
+                        modelKeys = Object.keys(item);
+                    for (var k = 0; k < dataKeys.length; k++) {
+                        // Do not update model just for the last_seen property
+                        if (dataKeys[k] == 'last_seen') {
+                            continue;
+                        }
+                        if (modelKeys.indexOf(dataKeys[k]) == -1) {
+                            // If something is missing the model needs to be updated
+                            console.debug('2. model', modelKeys.indexOf(dataKeys[k]), dataKeys[k]);
+                            changed = true;
+                            break;
+                        }
+                        // If some field changed the model needs to be updated
+                        if (data[i][dataKeys[k]] != undefined && JSON.stringify(data[i][dataKeys[k]])
+                            .localeCompare(JSON.stringify(item[dataKeys[k]]))) {
+                            // console.debug('localeCompare',JSON.stringify(data[i][dataKeys[k]]).localeCompare(JSON.stringify(item[dataKeys[k]])));
+                            console.debug('property ', dataKeys[k], ' changed in ', item);
+                            var oldVal = JSON.stringify(item[dataKeys[k]]),
+                                newVal = JSON.stringify(data[i][dataKeys[k]]);
+                            console.debug('Old value: ', oldVal, oldVal.length);
+                            console.debug('New value: ', newVal, newVal.length);
+                            changed = true;
+                            break;
+                        }
                     }
+
+                    if (changed)
+                        break;
                 }
 
-                if (changed)
-                    break;
+                if (changed) {
+                    console.debug('updating', section);
+                    this.set('model.' + section, _generateMap(data, primaryField));
+                    this.set('model.' + section + 'Array', data);
+
+                    // update section count, necessary for propagating changes to sidebar & dashboard counters
+                    this.set('model.sections.' + section + '.count', data.length || 0);
+                } else {
+                    if (DEBUG_SOCKET)
+                        console.debug('no need to update', section);
+                }
+
+                if (pending) {
+                    this.set('model.pending.' + section, false);
+                }
+
+                return changed;
             }
-
-            if (changed) {
-                console.debug('updating', section);
-                this.set('model.' + section, _generateMap(data, primaryField));
-                this.set('model.' + section + 'Array', data);
-
-                // update section count, necessary for propagating changes to sidebar & dashboard counters
-                this.set('model.sections.' + section + '.count', data.length || 0);
-            } else {
-                if (DEBUG_SOCKET)
-                    console.debug('no need to update', section);
-            }
-
-            if (pending) {
-                this.set('model.pending.' + section, false);
-            }
-
-            return changed;
+            return false;
         },
 
         _updateClouds: function (data) {
@@ -472,7 +487,7 @@
             var ret = this._updateModel('clouds', data);
             this.set('model.onboarding.isLoadingClouds', false);
 
-            if (this.model != undefined && data) {
+            if (this.model && this.model.clouds && data) {
                 data.forEach(function (c) {
                     this.cleanUpResources(c.id);
                 }, this)
