@@ -774,7 +774,7 @@
             </paper-material>
             <paper-material class="machine-logs" hidden$=[[!count]]>
                 <template is="dom-if" if=[[machine.machine_id]] restamp>
-                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="[[rootPath]]/api/v1/logs" name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1//logs" name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
                 </template>
             </paper-material>
         </div>
@@ -1347,9 +1347,11 @@ Polymer({
             .cloud].sizes[ret].name : ret;
     },
     _getLocationName: function(machine, cloud) {
-        return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
+        if (this.machine) {
+            return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
                 machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name != undefined ?
             this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
+        }
     },
     _probeMachine: function(e) {
         var payload = {
@@ -1448,7 +1450,7 @@ Polymer({
 
     enableWebconfig: function() {
         this.set('machine.actions.webconfig', true);
-        this._computeActions(this.machine);
+        // this._computeActions(this.machine);
     },
 
     _getVisibleColumns: function() {
