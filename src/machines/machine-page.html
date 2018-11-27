@@ -807,7 +807,7 @@ Polymer({
         },
         cloud: {
             type: Object,
-            computed: '_getMachineCloud(model.clouds.*, machine.cloud)'
+            value: {}
         },
         volumes: {
             type: Array,
@@ -934,7 +934,8 @@ Polymer({
     observers: [
         '_isMonitored(machine, model.monitoring.machines.*)',
         '_machineChanged(machine.*, model.machines.*)',
-        '_machineKeysChanged(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)'
+        '_machineKeysChanged(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
+        '_getMachineCloud(model.clouds.*, machine.cloud)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -991,7 +992,9 @@ Polymer({
         return machineRules;
     },
     _getMachineCloud: function(clouds, id) {
-        return this.model.clouds[id];
+        if (this.model && this.model.clouds && this.machine && this.machine.cloud) {
+            return this.model.clouds[id];
+        }
     },
     _getMachineVolumes: function(volumes, machine) {
         var that = this;
