@@ -774,7 +774,7 @@
             </paper-material>
             <paper-material class="machine-logs" hidden$=[[!count]]>
                 <template is="dom-if" if=[[machine.machine_id]] restamp>
-                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1//logs" name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1/logs" name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
                 </template>
             </paper-material>
         </div>
@@ -1051,15 +1051,17 @@ Polymer({
         return a === b;
     },
     _isMonitored: function(machine, monitoredMachines) {
-        if (monitoredMachines) {
-            var mach = monitoredMachines.base.find(function(m) {
-                return m[1] == machine.id && m[0] == machine.cloud;
-            }, this);
-        }
-        if (monitoredMachines && mach) {
-            this.set('isMonitored', true);
-        } else {
-            this.set('isMonitored', false);
+        if (this.machine) {
+            if (monitoredMachines) {
+                var mach = monitoredMachines.base.find(function(m) {
+                    return m[1] == machine.id && m[0] == machine.cloud;
+                }, this);
+            }
+            if (monitoredMachines && mach) {
+                this.set('isMonitored', true);
+            } else {
+                this.set('isMonitored', false);
+            }
         }
     },
     _computeIsActivated: function(machine, monitoring) {
