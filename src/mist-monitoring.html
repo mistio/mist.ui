@@ -154,7 +154,7 @@
         </style>
         <template is="dom-if" if="[[!resource.id]]" restamp>
             <template is="dom-if" if="[[showHomeDashboard]]" restamp>
-                <polyana-dashboard uri="[[rootPath]]/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
+                <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
             </template>
         </template>
         <template is="dom-if" if="[[resource.id]]" restamp>
@@ -272,15 +272,15 @@
             </div>
         </template>
         <dialog-element id="monitorindialog"></dialog-element>
-        <iron-ajax id="monitoringRequest" url="[[rootPath]]/api/v1/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse"
+        <iron-ajax id="monitoringRequest" url="/api/v1/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse"
             on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
-        <iron-ajax id="getStats" url="[[rootPath]]/api/v1/machines/[[resource.id]]/stats" handle-as="xml" method="GET" contentType="application/json"
+        <iron-ajax id="getStats" url="/api/v1/machines/[[resource.id]]/stats" handle-as="xml" method="GET" contentType="application/json"
             loading="{{loadingStats}}" on-response="_handleStatsResponse" on-error="_handleStatsError">
         </iron-ajax>
         <iron-ajax id="disassociateMetric" handle-as="xml" method="DELETE" contentType="application/json" loading="{{loadingMetrics}}"
             on-response="_handleAssociateResponse" on-error="_handleAssociateError">
         </iron-ajax>
-        <iron-ajax id="getJobLog" method="GET" url="[[rootPath]]/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
+        <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
 </dom-module>
 <script>
@@ -437,7 +437,7 @@
         },
         _computeDashboardUri: function (resource) {
             if (resource)
-                return this.rootPath+'/api/v1/machines/' + resource.id + '/dashboard';
+                return '/api/v1/machines/' + resource.id + '/dashboard';
         },
         _computeIsMonitored: function (resource, id, monitoring) {
             // console.log('compute Is Monitored', resource, id, monitoring);
@@ -646,7 +646,7 @@
 
             targets.forEach(function (target) {
                 if (target.target.startsWith("mist.python")) {
-                    this.$.disassociateMetric.url = this.rootPath+"/api/v1/machines/" + this.resource.id +
+                    this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id +
                         "/plugins/" + target.target;
                     this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.disassociateMetric.params = {
@@ -658,7 +658,7 @@
                 var payload = {
                     metric_id: target.target
                 };
-                this.$.disassociateMetric.url = this.rootPath+"/api/v1/machines/" + this.resource.id + "/metrics";
+                this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id + "/metrics";
                 this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.disassociateMetric.params = payload;
                 this.$.disassociateMetric.generateRequest();
