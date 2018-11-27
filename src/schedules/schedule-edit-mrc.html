@@ -70,8 +70,10 @@
                     'iron-overlay-closed': '_modalClosed'
                 },
                 _openEditScheduleModal: function(e) {
-                    this.set('newMaxRunCount', this.schedule.max_run_count);
-                    this.$.editMrcScheduleModal.open();
+                    if (this.schedule) {
+                        this.set('newMaxRunCount', this.schedule.max_run_count);
+                        this.$.editMrcScheduleModal.open();
+                    }
                 },
                 _closeEditScheduleModal: function(e) {
                     this.$.editMrcScheduleModal.close();
@@ -86,7 +88,9 @@
                     this.$.editSchedule.generateRequest();
                 },
                 _formReset: function() {
-                    this.set('newMaxRunCount', this.schedule.max_run_count);
+                    if (this.schedule) {
+                        this.set('newMaxRunCount', this.schedule.max_run_count);
+                    }
                 },
                 _handleScheduleEditResponse: function(e) {
                     this._closeEditScheduleModal();
@@ -103,8 +107,7 @@
                     // console.log(parseInt(this.newMaxRunCount), this.newMaxRunCount,  this.schedule.max_run_count)
                     if (this.sendingData) {
                         this.set('formReady', false);
-                    }
-                    else {
+                    } else if (!this.sendingData && this.schedule) {
                         this.set('formReady', (parseInt(this.newMaxRunCount) >= 0 || this.newMaxRunCount == "") && this.newMaxRunCount != this.schedule.max_run_count);
                     }
                 }
