@@ -246,7 +246,7 @@
                     </paper-dropdown-menu>
                     <span>
                             <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
-                                type="number" on-value-changed="_validateRule"></paper-input>
+                                type="number" on-value-changed="_validateCondition"></paper-input>
                             [[_computeUnits(newMetric, availableMetrics)]]
                         </span>
                     <span hidden$=[[!query.threshold]]>
@@ -271,7 +271,7 @@
                     </span>
                 </template>
                 </span>
-                <div hidden$="[[!_isConditionValid(rule.queries.*, rule.queries.0.threshold)]]">
+                <div hidden$="[[!conditionValid]]">
                     <span class="keyword then">then</span>
                     <span id="actionsDropdown">
                         <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
@@ -385,13 +385,18 @@
             isValidRule: {
                 type: Boolean,
                 value: false
-            }
+            },
+            conditionValid: {
+                type: Boolean,
+                value: false
+            },
         },
         observers: [
             "_focusOnMetricName(active)",
             "_currentRuleUpdated(currentRule.*)",
             "_initialiseEdit(currentRule,resource, rule.id)",
-            "_computeMonitoredMachines(machines.*)"
+            "_computeMonitoredMachines(machines.*)",
+            "_isConditionValid(rule.queries, rule.queries.*)"
         ],
         ready: function() {
             if (!this.rule) {
@@ -530,10 +535,19 @@
         _isAlertSelected: function(selectedAction) {
             return selectedAction == 'alert';
         },
-        _isConditionValid: function(queries, threshold) {
-            if (this.rule.queries.length && this.rule.queries[this.rule.queries.length - 1].threshold != undefined)
-                return true;
-            return false;
+        _isConditionValid: function() {
+            this._validateCondition();
+        },
+        _validateCondition: function() {
+            var allThresholdsDefined = true;
+            for (var i = 0; i < this.rule.queries.length; i++) {
+                if (this.rule.queries[i].threshold == undefined) {
+                    allThresholdsDefined = false;
+                    break;
+                }
+            }
+            this.set('conditionValid', this.rule.queries.length && allThresholdsDefined);
+            this._validateRule();
         },
         _focusOnMetricName: function(active) {
             if (this.rule && this.resource)
