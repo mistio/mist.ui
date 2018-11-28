@@ -214,7 +214,7 @@
         <mist-socket model="{{model}}"></mist-socket>
         <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
         <organization-add current-org="[[model.org]]"></organization-add>
-        <plan-purchase id="mistAppCcRequired" org="[[org]]" button-text="Enable"></plan-purchase>
+        <plan-purchase id="mistAppCcRequired" org="[[model.org]]" button-text="Enable"></plan-purchase>
     </template>
     <script>
     Polymer.Settings.passiveTouchGestures = true;
@@ -284,7 +284,7 @@
             },
             config: {
                 type: Object,
-                value: {}
+                value: function () { return {} }
             },
             userMenuOpened: {
                 type: Boolean
@@ -334,7 +334,7 @@
         },
 
         _computeCcRequired: function(org, clouds) {
-            if (!this.config || !this.config.features || !this.config.features.billing || this.model.org.card || this.model.org.current_plan)
+            if (!this.config || !this.config.features || !this.config.features.billing || !this.model.org || this.model.org.card || this.model.org.current_plan)
                 return false;
             return this.model.cloudsArray.length ? true : false;
         },
@@ -546,11 +546,6 @@
         },
 
         ready: function() {
-
-        },
-
-        _configUpdated: function(config) {
-            console.log('Config updated');
             var model = {
                 machines: {},
                 cloudsArray: [],
@@ -722,7 +717,11 @@
             for (i = 1; i <= model.teamsArray.length; i++) {
                 model.teams = model.teamsArray[i].teams[i].id;
             };
+            this.set('model', model);
+        },
 
+        _configUpdated: function(config) {
+            console.log('Config updated');
             var orchestration = this.config && this.config.features && this.config.orchestration ? this.config.orchestration : false,
                 tunnels = this.config && this.config.features && this.config.tunnels ? this.config.tunnels : false,
                 insights = this.config && this.config.features && this.config.insights ? this.config.insights : false;
@@ -882,9 +881,7 @@
                 tile: false
             }];
 
-            model.sections = _generateMap(sectionsArray);
-
-            this.set('model', model);
+            this.set('model.sections', _generateMap(sectionsArray));
             if (!this.config || !this.config.features || !this.config.features.docs) {
                 for (var i = 0; i < PROVIDERS.length; i++) {
                     for (var j = 0; j < PROVIDERS[i].options.length; j++) {
