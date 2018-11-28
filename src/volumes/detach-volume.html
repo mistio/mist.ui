@@ -1,27 +1,29 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
-
 <dom-module id="detach-volume">
     <template>
         <style include="shared-styles dialogs">
         :host {
             width: 100%;
         }
+
         :host .btn-group {
             margin: 0 0 24px 0;
         }
+
         paper-dialog {
             min-width: 360px;
         }
+
         .grey {
             opacity: 0.54;
         }
+
         .progress {
             margin: 24px -24px 24px -24px;
             width: 100%;
@@ -57,6 +59,7 @@
             color: inherit;
             padding-right: 8px;
         }
+
         :host paper-dropdown-menu ::content .dropdown-content {
             top: 55px !important;
         }
@@ -78,7 +81,9 @@
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                 <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                </p>
             </div>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>
@@ -89,103 +94,99 @@
                 </paper-button>
             </div>
         </paper-dialog>
-
         <iron-ajax id="detachVolumeRequest" method="PUT" on-response="_detachVolumeResponse" on-error="_detachVolumeError" on-request="_detachVolumeRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
-
     </template>
+    <script>
+    Polymer({
+        is: 'detach-volume',
+
+        properties: {
+            items: {
+                type: Array,
+                notify: true
+            },
+            selectedMachineId: {
+                type: String,
+                value: false
+            },
+            machines: {
+                type: Array,
+                value: []
+            },
+            loading: {
+                type: Boolean,
+                value: false
+            },
+            formError: {
+                type: Boolean,
+                value: false
+            }
+        },
+        listeners: {
+            // 'iron-select' : 'computedSelectedMachineId'
+        },
+        ready: function() {},
+        computedSelectedMachineId: function(selected) {
+            // this.set('selectedMachineId', this.$.machines.selected || '');
+        },
+        _openDialog: function(e) {
+            this.set('selectedMachineId', false);
+            this.set('formError', false);
+            this.$.detachDialogModal.open();
+        },
+        _closeDialog: function(e) {
+            this.set('formError', false);
+            this.$.detachDialogModal.close();
+        },
+        detachVolume: function(e) {
+            var request = this.$.detachVolumeRequest,
+                items = this.items.slice(0),
+                selectedMachineId = this.selectedMachineId;
+            var run = function(el) {
+                var item = items.shift(),
+                    itemType,
+                    itemId;
+                if (item.length) {
+                    chunks = item.split(':'),
+                        itemId = chunks[2],
+                        cloudId = chunks[1];
+                } else {
+                    itemId = item.external_id;
+                    cloudId = item.cloud;
+                }
+                request.url = "/api/v1/clouds/" + cloudId + "/volumes/" + itemId;
+                request.body = { action: 'detach', machine: selectedMachineId };
+                request.headers["Content-Type"] = 'application/json';
+                request.headers["Csrf-Token"] = CSRF_TOKEN;
+                request.generateRequest();
+
+                if (items.length) {
+                    run(el);
+                }
+            }
+            run(this);
+        },
+        _detachVolumeRequest: function() {
+            this.clearError();
+            var logMessage = 'Sending request to detach volume on machine.';
+            this.fire('performing-action', { log: logMessage });
+        },
+        _detachVolumeResponse: function(e) {
+            console.log(e, e.detail);
+            this._closeDialog();
+            this.fire('action-finished', { success: true });
+            this.fire('toast', { msg: 'Detach request sent successfully. Review in machine logs.', duration: 5000 });
+        },
+        _detachVolumeError: function(e) {
+            console.log(e, e.detail);
+            this.$.errormsg.textContent = e.detail.request.xhr.response;
+            this.set('formError', true);
+        },
+        clearError: function() {
+            this.set('formError', false);
+            this.$.errormsg.textContent = '';
+            this.$.detachDialogModal.refit();
+        },
+    });
+    </script>
 </dom-module>
-<script>
-Polymer({
-    is: 'detach-volume',
-
-    properties: {
-        items: {
-            type: Array,
-            notify: true
-        },
-        selectedMachineId: {
-            type: String,
-            value: false
-        },
-        machines: {
-            type: Array,
-            value: []
-        },
-        loading: {
-            type: Boolean,
-            value: false
-        },
-        formError: {
-            type: Boolean,
-            value: false
-        }
-    },
-    listeners: {
-        // 'iron-select' : 'computedSelectedMachineId'
-    },
-    ready: function(){
-    },
-    computedSelectedMachineId: function(selected){
-        // this.set('selectedMachineId', this.$.machines.selected || '');
-    },
-    _openDialog: function(e) {
-        this.set('selectedMachineId', false);
-        this.set('formError', false);
-        this.$.detachDialogModal.open();
-    },
-    _closeDialog: function(e) {
-        this.set('formError', false);
-        this.$.detachDialogModal.close();
-    },
-    detachVolume: function(e){
-        var request = this.$.detachVolumeRequest,
-            items = this.items.slice(0),
-            selectedMachineId = this.selectedMachineId;
-        var run = function(el) {
-            var item = items.shift(),
-                itemType,
-                itemId;
-            if (item.length) {
-                chunks = item.split(':'),
-                itemId = chunks[2],
-                cloudId = chunks[1];
-            }
-            else {
-                itemId = item.external_id;
-                cloudId = item.cloud;
-            }
-            request.url = "/api/v1/clouds/"+ cloudId +"/volumes/"+ itemId;
-            request.body = {action: 'detach', machine: selectedMachineId};
-            request.headers["Content-Type"] = 'application/json';
-            request.headers["Csrf-Token"] = CSRF_TOKEN;
-            request.generateRequest();
-
-            if (items.length) {
-                run(el);
-            }
-        }
-        run(this); 
-    },
-    _detachVolumeRequest: function() {
-        this.clearError();
-        var logMessage = 'Sending request to detach volume on machine.';
-        this.fire('performing-action', {log: logMessage});
-    },
-    _detachVolumeResponse: function(e){
-        console.log(e, e.detail);
-        this._closeDialog();
-        this.fire('action-finished', {success: true});
-        this.fire('toast', {msg: 'Detach request sent successfully. Review in machine logs.', duration: 5000});        
-    },
-    _detachVolumeError: function(e){
-        console.log(e, e.detail);
-        this.$.errormsg.textContent = e.detail.request.xhr.response;
-        this.set('formError', true);
-    },
-    clearError: function(){
-        this.set('formError', false);
-        this.$.errormsg.textContent = '';
-        this.$.detachDialogModal.refit();
-      },
-});
-</script>

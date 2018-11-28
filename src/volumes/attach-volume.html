@@ -9,7 +9,7 @@
 <dom-module id="attach-volume">
     <template>
         <style include="shared-styles dialogs">
-         :host {
+        :host {
             width: 100%;
         }
 
@@ -17,7 +17,7 @@
             min-width: 360px;
         }
 
-         :host .btn-group {
+        :host .btn-group {
             margin: 0 0 24px 0;
         }
 
@@ -67,8 +67,8 @@
             margin-top: 0;
         }
 
-         :host paper-dropdown-menu ::content .dropdown-content,
-         :host paper-dropdown-menu ::slotted(.dropdown-content) {
+        :host paper-dropdown-menu ::content .dropdown-content,
+        :host paper-dropdown-menu ::slotted(.dropdown-content) {
             top: 55px !important;
         }
         </style>
@@ -78,10 +78,10 @@
                 <p>
                     <template is="dom-if" if="[[!machines.length]]">
                         <span class="grey">No [[provider]]-machines in same region found</span>
-                        <br/>
+                        <br />
                         <a href="/machines/+create">Create a machine</a>
-                        <br/>
-                        <br/>
+                        <br />
+                        <br />
                     </template>
                     <template is="dom-if" if="[[machines.length]]">
                         <span class="grey"> Choose from your existing machines. </span>
@@ -99,7 +99,9 @@
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                 <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                </p>
             </div>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>
@@ -112,122 +114,122 @@
         </paper-dialog>
         <iron-ajax id="attachVolumeRequest" method="PUT" on-response="_attachVolumeResponse" on-error="_attachVolumeError" on-request="_attachVolumeRequest" handle-as="xml" loading="{{loading}}"></iron-ajax>
     </template>
-</dom-module>
-<script>
-Polymer({
-    is: 'attach-volume',
+    <script>
+    Polymer({
+        is: 'attach-volume',
 
-    properties: {
-        items: {
-            type: Array,
-            notify: true
-        },
-        provider: String,
-        hideDeviceInput: {
-            type: Boolean,
-            value: false,
-            computed: '_computeHideDeviceInput(provider, items.*)'
-        },
-        selectedMachineId: {
-            type: String,
-            value: false
-        },
-        device: {
-            type: String,
-            value: "/dev/xvda"
-        },
-        machines: {
-            type: Array,
-            value: []
-        },
-        loading: {
-            type: Boolean,
-            value: false
-        },
-        formError: {
-            type: Boolean,
-            value: false
-        }
-    },
-    ready: function() {},
-    computedSelectedMachineId: function(selected) {
-        this.set('selectedMachineId', this.$.machines.selected || '');
-    },
-    _computeHideDeviceInput: function(provider) {
-        return this.provider != "ec2";
-    },
-    _openDialog: function(e) {
-        this.clearError();
-        this.set('selectedMachineId', false);
-        this.set('device', '/dev/xvda');
-        this.$.attachDialogModal.open();
-    },
-    _closeDialog: function(e) {
-        this.$.attachDialogModal.close();
-        this.clearError();
-    },
-    attachVolume: function(e) {
-        var request = this.$.attachVolumeRequest;
-        if (this.items) {
-            var items = this.items.slice(0),
-                selectedMachineId = this.selectedMachineId,
-                device = this.device,
-                hideDeviceInput = this.hideDeviceInput;
-            var run = function(el) {
-                var item = items.shift(),
-                    itemType,
-                    itemId;
-                if (item.length) {
-                    chunks = item.split(':'),
-                        itemId = chunks[2],
-                        cloudId = chunks[1];
-                } else {
-                    itemId = item.external_id;
-                    cloudId = item.cloud;
-                }
-                if (!hideDeviceInput) {
-                    request.body = {
-                        device: device
-                    };
-                }
-                request.url = "/api/v1/clouds/"+cloudId+"/volumes/" + itemId;
-                request.body = {action: 'attach', machine: selectedMachineId};
-                if (!hideDeviceInput) {
-                    request.body.device = device;
-                }
-                request.headers["Content-Type"] = 'application/json';
-                request.headers["Csrf-Token"] = CSRF_TOKEN;
-                request.generateRequest();
-
-                if (items.length) {
-                    run(el);
-                }
+        properties: {
+            items: {
+                type: Array,
+                notify: true
+            },
+            provider: String,
+            hideDeviceInput: {
+                type: Boolean,
+                value: false,
+                computed: '_computeHideDeviceInput(provider, items.*)'
+            },
+            selectedMachineId: {
+                type: String,
+                value: false
+            },
+            device: {
+                type: String,
+                value: "/dev/xvda"
+            },
+            machines: {
+                type: Array,
+                value: []
+            },
+            loading: {
+                type: Boolean,
+                value: false
+            },
+            formError: {
+                type: Boolean,
+                value: false
             }
-            run(this);
-        }
-    },
-    _attachVolumeRequest: function() {
-        this.clearError();
-        var logMessage = 'Sending request to attach volume on machine.';
-        this.fire('performing-action', { log: logMessage });
-    },
-    _attachVolumeResponse: function(e) {
-        console.log(e, e.detail);
-        this._closeDialog();
-        this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Attach request sent successfully. Review in machine logs.', duration: 5000 });
-    },
-    _attachVolumeError: function(e) {
-        console.log(e, e.detail);
-        var message = e.detail.request.xhr.response || e.detail.error.message;
-        this.$.errormsg.textContent = message;
-        this.set('formError', true);
-        this.fire('action-finished', { success: false });
-    },
-    clearError: function(){
-        this.set('formError', false);
-        this.$.errormsg.textContent = '';
-        this.$.attachDialogModal.refit();
-      },
-});
-</script>
+        },
+        ready: function() {},
+        computedSelectedMachineId: function(selected) {
+            this.set('selectedMachineId', this.$.machines.selected || '');
+        },
+        _computeHideDeviceInput: function(provider) {
+            return this.provider != "ec2";
+        },
+        _openDialog: function(e) {
+            this.clearError();
+            this.set('selectedMachineId', false);
+            this.set('device', '/dev/xvda');
+            this.$.attachDialogModal.open();
+        },
+        _closeDialog: function(e) {
+            this.$.attachDialogModal.close();
+            this.clearError();
+        },
+        attachVolume: function(e) {
+            var request = this.$.attachVolumeRequest;
+            if (this.items) {
+                var items = this.items.slice(0),
+                    selectedMachineId = this.selectedMachineId,
+                    device = this.device,
+                    hideDeviceInput = this.hideDeviceInput;
+                var run = function(el) {
+                    var item = items.shift(),
+                        itemType,
+                        itemId;
+                    if (item.length) {
+                        chunks = item.split(':'),
+                            itemId = chunks[2],
+                            cloudId = chunks[1];
+                    } else {
+                        itemId = item.external_id;
+                        cloudId = item.cloud;
+                    }
+                    if (!hideDeviceInput) {
+                        request.body = {
+                            device: device
+                        };
+                    }
+                    request.url = "/api/v1/clouds/" + cloudId + "/volumes/" + itemId;
+                    request.body = { action: 'attach', machine: selectedMachineId };
+                    if (!hideDeviceInput) {
+                        request.body.device = device;
+                    }
+                    request.headers["Content-Type"] = 'application/json';
+                    request.headers["Csrf-Token"] = CSRF_TOKEN;
+                    request.generateRequest();
+
+                    if (items.length) {
+                        run(el);
+                    }
+                }
+                run(this);
+            }
+        },
+        _attachVolumeRequest: function() {
+            this.clearError();
+            var logMessage = 'Sending request to attach volume on machine.';
+            this.fire('performing-action', { log: logMessage });
+        },
+        _attachVolumeResponse: function(e) {
+            console.log(e, e.detail);
+            this._closeDialog();
+            this.fire('action-finished', { success: true });
+            this.fire('toast', { msg: 'Attach request sent successfully. Review in machine logs.', duration: 5000 });
+        },
+        _attachVolumeError: function(e) {
+            console.log(e, e.detail);
+            var message = e.detail.request.xhr.response || e.detail.error.message;
+            this.$.errormsg.textContent = message;
+            this.set('formError', true);
+            this.fire('action-finished', { success: false });
+        },
+        clearError: function() {
+            this.set('formError', false);
+            this.$.errormsg.textContent = '';
+            this.$.attachDialogModal.refit();
+        },
+    });
+    </script>
+</dom-module>
