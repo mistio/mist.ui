@@ -19,8 +19,9 @@
 </style>
 <dom-module id="xterm-dialog">
     <template>
-        <style include="shared-styles dialogs">
+        <style>
             :host {
+                display: block;
                 width: 100% !important;
                 z-index: 999999;
                 top: 0;
@@ -120,13 +121,14 @@
                 },
                 attached: function() {
                     console.debug('xterm attached');
-                    this.socket = document.querySelector('mist-socket');
+                    this.socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
+                    
                     this.term = new Terminal({
                         cursorBlink: true
                     });
 
                     var terminalContainer = this.shadowRoot.querySelector('#terminal-container');
-                    this.term.open(terminalContainer);
+                    this.term.open(terminalContainer, true);
 
                     var newCols, newRows;
                     [newCols, newRows] = this.resizeTerminal();
@@ -195,7 +197,7 @@
                 },
                 detached: function() {
                     console.debug('xterm detached');
-                    var socket = document.querySelector('mist-socket');
+                    var socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
                     socket.send('uns', 'shell');
                     window.removeEventListener("resize", this.resizeHandler);
                 },
