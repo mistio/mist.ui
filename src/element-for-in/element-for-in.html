@@ -1,39 +1,32 @@
 <dom-module id="element-for-in">
     <template>
-        <style include="shared-styles">
+        <style include="shared-styles info-table-style">
         :host {
             font-size: 14px;
         }
 
-        :host ::content .flex-horizontal-with-ratios,
-        :host ::slotted(.flex-horizontal-with-ratios) {
+        .flex-horizontal-with-ratios {
             @apply --layout-horizontal;
         }
 
-        :host ::content .flexchild,
-        :host ::slotted(.flexchild) {
+        .flexchild {
             @apply --layout-flex;
             padding: 16px;
         }
 
-        :host ::content .flexchild.key,
-        :host ::slotted(.flexchild.key) {
+        .flexchild.key {
             font-weight: 500;
         }
 
-        :host ::content .flex-horizontal-with-ratios:nth-child(even),
-        :host ::slotted (.flex-horizontal-with-ratios:nth-child(even)) {
+        .flex-horizontal-with-ratios:nth-child(even){
             background-color: #f2f2f2;
         }
 
-        :host>div {
+        :host div {
             word-break: break-all;
         }
-
-        view-json {
-            --background-color: #fff;
-        }
         </style>
+        <div id="infobody" class="info-body"></div>
     </template>
     <script src="../../bower_components/view-json/view-json.js"></script>
     <script>
@@ -69,7 +62,7 @@
                 this.sortArr(newObj);
             }
 
-            this.shadowRoot.innerHTML = this.createTpl(newObj);
+            this.$.infobody.innerHTML = this.createTpl(newObj);
         },
         sortArr: function(array) {
             array.sort(function(a, b) {
@@ -90,8 +83,9 @@
             var tpl = '';
 
             for (var i = 0, len = content.length; i < len; i++) {
-                if (this.ignore && content[i].key.indexOf(this.ignore) > -1)
+                if (this.ignore && content[i].key.indexOf(this.ignore) > -1) {
                     continue;
+                }
                 tpl += "<div class='info-item flex-horizontal-with-ratios'>";
                 tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
                 if (content[i].value instanceof Object || content[i].value instanceof Array)
