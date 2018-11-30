@@ -1141,17 +1141,19 @@ Polymer({
     },
     _disassociateKeyResponse: function(e) {
         this.set('isPendingKeyRequest', false);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Key was removed from machine',
             duration: 3000
-        });
+        } }));
+
     },
     _disassociateKeyError: function(e) {
         this.set('isPendingKeyRequest', false);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: e.detail.request.xhr.responseText,
             duration: 3000
-        });
+        } }));
+
     },
     detachVolume: function(e) {
         var volumeId = e.model.volumeId;
@@ -1171,16 +1173,18 @@ Polymer({
     },
     _detachVolumeResponse: function(e) {
         this.set('isPendingVolumeRequest', false);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Volume was detached from machine',
             duration: 3000
-        });
+        } }));
+
     },
     _detachVolumeError: function(e) {
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: e.detail.request.xhr.responseText,
             duration: 3000
-        });
+        } }));
+
     },
     _machineActionConfirmation: function(e) {
         if (e.detail.response.confirmed && e.detail.reason == "disassociate.key") {
@@ -1199,45 +1203,51 @@ Polymer({
             this.set('isPendingKeyRequest', false);
         } else if (e.detail.error) {
             this.set('isPendingKeyRequest', false);
-            this.fire('toast', {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                 msg: e.detail.errormsg,
                 duration: 3000
-            });
+            } }));
+
         }
     },
     _feedbackOnScript: function(e) {
         if (e.detail.response) {
-            this.fire('toast', {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                 msg: 'Script run request succeded. Script ' + this.model.scripts[e.detail.scriptId]
                     .name + ' has been queued for execution',
                 duration: 5000
-            });
+            } }));
+
         }
         if (e.detail.error) {
-            this.fire('toast', {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                 msg: e.detail.errormsg,
                 duration: 3000
-            });
+            } }));
+
         }
     },
     _feedbackOnRename: function(e) {
         if (e.detail.request) {
-            this.fire('toast', {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                 msg: 'Rename request sent. Waiting for machine to respond',
                 duration: 3000
-            });
+            } }));
+
         }
         if (e.detail.response) {
-            this.fire('toast', {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                 msg: 'Renaming was successful.',
                 duration: 3000
-            });
+            } }));
+
         }
         if (e.detail.error) {
-            this.fire('toast', {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                 msg: e.detail.errormsg,
                 duration: 3000
-            });
+            } }));
+
         }
     },
     _computeDirtyCowAlert: function(machine) {
@@ -1367,10 +1377,11 @@ Polymer({
         }, 5000);
     },
     _probeError: function(e) {
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Error probing machine ' + e.detail.request.xhr.responseText,
             duration: 3000
-        });
+        } }));
+
     },
     _computeMachineLogFilter: function(machine) {
         if (machine)
@@ -1563,7 +1574,7 @@ Polymer({
     _computeProbeString: function() {
         var sshFrom = '',
             icmpFrom = '';
-        if (!this.machine.probe)
+        if (!this.machine || !this.machine.probe)
             return;
         var sshLastUpdate = this.machine.probe.ssh && this.machine.probe.ssh.updated_at,
             icmpLastUpdate = this.machine.probe.ping && this.machine.probe.ping.updated_at;

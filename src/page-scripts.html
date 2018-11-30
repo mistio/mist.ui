@@ -27,7 +27,7 @@
             </div>
         </template>
         <script-add model="[[model]]" section="[[model.sections.scripts]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]]></script-add>
-        <script-page model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" resource-id="[[data.script]]" section="[[model.sections.scripts]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
+        <script-page id="scriptPage" model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" resource-id="[[data.script]]" section="[[model.sections.scripts]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
         <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
     </template>
     <script>
@@ -62,8 +62,6 @@
             return path == '/+add';
         },
         _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' & !path.endsWith('+run') && this.shadowRoot.querySelector('script-page'))
-                this.shadowRoot.querySelector('script-page').updateState();
             return path && path != '/+add' & !path.endsWith('+run');
         },
         _isRunPageActive: function(path) {
@@ -73,20 +71,22 @@
             return !path;
         },
         _getScript: function(id) {
-            if (this.model && id) {
+            if (this.model && this.model.scripts && id) {
                 return this.model.scripts[id];
             }
         },
         _addResource: function(e) {
-            this.fire('go-to', {
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                 url: this.model.sections.scripts.add
-            });
+            } }));
+
         },
         _editScript: function(e) {
             e.stopImmediatePropagation();
-            this.fire('go-to', {
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                 url: '/scripts/' + this.selectedItems[0].id
-            });
+            } }));
+
             this.shadowRoot.querySelector('script-page').fire('edit');
         },
         _getFrozenLogColumn: function() {

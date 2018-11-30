@@ -111,7 +111,7 @@
                     this.set('activeItem', null);
             },
             _itemsChanged: function () {
-                this.fire('fields-changed');
+                this.dispatchEvent(new CustomEvent('fields-changed'));
             },
             _optionsChanged: function (options) {
                 var index = options.path.split('.')[1];
@@ -152,13 +152,14 @@
                         })
                         this.push('items', opts);
                     } else {
-                        this.fire('toast', {
+                        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                             msg: 'Only up to ' + this.max + ' ' + this.itemName + 's are allowed.',
                             duration: 3000
-                        });
+                        } }));
+
                         this.shadowRoot.querySelector('.add').setAttribute('disabled', true);
                     }
-                    this.fire('fields-changed');
+                    this.dispatchEvent(new CustomEvent('fields-changed'));
                 }
             },
             deleteItem: function (e) {
@@ -167,7 +168,7 @@
                     this.splice('items', e.model.__data__.index, 1);
                     this.shadowRoot.querySelector('.add').removeAttribute('disabled');
                     this.async(function () {
-                        this.fire('fields-changed');
+                        this.dispatchEvent(new CustomEvent('fields-changed'));
                     }.bind(this), 200)
                 } else {
                     this.fire('toast', {

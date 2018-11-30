@@ -187,7 +187,10 @@
         }
       },
       handleResponse: function (e) {
-        this.fire('action-finished');
+        this.dispatchEvent(new CustomEvent('action-finished'));
+
+
+
         // console.log('handleResponse',e);
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {
@@ -196,13 +199,15 @@
           })
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
-          });
+          } }));
+
         }
         if (!this.$.request.body || !this.$.request.body.action && this.$.request.method == "DELETE") {
-          this.fire('network-deleted', {responseURL: e.detail.xhr.responseURL});
+          this.dispatchEvent(new CustomEvent('network-deleted', { bubbles: true, composed: true, detail: {responseURL: e.detail.xhr.responseURL} }));
+
         }
       },
       _mapPolicyToActions: function (items) {
@@ -236,10 +241,11 @@
       },
       handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
           duration: 5000
-        });
+        } }));
+
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
         }

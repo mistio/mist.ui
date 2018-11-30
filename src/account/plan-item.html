@@ -462,7 +462,8 @@
             return date ? moment.utc(date * 1000).format("MMMM Do YYYY") : date;
         },
         _selectPlan: function(e) {
-            this.fire('plan-selected', { plan: this.plan });
+            this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
+
         },
         _triggerInfo: function() {
             console.log('info popup');
@@ -475,7 +476,8 @@
         },
         _purchasePlan: function(e) {
             if (this.plan && !this.plan.price)
-                this.fire('plan-selected', { plan: this.plan });
+                this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
+
             else 
                 this.fire('plan-selected');
         },
@@ -513,11 +515,13 @@
             }
         },
         _handleCancelAjaxResponse: function(e) {
-            this.fire('toast', { msg: 'You cancelled your plan. ', duration: 3000 });
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'You cancelled your plan. ', duration: 3000 } }));
+
         },
 
         _handleCancelAjaxError: function(e) {
-            this.fire('error-on-cancel-plan', { error: e.detail.request.xhr.responseText });
+            this.dispatchEvent(new CustomEvent('error-on-cancel-plan', { bubbles: true, composed: true, detail:  { error: e.detail.request.xhr.responseText } }));
+
         },
         showCancel: function(plan, current) {
             return this.current && this.plan.title && !this.plan.expiration;

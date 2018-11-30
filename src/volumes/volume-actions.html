@@ -232,15 +232,20 @@
           })
         }
         if (e.target && e.target.__data__ && e.target.__data__.method == "DELETE") {
-          this.fire('go-to', {url:'/volumes'});
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url:'/volumes'} }));
+
         }
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.fire('action-finished');
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('action-finished'));
+
+
+
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
-          });
+          } }));
+
         }
       },
       _mapPolicyToActions: function (items) {
@@ -274,10 +279,11 @@
       },
       handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
           duration: 5000
-        });
+        } }));
+
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
         }

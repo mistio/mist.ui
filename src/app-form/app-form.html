@@ -1011,8 +1011,9 @@
             },
             _submitForm: function (e) {
                 // notify the parent element to format the form's payload if necessary
-                if (this.formatPayload)
-                    this.fire('format-payload');
+                if (this.formatPayload){
+                    this.dispatchEvent(new CustomEvent('format-payload'));
+                }
 
                 var payload = {};
                 if (this.workflow) {
@@ -1105,7 +1106,10 @@
                 return false;
             },
             _cancel: function () {
-                this.fire('cancel');
+                this.dispatchEvent(new CustomEvent('cancel'));
+
+
+
             },
             _resetForm: function (e) {
                 // Reset script
@@ -1130,7 +1134,10 @@
                     this._resetField(el, index);
                 }.bind(this));
 
-                this.fire('reset-form');
+                this.dispatchEvent(new CustomEvent('reset-form'));
+
+
+
             },
             _resetField: function (el, index) {
                 this.set('fields.' + index + '.value', el.defaultValue);
@@ -1220,10 +1227,11 @@
                 })
             },
             _addInput: function (e) {
-                this.fire('add-input', {
+                this.dispatchEvent(new CustomEvent('add-input', { bubbles: true, composed: true, detail: {
                     event: e,
                     fieldname: e.model.field.name
-                });
+                } }));
+
             },
             _computeResourceTypeForField: function (str, length) {
                 var ret = str ? str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("uuids", "").replace("ids", "").replace("id", "").replace(/s$/,'').trim() : '';
@@ -1279,7 +1287,8 @@
                 return arr;
             },
             _helpTap: function (e) {
-                this.fire('user-action', 'open help ' + e.model.field.helpHref);
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'open help ' + e.model.field.helpHref }));
+
             },
             _noOptions: function (options, length) {
                 return !options || options.length == 0;

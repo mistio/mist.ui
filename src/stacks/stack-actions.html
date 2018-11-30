@@ -217,9 +217,15 @@
             if (action.name == 'delete') {
                 this._delete();
             } else if (action.name == 'workflows panel') {
-                this.fire('show-workflows');
+                this.dispatchEvent(new CustomEvent('show-workflows'));
+
+
+
             } else if (action.name == 'deploy now') {
-                this.fire('deploy-now');
+                this.dispatchEvent(new CustomEvent('deploy-now'));
+
+
+
             } else {
                 this.fire('workflow', { name: action.name })
             }
@@ -229,11 +235,15 @@
                 this.fire('toast', { msg: 'Action: ' + this.$.request.body.action + ' successfull', duration: 3000 })
             if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
                 this.$.ownershipdialog._closeDialog();
-                this.fire('action-finished');
-                this.fire('toast', {
+                this.dispatchEvent(new CustomEvent('action-finished'));
+
+
+
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: 'Successfull ownership transfer',
                     duration: 3000
-                });
+                } }));
+
             }
         },
         _mapPolicyToActions: function(items, user) {
@@ -268,7 +278,8 @@
 
         handleError: function(e) {
             console.log(e);
-            this.fire('toast', { msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText, duration: 5000 });
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText, duration: 5000 } }));
+
             if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
                 this.$.ownershipdialog._closeDialog();
             }

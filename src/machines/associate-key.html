@@ -190,7 +190,8 @@ Polymer({
         var qParams = {
             'origin': origin
         }
-        this.fire('go-to', { url: '/keys/+add', params: qParams });
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/keys/+add', params: qParams } }));
+
     },
     associateKey: function(e) {
 
@@ -236,15 +237,20 @@ Polymer({
     },
     _associateKeyRequest: function() {
         var logMessage = 'Sending request to associate key with machine.';
-        this.fire('performing-action', { log: logMessage });
+        this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
+
     },
     _associateKeyResponse: function() {
-        this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Key association request sent successfully', duration: 3000 });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Key association request sent successfully', duration: 3000 } }));
+
     },
     _associateKeyError: function(e) {
-        this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: e.detail.request.xhr.responseText, duration: 5000 });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: e.detail.request.xhr.responseText, duration: 5000 } }));
+
     },
     updateInputs: function(e) {
         var target = e.target.id;

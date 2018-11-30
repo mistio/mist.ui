@@ -708,7 +708,8 @@
             },
             _handleScheduleEditExpirationResponse: function() {
                 var message = 'Updating date...';
-                this.fire('toast', { msg: message, duration: 3000 });
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 3000 } }));
+
 
                 this.$.dateTimePickers.close();
                 this.expError = false;
@@ -717,7 +718,8 @@
             _handleScheduleEditExpirationError: function(e) {
                 console.log('_handleScheduleEditToggleError',e);
                 var message = e.detail.request.xhr.response;
-                this.fire('toast', { msg: message, duration: 5000 });
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
+
                 this.expError = true;
             },
             _editSchedule: function(e) {
@@ -752,14 +754,16 @@
                 }
             },
             _handleScheduleDeleteResponse: function(e) {
-                this.fire('go-to', {url: '/schedules'});
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/schedules'} }));
+
             },
             _handleScheduleDeleteError: function(e) {
                 var message = e.detail.error;
                 if (e.detail.request.statusText)
                     message += " "+e.detail.request.statusText;
 
-                this.fire('toast', { msg: message, duration: 5000 });
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
+
             },
             _showDialog: function(info) {
                 var dialog = this.shadowRoot.querySelector('dialog-element#scheduleModal');
@@ -890,12 +894,14 @@
                 else if (this.lastrequestedaction == "run") {
                     message = 'Run request sent successfully.';   
                 }
-                this.fire('toast', { msg: message, duration: 3000 });
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 3000 } }));
+
             },
             _handleScheduleEditToggleError: function(e) {
                 console.log('_handleScheduleEditToggleError',e);
                 var message = e.detail.request.xhr.response;
-                this.fire('toast', { msg: message, duration: 5000 });
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
+
                 this.$.scheduleEnabled.setAttribute('checked', this.schedule.task_enabled);
             },
             _computeDateFromNow: function(time) {

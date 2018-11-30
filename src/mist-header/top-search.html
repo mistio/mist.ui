@@ -250,7 +250,8 @@
                     this.fire('search', filter + ' ' + this.query.replace(/owner:\S*\s/, ''));
             } else {
                 var newQ = this.query.replace(/owner:\S*\s?/g, '');
-                this.fire('search', newQ);
+                this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: newQ }));
+
                 if (!newQ.length)
                     this.clearSearch();
             }
@@ -272,7 +273,8 @@
             } else
                 this.set('showClear', this.overflow || false);
 
-            this.fire('search', this.query);
+            this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.query }));
+
         },
         setTypedFilter: function(q, caller) {
             var filterOwner = q.indexOf('owner:') > -1,

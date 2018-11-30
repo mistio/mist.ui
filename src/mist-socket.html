@@ -798,20 +798,22 @@
 
                 // display toast and desktop notification if adding
                 if (operation.op == "add" && operation.value.summary) {
-                    _this.fire('toast', {
+                    _this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                         msg: operation.value.summary,
                         duration: 3000
-                    });
+                    } }));
+
                     var url;
                     if (operation.value.resource) {
                         url = '/' + operation.value.resource._ref.$ref + '/' + operation.value.resource
                             ._ref.$id;
                     }
-                    _this.fire('desktop-notification', {
+                    _this.dispatchEvent(new CustomEvent('desktop-notification', { bubbles: true, composed: true, detail: {
                         "title": operation.value.summary,
                         "body": operation.value.body,
                         "url": url
-                    });
+                    } }));
+
                 }
             });
             _this.set('model.notificationsArray', newArray.reverse());

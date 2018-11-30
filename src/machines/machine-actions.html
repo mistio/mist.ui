@@ -531,42 +531,50 @@
                         if (xhr.status == 200) {
                             console.log(action, 'success');
                             message = 'Successfully ' + this.inPast(action.name) + ' machine. Updating...';
-                            this.fire('action-finished', {
+                            this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
                                 success: true
-                            });
+                            } }));
+
                             // for machines destroy only and only if in machine page
                             if (action.name == "destroy" && document.querySelector('app-location').path.split(
                                     '/machines/')[1] == item.id) {
                                 // kvm machines
                                 if (item.provider != 'kvm') {
-                                    this.fire('go-to', {
+                                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                                         url: '/machines'
-                                    });
+                                    } }));
+
                                 }
                             }
                             if (item.provider == 'kvm' && action.name == "undefine" && document.querySelector('app-location').path.split(
                                     '/machines/')[1] == item.id) {
-                                this.fire('go-to', {
+                                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                                     url: '/machines'
-                                });
+                                } }));
+
                             }
                         } else {
                             console.error(action, 'failed');
                             console.log(xhr);
                             var responsetext = xhr.responseText ? xhr.responseText : '';
                             message = action.name.toUpperCase() + ' failed.' + responsetext;
-                            this.fire('action-finished', {
+                            this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
                                 success: false
-                            });
+                            } }));
+
                         }
-                        this.fire('toast', {
+                        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                             msg: message,
                             duration: 5000
-                        });
+                        } }));
+
                         if (runitems.length) {
                             run(el);
                         } else {
-                            this.fire('action-finished');
+                            this.dispatchEvent(new CustomEvent('action-finished'));
+
+
+
                         }
                     }
                 }.bind(this);
@@ -578,9 +586,10 @@
 
                 var logMessage = 'Performing action ' + action.name.toUpperCase() + ' on machine ' + this.model.machines[
                     item.id].name;
-                this.fire('performing-action', {
+                this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: {
                     log: logMessage
-                });
+                } }));
+
             }.bind(this);
 
             run(this);
@@ -588,17 +597,22 @@
         handleResponse: function(e) {
             console.log('handle response', e, this.$.request.body);
             if (this.$.request && this.$.request.body && this.$.request.body.action)
-                this.fire('toast', {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: 'Action: ' + (this.$.request.body.action || 'ownership transfer') + ' successfull',
                     duration: 3000
-                });
+                } }));
+
             if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
                 this.$.ownershipdialog._closeDialog();
-                this.fire('action-finished');
-                this.fire('toast', {
+                this.dispatchEvent(new CustomEvent('action-finished'));
+
+
+
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: 'Successfull ownership transfer',
                     duration: 3000
-                });
+                } }));
+
             }
         },
         _mapPolicyToActions: function(items) {
@@ -632,10 +646,11 @@
         },
         handleError: function(e) {
             // console.log(e.detail.request.xhr.statusText);
-            this.fire('toast', {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                 msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
                 duration: 5000
-            });
+            } }));
+
             if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
                 this.$.ownershipdialog._closeDialog();
             }

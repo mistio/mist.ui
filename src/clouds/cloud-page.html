@@ -510,10 +510,11 @@
             },
             goToFilteredList: function (page, state) {
                 var search = state ? ' ' + state : '';
-                this.fire('go-to', {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                     url: '/' + page,
                     search: this.cloud.title + search
-                });
+                } }));
+
             },
             _computeShowCount: function (c) {
                 console.log('_computeShowCount', c);
@@ -582,17 +583,19 @@
             _handleCloudStateAjaxResponse: function (e) {
                 var message = this.expectedState == true ? 'Cloud ' + this.cloud.title +
                     ' was enabled!' : 'Cloud ' + this.cloud.title + ' was disabled!';
-                this.fire('toast', {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: message,
                     duration: 5000
-                });
+                } }));
+
             },
             _handleCloudStateAjaxError: function (e) {
                 this.querySelector('#enable-disable-cloud').checked = this.cloud.enabled;
-                this.fire('toast', {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: e.detail.request.xhr.response,
                     duration: 10000
-                });
+                } }));
+
             },
             // redirect events
             selectAction: function (e) {

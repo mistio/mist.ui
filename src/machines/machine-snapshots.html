@@ -236,20 +236,24 @@ Polymer({
     _snapshotRequest: function() {
         this.clearError();
         var logMessage = 'Sending request to ' + this.action + '.';
-        this.fire('performing-action', { log: logMessage });
+        this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
+
     },
     _snapshotResponse: function(e) {
         console.log(e, e.detail);
         this._closeDialog();
-        this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Snapshot request sent successfully.', duration: 5000 });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Snapshot request sent successfully.', duration: 5000 } }));
+
     },
     _snapshotError: function(e) {
         console.log(e, e.detail);
         var message = e.detail.request.xhr.response || e.detail.error.message;
         this.$.errormsg.textContent = message;
         this.set('formError', true);
-        this.fire('action-finished', { success: false });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
+
     },
     clearError: function() {
         this.set('formError', false);

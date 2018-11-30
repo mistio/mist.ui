@@ -267,7 +267,8 @@
             },
             saveOrg: function(){
                 var new_name = this.shadowRoot.querySelector("#orginput").value;
-                this.fire('user-action', 'Save org ' + new_name);
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'Save org ' + new_name }));
+
                 this.$.saveOrgRequest.headers["Content-Type"] = 'application/json';
                 this.$.saveOrgRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.saveOrgRequest.body = { 'new_name': new_name };
@@ -277,11 +278,14 @@
                 this.$.addFirstCloudBtn.focus();
             },
             goToAddCloud: function(){
-                this.fire('user-action', 'add cloud click');
-                this.fire('go-to', {url: '/clouds/+add'});
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add cloud click' }));
+
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/clouds/+add'} }));
+
             },
             showInviteForm: function(){
-                this.fire('user-action', 'invite people click');
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'invite people click' }));
+
                 var addform = document.querySelector("#cloud-or-invite-form"),
                     inviteform = document.querySelector("#invite-form"),
                     container = document.querySelector("#onboarding-area");
@@ -290,7 +294,8 @@
                 container.setAttribute('higher', true);
             },
             hideInviteForm: function(){
-                this.fire('user-action', 'cancel click');
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'cancel click' }));
+
                 var addform = document.querySelector("#cloud-or-invite-form"),
                     inviteform = document.querySelector("#invite-form"),
                     container = document.querySelector("#onboarding-area");
@@ -311,7 +316,8 @@
                 }
             },
             invitePeopleResponse: function(){
-                this.fire('go-to', {url: '/teams/' + this.selectedTeamId});
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/teams/' + this.selectedTeamId} }));
+
                 this.set('showProgress', false);
                 this.async(function(){
                     this.hideInviteForm();
@@ -341,7 +347,8 @@
                 }
             },
             _addTeam: function(e) {
-                this.fire('user-action', 'add team click');
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add team click' }));
+
                 var dialog = this.shadowRoot.querySelector('team-add');
                 dialog.openDialog();
             },

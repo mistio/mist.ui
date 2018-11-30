@@ -299,16 +299,19 @@
         },
         purchaseResponse: function(e){
             this._reset();
-            if (this.addCard)
-                this.fire('toast', {msg: 'Card added.', duration: 3000});
-            else
-                this.fire('toast', {msg: 'Plan changed.', duration: 3000});
+            if (this.addCard) {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Card added.', duration: 3000} }));
+            } else {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Plan changed.', duration: 3000} }));
+            }
+
         },
         _reset: function(){
             this.set('formError', false);
             this.shadowRoot.querySelector('card-form#inPlanPurchase').reset();
             this.shadowRoot.querySelector("#form").close();
-            this.fire('cc-dismiss');
+            this.dispatchEvent(new CustomEvent('cc-dismiss'));
+
         },
         purchaseError: function(e){
             console.log('purchaseError',e);
@@ -316,12 +319,13 @@
             this.$.errormsg.textContent = e.detail.error;
         },
         displayInt: function(int){
-            if (int && int.toString())
+            if (int && int.toString()) {
                 return int.toString().split('').reverse().join('')
                     .replace('000000000','B').replace('000000','M').replace('000','k')
                     .split('').reverse().join('');
-            else
+            } else {
                 return int;
+            }
         },
         _computeButtonText: function(plan, org){
             // if (this.org.current_plan.vcpu_limit > plan.vcpu_limit){

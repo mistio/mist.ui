@@ -133,17 +133,22 @@ Polymer({
     },
     _runScriptRequest: function() {
         var logMessage = 'Sending request to run script on machine.';
-        this.fire('performing-action', { log: logMessage });
+        this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
+
     },
     _runScriptResponse: function(e) {
         console.log(e, e.detail);
-        this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Run script request sent successfully. Review in machine logs.', duration: 5000 });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Run script request sent successfully. Review in machine logs.', duration: 5000 } }));
+
     },
     _runScriptError: function(e) {
         console.log(e, e.detail);
-        this.fire('action-finished', { success: false });
-        this.fire('toast', { msg: e.detail.xhr.response, duration: 5000 });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: e.detail.xhr.response, duration: 5000 } }));
+
     }
 });
 </script>

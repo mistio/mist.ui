@@ -182,19 +182,22 @@
                     this.set('showTags', true);
                     if (this.tags.length == 0) {
                         this.set('showEdit', true);
-                        // this.fire('update-rid', {'index': this.index, 'rid': ''});
+                        // this.dispatchEvent(new CustomEvent('update-rid', { bubbles: true, composed: true, detail: {'index': this.index, 'rid': ''} }));
+
                     }
                 } else if (identifierType == 'id') {
                     this.set('showDropDown', true);
                     this.set('showTags', false);
-                    // this.fire('update-rtags', {'index': this.index, 'rtags': {}});
+                    // this.dispatchEvent(new CustomEvent('update-rtags', { bubbles: true, composed: true, detail: {'index': this.index, 'rtags': {}} }));
+
                 } else {
                     this.set('showDropDown', false);
                     this.set('showTags', false);
-                    this.fire('update-rid', {
+                    this.dispatchEvent(new CustomEvent('update-rid', { bubbles: true, composed: true, detail: {
                         'index': this.index,
                         'rid': ''
-                    });
+                    } }));
+
                     this.fire('update-rtags', {
                         'index': this.index,
                         'rtags': {}
@@ -205,10 +208,11 @@
             // case of choοsing rid                 
             else if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1) {
                 var rid = e.detail.item.id;
-                this.fire('update-rid', {
+                this.dispatchEvent(new CustomEvent('update-rid', { bubbles: true, composed: true, detail: {
                     'index': this.index,
                     'rid': rid
-                });
+                } }));
+
             }
         },
         _ruleHasTags: function(rule, tags) {
@@ -296,18 +300,20 @@
                 }
             }, this);
             this.set('showEdit', false);
-            this.fire('update-rtags', {
+            this.dispatchEvent(new CustomEvent('update-rtags', { bubbles: true, composed: true, detail: {
                 'index': this.index,
                 'rtags': newRtags
-            });
+            } }));
+
         },
         _deleteTag: function(e) {
             var tag = e.detail.sourceEvent.path[1].textContent.split('=')[0].trim();
             var index = e.detail.sourceEvent.path[0].id.split('-')[1];
-            this.fire('delete-rtag', {
+            this.dispatchEvent(new CustomEvent('delete-rtag', { bubbles: true, composed: true, detail: {
                 'index': this.index,
                 'tag': tag
-            });
+            } }));
+
         },
         hotkeys: function(e) {
             // if 'enter'

@@ -253,9 +253,10 @@
         this.$.cloudDeleteAjaxRequest.generateRequest();
       },
       handleResponse: function (e) {
-        this.fire('action-finished', {
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
           success: true
-        });
+        } }));
+
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.fire('toast', {
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
@@ -306,27 +307,31 @@
         var title = '';
         if (this.cloud && this.cloud.title)
           title = this.cloud.title;
-        this.fire('go-to', {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
           url: '/'
-        });
-        this.fire('toast', {
+        } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Cloud ' + title + ' was deleted',
           duration: 3000
-        });
+        } }));
+
       },
       _handleCloudDeletionAjaxError: function (e) {
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'There was an error deleting ' + this.cloud.title + '.',
           duration: 3000
-        });
+        } }));
+
       },
 
       handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
           duration: 5000
-        });
+        } }));
+
       },
 
       _makeList: function (items, property) {

@@ -1219,10 +1219,12 @@
             // console.log('creation resp', e);
             var response = JSON.parse(e.detail.xhr.response);
             console.log('logs -- machine create response', response);
-            this.fire('set-job-id', response);
-            this.fire('go-to', {
+            this.dispatchEvent(new CustomEvent('set-job-id', { bubbles: true, composed: true, detail: response }));
+
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                 url: '/machines'
-            });
+            } }));
+
             this._resetForm();
         },
         _machineCreateError: function(e) {
@@ -1241,10 +1243,11 @@
                 var qParams = {
                     'origin': origin
                 }
-                this.fire('go-to', {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                     url: '/machines',
                     params: qParams
-                });
+                } }));
+
             } else if (e.detail.fieldname == 'image') {
                 this.shadowRoot.querySelector("paper-dialog#addKvmImage").open();
             }

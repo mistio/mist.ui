@@ -140,9 +140,15 @@
             if (action.name == 'delete') {
                 this._delete();
             } else if (action.name == 'edit') {
-                this.fire('edit');
+                this.dispatchEvent(new CustomEvent('edit'));
+
+
+
             } else if (action.name == 'invite') {
-                this.fire('invite');
+                this.dispatchEvent(new CustomEvent('invite'));
+
+
+
             }
         },
         handleResponse: function(e) {
@@ -182,7 +188,8 @@
 
         handleError: function(e) {
             console.log(e.detail.request.xhr.statusText);
-            this.fire('toast', { msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText, duration: 5000 });
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText, duration: 5000 } }));
+
         },
 
         _makeList: function(items, property) {
