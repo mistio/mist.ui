@@ -21,7 +21,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="zonesList" selectable resizable column-menu multi-sort apiurl="/api/v1/zones" item-map=[[model.zones]] name="Zones" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.zones)]] route={{route}} user-filter=[[model.sections.zones.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="zone" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <zone-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></zone-actions>
+                <zone-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></zone-actions>
                 <p slot="no-items-found">No zones found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -157,8 +157,8 @@
         // redirect events
         selectAction: function(e) {
             e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('zone-actions')) {
-                this.shadowRoot.querySelector('zone-actions').selectAction(e);
+            if (this.shadowRoot.querySelector('#zonesList')) {
+                this.shadowRoot.querySelector('#zonesList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
     });

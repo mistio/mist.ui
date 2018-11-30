@@ -171,7 +171,7 @@
                                 visible=[[_getVisibleColumns()]]
                                 renderers=[[_getRenderers()]]>
                                 <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
-                                <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]></record-actions>
+                                <record-actions id="actions" slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]></record-actions>
                           </mist-list>
                       </template>
                     </paper-material>
@@ -446,14 +446,13 @@
                 },
                 // redirect events
                 selectAction: function(e) {
-                  e.stopImmediatePropagation();
-                  console.log('selectAction',e.target.attributes);
-                  if (this.shadowRoot.querySelector('record-actions') && e.target.attributes.type.value == "record") {
-                    this.shadowRoot.querySelector('record-actions').selectAction(e);
-                  }
-                  else if (this.shadowRoot.querySelector('zone-actions') && e.target.attributes.type.value == "zone" ) {
-                    this.shadowRoot.querySelector('zone-actions').selectAction(e);
-                  }
+                    e.stopImmediatePropagation();
+                    console.log('selectAction',e.target.attributes);
+                    if (this.shadowRoot.querySelector('#recordsList') && e.target.attributes.type.value == "record") {
+                        this.shadowRoot.querySelector('#recordsList').shadowRoot.querySelector('#actions').selectAction(e);
+                    } else if (this.shadowRoot.querySelector('#zonesList') && e.target.attributes.type.value == "zone" ) {
+                        this.shadowRoot.querySelector('#zonesList').shadowRoot.querySelector('#actions').selectAction(e);
+                    }
                 }
             });
         })();

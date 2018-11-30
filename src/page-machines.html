@@ -271,7 +271,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" item-map="[[model.machines]]" name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers()]] route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]" user="[[model.user]]" org="[[model.org]]"></machine-actions>
+                <machine-actions id="actions" slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]" user="[[model.user]]" org="[[model.org]]"></machine-actions>
                 <p slot="no-items-found">No machines found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -418,7 +418,7 @@
             if (this.caller == 'machine_page') {
                 this.$.actions_machine._performAction(action, [this.itemOfRecommendation]);
             } else {
-                this.shadowRoot.querySelector('machine-actions').performMachineAction(action, [this.itemOfRecommendation]);
+                this.$.actions.performMachineAction(action, [this.itemOfRecommendation]);
             }
         },
         _jobIdChanged: function(jobid) {
@@ -884,8 +884,8 @@
         // redirect events
         selectAction: function(e) {
             e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('machine-actions')) {
-                this.shadowRoot.querySelector('machine-actions').selectAction(e);
+            if (this.shadowRoot.querySelector('#machinesList')) {
+                this.shadowRoot.querySelector('#machinesList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
 

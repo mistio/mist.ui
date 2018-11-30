@@ -20,7 +20,7 @@
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" item-map="[[model.networks]]" name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers()]] route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
                 <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <network-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
+                <network-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
                 <p slot="no-items-found">No networks found.</p>
             </mist-list>
             <div class="absolute-bottom-right">
@@ -152,11 +152,10 @@
         // redirect events
         selectAction: function(e) {
             e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('network-actions')) {
-                this.shadowRoot.querySelector('network-actions').selectAction(e);
+            if (this.shadowRoot.querySelector('#networksList')) {
+                this.shadowRoot.querySelector('#networksList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
-
     });
     </script>
 </dom-module>
