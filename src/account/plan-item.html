@@ -463,7 +463,6 @@
         },
         _selectPlan: function(e) {
             this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
-
         },
         _triggerInfo: function() {
             console.log('info popup');
@@ -472,14 +471,14 @@
             return this.plan && this.plan.title == "Enterprise";
         },
         _addCard: function(e) {
-            this.fire('add-card');
+            this.dispatchEvent(new CustomEvent('add-card'));
         },
         _purchasePlan: function(e) {
-            if (this.plan && !this.plan.price)
+            if (this.plan && !this.plan.price) {
                 this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
-
-            else 
-                this.fire('plan-selected');
+            } else  {
+                this.dispatchEvent(new CustomEvent('plan-selected'));
+            }
         },
         _cancelPlan: function() {
             this._showDialog({
@@ -492,7 +491,7 @@
             });
         },
         _updatePaymentMethod: function() {
-            this.fire('update-payment-method');
+            this.dispatchEvent(new CustomEvent('update-payment-method'));
         },
         _showDialog: function(info) {
             var dialog = this.$.plancancel;
@@ -516,12 +515,10 @@
         },
         _handleCancelAjaxResponse: function(e) {
             this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'You cancelled your plan. ', duration: 3000 } }));
-
         },
 
         _handleCancelAjaxError: function(e) {
             this.dispatchEvent(new CustomEvent('error-on-cancel-plan', { bubbles: true, composed: true, detail:  { error: e.detail.request.xhr.responseText } }));
-
         },
         showCancel: function(plan, current) {
             return this.current && this.plan.title && !this.plan.expiration;
