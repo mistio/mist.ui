@@ -139,7 +139,7 @@ SCRIPT_ACTIONS = {
         for (var i = 0; i < this.items.length; i++) {
           this.$.request.url = "/api/v1/scripts/"+ this.items[i].id
           this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + this.items[i].name , duration: 1000} }));
         }
       },
       _showDialog: function(info) {
@@ -160,7 +160,7 @@ SCRIPT_ACTIONS = {
 
 
 
-          this.fire('go-to', {url: '/scripts/' + items[0].id + '/+run'})
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/scripts/' + items[0].id + '/+run'} }));
         }
         else if (action.name == 'edit') {
           this.dispatchEvent(new CustomEvent('edit'));
@@ -219,7 +219,7 @@ SCRIPT_ACTIONS = {
       },
       handleResponse: function(e) {
         if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }));
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));

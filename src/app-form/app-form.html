@@ -749,10 +749,10 @@
                 return field.type == value;
             },
             _handleRequest: function (e) {
-                this.fire("request", e.detail)
+                this.dispatchEvent(new CustomEvent("request", { bubbles: true, composed: true, detail:  e.detail }));
             },
             _handleResponse: function (e, d) {
-                this.fire("response", e.detail);
+                this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));;
                 this.set('sendingData', false);
                 //clear form only on response not on error
                 this._resetForm();
@@ -1107,9 +1107,6 @@
             },
             _cancel: function () {
                 this.dispatchEvent(new CustomEvent('cancel'));
-
-
-
             },
             _resetForm: function (e) {
                 // Reset script
@@ -1221,10 +1218,10 @@
                 var qParams = {
                     'origin': origin
                 }
-                this.fire('go-to', {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
                     url: '/keys/+add',
                     params: qParams
-                })
+                } }));
             },
             _addInput: function (e) {
                 this.dispatchEvent(new CustomEvent('add-input', { bubbles: true, composed: true, detail: {
@@ -1288,7 +1285,6 @@
             },
             _helpTap: function (e) {
                 this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'open help ' + e.model.field.helpHref }));
-
             },
             _noOptions: function (options, length) {
                 return !options || options.length == 0;
