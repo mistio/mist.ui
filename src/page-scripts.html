@@ -7,21 +7,35 @@
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
+
 <dom-module id="page-scripts">
     <template>
         <style include="shared-styles">
-            :host {}
+            :host {
+                display: block;
+            }
             [hidden] {
                 display: none !important;
             }
     </style>
         <app-route route="{{route}}" pattern="/:script" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="scriptsList" selectable resizable column-menu multi-sort apiurl="/api/v1/scripts" items="[[model.scriptsArray]]" name="Scripts" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.scripts)]] route={{route}} user-filter=[[model.sections.scripts.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="script" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <script-actions id="actions" slot="actions" items=[[selectedItems]] actions={{actions}} user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></script-actions>
-                <p slot="no-items-found">No scripts found.</p>
-            </mist-list>
+
+            <script-actions actions={{actions}} items=[[selectedItems]] org=[[model.org]]>
+                <mist-list selectable resizable column-menu multi-sort 
+                    apiurl="/api/v1/scripts"
+                    name="scripts"
+                    primary-field-name="id"
+                    frozen=[[_getFrozenColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    selected-items="{{selectedItems}}"
+                    sort-order=[[sortOrder]]
+                    renderers=[[_getRenderers()]]
+                    route={{route}}
+                    item-map="[[model.scripts]]"
+                    actions=[[actions]]></mist-list>
+            </script-actions>
+
             <div class="absolute-bottom-right">
                 <paper-fab id="scriptAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
@@ -29,6 +43,7 @@
         <script-add model="[[model]]" section="[[model.sections.scripts]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]]></script-add>
         <script-page id="scriptPage" model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" resource-id="[[data.script]]" section="[[model.sections.scripts]]" hidden$="[[!_isDetailsPageActive(route.path)]]"></script-page>
         <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
+
     </template>
     <script>
     Polymer({
@@ -55,8 +70,6 @@
             }
         },
         listeners: {
-            'select-action': 'selectAction',
-            'edit': '_editScript',
         },
         _isAddPageActive: function(path) {
             return path == '/+add';
@@ -81,15 +94,7 @@
             } }));
 
         },
-        _editScript: function(e) {
-            e.stopImmediatePropagation();
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                url: '/scripts/' + this.selectedItems[0].id
-            } }));
-
-            this.shadowRoot.querySelector('script-page').fire('edit');
-        },
-        _getFrozenLogColumn: function() {
+        _getFrozenColumn: function() {
             return ['name'];
         },
 
@@ -100,7 +105,7 @@
             return ret;
         },
 
-        _getRenderers: function(scripts) {
+        _getRenderers: function() {
             var _this = this;
             return {
                 'name': {
