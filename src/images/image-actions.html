@@ -4,20 +4,25 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../tags/tags-form.html">
+<link rel="import" href="image-provider-search.html">
 
 <dom-module id="image-actions">
   <template>
-    <style include="shared-styles">
+    <style>
       :host {
-        display: inline;
-        color: rgba(255,255,255,0.87);
+        min-width: 50%;
       }
     </style>
     
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+    <image-provider-search id="imageprovidersearch" clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
     <iron-ajax id="request"
             handle-as="xml"
             loading="{{loadingData}}"
@@ -72,7 +77,9 @@ IMAGE_ACTIONS = {
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction'
+        'iron-overlay-closed': 'confirmAction',
+        'select-action': 'selectAction',
+        'create_machine': '_createMachine'
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -205,7 +212,14 @@ IMAGE_ACTIONS = {
           return items.map(function(item){
             return item[property];
           });
+      },
+
+      searchOnProviders: function () {
+          if (this.$.imageprovidersearch) {
+              this.$.imageprovidersearch._openDialog();
+          }
       }
+
     });
   </script>
 </dom-module>

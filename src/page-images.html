@@ -4,7 +4,6 @@
 
 <link rel="import" href="images/image-page.html">
 <link rel="import" href="images/image-actions.html">
-<link rel="import" href="images/image-provider-search.html">
 
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="mist-actions.html">
@@ -31,22 +30,31 @@
         <app-route route="{{route}}" pattern="/:image" data="{{data}}"></app-route>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="imagesList" selectable resizable column-menu multi-sort apiurl="/api/v1/images" items="[[model.imagesArray]]"
-                name="Images" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}"
-                combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
-                renderers=[[_getRenderers(model.images)]] route={{route}} user-filter=[[model.sections.images.q]]
-                primary-field-name="id">
-                <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Images
-                    <paper-button class="search-on-providers blue-link" on-tap="searchOnProviders">Search more images.</paper-button>
-                </h2>
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="image" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <image-actions id="actions" slot="actions" actions="{{actions}}" items="[[selectedItems]]"></image-actions>
-                <p slot="no-items-found">No images found.</p>
-            </mist-list>
+
+            <image-actions actions={{actions}} items=[[selectedItems]]>
+                <mist-list selectable resizable column-menu multi-sort 
+                    apiurl="/api/v1/images"
+                    id="imagesList"
+                    name="Images"
+                    primary-field-name="id"
+                    frozen=[[_getFrozenColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    selected-items="{{selectedItems}}"
+                    sort-order=[[sortOrder]]
+                    renderers=[[_getRenderers()]]
+                    route={{route}}
+                    items="[[model.imagesArray]]"
+                    actions=[[actions]]>
+                    <h2 slot="header">[[filteredItemsLength]] [[combinedFilter]] Images
+                        <paper-button class="search-on-providers blue-link" on-tap="searchOnProviders">Search more images.</paper-button>
+                    </h2>
+                </mist-list>
+            </image-actions>
+
             <div class="absolute-bottom-right">
                 <paper-fab id="imageAdd" icon="search" on-tap="_addResource"></paper-fab>
             </div>
-            <image-provider-search id="imageprovidersearch" clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
+
         </template>
 
         <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]"
@@ -74,10 +82,7 @@
                     type: String
                 }
             },
-            listeners: {
-                'select-action': 'selectAction',
-                'create_machine': '_createMachine'
-            },
+            listeners: {},
             _isDetailsPageActive: function (path) {
                 if (path && this.shadowRoot.querySelector('image-page'))
                     this.shadowRoot.querySelector('image-page').updateState();
@@ -110,7 +115,7 @@
             _addResource: function (e) {
                 this.searchOnProviders();
             },
-            _getFrozenLogColumn: function () {
+            _getFrozenColumn: function () {
                 return ['name'];
             },
             _getVisibleColumns: function () {
@@ -188,11 +193,6 @@
                     }
                     return 0;
                 }.bind(this));
-            },
-            searchOnProviders: function () {
-                if (this.$.imageprovidersearch) {
-                    this.$.imageprovidersearch._openDialog();
-                }
             },
             // redirect events
             selectAction: function (e) {
