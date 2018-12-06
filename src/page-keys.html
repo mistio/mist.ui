@@ -21,11 +21,25 @@
     </style>
         <app-route route="{{route}}" pattern="/:key" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="keysList" selectable resizable column-menu multi-sort apiurl="/api/v1/keys" items="[[model.keysArray]]" name="Keys" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.keys)]] route={{route}} user-filter=[[model.sections.keys.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="key" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <key-actions id="actions" slot="actions" actions="{{actions}}" items="[[selectedItems]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></key-actions>
-                <p slot="no-items-found">No keys found.</p>
-            </mist-list>
+
+            <key-actions actions={{actions}} items=[[selectedItems]] model="[[model]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">
+                <mist-list selectable resizable column-menu multi-sort 
+                    apiurl="/api/v1/keys"
+                    id="keysList"
+                    name="Keys"
+                    primary-field-name="id"
+                    frozen=[[_getFrozenColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    selected-items="{{selectedItems}}"
+                    sort-order=[[sortOrder]]
+                    renderers=[[_getRenderers()]]
+                    route={{route}}
+                    item-map="[[model.keys]]"
+                    actions=[[actions]]>
+                    <p slot="no-items-found">No keys found.</p>
+                </mist-list>
+            </key-actions>
+
             <div class="absolute-bottom-right">
                 <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
@@ -55,9 +69,7 @@
             }
         },
 
-        listeners: {
-            'select-action': 'selectAction'
-        },
+        listeners: {},
         _isAddPageActive: function(path) {
             return path == '/+add';
         },
@@ -78,7 +90,7 @@
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: this.model.sections.keys.add } }));
 
         },
-        _getFrozenLogColumn: function() {
+        _getFrozenColumn: function() {
             return ['name'];
         },
 
@@ -136,13 +148,6 @@
                         return display;
                     }
                 }
-            }
-        },
-        // redirect events
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#keysList')) {
-                this.shadowRoot.querySelector('#keysList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
     });

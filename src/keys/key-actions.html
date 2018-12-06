@@ -4,9 +4,11 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
+<link rel="import" href="key-edit.html">
 
 <dom-module id="key-actions">
   <template>
@@ -20,6 +22,10 @@
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
+    <key-edit key="[[items.0]]"></key-edit>
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
@@ -96,7 +102,9 @@ KEY_ACTIONS = {
       ],
       listeners: {
         'iron-overlay-closed': 'confirmAction',
-        'transfer-ownership': 'transferOwnership'
+        'transfer-ownership': 'transferOwnership',
+        'rename': '_editKey',
+        'select-action': 'selectAction',
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -229,11 +237,20 @@ KEY_ACTIONS = {
           this.dispatchEvent(new CustomEvent('rename'));
         }
       },
+      _editKey: function(e) {
+          e.stopImmediatePropagation();
+          var el = this.shadowRoot.querySelector('key-edit');
+          el._openEditKeyModal();
+      },
       handleResponse: function(e) {
         this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {success: true} }));
 
-        if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }));
+        if (this.$.request && this.$.request.body && this.$.request.body.action){
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action
+            +' successfull', duration: 3000} }));
+        } else if (this.$.request && !this.$.request.body) {
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/keys'} }));
+        }
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));

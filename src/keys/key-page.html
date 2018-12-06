@@ -5,8 +5,6 @@
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../tags/tags-list.html">
 
-<link rel="import" href="key-edit.html">
-
 <dom-module id="key-page">
     <template>
         <style include="shared-styles single-page tags-and-labels">
@@ -170,7 +168,7 @@
             }
         </style>
         <div id="content">
-            <key-actions actions="{{actions}}" items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></key-actions>
+            
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -187,7 +185,7 @@
                     </div>
 
                 </div>
-                <mist-actions actions="[[actions]]" type="key" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <key-actions actions="{{actions}}" items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></key-actions>
             </paper-material>
 
             <div class="key-info">
@@ -253,7 +251,6 @@
         <iron-ajax id="keyPrivateRequest" url="/api/v1/keys/[[key.id]]/private" on-response="handlePrivateResponse" on-error="handleError"></iron-ajax>
         <iron-ajax id="keyMakeDefaultAjaxRequest" url="/api/v1/keys/[[key.id]]" method="POST" on-response="_handleKeyMakeDefaultAjaxResponse" on-error="_handleMakeDefaultAjaxError"></iron-ajax>
         <iron-ajax id="keyDeleteAjaxRequest" url="/api/v1/keys/[[key.id]]" method="DELETE" on-response="_handleKeyDeleteAjaxResponse" on-error="_handleKeyDeleteAjaxError"></iron-ajax>
-        <key-edit key="[[key]]"></key-edit>
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
     </template>
@@ -330,8 +327,7 @@
                     'update(key)'
                 ],
                 listeners: {
-                    'confirmation': '_deleteKeyEventResponse',
-                    'rename': '_editKey'
+                    'confirmation': '_deleteKeyEventResponse'
                 },
                 update: function(key){
                     if (key){
@@ -433,11 +429,6 @@
                 },
                 handlePrivateResponse: function(data) {
                     this.set('privateKey', data.detail.response);
-                },
-                _editKey: function(e) {
-                    e.stopImmediatePropagation();
-                    var el = this.shadowRoot.querySelector('key-edit');
-                    el._openEditKeyModal();
                 },
                 _makeDefaultKey: function(e) {
                     this.$.keyMakeDefaultAjaxRequest.headers["Content-Type"] = 'application/json';
