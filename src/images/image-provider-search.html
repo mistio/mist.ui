@@ -52,6 +52,7 @@
       }
       .errormsg-container iron-icon {
         color: inherit;
+        margin: -2px 4px 0px -2px;
       }
       .checkboxes {
         margin: 24px 0;
@@ -62,12 +63,6 @@
       <h2>Search and Import Images</h2>
       <paper-dialog-scrollable>
           <paper-input value="{{queryTerm}}" label="Search term" autofocus></paper-input>
-          <!-- <div class="checkboxes">
-            <p hidden$="[[!clouds]]">Search in </p>
-            <template is="dom-repeat" items="[[clouds]]">
-              <paper-checkbox name="searchableClouds" data-value="[[item.id]]">[[item.title]]</paper-checkbox><br/>
-            </template>
-          </div> -->
           <p class="no-clouds" hidden$="[[clouds.length]]">No clouds found.</p>
           <p class="sup">Image search is supported in EC2 and Docker clouds.</p>
       </paper-dialog-scrollable>
@@ -98,7 +93,8 @@
       is: 'image-provider-search',
       properties: {
         queryTerm: { 
-          type: String
+          type: String,
+          value: ''
         },
         clouds: {
           type: Array
@@ -137,7 +133,7 @@
         this.$.providerSearch.open();
       },
       updateFormReady(queryTerm, selectedClouds, loading){
-        this.set('formReady', this.queryTerm && this.queryTerm.length && this.selectedClouds.length && !this.loading);
+        this.set('formReady', this.queryTerm && this.queryTerm.length && this.clouds.length && !this.loading);
       },
       handleResponse: function(e) {
         this.$.providerSearch.close();
