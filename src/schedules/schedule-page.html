@@ -10,17 +10,13 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
-<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../mist-actions.html">
 <link rel="import" href="../machines/machine-actions.html">
+<link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../helpers/machines-list-behavior.html">
 
 <link rel="import" href="schedule-date.html">
 <link rel="import" href="schedule-actions.html">
-<link rel="import" href="schedule-edit.html">
-<link rel="import" href="schedule-edit-mrc.html">
-<link rel="import" href="schedule-edit-condition.html">
-<link rel="import" href="schedule-edit-task.html">
 
 <dom-module id="schedule-page">
     <template>
@@ -42,13 +38,11 @@
             }
 
             .flex-horizontal-with-ratios {
-                /*@apply(--layout-horizontal);*/
                 display: flex;
                 flex-direction: row;
             }
 
             .flexchild {
-                /*@apply(--layout-flex);*/
                 display: flex;
             }
 
@@ -69,7 +63,6 @@
             }
 
             .paper-header {
-                /*@apply(--layout-horizontal);*/
                 display: flex;
                 flex-direction: row;
             }
@@ -250,10 +243,6 @@
             }
         </style>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active="[[isLoading]]"></paper-spinner>
-            </div> -->
-            <schedule-actions actions="{{actions}}" items="[[itemArray]]" model="[[model]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></schedule-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -263,7 +252,7 @@
                         <span hidden$="[[!isCrontab]]">UTC time</span>
                     </div>
                 </div>
-                <mist-actions actions="{{actions}}" type="schedule" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <schedule-actions actions="{{actions}}" items="[[itemArray]]" model="[[model]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></schedule-actions>
             </paper-material>
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Schedule not found</div>
@@ -319,27 +308,9 @@
                 <div>
                     <span class="m-info-head">Starts:</span>
                     <schedule-date field="start_after" date="{{schedule.start_after}}" null-text="Now" value="{{newStartDate}}" disabled-edit="[[hasExpired]]" url="/api/v1/schedules/[[schedule.id]]"></schedule-date>
-<!-- 
-                    <span hidden$="[[!schedule.start_after]]">[[_computeAbsoluteDateText(schedule.start_after)]]</span>
-                    <span hidden$="[[schedule.start_after.length]]">Now</span>
-                    <paper-button id="editStart" on-tap="_editStartsDate" data-field="start_after" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]" hidden$="[[editingStartDate]]">change</paper-button>
-                    <span hidden$="[[!editingStartDate]]">
-                        <paper-input id="datetimeStarts" type="datetime-local" value="{{datetimeStarts}}"></paper-input>
-                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditStartsDate" noink>ok</paper-button>
-                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditStartsDate" noink>cancel</paper-button>
-                    </span> -->
                 </div>
                 <div><span class="m-info-head">Expires:</span>
                     <schedule-date field="expires" date="{{schedule.expires}}" null-text="Never" value="{{newExpiresDate}}" url="/api/v1/schedules/[[schedule.id]]"></schedule-date>
-
-                    <!-- <span hidden$="[[schedule.expires.length]]">Never</span>
-                    <span hidden$="[[!schedule.expires]]">[[_computeAbsoluteDateText(schedule.expires)]]</span>
-                    <paper-button id="editExpiration" on-tap="_editExpiresDate" class="simple-button blue-link smaller" noink hidden$="[[editingExpiresDate]]">change</paper-button>
-                    <span hidden$="[[!editingExpiresDate]]">
-                        <paper-input id="datetimeExpires" type="datetime-local" value="{{datetimeExpires}}"></paper-input>
-                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditExpiresDate" noink>ok</paper-button>
-                        <paper-button class="simple-button blue-link smaller" on-tap="_stopEditExpiresDate" noink>cancel</paper-button>
-                    </span> -->
                 </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
@@ -370,7 +341,7 @@
                 </div>
 
                 <template is="dom-if" if="[[filteredItems]]" restamp>
-                    <mist-list id="machinesList"
+                    <mist-list id="scheduleMachinesList"
                         selectable
                         items="[[filteredItems]]"
                         name="Machines"
@@ -379,11 +350,9 @@
                         apiurl="/api/v1/machines"
                         frozen=[[_getFrozenLogColumn()]]
                         visible=[[_getVisibleColumns()]]
-                        renderers=[[_getRenderers(model.machines.*,model.cloudsArray.*,model.incidentsArray.*)]]
+                        renderers=[[_getRenderers()]]
                         route={{route}}
                         primary-field-name="id" hidden$="[[!filteredItems]]">
-                        <mist-actions slot="action-buttons" actions="{{machineActions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                        <machine-actions id="actions" slot="actions" actions="{{machineActions}}" items="[[selectedItems]]" model="[[model]]"></machine-actions>
                         <p slot="no-items-found">No machines found.</p>
                   </mist-list>
               </template>
@@ -391,14 +360,6 @@
             </paper-material>
         </div>
         <dialog-element id="scheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation"></dialog-element>
-        <schedule-edit id="editScheduleDialog" schedule="[[schedule]]" model="[[model]]"></schedule-edit>
-        <schedule-edit-mrc id="editMaxRunCount" schedule="[[schedule]]"></schedule-edit-mrc>
-        <schedule-edit-task id="editScheduleTask" schedule="[[schedule]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
-        <schedule-edit-condition id="editScheduleCondition" 
-            schedule="[[schedule]]" 
-            model="[[model]]" 
-            machines-age="[[machineAge]]"
-            machines-cost="[[machineCost]]"></schedule-edit-condition>
 
         <iron-ajax  id="deleteSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -561,9 +522,6 @@
                 '_computeMachines(schedule.*, model.machines)'
             ],
             listeners: {
-                'confirmation': '_actionConfirmed',
-                'edit': '_editSchedule',
-                'run': '_runOnceDialog',
                 'save-date': '_applyDateTime'
             },
             attached: function() {
@@ -723,10 +681,6 @@
 
                 this.expError = true;
             },
-            _editSchedule: function(e) {
-                e.stopImmediatePropagation();
-                this.$.editScheduleDialog._openEditScheduleModal();
-            },
             _deleteSchedule: function(e) {
                 this._showDialog({
                     title: 'Delete Schedule?',
@@ -735,24 +689,6 @@
                     action: "delete",
                     reason: "schedule.delete"
                 });
-            },
-            _actionConfirmed: function(e) {
-                var reason = e.detail.reason,
-                    response = e.detail.response;
-
-                if (response.confirmed && reason == "schedule.delete") {
-                    this.$.deleteSchedule.headers["Content-Type"] = 'application/json';
-                    this.$.deleteSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.deleteSchedule.generateRequest();
-                }
-
-                if (response.confirmed && reason == "schedule.run") {
-                    this.$.editToggleSchedule.body = {'run_immediately': true}
-                    this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
-                    this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.editToggleSchedule.generateRequest();
-                    this.lastrequestedaction = 'run';
-                }
             },
             _handleScheduleDeleteResponse: function(e) {
                 this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/schedules'} }));
@@ -881,28 +817,19 @@
                 return exists;
             },
             toggleEnable: function(){
-                this.lastrequestedaction = 'run';
                 this.$.editToggleSchedule.body = {task_enabled: !this.schedule.task_enabled};
                 this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
                 this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.editToggleSchedule.generateRequest();
             },
             _handleScheduleEditToggleResponse: function() {
-                var message;
-                if (this.lastrequestedaction == "enable") {
-                    message = !this.schedule.task_enabled ? 'Enabling schedule..' : 'Disabling schedule..'
-                }
-                else if (this.lastrequestedaction == "run") {
-                    message = 'Run request sent successfully.';   
-                }
+                var message = !this.schedule.task_enabled ? 'Enabling schedule..' : 'Disabling schedule..'
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 3000 } }));
-
             },
             _handleScheduleEditToggleError: function(e) {
                 console.log('_handleScheduleEditToggleError',e);
                 var message = e.detail.request.xhr.response;
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
-
                 this.$.scheduleEnabled.setAttribute('checked', this.schedule.task_enabled);
             },
             _computeDateFromNow: function(time) {
@@ -916,16 +843,6 @@
             },
             _editTask: function() {
                 this.$.editScheduleTask._openEditScheduleModal();
-            },
-            _runOnceDialog: function(e) {
-                e.stopImmediatePropagation();
-                this._showDialog({
-                    title: 'Run once now?',
-                    body: "The schedule will execute once and then continue as planned." ,
-                    danger: false,
-                    reason: "schedule.run",
-                    action: 'run'
-                });
             },
             _computeTagsArray: function(conditions, isMachinesWithTags ){
                 console.log('_computeTagsArray');
@@ -953,13 +870,6 @@
             _hideRunNow: function(hasExpired, max_run_count, total_run_count) {
                 // return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
                 return true;
-            },
-            // redirect events
-            selectAction: function(e) {
-                e.stopImmediatePropagation();
-                if (this.shadowRoot.querySelector('#schedulesList')) {
-                    this.shadowRoot.querySelector('#schedulesList').shadowRoot.querySelector('#actions').selectAction(e);
-                }
             }
         });
     </script>

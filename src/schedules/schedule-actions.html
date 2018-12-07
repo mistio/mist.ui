@@ -4,9 +4,16 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
+
+<link rel="import" href="schedule-edit.html">
+<link rel="import" href="schedule-edit-mrc.html">
+<link rel="import" href="schedule-edit-condition.html">
+<link rel="import" href="schedule-edit-task.html">
 
 <dom-module id="schedule-actions">
   <template>
@@ -20,6 +27,18 @@
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <dialog-element id="confirm"></dialog-element>
+    <schedule-edit id="editScheduleDialog" schedule="[[items.0]]" model="[[model]]"></schedule-edit>
+    <schedule-edit-mrc id="editMaxRunCount" schedule="[[items.0]]"></schedule-edit-mrc>
+    <schedule-edit-task id="editScheduleTask" schedule="[[items.0]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
+    <schedule-edit-condition id="editScheduleCondition" 
+        schedule="[[items.0]]" 
+        model="[[model]]" 
+        machines-age="[[machineAge]]"
+        machines-cost="[[machineCost]]"></schedule-edit-condition>
+
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
 
     <iron-ajax id="request"
             handle-as="json"
@@ -97,7 +116,9 @@ SCHEDULE_ACTIONS = {
       ],
       listeners: {
         'iron-overlay-closed': 'confirmAction',
-        'transfer-ownership': 'transferOwnership'
+        'transfer-ownership': 'transferOwnership',
+        'confirmation': '_actionConfirmed',
+        'select-action': 'selectAction'
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -119,12 +140,6 @@ SCHEDULE_ACTIONS = {
           }
           arr.push('delete');
         }
-        // if (schedule.enabled) {
-        //   arr.push('disable');
-        // }
-        // else {
-        //   arr.push('enable'); 
-        // }
         return arr;
       },
       _hasExpired: function(expirydate) {
@@ -172,8 +187,9 @@ SCHEDULE_ACTIONS = {
           dialog._openDialog();
       },
       confirmAction: function(e){
-        if (e.detail.confirmed)
+        if (e.detail.confirmed) {
           this.performAction(this.action, this.items);
+        }
       },
       selectAction: function(e){
         if (this.items.length) {
@@ -197,6 +213,12 @@ SCHEDULE_ACTIONS = {
           else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
           }
+          else if (action.name == 'edit') {
+            this._editSchedule();
+          }
+          else if (action.name == 'run') {
+            this._runOnceDialog();
+          }
           else if (action.name == 'transfer ownership') {
             this.$.ownershipdialog._openDialog();
           }
@@ -208,18 +230,6 @@ SCHEDULE_ACTIONS = {
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
-        }
-        else if (action.name == 'edit') {
-          this.dispatchEvent(new CustomEvent('edit'));
-
-
-
-        }
-        else if (action.name == 'run') {
-          this.dispatchEvent(new CustomEvent('run'));
-
-
-
         }
       },
       transferOwnership: function (e) {
@@ -237,24 +247,23 @@ SCHEDULE_ACTIONS = {
         this.$.request.generateRequest();
       },
       handleResponse: function(e) {
-        if (this.$.request && this.$.request.body && this.$.request.body.action)
+        if (this.$.request && this.$.request.body && this.$.request.body.action) {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }));
+        } else if (this.$.request && this.$.request.body && !this.$.request.body.action) {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Successfully sent request to run once now.', duration: 3000 } }));
+        } else if (this.$.request && this.$.request.method == "DELETE") {
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  { url: '/schedules'} }));
+        }
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));
-
-
-
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
           } }));
-
         }
       },
       _mapPolicyToActions: function (items) {
-        // recompute the actions array property as the intersection
-        // of the available actions of the selected items
         this.set('actions', []);
         var actions = new swiftSet.Set(), 
             isection = new swiftSet.Set();
@@ -292,11 +301,47 @@ SCHEDULE_ACTIONS = {
         }
       },
 
+      _editSchedule: function(e) {
+          this.$.editScheduleDialog._openEditScheduleModal();
+      },
+
+      _runOnceDialog: function(e) {
+          this._showDialog({
+              title: 'Run once now?',
+              body: "The schedule will execute once and then continue as planned." ,
+              danger: false,
+              reason: "schedule.run",
+              action: 'run'
+          });
+      },
+
       _makeList: function(items, property){
         if (items && items.length)
           return items.map(function(item){
             return item[property];
           });
+      },
+
+      _actionConfirmed: function(e) {
+          console.log('_actionConfirmed');
+          var reason = e.detail.reason,
+              response = e.detail.response;
+
+          if (response.confirmed && reason == "schedule.delete") {
+              this.$.request.method = "DELETE";
+              this.$.request.headers["Content-Type"] = 'application/json';
+              this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+              this.$.request.generateRequest();
+          }
+
+          if (response.confirmed && reason == "schedule.run") {
+              this.$.request.url = "/api/v1/schedules/"+ this.items[i].id
+              this.$.request.method = "PATCH";
+              this.$.request.body = {'run_immediately': true}
+              this.$.request.headers["Content-Type"] = 'application/json';
+              this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+              this.$.request.generateRequest();
+          }
       },
     });
   </script>

@@ -17,11 +17,27 @@
     </style>
         <app-route route="{{route}}" pattern="/:schedule" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="schedulesList" selectable resizable column-menu multi-sort apiurl="/api/v1/schedules" items="[[model.schedulesArray]]" name="Schedules" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.schedules)]] route={{route}} user-filter=[[model.sections.schedules.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="schedule" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <schedule-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></schedule-actions>
-                <p slot="no-items-found">No schedules found.</p>
-            </mist-list>
+
+                <schedule-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" org="[[model.org]]" members="[[model.membersArray]]">
+                    <mist-list selectable resizable column-menu multi-sort 
+                        apiurl="/api/v1/schedules"
+                        id="schedulesList"
+                        name="Schedules"
+                        primary-field-name="id"
+                        frozen=[[_getFrozenColumn()]]
+                        visible=[[_getVisibleColumns()]]
+                        selected-items="{{selectedItems}}"
+                        sort-order=[[sortOrder]]
+                        renderers=[[_getRenderers()]]
+                        route={{route}}
+                        item-map="[[model.schedules]]"
+                        actions=[[actions]]
+                        filter-method="[[_ownerFilter()]]"
+                        filtered-items-length="{{filteredItemsLength}}">
+                        <p slot="no-items-found">No schedules found.</p>
+                    </mist-list>
+                </schedule-actions>
+
             <div class="absolute-bottom-right">
                 <paper-fab id="scheduleAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
@@ -50,15 +66,11 @@
                 notify: true
             }
         },
-        listeners: {
-            'select-action': 'selectAction',
-        },
+        listeners: {},
         _isAddPageActive: function(path) {
             return path == '/+add';
         },
         _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot.querySelector('schedule-page'))
-                this.shadowRoot.querySelector('schedule-page').updateState();
             return path && path != '/+add';
         },
         _isListActive: function(path) {
@@ -74,7 +86,7 @@
             } }));
 
         },
-        _getFrozenLogColumn: function() {
+        _getFrozenColumn: function() {
             return ['name'];
         },
 
@@ -206,15 +218,7 @@
                     }
                 }
             }
-        },
-        // redirect events
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#schedulesList')) {
-                this.shadowRoot.querySelector('#schedulesList').shadowRoot.querySelector('#actions').selectAction(e);
-            }
         }
-
     });
     </script>
 </dom-module>
