@@ -10,7 +10,6 @@
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../mist-actions.html">
 
-<link rel="import" href="template-edit.html">
 <link rel="import" href="template-stack-item.html">
 <link rel="import" href="template-actions.html">
 
@@ -210,10 +209,6 @@
 
 
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
-            <template-actions org="[[model.org]]" items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" in-single-view></template-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -224,22 +219,11 @@
                         <span hidden$="[[!isInline]]">Inline Template</span>
                         <span hidden$="[[isInline]]">
                             Script source
-                            <a href$="[[template.template]]" target="_blank" class="regular"> [[template.template]] <iron-icon icon="icons:link"></iron-icon></a>
+                            <a href$="[[template.template]]" target="_blank" class="regular"><iron-icon icon="icons:link"></iron-icon></a>
                         </span>
                     </div>
                 </div>
-                <mist-actions actions="[[actions]]" type="template" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
-                <!-- <div class="item-actions">
-                    <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                    <paper-menu-button horizontal-align="right">
-                        <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
-                        <paper-listbox id="machine_actions" class="dropdown-content">
-                            <paper-button on-tap="_editTemplate" class="simple">Edit Template</paper-button>
-                            <paper-button on-tap="_deleteTemplate" class="simple">Delete Template</paper-button>
-                        </paper-listbox>
-                    </paper-menu-button>
-                    <paper-button on-tap="_createStack" class="simple white right-icon" style$="color: [[section.color]]"> Create Stack <iron-icon icon="av:play-arrow" style$="color: [[section.color]]"></iron-icon></paper-button>
-                </div> -->
+                <template-actions org="[[model.org]]" items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" in-single-view></template-actions>
             </paper-material>
             <paper-material class="parsing-loader" hidden$="[[hideprogress]]">
                 <h3>Parsing template [[template.name]]</h3>
@@ -403,7 +387,6 @@
         <div class="absolute-bottom-right">
             <paper-fab icon="av:play-arrow" on-tap="_createStack"></paper-fab>
         </div>
-        <template-edit template="[[template]]"></template-edit>
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
         <iron-ajax id="templateDeleteRequest" url="/api/v1/templates/[[template.id]]" contentType="application/json" handle-as="json" method="DELETE" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
@@ -469,10 +452,7 @@
                     '_changed(template)'
                 ],
                 listeners: {
-                    'confirmation': '_deleteTemplateResponse',
-                    'updateSelectedTemplate': '_updateTemplate',
-                    'create': '_createStack',
-                    'edit': '_editTemplate',
+                    'confirmation': '_deleteTemplateResponse'
                 },
                 ready: function() {
                     var wh = window.innerHeight;
@@ -509,23 +489,6 @@
                 _createStack: function(e) {
                     e.stopImmediatePropagation();
                     this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/stacks/+create', params: {template: this.template._id}} }))
-                },
-                _editTemplate: function(e) {
-                    e.stopImmediatePropagation();
-                    var el = this.shadowRoot.querySelector('template-edit');
-                    el._openEditTemplateModal();
-                },
-                _editTags: function() {
-                    var el = this.shadowRoot.querySelector('tags-list'),
-                    items = [];
-                    items.push(itemUid(this.template, this.section));
-                    el.items = items;
-                    el._openDialog();
-                },
-                _updateTemplate: function(e) {
-                    var template = e.detail.template;
-                    this.set('template.name', template.name);
-                    this.set('template.description', template.description);
                 },
                 _deleteTemplate: function(e) {
                     var hasStacksMessage = '',

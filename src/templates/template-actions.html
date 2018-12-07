@@ -4,20 +4,27 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
+<link rel="import" href="template-edit.html">
 <dom-module id="template-actions">
     <template>
         <style include="shared-styles">
             :host {
-        display: inline;
-        color: rgba(255,255,255,0.87);
-      }
+                display: inline;
+                color: rgba(255,255,255,0.87);
+            }
     </style>
         <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
         <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
         <dialog-element id="confirm"></dialog-element>
+        <template-edit id="editdialog" template="[[items.0]]"></template-edit>
         <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
+        <slot>
+            <mist-list-actions actions=[[actions]]></mist-list-actions>
+        </slot>
     </template>
     <script>
     TEMPLATE_ACTIONS = {
@@ -88,7 +95,8 @@
         ],
         listeners: {
             'iron-overlay-closed': 'confirmAction',
-            'transfer-ownership': 'transferOwnership'
+            'transfer-ownership': 'transferOwnership',
+            'select-action': 'selectAction'
         },
         attached: function() {
             this.$.request.headers["Content-Type"] = 'application/json';
@@ -127,6 +135,7 @@
                 });
             }
         },
+
         _delete: function() {
             //set up iron ajax
             this.$.request.headers["Content-Type"] = 'application/json';
@@ -156,7 +165,7 @@
                 this.set('action', action);
                 // console.log('perform action mist-action', this.items);
                 if (action.confirm && action.name != 'tag') {
-                    var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
+                    var property = "name",
                         plural = this.items.length == 1 ? '' : 's',
                         count = this.items.length > 1 ? this.items.length + ' ' : '';
                     //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
@@ -170,6 +179,8 @@
                     });
                 } else if (action.name == "tag") {
                     this.$.tagsdialog._openDialog();
+                } else if (action.name == "edit") {
+                    this.$.editdialog._openEditTemplateModal();
                 } else if (action.name == 'transfer ownership') {
                     this.$.ownershipdialog._openDialog();
                 } else {
@@ -195,31 +206,24 @@
             if (action.name == 'delete') {
                 this._delete();
             } else if (action.name == 'create stack') {
-                this.dispatchEvent(new CustomEvent('create'));
-
-
-
-            } else if (action.name == 'edit') {
-                this.dispatchEvent(new CustomEvent('edit'));
-
-
-
+                this._createStack();
             }
         },
+        _createStack: function(e) {
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/stacks/+create', params: {template: this.items[0]._id}} }))
+        },
         handleResponse: function(e) {
-            if (this.$.request && this.$.request.body && this.$.request.body.action)
+            if (this.$.request && this.$.request.body && this.$.request.body.action) {
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: 'Action: ' + this.$.request.body.action + ' successfull', duration: 3000 } }))
-            if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
+            } else if (this.$.request && this.$.request.method == "DELETE") {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  { url: '/templates'} }));
+            } else if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
                 this.$.ownershipdialog._closeDialog();
                 this.dispatchEvent(new CustomEvent('action-finished'));
-
-
-
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: 'Successfull ownership transfer',
                     duration: 3000
                 } }));
-
             }
         },
         _mapPolicyToActions: function(items) {

@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="templates/template-add.html">
 <link rel="import" href="templates/template-page.html">
 <link rel="import" href="templates/template-actions.html">
@@ -18,11 +19,25 @@
         </style>
         <app-route route="{{route}}" pattern="/:template" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="templatesList" selectable resizable column-menu multi-sort apiurl="/api/v1/templates" items="[[model.templatesArray]]" name="Templates" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.templates)]] route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="template" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <template-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" org="[[model.org]]" members="[[model.membersArray]]"></template-actions>
-                <p slot="no-items-found">No templates found.</p>
-            </mist-list>
+            <template-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" org="[[model.org]]" members="[[model.membersArray]]">
+                <mist-list selectable resizable column-menu multi-sort 
+                    apiurl="/api/v1/templates"
+                    id="templatesList"
+                    name="Templates"
+                    primary-field-name="id"
+                    frozen=[[_getFrozenColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    selected-items="{{selectedItems}}"
+                    sort-order=[[sortOrder]]
+                    renderers=[[_getRenderers()]]
+                    route={{route}}
+                    item-map="[[model.templates]]"
+                    actions=[[actions]]
+                    filter-method="[[_ownerFilter()]]"
+                    filtered-items-length="{{filteredItemsLength}}">
+                    <p slot="no-items-found">No templates found.</p>
+                </mist-list>
+            </template-actions>
             <div class="absolute-bottom-right">
                 <paper-fab id="templateAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
@@ -56,27 +71,15 @@
         },
 
         listeners: {
-            'select-action': 'selectAction',
-            'action-finished': 'clearListSelection',
-            'edit': '_edit'
+            'action-finished': 'clearListSelection'
         },
         clearListSelection: function() {
             this.set('selectedItems', []);
-        },
-        _edit: function(e) {
-            e.stopImmediatePropagation();
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                url: '/templates/' + this.selectedItems[0].id
-            } }));
-
-            this.shadowRoot.querySelector('template-page').fire('edit');
         },
         _isAddPageActive: function(path) {
             return path == '/+add';
         },
         _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot.querySelector('template-page'))
-                this.shadowRoot.querySelector('template-page').updateState();
             return path && path != '/+add';
         },
         _isListActive: function(path) {
@@ -95,7 +98,7 @@
                 },
                 this);
         },
-        _getFrozenLogColumn: function() {
+        _getFrozenColumn: function() {
             return ['name'];
         },
 
@@ -143,13 +146,6 @@
                         return display;
                     }
                 }
-            }
-        },
-
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#templatesList')) {
-                this.shadowRoot.querySelector('#templatesList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
     });
