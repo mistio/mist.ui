@@ -5,7 +5,6 @@
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
-<link rel="import" href="../mist-actions.html">
 <dom-module id="team-page">
     <template>
         <style include="shared-styles lists single-page">
@@ -217,7 +216,7 @@
                         <span class="desc" hidden$="[[!hasPending]]"> [[pendingMembers.length]] pending</span>
                     </div>
                 </div>
-                <team-actions items="[[itemArray]]" actions="{{actions}}"></team-actions>
+                <team-actions items="[[itemArray]]" actions="{{actions}}" org="[[model.org.id]]"></team-actions>
             </paper-material>
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Team not found.</div>
@@ -322,7 +321,6 @@
         <div class="absolute-bottom-right">
             <paper-fab icon="social:person-add" on-tap="_addMember"></paper-fab>
         </div>
-        <team-edit team="[[team]]" org="[[model.org]]"></team-edit>
         <iron-ajax id="teamDeleteAjaxRequest" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]" method="DELETE" on-response="_handleTeamDeleteAjaxResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
         <iron-ajax id="deleteMember" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members/[[memberToDelete]]" method="DELETE" on-response="_deleteMemberResponse" on-error="_handleDeleteAjaxError"></iron-ajax>
         <iron-ajax id="_resendInvitation" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members" contentType="application/json" handle-as="document" method="POST" on-response="_handleResendResponse" on-error="_handleResendError"></iron-ajax>
@@ -486,11 +484,6 @@
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
                 url: '/teams/' + this.team.id + '/+add'
             } }))
-        },
-        _editTeam: function(e) {
-            e.stopImmediatePropagation();
-            var el = this.shadowRoot.querySelector('team-edit');
-            el._openEditTeamModal();
         },
         _deleteTeam: function(e) {
             this._showDialog({
