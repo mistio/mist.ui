@@ -26,11 +26,30 @@
     </style>
         <app-route route="{{route}}" pattern="/:team" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="teamsList" selectable resizable column-menu multi-sort apiurl="/api/v1/teams" items="[[model.teamsArray]]" name="Teams" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.teams,model.members)]] route={{route}} user-filter=[[model.sections.teams.q]] filter-method=[[_isMemberOfFilter()]] primary-field-name="id">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="team" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <team-actions id="actions" slot="actions" items="[[selectedItems]]" org="[[model.org.id]]" actions="{{actions}}"></team-actions>
-                <p slot="no-items-found">No teams found.</p>
-            </mist-list>
+            <team-actions id="actions" slot="actions" items="[[selectedItems]]" org="[[model.org.id]]" actions="{{actions}}">
+                <!-- <mist-list 
+                    id="teamsList" 
+                    selectable 
+                    resizable 
+                    column-menu multi-sort apiurl="/api/v1/teams" items="[[model.teamsArray]]" name="Teams" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.teams,model.members)]] route={{route}} user-filter=[[model.sections.teams.q]] filter-method=[[_isMemberOfFilter()]] primary-field-name="id">
+                    <p slot="no-items-found">No teams found.</p>
+                </mist-list> -->
+                <mist-list selectable resizable column-menu multi-sort 
+                        apiurl="/api/v1/teams"
+                        id="teamsList"
+                        name="Teams"
+                        primary-field-name="id"
+                        frozen=[[_getFrozenColumn()]]
+                        visible=[[_getVisibleColumns()]]
+                        selected-items="{{selectedItems}}"
+                        sort-order=[[sortOrder]]
+                        renderers=[[_getRenderers(model.teams,model.members)]]
+                        route={{route}}
+                        item-map="[[model.schedules]]"
+                        actions=[[actions]]
+                        filter-method="[[_ownerFilter()]]"
+                        filtered-items-length="{{filteredItemsLength}}">
+            </team-actions>
         </template>
         <team-page model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" resource-id="[[data.team]]" section="[[model.sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]] rbac=[[rbac]] billing="[[billing]]" cta=[[cta]] email=[[email]] docs=[[docs]]></team-page>
         <members-add model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMembersPageActive(route.path)]]></members-add>
@@ -152,7 +171,7 @@
                 },
                 'members': {
                     'body': function(item, row) {
-                        if (_this.model && _this.model.members && item.length && item.length > 0) {
+                        if (_this.model && _this.model.members && item && item.length && item.length > 0) {
                             var names = item.map(function(i) {
                                 if (_this.model.members[i])
                                     var displayName = _this.model.members[i].name || _this.model.members[i].email;
