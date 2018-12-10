@@ -20,6 +20,10 @@
         <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
         <dialog-element id="confirm"></dialog-element>
         <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
+        <team-add id="isTeamsPage" organization="[[model.org]]" rbac=[[rbac]]></team-add>
+        <slot>
+            <mist-list-actions actions=[[actions]]></mist-list-actions>
+        </slot>
     </template>
     <script>
     TEAM_ACTIONS = {
@@ -67,6 +71,9 @@
         ],
         listeners: {
             'iron-overlay-closed': 'confirmAction',
+            'select-action': 'selectAction',
+            'invite': '_invite',
+            'edit': '_edit'
         },
         ready: function() {},
         attached: function() {
@@ -209,7 +216,20 @@
             if (this.shadowRoot.querySelector('#teamaList')) {
                 this.shadowRoot.querySelector('#teamsList').shadowRoot.querySelector('#actions').selectAction(e);
             }
-        }
+        },
+        _invite: function(e) {
+            e.stopImmediatePropagation();
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.selectedItems[0].id } }));
+
+            this.shadowRoot.querySelector('team-page').fire('invite');
+        },
+
+        _edit: function(e) {
+            e.stopImmediatePropagation();
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.selectedItems[0].id } }));
+
+            this.shadowRoot.querySelector('team-page').fire('edit');
+        },
     });
     </script>
 </dom-module>

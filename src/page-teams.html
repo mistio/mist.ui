@@ -27,37 +27,29 @@
         <app-route route="{{route}}" pattern="/:team" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <team-actions id="actions" slot="actions" items="[[selectedItems]]" org="[[model.org.id]]" actions="{{actions}}">
-                <!-- <mist-list 
-                    id="teamsList" 
-                    selectable 
-                    resizable 
-                    column-menu multi-sort apiurl="/api/v1/teams" items="[[model.teamsArray]]" name="Teams" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.teams,model.members)]] route={{route}} user-filter=[[model.sections.teams.q]] filter-method=[[_isMemberOfFilter()]] primary-field-name="id">
-                    <p slot="no-items-found">No teams found.</p>
-                </mist-list> -->
                 <mist-list selectable resizable column-menu multi-sort 
-                        apiurl="/api/v1/teams"
-                        id="teamsList"
-                        name="Teams"
-                        primary-field-name="id"
-                        frozen=[[_getFrozenColumn()]]
-                        visible=[[_getVisibleColumns()]]
-                        selected-items="{{selectedItems}}"
-                        sort-order=[[sortOrder]]
-                        renderers=[[_getRenderers(model.teams,model.members)]]
-                        route={{route}}
-                        item-map="[[model.schedules]]"
-                        actions=[[actions]]
-                        filter-method="[[_ownerFilter()]]"
-                        filtered-items-length="{{filteredItemsLength}}">
+                    apiurl="/api/v1/teams"
+                    id="teamsList"
+                    name="Teams"
+                    primary-field-name="id"
+                    frozen=[[_getFrozenColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    selected-items="{{selectedItems}}"
+                    sort-order=[[sortOrder]]
+                    renderers=[[_getRenderers(model.teams,model.members)]]
+                    route={{route}}
+                    item-map="[[model.teams]]"
+                    actions=[[actions]]
+                    filter-method="[[_ownerFilter()]]"
+                    filtered-items-length="{{filteredItemsLength}}"></mist-list>
             </team-actions>
         </template>
-        <team-page model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" resource-id="[[data.team]]" section="[[model.sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]] rbac=[[rbac]] billing="[[billing]]" cta=[[cta]] email=[[email]] docs=[[docs]]></team-page>
+        <team-page id="teamPage" model="[[model]]" team$="[[_getTeam(data.team, model.teams)]]" resource-id="[[data.team]]" section="[[model.sections.teams]]" hidden$=[[!_isDetailsPageActive(route.path)]] rbac=[[rbac]] billing="[[billing]]" cta=[[cta]] email=[[email]] docs=[[docs]]></team-page>
         <members-add model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMembersPageActive(route.path)]]></members-add>
         <member-add-in-teams model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMemberPageActive(route.path)]]></member-add-in-teams>
         <div class="absolute-bottom-right" hidden$=[[!_hasNoSelectedItems(selectedItems.length)]]>
             <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
         </div>
-        <team-add id="isTeamsPage" organization="[[model.org]]" rbac=[[rbac]]></team-add>
     </template>
     <script>
     Polymer({
@@ -91,20 +83,16 @@
             }
         },
 
-        listeners: {
-            'select-action': 'selectAction',
-            'invite': '_invite',
-            'edit': '_edit'
-        },
+        listeners: {},
         _isDetailsPageActive: function(path) {
+            if (path && path != '/+add' && this.$.teamPage)
+                this.$.teamPage.updateState();
             return path && !path.endsWith('+add');
         },
         _isAddMembersPageActive: function(path) {
             return path != '/+add' && path.endsWith('+add');
         },
         _isAddMemberPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot.querySelector('team-page'))
-                this.shadowRoot.querySelector('team-page').updateState();
             return path == '/+add';
         },
         _isListActive: function(path) {
@@ -145,11 +133,11 @@
             return !(this.selectedItems && this.selectedItems.length);
         },
         _getTeam: function(id) {
-            if (this.model.teams && this.model.teams[id])
+            if (this.model.teams && id)
                 return this.model.teams[id];
         },
 
-        _getFrozenLogColumn: function() {
+        _getFrozenColumn: function() {
             return ['name'];
         },
 
@@ -186,20 +174,6 @@
             };
         },
 
-        _invite: function(e) {
-            e.stopImmediatePropagation();
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.selectedItems[0].id } }));
-
-            this.shadowRoot.querySelector('team-page').fire('invite');
-        },
-
-        _edit: function(e) {
-            e.stopImmediatePropagation();
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.selectedItems[0].id } }));
-
-            this.shadowRoot.querySelector('team-page').fire('edit');
-        },
-
         _addTeam: function(e) {
             var dialog = this.shadowRoot.querySelector('team-add#isTeamsPage');
             dialog.openDialog();
@@ -207,7 +181,7 @@
 
         selectAction: function(e) {
             e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#teamaList')) {
+            if (this.shadowRoot.querySelector('#teamsList')) {
                 this.shadowRoot.querySelector('#teamsList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
