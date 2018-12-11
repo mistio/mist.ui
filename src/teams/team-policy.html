@@ -1,5 +1,5 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../../bower_components/polymer-sortablejs/polymer-sortablejs.html" />
+<link rel="import" href="../../bower_components/sortable-list/sortable-list.html"/>
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
@@ -201,25 +201,25 @@
         <div id="ruleslist">
             <div class="loading-data" hidden="{{!sendingData}}">
             </div>
-            <div class="rule head">
-                <span class="index">ord.</span>
-                <span>operator</span>
-                <span>resource</span>
-                <span>action</span>
-                <span>condition
-                    <iron-icon id="condition" icon="icons:help"></iron-icon>
-                    <paper-tooltip for="condition" position="top">
-                        A conditional rule will apply to either a specified resource,
-                        <br/> or resources that have ALL specified tags.
-                        <br/> Tags must be comma separated. </paper-tooltip>
-                </span>
-                <span></span>
-            </div>
-            <sortable-js id="rules">
-                <template is="dom-repeat" items="{{rules}}" as="rule" id="rulesrepeat">
-                    <rbac-rule-item class="rule-item" rule="[[rule]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rbac-rule-item>
+            <sortable-list id="rules" sortable=".rule-item">
+                <div class="rule head">
+                    <span class="index">ord.</span>
+                    <span>operator</span>
+                    <span>resource</span>
+                    <span>action</span>
+                    <span>condition
+                        <iron-icon id="condition" icon="icons:help"></iron-icon>
+                        <paper-tooltip for="condition" position="top">
+                            A conditional rule will apply to either a specified resource,
+                            <br/> or resources that have ALL specified tags.
+                            <br/> Tags must be comma separated. </paper-tooltip>
+                    </span>
+                    <span></span>
+                </div>
+                <template is="dom-repeat" items="{{rules}}" id="rulesrepeat">
+                    <rbac-rule-item class="rule-item" rule="[[item]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rbac-rule-item>
                 </template>
-            </sortable-js>
+            </sortable-list>
         </div>
         <div class="rules">
             <div class="rule add">
@@ -326,13 +326,7 @@ Polymer({
         'update-raction': '_updateRaction',
         'update-operator': '_updateOperator',
     },
-    attached: function() {
-        var el = document.getElementById('rules');
-        if (el) {
-            var sortable = Sortable.create(el);
-            this.set('sortable', sortable);
-        }
-    },
+    attached: function() {},
     _computeCommonPermissions: function(model) {
         var commonPermissions = this.model.permissions['cloud'],
             that = this;

@@ -453,14 +453,15 @@
                 confirmedMembers = [];
 
             if (team) {
-                team.members.forEach(function(member) {
-                    if (members.base[member] && members.base[member].pending) {
-                        pendingMembers.push(members.base[member]);
-                    } else {
-                        confirmedMembers.push(members.base[member]);
-                    }
-                    teamMembers.push(members.base[member]);
-                });
+                // TODO: teamMembers calculate
+                // team.members.forEach(function(member) {
+                //     if (members.base[member] && members.base[member].pending) {
+                //         pendingMembers.push(members.base[member]);
+                //     } else {
+                //         confirmedMembers.push(members.base[member]);
+                //     }
+                //     teamMembers.push(members.base[member]);
+                // });
             }
 
             if (pendingMembers.length > 0) {
@@ -489,8 +490,7 @@
             this._showDialog({
                 title: 'Delete Team?',
                 body: "Deleting teams cannot be undone. You are about to delete team: " +
-                    this.team
-                    .name,
+                    this.team.name,
                 danger: true,
                 reason: "team.delete"
             });
@@ -522,7 +522,6 @@
                 msg: e.detail.error.message,
                 duration: 3000
             } }));
-
         },
         _deleteMemberFromTeam: function(e) {
             var membId = e.target.attributes.memberid.value,
@@ -530,8 +529,8 @@
             this.set('memberToDelete', membId);
             this._showDialog({
                 title: 'Delete member from team?',
-                body: "Deleting member " + membname + " from team " + this.team.name +
-                    '. You can always reinvite people by email.',
+                body: 'Member '+ membname + " will no longer view or edit " + this.team.name +
+                    "'s resources. You can always reinvite people in team.",
                 danger: true,
                 reason: "member.delete"
             });
@@ -542,7 +541,6 @@
                 msg: "Member deleted succesfully",
                 duration: 3000
             } }));
-
         },
         _resendMemberInvitation: function(e) {
             console.log(e, e.model);
@@ -552,7 +550,6 @@
             };
             this.$._resendInvitation.headers["Content-Type"] = 'application/json';
             this.$._resendInvitation.headers["Csrf-Token"] = CSRF_TOKEN;
-
             this.$._resendInvitation.generateRequest();
         },
         _handleResendResponse: function(e) {
