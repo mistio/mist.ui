@@ -19,20 +19,24 @@
             }
 
             #rules {
-                display: table;
+                /*display: table;
+                table-layout: fixed;*/
                 width: 100%;
                 border-collapse: collapse;
-                padding: 16px;
+            }
+
+            #rules rbac-rule-item {
+                width: 100%;
+            }
+
+            #rules rbac-rule-item:nth-of-type(2n+1) {
+                background-color: #f6f6f6;
             }
 
             .rule {
                 display: table-row;
                 border-bottom: 1px solid #eee;
                 border-right: 1px solid #eee;
-            }
-
-            #rules rbac-rule-item:nth-of-type(2n+1) {
-                background-color: #f6f6f6;
             }
 
             .rule.head {
@@ -44,7 +48,7 @@
                 cursor: default;
             }
 
-            .rule>span {
+            .rule > span {
                 display: table-cell;
                 border-left: 1px solid #eee;
                 padding: 8px;
@@ -73,8 +77,8 @@
                 border-bottom: 1px solid #eee;
             }
 
-            .default-rule>paper-toggle-button {
-                display: inline-block !important;
+            .default-rule > paper-toggle-button {
+                display: flex;
             }
 
             .index {
@@ -98,8 +102,8 @@
                 display: flex;
             }
 
-            paper-toggle-button.operator {
-                display: flex;
+            paper-toggle-button#defaultoperator {
+                display: inline-flex;
                 --paper-toggle-button-checked-bar-color: var(--green-color);
                 --paper-toggle-button-checked-button-color: var(--green-color);
                 --paper-toggle-button-checked-ink-color: var(--green-color);
@@ -108,16 +112,16 @@
                 --paper-toggle-button-unchecked-ink-color: var(--red-color);
             }
 
-            paper-toggle-button.operator::content .toggle-container,
-            paper-toggle-button.operator::slotted(.toggle-container) {
-                display: inline-block;
-                vertical-align: text-bottom;
+            paper-toggle-button#defaultoperator::content .toggle-container,
+            paper-toggle-button#defaultoperator .toggle-container {
+                /*display: inline-block;*/
+                /*vertical-align: text-bottom;*/
             }
 
-            paper-toggle-button.operator::content .toggle-label,
-            paper-toggle-button.operator::slotted(.toggle-label) {
-                display: inline;
-                vertical-align: text-bottom;
+            paper-toggle-button#defaultoperator::content .toggle-label,
+            paper-toggle-button#defaultoperator .toggle-label {
+                /*display: inline;*/
+                /*vertical-align: text-bottom;*/
             }
 
             #changeRecord {
@@ -161,11 +165,6 @@
                 height: 20px;
             }
 
-            paper-tooltip ::content #tooltip,
-            paper-tooltip ::slotted(#tooltip) {
-                font-size: 12px;
-            }
-
             .pull-right {
                 float: right;
             }
@@ -175,10 +174,15 @@
                 opacity: 0.54;
                 padding-left: 40px;
                 flex: 2;
+                display: block;
             }
 
             .notice iron-icon {
                 opacity: 0.6;
+            }
+
+            .defaultoperator-desc {
+                vertical-align: text-bottom;
             }
 
             #ruleslist {
@@ -199,8 +203,7 @@
             }
         </style>
         <div id="ruleslist">
-            <div class="loading-data" hidden="{{!sendingData}}">
-            </div>
+            <div class="loading-data" hidden="{{!sendingData}}"></div>
             <sortable-list id="rules" sortable=".rule-item">
                 <div class="rule head">
                     <span class="index">ord.</span>
@@ -229,8 +232,10 @@
                 </span>
             </div>
             <div class="default-rule">
-                <paper-toggle-button id="defaultoperator" class="operator" checked$="[[_computeToggle(defaultOperator)]]" disabled$="[[_computeDisabled(team.name)]]" on-tap="_changeDefaultOperator">[[defaultOperator]]</paper-toggle-button>
-                every other action ON any other resource
+                <paper-toggle-button id="defaultoperator" class="operator" checked$="[[_computeToggle(defaultOperator)]]" disabled$="[[_computeDisabled(team.name)]]" on-tap="_changeDefaultOperator">
+                    [[defaultOperator]] 
+                </paper-toggle-button>
+                <span class="defaultoperator-desc">every other action ON any other resource</span>
                 <span class="notice" hidden$="[[!_computeToggle(defaultOperator)]]">
                     <iron-icon icon="icons:warning"></iron-icon> This option will allow EVERY action on any resource not specified in the policy above.
                 </span>
