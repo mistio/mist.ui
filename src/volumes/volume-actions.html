@@ -5,7 +5,8 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="attach-volume.html">
@@ -26,6 +27,9 @@
     <attach-volume id="attachVolume" items="[[items]]" provider="[[provider]]" machines="[[machinesToAttachTo]]"></attach-volume>
     <detach-volume id="detachVolume" items="[[items]]" machines="[[machines]]"></detach-volume>
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
 
   </template>
   <script>
@@ -100,6 +104,7 @@
         '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
+        'select-action': 'selectAction',
         'iron-overlay-closed': 'confirmAction',
         'transfer-ownership': 'transferOwnership'
       },
