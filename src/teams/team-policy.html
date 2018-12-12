@@ -10,17 +10,13 @@
 <dom-module id="team-policy">
     <template>
         <style include="shared-styles tags-and-labels">
-            :host {
-                padding-bottom: 16px;
-            }
+            :host {}
 
             .rule span {
                 padding-right: 8px;
             }
 
             #rules {
-                /*display: table;
-                table-layout: fixed;*/
                 width: 100%;
                 border-collapse: collapse;
             }
@@ -31,6 +27,9 @@
 
             #rules rbac-rule-item:nth-of-type(2n+1) {
                 background-color: #f6f6f6;
+            }
+            #rules rbac-rule-item:nth-of-type(2n) {
+                background-color: #fff;
             }
 
             .rule {
@@ -85,7 +84,7 @@
                 text-align: center;
             }
 
-            .rule>span.add {
+            .rule > span.add {
                 border: 0 none;
                 margin: 0 auto;
                 width: 200px;
@@ -94,8 +93,8 @@
                 cursor: pointer;
             }
 
-            .add .index {
-                padding: 16px 24px;
+            .add .addrule {
+                padding: 0;
             }
 
             .bottom-actions {
@@ -110,18 +109,6 @@
                 --paper-toggle-button-unchecked-bar-color: var(--red-color);
                 --paper-toggle-button-unchecked-button-color: var(--red-color);
                 --paper-toggle-button-unchecked-ink-color: var(--red-color);
-            }
-
-            paper-toggle-button#defaultoperator::content .toggle-container,
-            paper-toggle-button#defaultoperator .toggle-container {
-                /*display: inline-block;*/
-                /*vertical-align: text-bottom;*/
-            }
-
-            paper-toggle-button#defaultoperator::content .toggle-label,
-            paper-toggle-button#defaultoperator .toggle-label {
-                /*display: inline;*/
-                /*vertical-align: text-bottom;*/
             }
 
             #changeRecord {
@@ -204,8 +191,8 @@
         </style>
         <div id="ruleslist">
             <div class="loading-data" hidden="{{!sendingData}}"></div>
-            <sortable-list id="rules" sortable=".rule-item">
-                <div class="rule head">
+            <sortable-list id="rules" sortable=".rule-item" dragging="{{dragging}}" on-sort-finish="_onSortFinish" on-sort-start="_onSortStart" disabled="true">
+                <div id="ruleHead" class="rule head" hidden="[[!rules.length]]">
                     <span class="index">ord.</span>
                     <span>operator</span>
                     <span>resource</span>
@@ -226,9 +213,9 @@
         </div>
         <div class="rules">
             <div class="rule add">
-                <span class="index">
+                <span class="addrule">
                     <paper-button on-tap="_addRule" class="simple">
-                        <iron-icon icon="icons:add"></iron-icon> Add a new rule</paper-button>
+                        <iron-icon icon="icons:add"></iron-icon> Add a new rule </paper-button>
                 </span>
             </div>
             <div class="default-rule">
@@ -313,6 +300,10 @@ Polymer({
         },
         cache: {
             type: String
+        },
+        dragging: {
+            type: Boolean,
+            observer: '_draggingChanged'
         }
     },
     observers: [
@@ -322,7 +313,6 @@ Polymer({
         '_sendingDataChanged(sendingData)'
     ],
     listeners: {
-        'end': '_orderChanged',
         'delete-rtag': '_deleteRtag',
         'update-rtags': '_updateRtags',
         'update-rid': '_updateRid',
@@ -341,9 +331,27 @@ Polymer({
         });
         return commonPermissions;
     },
-    _orderChanged: function(e) {
-        this.ruleHasChanges();
+    _draggingChanged: function(newDragging, oldDragging) {
+        if (newDragging === true) {
+            var el = this.$.ruleHead;
+            this.$.ruleHead.remove();
+            this.ruleHasChanges();
+        }
     },
+    // _onSortStart: function() {
+    //     var el = this.$.ruleHead;
+    //     this.$.ruleHead.remove();
+    // },
+    // _onSortFinish: function(event) {
+    //     // const sortedItem = event.detail.target;
+    //     var parent = this.shadowRoot.querySelector("sortable-list#rules");
+    //     var newDiv = document.createElement("div").setAttribute('id', 'ruleHead');
+    //     parent.insertBefore(newDiv, null);
+        
+    //     this.$.ruleHead.classList.add('rule','head');
+    //     var content = '<span class="index">ord.</span><span>operator</span><span>resource</span><span>action</span><span>condition<iron-icon id="condition" icon="icons:help"></iron-icon><paper-tooltip for="condition" position="top">A conditional rule will apply to either a specified resource,<br/> or resources that have ALL specified tags.<br/> Tags must be comma separated. </paper-tooltip></span><span></span>';
+    //     this.$.ruleHead.innerHTML = content;
+    // },
     _teamChanged: function(team, rules, teams) {
         // copy default operator to a new string
         if (this.team) {
@@ -394,6 +402,7 @@ Polymer({
     },
     _rulesChanged(rules, defaultOperator) {
         if (this.team) {
+            console.log(this.team.policy.rules, this.rules);
             if (JSON.stringify(this.team.policy.rules) != JSON.stringify(this.rules) || this.defaultOperator !=
                 this.team.policy.operator) {
                 this.set('formReady', true);
