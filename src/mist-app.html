@@ -149,20 +149,6 @@
             display: block;
         }
 
-        app-header-layout::content #wrapper>[slot=header],
-        app-header-layout app-header #wrapper ::slotted([slot=header]) {
-            z-index: 2 !important;
-        }
-
-        app-header-layout::content #contentContainer,
-        app-header-layout::slotted(#contentContainer) {
-            z-index: auto !important;
-        }
-
-        /*app-header ::slotted(#wrapper ::slotted([slot=header])){
-            z-index: 0 !important;
-        }*/
-
         paper-spinner {
             width: 80px;
             height: 80px;
@@ -195,7 +181,7 @@
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
         <app-header-layout mode="standard" class="fit" fullbleed>
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-            <app-header slot="header" fixed shadow>
+            <app-header slot="header" fixed shadow hidden$=[[fullscreen]]>
                 <mist-header sticky model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened={{userMenuOpened}} ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]" isclosed="{{sidebarIsClosed}}"></mist-sidebar>
@@ -238,7 +224,7 @@
         <plan-purchase id="mistAppCcRequired" org="[[model.org]]" button-text="Enable"></plan-purchase>
     </template>
     <script>
-    Polymer.Settings.passiveTouchGestures = true;
+    Polymer.passiveTouchGestures = true;
     Polymer({
         is: 'mist-app',
         behaviors: [
@@ -318,6 +304,10 @@
             visibleSuggestions: {
                 type: Boolean,
                 value: false
+            },
+            fullscreen: {
+                type: Boolean,
+                value: false
             }
         },
 
@@ -338,6 +328,8 @@
             'export-list-csv': '_exportCsvMessage',
             'add-org': '_addOrg',
             'tap': 'closeIfClickedElsewhere',
+            'enter-fullscreen': 'enterFullscreen',
+            'exit-fullscreen': 'exitFullscreen',
             'cc-dismiss': '_ccDismissed'
         },
 
@@ -990,12 +982,22 @@
             var dialog = this.shadowRoot.querySelector('organization-add');
             dialog.openDialog();
         },
+
         closeIfClickedElsewhere: function(e) {
             if (this.visibleSuggestions && e.path.indexOf(this.shadowRoot.querySelector('mist-header')) == -1)
                 this.set('visibleSuggestions', false);
         },
+
         _observeModel: function(oldmodel, newmodel) {
             console.log('model Changes', oldmodel, newmodel);
+        },
+
+        enterFullscreen: function () {
+            this.fullscreen = true;
+        },
+
+        exitFullscreen: function () {
+            this.fullscreen = false;
         }
     });
 
