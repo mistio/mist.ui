@@ -19,9 +19,6 @@
         display: inline;
         color: rgba(255, 255, 255, 0.87);
       }
-      mist-list-actions {
-        width: 100%;
-      }
     </style>
 
     <dialog-element id="confirm"></dialog-element>
@@ -99,9 +96,15 @@
           type: Boolean,
           reflectToAttribute: true
         },
-        members: Array,
-        user: String,
-        org: Object
+        members: {
+          type: Array
+        },
+        user: {
+          type: String
+        },
+        org: {
+          type: Object
+        }
       },
       observers: [
         '_mapPolicyToActions(items.*,org,user)'
@@ -246,9 +249,6 @@
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));
-
-
-
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
@@ -259,31 +259,34 @@
       _mapPolicyToActions: function (items,org,user) {
         // recompute the actions array property as the intersection
         // of the available actions of the selected items
-        this.set('actions', []);
-        var actions = new swiftSet.Set(),
-          isection = new swiftSet.Set();
+        if (items && org && user) {
+          this.set('actions', []);
+          var actions = new swiftSet.Set(),
+            isection = new swiftSet.Set();
 
-        if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
+          if (this.items.length > 0) {
+            actions.addItems(this.itemActions(this.items[0]) || []);
 
-          for (var i = 1; i < this.items.length; i++) {
-            isection.clear()
-            isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-            actions.clear();
-            actions.addItems(isection.items());
+            for (var i = 1; i < this.items.length; i++) {
+              isection.clear()
+              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+              actions.clear();
+              actions.addItems(isection.items());
+            }
+
+            var multiActions;
+
+            if (this.items.length > 1) {
+              multiActions = this.actionDetails(actions.items()).filter(function (a) {
+                return a.multi;
+              });
+            } else {
+              multiActions = this.actionDetails(actions.items());
+            }
+            console.log('_mapPolicyToActions', multiActions);
           }
-
-          var multiActions;
-
-          if (this.items.length > 1) {
-            multiActions = this.actionDetails(actions.items()).filter(function (a) {
-              return a.multi;
-            });
-          } else {
-            multiActions = this.actionDetails(actions.items());
-          }
+          this.set('actions', multiActions);
         }
-        this.set('actions', multiActions);
       },
       handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
