@@ -62,12 +62,10 @@
             margin-left: 0;
         }
 
-        :host([center-content]) iron-pages::content #content,
         :host([center-content]) iron-pages::slotted(#content) {
             padding: 0;
         }
 
-        iron-pages::content>*,
         iron-pages::slotted(>*) {
             background-color: var(--base-background-color);
             position: relative;
@@ -95,19 +93,16 @@
             min-height: calc(94vh - 64px);
         }
 
-        iron-pages::content mist-list,
         iron-pages::slotted(mist-list) {
             font-size: 14px;
         }
 
-        iron-pages::content mist-list paper-button[dialog-confirm],
         iron-pages::slotted(mist-list paper-button[dialog-confirm]) {
             background-color: var(--mist-blue);
             font-weight: 500;
             color: #fff;
         }
 
-        iron-pages::content mist-list::content .tag,
         iron-pages::slotted(mist-list::slotted(.tag)) {
             display: inline;
             background-color: #888;
@@ -157,7 +152,6 @@
         }
 
         @media screen and (max-width: 650px) {
-            iron-pages::content #content,
             iron-pages::slotted(#content) {
                 padding: 0;
             }
@@ -168,7 +162,6 @@
                 padding: 0;
             }
 
-            iron-pages::content .columns,
             iron-pages::slotted(.columns) {
                 display: block;
             }
@@ -308,6 +301,10 @@
             fullscreen: {
                 type: Boolean,
                 value: false
+            },
+            streamingTargets: {
+                type: Array,
+                value: function () { return [] }
             }
         },
 
@@ -330,6 +327,9 @@
             'tap': 'closeIfClickedElsewhere',
             'enter-fullscreen': 'enterFullscreen',
             'exit-fullscreen': 'exitFullscreen',
+            'streaming-list-attached': '_registerStreamingTarget',
+            'streaming-list-detached': '_unregisterStreamingTarget',
+            'forward-log': '_logReceived',
             'cc-dismiss': '_ccDismissed'
         },
 
@@ -998,6 +998,26 @@
 
         exitFullscreen: function () {
             this.fullscreen = false;
+        },
+
+
+        _registerStreamingTarget: function (e) {
+            if (this.streamingTargets.indexOf(e.detail) == -1) {
+                this.streamingTargets.push(e.detail);
+            }
+        },
+
+        _unregisterStreamingTarget: function (e) {
+            var i = this.streamingTargets.indexOf(e.detail);
+            if (i > -1) {
+                this.streamingTargets.splice(i, 1);
+            }
+        },
+
+        _logReceived: function (e) {
+            this.streamingTargets.forEach(function (stream) {
+                stream.fire('receive-log', e.detail);
+            });
         }
     });
 

@@ -3,20 +3,19 @@
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
+
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../mist-monitoring.html">
-<link rel="import" href="../mist-actions.html">
+
 <link rel="import" href="machine-actions.html">
 <link rel="import" href="machine-r12ns.html">
+
 <dom-module id="machine-page">
     <template>
         <style include="shared-styles tags-and-labels info-table-style single-page">
-            :host {
-            }
-
             a:hover {
                 cursor: pointer;
             }
@@ -213,32 +212,6 @@
                 width: 24px !important;
                 height: 24px !important;
                 vertical-align: middle !important;
-            }
-
-            machine-actions {
-                display: flex;
-                font-size: 1em;
-            }
-
-            machine-actions ::content .actions,
-            machine-actions ::slotted(.actions) {
-                height: auto;
-                display: flex;
-                vertical-align: auto;
-                padding: 0;
-            }
-
-            machine-actions ::content .item-actions,
-            machine-actions ::slotted(.item-actions) {
-                margin-left: 0 !important;
-            }
-
-            :host machine-actions ::content mist-actions ::content paper-button:not(.more).actions,
-            :host machine-actions ::slotted(mist-actions ::slotted(paper-button:not(.more).actions)),
-            :host machine-actions ::content mist-actions ::content paper-button.dropdown-trigger,
-            :host machine-actions ::slotted(mist-actions ::slotted(paper-button.dropdown-trigger)) {
-                padding: 16px !important;
-                margin: 0 !important;
             }
 
             span[class*="dc-"] {
@@ -510,10 +483,7 @@
             }
         </style>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
-            <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" in-single-page></machine-actions>
+
             <paper-material class="single-head layout horizontal machine-page-head">
                 <span class="icon">
                     <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
@@ -528,8 +498,7 @@
                     </div>
                 </div>
                 <template is="dom-if" if="[[itemArray]]" restamp>
-                    <mist-actions type="machine" id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="[[actions]]" use-half-width>
-                    </mist-actions>
+                    <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" in-single-page></machine-actions>
                 </template>
             </paper-material>
             <paper-material hidden$="[[!isMissing]]">
@@ -891,10 +860,6 @@ Polymer({
             type: Array,
             computed: '_computeThisItemUid(machine)'
         },
-        actions: {
-            type: Array
-            // computed: '_computeActions(machine, machine.*, model.machines.*, user)'
-        },
         dirtyCowAlert: {
             type: String,
             computed: '_computeDirtyCowAlert(machine)',
@@ -914,10 +879,6 @@ Polymer({
         },
         itemArray: {
             type: Array
-        },
-        actions: {
-            type: Array,
-            notify: true
         },
         r12ns: {
             type: Array,
@@ -1463,7 +1424,6 @@ Polymer({
 
     enableWebconfig: function() {
         this.set('machine.actions.webconfig', true);
-        // this._computeActions(this.machine);
     },
 
     _getVisibleColumns: function() {

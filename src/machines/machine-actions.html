@@ -1,11 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
+
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
+
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -20,12 +23,6 @@
 <script type="text/javascript" src="../volume-create-fields.js" inline></script>
 <dom-module id="machine-actions">
     <template>
-        <style include="shared-styles">
-            :host {
-        display: inline;
-        color: rgba(255, 255, 255, 0.87);
-      }
-    </style>
         <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
         <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
         <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
@@ -36,9 +33,13 @@
         <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(model.membersArray,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
         <resize-dialog id="resizedialog" machine="[[_getMachine(items.length)]]" clouds="[[model.clouds]]"></resize-dialog>
         <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
+
+        <slot>
+            <mist-list-actions actions=[[actions]]></mist-list-actions>
+        </slot>
     </template>
     <script>
-    MACHINE_ACTIONS = {
+    const MACHINE_ACTIONS = {
         'attach-volume': {
             'name': 'attach volume',
             'icon': 'device:storage',
@@ -198,6 +199,7 @@
 
     Polymer({
         is: 'machine-actions',
+        behaviors: [MistListActionsBehavior],
         properties: {
             model: {
                 type: Object
@@ -223,10 +225,6 @@
             action: {
                 type: Object
             },
-            type: {
-                type: String,
-                value: 'machine'
-            },
             providersWithVolumes: {
                 type: Array,
                 value: function() {
@@ -240,18 +238,15 @@
             'perform-action': 'performAction',
             'iron-overlay-closed': 'confirmAction'
         },
-        observers: [
-            '_mapPolicyToActions(items.*, model.org, model.user)'
-        ],
         ready: function() {},
         attached: function() {
             this.$.request.headers["Content-Type"] = 'application/json';
             this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.request.method = "POST";
         },
-        itemActions: function(machine) {
+        computeItemActions: function(machine) {
             var arr = [];
-            if (['vsphere', 'openstack'].indexOf(this.model.clouds[machine.cloud].provider) > -1)
+            if (this.model && this.model.clouds && ['vsphere', 'openstack'].indexOf(this.model.clouds[machine.cloud].provider) > -1)
                 arr.push('console');
             if (machine) {
                 if (machine.os_type != 'windows' && machine.machine_type != 'ilo-host') {
@@ -271,7 +266,7 @@
             if (machine.key_associations && machine.key_associations.length) {
                 arr.push('run-script');
             }
-            if (this.model.org.ownership_enabled && (machine.owned_by == this.model.user.id || this.model.org.is_owner)) {
+            if (this.model && this.model.org.ownership_enabled && (machine.owned_by == this.model.user.id || this.model.org.is_owner)) {
                 arr.push('transfer-ownership');
             }
             if (machine) {
@@ -330,7 +325,7 @@
             else
                 return undefined;
         },
-        actionDetails: function(actions) {
+        computeActionListDetails: function(actions) {
             var ret = [];
             for (var i = 0; i < actions.length; i++) {
                 ret.push(MACHINE_ACTIONS[actions[i]]);
@@ -369,22 +364,20 @@
                 // console.log('perform action mist-action', this.items);
                 if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
                     -1) {
-                    var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
-                        plural = this.items.length == 1 ? '' : 's',
+                    var plural = this.items.length == 1 ? '' : 's',
                         count = this.items.length > 1 ? this.items.length + ' ' : '';
-                    //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
                     if (action.name == "clone" && this.action.fields) {
                         this.set('action.fields.0.value', this.items[0].value || this.items[0].name + "-clone");
                     }
                     this._showDialog({
-                        title: this.action.name + ' ' + count + this.type + plural + '?',
-                        body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type +
+                        title: this.action.name + ' ' + count + 'machine' + plural + '?',
+                        body: "You are about to " + this.action.name + " " + this.items.length + " machine" +
                             plural + ".",
-                        list: this._makeList(this.items, property),
+                        list: this._makeList(this.items, "name"),
                         action: action.name,
                         danger: true,
                         hideText: this.action.fields ? true : false,
-                        reason: this.type + "." + this.action.name
+                        reason: "machine." + this.action.name
                     });
                 } else if (action.name == 'delete') {
                     this._delete(this.items);
@@ -438,7 +431,7 @@
                 user_id: e.detail.user_id, //new owner
                 resources: {}
             };
-            payload.resources[this.type] = this.items.map(function(i) { return i.id });
+            payload.resources['machine'] = this.items.map(function(i) { return i.id });
             console.log('transferOwnership', e.detail, payload);
             this.$.request.url = '/api/v1/ownership';
             this.$.request.headers["Content-Type"] = 'application/json';
@@ -614,35 +607,6 @@
                 } }));
 
             }
-        },
-        _mapPolicyToActions: function(items) {
-            // recompute the actions array property as the intersection
-            // of the available actions of the selected items
-            this.set('actions', []);
-            var actions = new swiftSet.Set(),
-                isection = new swiftSet.Set();
-
-            if (this.items.length > 0) {
-                actions.addItems(this.itemActions(this.items[0]) || []);
-
-                for (var i = 1; i < this.items.length; i++) {
-                    isection.clear()
-                    isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-                    actions.clear();
-                    actions.addItems(isection.items());
-                }
-
-                var multiActions;
-
-                if (this.items.length > 1) {
-                    multiActions = this.actionDetails(actions.items()).filter(function(a) {
-                        return a.multi;
-                    });
-                } else {
-                    multiActions = this.actionDetails(actions.items());
-                }
-            }
-            this.set('actions', multiActions);
         },
         handleError: function(e) {
             // console.log(e.detail.request.xhr.statusText);
