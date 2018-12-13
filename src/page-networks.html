@@ -18,11 +18,25 @@
         </style>
         <app-route route="{{route}}" pattern="/:network" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="networksList" selectable resizable column-menu multi-sort apiurl="/api/v1/networks" item-map="[[model.networks]]" name="Networks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers()]] route={{route}} user-filter=[[model.sections.networks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="network" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <network-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
-                <p slot="no-items-found">No networks found.</p>
-            </mist-list>
+            <network-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">
+                <mist-list selectable resizable column-menu multi-sort 
+                    id="networksList" 
+                    apiurl="/api/v1/networks" 
+                    item-map="[[model.networks]]" 
+                    name="Networks" 
+                    selected-items="{{selectedItems}}" 
+                    filtered-items-length="{{filteredItemsLength}}" 
+                    combined-filter={{combinedFilter}} 
+                    frozen=[[_getFrozenColumn()]] 
+                    visible=[[_getVisibleColumns()]] 
+                    renderers=[[_getRenderers()]] 
+                    route={{route}} 
+                    user-filter=[[model.sections.networks.q]] 
+                    primary-field-name="id" 
+                    filter-method="[[_ownerFilter()]]">
+                    <p slot="no-items-found">No networks found.</p>
+                </mist-list>
+            </network-actions>
             <div class="absolute-bottom-right">
                 <paper-fab id="networkAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
@@ -61,8 +75,6 @@
         },
 
         _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot.querySelector('network-page'))
-                this.shadowRoot.querySelector('network-page').updateState();
             return path && path != '/+add';
         },
 
@@ -79,7 +91,7 @@
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true , detail:{url: this.model.sections.networks.add}}));
         },
 
-        _getFrozenLogColumn: function() {
+        _getFrozenColumn: function() {
             return ['name'];
         },
 
