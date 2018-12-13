@@ -23,6 +23,11 @@
 <script type="text/javascript" src="../volume-create-fields.js" inline></script>
 <dom-module id="machine-actions">
     <template>
+        <style>
+            mist-list-actions {
+                fill: #fff;
+            }
+        </style>
         <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
         <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
         <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
@@ -236,7 +241,8 @@
             'rename-machine': 'renameAction',
             'transfer-ownership': 'transferOwnership',
             'perform-action': 'performAction',
-            'iron-overlay-closed': 'confirmAction'
+            'iron-overlay-closed': 'confirmAction',
+            'select-action': 'selectAction',
         },
         ready: function() {},
         attached: function() {
@@ -268,9 +274,6 @@
             }
             if (this.model && this.model.org.ownership_enabled && (machine.owned_by == this.model.user.id || this.model.org.is_owner)) {
                 arr.push('transfer-ownership');
-            }
-            if (machine) {
-                arr.push('tag');
             }
             return arr.sort(this._sortActions.bind(this));
         },
@@ -598,8 +601,10 @@
             if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
                 this.$.ownershipdialog._closeDialog();
                 this.dispatchEvent(new CustomEvent('action-finished'));
-
-
+                
+                if (this.querySelector('mist-list-actions')) {
+                    this.querySelector('mist-list-actions').fire('action-finished');
+                }
 
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: 'Successfull ownership transfer',
