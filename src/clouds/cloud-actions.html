@@ -6,7 +6,8 @@
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="cloud-info.html">
 <link rel="import" href="cloud-edit.html">
 <link rel="import" href="cloud-dns.html">
@@ -19,11 +20,11 @@
   <template>
     <style include="shared-styles">
        :host {
-        display: inline;
         color: rgba(255, 255, 255, 0.87);
       }
       
       mist-list-actions {
+        width: 100%;
         fill: #fff;
       }
 
@@ -69,6 +70,11 @@
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
+
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
+
   </template>
   <script>
     CLOUD_ACTIONS = {
@@ -140,6 +146,7 @@
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
+        'select-action': 'selectAction',
         'iron-overlay-closed': 'confirmAction',
         'close-rename-dialog': 'closeRenameDialog',
         'add-input': 'closeDialog',

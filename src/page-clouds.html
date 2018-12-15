@@ -17,11 +17,24 @@
         </style>
         <app-route route="{{route}}" pattern="/:cloud" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="cloudsList" apiurl="/api/v1/clouds" selectable resizable column-menu multi-sort items="[[model.cloudsArray]]" selected-items="{{selectedItems}}" renderers=[[_getRenderers()]] frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] route={{route}} user-filter=[[model.sections.clouds.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]" hidden$=[[!_isListActive(route.path)]]>
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="cloud" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <cloud-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></cloud-actions>
-                <p slot="no-items-found">No clouds found.</p>
-            </mist-list>
+                <cloud-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">
+                    <mist-list selectable resizable column-menu multi-sort 
+                        id="cloudsList" 
+                        apiurl="/api/v1/clouds" 
+                        item-map="[[model.clouds]]" 
+                        selected-items="{{selectedItems}}" 
+                        renderers=[[_getRenderers()]] 
+                        frozen=[[_getFrozenLogColumn()]] 
+                        visible=[[_getVisibleColumns()]] 
+                        route={{route}} 
+                        user-filter=[[model.sections.clouds.q]] 
+                        primary-field-name="id" 
+                        filter-method="[[_ownerFilter()]]" 
+                        hidden$=[[!_isListActive(route.path)]]
+                        actions="[[actions]]">
+                        <p slot="no-items-found">No clouds found.</p>
+                </mist-list>
+            </cloud-actions>
         </template>
         <div class="absolute-bottom-right">
             <paper-fab id="cloudAdd" icon="add" on-tap="_addResource"></paper-fab>
@@ -33,12 +46,9 @@
     Polymer({
         is: 'page-clouds',
         behaviors: [
-            mistListsBehavior,
             ownerFilterBehavior
         ],
-        listeners: {
-            'select-action': 'selectAction',
-        },
+        listeners: {},
         properties: {
             model: {
                 type: Object
@@ -162,15 +172,7 @@
         _addResource: function(e) {
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: this.model.sections.clouds.add } }));
 
-        },
-        // redirect events
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.querySelector('cloud-actions')) {
-                this.querySelector('cloud-actions').selectAction(e);
-            }
         }
-
     });
     </script>
 </dom-module>
