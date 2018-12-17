@@ -2,7 +2,7 @@
 <link rel="import" href="../theme-color/theme-color.html">
 <dom-module id="section-tile">
     <template>
-        <style>
+        <style include="shared-styles">
         :host {
             transition: var(--material-curve-320);
             transform: translate(0, 60px);
@@ -10,16 +10,21 @@
             width: 100%;
         }
 
-        :host paper-material {
-            background-color: var(--tiles-background-color);
-        }
-
         :host(.active) {
             transform: translate(0, 0);
             opacity: 1;
         }
 
-        h2 {
+        :host paper-material {
+            background-color: var(--tiles-background-color);
+        }
+        
+        :host([highlight]) paper-material,
+        :host([highlight]) ::slotted(paper-material) {
+            background-color: var(--app-costs-highlight-background-color, var(--tiles-background-color));
+        }
+
+        :host h2 {
             font-weight: 300;
             font-size: 54px;
             padding: 36px 0;
@@ -38,7 +43,7 @@
             opacity: 1;
         }
 
-        h3 {
+        :host h3 {
             transform: translate(-50px, 0);
             opacity: 0;
             transition: all 600ms 320ms;
@@ -51,14 +56,14 @@
             margin-left: 8px;
             color: var(--tiles-title-color);
         }
-        h3.icon-true {
+        :host h3.icon-true {
             margin-left: 40px;
         }
         :host(.active) h3 {
             transform: translate(0, 0);
             opacity: 1;
         }
-        iron-icon {
+        :host iron-icon {
             width: 24px;
             height: 24px;
             opacity: 1;
@@ -88,7 +93,7 @@
             color: #fff;
         }
         </style>
-        <paper-material>
+        <paper-material id="bg">
             <template is="dom-if" if="[[icon]]">
                 <iron-icon icon="[[icon]]"></iron-icon>
             </template>
@@ -125,6 +130,11 @@ Polymer({
             type: Boolean,
             value: true,
             computed: "_computeHasIcon(icon)"
+        },
+        highlight: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
         }
     },
     _computeStateColor: function (count, color){
