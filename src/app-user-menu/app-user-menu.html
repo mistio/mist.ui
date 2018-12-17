@@ -214,7 +214,7 @@
                 </div>
                 <paper-listbox>
                     <template is="dom-repeat" items="{{orgsList}}" as="organization" restamp>
-                        <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row" tabindex="-1">
+                        <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row" tabindex="1">
                             <paper-item class="context" hidden$=[[_isCurrentOrg(organization)]]>
                                 <div class="org-logo">
                                     <iron-icon class="user-menu-icon" icon="social:group" hidden=[[_hasLogo(organization)]]></iron-icon>
@@ -226,13 +226,13 @@
                             </paper-item>
                         </a>
                     </template>
-                    <a href="javascript:void(0)" on-tap="_addOrg" class="grid-row" tabindex="-1">
-                        <paper-item class="noborder add-org">
+                    <a href="javascript:void(0)" >
+                        <paper-item class="noborder add-org" on-tap="_addOrg" class="grid-row" tabindex="1">
                             <iron-icon icon="icons:add-circle-outline"></iron-icon>Add Organization
                         </paper-item>
                     </a>
                     <hr/>
-                    <a href="[[supportUri]]" target="_blank" class="flex" tabindex="-1">
+                    <a href="[[supportUri]]" target="_blank" class="flex" tabindex="1">
                         <paper-item hidden$=[[!supportUri.length]]>
                             <iron-icon icon="question-answer"></iron-icon>Support
                         </paper-item>
@@ -242,7 +242,7 @@
                             <iron-icon icon="description"></iron-icon>Docs
                         </paper-item>
                     </a>
-                    <a href="/my-account/profile" class="flex" id="Account" tabindex="-1">
+                    <a href="/my-account/profile" class="flex" id="Account" tabindex="1">
                         <paper-item>
                             <iron-icon icon="account-circle"></iron-icon>Account
                         </paper-item>
@@ -369,7 +369,8 @@
             return organization && this.org && organization.id == this.org.id;
         },
         _addOrg: function (e) {
-            this.dispatchEvent(new CustomEvent('add-org'));
+            console.log('_addOrg');
+            this.dispatchEvent(new CustomEvent('add-org'), {bubbles: true, composed: true});
         },
         _goToOrg: function (e) {
             var orgId = e.currentTarget.getAttribute('id');
