@@ -35,48 +35,37 @@
   <script tal:content="string: var True = true, False = false, CONFIG = {'portal_name': '${portal_name}', 'features': ${structure:features}, 'email': ${email}, 'cta': ${cta}}">
       var CONFIG = false;
   </script>
+
   <script>
-    // setup Polymer options
     window.Polymer = {lazyRegister: true};
-
-    // load webcomponents polyfills
-    (function() {
-      if ('registerElement' in document
-          && 'import' in document.createElement('link')
-          && 'content' in document.createElement('template')) {
-        // browser has web components
-      } else {
-        // polyfill web components
-        var e = document.createElement('script');
-        e.src = 'bower_components/webcomponentsjs/webcomponents-lite.js';
-        document.head.appendChild(e);
-      }
-    })();
-
     // load pre-caching service worker
     /*if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('service-worker.js');
       });
     }*/
-
   </script>
-  <link rel="import" href="src/mist-app.html">
   <link rel="stylesheet" href="src/styles/main.css" inline>
   <link rel="stylesheet" href="src/styles/grid.css" inline>
+  <link rel="import" href="src/mist-app.html">
 </head>
 <body>
   <mist-app unresolved>
-      <link slot="theme" rel="import" tal:condition="theme|nothing" tal:attributes="href string:/static/ui/${theme}-theme.html">
+
   </mist-app>
 
+  <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
   <script>
-    if (CONFIG) {
-      document.querySelector('mist-app').config = CONFIG;
-    }
-    var importDoc = document.currentScript.ownerDocument;
-    var style = importDoc.querySelector('style');
-    document.head.appendChild(style);
+    window.addEventListener('WebComponentsReady', function() {
+      if (CONFIG) {
+        document.querySelector('mist-app').config = CONFIG;
+      }
+      if (document.currentScript) {
+        var importDoc = document.currentScript.ownerDocument;
+        var style = importDoc.querySelector('style');
+        document.head.appendChild(style);
+      }
+    });
   </script>
 </body>
 </html>
