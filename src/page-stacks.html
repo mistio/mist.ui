@@ -4,7 +4,6 @@
 <link rel="import" href="stacks/stack-create.html">
 <link rel="import" href="stacks/stack-page.html">
 <link rel="import" href="stacks/stack-actions.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="mist-actions.html">
 <dom-module id="page-stacks">
@@ -22,11 +21,26 @@
         </style>
         <app-route route="{{route}}" pattern="/:stack" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="stacksList" selectable resizable column-menu multi-sort apiurl="/api/v1/stacks" items="[[model.stacksArray]]" name="Stacks" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}} frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.stacks,model.templates)]] route={{route}} user-filter=[[model.sections.stacks.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="stack" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <stack-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></stack-actions>
-                <p slot="no-items-found">No stacks found.</p>
-            </mist-list>
+            <stack-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">
+                <mist-list selectable resizable column-menu multi-sort
+                id="stacksList"
+                apiurl="/api/v1/stacks"
+                items="[[model.stacksArray]]"
+                name="Stacks"
+                selected-items="{{selectedItems}}"
+                filtered-items-length="{{filteredItemsLength}}"
+                combined-filter={{combinedFilter}}
+                frozen=[[_getFrozenLogColumn()]]
+                visible=[[_getVisibleColumns()]]
+                renderers=[[_getRenderers()]]
+                route={{route}}
+                user-filter=[[model.sections.stacks.q]]
+                primary-field-name="id"
+                filter-method="[[_ownerFilter()]]"
+                actions="[[actions]]">
+                    <p slot="no-items-found">No stacks found.</p>
+                </mist-list>
+            </stack-actions>
             <!-- <div class="absolute-bottom-right">
                 <paper-fab id="stackAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div> -->
@@ -38,7 +52,6 @@
     Polymer({
         is: 'page-stacks',
         behaviors: [
-            mistListsBehavior,
             ownerFilterBehavior
         ],
 
@@ -59,9 +72,7 @@
             }
         },
 
-        listeners: {
-            'select-action': 'selectAction',
-        },
+        listeners: {},
         _isAddPageActive: function(path) {
             return path.split('?')[0] == '/+create';
         },
@@ -148,13 +159,6 @@
                         return display;
                     }
                 }
-            }
-        },
-        // redirect events
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#stacksList')) {
-                this.shadowRoot.querySelector('#stacksList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
     });

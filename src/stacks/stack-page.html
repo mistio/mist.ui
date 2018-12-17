@@ -16,6 +16,7 @@
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 
+<link rel="import" href="stack-actions.html">
 <link rel="import" href="stack-machine-item.html">
 <link rel="import" href="stack-network-item.html">
 <link rel="import" href="stack-key-item.html">
@@ -461,7 +462,6 @@
             }
         </style>
         <div id="content">
-            <stack-actions items="[[itemArray]]" actions="{{actions}}" workflows="[[workflows]]" single deploy-now="[[!ok]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></stack-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
@@ -478,7 +478,7 @@
                         <span hidden$="[[template.id]]"> missing template</span>
                     </div>
                 </div>
-                <mist-actions class$="inStartCreationState-[[inStartCreationState]]" actions="[[actions]]" type="stack" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <stack-actions items="[[itemArray]]" actions="{{actions}}" workflows="[[workflows]]" single deploy-now="[[!ok]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></stack-actions>
             </paper-material>
 
             <paper-material>
@@ -1058,9 +1058,9 @@
                 return sum > 0 ? true : false;
             },
             _computeTemplate: function (stacktemplate, templates) {
-                if (this.stack)
-                    if (this.model.templates[this.stack.template])
-                        return this.model.templates[this.stack.template];
+                if (this.stack && this.model && this.model.templates) {
+                    return this.model.templates[this.stack.template];
+                }
             },
             _machines: function (stack) {
                 return stack && stack.machines;
@@ -1288,7 +1288,9 @@
                     p.setAttribute("show", false);
                 });
                 var page = this.shadowRoot.querySelector('#' + action + 'show');
-                page.setAttribute("show", true);
+                if (page) {
+                    page.setAttribute("show", true);
+                }
             },
             _quickActionsNavigation: function (e) {
                 console.log(e);
