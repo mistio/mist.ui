@@ -679,7 +679,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 value: 1,
                 defaultValue: '',
                 min: 1,
-                max: 16,
+                max: 8,
                 step: 1,
                 show: true,
                 required: false,
