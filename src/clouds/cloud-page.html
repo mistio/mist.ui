@@ -464,8 +464,7 @@
             },
             listeners: {
                 'confirmation': '_deleteCloud',
-                'delete-cloud': '_deleteCloudConfirmation',
-                'select-action': 'selectAction'
+                'delete-cloud': '_deleteCloudConfirmation'
             },
             observers: [
                 '_cloudChanged(cloud, cloud.*)',
@@ -573,14 +572,14 @@
                 return provider == 'bare_metal';
             },
             _changeState: function (e) {
-                this.querySelector('#enable-disable-cloud').disabled = true;
-                this.querySelector('#cloudStateAjaxRequest').headers["Content-Type"] = 'application/json';
-                this.querySelector('#cloudStateAjaxRequest').headers["Csrf-Token"] = CSRF_TOKEN;
-                this.querySelector('#cloudStateAjaxRequest').body = {
+                this.$['enable-disable-cloud'].disabled = true;
+                this.$['cloudStateAjaxRequest'].headers["Content-Type"] = 'application/json';
+                this.$['cloudStateAjaxRequest'].headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$['cloudStateAjaxRequest'].body = {
                     new_state: this.cloud.enabled ? '0' : '1'
                 };
                 this.expectedState = this.cloud.enabled ? '0' : '1';
-                this.querySelector('#cloudStateAjaxRequest').generateRequest();
+                this.$['cloudStateAjaxRequest'].generateRequest();
             },
             _handleCloudStateAjaxResponse: function (e) {
                 var message = this.expectedState == true ? 'Cloud ' + this.cloud.title +
@@ -592,20 +591,13 @@
 
             },
             _handleCloudStateAjaxError: function (e) {
-                this.querySelector('#enable-disable-cloud').checked = this.cloud.enabled;
+                this.$['enable-disable-cloud'].checked = this.cloud.enabled;
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: e.detail.request.xhr.response,
                     duration: 10000
                 } }));
 
-            },
-            // redirect events
-            selectAction: function (e) {
-                e.stopImmediatePropagation();
-                if (this.querySelector('cloud-actions')) {
-                    this.querySelector('cloud-actions').selectAction(e);
-                }
-            },
+            }
         });
     </script>
 </dom-module>
