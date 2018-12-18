@@ -188,6 +188,9 @@
                     <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
                         <paper-dropdown-menu class="dropdown-block">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
+                                <template is="dom-if" if="[[!monitoredMachines.length]]">
+                                    <paper-item disabled>no monitored machines found</paper-item>
+                                </template>
                                 <template id="monitoredMachinesRepeat" is="dom-repeat" items="[[monitoredMachines]]">
                                     <paper-item value="[[item.id]]">[[item.name]]</paper-item>
                                 </template>
@@ -514,7 +517,7 @@
         _resetRule: function(event) {
             this.set('rule', {
                 actions: [{
-                    emailsInvalid: null
+                    emailsInvalid: false
                 }],
                 queries: [{}],
                 aggregation: '',
@@ -622,17 +625,26 @@
             for (var i = 0; i < this.rule.actions.length; i++) {
                 if (this.rule.actions[i].type == 'alert') {
                     var emails;
-                    if (this.rule.actions[i].emails instanceof Array) {
-                        emails = this.rule.actions[i].emails;
-                    } else if (typeof this.rule.actions[i].emails == "string") {
-                        emails = this.rule.actions[i].emails.split();
+                    if (this.rule.actions[i].emails.length && !this.rule.actions[i].emailsInvalid) {
+                        if (this.rule.actions[i].emails instanceof Array) {
+                            emails = this.rule.actions[i].emails;
+                        } else if (typeof this.rule.actions[i].emails == "string") {
+                            emails = this.rule.actions[i].emails.split(',');
+                        }
                     }
+                    console.log('emails',emails);
                     payload.actions[i] = {
                         type: 'notification',
-                        users: this.rule.actions[i].users,
-                        teams: this.rule.actions[i].teams,
-                        emails: emails
                     };
+                    if (this.rule.actions[i].users && this.rule.actions[i].users.length) {
+                        payload.actions[i].users = this.rule.actions[i].users;
+                    }
+                    if (this.rule.actions[i].teams && this.rule.actions[i].teams.length) {
+                        payload.actions[i].teams = this.rule.actions[i].teams;
+                    }
+                    if (emails && emails.length) {
+                        payload.actions[i].emails = emails;
+                    }
                 } else if (this.rule.actions[i].type == 'run') {
                     payload.actions[i] = {
                         type: 'command',

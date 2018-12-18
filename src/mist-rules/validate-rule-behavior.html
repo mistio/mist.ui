@@ -21,13 +21,15 @@ validateRuleBehavior = {
             }
             for (var i = 0; i < this.rule.actions.length; i++) {
                 validActions = this._validateAction(this.rule.actions[i]);
-                if (!validActions)
+                if (!validActions) {
                     break;
+                }
             }
             for (var j = 0; j < this.rule.queries.length; j++) {
                 validQueries = this._validateQuery(this.rule.queries[j]);
-                if (!validQueries)
+                if (!validQueries) {
                     break;
+                }
             }
         }
         this.set('isValidRule', valid && validActions && validQueries);
@@ -37,6 +39,12 @@ validateRuleBehavior = {
         if (action.type == 'reboot' || action.type == 'destroy') {
             valid = true;
         } else if (action.type == 'alert') {
+            console.log('validate action', action.emails && action.emails.length && !action.emailsInvalid);
+            console.log(action.teams && action.teams.length);
+            console.log(action.users && action.users.length);
+            console.log('validate action',(action.emails && action.emails.length && !action.emailsInvalid) ||
+                (action.teams && action.teams.length) ||
+                (action.users && action.users.length));
             if ((action.emails && action.emails.length && !action.emailsInvalid) ||
                 (action.teams && action.teams.length) ||
                 (action.users && action.users.length)) {
