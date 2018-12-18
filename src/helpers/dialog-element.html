@@ -5,11 +5,12 @@
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../app-form/app-form.html">
 
 <dom-module id="dialog-element">
     <template>
-        <style include="shared-styles dialogs">
+        <style include="shared-styles dialogs forms">
             :host {
             }
             paper-dialog ::content h2,
@@ -26,48 +27,50 @@
             }
         </style>
 
-        <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>[[title]]</h2>
-            <paper-dialog-scrollable>
-                <div hidden$="[[hideText]]">
-                    <p>
-                        [[body]]
-                    </p>
-                    <ul hidden$="[[!list]]">
-                        <template is="dom-repeat" items="[[list]]">
-                            <li>[[item]]</li>
-                        </template>
-                    </ul>
-                    <p hidden$="[[!alert]]" class="margin">
-                        <strong>[[alert]]</strong>
-                    </p>
-                    <p hidden$="[[!subscript]]">
-                        [[subscript]]
-                    </p>
+        <vaadin-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <template>
+                <h2>[[title]]</h2>
+                <div class="paper-dialog-scrollable">
+                    <div hidden$="[[hideText]]">
+                        <p>
+                            [[body]]
+                        </p>
+                        <ul hidden$="[[!list]]">
+                            <template is="dom-repeat" items="[[list]]">
+                                <li>[[item]]</li>
+                            </template>
+                        </ul>
+                        <p hidden$="[[!alert]]" class="margin">
+                            <strong>[[alert]]</strong>
+                        </p>
+                        <p hidden$="[[!subscript]]">
+                            [[subscript]]
+                        </p>
+                    </div>
+                    <template is="dom-if" if="[[fields]]" restamp>
+                        <app-form fields="{{fields}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
+                    </template>
                 </div>
-                <template is="dom-if" if="[[fields]]" restamp>
-                    <app-form fields="{{fields}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
-                </template>
-            </paper-dialog-scrollable>
-            <div hidden$="[[!_computeType(type, 'isYesNo')]]" class="clearfix btn-group">
-                <paper-button hidden$="[[danger]]" class="link" dialog-dismiss>
-                    <span hidden$="[[!undo]]"> [[undo]] </span>
-                    <span hidden$="[[undo]]"> Cancel</span>
-                </paper-button>
-                <paper-button hidden$="[[danger]]" class="blue" dialog-confirm>
-                    <span hidden$="[[action]]"> Proceed </span>
-                    <span hidden$="[[!action]]">[[action]]</span>
-                </paper-button>
-                <paper-button hidden$="[[!danger]]" dialog-dismiss>
-                    <span hidden$="[[!undo]]"> [[undo]] </span>
-                    <span hidden$="[[undo]]"> Cancel</span>
-                </paper-button>
-                <paper-button hidden$="[[!danger]]" class="red" dialog-confirm>
-                    <span hidden$="[[action]]"> Delete </span>
-                    <span hidden$="[[!action]]">[[action]]</span>
-                </paper-button>
-            </div>            
-        </paper-dialog>
+                <div hidden$="[[!_computeType(type, 'isYesNo')]]" class="clearfix btn-group">
+                    <paper-button hidden$="[[danger]]" class="link" on-tap="_dismissDialog">
+                        <span hidden$="[[!undo]]"> [[undo]] </span>
+                        <span hidden$="[[undo]]"> Cancel </span>
+                    </paper-button>
+                    <paper-button hidden$="[[danger]]" class="blue" dialog-confirm on-tap="_closeDialog">
+                        <span hidden$="[[action]]"> Proceed </span>
+                        <span hidden$="[[!action]]">[[action]]</span>
+                    </paper-button>
+                    <paper-button hidden$="[[!danger]]" on-tap="_dismissDialog">
+                        <span hidden$="[[!undo]]"> [[undo]] </span>
+                        <span hidden$="[[undo]]"> Cancel </span>
+                    </paper-button>
+                    <paper-button hidden$="[[!danger]]" class="red" dialog-confirm on-tap="_closeDialog">
+                        <span hidden$="[[action]]"> Delete </span>
+                        <span hidden$="[[!action]]">[[action]]</span>
+                    </paper-button>
+                </div>
+            </template>
+        </vaadin-dialog>
     </template>
 
     <script>
@@ -76,7 +79,7 @@
 
             Polymer({
                 is: 'dialog-element',
-
+                behaviors: [MistListActionsBehavior],
                 properties: {
                     title: {
                         type: String,
@@ -122,18 +125,17 @@
                         value: false
                     }
                 },
-                listeners: {
-                    'iron-overlay-closed': '_modalClosed'
-                },
+                listeners: {},
                 ready: function() {},
                 _computeType: function(type, value) {
                     return type == value;
                 },
                 _openDialog: function(e) {
-                    this.$.dialogModal.open();
+                    this.$.dialogModal.opened = true;
                 },
                 _closeDialog: function(e) {
-                    this.$.dialogModal.close();
+                    this.$.dialogModal.opened = false;
+                    this._modalClosed(e);
                 },
                 _modalClosed: function(e) {
                     console.log('closed');
@@ -141,7 +143,8 @@
                     // if (e.target.id == 'dialogModal') {
                         console.log(this.$.dialogModal.closingReason);
                         this.dispatchEvent(new CustomEvent('confirmation', { bubbles: true, composed: true, detail: {
-                            response: this.$.dialogModal.closingReason,
+                            response: 'confirm',
+                            confirmed: true,
                             reason: this.reason
                         } }));
                     // }
