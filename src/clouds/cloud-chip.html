@@ -65,10 +65,11 @@
       /*@apply --layout-flex;*/
       display: block;
     }
-    #icon ::content iron-icon.icon,
-    #icon ::slotted(iron-icon.icon),
-    #icon ::content iron-icon.icon svg,
-    #icon ::slotted(iron-icon.icon svg) {
+    #icon ::content iron-icon,
+    #icon ::slotted(iron-icon),
+    #icon ::content iron-icon svg,
+    #icon ::slotted(iron-icon svg),
+    iron-icon, iron-icon svg {
       width: 32px;
       height: 32px;
     }
@@ -94,69 +95,9 @@
       @apply --layout-self-center;
     }
 
-    /* pressed state */
-    :host([pressed]) #main {
-      background-color: var(--paper-chip-pressed-background-color, var(--paper-grey-300));
-    }
-
-    /* opened state */
-    :host([opened]) #main, :host([opened]) #chip {
-      border-radius: 0;
-    }
-    :host([opened]) #content {
-      height: auto;
-      width: auto;
-      min-width: 100%;
-      overflow: hidden;
-    }
     /* retain width on opened state, while having padding */
     :host #chip {
       box-sizing: border-box;
-    }
-    :host([opened]) #chip {
-      height: 48px;
-      padding-left: 8px;
-    }
-    :host([opened]) #chip,
-    :host([opened]) #content ::content > *,
-    :host([opened]) #content ::slotted(> *) {
-      background-color: #424242;
-      color: #fff;
-    }
-    :host([opened]) #label ::content h1,
-    :host([opened]) #label ::slotted(h1) {
-      color: #fff;
-      font-size: 14px;
-    }
-    :host([opened]) paper-material {
-      border-radius: 0;
-      background-color: #424242;
-      color: #fff;
-    }
-    :host([opened]) #icon ::content .icon,
-    :host([opened]) #icon ::slotted(.icon),
-    :host([opened]) #icon ::content iron-icon.icon svg,
-    :host([opened]) #icon ::slotted(iron-icon.icon svg) {
-      font-size: 20px;
-      width: 28px;
-      height: 28px;
-      line-height: 30px;
-    }
-
-    /* open + active state */
-    :host([opened][active]) #chip,
-    :host([opened][active]) ::content,
-    :host([opened][active]) ::slotted() {
-      background-color: #424242;
-      color: #fff;
-    }
-    :host([opened][active]) #chip #label ::content h1,
-    :host([opened][active]) #chip #label ::slotted(h1) {
-      color: #fff;
-    }
-    :host([opened][active]) #chip #label ::content h2,
-    :host([opened][active]) #chip #label ::slotted(h2)  {
-      color: #fff;
     }
 
   </style>
@@ -176,71 +117,7 @@
 <script>
     Polymer({
       is: 'cloud-chip',
-      behaviors: [
-        Polymer.IronButtonState,
-        Polymer.IronControlState,
-      ],
       properties: {
-        /**
-         * Whether or not the chip is removable. If `true`, a remove button will
-         * be shown.
-         *
-         * @attribute removable
-         * @type boolean
-         * @default false
-         */
-        removable: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
-        },
-
-        /**
-         * Whether or not the chip uses an animated transition between opened and
-         * closed states
-         *
-         * @attribute animated
-         * @type boolean
-         * @default true
-         */
-        animated: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
-        },
-
-        /**
-         * Whether or not the chip is in its opened state.
-         *
-         * @attribute opened
-         * @type boolean
-         * @default false
-         */
-        opened: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true,
-          observer: '_openedChanged'
-        },
-
-        /**
-         * Whether or not the chip state is "active". If `true`, the main chip
-         * area will be highlighted when in the opened state.
-         *
-         * @attribute active
-         * @type boolean
-         * @default false
-         */
-        active: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
-        },
-
-        _elevation: {
-          type: Number
-        },
-
         cloud: {
           type: Object, 
           notify: true
@@ -258,12 +135,8 @@
           value: false
         },
       },
-      listeners: {
-        // up: '_upAction',
-        blur: '_blurAction'
-      },
+      listeners: {},
       observers: [
-        '_calculateElevation(opened, focused, disabled, active, pressed)',
         '_computeIsOnline(cloud.enabled,cloud.state)',
       ],
 
@@ -286,22 +159,6 @@
           }
         }
       },
-      _calculateElevation: function() {
-        var e = 0;
-        if (this.focused || this.pressed || this.receivedFocusFromKeyboard) {
-          e = 1;
-        }
-        if (this.opened) {
-          e = 4;
-        }
-        this._elevation = e;
-      },
-      _upAction: function(e) {
-        this.toggleOpened();
-      },
-      _blurAction: function() {
-        this.opened = false;
-      },
       /**
        * Fired before the element is removed. This event is cancelable.
        *
@@ -312,36 +169,7 @@
         if (!e.defaultPrevented) {
           this.parentNode.removeChild(this);
         }
-      },
-      toggleOpened: function() {
-        this.opened = !this.opened;
-      },
-      _openedChanged: function() {
-        if (!this.animated) {
-          return;
-        }
-        var $content, width, height;
-        $content = this.$.content;
-        width = height = '';
-        if (this.opened) {
-          // temporarily disable transitions in order to take measurements of
-          // the content area, allowing for a proper css transision.
-          this.animated = false;
-          this.opened = true;
-          width = $content.offsetWidth + 'px';
-          height = $content.offsetHeight + 'px';
-          this.opened = false;
-          this._forceReflow();
-          this.opened = true;
-          this.animated = true;
-        }
-        $content.style.width = width;
-        $content.style.height = height;
-      },
-      _forceReflow: function() {
-        return this.offsetHeight;
       }
     });
   </script>
-
 </dom-module>
