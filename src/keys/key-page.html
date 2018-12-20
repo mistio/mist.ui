@@ -8,9 +8,6 @@
 <dom-module id="key-page">
     <template>
         <style include="shared-styles single-page tags-and-labels">
-            :host {
-            }
-
             paper-material {
                 display: block;
                 padding: 24px;
@@ -163,13 +160,14 @@
                     display: inline;
                 }
             }
+
             .single-head {
                 @apply --key-page-head-mixin
             }
 
             key-actions {
                 fill: #fff;
-                width: 50%;
+                min-width: 50%;
             }
         </style>
         <div id="content">
@@ -189,7 +187,7 @@
                     </div>
 
                 </div>
-                <key-actions actions="{{actions}}" items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></key-actions>
+                <key-actions id="keyActions" actions="{{actions}}" items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></key-actions>
             </paper-material>
 
             <div class="key-info">
@@ -268,6 +266,10 @@
                     mistLoadingBehavior
                 ],
                 properties: {
+                    hidden: {
+                        type: Boolean,
+                        reflectToAttribute: true
+                    },
                     ownership: {
                         type: Boolean
                     },
@@ -328,12 +330,16 @@
                     }
                 },
                 observers: [
-                    'update(key)'
+                    '_keyUpdated(key)',
+                    '_hiddenUpdated(hidden)'
                 ],
                 listeners: {
                     'confirmation': '_deleteKeyEventResponse'
                 },
-                update: function(key){
+                _hiddenUpdated: function (hidden) {
+                    this.$.keyActions.fire('resize');
+                },
+                _keyUpdated: function(key){
                     if (key){
                         this.$.keyPublicRequest.headers["Content-Type"] = 'application/json';
                         this.$.keyPublicRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -341,8 +347,7 @@
                         this.$.keyPublicRequest.generateRequest();
 
                         this.set('itemArray', [this.key]);
-                    }
-                    else {
+                    } else {
                         this.set('itemArray', []);
                         this.set('publicKey', '');
                     }
