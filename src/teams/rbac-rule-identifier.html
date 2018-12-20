@@ -87,8 +87,8 @@
         <span hidden$="[[!showDropDown]]">
             <paper-dropdown-menu no-animations hidden$="[[showTags]]" placeholder="[[placeholder]]" no-label-float>
                 <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="datavalue" selected="{{rule.rid}}">
-                    <template is="dom-repeat" items="[[resourceDropDown]]" as="resource">
-                        <paper-item class="rid" id="[[resource.id]]" datavalue="[[resource.id]]">[[resource.title]] [[resource.name]] [[resource.domain]]</paper-item>
+                    <template is="dom-repeat" items="[[availableResourceItems]]" as="resource">
+                        <paper-item class="rid" id="[[resource.id]]" datavalue="[[resource.id]]">[[_computeResourceCloud(resource)]] [[resource.title]] [[resource.name]] [[resource.domain]]</paper-item>
                     </template>
                 </paper-listbox>
             </paper-dropdown-menu>
@@ -122,10 +122,10 @@
                 type: Number,
                 computed: "_computeSelectedIdentifierType(rule, rule.rtags, rule.rid)"
             },
-            resourceDropDown: {
+            availableResourceItems: {
                 type: Array,
                 value: [],
-                computed: '_computeRuleDD(rule.rtype, model.*)'
+                computed: '_computeAvailableResourceItems(rule.rtype, model.*)'
             },
             showDropDown: {
                 type: Boolean,
@@ -150,7 +150,7 @@
             },
             tags: {
                 type: Array,
-                computed: '_computeRTags(rule.rtags)'
+                computed: '_computeTagsArray(rule.rtags)'
             },
             placeholder: {
                 type: String,
@@ -167,7 +167,12 @@
 
         },
         _computeTagString: function(rule, rtags) {
-            return this._computeRTags(rtags).join(', ');
+            return this._computeTagsArray(rtags).join(', ');
+        },
+        _computeResourceCloud: function (resource) {
+            if (!resource || !resource.cloud || !this.model || !this.model.clouds || !this.model.clouds[resource.cloud])
+                return '';
+            return this.model.clouds[resource.cloud].title + ' ::';
         },
         _updateIdentifier: function(e) {
             // case of changing identifier-type 
@@ -199,10 +204,7 @@
                         'rtags': {}
                     } }))
                 }
-
-            }
-            // case of choοsing rid                 
-            else if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1) {
+            } else if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1) { // case of choοsing rid
                 var rid = e.detail.item.id;
                 this.dispatchEvent(new CustomEvent('update-rid', { bubbles: true, composed: true, detail: {
                     'index': this.index,
@@ -219,7 +221,7 @@
         _ruleHasId: function(rule) {
             return rule.rid.length > 0 ? true : false;
         },
-        _computeRTags: function(tags) {
+        _computeTagsArray: function(tags) {
             if (tags) {
                 var arrTags = Object.keys(tags);
                 for (var i = 0; i < arrTags.length; i++) {
@@ -257,28 +259,28 @@
         },
         _computeRecords: function() {
             var allRecords = [];
-            this.model['zonesArray'].forEach(function(zone) {
+            Object.values(this.model['zones']).forEach(function(zone) {
                 zone.records.forEach(function(record) {
                     allRecords.push(record);
                 })
-            })
+            });
             return allRecords;
         },
-        _computeRuleDD: function(rtype, model) {
+        _computeAvailableResourceItems: function(rtype, model) {
             if (rtype) {
-                if (rtype != 'record') {
-                    if (['machine', 'network'].indexOf(rtype) == -1) {
-                        this.set('placeholder', this.model[rtype + "sArray"].length ? "" : "no " + rtype + "s found");
-                        return this.model[rtype + 'sArray'];
-                    } else {
-                        this.set('placeholder', mapToArray(this.model[rtype + "s"]).length ? "" : "no " + rtype + "s found");
-                        return mapToArray(this.model[rtype + "s"]);
-                    }
-                }
-                if (rtype == 'record') {
+                if (rtype == 'location') {
+                    var allLocations = []
+                    Object.values(this.model.clouds).forEach(function(cloud) {
+                        allLocations = allLocations.concat(Object.values(cloud.locations));
+                    });
+                    return allLocations;
+                } else if (rtype == 'record') {
                     var records = this._computeRecords();
                     this.set('placeholder', records.length ? "" : "no zones found");
                     return records;
+                } else {
+                    this.set('placeholder', Object.keys(this.model[rtype + "s"]).length ? "" : "no " + rtype + "s found");
+                    return Object.values(this.model[rtype + 's']);
                 }
             }
         },
