@@ -4,7 +4,8 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 
@@ -20,7 +21,9 @@
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <dialog-element id="confirm"></dialog-element>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
-
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
@@ -73,6 +76,7 @@ ZONE_ACTIONS = {
         '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
+        'select-action': 'selectAction',
         'confirmation': 'confirmAction',
         'transfer-ownership': 'transferOwnership'
       },

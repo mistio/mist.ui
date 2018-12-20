@@ -86,86 +86,76 @@
             }
         </style>
         <app-location route="{{route}}"></app-location>
-        <zone-actions items="[[itemArray]]" actions="{{actions}}" members="[[model.membersArray]]" user="[[model.user.id]]" org="[[model.org]]"></zone-actions>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active="[[isLoading]]"></paper-spinner>
-                <div class="notify"> Retrieving details from the provider...</div>
-            </div> -->
-            <!-- <div> -->
-                <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
-                    <paper-material class="single-head layout horizontal">
-                        <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
-                        <div class="title flex">
-                            <h2>[[zone.domain]]</h2>
-                            <div class="subtitle">
-                                [[zoneCloud]]
-                            </div>
+            <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
+                <paper-material class="single-head layout horizontal">
+                    <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                    <div class="title flex">
+                        <h2>[[zone.domain]]</h2>
+                        <div class="subtitle">
+                            [[zoneCloud]]
                         </div>
-                        <mist-actions actions="[[actions]]" type="zone" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
-                        <!-- <div class="item-actions">
-                            <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                            <paper-button on-tap="_deleteZone" class="simple">delete
-                                <iron-icon icon="delete"></iron-icon>
-                            </paper-button>
-                        </div> -->
-                    </paper-material>
-                    <paper-material>
-                        <div class="missing" hidden$="[[!isMissing]]">Zone not found.</div>
+                    </div>
+                    <mist-actions actions="[[actions]]" type="zone" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                    <zone-actions items="[[itemArray]]" actions="{{actions}}" members="[[model.membersArray]]" user="[[model.user.id]]" org="[[model.org]]"></zone-actions>
+                </paper-material>
+                <paper-material>
+                    <div class="missing" hidden$="[[!isMissing]]">Zone not found.</div>
+                    <div class='resource-info'>
+                        <h4 class="id">Zone ID:</h4> <span class="id">[[zone.id]]</span>
+                    </div>
+                    <div class='resource-info' hidden$="[[!zone.owned_by.length]]">
+                        <h4 class="id">Owner:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.owned_by,model.members)]]</a></span>
+                    </div>
+                    <div class='resource-info' hidden$="[[!zone.created_by.length]]">
+                        <h4 class="id">Created by:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.created_by,model.members)]]</a></span>
+                    </div>
+                    <template is="dom-if" if="[[zoneTags.length]]">
                         <div class='resource-info'>
-                            <h4 class="id">Zone ID:</h4> <span class="id">[[zone.id]]</span>
+                            <h4 class="id tags">Tags </h4>
+                            <template is="dom-repeat" items="[[zoneTags]]">
+                                <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
+                            </template>
                         </div>
-                        <div class='resource-info' hidden$="[[!zone.owned_by.length]]">
-                            <h4 class="id">Owner:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.owned_by,model.members)]]</a></span>
-                        </div>
-                        <div class='resource-info' hidden$="[[!zone.created_by.length]]">
-                            <h4 class="id">Created by:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.created_by,model.members)]]</a></span>
-                        </div>
-                        <template is="dom-if" if="[[zoneTags.length]]">
-                            <div class='resource-info'>
-                                <h4 class="id tags">Tags </h4>
-                                <template is="dom-repeat" items="[[zoneTags]]">
-                                    <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
-                                </template>
+                    </template>
+                </paper-material>
+                <paper-material>
+                    <h4 class="id">Zone Info</h4>
+                    <div class="info-table">
+                        <div class="info-body info-group">
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Domain</div>
+                                <div id="domain-name" class="flexchild">[[zone.domain]]</div>
                             </div>
-                        </template>
-                    </paper-material>
-                    <paper-material>
-                        <h4 class="id">Zone Info</h4>
-                        <div class="info-table">
-                            <div class="info-body info-group">
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Domain</div>
-                                    <div id="domain-name" class="flexchild">[[zone.domain]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">ID</div>
-                                    <div class="flexchild id">[[zone.id]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Provider</div>
-                                    <div class="flexchild">[[zone.provider]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Type</div>
-                                    <div class="flexchild">[[zone.zone_type]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">TTL</div>
-                                    <div class="flexchild">[[zone.ttl]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Records</div>
-                                    <div class="flexchild">
-                                        [[_computeRecordsLength(zone.records)]]
-                                    </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">ID</div>
+                                <div class="flexchild id">[[zone.id]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Provider</div>
+                                <div class="flexchild">[[zone.provider]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Type</div>
+                                <div class="flexchild">[[zone.zone_type]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">TTL</div>
+                                <div class="flexchild">[[zone.ttl]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Records</div>
+                                <div class="flexchild">
+                                    [[_computeRecordsLength(zone.records)]]
                                 </div>
                             </div>
                         </div>
-                    </paper-material>
-                    <paper-material hidden$="[[!hasRecords]]">
-                        <h4 class="id">Records</h4>
-                        <template is="dom-if" if="[[renderRecordsList]]" restamp>
+                    </div>
+                </paper-material>
+                <paper-material hidden$="[[!hasRecords]]">
+                    <h4 class="id">Records</h4>
+                    <template is="dom-if" if="[[renderRecordsList]]" restamp>
+                        <record-actions id="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]>
                             <mist-list id="recordsList" class$="[[zone.id]]"
                                 selectable column-menu multi-sort
                                 items=[[zoneRecords]]
@@ -174,16 +164,14 @@
                                 frozen=[[_getFrozenLogColumn()]]
                                 visible=[[_getVisibleColumns()]]
                                 renderers=[[_getRenderers()]]>
-                                <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
-                                <record-actions id="actions" slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]></record-actions>
-                          </mist-list>
-                      </template>
-                    </paper-material>
-                    <div class="absolute-bottom-right">
-                        <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
-                    </div>
+                            </mist-list>
+                        </record-actions>
+                  </template>
+                </paper-material>
+                <div class="absolute-bottom-right">
+                    <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
                 </div>
-            <!-- </div> -->
+            </div>
             <record-add model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-add>
         </div>
         <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>

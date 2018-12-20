@@ -19,11 +19,27 @@
         <!-- <app-location route="{{route}}"></app-location> -->
         <app-route route="{{route}}" pattern="/:zone" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="zonesList" selectable resizable column-menu multi-sort apiurl="/api/v1/zones" item-map=[[model.zones]] name="Zones" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.zones)]] route={{route}} user-filter=[[model.sections.zones.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="zone" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <zone-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></zone-actions>
-                <p slot="no-items-found">No zones found.</p>
-            </mist-list>
+            <zone-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">
+                <mist-list selectable resizable column-menu multi-sort
+                    id="zonesList"
+                    apiurl="/api/v1/zones"
+                    item-map="[[model.zones]]"
+                    name="Zones"
+                    selected-items="{{selectedItems}}"
+                    filtered-items-length="{{filteredItemsLength}}"
+                    combined-filter={{combinedFilter}}
+                    frozen=[[_getFrozenColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers()]]
+                    route={{route}}
+                    user-filter=[[model.sections.zones.q]]
+                    primary-field-name="id"
+                    filter-method="[[_ownerFilter()]]"
+                    actions="[[actions]]">
+                        <p slot="no-items-found">No zones found.</p>
+                </mist-list>
+            </zone-actions>
+
             <div class="absolute-bottom-right">
                 <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
@@ -56,9 +72,7 @@
             }
         },
 
-        listeners: {
-            'select-action': 'selectAction',
-        },
+        listeners: {},
 
         _isAddPageActive: function(path) {
             return path == '/+add';
@@ -81,7 +95,7 @@
             } }));
 
         },
-        _getFrozenLogColumn: function() {
+        _getFrozenColumn: function() {
             return ['domain'];
         },
 
@@ -152,13 +166,6 @@
                         return display;
                     }
                 }
-            }
-        },
-        // redirect events
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#zonesList')) {
-                this.shadowRoot.querySelector('#zonesList').shadowRoot.querySelector('#actions').selectAction(e);
             }
         }
     });

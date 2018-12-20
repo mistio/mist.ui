@@ -4,7 +4,8 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 
@@ -24,7 +25,9 @@
     <dialog-element id="confirm"></dialog-element>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
-
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
@@ -88,6 +91,7 @@ TUNNEL_ACTIONS = {
         '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
+        'select-action': 'selectAction',
         'confirmation': 'confirmAction',
         'transfer-ownership': 'transferOwnership'
       },
@@ -199,9 +203,6 @@ TUNNEL_ACTIONS = {
         }
         else if (action.name == 'edit') {
           this.dispatchEvent(new CustomEvent('edit'));
-
-
-
         }
       },
       handleResponse: function(e) {
@@ -210,9 +211,6 @@ TUNNEL_ACTIONS = {
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));
-
-
-
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000

@@ -4,7 +4,8 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../helpers/mist-lists-behavior.html">
 
@@ -19,7 +20,9 @@
     
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <dialog-element id="confirm"></dialog-element>
-
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
@@ -63,6 +66,7 @@ RECORD_ACTIONS = {
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
+        'select-action': 'selectAction',
         'confirmation': 'confirmAction'
       },
       attached: function() {
@@ -179,7 +183,6 @@ RECORD_ACTIONS = {
       handleError: function(e) {
         // console.log(e.detail.request.xhr.statusText);
         this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000} }));
-
       },
 
       _makeList: function(items, property){
