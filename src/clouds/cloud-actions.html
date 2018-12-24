@@ -1,5 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
@@ -8,7 +8,6 @@
 <link rel="import" href="../../bower_components/vaadin-icons/vaadin-icons.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
-<link rel="import" href="cloud-info.html">
 <link rel="import" href="cloud-edit.html">
 <link rel="import" href="cloud-dns.html">
 <link rel="import" href="other-cloud-add-machine.html">
@@ -28,42 +27,62 @@
         fill: #fff;
       }
 
-      paper-dialog#renameDialog {
+      vaadin-dialog#renameDialog {
         max-width: 350px;
       }
 
-      paper-dialog#credentialsDialog,
-      paper-dialog#addhostsDialog,
-      paper-dialog#dnsDialog {
+      vaadin-dialog#credentialsDialog,
+      vaadin-dialog#addhostsDialog,
+      vaadin-dialog#dnsDialog {
         max-width: 650px;
+      }
+
+      div.button {
+        margin: 24px 0 0 0;
+        display: flex;
+        justify-content: flex-end;
       }
     </style>
 
-    <paper-dialog id="renameDialog" with-backdrop>
-      <h3>Rename Cloud</h3>
-      <paper-dialog-scrollable>
-        <cloud-info cloud="[[cloud]]" opened></cloud-info>
-        <paper-dialog-scrollable>
-    </paper-dialog>
+    <iron-ajax id="cloudEditAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="PUT" on-response="_handleCloudEditAjaxResponse" on-error="_handleCloudEditAjaxError"></iron-ajax>
+    <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse" on-error="_handleCloudDeletionAjaxError"></iron-ajax>
 
-    <paper-dialog id="credentialsDialog" with-backdrop>
-      <h3>Edit Credentials</h3>
-      <paper-dialog-scrollable>
-        <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]" keys="[[model.keysArray]]"></cloud-edit>
-      </paper-dialog-scrollable>
-    </paper-dialog>
+    <vaadin-dialog id="renameDialog">
+      <template>
+        <h3>Rename Cloud</h3>
+        <div style="margin-bottom: 16px;">
+            <paper-input label="Title" value="{{newCloud.title}}" autofocus tabindex="0"></paper-input>
+            <div class="button">
+                <paper-button id="rename-cloud" dialog-confirm disabled$="[[!formReady]]" on-tap="_changeTitle" class="blue">Save Title</paper-button>
+            </div>
+        <div>
+      </template>
+    </vaadin-dialog>
 
-    <paper-dialog id="dnsDialog" with-backdrop>
-      <h3>DNS option</h3>
-      <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
-    </paper-dialog>
+    <vaadin-dialog id="credentialsDialog">
+      <template>
+        <h3>Edit Credentials</h3>
+        <div>
+          <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]" keys="[[model.keysArray]]"></cloud-edit>
+        </div>
+      </template>
+    </vaadin-dialog>
 
-    <paper-dialog id="addhostsDialog" with-backdrop>
-      <h3>Add Host</h3>
-      <paper-dialog-scrollable>
-        <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>
-      </paper-dialog-scrollable>
-    </paper-dialog>
+    <vaadin-dialog id="dnsDialog">
+      <template>
+        <h3>DNS option</h3>
+        <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
+      </template>
+    </vaadin-dialog>
+
+    <vaadin-dialog id="addhostsDialog">
+      <template>
+        <h3>Add Host</h3>
+        <div>
+          <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>
+        </div>
+      </template>
+    </vaadin-dialog>
 
     <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse"
       on-error="_handleCloudDeletionAjaxError"></iron-ajax>
@@ -117,16 +136,18 @@
     };
     Polymer({
       is: 'cloud-actions',
+      behaviors: [MistListActionsBehavior],
       properties: {
         model: {
             type: Object
         },
         items: {
           type: Array,
-          value: []
+          value: function () { return [] }
         },
         cloud: {
-          type: Object
+          type: Object,
+          computed: '_computeCloud(items)'
         },
         actions: {
           type: Array,
@@ -140,7 +161,19 @@
         inSingleView: {
           type: Boolean,
           reflectToAttribute: true
-        }
+        },
+        newCloud: {
+          type: Object,
+          computed: '_computeNewCloud(cloud)'
+        },
+        sendingData: {
+          type: Boolean,
+          value: false
+        },
+        formReady: {
+          type: Boolean,
+          computed: '_computeFormReady(cloud.title, newCloud.title, sendingData)'
+        },
       },
       observers: [
         '_mapPolicyToActions(items.*)'
@@ -159,9 +192,9 @@
         this.$.request.method = "POST";
       },
       closeRenameDialog: function (e) {
-        this.$.renameDialog.close();
+        this.$.renameDialog.opened = false;
       },
-      itemActions: function (cloud) {
+      computeItemActions: function (cloud) {
         var arr = [];
         if (cloud) {
           if (['ec2', 'gce', 'digitalocean', 'linode', 'rackspace', 'softlayer', 'vultr'].indexOf(cloud.provider) >
@@ -180,7 +213,7 @@
       _isBareMetal: function (provider) {
         return provider == 'bare_metal';
       },
-      actionDetails: function (actions) {
+      computeActionListDetails: function (actions) {
         var ret = [];
         for (var i = 0; i < actions.length; i++) {
           ret.push(CLOUD_ACTIONS[actions[i]]);
@@ -220,29 +253,29 @@
           } else if (action.name == 'tag') {
             this.$.tagsdialog._openDialog();
           } else if (action.name == 'edit credentials') {
-            this.$.credentialsDialog.open();
+            this.$.credentialsDialog.opened = true;
           } else if (action.name == 'add host') {
-            this.$.addhostsDialog.open();
+            this.$.addhostsDialog.opened = true;
           } else if (action.name == 'dns') {
-            this.$.dnsDialog.open();
+            this.$.dnsDialog.opened = true;
           } else {
             this.performAction(this.action, this.items);
           }
         }
       },
       openEditDialog: function () {
-        this.$.credentialsDialog.open();
+        this.$.credentialsDialog.opened = true;
       },
       closeDialog: function () {
         // console.log('closeDialog');
-        this.$.credentialsDialog.close()
+        this.$.credentialsDialog.opened = false;
       },
       closeDialogs: function () {
-        this.$.renameDialog.close();
-        this.$.credentialsDialog.close();
-        this.$.dnsDialog.close();
-        this.$.addhostsDialog.close();
-        this.$.cloudDeleteAjaxRequest.close();
+        this.$.renameDialog.opened = false;
+        this.$.credentialsDialog.opened = false;
+        this.$.dnsDialog.opened = false;
+        this.$.addhostsDialog.opened = false;
+        this.$.cloudDeleteAjaxRequest.opened = false;
       },
       _showDialog: function (info) {
         var dialog = this.shadowRoot.querySelector('dialog-element');
@@ -255,7 +288,7 @@
       },
       performAction: function (action, items) {
         if (action.name == 'rename') {
-          this.$.renameDialog.open();
+          this.$.renameDialog.opened = true;
         } else if (action.name == 'delete') {
           this._deleteCloud();
         }
@@ -275,41 +308,6 @@
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
           } }));
-      },
-      _mapPolicyToActions: function (items) {
-        // recompute the actions array property as the intersection
-        // of the available actions of the selected items
-        this.set('actions', []);
-        var actions = new swiftSet.Set(),
-          isection = new swiftSet.Set();
-
-        if (this.items.length == 1) {
-          this.set('cloud', this.items[0]);
-        } else {
-          this.set('cloud', null);
-        }
-
-        if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
-
-          for (var i = 1; i < this.items.length; i++) {
-            isection.clear()
-            isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-            actions.clear();
-            actions.addItems(isection.items());
-          }
-
-          var multiActions;
-
-          if (this.items.length > 1) {
-            multiActions = this.actionDetails(actions.items()).filter(function (a) {
-              return a.multi;
-            });
-          } else {
-            multiActions = this.actionDetails(actions.items());
-          }
-        }
-        this.set('actions', multiActions);
       },
 
       recomputeActions: function () {
@@ -352,6 +350,49 @@
           return items.map(function (item) {
             return item[property];
           });
+      },
+
+      _computeCloud: function (items) {
+        if (this.items.length == 1)
+          return this.items[0];
+      },
+
+      _computeNewCloud: function(cloud) {
+        if (cloud)
+          return {
+            title: this.cloud.title
+          }
+      },
+
+      _computeIsEnabled: function(enabled) {
+        return enabled;
+      },
+
+      _computeFormReady: function(title, newTitle, sendingData) {
+        var formReady = false;
+        if (newTitle && newTitle != title) {
+          formReady = true;
+        }
+
+        if (sendingData) {
+          formReady = false;
+        }
+        return formReady;
+      },
+
+      _changeTitle: function() {
+        this.$.cloudEditAjaxRequest.headers["Content-Type"] = 'application/json';
+        this.$.cloudEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.cloudEditAjaxRequest.body = {
+          new_name: this.newCloud.title
+        };
+        this.$.cloudEditAjaxRequest.generateRequest();
+        this.set('sendingData', true);
+        this.set('opened', false);
+      },
+
+      _handleCloudEditAjaxResponse: function() {
+        this.set('sendingData', false);
       }
     });
   </script>
