@@ -19,7 +19,6 @@
 <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="onb-element/onb-element.html">
-<link rel="import" href="clouds/cloud-info.html">
 <link rel="import" href="clouds/cloud-chip.html">
 <dom-module id="page-dashboard">
     <template>
@@ -505,43 +504,6 @@ Polymer({
             ret[mIds[i]] = m ? m.name : 'unknown';
         }
         return ret;
-    },
-    _showCloudInfoDialog: function(e) {
-        var cloudId = e.currentTarget.getAttribute('id');
-        var dialog = this.shadowRoot.querySelector('cloud-info');
-        var parent = this.$.cloudslist;
-        var target = e.currentTarget;
-        var lastInd = this.indexOfLast(parseInt(target.attributes.index.value))
-
-        // find the cloud chip node with index=lastInd
-        var last = [].find.call(parent.children, function(c, index) {
-            if (c.attributes.index) {
-                return c.attributes.index.value == lastInd;
-            }
-            return false;
-        });
-        //insert cloud-info before last node
-        Polymer.dom(parent).insertBefore(dialog, last);
-
-        if (this.openedCloud && this.openedCloud == cloudId) {
-            dialog.removeAttribute('opened');
-            this._closeCloudChips();
-        } else {
-            var cloudChips = this.shadowRoot.querySelectorAll('cloud-chip'),
-                cloud = this.model.cloudsArray.find(function(cloud) {
-                    return cloud.id == cloudId;
-                });
-            [].forEach.call(cloudChips, function(el, index) {
-                if (el == e.currentTarget) {
-                    el.setAttribute('opened', true)
-                } else {
-                    el.removeAttribute('opened');
-                }
-            });
-            this.set('openedCloud', cloudId);
-            dialog.cloud = cloud;
-            dialog.setAttribute('opened', true);
-        }
     },
     _closeCloudChips: function() {
         var cloudChips = this.shadowRoot.querySelectorAll('cloud-chip');
