@@ -707,21 +707,25 @@
                     reflectToAttribute: true
                 }
             },
+
             observers: [
                 '_fieldsChanged(fields.*, sendingData)'
             ],
+
             listeners: {
                 'fields-changed': 'runFieldsChanged',
-                'field-value-changed': 'runValidateFields'
+                'field-value-changed': 'runValidateFields',
+                'app-form-ready': 'runValidateFields'
             },
-            ready: function () {
-            },
+
             renderForm: function() {
                 this.$['app-form-'+this.id].render();
             },
+
             _computeLayoutClass: function (layout) {
                 return this.horizontalLayout ? 'horizontal-grid' : '';
             },
+
             _updateForm: function () {
                 var uniqueFields = {};
                 if (this.fields) {
@@ -735,6 +739,7 @@
                 }
                 this.set('form', uniqueFields);
             },
+
             showOption: function (option) {
                 if (option.title)
                     return option.title;
@@ -743,18 +748,25 @@
                 if (option.id)
                     return option.id;
             },
+
             _compareFieldType: function (field, value, show) {
                 return field.type == value;
             },
+
             _handleRequest: function (e) {
                 this.dispatchEvent(new CustomEvent("request", { bubbles: true, composed: true, detail:  e.detail }));
             },
+
             _handleResponse: function (e, d) {
                 this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));;
                 this.set('sendingData', false);
                 //clear form only on response not on error
                 this._resetForm();
+                var overlay = document.querySelector('vaadin-dialog-overlay');
+                if (overlay)
+                    overlay.opened = false;
             },
+
             _handleError: function (e, d) {
                 this.set('sendingData', false);
                 this.set('formError', true);
@@ -762,13 +774,20 @@
                 // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
                 this.shadowRoot.querySelector("#errormsg").textContent = e.detail.request.xhr.responseText;
             },
+
             runFieldsChanged: function () {
                 this._fieldsChanged()
             },
+
             runValidateFields: function() {
                 var valid = this._validateFields();
+                var prevFormReady = this.formReady;
                 this.set('formReady', valid && !this.sendingData);
+                if (!prevFormReady && this.formReady) {
+                    this.fire('app-form-ready');
+                }
             },
+
             _fieldsChanged: function (fields, sendingData) {
                 if (this.formError) {
                     this.set('formError', false);
@@ -868,13 +887,11 @@
                                 .fieldOptions[dependency]);
                         }
                     });
-
-                    var valid = that._validateFields(that.fields);
-                    // console.log("Validate Fields", valid);
                     that.set('form', form);
-                    that.set('formReady', valid && !sendingData);
+                    that.runValidateFields();
                 });
             },
+
             _validateFields: function (fields) {
                 var fieldsToValidate = fields || this.fields;
                 return fieldsToValidate.every(function (el, index) {
@@ -957,6 +974,7 @@
                     return true;
                 }.bind(this));
             },
+
             _validateDatetime: function(el) {
                 if (el.validate == "inFuture") {
                     var now = moment();
@@ -967,9 +985,11 @@
                     return el.show && el.value ? moment(el.value).isValid() : true;
                 }
             },
+
             _validateMistSize: function (el) {
                 return el.value == "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length; 
             },
+
             _validateCustomValue: function (customSizeFields, customValue) {
                 // console.log('_validateCustomValue',customSizeFields, customValue);
                 if (customSizeFields && customValue) {
@@ -984,6 +1004,7 @@
                     console.warn('customSizeFields empty')
                 return true;
             },
+
             _allItemsValid: function (el) {
                 var allItemsValid;
                 // console.log("validate list", el.items);
@@ -999,6 +1020,7 @@
                 // console.log("validate list", allItemsValid);
                 return allItemsValid;
             },
+
             _validatePatternedField: function (el) {
                 var fieldName = this.id ? "paper-input#app-form-" + this.id + "-" + el.name :
                     "paper-input#app-form--" + el.name;
@@ -1007,6 +1029,7 @@
                 }
                 return false;
             },
+
             _submitForm: function (e) {
                 // notify the parent element to format the form's payload if necessary
                 if (this.formatPayload){
@@ -1080,8 +1103,6 @@
                         delete payload[excludeFields[i].name];
                     }
                 }
-                console.log('Payload', payload, this.form);
-
                 this.$.formAjax.headers["Content-Type"] = 'application/json';
                 this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.formAjax.body = payload;
@@ -1089,6 +1110,7 @@
 
                 this.set('sendingData', true);
             },
+
             _asssertToInclude: function (list, field) {
                 // console.log('_asssertToInclude', list, field);
                 if (field.show)
@@ -1103,9 +1125,13 @@
                 }
                 return false;
             },
+
             _cancel: function () {
-                this.dispatchEvent(new CustomEvent('cancel'));
+                var overlay = document.querySelector('vaadin-dialog-overlay');
+                if (overlay)
+                    overlay.opened = false;
             },
+
             _resetForm: function (e) {
                 // Reset script
                 for (var attr in this.form) {
@@ -1128,12 +1154,9 @@
                     // Reset Form Fields Validation
                     this._resetField(el, index);
                 }.bind(this));
-
                 this.dispatchEvent(new CustomEvent('reset-form'));
-
-
-
             },
+
             _resetField: function (el, index) {
                 this.set('fields.' + index + '.value', el.defaultValue);
                 var input = this.shadowRoot.querySelector('#' + el.name);
@@ -1141,6 +1164,7 @@
                     input.invalid = false;
                 }
             },
+
             _assertShowIfQuery: function (name) {
                 this.fields.forEach(function (el, index) {
                     if (el.showIf && el.showIf.fieldName == name) {
@@ -1150,6 +1174,7 @@
                     }
                 })
             },
+
             _recomputeDependentFields: function (name) {
                 this.fields.forEach(function (el, index) {
                     if (el.showIf && el.showIf.fieldName == name) {
