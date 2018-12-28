@@ -4,8 +4,9 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
 
-<link rel="import" href="../helpers/mist-lists-behavior.html">
 
 <dom-module id="other-cloud-machine-actions">
   <template>
@@ -15,15 +16,15 @@
         color: rgba(255,255,255,0.87);
       }
     </style>
-    
     <dialog-element id="other-confirm"></dialog-element>
-
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
             on-response="handleResponse"
             on-error="handleError"></iron-ajax>
-
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
   </template>
   <script>
     OTHER_CLOUD_MACHINE_ACTIONS = {
@@ -37,14 +38,17 @@
 
     Polymer({
       is: 'other-cloud-machine-actions',
+
+      behaviors: [MistListActionsBehavior],
+
       properties: {
         items: { 
           type: Array,
-          value: []
+          value: function () { return [] },
         },
         actions: { 
           type: Array,
-          value: [],
+          value: function () { return [] },
           notify: true
         },
         type: {
@@ -52,19 +56,19 @@
           value: 'host'
         }
       },
-      observers:[
-        '_mapPolicyToActions(items.*)'
-      ],
+
       listeners: {
         'confirmation': 'confirmAction',
         'select-action': 'selectAction',
       },
+
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(machine) {
+
+      computeItemActions: function(machine) {
         // single record actions
         var arr = [];
         if (machine) {
@@ -72,13 +76,15 @@
         }
         return arr;
       },
-      actionDetails: function (actions) {
+
+      computeActionListDetails: function (actions) {
         var ret = [];
         for (var i=0; i<actions.length; i++) {
             ret.push(OTHER_CLOUD_MACHINE_ACTIONS[actions[i]]);
         }
         return ret;
       },
+
       _remove: function() {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -93,6 +99,7 @@
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Removing ' + this.items[i].name , duration: 1000} }));
         }
       },
+
       _showDialog: function(info) {
           var dialog = this.shadowRoot.querySelector('dialog-element#other-confirm');
           if (info) {
@@ -102,10 +109,12 @@
           }
           dialog._openDialog();
       },
+
       confirmAction: function(e){
         if (e.detail.confirmed)
           this.performAction(this.action, this.items);
       },
+
       selectAction: function(e){
         if (this.items.length) {
           var action = e.detail.action;
@@ -129,42 +138,17 @@
           }
         }
       },
+
       performAction: function(action, items) {
         // console.log('perform action ',action)
         if (action && action.name == 'remove') {
           this._remove();
         }
       },
+
       handleResponse: function(e) {
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }));
-      },
-      _mapPolicyToActions: function (items) {
-        // recompute the actions array property as the intersection
-        // of the available actions of the selected items
-        this.set('actions', []);
-        var actions = new swiftSet.Set(), 
-            isection = new swiftSet.Set();
-
-        if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
-          for (var i=1; i<this.items.length; i++) {
-              isection.clear()
-              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-              actions.clear();
-              actions.addItems(isection.items());
-          }
-
-          var multiActions;
-          if (this.items.length > 1) {
-              multiActions = this.actionDetails(actions.items()).filter(function(a){
-                  return a.multi;
-              });
-          } else {
-              multiActions = this.actionDetails(actions.items());
-          }
-        }
-        this.set('actions', multiActions);
       },
 
       handleError: function(e) {

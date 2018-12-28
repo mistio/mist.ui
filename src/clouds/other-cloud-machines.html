@@ -10,18 +10,20 @@
     <template>
         <h3>Hosts</h3>
         <p>Select any host to remove it from this cloud.</p>
-        <mist-list id="otherServerMachinesList"
-            selectable column-menu multi-sort
-            item-map=[[machines]]
-            name="Machines"
-            selected-items="{{selectedMachineItems}}"
-            frozen=[[_getFrozenLogColumn()]]
-            visible=[[_getVisibleColumns()]]
-            renderers=[[_getRenderers()]]>
-            <mist-actions slot="action-buttons" actions="[[machineActions]]" type="machine" items="[[selectedMachineItems]]"></mist-actions>
-            <other-cloud-machine-actions slot="actions" items="[[selectedMachineItems]]" actions="{{machineActions}}"></other-cloud-machine-actions>
-        </mist-list>
+        <other-cloud-machine-actions items="[[selectedMachineItems]]" actions="{{machineActions}}">
+            <mist-list id="otherServerMachinesList"
+                selectable column-menu multi-sort resizable searchable
+                items="[[machines]]"
+                name="Machines"
+                selected-items="{{selectedMachineItems}}"
+                frozen=[[_getFrozenLogColumn()]]
+                visible=[[_getVisibleColumns()]]
+                renderers=[[_getRenderers()]]
+                actions=[[machineActions]]>
+            </mist-list>
+        </other-cloud-machine-actions>
     </template>
+
     <script>
     Polymer({
         is: 'other-cloud-machines',
@@ -29,39 +31,33 @@
             cloud:  {
                 type: Object
             },
-            machineActions: {
-                type: Array,
-                notify: true
+            model:  {
+                type: Object
             },
-            providers: {
+            machines: {
                 type: Array,
-                value: PROVIDERS
+                computed: '_computeMachines(cloud, model.machines, model.machines.*)'
+            },
+            machineActions: {
+                type: Array
             },
             selectedMachineItems: {
                 type: Array,
-                notify: true
-            },
-            machines: {
-                type: Object,
-                computed: '_transformMachines(cloud, cloud.machines.*)'
+                value: function () { return []; }
             }
         },
         listeners: {
             'select-action': 'selectAction'
         },
         observers: [
-            'machinesChanged(cloud.*, machines.*)'
+            'machinesChanged(cloud.*, cloud.machines.*)'
         ],
         machinesChanged: function(c,m){
             if (this.shadowRoot.querySelector('mist-list'))
                 this.shadowRoot.querySelector('mist-list').fire('resize');
         },
-        _transformMachines: function(cloud, machines) {
-            // Use machine unique id as key of the map
-            return Object.values(this.cloud.machines).reduce(function(result, item, index, array) {
-                result[item.id] = item;
-                return result;
-            }, {})
+        _computeMachines: function (cloud) {
+            return Object.values(this.cloud.machines || {});
         },
         _getFrozenLogColumn: function(){
             return ['name'];

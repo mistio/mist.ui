@@ -3,7 +3,6 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 
-<link rel="import" href="../mist-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
@@ -387,12 +386,10 @@
             </template>
             <template is="dom-if" if="[[_isBareMetal(cloud.provider)]]" restamp>
                 <paper-material class="separator" hidden$="[[!_isBareMetal(cloud.provider)]]">
-                    <other-cloud-machines cloud="[[cloud]]"></other-cloud-machines>
+                    <other-cloud-machines cloud="[[cloud]]" model=[[model]]></other-cloud-machines>
                 </paper-material>
             </template>
         </div>
-        <iron-ajax id="cloudStarAjaxRequest" url="/api/v1/clouds/{{cloud.cloud.id}}/clouds/{{cloud.id}}" method="POST" on-response="_handlecloudStarAjaxResponse"
-            on-error="_handlecloudStarAjaxError"></iron-ajax>
         <iron-ajax id="cloudStateAjaxRequest" loading="{{loading}}" handle-as="xml" url="/api/v1/clouds/[[cloud.id]]" method="POST"
             on-response="_handleCloudStateAjaxResponse" on-error="_handleCloudStateAjaxError"></iron-ajax>
         <tags-list model="[[model]]"></tags-list>
@@ -401,9 +398,6 @@
     <script>
         Polymer({
             is: 'cloud-page',
-            behaviors: [
-                mistLoadingBehavior
-            ],
 
             properties: {
                 section: {
@@ -462,23 +456,27 @@
                     type: Array
                 }
             },
+
             listeners: {
                 'confirmation': '_deleteCloud',
                 'delete-cloud': '_deleteCloudConfirmation'
             },
+
             observers: [
                 '_cloudChanged(cloud, cloud.*)',
                 '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networks,cloud.machines)'
             ],
-            ready: function () {},
+
             _cloudChanged: function (cloud) {
                 // console.log(this.cloud, this.cloud.enabled, [this.cloud])
                 this.set('itemArray', this.cloud ? [this.cloud] : []);
                 this._cloudArraysChanged();
             },
+
             _displayUser: function (id, members) {
                 return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
+
             _cloudArraysChanged: function (cloud, cloudchange, imagesArray, locationsArray, networks, machines) {
                 if (this.cloud) {
                     this.async(function () {
@@ -497,18 +495,23 @@
                     }.bind(this), 1000);
                 }
             },
+
             viewRunning: function () {
                 this.goToFilteredList('machines', 'running')
             },
+
             viewStopped: function () {
                 this.goToFilteredList('machines', 'stopped')
             },
+
             viewImages: function () {
                 this.goToFilteredList('images')
             },
+
             viewNetworks: function () {
                 this.goToFilteredList('networks')
             },
+
             goToFilteredList: function (page, state) {
                 var search = state ? ' ' + state : '';
                 this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
@@ -517,40 +520,48 @@
                 } }));
 
             },
+
             _computeShowCount: function (c) {
                 console.log('_computeShowCount', c);
                 return c != 0 ? true : false;
             },
+
             _computeRunningMachines: function (machines) {
                 var _this = this;
                 return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
                     return _this.cloud.machines[m].state == 'running'
                 }).length : 0;
             },
+
             _computeStoppedMachines: function (machines) {
                 var _this = this;
                 return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
                     return _this.cloud.machines[m].state == 'stopped'
                 }).length : 0;
             },
+
             _computeCloudTitle: function (cloud) {
                 if (cloud)
                     return cloud.title;
             },
+
             _computeCloudTags: function (cloud, cloudTags) {
                 if (this.cloud) {
                     return Object.entries(this.cloud.tags).map(([key, value]) => ({key,value}));
                 }
             },
+
             _computeIsloading: function (cloud) {
                 return !this.cloud ? true : false;
             },
+
             _computeItemImage: function (item) {
                 if (item && item.provider) {
                     var provider = item.provider.replace('_', '');
                     return 'assets/providers/provider-' + provider + '.png';
                 }
             },
+
             _showDialog: function (info) {
                 var dialog = this.querySelector('dialog-element#confirm');
                 if (info) {
@@ -560,7 +571,9 @@
                 }
                 dialog._openDialog();
             },
+
             _isSupportedDNSProvider: function (provider) {
+                // FIXME: Don't hardcode this
                 if (['ec2', 'gce', 'digitalocean', 'linode', 'rackspace', 'softlayer', 'vultr'].indexOf(
                         provider) > -1) {
                     return true;
@@ -568,9 +581,11 @@
                     return false;
                 }
             },
+
             _isBareMetal: function (provider) {
                 return provider == 'bare_metal';
             },
+
             _changeState: function (e) {
                 this.$['enable-disable-cloud'].disabled = true;
                 this.$['cloudStateAjaxRequest'].headers["Content-Type"] = 'application/json';
@@ -581,6 +596,7 @@
                 this.expectedState = this.cloud.enabled ? '0' : '1';
                 this.$['cloudStateAjaxRequest'].generateRequest();
             },
+
             _handleCloudStateAjaxResponse: function (e) {
                 var message = this.expectedState == true ? 'Cloud ' + this.cloud.title +
                     ' was enabled!' : 'Cloud ' + this.cloud.title + ' was disabled!';
@@ -588,15 +604,14 @@
                     msg: message,
                     duration: 5000
                 } }));
-
             },
+
             _handleCloudStateAjaxError: function (e) {
                 this.$['enable-disable-cloud'].checked = this.cloud.enabled;
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: e.detail.request.xhr.response,
                     duration: 10000
                 } }));
-
             }
         });
     </script>
