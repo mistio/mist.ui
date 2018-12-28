@@ -29,7 +29,7 @@
                 <strong>[[indexPlusOne(index)]].</strong>
             </div>
             <paper-icon-button class="remove" icon="delete" on-tap="deleteItem" hidden$="[[_computeShowDelete(index)]]">-</paper-icon-button>
-            <app-form id$="sub-form-[[index]]" fields="{{item}}" display-buttons="[[_calcDisplayButtons()]]" horizontal-layout></app-form>
+            <app-form id$="sub-form-[[index]]" fields="{{item}}" display-buttons="[[_calcDisplayButtons()]]" horizontal-layout form-ready={{formReady}}></app-form>
             <br/>
         </template>
         <paper-icon-button class="add" icon="add" on-tap="addItem">+</paper-icon-button>
@@ -84,6 +84,11 @@
                 },
                 activeItem: {
                     type: String
+                },
+                formReady: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
                 }
             },
             observers: [
@@ -165,7 +170,7 @@
             deleteItem: function (e) {
                 // console.log('deleteItem', e.model.__data__.index);
                 if (!this.min || this.items.length > this.min) {
-                    this.splice('items', e.model.__data__.index, 1);
+                    this.splice('items', e.model.__data.index, 1);
                     this.shadowRoot.querySelector('.add').removeAttribute('disabled');
                     this.async(function () {
                         this.dispatchEvent(new CustomEvent('fields-changed'));
