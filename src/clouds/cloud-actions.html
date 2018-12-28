@@ -62,7 +62,7 @@
     <vaadin-dialog id="credentialsDialog">
       <template>
         <h3>Edit Credentials</h3>
-        <div>
+        <div style="margin-bottom: 16px;">
           <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]" keys="[[model.keysArray]]"></cloud-edit>
         </div>
       </template>
@@ -134,9 +134,12 @@
         'multi': true
       }
     };
+
     Polymer({
       is: 'cloud-actions',
+
       behaviors: [MistListActionsBehavior],
+
       properties: {
         model: {
             type: Object
@@ -151,7 +154,7 @@
         },
         actions: {
           type: Array,
-          value: [],
+          value: function () { return [] },
           notify: true
         },
         type: {
@@ -175,9 +178,7 @@
           computed: '_computeFormReady(cloud.title, newCloud.title, sendingData)'
         },
       },
-      observers: [
-        '_mapPolicyToActions(items.*)'
-      ],
+
       listeners: {
         'select-action': 'selectAction',
         'confirmation': 'confirmAction',
@@ -186,14 +187,17 @@
         'response': 'closeDialogs',
         'cancel': 'closeDialogs'
       },
+
       attached: function () {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
+
       closeRenameDialog: function (e) {
         this.$.renameDialog.opened = false;
       },
+
       computeItemActions: function (cloud) {
         var arr = [];
         if (cloud) {
@@ -210,9 +214,11 @@
         }
         return arr;
       },
+
       _isBareMetal: function (provider) {
         return provider == 'bare_metal';
       },
+
       computeActionListDetails: function (actions) {
         var ret = [];
         for (var i = 0; i < actions.length; i++) {
@@ -220,10 +226,12 @@
         }
         return ret;
       },
+
       confirmAction: function (e) {
         if (e.detail.confirmed)
           this.performAction(this.action, this.items);
       },
+
       selectAction: function (e) {
         if (this.items.length) {
           var action = e.detail.action;
@@ -263,13 +271,16 @@
           }
         }
       },
+
       openEditDialog: function () {
         this.$.credentialsDialog.opened = true;
       },
+
       closeDialog: function () {
         // console.log('closeDialog');
         this.$.credentialsDialog.opened = false;
       },
+
       closeDialogs: function () {
         this.$.renameDialog.opened = false;
         this.$.credentialsDialog.opened = false;
@@ -277,6 +288,7 @@
         this.$.addhostsDialog.opened = false;
         this.$.cloudDeleteAjaxRequest.opened = false;
       },
+
       _showDialog: function (info) {
         var dialog = this.shadowRoot.querySelector('dialog-element');
         if (info) {
@@ -286,6 +298,7 @@
         }
         dialog._openDialog();
       },
+
       performAction: function (action, items) {
         if (action.name == 'rename') {
           this.$.renameDialog.opened = true;
@@ -293,11 +306,13 @@
           this._deleteCloud();
         }
       },
+
       _deleteCloud: function () {
         this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
         this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.cloudDeleteAjaxRequest.generateRequest();
       },
+
       handleResponse: function (e) {
         this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
           success: true
@@ -308,10 +323,6 @@
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
           } }));
-      },
-
-      recomputeActions: function () {
-        this._mapPolicyToActions(this.items);
       },
 
       _handleCloudDeletionAjaxResponse: function (e) {
