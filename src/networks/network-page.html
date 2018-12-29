@@ -10,9 +10,6 @@
 <dom-module id="network-page">
     <template>
         <style include="shared-styles tags-and-labels single-page">
-            :host {
-            }
-
             paper-material {
                 display: block;
                 padding: 20px;
@@ -195,7 +192,7 @@
                 <h4 class="id">Subnets</h4>
                 <div class="info-table">
                     <div class="info-body">
-                        <template is="dom-repeat" items="[[_mapToArray(network.subnets, network.subnets.*)]]" as="subnet">
+                        <template is="dom-repeat" items="{{subnets}}" as="subnet">
                             <subnet-item subnet="[[subnet]]" itemindex="{{index}}"></subnet-item>
                         </template>
                     </div>
@@ -209,20 +206,21 @@
     <script>
         Polymer({
             is: 'network-page',
-            behaviors: [
-                mistLoadingBehavior
-            ],
 
             properties: {
                 model: {
-                    type: Object,
-                    notify: true
+                    type: Object
                 },
                 section: {
                     type: Object
                 },
                 network: {
                     type: Object
+                },
+                subnets: {
+                    type: Array,
+                    value: function () { return []; },
+                    computed: '_computeSubnets(network, network.subnets, network.subnets.*)'
                 },
                 hasSubnets: {
                     type: Boolean,
@@ -301,8 +299,8 @@
             _computeIsloading: function (network) {
                 return !this.network ? true : false;
             },
-            _mapToArray: function(subnets) {
-                return mapToArray(subnets);
+            _computeSubnets: function(network, subnets) {
+                return Object.values(this.network && this.network.subnets || {});
             },
             _networkDeleted: function(e) {
                 console.log(e);
