@@ -19,6 +19,7 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
+
 <link rel="import" href="cidr-validator.html">
 <link rel="import" href="ip-validator.html">
 <link rel="import" href="sub-form.html">
@@ -32,9 +33,6 @@
 <dom-module id="app-form">
     <template>
         <style include="shared-styles forms">
-            :host {
-            }
-
             paper-material {
                 display: block;
                 padding: 24px;
@@ -80,10 +78,6 @@
 
             paper-button.simple-button>iron-icon {
                 margin-right: 8px;
-            }
-
-            *:not(paper-button)[disabled] {
-                /*display: none;*/
             }
 
             *:not(paper-button)[hidden] {
@@ -1033,14 +1027,14 @@
             _submitForm: function (e) {
                 // notify the parent element to format the form's payload if necessary
                 if (this.formatPayload){
-                    this.dispatchEvent(new CustomEvent('format-payload'));
+                    this.dispatchEvent(new CustomEvent('format-payload', {bubbles: true, composed: true}));
                 }
 
                 var payload = {};
                 if (this.workflow) {
                     var inps = YAML.parse(this.form.stackinputs);
                     for (var p in inps) {
-                        var field = this.fields.find(function(f){return f.name == p});
+                        var field = this.fields.find(function(f) { return f.name == p });
                         if (field.excludeFromPayload == true) {
                             delete inps[p];
                         } else {
