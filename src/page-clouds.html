@@ -1,38 +1,39 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="clouds/cloud-add.html">
 <link rel="import" href="clouds/cloud-page.html">
 <link rel="import" href="clouds/cloud-actions.html">
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
-<link rel="import" href="mist-actions.html">
+
 <dom-module id="page-clouds">
     <template>
         <style include="shared-styles">
-            :host {}
             [hidden] {
                 display: none !important;
             }
         </style>
         <app-route route="{{route}}" pattern="/:cloud" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-                <cloud-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">
-                    <mist-list selectable resizable column-menu multi-sort 
-                        id="cloudsList" 
-                        apiurl="/api/v1/clouds" 
-                        item-map="[[model.clouds]]" 
-                        selected-items="{{selectedItems}}" 
-                        renderers=[[_getRenderers()]] 
-                        frozen=[[_getFrozenLogColumn()]] 
-                        visible=[[_getVisibleColumns()]] 
-                        route={{route}} 
-                        user-filter=[[model.sections.clouds.q]] 
-                        primary-field-name="id" 
-                        filter-method="[[_ownerFilter()]]" 
-                        hidden$=[[!_isListActive(route.path)]]
-                        actions="[[actions]]">
-                        <p slot="no-items-found">No clouds found.</p>
+            <cloud-actions id="actions" items="[[selectedItems]]" actions="{{actions}}">
+                <mist-list selectable resizable column-menu multi-sort 
+                    id="cloudsList"
+                    apiurl="/api/v1/clouds"
+                    item-map="[[model.clouds]]"
+                    selected-items="{{selectedItems}}"
+                    renderers=[[_getRenderers()]]
+                    frozen=[[_getFrozenLogColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    route={{route}}
+                    user-filter=[[model.sections.clouds.q]]
+                    primary-field-name="id"
+                    filter-method="[[_ownerFilter()]]"
+                    hidden$=[[!_isListActive(route.path)]
+                    actions="[[actions]]">
+                    <p slot="no-items-found">No clouds found.</p>
                 </mist-list>
             </cloud-actions>
         </template>
@@ -40,7 +41,7 @@
             <paper-fab id="cloudAdd" icon="add" on-tap="_addResource"></paper-fab>
         </div>
         <cloud-add providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]" enable-monitoring="[[enableMonitoring]]" hidden$=[[!_isAddPageActive(route.path)]] portal-name=[[portalName]] docs=[[docs]] org="[[model.org]]" enable-billing=[[enableBilling]]></cloud-add>
-        <cloud-page model="[[model]]" cloud="[[cloud]]" resource-id="[[data.cloud]]" section="[[model.sections.clouds]]" hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
+        <cloud-page model="[[model]]" cloud="[[cloud]]" section="[[model.sections.clouds]]" hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
     </template>
     <script>
     Polymer({
@@ -48,7 +49,6 @@
         behaviors: [
             ownerFilterBehavior
         ],
-        listeners: {},
         properties: {
             model: {
                 type: Object
@@ -74,18 +74,17 @@
                 computed: '_getCloud(data.cloud, model.clouds)'
             },
             actions: {
-                type: Array,
-                notify: true
+                type: Array
             },
-            selectedItems: {
-                type: Array,
-                notify: true
+            portalName: {
+                type: String,
+                value: 'Mist.io'
+            },
+            docs: {
+                type: String
             }
         },
 
-        attached: function() {
-
-        },
         _getFrozenLogColumn: function() {
             return ['title'];
         },
@@ -165,13 +164,14 @@
         _isDetailsPageActive: function(path) {
             return path && path != '/+add';
         },
+
         _getCloud: function(id) {
             if (this.model.clouds && id)
                 return this.model.clouds[id];
         },
+
         _addResource: function(e) {
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: this.model.sections.clouds.add } }));
-
         }
     });
     </script>

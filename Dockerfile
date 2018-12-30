@@ -3,7 +3,7 @@ MAINTAINER mist.io <support@mist.io>
 
 RUN apk add --update --no-cache git nginx
 
-RUN npm update && npm install -g -U --no-optional polymer-cli@1.6.0 bower --unsafe-perm
+RUN npm update && npm install -g -U --no-optional polymer-cli bower --unsafe-perm
 
 ENV bower_allow_root=true \
     bower_interactive= \

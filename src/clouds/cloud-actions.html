@@ -87,7 +87,7 @@
     <iron-ajax id="cloudDeleteAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="DELETE" on-response="_handleCloudDeletionAjaxResponse"
       on-error="_handleCloudDeletionAjaxError"></iron-ajax>
     <dialog-element id="confirm"></dialog-element>
-    <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+    <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[resourceType]]"></tags-form>
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
 
     <slot>
@@ -157,7 +157,7 @@
           value: function () { return [] },
           notify: true
         },
-        type: {
+        resourceType: {
           type: String,
           value: 'cloud'
         },
@@ -176,7 +176,7 @@
         formReady: {
           type: Boolean,
           computed: '_computeFormReady(cloud.title, newCloud.title, sendingData)'
-        },
+        }
       },
 
       listeners: {
@@ -245,18 +245,18 @@
               reason: "cloud.delete"
             });
           } else if (action.confirm && action.name != 'tag') {
-            var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
+            var property = ['zone'].indexOf(this.resourceType) == -1 ? "name" : "domain",
               plural = this.items.length == 1 ? '' : 's',
               count = this.items.length > 1 ? this.items.length + ' ' : '';
-            //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+            //this.tense(this.action.name) + " " + this.resourceType + "s can not be undone. 
             this._showDialog({
-              title: this.action.name + ' ' + count + this.type + plural + '?',
-              body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type +
+              title: this.action.name + ' ' + count + this.resourceType + plural + '?',
+              body: "You are about to " + this.action.name + " " + this.items.length + " " + this.resourceType +
                 plural + ".",
               list: this._makeList(this.items, property),
               action: action.name,
               danger: true,
-              reason: this.type + "." + this.action.name
+              reason: this.resourceType + "." + this.action.name
             });
           } else if (action.name == 'tag') {
             this.$.tagsdialog._openDialog();

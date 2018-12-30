@@ -10,8 +10,6 @@
 <dom-module id="page-machines">
     <template>
         <style include="shared-styles">
-            :host {
-            }
             [hidden] {
                 display: none !important;
             }
@@ -246,7 +244,7 @@
                 <paper-fab id="machinesAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
-        <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]] docs=[[docs]]></machine-create>
+        <machine-create model="[[model]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]] docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
             <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
         </template>
@@ -306,8 +304,13 @@
             currentMachine: {
                 type: Object,
                 computed: '_getMachine(data.machine, model.machines, model.machines.*)'
+            },
+            portalName: {
+                type: String,
+                value: 'Mist.io'
             }
         },
+
         listeners: {
             'open-recommendation-dialog': 'openRecommendationsDialog',
             'performing-action': 'updateActionLogs',
@@ -315,6 +318,7 @@
             'recommendation': 'openRecommendationsDialog',
             'set-job-id': 'setJobId'
         },
+
         observers: [
             '_jobIdChanged(jobId)',
             '_pathChanged(path)',
@@ -336,6 +340,7 @@
         _isAddPageActive: function(path) {
             return path == '/+create';
         },
+
         _isDetailsPageActive: function(path) {
             if (path && path != '/+create' && this.querySelector('machine-page'))
                 this.querySelector('machine-page').updateState();
@@ -344,11 +349,13 @@
             else
                 return false;
         },
+
         _isListActive: function(path) {
             if (path)
                 this.stopPolling();
             return !path;
         },
+
         _shell: function(event) {
             var e = Polymer.dom(event);
             var action = {
@@ -363,6 +370,7 @@
                 this.$.actions.performMachineAction(action, [this.itemOfRecommendation]);
             }
         },
+
         _jobIdChanged: function(jobid) {
             if (!jobid) {
                 this.resetPolling();
@@ -370,27 +378,25 @@
                 this.startPolling(jobid);
             }
         },
-        startPolling: function(jobid) {
-            // console.log('logs -- startpolling', jobid);
 
+        startPolling: function(jobid) {
             this.intervalID = setInterval(function() {
                 this.$.getJobLog.generateRequest();
             }.bind(this), 1000);
         },
-        stopPolling: function(logItems) {
-            // console.log('logs -- stopPolling', logItems, this.logItem.action);
 
+        stopPolling: function(logItems) {
             if (this.logItem && this.logItem.action.endsWith('finished')) {
                 //let log finished show
-                if (!this.logItem.error)
+                if (!this.logItem.error) {
                     this.async(function() {
                         this.resetPolling(this.logItem.error);
                     }.bind(this), 1000);
+                }
             }
         },
-        resetPolling: function(error) {
-            // console.log('logs -- resetPolling', error);
 
+        resetPolling: function(error) {
             if (!error) {
                 this.set('logItem', '');
             }
@@ -398,43 +404,42 @@
             window.clearInterval(this.intervalID);
             this.set('intervalID', false);
         },
-        handleGetJobLog: function(e) {
-            // console.log('logs -- handleGetJobLog', e.detail);
 
-            //save last log in logItem
+        handleGetJobLog: function(e) {
+            // save last log in logItem
             this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
         },
+
         removeUnderscore: function(action) {
             if (action)
                 return action.replace(/_/g, " ");
         },
-        clearLog: function(e) {
-            // console.log('logs -- clearLog',this.logItem);
 
+        clearLog: function(e) {
             this.resetPolling();
             this.set('logItem', '');
         },
-        updateActionLogs: function(e) {
-            // console.log('logs -- updateActionLogs',e.detail);
 
+        updateActionLogs: function(e) {
             this.set('performingAction', true);
             this.$.actionLogs.textContent = e.detail.log;
         },
         stopActionLogs: function(e) {
-            // console.log('logs -- stopActionLogs',e.detail);
-
             var success = e.detail.success;
             this.$.actionLogs.textContent = '';
             this.set('performingAction', false);
             if (success)
                 this.clearListSelection();
         },
+
         hideLogs: function(e) {
             this.set('performingAction', false);
         },
+
         clearListSelection: function() {
             this.set('selectedItems', []);
         },
+
         _addResource: function(e) {
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                 url: this.model.sections.machines.add
@@ -664,6 +669,7 @@
                 }
             }
         },
+
         _computeImage: function(row, item) {
             // FIXME This needs to be standarized in the backend to remove the cruft below
             var image_id = item;
@@ -686,6 +692,7 @@
 
             return image_id || "";
         },
+
         computeSize: function(row, item) {
             // FIXME This needs to be standarized in the backend to remove the cruft below
             var size_id = item;
@@ -777,6 +784,7 @@
                 return 0;
             return 0;
         },
+
         itemRecommendation: function(item) {
             if (this.probes == {} || !item || !item.id) {
                 return false;
@@ -786,6 +794,7 @@
                 return true;
             }
         },
+
         itemProbeClasses: function(item) {
             if (this.probes == {}) {
                 return '';
@@ -810,6 +819,7 @@
                 }
             }
         },
+
         loadToColor: function(load, prefix) {
             if (load > 1.2)
                 return prefix + "high ";
@@ -822,7 +832,6 @@
             else
                 return prefix + "low ";
         }
-
     });
     </script>
 </dom-module>
