@@ -6,6 +6,7 @@
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
+
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="key-edit.html">
@@ -72,15 +73,21 @@ KEY_ACTIONS = {
 }
     Polymer({ 
       is: 'key-actions',
+
+      behaviors: [MistListActionsBehavior],
+
       properties: {
+        model: {
+          type: Object,
+        },
         user: {
-            type: String
+          type: String
         },
         members: {
-            type: Array
+          type: Array
         },
         org: {
-            type: Object
+          type: Object
         },
         items: { 
           type: Array,
@@ -100,20 +107,20 @@ KEY_ACTIONS = {
           reflectToAttribute: true
         }
       },
-      observers:[
-        '_mapPolicyToActions(items.*, org, user)'
-      ],
+
       listeners: {
         'confirmation': 'confirmAction',
         'transfer-ownership': 'transferOwnership',
         'rename': '_editKey',
         'select-action': 'selectAction'
       },
+
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
+
       _otherMembers: function (members,items) {
         if (this.items && members) {
           var owners = this.items.map(function(i){return i.owned_by;})
@@ -124,7 +131,8 @@ KEY_ACTIONS = {
           });
         }
       },
-      itemActions: function(key) {
+
+      computeItemActions: function(key) {
         var arr = [];
         if (key && !key.isDefault && this.org.is_owner) {
           arr.push('make_default');
@@ -140,17 +148,20 @@ KEY_ACTIONS = {
         }
         return arr;
       },
-      actionDetails: function (actions) {
+
+      computeActionListDetails: function (actions) {
         var ret = [];
         for (var i=0; i<actions.length; i++) {
             ret.push(KEY_ACTIONS[actions[i]]);
         }
         return ret;
       },
+
       confirmAction: function(e){
         if (e.detail.confirmed)
           this.performAction(this.action, this.items);
       },
+
       selectAction: function(e){
         if (this.items.length) {
           var action = e.detail.action;
@@ -184,6 +195,7 @@ KEY_ACTIONS = {
           }
         }
       },
+
       transferOwnership: function (e) {
         var payload = {
           user_id: e.detail.user_id, //new owner
@@ -198,6 +210,7 @@ KEY_ACTIONS = {
         this.$.request.body = payload;
         this.$.request.generateRequest();
       },
+
       _delete: function() {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -210,6 +223,7 @@ KEY_ACTIONS = {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + this.items[i].name , duration: 1000} }));
         }
       },
+
       _makeDefault: function(){
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -223,6 +237,7 @@ KEY_ACTIONS = {
         }
 
       },
+
       _showDialog: function(info) {
           var dialog = this.shadowRoot.querySelector('dialog-element');
           if (info) {
@@ -232,6 +247,7 @@ KEY_ACTIONS = {
           }
           dialog._openDialog();
       },
+
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
@@ -240,11 +256,13 @@ KEY_ACTIONS = {
           this.dispatchEvent(new CustomEvent('rename'));
         }
       },
+
       _editKey: function(e) {
           e.stopImmediatePropagation();
           var el = this.shadowRoot.querySelector('key-edit');
           el._openEditKeyModal();
       },
+
       handleResponse: function(e) {
         this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {success: true} }));
 
@@ -263,36 +281,6 @@ KEY_ACTIONS = {
           } }));
 
         }
-      },
-      _mapPolicyToActions: function (items, org) {
-        // recompute the actions array property as the intersection
-        // of the available actions of the selected items
-        this.set('actions', []);
-        var actions = new swiftSet.Set(), 
-            isection = new swiftSet.Set();
-
-        if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
-
-          for (var i=1; i<this.items.length; i++) {
-              isection.clear()
-              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-              actions.clear();
-              actions.addItems(isection.items());
-          }
-
-          var multiActions;
-
-          if (this.items.length > 1) {
-              multiActions = this.actionDetails(actions.items()).filter(function(a){
-                  return a.multi;
-              });
-          }
-          else {
-              multiActions = this.actionDetails(actions.items());
-          }
-        }
-        this.set('actions', multiActions);
       },
 
       handleError: function(e) {
