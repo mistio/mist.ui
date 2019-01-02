@@ -6,6 +6,7 @@
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
+
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 
@@ -54,17 +55,27 @@ ZONE_ACTIONS = {
 }
     Polymer({ 
       is: 'zone-actions',
+      behaviors: [MistListActionsBehavior],
       properties: {
-        user: String,
-        members: Array,
-        org: Object,
+        model: {
+          type: Object
+        },
+        user: {
+          type: String
+        },
+        members: {
+          type: Array
+        },
+        org: {
+          type: Object,
+        },
         items: { 
           type: Array,
-          value: []
+          value: function () { return []; }
         },
         actions: { 
           type: Array,
-          value: [],
+          value: function () { return []; },
           notify: true
         },
         type: {
@@ -72,21 +83,17 @@ ZONE_ACTIONS = {
           value: 'zone'
         }
       },
-      observers:[
-        '_mapPolicyToActions(items.*,org,user)'
-      ],
       listeners: {
         'select-action': 'selectAction',
         'confirmation': 'confirmAction',
         'transfer-ownership': 'transferOwnership'
       },
-      ready: function() {},
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "POST";
       },
-      itemActions: function(zone) {
+      computeItemActions: function(zone) {
         var arr = [];
         if (zone) {
           arr.push('tag');
@@ -97,13 +104,15 @@ ZONE_ACTIONS = {
         }
         return arr;
       },
-      actionDetails: function (actions) {
+
+      computeActionListDetails: function (actions) {
         var ret = [];
         for (var i=0; i<actions.length; i++) {
             ret.push(ZONE_ACTIONS[actions[i]]);
         }
         return ret;
       },
+
       _otherMembers: function (members,items) {
         if (this.items && members) {
           var owners = this.items.map(function(i){return i.owned_by;})
@@ -114,6 +123,7 @@ ZONE_ACTIONS = {
           });
         }
       },
+
       _delete: function() {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -126,6 +136,7 @@ ZONE_ACTIONS = {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + this.items[i].name , duration: 1000} }))
         }
       },
+
       _showDialog: function(info) {
           var dialog = this.shadowRoot.querySelector('dialog-element');
           for (var i in info) {
@@ -133,10 +144,12 @@ ZONE_ACTIONS = {
           }
           dialog._openDialog();
       },
+
       confirmAction: function(e){
         if (e.detail.confirmed)
           this.performAction(this.action, this.items);
       },
+
       selectAction: function(e){
         if (this.items.length) {
           var action = e.detail.action;
@@ -155,18 +168,16 @@ ZONE_ACTIONS = {
                 danger: true,
                 reason: this.type + "." + this.action.name
             });
-          } 
-          else if (action.name == 'transfer ownership') {
+          } else if (action.name == 'transfer ownership') {
             this.$.ownershipdialog._openDialog();
-          }
-          else if (action.name == "tag") {
+          } else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
-          }
-          else {
+          } else {
             this.performAction(this.action, this.items);
           }
         }
       },
+
       transferOwnership: function (e) {
         var payload = {
           user_id: e.detail.user_id, //new owner
@@ -181,56 +192,24 @@ ZONE_ACTIONS = {
         this.$.request.body = payload;
         this.$.request.generateRequest();
       },
+
       performAction: function(action, items) {
         if (action.name == 'delete') {
           this._delete();
         }
       },
+
       handleResponse: function(e) {
         if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }))
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));
-
-
-
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
-          } }));
-
+          }}));
         }
-      },
-      _mapPolicyToActions: function (items) {
-        // recompute the actions array property as the intersection
-        // of the available actions of the selected items
-        this.set('actions', []);
-        var actions = new swiftSet.Set(), 
-            isection = new swiftSet.Set();
-
-        if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
-
-          for (var i=1; i<this.items.length; i++) {
-              isection.clear()
-              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-              actions.clear();
-              actions.addItems(isection.items());
-          }
-
-          var multiActions;
-
-          if (this.items.length > 1) {
-              multiActions = this.actionDetails(actions.items()).filter(function(a){
-                  return a.multi;
-              });
-          }
-          else {
-              multiActions = this.actionDetails(actions.items());
-          }
-        }
-        this.set('actions', multiActions);
       },
 
       handleError: function(e) {
@@ -242,9 +221,9 @@ ZONE_ACTIONS = {
         }
       },
 
-      _makeList: function(items, property){
+      _makeList: function(items, property) {
         if (items && items.length)
-          return items.map(function(item){
+          return items.map(function (item) {
             return item[property];
           });
       }
