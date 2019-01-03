@@ -367,7 +367,8 @@
                 type: String
             },
             intervalMonitoringID: {
-                type: String
+                type: String,
+                value: ''
             },
             showLogs: {
                 type: Boolean,
@@ -464,18 +465,20 @@
                     resource.id]) {
                 return "";
             } else {
-                if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed")
+                if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed") {
                     this.set("failed", true);
+                }
                 return this.monitoring.monitored_machines[resource.id].installation_status.state;
             }
         },
         toggleMonitoring: function(e, action) {
             var payload = {};
             console.log('toggleMonitoring', action)
-            if (action != 'disable')
+            if (action != 'disable') {
                 payload.action = this.isMonitored ? "disable" : "enable";
-            else
+            } else {
                 payload.action = action;
+            }
 
             payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
             payload.name = this.resource.name ? this.resource.name : this.resource.id;
@@ -490,8 +493,9 @@
         },
         _monitoringDisableConfirmation: function(e) {
             console.log('mist-monitoring', e)
-            if (e.detail.reason == "monitoring.disable" && e.detail.response.confirmed)
+            if (e.detail.reason == "monitoring.disable" && e.detail.response == "confirm") {
                 this.toggleMonitoring(e, 'disable');
+            }
         },
         _monitoringRequest: function(e) {
             this.set("failed", false);
@@ -560,7 +564,7 @@
         },
         _monitoringError: function(e) {
             console.log("_monitoringError", e.detail.request.xhr.responseText);
-            this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+            this.shadowRoot.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
             this.set("monitoringError", true);
         },
         _reset: function(resource) {
@@ -675,10 +679,12 @@
             }
         },
         monitoringPolling: function() {
+            var that = this;
+            console.log('_getStats', that.shadowRoot.querySelector('#getStats').generateRequest(), window);
             this.intervalMonitoringID = window.setInterval(function() {
-                this.$.getStats.generateRequest();
+                that.shadowRoot.querySelector('#getStats').generateRequest();
                 console.log('monitoringPolling');
-            }.bind(this), 5000);
+            }, 5000);
         },
         _handleStatsResponse: function(e) {
             this.stopGetStats();
