@@ -364,7 +364,7 @@
                         f.options = []
 
                     if (f.name.endsWith("location")) {
-                        var locations = this.model.clouds[cloudId].locationsArray.slice();
+                        var locations = this._toArray(this.model.clouds[cloudId].locations);
                         if (locations.length == 1 && locations[0].name == '') {
                             // If there's a single location preselct it and hide the field
                             f.value = locations[0].id;
@@ -396,7 +396,7 @@
                         f.options = this.model.clouds[cloudId].storageAccountsArray || [];
                     }
                     if (f.name.endsWith("size")) {
-                        f.options = this.model.clouds[cloudId].sizesArray.sort(function(a, b) {
+                        f.options = this._toArray(this.model.clouds[cloudId].sizes).sort(function(a, b) {
                             if (a.cpus < b.cpus) {
                                 return -1;
                             }
@@ -477,7 +477,8 @@
                                 this.set('machineFields.' + index + '.value', f.options[0].val);
                             else
                                 this.set('machineFields.' + index + '.value', f.options[0].id);
-                        }
+                        }f
+
 
                         if (!f.required && f.options && f.options.length == 0) {
                             this.set('machineFields.' + index + '.show', false);
@@ -1349,7 +1350,13 @@
         _hasProviders: function(providers) {
             if (providers && providers.length)
                 return true;
-        }
+        },
+        _toArray: function(x, z) {
+            if (x) {
+                return Object.keys(x).map(y => x[y])
+            }
+            return [];
+        },
     });
     </script>
 </dom-module>
