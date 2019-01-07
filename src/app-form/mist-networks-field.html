@@ -104,7 +104,7 @@
             'item-value-changed' : '_updateValue'
         },
         observers: [
-            '_fieldChanged(field,field.options)'
+            '_fieldChanged(field, field.options, field.options.*)'
         ],
 
         ready: function() {
@@ -116,6 +116,7 @@
             this.set('field.value', []);
             this.set('field.valid', !this.field.required);
             this.$['mist-networks-item-repeater'].render();
+            this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
         },
 
         _itemChanged: function(e) {
@@ -156,7 +157,7 @@
         _checkValidity: function() {
             var checkedItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked]'),
                 validItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked][valid]');
-            // console.log('check valid ', checkedItems.length, validItems.length, this.selectedOptions.length)
+            console.log('check valid ', checkedItems.length, validItems.length, this.selectedOptions.length)
             if (!checkedItems){
                 return !this.field.required;
             }
