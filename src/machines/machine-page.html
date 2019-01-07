@@ -983,7 +983,7 @@ Polymer({
             return this.model.keys && this.model.keys[key.keypair];
     },
     _computeKeyName: function(keyid) {
-        if (this.model.keys[keyid])
+        if (this.model.keys && this.model.keys[keyid])
             return this.model.keys[keyid].name || 'not found';
     },
     _computeVolumeName: function(id) {
@@ -1056,7 +1056,7 @@ Polymer({
         });
     },
     _showDialog: function(info) {
-        var dialog = this.$.machinedialog;
+        var dialog = this.shadowRoot.querySelector('dialog-element#machinedialog');
         if (info) {
             for (var i in info) {
                 dialog[i] = info[i];
@@ -1146,13 +1146,13 @@ Polymer({
 
     },
     _machineActionConfirmation: function(e) {
-        if (e.detail.response.confirmed && e.detail.reason == "disassociate.key") {
-            this.$.disassociateKeyRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.disassociateKeyRequest.generateRequest();
-        } else if (e.detail.response.confirmed && e.detail.reason == "detach.volume") {
-            this.$.detachVolumeRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.detachVolumeRequest.body = { action: 'detach', machine: this.machine.id };
-            this.$.detachVolumeRequest.generateRequest();
+        if (e.detail.response == "confirm" && e.detail.reason == "disassociate.key") {
+            this.shadowRoot.querySelector('#disassociateKeyRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+            this.shadowRoot.querySelector('#disassociateKeyRequest').generateRequest();
+        } else if (e.detail.response == "confirm" && e.detail.reason == "detach.volume") {
+            this.shadowRoot.querySelector('#detachVolumeRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+            this.shadowRoot.querySelector('#detachVolumeRequest').body = { action: 'detach', machine: this.machine.id };
+            this.shadowRoot.querySelector('#detachVolumeRequest').generateRequest();
         }
     },
     _updateKeyLoader: function(e) {
