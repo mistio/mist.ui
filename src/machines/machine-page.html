@@ -636,7 +636,7 @@
                     <div hidden$="[[!machine.key_associations.length]]">
                         <div class="m-info-head">Associated Keys:</div>
                         <div class="associatedKeys">
-                            <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
+                            <template is="dom-repeat" items="{{machine.key_associations}}" as="key" id="machineKeysDomRepeat">
                                 <div class="machine-key" hidden$="[[!_visibleKey(model,key)]]">
                                     <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]">
                                         <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
@@ -847,7 +847,6 @@ Polymer({
         },
         machineKeys: {
             type: Array,
-            computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
             value: function() {
                 return []
             }
@@ -891,8 +890,9 @@ Polymer({
     observers: [
         '_isMonitored(machine, model.monitoring.machines.*)',
         '_machineChanged(machine.*, model.machines.*)',
-        // '_machineKeysChanged(machine, machine.key_associations, machine.key_associations.length, machine.*, model.keys.*)',
-        '_getMachineCloud(model.clouds.*, machine.cloud)'
+        // '_machineKeysChanged(machineKeys.length)',
+        '_getMachineCloud(model.clouds.*, machine.cloud)',
+        '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -994,7 +994,8 @@ Polymer({
         return itemUidInArray;
     },
     _computeAssociatedKeys: function(machine, keys, keyLength, machineChangeRecord) {
-        return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
+        this.set('machineKeys', this.machine && this.machine.key_associations ? this.machine.key_associations : []);
+        this.shadowRoot.querySelector('#machineKeysDomRepeat').render();
     },
     _renderArray: function(array) {
         if (array && array.length)
@@ -1497,9 +1498,9 @@ Polymer({
     },
 
     // this should not be necessary, yet it is :(
-    /*_machineKeysChanged: function(machineKeys) {
-        this.$.machineKeysDomRepeat.render();
-    },*/
+    // _machineKeysChanged: function(machineKeys) {
+    //     this.shadowRoot.querySelector('#machineKeysDomRepeat').render();
+    // },
 
     _computeMachineR12ns: function() {
         var ret = [],
