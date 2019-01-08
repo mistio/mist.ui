@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
@@ -55,14 +55,6 @@
             margin-right: 24px;
         }
 
-        h2 {
-            padding: 0 24px;
-        }
-
-        div>h2 {
-            padding: 24px 0;
-        }
-
         div>h2.textarea-h2 {
             padding-bottom: 0;
         }
@@ -90,23 +82,23 @@
             opacity: 0.32;
         }
 
-        paper-dialog-scrollable {
+        .paper-dialog-scrollable {
             padding: 0 !important;
         }
 
-        paper-dialog-scrollable ::slotted(paper-item) {
+        .paper-dialog-scrollable paper-item {
             padding-left: 10px !important;
             position: relative;
             cursor: pointer;
             border-bottom: 1px solid #ddd;
         }
 
-        paper-dialog-scrollable ::slotted(.expand-more) {
+        .paper-dialog-scrollable .expand-more {
             position: absolute;
             right: 4px;
         }
 
-        paper-dialog-scrollable ::slotted(paper-listbox:not(.main)) {
+        .paper-dialog-scrollable paper-listbox:not(.main) {
             padding: 0 0 0 16px;
         }
 
@@ -129,60 +121,63 @@
         }
         </style>
         <paper-button on-tap="openDialog" class="add-button">
-            <iron-icon icon="icons:add-circle"></iron-icon>
-            </iron-icon> Add Graph
+            <iron-icon icon="icons:add-circle"></iron-icon> Add Graph
         </paper-button>
-        <paper-dialog id="selectTarget" horizontal-align="right">
-            <h2>Select target for graph</h2>
-            <paper-dialog-scrollable>
-                <paper-listbox class="main">
-                    <paper-button id="customButton" on-tap="_showCustomGraphDialog" class="blue">Custom</paper-button>
-                    <template is="dom-repeat" items="[[responseMetricsArray]]">
-                        <metric-menu metric=[[item]]></metric-menu>
-                    </template>
-                </paper-listbox>
-                <div class="loader" hidden$="{{!loadingMetrics}}">Loading custom server metrics
-                    <br />
-                    <paper-spinner active="{{loadingMetrics}}"></paper-spinner>
+        <vaadin-dialog id="selectTarget" horizontal-align="right">
+            <template>
+                <h2>Select target for graph</h2>
+                <div class="paper-dialog-scrollable">
+                    <paper-listbox class="main">
+                        <paper-button id="customButton" on-tap="_showCustomGraphDialog" class="blue">Custom</paper-button>
+                        <template is="dom-repeat" items="[[responseMetricsArray]]">
+                            <metric-menu metric=[[item]]></metric-menu>
+                        </template>
+                    </paper-listbox>
+                    <div class="loader" hidden$="{{!loadingMetrics}}">Loading custom server metrics
+                        <br />
+                        <paper-spinner active="{{loadingMetrics}}"></paper-spinner>
+                    </div>
                 </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
-        <paper-dialog id="customOptions" with-backdrop>
-            <h2>Custom graph</h2>
-            <paper-dialog-scrollable>
-                <p hidden="[[!sshKeyExists]]">
-                    Your Python script will be saved in scripts section, even if it fails to be deployed. Scripts must have a unique name.
-                </p>
-                <div id="sshKeyMissing" hidden="[[sshKeyExists]]">
-                    <span>You need to have an associated SSH key to add custom graphs</span>
-                    <paper-button id="addKey" on-tap="_openAddKeyPanel">Add Key</paper-button>
+            </template>
+        </vaadin-dialog>
+        <vaadin-dialog id="customOptions" with-backdrop>
+            <template>
+                <h2>Custom graph</h2>
+                <div class="paper-dialog-scrollable">
+                    <p hidden="[[!sshKeyExists]]">
+                        Your Python script will be saved in scripts section, even if it fails to be deployed. Scripts must have a unique name.
+                    </p>
+                    <div id="sshKeyMissing" hidden="[[sshKeyExists]]">
+                        <span>You need to have an associated SSH key to add custom graphs</span>
+                        <paper-button id="addKey" on-tap="_openAddKeyPanel">Add Key</paper-button>
+                    </div>
+                    <div>
+                        <paper-input id="name" value="{{metric.name}}" label="Name" placeholder="e.g my metric" disabled$="[[!sshKeyExists]]"></paper-input>
+                        <paper-input id="unit" value="{{metric.unit}}" label="Unit" placeholder="e.g bytes (optional)" disabled$="[[!sshKeyExists]]"></paper-input>
+                    </div>
+                    <div>
+                        <h2 class$="sshKey-[[sshKeyExists]] textarea-h2">Python script</h2>
+                        <paper-textarea id="juicyScript" value="{{metricScript}}" no-label-float hidden$=[[!sshKeyExists]]></paper-textarea>
+                    </div>
+                    <div>
+                        <h2 class$="sshKey-[[sshKeyExists]]">Advance settings</h2>
+                        <paper-checkbox id="derivative" disabled$="[[!sshKeyExists]]">Calculate derivative</paper-checkbox>
+                    </div>
                 </div>
-                <div>
-                    <paper-input id="name" value="{{metric.name}}" label="Name" placeholder="e.g my metric" disabled$="[[!sshKeyExists]]"></paper-input>
-                    <paper-input id="unit" value="{{metric.unit}}" label="Unit" placeholder="e.g bytes (optional)" disabled$="[[!sshKeyExists]]"></paper-input>
+                <div class="progress">
+                    <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
+                    <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                    <hr class="appform" />
+                    <p class="errormsg-container" hidden$="[[!formError]]">
+                        <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                    </p>
                 </div>
-                <div>
-                    <h2 class$="sshKey-[[sshKeyExists]] textarea-h2">Python script</h2>
-                    <paper-textarea id="juicyScript" value="{{metricScript}}" no-label-float hidden$=[[!sshKeyExists]]></paper-textarea>
+                <div class="buttons">
+                    <paper-button dialog-dismiss>Cancel</paper-button>
+                    <paper-button id="submit" align="center" on-tap="_generateCustomgraphrequest" disabled="[[!formReady]]" class="blue"> Add custom graph</paper-button>
                 </div>
-                <div>
-                    <h2 class$="sshKey-[[sshKeyExists]]">Advance settings</h2>
-                    <paper-checkbox id="derivative" disabled$="[[!sshKeyExists]]">Calculate derivative</paper-checkbox>
-                </div>
-            </paper-dialog-scrollable>
-            <div class="progress">
-                <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
-                <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <hr class="appform" />
-                <p class="errormsg-container" hidden$="[[!formError]]">
-                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
-                </p>
-            </div>
-            <div class="buttons">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button id="submit" align="center" on-tap="_generateCustomgraphrequest" disabled="[[!formReady]]" class="blue"> Add custom graph</paper-button>
-            </div>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
         <iron-ajax id="postCustomgraph" url="[[uri]]" handle-as="xml" method="POST" contentType="application/json" on-response="_customgraphResponse" on-error="_handleError"></iron-ajax>
         <iron-ajax id="associateMetric" handle-as="xml" method="PUT" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
         </iron-ajax>
@@ -275,10 +270,10 @@
             this.set('sendingData', false);
             this.set('formError', false);
             console.log("CUSTOM GRAPH", data.detail.response);
-            this.dispatchEvent(new CustomEvent('update-dashboard'));
+            this.dispatchEvent(new CustomEvent('update-dashboard', {composed: true, bubbles: true}));
 
-            this.$.customOptions.close();
-            this.$.selectTarget.close();
+            this.$.customOptions.opened = false;
+            this.$.selectTarget.opened = false;
         },
         _handleError: function(e, d) {
             this.set('sendingData', false);
@@ -314,7 +309,7 @@
         openDialog: function() {
             if (!this.responseMetrics)
                 this.shadowRoot.querySelector("#metrics").generateRequest();
-            this.shadowRoot.querySelector("#selectTarget").open();
+            this.shadowRoot.querySelector("#selectTarget").opened = true;
         },
         computeFormReady: function(metric) {
             return metric.base.name != '' && metric.base.name != null && typeof metric.base.name !== "undefined" && metric.base.script != '' && typeof metric.base.script !== "undefined";
@@ -358,16 +353,16 @@
         },
         _showCustomGraphDialog: function() {
             var dialog = this.$.customOptions;
-            dialog.open();
+            dialog.opened = true;
             this.$.juicyScript.value = this.metric.script;
         },
         computeSshKeyExists: function(keys) {
             return keys.length > 0;
         },
         _openAddKeyPanel: function() {
-            this.$.customOptions.close();
-            this.$.selectTarget.close();
-            this.dispatchEvent(new CustomEvent('open-and-select'));
+            this.$.customOptions.opened = false;
+            this.$.selectTarget.opened = false;
+            this.dispatchEvent(new CustomEvent('open-and-select', {composed: true, bubbles: true}));
         },
         _associateMetric: function(e) {
             this._exit('selectTarget');
@@ -381,7 +376,7 @@
             this.$.associateMetric.generateRequest();
         },
         _handleAssociateResponse: function() {
-            this.dispatchEvent(new CustomEvent('update-dashboard'));
+            this.dispatchEvent(new CustomEvent('update-dashboard', {composed: true, bubbles: true}));
         },
         _exit: function(who) {
             if (who == null) {
@@ -389,7 +384,7 @@
             } else {
                 var dialog = this.shadowRoot.querySelector('#' + who);
             }
-            dialog.close();
+            dialog.opened = false;
         },
         _generateCustomgraphrequest() {
             this.set('formError', false);
