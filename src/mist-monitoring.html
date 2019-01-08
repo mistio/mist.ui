@@ -149,12 +149,12 @@
             top: 8px;
         }
         </style>
-        <template is="dom-if" if="[[!resource.id]]" restamp>
+        <template is="dom-if" if="[[!singleResource]]" restamp>
             <template is="dom-if" if="[[showHomeDashboard]]" restamp>
                 <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
             </template>
         </template>
-        <template is="dom-if" if="[[resource.id]]" restamp>
+        <template is="dom-if" if="[[singleResource]]" restamp>
             <div class="horizontal layout monitoring-head">
                 <h2 class="flex flex-1">Monitoring</h2>
                 <div class="monitoring-menu" hidden$="[[!isActivated]]">
@@ -288,6 +288,9 @@
                         id: false
                     }
                 }
+            },
+            singleResource: {
+                computed: '_computeSingleResource(resource, resource.*)'
             },
             state: {
                 type: String
@@ -427,14 +430,14 @@
             'confirmation': '_monitoringDisableConfirmation',
             'delete-panel': '_disassociateMetric'
         },
-        _forwardEvent: function(e) {
+        _forwardEvent: function (e) {
             this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard(e);
         },
-        _computeDashboardUri: function(resource) {
+        _computeDashboardUri: function (resource) {
             if (resource)
                 return '/api/v1/machines/' + resource.id + '/dashboard';
         },
-        _computeIsMonitored: function(resource, id, monitoring) {
+        _computeIsMonitored: function (resource, id, monitoring) {
             // console.log('compute Is Monitored', resource, id, monitoring);
             if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
                 .monitored_machines[this.resource.id]) {
@@ -443,11 +446,14 @@
                 this.set('isMonitored', true);
             }
         },
-        _computeIsRunning: function(resource, resourceChangePath, state) {
+        _computeSingleResource: function ()  {
+            return this.resource && this.resource.id ? true : false;
+        },
+        _computeIsRunning: function (resource, resourceChangePath, state) {
             return this.resource && this.resource.state && (this.resource.state == "running" || this.resource
                 .state == "unknown") ? true : false;
         },
-        _computeWaitingData: function(resource, monitoring) {
+        _computeWaitingData: function (resource, monitoring) {
             if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
                 .monitored_machines[resource.id] || !this.monitoring.monitored_machines[resource.id].installation_status
             ) {
@@ -460,7 +466,7 @@
             } else
                 return false;
         },
-        monitoringState: function(resource, monitoring) {
+        monitoringState: function (resource, monitoring) {
             if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[
                     resource.id]) {
                 return "";
@@ -471,7 +477,7 @@
                 return this.monitoring.monitored_machines[resource.id].installation_status.state;
             }
         },
-        toggleMonitoring: function(e, action) {
+        toggleMonitoring: function (e, action) {
             var payload = {};
             console.log('toggleMonitoring', action)
             if (action != 'disable') {
@@ -491,16 +497,16 @@
             this.$.monitoringRequest.generateRequest();
             this.set("failed", false);
         },
-        _monitoringDisableConfirmation: function(e) {
+        _monitoringDisableConfirmation: function (e) {
             console.log('mist-monitoring', e)
             if (e.detail.reason == "monitoring.disable" && e.detail.response == "confirm") {
                 this.toggleMonitoring(e, 'disable');
             }
         },
-        _monitoringRequest: function(e) {
+        _monitoringRequest: function (e) {
             this.set("failed", false);
         },
-        _monitoringResponse: function(e) {
+        _monitoringResponse: function (e) {
             //in case of enabling we get the script response
             var script = YAML.parse(e.detail.xhr.response);
             if (this.resource.os_type)
@@ -519,27 +525,27 @@
                 this.set('jobId', response["job_id"]);
             }
         },
-        handleGetJobLog: function(e) {
+        handleGetJobLog: function (e) {
             // console.log('handleGetJobLog', e);
             this.set('logItems', e.detail.response.logs)
         },
-        handleGetJobLogError: function(e) {
+        handleGetJobLogError: function (e) {
 
         },
-        _jobIdChanged: function(jobid) {
+        _jobIdChanged: function (jobid) {
             if (!jobid) {
                 this.resetPolling();
             } else {
                 this.startPolling(jobid);
             }
         },
-        startPolling: function(jobid) {
+        startPolling: function (jobid) {
             this.intervalID = setInterval(function() {
                 this.$.getJobLog.generateRequest();
             }.bind(this), 1000);
             console.log('startpolling');
         },
-        stopPolling: function(logItems) {
+        stopPolling: function (logItems) {
             if (this.logItems && this.logItems.length > 0) {
                 if (this.logItems[this.logItems.length - 1].action.endsWith('deploy_collectd_finished') ||
                     this.logItems[this.logItems.length - 1].action.endsWith('deployment_finished')) {
@@ -547,14 +553,14 @@
                 }
             }
         },
-        computeShowLogs: function(jobId, isMonitored, isActivated) {
+        computeShowLogs: function (jobId, isMonitored, isActivated) {
             // console.log("computeShowLogs", this.resource.id)
             return (this.isMonitored && !this.isActivated) || this.jobId;
         },
-        removeUnderscore: function(action) {
+        removeUnderscore: function (action) {
             return action.replace(/_/g, " ");
         },
-        resetPolling: function(error) {
+        resetPolling: function (error) {
             if (!error) {
                 this.set('logItems', []);
             }
@@ -562,17 +568,17 @@
             window.clearInterval(this.intervalID);
             this.set('intervalID', false);
         },
-        _monitoringError: function(e) {
+        _monitoringError: function (e) {
             console.log("_monitoringError", e.detail.request.xhr.responseText);
             this.shadowRoot.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
             this.set("monitoringError", true);
         },
-        _reset: function(resource) {
+        _reset: function (resource) {
             this.set("monitoringError", false);
             this.set("showScript", false);
             this.set("failed", false);
         },
-        _computeScript: function(resource, monitoring) {
+        _computeScript: function (resource, monitoring) {
             if (!this.monitoring || !this.monitoring.monitored_machines || !resource || !this.monitoring.monitored_machines[
                     resource.id]) {
                 return "";
@@ -583,7 +589,7 @@
                 return "";
             }
         },
-        _computeIsActivated(resource, monitoring, hidden) {
+        _computeIsActivated (resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
             if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines ||
@@ -595,21 +601,21 @@
             }
 
         },
-        _computeResourceMonitoringInfo: function(resource, monitoring) {
+        _computeResourceMonitoringInfo: function (resource, monitoring) {
             if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
                 .monitored_machines[resource.id])
                 return false;
             else
                 return this.monitoring.monitored_machines[resource.id];
         },
-        _computeHasKeys: function(keys) {
+        _computeHasKeys: function (keys) {
             if (this.resource && this.resource.keys) {
                 return this.resource.keys.length > 0;
             } else {
                 return false;
             }
         },
-        _computeIsManual: function(isMonitored, resource, monitoring) {
+        _computeIsManual: function (isMonitored, resource, monitoring) {
             if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
                 .monitored_machines[this.resource.id] || !this.monitoring.monitored_machines[this.resource.id]
                 .installation_status.manual)
@@ -617,7 +623,7 @@
             else
                 return true;
         },
-        _showDisableDialog: function() {
+        _showDisableDialog: function () {
             var msg;
             if (this.resource.key_associations && this.resource.key_associations.length)
                 msg = "The monitoring agent will be uninstalled automatically";
@@ -631,7 +637,7 @@
                 action: 'disable monitoring'
             });
         },
-        _showDialog: function(info) {
+        _showDialog: function (info) {
             var dialog = this.$.monitorindialog;
             if (info) {
                 for (var i in info) {
@@ -640,10 +646,10 @@
             }
             dialog._openDialog();
         },
-        _disassociateMetric: function(e) {
+        _disassociateMetric: function (e) {
             var targets = e.detail.panel.panel.targets;
 
-            targets.forEach(function(target) {
+            targets.forEach(function (target) {
                 if (target.target.startsWith("mist.python")) {
                     this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id +
                         "/plugins/" + target.target;
@@ -663,14 +669,14 @@
                 this.$.disassociateMetric.generateRequest();
             }, this);
         },
-        _handleAssociateResponse: function(target) {
+        _handleAssociateResponse: function (target) {
             this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard();
         },
-        clearJobID: function(resource) {
+        clearJobID: function (resource) {
             // clear job when navigating away
             this.set('jobId', false);
         },
-        getStats: function(isMonitored, isManual, waitingData, isActivated) {
+        getStats: function (isMonitored, isManual, waitingData, isActivated) {
             if (this.isMonitored && !this.isActivated && this.monitoring.monitored_machines[this.resource.id].installation_status != "succeeded") {
                 if (!this.intervalMonitoringID)
                     this.monitoringPolling();
@@ -678,7 +684,7 @@
                 this.stopGetStats();
             }
         },
-        monitoringPolling: function() {
+        monitoringPolling: function () {
             var that = this;
             console.log('_getStats', that.shadowRoot.querySelector('#getStats').generateRequest(), window);
             this.intervalMonitoringID = window.setInterval(function() {
@@ -686,22 +692,22 @@
                 console.log('monitoringPolling');
             }, 5000);
         },
-        _handleStatsResponse: function(e) {
+        _handleStatsResponse: function (e) {
             this.stopGetStats();
         },
-        _handleStatsError: function(e) {
+        _handleStatsError: function (e) {
             this.stopGetStats();
         },
-        stopGetStats: function() {
+        stopGetStats: function () {
             window.clearInterval(this.get('intervalMonitoringID'));
             this.set('intervalMonitoringID', false);
         },
-        _computeShowHomeDashboard: function(monitoring, hidden) {
+        _computeShowHomeDashboard: function (monitoring, hidden) {
             if (hidden || !monitoring.machines || !monitoring.machines.length || !this.homeDashboard)
                 return false;
             return true;
         },
-        _isIncidentFinished: function(finished_at) {
+        _isIncidentFinished: function (finished_at) {
             return finished_at > 0;
         }
     });
