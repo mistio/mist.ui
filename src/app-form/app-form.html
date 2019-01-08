@@ -368,7 +368,7 @@
             <template id="app-form-[[id]]" is="dom-repeat" items="{{fields}}" as="field">
                 <cidr-validator id="cidr-validator" validator-name="cidr-validator"></cidr-validator>
                 <ip-validator id="ip-validator" validator-name="ip-validator"></ip-validator>
-                <template is="dom-if" if="[[field.show]]">
+                <template is="dom-if" if="[[_showField(field.show,field.options)]]" restamp>
                     <div class="grid-row">
                         <h3 class="xs12 s12 m12 l12" hidden$="[[!field.h3]]">[[field.h3]]</h3>
                         <template is="dom-if" if="[[_compareFieldType(field, 'text', field.show)]]">
@@ -451,7 +451,7 @@
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_machine', field.show)]]" restamp>
                             <mist-machine-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-machine-field>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_networks', field.show)]]" restamp>
+                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_networks', field.show, field.options)]]" restamp>
                             <mist-networks-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-networks-field>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field, 'mist_tags', field.show)]]" restamp>
@@ -744,7 +744,7 @@
                     return option.id;
             },
 
-            _compareFieldType: function (field, value, show) {
+            _compareFieldType: function (field, value, show, options) {
                 return field.type == value;
             },
 
@@ -753,13 +753,14 @@
             },
 
             _handleResponse: function (e, d) {
-                this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));;
+                this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));
                 this.set('sendingData', false);
                 //clear form only on response not on error
                 this._resetForm();
                 var overlay = document.querySelector('vaadin-dialog-overlay');
-                if (overlay)
+                if (overlay) {
                     overlay.opened = false;
+                }
             },
 
             _handleError: function (e, d) {
@@ -790,101 +791,103 @@
                 if (fields && fields.path && fields.path == 'fields') {
                     this._updateForm();
                 }
-                var that = this;
-                this.async(function () {
-                    var form = that.form,
-                        show = true,
-                        dependency, reset = true;
+                if (fields) {
+                    var that = this;
+                    this.async(function () {
+                        var form = that.form,
+                            show = true,
+                            dependency, reset = true;
 
-                    // Update show field flag after calculating dependencies
-                    that.fields.forEach(function (el, index) {
-                        // if field has a dependency
-                        if (el.showIf) {
-                            dependency = form[el.showIf.fieldName];
-                            if (el.showIf.fieldExists) {
-                                show = dependency ? true : false;
+                        // Update show field flag after calculating dependencies
+                        that.fields.forEach(function (el, index) {
+                            // if field has a dependency
+                            if (el.showIf) {
+                                dependency = form[el.showIf.fieldName];
+                                if (el.showIf.fieldExists) {
+                                    show = dependency ? true : false;
+                                } else {
+                                    show = el.showIf.fieldValues.indexOf(dependency) !=
+                                        -1;
+                                }
+
+                                //check for second level dependency
+                                var parent = that.fields.find(function (f) {
+                                    return f.name == el.showIf.fieldName;
+                                });
+
+                                if (parent && parent.showIf) {
+                                    var parentShow,
+                                        parentDependency = form[parent.showIf.fieldName];
+
+                                    if (parent.showIf.fieldExists) {
+                                        parentShow = parentDependency ? true : false;
+                                    } else {
+                                        parentShow = parent.showIf.fieldValues.indexOf(
+                                            parentDependency) != -1;
+                                    }
+                                    show = show && parentShow;
+                                }
+
+                                that.set('fields.' + index + '.show', show);
+
+                                // update form values regardless of el.show
+                                if (el.type == "ip_textarea") {
+                                    var textToArray = el.value.split('\n');
+                                    that.set('form.' + el.name, textToArray);
+                                } else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    that.set('form.' + el.name, that._constructTagsValue(
+                                        textToArray));
+                                } else if (el.type == "checkboxes") {
+                                    that.set('form.' + el.name, el.value || []);
+                                } else if (el.type == "number") {
+                                    that.set('form.' + el.name, parseInt(el.value));
+                                } else if (el.type == "date" && el.value) {
+                                    that.set('form.' + el.name, el.value && el.value.replace('T',' ')+':00');
+                                } else {
+                                    that.set('form.' + el.name, el.value);
+                                }
                             } else {
-                                show = el.showIf.fieldValues.indexOf(dependency) !=
-                                    -1;
+                                if (el.type == "ip_textarea") {
+                                    var textToArray = el.value.split('\n');
+                                    that.set('form.' + el.name, textToArray);
+                                } else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    that.set('form.' + el.name, that._constructTagsValue(
+                                        textToArray));
+                                } else if (el.type == "checkboxes") {
+                                    that.set('form.' + el.name, el.value || []);
+                                } else if (el.type == "number") {
+                                    that.set('form.' + el.name, parseInt(el.value));
+                                } else if (el.type == "date" && el.value) {
+                                    that.set('form.' + el.name, el.value.replace('T',' ')+':00');
+                                } else {
+                                    that.set('form.' + el.name, el.value);
+                                }
                             }
 
-                            //check for second level dependency
-                            var parent = that.fields.find(function (f) {
-                                return f.name == el.showIf.fieldName;
+                            // if field is a dependency of another field
+                            that.fields.forEach(function (depel, index) {
+                                if (depel.showIf &&
+                                    depel.showIf.fieldName != 'yaml_or_form' &&
+                                    depel.showIf.fieldName == el.name) {
+                                    if (depel.options) {
+                                        that.set('fields.' + index + '.options',
+                                            depel.options);
+                                    }
+                                }
                             });
 
-                            if (parent && parent.showIf) {
-                                var parentShow,
-                                    parentDependency = form[parent.showIf.fieldName];
-
-                                if (parent.showIf.fieldExists) {
-                                    parentShow = parentDependency ? true : false;
-                                } else {
-                                    parentShow = parent.showIf.fieldValues.indexOf(
-                                        parentDependency) != -1;
-                                }
-                                show = show && parentShow;
-                            }
-
-                            that.set('fields.' + index + '.show', show);
-
-                            // update form values regardless of el.show
-                            if (el.type == "ip_textarea") {
-                                var textToArray = el.value.split('\n');
-                                that.set('form.' + el.name, textToArray);
-                            } else if (el.name == "machines_tags") {
-                                var textToArray = el.value.split(',');
-                                that.set('form.' + el.name, that._constructTagsValue(
-                                    textToArray));
-                            } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, el.value || []);
-                            } else if (el.type == "number") {
-                                that.set('form.' + el.name, parseInt(el.value));
-                            } else if (el.type == "date" && el.value) {
-                                that.set('form.' + el.name, el.value && el.value.replace('T',' ')+':00');
-                            } else {
-                                that.set('form.' + el.name, el.value);
-                            }
-                        } else {
-                            if (el.type == "ip_textarea") {
-                                var textToArray = el.value.split('\n');
-                                that.set('form.' + el.name, textToArray);
-                            } else if (el.name == "machines_tags") {
-                                var textToArray = el.value.split(',');
-                                that.set('form.' + el.name, that._constructTagsValue(
-                                    textToArray));
-                            } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, el.value || []);
-                            } else if (el.type == "number") {
-                                that.set('form.' + el.name, parseInt(el.value));
-                            } else if (el.type == "date" && el.value) {
-                                that.set('form.' + el.name, el.value.replace('T',' ')+':00');
-                            } else {
-                                that.set('form.' + el.name, el.value);
-                            }
-                        }
-
-                        // if field is a dependency of another field
-                        that.fields.forEach(function (depel, index) {
-                            if (depel.showIf &&
-                                depel.showIf.fieldName != 'yaml_or_form' &&
-                                depel.showIf.fieldName == el.name) {
-                                if (depel.options) {
-                                    that.set('fields.' + index + '.options',
-                                        depel.options);
-                                }
+                            if (el.placeholderIf) {
+                                dependency = form[el.placeholderIf.fieldName];
+                                that.set('fields.' + index + '.placeholder', el.placeholderIf
+                                    .fieldOptions[dependency]);
                             }
                         });
-
-                        if (el.placeholderIf) {
-                            dependency = form[el.placeholderIf.fieldName];
-                            that.set('fields.' + index + '.placeholder', el.placeholderIf
-                                .fieldOptions[dependency]);
-                        }
+                        that.set('form', form);
+                        that.runValidateFields();
                     });
-                    that.set('form', form);
-                    that.runValidateFields();
-                });
+                }
             },
 
             _validateFields: function (fields) {
@@ -952,7 +955,7 @@
                         if (DEBUG_FORM) {
                             console.log('validate '+this.id, el.name, el.type, el.show, el.valid, el.show ? el.valid : true);
                         }
-                        return el.show ? el.valid : true;
+                        return el.show && el.required ? el.valid : true;
                     } else if (el.type == "toggle" || el.type == "radio"){
                         if (DEBUG_FORM) {
                             console.log('validate ',el.name,el.type, true);
@@ -1322,6 +1325,9 @@
             _getFieldNameById: function (str) {
                 return this.id ? str.split('app-form-' + this.id + '-')[1] : str.split('app-form--')[
                     1];
+            },
+            _showField: function (fieldShow, options) {
+                return fieldShow;
             }
         });
     </script>
