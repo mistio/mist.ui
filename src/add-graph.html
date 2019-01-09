@@ -130,7 +130,7 @@
                     <paper-listbox class="main">
                         <paper-button id="customButton" on-tap="_showCustomGraphDialog" class="blue">Custom</paper-button>
                         <template is="dom-repeat" items="[[responseMetricsArray]]">
-                            <metric-menu metric=[[item]]></metric-menu>
+                            <metric-menu machine="[[_getMachineId()]]" metric=[[item]]></metric-menu>
                         </template>
                     </paper-listbox>
                     <div class="loader" hidden$="{{!loadingMetrics}}">Loading custom server metrics
@@ -179,8 +179,6 @@
             </template>
         </vaadin-dialog>
         <iron-ajax id="postCustomgraph" url="[[uri]]" handle-as="xml" method="POST" contentType="application/json" on-response="_customgraphResponse" on-error="_handleError"></iron-ajax>
-        <iron-ajax id="associateMetric" handle-as="xml" method="PUT" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
-        </iron-ajax>
         <iron-ajax id="metrics" url="[[_computeMetricsUri(machine.id)]]" handle-as="json" method="GET" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleMetricResponse" on-error="_handleMetricError">
         </iron-ajax>
     </template>
@@ -261,7 +259,11 @@
             'keyup': '_scriptValue',
             'panel-added': '_associateMetric'
         },
-        _scriptValue: function(e) {
+        _getMachineId: function () {
+            console.log('_getMachineId',this.machine.id);
+            return this.machine.id;
+        },
+        _scriptValue: function (e) {
             if (e.target.id == "juicyScript") {
                 this.set("metric.script", e.target.value.trim());
             }
@@ -280,7 +282,7 @@
             this.set('formError', true);
             console.log('error', e, e.detail)
             var errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
-            this.$.errormsg.textContent = errorMessage;
+            this.shadowRoot.querySelector("#errormsg").textContent = errorMessage;
         },
         _computepluginId: function(name) {
             if (!this.metric.name) return;
@@ -352,9 +354,8 @@
             return arr;
         },
         _showCustomGraphDialog: function() {
-            var dialog = this.$.customOptions;
-            dialog.opened = true;
-            this.$.juicyScript.value = this.metric.script;
+            this.$.customOptions.opened = true;
+            this.querySelector("#juicyScript").value = this.metric.script;
         },
         computeSshKeyExists: function(keys) {
             return keys.length > 0;
@@ -363,20 +364,6 @@
             this.$.customOptions.opened = false;
             this.$.selectTarget.opened = false;
             this.dispatchEvent(new CustomEvent('open-and-select', {bubbles: true, composed: true}));
-        },
-        _associateMetric: function(e) {
-            this._exit('selectTarget');
-            var metric = e.detail.metric;
-            var payload = {
-                metric_id: metric
-            };
-            this.$.associateMetric.url = "/api/v1/machines/" + this.machine.id + "/metrics";
-            this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.associateMetric.params = payload;
-            this.$.associateMetric.generateRequest();
-        },
-        _handleAssociateResponse: function() {
-            this.dispatchEvent(new CustomEvent('update-dashboard', {bubbles: true, composed: true}));
         },
         _exit: function(who) {
             if (who == null) {
@@ -389,7 +376,7 @@
         _generateCustomgraphrequest() {
             this.set('formError', false);
             this._computeUrl(this.machine.id, this.metric.pluginId);
-            this.metric.script = this.$.juicyScript.value;
+            this.metric.script = this.querySelector("#juicyScript").value;
             if (this.$.derivative.checked) {
                 this.metric.type = "derive";
             } else {

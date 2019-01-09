@@ -332,7 +332,9 @@
             'streaming-list-attached': '_registerStreamingTarget',
             'streaming-list-detached': '_unregisterStreamingTarget',
             'forward-log': '_logReceived',
-            'cc-dismiss': '_ccDismissed'
+            'cc-dismiss': '_ccDismissed',
+            'panel-added': 'panelAdded',
+            'update-dashboard': '_forwardEvent'
         },
 
         observers: [
@@ -346,6 +348,11 @@
             if (this.ccRequired) {
                 this._ccDismissed();
             }
+        },
+
+        _forwardEvent: function (e) {
+            console.log('event in mist-app');
+            this.shadowRoot.querySelector('page-machines').shadowRoot.querySelector('machine-page').shadowRoot.querySelector('mist-monitoring').fire(e);
         },
 
         mistSidebarToggle: function () {
@@ -1011,7 +1018,6 @@
             this.fullscreen = false;
         },
 
-
         _registerStreamingTarget: function (e) {
             if (this.streamingTargets.indexOf(e.detail) == -1) {
                 this.streamingTargets.push(e.detail);
@@ -1029,6 +1035,10 @@
             this.streamingTargets.forEach(function (stream) {
                 stream.fire('receive-log', e.detail);
             });
+        },
+
+        panelAdded: function(e) {
+            console.log('panelAdded', e);
         }
     });
 

@@ -3,11 +3,17 @@
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <dom-module id="metric-menu">
     <template>
         <style include="shared-styles">
          :host {
             position: relative;
+            outline: none;
+            cursor: pointer;
+        }
+        paper-item {
+            cursor: pointer;
         }
         </style>
 
@@ -15,7 +21,7 @@
             <paper-item on-tap="toggle">[[metric.name]] <iron-icon icon="icons:expand-more"></iron-icon></paper-item>
             <iron-collapse id="collapse">
                 <template is="dom-repeat" items="[[metric.options]]">
-                    <metric-menu metric="[[item]]"></metric-menu>
+                    <metric-menu machine="[[machine]]" metric="[[item]]"></metric-menu>
                 </template>
             </iron-collapse>
         </template>
@@ -24,6 +30,9 @@
             <paper-item on-tap="addGraph">[[metric.name]] </paper-item>
         </template>
 
+        <iron-ajax id="associateMetric" handle-as="xml" method="PUT" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
+        </iron-ajax>
+
     </template>
     <script>
     Polymer({
@@ -31,15 +40,30 @@
         properties: {            
             metric: {
                 type: Object
+            },
+            machine: {
+                type: String
             }
         },
         toggle: function(e) {
             this.shadowRoot.querySelector('iron-collapse').toggle();
         },
-        addGraph: function(e){
-            this.dispatchEvent(new CustomEvent('panel-added', { bubbles: true, composed: true, detail: { metric: this.metric.name } }));
-        }
-
+        addGraph: function(e) {
+            console.log('addGraph', this.machine);
+            // this._exit('selectTarget');
+            var metric = this.metric.name;
+            var payload = {
+                metric_id: metric
+            };
+            this.$.associateMetric.url = "/api/v1/machines/" + this.machine + "/metrics";
+            this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.associateMetric.params = payload;
+            this.$.associateMetric.generateRequest();
+        },
+        _handleAssociateResponse: function() {
+            console.log('event in add-graph');
+            document.querySelector('mist-app').dispatchEvent(new CustomEvent('update-dashboard', {bubbles: true, composed: true}));
+        },
     });
     </script>
 </dom-module>
