@@ -25,7 +25,7 @@
 
 <dom-module id="stack-page">
     <template>
-        <style>
+        <style include="lists forms tags-and-labels single-page shared-styles">
             paper-button#minimal:not([disabled]) {
                 background-color: #eee;
                 text-transform: none;
@@ -36,8 +36,6 @@
             paper-button#minimal::slotted(iron-icon) {
                 opacity: 0.32;
             }
-        </style>
-        <style include="lists forms tags-and-labels single-page shared-styles">
             paper-material {
                 display: block;
                 padding: 24px;
@@ -440,10 +438,12 @@
             .single-head {
                 @apply --stack-page-head-mixin
             }
+
             .inStartCreationState-true {
                 opacity: 0.3;
                 pointer-events: none;
             }
+
             stack-actions {
                 width: 50%;
                 fill: #fff;
@@ -523,7 +523,7 @@
                                     <h2 class="pad app-form-title">[[workflow.name]]</h2>
                                     <div class="pad">
                                         <orchestration-form id$="[[workflow.name]]" model="[[model]]" fields="{{workflow.params}}" workflow="[[workflow.name]]" url$="/api/v1/stacks/[[stack.id]]" on-request="handleWorkflowRequest"
-                                            on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]">[[workflow.name]]</orchestration-form>
+                                            on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]"></orchestration-form>
                                     </div>
                                 </template>
 
@@ -806,6 +806,7 @@
                 },
                 actions: {
                     type: Array,
+                    notify: true
                 },
                 itemArray: {
                     type: Array,
@@ -820,7 +821,7 @@
                 }
             },
             observers: [
-                'newStackPage(stack.id)',
+                'newStackPage(stack.id, stack.template)',
                 'stackoutputsChanged(stack.outputs)',
                 'updateTerm(showOutput)',
                 'enhanceWorkflowLogs(stack.workflows)',
@@ -840,8 +841,9 @@
                     this.attachTerm();
                 } else {
                     var xterm = this.shadowRoot.querySelector("xterm-dialog");
-                    if (xterm)
+                    if (xterm) {
                         xterm.remove();
+                    }
                 }
             },
             attachTerm: function () {
@@ -1059,7 +1061,7 @@
                     nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'machine') {
                             var mac = Object.values(this.model.machines).find(function (mach) {
-                                return mach.id == rtpy.runtime_properties.info.id;
+                                return rtpy.runtime_properties.info && mach.id == rtpy.runtime_properties.info.id;
                             });
 
                             if (mac) {
@@ -1078,7 +1080,7 @@
                                 machines.push(deadMachine)
                             }
                         }
-                    }, this);
+                    }.bind(this));
                 }
                 return machines;
             },
@@ -1110,21 +1112,6 @@
                 }
                 return zones;
             },
-            // _computeListRecords: function(nodeInstances) {
-            //     var records = [];
-            //     if (nodeInstances) {
-            //         nodeInstances.base.forEach(function(rtpy) {
-            //             if (rtpy.runtime_properties.mist_type == 'record') {
-            //                 var record = this.model.recordsArray.find(function(record) {
-            //                     return record.id == rtpy.runtime_properties.info.id
-            //                 }, this);
-            //                 if (record)
-            //                     records.push(record);
-            //             }
-            //         }, this);
-            //     }
-            //     return records;
-            // },
             _computeListKeys: function (nodeInstances, keys) {
                 var keys = [];
 
@@ -1156,60 +1143,60 @@
                 if (this.template && this.template.workflows) {
                     workflows = this.template.workflows.filter(function (wf) {
                         return wf.name != 'scale' && wf.name != 'execute_operation';
-                    });
+                    }).slice(0);
                 }
-                var param1 = {
-                    name: "yaml_or_form",
-                    label: "YAML or form",
-                    type: "radio",
-                    value: "form",
-                    defaultValue: "yaml",
-                    helptext: "Choose the way you want to insert inputs",
-                    errorMessage: "Choose an input format",
-                    show: true,
-                    required: true,
-                    options: [{
-                        title: "YAML",
-                        val: "yaml"
-                    }, {
-                        title: "Form",
-                        val: "form"
-                    }]
-                };
-                var param2 = {
-                    name: "stackinputs",
-                    label: "Workflow Inputs YAML",
-                    type: "textarea",
-                    value: yaml_inputs,
-                    defaultValue: yaml_inputs,
-                    placeholder: "",
-                    helptext: "Enter the stack inputs in yaml format",
-                    errorMessage: "Please enter stacks's inputs",
-                    show: true,
-                    required: true,
-                    showIf: {
-                        fieldName: "yaml_or_form",
-                        fieldValues: ["yaml"]
-                    }
-                };
+                // var param1 = {
+                //     name: "yaml_or_form",
+                //     label: "YAML or form",
+                //     type: "radio",
+                //     value: "form",
+                //     defaultValue: "yaml",
+                //     helptext: "Choose the way you want to insert inputs",
+                //     errorMessage: "Choose an input format",
+                //     show: true,
+                //     required: true,
+                //     options: [{
+                //         title: "YAML",
+                //         val: "yaml"
+                //     }, {
+                //         title: "Form",
+                //         val: "form"
+                //     }]
+                // };
+                // var param2 = {
+                //     name: "stackinputs",
+                //     label: "Workflow Inputs YAML",
+                //     type: "textarea",
+                //     value: yaml_inputs,
+                //     defaultValue: yaml_inputs,
+                //     placeholder: "",
+                //     helptext: "Enter the stack inputs in yaml format",
+                //     errorMessage: "Please enter stacks's inputs",
+                //     show: true,
+                //     required: true,
+                //     showIf: {
+                //         fieldName: "yaml_or_form",
+                //         fieldValues: ["yaml"]
+                //     }
+                // };
                 for (var i=0; i<workflows.length; i++) {
                     var yaml_inputs = '',
                         wf = workflows[i];
                     if (wf.params && wf.params.length > 0) {
                         for (var j=0; j<wf.params.length; j++) {
                             var wp = wf.params[j];
-                            yaml_inputs += wp.name + ': ' + wp.default+'\n';
-                            wp.showIf = {
-                                fieldName: "yaml_or_form",
-                                fieldValues: ["form"]
-                            }
+                            // yaml_inputs += wp.name + ': ' + wp.default+'\n';
+                            // wp.showIf = {
+                            //     fieldName: "yaml_or_form",
+                            //     fieldValues: ["form"]
+                            // }
                             wp.label = wp.name;
                             wp.value = wp.defaultValue = wp.default;
                         }
-                        var radioField = wf.params.find(function(p){ return p.name == "yaml_or_form"});
-                        if (!radioField) {
-                            wf.params.unshift(param1, param2);
-                        }
+                        // var radioField = wf.params.findIndex(function(p){ return p.name == "yaml_or_form"});
+                        // if (radioField == -1) {
+                        //     wf.params.unshift(param1, param2);
+                        // }
                     }
                 }
                 return workflows;
@@ -1281,7 +1268,7 @@
                 }
             },
             _quickActionsNavigation: function (e) {
-                console.log(e);
+                // console.log(e);
                 this.selected = 1;
                 this._workflowNavigation(e.detail.name || e.target.id);
             },
@@ -1361,8 +1348,9 @@
                 this.set('delete_request', false);
                 // this.showLogs = false;
 
-                if (this.stack)
+                if (this.stack) {
                     this.set('itemArray', [this.stack]);
+                }
             },
             _computeIsloading: function (stack) {
                 return !this.stack ? true : false;
