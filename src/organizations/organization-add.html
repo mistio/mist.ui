@@ -1,5 +1,4 @@
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
@@ -24,39 +23,41 @@
             }
         </style>
 
-        <paper-dialog id="organizationAddModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Add Organization</h2>
-            <paper-dialog-scrollable>
-                <div hidden$="[[success]]">
-                    <p>
-                        <paper-input id="name" label="Name" error-message="Please enter organization's name" value="{{newOrganization.name}}" on-keydown="_submitOnEnter" autofocus$=[[!success]]></paper-input><br/>
-                        <div hidden$="[[!currentOrg.super_org]]">
-                            <paper-checkbox id="superorg" label="super org" checked="{{newOrganization.super_org::change}}">
-                                Sub-organisation. <br/>
-                                <span class="subtitle">
-                                    It will inherit [[currentOrg.name]]'s teams.
-                                </span>
-                            </paper-checkbox>
+        <vaadin-dialog id="organizationAddModal" with-backdrop>
+            <template>
+                <h2>Add Organization</h2>
+                <div class="paper-dialog-scrollable">
+                    <div hidden$="[[success]]">
+                        <p>
+                            <paper-input id="name" label="Name" error-message="Please enter organization's name" value="{{newOrganization.name}}" on-keydown="_submitOnEnter" autofocus$=[[!success]]></paper-input><br/>
+                            <div hidden$="[[!currentOrg.super_org]]">
+                                <paper-checkbox id="superorg" label="super org" checked="{{newOrganization.super_org::change}}">
+                                    Sub-organisation. <br/>
+                                    <span class="subtitle">
+                                        It will inherit [[currentOrg.name]]'s teams.
+                                    </span>
+                                </paper-checkbox>
+                            </div>
+                        </p>
+                        <div id="errormsg" hidden$="[[!fail]]"></div>
+                        <div class="clearfix btn-group">
+                            <paper-button class="blue-link" dialog-dismiss> Cancel </paper-button> 
+                            <paper-button class="submit-btn btn-block blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">Add</paper-button>
                         </div>
-                    </p>
-                    <div id="errormsg" hidden$="[[!fail]]"></div>
-                    <div class="clearfix btn-group">
-                        <paper-button class="blue-link" dialog-dismiss> Cancel </paper-button> 
-                        <paper-button class="submit-btn btn-block blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">Add</paper-button>
+                    </div>
+                    <div hidden$="[[!success]]" style="margin-bottom: 16px">
+                        <p class="pad-bot">
+                            New organisation created successfully. You can switch to the new organization context.
+                        </p>
+                        <p>
+                           <paper-button id="switchOrgBtn" class="submit-btn btn-block blue" on-tap="_switchOrg" dialog-confirm autofocus$=[[success]]>Switch</paper-button>
+                        </p>
                     </div>
                 </div>
-                <div hidden$="[[!success]]" style="margin-bottom: 16px">
-                    <p class="pad-bot">
-                        New organisation created successfully. You can switch to the new organization context.
-                    </p>
-                    <p>
-                       <paper-button id="switchOrgBtn" class="submit-btn btn-block blue" on-tap="_switchOrg" dialog-confirm autofocus$=[[success]]>Switch</paper-button>
-                    </p>
-                </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
-
+            </template>
+        </vaadin-dialog>
         <iron-ajax id="organizationAddAjaxRequest" url="/api/v1/org" method="POST" on-response="_handleOrganizationAddAjaxResponse" handle-as="json" on-error="_handleOrganizationAddAjaxError"></iron-ajax>
+
     </template>
 
     <script>
@@ -120,11 +121,11 @@
                     return danger;
                 },
                 openDialog: function(e) {
-                    this.shadowRoot.querySelector('paper-dialog').open();
+                    this.shadowRoot.querySelector('vaadin-dialog').opened = true;
                     this._formReset();
                 },
                 _closeDialog: function(e) {
-                    this.shadowRoot.querySelector('paper-dialog').close();
+                    document.querySelector('vaadin-dialog-overlay').opened = false;
                     this._formReset();
                 },
                 _submitForm: function() {
@@ -149,7 +150,7 @@
                     this._formReset();
                     this.set('newOrgId',e.detail.xhr.response.id);
                     this.set('success', true);
-                    this.$.switchOrgBtn.focus();
+                    document.querySelector('vaadin-dialog-overlay').shadowRoot.querySelector('#switchOrgBtn').focus();
                 },
                 _switchOrg: function(){
                     window.location.href = this.newOrgId ? '/switch_context/' + this.newOrgId : '/switch_context';
@@ -162,7 +163,7 @@
                     var msg409 = '';
                     if (e.detail.error.message.indexOf('409')> -1)
                         msg409 = 'Name must be unique';
-                    this.$.errormsg.textContent = e.detail.error.message+' '+msg409;
+                    document.querySelector('vaadin-dialog-overlay').shadowRoot.querySelector('#errormsg').textContent = e.detail.error.message+' '+msg409;
                 },
                 _formReset: function() {
                     this.set('newOrganization.name', '');
