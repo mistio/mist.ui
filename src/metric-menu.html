@@ -30,9 +30,6 @@
             <paper-item on-tap="addGraph">[[metric.name]] </paper-item>
         </template>
 
-        <iron-ajax id="associateMetric" handle-as="xml" method="PUT" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
-        </iron-ajax>
-
     </template>
     <script>
     Polymer({
@@ -47,22 +44,6 @@
         },
         toggle: function(e) {
             this.shadowRoot.querySelector('iron-collapse').toggle();
-        },
-        addGraph: function(e) {
-            console.log('addGraph', this.machine);
-            document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
-            var metric = this.metric.name;
-            var payload = {
-                metric_id: metric
-            };
-            this.$.associateMetric.url = "/api/v1/machines/" + this.machine + "/metrics";
-            this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.associateMetric.params = payload;
-            this.$.associateMetric.generateRequest();
-        },
-        _handleAssociateResponse: function() {
-            // console.log('event in add-graph');
-            document.querySelector('mist-app').fire('update-dashboard');
         }
     });
     </script>

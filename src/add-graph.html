@@ -132,6 +132,8 @@
         </vaadin-dialog>
         <iron-ajax id="metrics" url="[[_computeMetricsUri(machine.id)]]" handle-as="json" method="GET" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleMetricResponse" on-error="_handleMetricError">
         </iron-ajax>
+        <iron-ajax id="associateMetric" handle-as="xml" method="PUT" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
+        </iron-ajax>
     </template>
     <script>
     Polymer({
@@ -260,6 +262,23 @@
         _metricScriptChanged: function(m) {
             // make sure long scripts don't push buttons out of the screen
             this.$.customOptions.refit();
+        },
+        addGraph: function(e) {
+            console.log('addGraph', this.machine.id);
+            document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+            var metric = this.metric.name;
+            var payload = {
+                metric_id: metric
+            };
+            this.$.associateMetric.url = "/api/v1/machines/" + this.machine.id + "/metrics";
+            this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.associateMetric.params = payload;
+            this.$.associateMetric.generateRequest();
+        },
+        _handleAssociateResponse: function(e) {
+            console.log('event in add-graph');
+            // e.stopPropagation();
+            // document.querySelector('mist-app').fire('update-dashboard');
         }
     });
     </script>

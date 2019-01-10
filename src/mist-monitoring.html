@@ -151,7 +151,7 @@
         </style>
         <template is="dom-if" if="[[!singleResource]]" restamp>
             <template is="dom-if" if="[[showHomeDashboard]]" restamp>
-                <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
+                <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]" refresh-interval=10000></polyana-dashboard>
             </template>
         </template>
         <template is="dom-if" if="[[singleResource]]" restamp>
@@ -431,6 +431,7 @@
             'delete-panel': '_disassociateMetric'
         },
         _forwardEvent: function (e) {
+            e.stopPropagation();
             this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard(e);
         },
         _computeDashboardUri: function (resource) {
@@ -687,7 +688,7 @@
         },
         monitoringPolling: function () {
             var that = this;
-            console.log('_getStats', that.shadowRoot.querySelector('#getStats').generateRequest(), window);
+            console.log('_getStats', that.shadowRoot.querySelector('#getStats'), window);
             this.intervalMonitoringID = window.setInterval(function() {
                 that.shadowRoot.querySelector('#getStats').generateRequest();
                 console.log('monitoringPolling');
