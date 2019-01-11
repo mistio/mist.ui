@@ -49,8 +49,8 @@
                 '_cloudChanged(fields.*)'
             ],
             listeners: {
-                // 'change': '_updateFields',
-                // 'iron-select': '_updateFields',
+                'change': '_updateFields',
+                'iron-select': '_updateFields',
             },
             ready: function() {
                 var yaml_inputs = '';
@@ -119,7 +119,7 @@
                 }
             },
             _updateFields: function(e) {
-                var changeInYaml = e && e.path.indexOf(document.querySelector("paper-textarea#app-form-stack_" + this.workflow + "-stackinputs")) > -1;
+                var changeInYaml = e && e.path.indexOf(this.shadowRoot.querySelector('app-form').shadowRoot.querySelector("paper-textarea#app-form-stack_" + this.workflow + "-stackinputs")) > -1;
                 this.fields.forEach(function(inp) {
                     if (inp.name != 'yaml_or_form' && inp.name != 'stackinputs') {
 
@@ -225,7 +225,8 @@
                 }, this);
 
                 if (changeInYaml) {
-                    var yaml = this.shadowRoot.querySelector("paper-textarea#stackinputs").value;
+                    var yaml = this.shadowRoot.querySelector('app-form').shadowRoot.querySelector("paper-textarea#stackinputs").value;
+                    console.log('yaml', yaml);
                     var yaml_array = yaml.split('\n');
                     var inputs = [];
                     yaml_array.forEach(function(line) {

@@ -1145,47 +1145,43 @@
                         return wf.name != 'scale' && wf.name != 'execute_operation';
                     }).slice(0);
                 }
-                // var param1 = {
-                //     name: "yaml_or_form",
-                //     label: "YAML or form",
-                //     type: "radio",
-                //     value: "form",
-                //     defaultValue: "yaml",
-                //     helptext: "Choose the way you want to insert inputs",
-                //     errorMessage: "Choose an input format",
-                //     show: true,
-                //     required: true,
-                //     options: [{
-                //         title: "YAML",
-                //         val: "yaml"
-                //     }, {
-                //         title: "Form",
-                //         val: "form"
-                //     }]
-                // };
-                // var param2 = {
-                //     name: "stackinputs",
-                //     label: "Workflow Inputs YAML",
-                //     type: "textarea",
-                //     value: yaml_inputs,
-                //     defaultValue: yaml_inputs,
-                //     placeholder: "",
-                //     helptext: "Enter the stack inputs in yaml format",
-                //     errorMessage: "Please enter stacks's inputs",
-                //     show: true,
-                //     required: true,
-                //     showIf: {
-                //         fieldName: "yaml_or_form",
-                //         fieldValues: ["yaml"]
-                //     }
-                // };
+                var param1 = {
+                    name: "yaml_or_form",
+                    label: "YAML or form",
+                    type: "radio",
+                    value: "form",
+                    defaultValue: "yaml",
+                    helptext: "Choose the way you want to insert inputs",
+                    errorMessage: "Choose an input format",
+                    show: false,
+                    required: true,
+                    options: [{
+                        title: "YAML",
+                        val: "yaml"
+                    }, {
+                        title: "Form",
+                        val: "form"
+                    }]
+                };
+                var param2 = {
+                    name: "stackinputs",
+                    label: "Workflow Inputs YAML",
+                    type: "textarea",
+                    value: yaml_inputs,
+                    defaultValue: yaml_inputs,
+                    placeholder: "",
+                    helptext: "Enter the stack inputs in yaml format",
+                    errorMessage: "Please enter stacks's inputs",
+                    show: false,
+                    required: true
+                };
                 for (var i=0; i<workflows.length; i++) {
                     var yaml_inputs = '',
                         wf = workflows[i];
                     if (wf.params && wf.params.length > 0) {
                         for (var j=0; j<wf.params.length; j++) {
                             var wp = wf.params[j];
-                            // yaml_inputs += wp.name + ': ' + wp.default+'\n';
+                            yaml_inputs += wp.name + ': ' + wp.default+'\n';
                             // wp.showIf = {
                             //     fieldName: "yaml_or_form",
                             //     fieldValues: ["form"]
@@ -1193,10 +1189,11 @@
                             wp.label = wp.name;
                             wp.value = wp.defaultValue = wp.default;
                         }
-                        // var radioField = wf.params.findIndex(function(p){ return p.name == "yaml_or_form"});
-                        // if (radioField == -1) {
-                        //     wf.params.unshift(param1, param2);
-                        // }
+                        var radioField = wf.params.findIndex(function(p){ return p.name == "stackinputs"});
+                        if (radioField == -1) {
+                            wf.params.unshift(param1, param2);
+                            // wf.params.unshift(param2);
+                        }
                     }
                 }
                 return workflows;
