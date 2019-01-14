@@ -1,10 +1,18 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+
 <dom-module id="tag-item">
     <template>
-        <style include="shared-styles">
-            :host {
+        <style include="shared-styles tags-and-labels">
+             :host {
+                position: relative;
+            }
+
+            .input-box {
                 @apply --layout-horizontal;
                 align-items: flex-end;
             }
@@ -21,12 +29,36 @@
             paper-input {
                 padding-right: 8px;
             }
+
+            #suggestedTags {
+                position: relative;
+            }
+
+            paper-listbox {
+                max-height: 200px;
+                overflow-y: scroll;
+                margin: 0;
+                padding: 0;
+                margin-top: -8px;
+            }
+
+            paper-material {
+                margin: 8px;
+                padding: 0;
+            }
+
+            vaadin-combo-box {
+                margin-right: 8px;
+            }
+
         </style>
 
-        <strong>[[newIndex]].</strong>
-        <paper-input label="key" value="{{tag.key}}" class="flex key"></paper-input>
-        <paper-input label="value" value="{{tag.value}}" class="flex value"></paper-input>
-        <paper-icon-button icon="delete" on-tap="_deleteTag"></paper-icon-button>
+        <div class="input-box">
+            <strong>[[newIndex]].</strong>
+            <vaadin-combo-box value="{{tag.key}}" items="[[existingTagKeys]]" filter="[[tag.key]]" allow-custom-value></vaadin-combo-box>
+            <vaadin-combo-box value="{{tag.value}}" items="[[existingTagValues]]" filter="[[tag.value]]" allow-custom-value></vaadin-combo-box>
+            <paper-icon-button icon="delete" on-tap="_deleteTag"></paper-icon-button>
+        </div>
 
     </template>
 </dom-module>
@@ -38,6 +70,12 @@
             tag: {
                 type: Object,
                 notify: true
+            },
+            existingTagKeys: {
+                type: Array
+            },
+            existingTagValues: {
+                type: Array
             },
             oldTag: {
                 type: Object,
@@ -53,7 +91,7 @@
             }
         },
         listeners: {
-            'change': '_tagChange'
+            'change': '_tagChange',
         },
         storeOldTag: function (tag) {
             //store tag
