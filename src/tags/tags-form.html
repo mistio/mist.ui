@@ -94,8 +94,8 @@
                 <div class="paper-dialog-scrollable">
                     <div class="tag-list">
                         <p hidden$="[[!showEmpty]]"><em>No tags. Save to clear all tags.</em></p>
-                        <template is="dom-repeat" items="[[tags]]">
-                            <tag-item tag="[[item]]" index=[[index]] on-tag-delete="_tagDeleteHandler" on-tag-change="_tagUpdate" existing-tag-keys="[[existingTagKeys]]" existing-tag-values="[[existingTagValues]]"></tag-item>
+                        <template is="dom-repeat" items="[[tags]]" as="tag">
+                            <tag-item tag="[[tag]]" index=[[index]] on-tag-delete="_tagDeleteHandler" on-tag-change="_tagUpdate" existing-tag-keys="[[existingTagKeys]]" existing-tag-values="[[existingTagValues]]"></tag-item>
                         </template>
                     </div>
                 </div>
@@ -133,30 +133,31 @@
                     },
                     existingTags: {
                         type: Array,
-                        value: [],
                         computed: '_computeExistingTags(model.*)'
                     },
                     existingTagKeys: {
                         type: Array,
-                        value: [],
-                        computed: '_computeExistingTagKeys(existingTags.*)'
+                        computed: '_computeExistingTagKeys(existingTags)'
                     },
                     existingTagValues: {
                         type: Array,
-                        value: [],
-                        computed: '_computeExistingTagValues(existingTags.*)'
+                        computed: '_computeExistingTagValues(existingTags)'
                     },
                     items: {
-                        type: Array
+                        type: Array,
+                        value: function() { return []; },
+                        observer: 'selectedItemsChanged'
                     },
                     type: {
-                        type: String,
+                        type: String
                     },
                     tags: {
-                        type: Array
+                        type: Array,
+                        value: function() { return []; },
                     },
                     tagsToDelete: {
-                        type: Array
+                        type: Array,
+                        value: function() { return []; },
                     },
                     hasError: {
                         type: Boolean,
@@ -175,19 +176,12 @@
                         type: String
                     }
                 },
-                observers: [
-                    'selectedItemsChanged(items.splices)'
-                ],
                 listeners: {
                     'tag-delete': '_tagDeleteHandler',
                     'tag-change': '_tagUpdate'
                 },
                 ready: function(){
-                    this.set('items', []);
-                    this.set('tags', []);
-                    this.set('tagsToDelete', []);
                 },
-                computeItemActions: function () { return []; },
                 _openDialog: function(e) {
                     this.shadowRoot.querySelector('vaadin-dialog').opened = true;
                 },
@@ -202,31 +196,47 @@
                 },
                 _computeExistingTags: function(model) {
                     var existingTags = [];
-                    for (var resources in this.model) {
-                        for (var id in this.model[resources]) {
-                            // console.log('in loop 2', this.model[resources][id] && this.model[resources][id].tags);
-                            if (this.model[resources][id] && this.model[resources][id].tags) {
-                                var foo = existingTags;
-                                existingTags = this._addTags(foo, this.model[resources][id].tags);
+                    if (this.model) {
+                        // loop in taggable resources
+                        for (var resources in this.model) {
+                            if (['machines', 'clouds', 'stacks', 'volumes', 'networks', 'zones', 'keys', 'images', 'scripts', 'templates', 'schedules', 'schedules', 'teams'].indexOf(resources) > -1) {
+                                // loop in resources items
+                                for (var id in this.model[resources]) {
+                                    // loop in resources items with tags
+                                    if (this.model[resources][id] && this.model[resources][id].tags && Object.keys(this.model[resources][id].tags).length > 0) {
+                                        existingTags = this._addTags(existingTags, this.model[resources][id].tags);
+                                    }
+                                }
                             }
                         }
                     }
                     return existingTags;
                 },
                 _computeExistingTagKeys: function(existingTags) {
-                    return this.existingTags.map(t=>t.key).filter(function(v,i,s){return s.indexOf(v) === i;});
+                    if (this.existingTags) {
+                        return this.existingTags.map(t=>Object.keys(t).join()).filter(function(v,i,s){
+                            return s.indexOf(v) === i;
+                        });
+                    }
+                    return [];
                 },
                 _computeExistingTagValues: function(existingTags) {
-                    return this.existingTags.map(t=>t.value).filter(function(v,i,s){return v && s.indexOf(v) === i;});
+                    if (this.existingTags) {
+                        return this.existingTags.map(t=>Object.values(t).join()).filter(function(v,i,s){return v && s.indexOf(v) === i;});
+                    }
+                    return [];
                 },
                 _addTags: function(arr, tags){
-                    if (arr && tags.length) {
-                        var keys = arr.map(tag=>tag.key);
-                        for (var i=0; i<tags.length; i++) {
-                            // push if is first tag.key appearence or if tag exists but has different value
-                            var index = keys.indexOf(tags[i].key);
-                            if (index == -1 || (index > -1 && this._nonEqualTagValues(arr[index].value,tags[i].value))){
-                                arr.push(tags[i]);
+                    if (arr && tags) {
+                        var keys = arr.map(tag => Object.keys(tag).join()) || [];
+                        console.log('in loop tags', arr, tags, keys);
+
+                        for (var p in tags) {
+                            var index = keys.indexOf(p);
+                            if (index == -1 || (index > -1 && this._nonEqualTagValues(arr[index], tags[p])) ) {
+                                var obj = {};
+                                obj[p] = tags[p];
+                                arr.push( obj );
                             }
                         }
                     }
@@ -236,11 +246,13 @@
                     var val1 = val1 || '', val2 = val2 || '';
                     return val1 != val2;
                 },
-                selectedItemsChanged: function(splices){
-                    // console.log('selectedItemsChanged', splices);
+                selectedItemsChanged: function(itemsNew, itemsOld){
                     // freeze updating of selectedItems when dialog is open
-                    if (!this.$.tagsModal.opened)
+                    // if (!this.$.tagsModal.opened)
+                    if (JSON.stringify(itemsNew) != JSON.stringify(itemsOld)) {
+                        console.log('selectedItemsChanged', itemsNew, itemsOld);
                         this._computeTags(this.items);
+                    }
                 },
                 _computeShowEmpty: function(tags, length){
                     if (this.tags && this.tags.length>0) {
