@@ -1151,10 +1151,11 @@
                     label: "YAML or form",
                     type: "radio",
                     value: "form",
-                    defaultValue: "yaml",
+                    defaultValue: "form",
+                    default: "form",
                     helptext: "Choose the way you want to insert inputs",
                     errorMessage: "Choose an input format",
-                    show: false,
+                    show: true,
                     required: true,
                     options: [{
                         title: "YAML",
@@ -1173,27 +1174,32 @@
                     placeholder: "",
                     helptext: "Enter the stack inputs in yaml format",
                     errorMessage: "Please enter stacks's inputs",
-                    show: false,
-                    required: true
+                    required: true,
+                    showIf: {
+                        fieldName: "yaml_or_form",
+                        fieldValues: ["yaml"]
+                    }
                 };
                 for (var i=0; i<workflows.length; i++) {
                     var yaml_inputs = '',
                         wf = workflows[i];
-                    if (wf.params && wf.params.length > 0) {
+                        var radioField = wf.params.findIndex(function(p){ return p.name == "yaml_or_form"});
+                    if (wf.params && wf.params.length > 0 && radioField === -1) {
                         for (var j=0; j<wf.params.length; j++) {
-                            var wp = wf.params[j];
-                            yaml_inputs += wp.name + ': ' + wp.default+'\n';
-                            // wp.showIf = {
-                            //     fieldName: "yaml_or_form",
-                            //     fieldValues: ["form"]
-                            // }
-                            wp.label = wp.name;
-                            wp.value = wp.defaultValue = wp.default;
+                            var workflowField = wf.params[j];
+                            yaml_inputs += workflowField.name + ': ' + workflowField.default+'\n';
+                            if (['yaml_or_form','stackinputs'].indexOf(workflowField.name) == -1) {
+                                workflowField.show = true;
+                                workflowField.showIf = {
+                                    fieldName: "yaml_or_form",
+                                    fieldValues: ["form"]
+                                }
+                                workflowField.label = workflowField.name;
+                                workflowField.value = workflowField.defaultValue = workflowField.default;
+                            }
                         }
-                        var radioField = wf.params.findIndex(function(p){ return p.name == "stackinputs"});
-                        if (radioField == -1) {
+                        if (radioField === -1) {
                             wf.params.unshift(param1, param2);
-                            // wf.params.unshift(param2);
                         }
                     }
                 }
