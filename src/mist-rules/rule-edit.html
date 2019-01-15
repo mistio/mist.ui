@@ -47,6 +47,8 @@
             paper-input.offset {
                 width: 40px;
                 display: inline-block;
+                top: 2px;
+                position: relative;
             }
 
             .rule.incident-true {
@@ -122,7 +124,8 @@
                 font-weight: 600;
                 font-family: monospace;
                 margin-right: 8px;
-                top: 7px;
+                top: -8px;
+                position: relative;
             }
 
             paper-dropdown-menu.target,
@@ -236,10 +239,10 @@
                 </div>
                 <span hidden$="[[isNoData]]">
                     <span class="keyword if">if</span>
-                    <template is="dom-repeat" items="[[rule.queries]]" as="query">
+                    <template is="dom-repeat" items="{{rule.queries}}" as="query">
                         <paper-dropdown-menu id$="target-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
-                                <template is="dom-repeat" items="[[availableMetrics]]" as="option">
+                                <template is="dom-repeat" items="{{availableMetrics}}" as="option">
                                     <paper-item value="[[option.id]]">[[option.name]]</paper-item>
                                 </template>
                             </paper-listbox>
@@ -251,7 +254,7 @@
                             </paper-listbox>
                         </paper-dropdown-menu>
                         <span>
-                            <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-validate auto-focus hidden$=[[!query.operator]]
+                            <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-focus hidden$=[[!query.operator]]
                                 type="number" on-value-changed="_validateCondition"></paper-input>
                             [[_computeUnits(newMetric, availableMetrics)]]
                         </span>
@@ -403,7 +406,7 @@
             "_currentRuleUpdated(currentRule.*)",
             "_initialiseEdit(currentRule,resource, rule.id)",
             "_computeMonitoredMachines(machines.*)",
-            "_isConditionValid(rule.queries, rule.queries.*)"
+            "_validateCondition(rule.*)"
         ],
         ready: function() {
             if (!this.rule) {
@@ -414,7 +417,7 @@
             return rule.title == 'NoData';
         },
         _computeHideApplyOn: function(resource, isNoData) {
-            return resource || isNoData;
+            return resource || isNoData ? true : false;
         },
         _isSpecific: function(type) {
             return type == 'specific';
@@ -552,10 +555,13 @@
         _isAlertSelected: function(selectedAction) {
             return selectedAction == 'alert';
         },
-        _isConditionValid: function() {
-            this._validateCondition();
+        _validateConditionDebounce: function() {
+            this.debounce('_validateCondition', function () {
+                this._validateCondition();
+            }, 200);
         },
-        _validateCondition: function() {
+        _validateCondition: function (e) {
+            console.log('validateCondition', this.rule.queries && this.rule.queries[0].threshold, this.rule.queries);
             var allThresholdsDefined = true;
             if (this.rule.queries) {
                 for (var i = 0; i < this.rule.queries.length; i++) {
@@ -565,6 +571,7 @@
                     }
                 }
                 this.set('conditionValid', this.rule.queries.length && allThresholdsDefined);
+                console.log('conditionValid', this.conditionValid, this.rule.queries.length, allThresholdsDefined, this.rule.queries[0].threshold);
             }
             this._validateRule();
         },

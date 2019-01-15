@@ -32,14 +32,14 @@
                             <paper-input id="name" label="Name" error-message="Please enter organization's name" value="{{newOrganization.name}}" on-keydown="_submitOnEnter" autofocus$=[[!success]]></paper-input><br/>
                             <div hidden$="[[!currentOrg.super_org]]">
                                 <paper-checkbox id="superorg" label="super org" checked="{{newOrganization.super_org::change}}">
-                                    Sub-organisation. <br/>
+                                    Sub-organization. <br/>
                                     <span class="subtitle">
                                         It will inherit [[currentOrg.name]]'s teams.
                                     </span>
                                 </paper-checkbox>
                             </div>
                         </p>
-                        <div id="errormsg" hidden$="[[!fail]]"></div>
+                        <div id="errormsg" hidden$="[[!fail]]">[[errorMessage]]</div>
                         <div class="clearfix btn-group">
                             <paper-button class="blue-link" on-tap="_closeDialog"> Cancel </paper-button> 
                             <paper-button class="submit-btn btn-block blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">Add</paper-button>
@@ -47,10 +47,10 @@
                     </div>
                     <div hidden$="[[!success]]" style="margin-bottom: 16px">
                         <p class="pad-bot">
-                            New organisation created successfully. You can switch to the new organization context.
+                            Organization created successfully. You can switch to the new organization context.
                         </p>
                         <p>
-                           <paper-button id="switchOrgBtn" class="submit-btn btn-block blue" on-tap="_switchOrg" dialog-confirm autofocus$=[[success]]>Switch</paper-button>
+                           <paper-button id="switchOrgBtn" class="submit-btn btn-block blue" on-tap="_switchOrg" dialog-confirm autofocus>Switch</paper-button>
                         </p>
                     </div>
                 </div>
@@ -99,6 +99,10 @@
                     },
                     isSuperOrg: {
                         type: Boolean
+                    },
+                    errorMessage: {
+                        type: String,
+                        value: ''
                     }
                 },
                 _computeFormReady: function(name, sendingData) {
@@ -150,7 +154,6 @@
                     this._formReset();
                     this.set('newOrgId',e.detail.xhr.response.id);
                     this.set('success', true);
-                    document.querySelector('vaadin-dialog-overlay').shadowRoot.querySelector('#switchOrgBtn').focus();
                 },
                 _switchOrg: function(){
                     window.location.href = this.newOrgId ? '/switch_context/' + this.newOrgId : '/switch_context';
@@ -160,10 +163,10 @@
                     this.set('sendingData', false);
                     // TODO: should be e.detail.request.xhr.responseText which is more descriptive
                     // but only if handle-as="xml" which does not return newOrg id
-                    var msg409 = '';
-                    if (e.detail.error.message.indexOf('409')> -1)
-                        msg409 = 'Name must be unique';
-                    document.querySelector('vaadin-dialog-overlay').shadowRoot.querySelector('#errormsg').textContent = e.detail.error.message+' '+msg409;
+                    var msg = e.detail.error.message;
+                    if (msg.indexOf('409')> -1)
+                        msg = 'Name must be unique';
+                    this.set('errorMessage', msg);
                 },
                 _formReset: function() {
                     this.set('newOrganization.name', '');
