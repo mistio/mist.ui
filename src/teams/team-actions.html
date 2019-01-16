@@ -51,14 +51,18 @@
     }
     Polymer({
         is: 'team-actions',
+        behaviors: [
+            MistListActionsBehavior
+        ],
         properties: {
             items: {
-                type: Array,
-                value: []
+                type: Array
             },
             actions: {
                 type: Array,
-                value: [],
+                value: function(){
+                    return [];
+                },
                 notify: true
             },
             type: {
@@ -70,7 +74,7 @@
             }
         },
         observers: [
-            '_mapPolicyToActions(items.*)'
+            '_updateActions(items.*)'
         ],
         listeners: {
             'confirmation': 'confirmAction',
@@ -82,7 +86,7 @@
             this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.request.method = "POST";
         },
-        itemActions: function(team) {
+        computeItemActions: function(team) {
             // org policy for actions
             var arr = [];
             if (team) {
@@ -94,7 +98,7 @@
             }
             return arr;
         },
-        actionDetails: function(actions) {
+        computeActionListDetails: function(actions) {
             var ret = [];
             for (var i = 0; i < actions.length; i++) {
                 ret.push(TEAM_ACTIONS[actions[i]]);
@@ -213,6 +217,10 @@
         _edit: function(e) {
             var el = this.shadowRoot.querySelector('team-edit');
             el._openEditTeamModal();
+        },
+        _firstItem: function(items) {
+            console.log('_firstItem',items);
+            return this.items && this.items[0];
         }
     });
     </script>
