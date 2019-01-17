@@ -686,6 +686,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 unit: 'cores',
             }],
         });
+    } else if (['docker'].indexOf(p.provider) != -1) { 
+        // no size for docker
     } else { // mist_dropdown for all others
         p.fields.splice(2, 0, {
             name: 'size',
