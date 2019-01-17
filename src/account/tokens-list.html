@@ -24,6 +24,7 @@
 
             .flexchild {
                 @apply --layout-flex;
+                display: flex;
             }
             .info-head {
                 padding: 8px 16px;
@@ -59,9 +60,6 @@
             }
             .error {
                 color: var(--red-color);
-            }
-            paper-item {
-                align-items: baseline;
             }
         </style>
         <paper-material elevation="1">
@@ -122,9 +120,9 @@
             <template>
                 <h2>Copy your Token</h2>
                 <p>Grab your token below. This will be the last time that it will be visible to anybody.</p>
-                <paper-textarea id="tokenValue" value=""></paper-textarea>
+                <paper-textarea id="tokenValue" value="[[tokenValue]]"></paper-textarea>
                 <div class="buttons">
-                    <paper-button class="blue" dialog-dismiss on-tap="resetAndClear">OK</paper-button>
+                    <paper-button class="blue" dialog-dismiss on-tap="copied">OK</paper-button>
                 </div>
             </template>
         </vaadin-dialog>
@@ -163,6 +161,9 @@
                 hasError: {
                     type: Boolean,
                     value: false
+                },
+                tokenValue: {
+                    type: String
                 }
             },
             listeners: {
@@ -186,17 +187,17 @@
             },
             createTokenResponse: function(e) {
                 this.$.createTokenDialog.opened = false;
-                var res = JSON.parse(e.detail.xhr.response)
-                this.$.tokenValue.value = res.token;
-                this.$.copyToken.opened = false;
-
-                this.reset();
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+                var res = JSON.parse(e.detail.xhr.response);
+                this.set('tokenValue', res.token);
                 this.getTokensAgain(e);
+                this.$.copyToken.opened = true;
             },
             createTokenError: function(e) {
                 this.set("hasError", true);
                 this.$.error.textContent = e.detail.request.xhr.responseText;
                 this.$.createTokenDialog.opened = false;
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
                 this.reset();
             },
             getTokens: function(e) {
@@ -206,6 +207,7 @@
                 this.set("hasError", true);
                 this.$.error.textContent = e.detail.error;
                 this.$.createTokenDialog.opened = false;
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
             },
             getTokensAgain: function(e) {
                 var that = this;
@@ -217,10 +219,11 @@
                 this.set('newToken.name', '');
                 this.set('newToken.ttl', '');
                 this.set('newToken.password', '');
+                this.set('tokenValue', '');
             },
             copied: function() {
+                this.$.copyToken.opened = false;
                 this.reset();
-                this.$.tokenValue.value = "";
             },
             showError: function(e) {
                 this.set("hasError", true);
@@ -230,6 +233,8 @@
                 }
                 this.$.error.textContent = error;
                 this.$.createTokenDialog.opened = false;
+                // needed due to https://github.com/vaadin/vaadin-overlay/issues/49
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
             },
             hideErrors: function() {
                 this.set('hasError', false);
