@@ -686,8 +686,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 unit: 'cores',
             }],
         });
-    } else if (['docker'].indexOf(p.provider) != -1) { 
-        // no size for docker
     } else { // mist_dropdown for all others
         p.fields.splice(2, 0, {
             name: 'size',
@@ -709,8 +707,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             type: 'text',
             value: '',
             defaultValue: '',
-            show: true,
-            hidden: true,
+            show: false,
             required: false,
         }, {
             name: 'onapp_advanced_options',
@@ -996,12 +993,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }, {
         name: 'schedule_entry',
         label: 'Schedule time',
-        type: 'text',
+        type: 'textarea',
         value: '',
         defaultValue: '',
         helptext: '',
-        show: true,
-        hidden: true,
+        show: false,
         excludeFromPayload: true,
         required: false,
     }, {

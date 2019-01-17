@@ -806,9 +806,14 @@
                         fv[i] = this.fields[i].show;
                     }
                     this.set('fieldVisibility', fv);
-                    console.log('fieldVisibility', this.fieldVisibility);
+                    // console.log('fieldVisibility', this.fieldVisibility);
                 }
-                if (fields) {
+                // a consumer changed show values
+                if (fields && fields.path.endsWith('.show')) {
+                    var index = parseInt(fields.path.split('.')[1]);
+                    this.set('fieldVisibility.' + index, fields.value);
+                }
+                if (fields && !fields.path.endsWith('.show')) {
                     var that = this;
                     // this.async(function () {
                         var form = that.form,
@@ -846,7 +851,7 @@
                                 }
 
                                 that.set('fieldVisibility.' + index, show);
-                                console.log('form set visibility', el.name , show);
+                                // console.log('form set visibility', el.name , show);
 
                                 // update form values regardless of el.show
                                 if (el.type == "ip_textarea") {
