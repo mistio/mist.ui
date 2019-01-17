@@ -1294,7 +1294,7 @@ PROVIDERS.push({
                 type: "ssh_key",
                 value: "",
                 defaultValue: "",
-                show: false,
+                show: true,
                 required: false,
                 options: [],
                 showIf: {
