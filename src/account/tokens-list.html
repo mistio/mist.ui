@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="token-item.html">
 <dom-module id="tokens-list">
@@ -87,42 +88,46 @@
                 <div id="error" class="error" hidden$="[[!hasError]]"></div>
                 <paper-button on-tap="createToken" id="Create API Token" class="blue create-token">Create API Token</paper-button>
                 <paper-spinner active="{{loading}}"></paper-spinner>
-                <paper-dialog id="createTokenDialog" with-backdrop>
-                    <h2>Create API Token</h2>
-                    <paper-input id="tokenName" value="{{newToken.name::input}}" label="Token Name"></paper-input>
-                    <paper-dropdown-menu id="tokenExpires" label="Expires After">
-                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newToken.ttl}}" class="dropdown-content">
-                            <paper-item value="0">Never</paper-item>
-                            <paper-item value="86400">1 Day</paper-item>
-                            <paper-item value="604800">1 Week</paper-item>
-                            <paper-item value="2592000">1 Month</paper-item>
-                            <paper-item value="31104000">1 Year</paper-item>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                    <paper-dropdown-menu label="Context">
-                        <paper-listbox slot="dropdown-content" id="tokenContexts" class="dropdown-content">
-                            <template is="dom-repeat" items="[[user.orgs]]" as="org">
-                                <paper-item value="[[org.id]]">[[org.name]]</paper-item>
-                            </template>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                    <paper-input id="pass" value="{{newToken.password::input}}" label="Password *" type="password"></paper-input>
-                    <p>* Password is required to create a token</p>
-                    <div class="buttons">
-                        <paper-button dialog-dismiss>Cancel</paper-button>
-                        <paper-button id="Create" autofocus on-tap="createTokenSubmit" class="blue" disabled="[[!formReady]]">Create </paper-button>
-                    </div>
-                </paper-dialog>
+                <vaadin-dialog id="createTokenDialog" with-backdrop>
+                    <template>
+                        <h2>Create API Token</h2>
+                        <paper-input id="tokenName" value="{{newToken.name::input}}" label="Token Name"></paper-input>
+                        <paper-dropdown-menu id="tokenExpires" label="Expires After">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newToken.ttl}}" class="dropdown-content">
+                                <paper-item value="0">Never</paper-item>
+                                <paper-item value="86400">1 Day</paper-item>
+                                <paper-item value="604800">1 Week</paper-item>
+                                <paper-item value="2592000">1 Month</paper-item>
+                                <paper-item value="31104000">1 Year</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu label="Context">
+                            <paper-listbox slot="dropdown-content" id="tokenContexts" class="dropdown-content">
+                                <template is="dom-repeat" items="[[user.orgs]]" as="org">
+                                    <paper-item value="[[org.id]]">[[org.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-input id="pass" value="{{newToken.password::input}}" label="Password *" type="password"></paper-input>
+                        <p>* Password is required to create a token</p>
+                        <div class="buttons">
+                            <paper-button dialog-dismiss>Cancel</paper-button>
+                            <paper-button id="Create" autofocus on-tap="createTokenSubmit" class="blue" disabled="[[!formReady]]">Create </paper-button>
+                        </div>
+                    </template>
+                </vaadin-dialog>
             </div>
         </paper-material>
-        <paper-dialog id="copyToken" modal>
-            <h2>Copy your Token</h2>
-            <p>Grab your token below. This will be the last time that it will be visible to anybody.</p>
-            <paper-textarea id="tokenValue" value=""></paper-textarea>
-            <div class="buttons">
-                <paper-button class="blue" dialog-dismiss on-tap="resetAndClear">OK</paper-button>
-            </div>
-        </paper-dialog>
+        <vaadin-dialog id="copyToken">
+            <template>
+                <h2>Copy your Token</h2>
+                <p>Grab your token below. This will be the last time that it will be visible to anybody.</p>
+                <paper-textarea id="tokenValue" value=""></paper-textarea>
+                <div class="buttons">
+                    <paper-button class="blue" dialog-dismiss on-tap="resetAndClear">OK</paper-button>
+                </div>
+            </template>
+        </vaadin-dialog>
         <iron-ajax id="getTokensAjax" method="GET" url="/api/v1/tokens" auto on-response="getTokens" on-error="getTokensError" handle-as="json"></iron-ajax>
         <iron-ajax id="createTokenAjax" method="POST" url="/api/v1/tokens" loading="{{loading}}" on-request="createTokenRequest" on-response="createTokenResponse" on-error="createTokenError" handle-as="xml"></iron-ajax>
     </template>
@@ -170,7 +175,7 @@
             ],
             attached: function() {},
             createToken: function(e) {
-                this.$.createTokenDialog.open();
+                this.$.createTokenDialog.opened = true;
             },
             createTokenSubmit: function(e) {
                 var payload = this.newToken;
@@ -180,10 +185,10 @@
                 this.$.createTokenAjax.generateRequest();
             },
             createTokenResponse: function(e) {
-                this.$.createTokenDialog.close();
+                this.$.createTokenDialog.opened = false;
                 var res = JSON.parse(e.detail.xhr.response)
                 this.$.tokenValue.value = res.token;
-                this.$.copyToken.open();
+                this.$.copyToken.opened = false;
 
                 this.reset();
                 this.getTokensAgain(e);
@@ -191,7 +196,7 @@
             createTokenError: function(e) {
                 this.set("hasError", true);
                 this.$.error.textContent = e.detail.request.xhr.responseText;
-                this.$.createTokenDialog.close();
+                this.$.createTokenDialog.opened = false;
                 this.reset();
             },
             getTokens: function(e) {
@@ -200,7 +205,7 @@
             getTokensError: function(e) {
                 this.set("hasError", true);
                 this.$.error.textContent = e.detail.error;
-                this.$.createTokenDialog.close();
+                this.$.createTokenDialog.opened = false;
             },
             getTokensAgain: function(e) {
                 var that = this;
@@ -220,10 +225,11 @@
             showError: function(e) {
                 this.set("hasError", true);
                 var error = e.detail.request.xhr.responseText;
-                if (!error)
+                if (!error) {
                     error = e.detail.error;
+                }
                 this.$.error.textContent = error;
-                this.$.createTokenDialog.close();
+                this.$.createTokenDialog.opened = false;
             },
             hideErrors: function() {
                 this.set('hasError', false);
