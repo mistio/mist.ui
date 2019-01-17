@@ -12,7 +12,7 @@
 <link rel="import" href="../helpers/mist-lists-behavior.html">
 
 <link rel="import" href="zone-actions.html">
-<link rel="import" href="record-add.html">
+<link rel="import" href="record-create.html">
 <link rel="import" href="record-actions.html">
 
 <dom-module id="zone-page">
@@ -152,14 +152,14 @@
                     <h4 class="id">Records</h4>
                     <template is="dom-if" if="[[renderRecordsList]]" restamp>
                         <record-actions id="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]>
-                            <mist-list id="recordsList" class$="[[zone.id]]"
-                                selectable column-menu multi-sort
+                            <mist-list id="recordsList" selectable column-menu multi-sort resizable
                                 items=[[zoneRecords]]
                                 name="Records"
                                 selected-items="{{selectedRecordItems}}"
                                 frozen=[[_getFrozenLogColumn()]]
                                 visible=[[_getVisibleColumns()]]
-                                renderers=[[_getRenderers()]]>
+                                renderers=[[_getRenderers()]]
+                                actions=[[recordActions]]>
                             </mist-list>
                         </record-actions>
                   </template>
@@ -168,7 +168,7 @@
                     <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
                 </div>
             </div>
-            <record-add model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-add>
+            <record-create model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-create>
         </div>
         <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
         <dialog-element class='zone-dialog'></dialog-element>
@@ -260,7 +260,6 @@
                 ],
                 listeners: {
                     'confirmation': '_deleteZoneEventResponse',
-                    'select-action': 'selectAction',
                     'action-finished': 'clearListSelection'
                 },
                 _changed: function(zone) {
@@ -334,7 +333,7 @@
                 // },
                 _fabAction: function(e) {
                     if (this.zone) {
-                        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:'zones/' + this.zone.id + '/+add'} }))
+                        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:'zones/' + this.zone.id + '/+create'} }))
                     }
                 },
                 _deleteZoneEventResponse: function(e) {
@@ -358,7 +357,7 @@
 
                 },
                 _computeTagsExist: function(zone, tags){
-                    if (this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0]['key'] && this.zone.tags[0]['key'] != "") {
+                    if (this.zone && this.zone.tags && this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0]['key'] && this.zone.tags[0]['key'] != "") {
                         return true;
                     } else {
                         return false;
@@ -428,17 +427,7 @@
                     return !this.zone ? true : false;
                 },
                 _computeAddRecordPageActive: function(path) {
-                    return path.endsWith('/+add');
-                },
-                // redirect events
-                selectAction: function(e) {
-                    e.stopImmediatePropagation();
-                    console.log('selectAction',e.target.attributes);
-                    if (this.shadowRoot.querySelector('#recordsList') && e.target.attributes.type.value == "record") {
-                        this.shadowRoot.querySelector('#recordsList').shadowRoot.querySelector('#actions').selectAction(e);
-                    } else if (this.shadowRoot.querySelector('#zonesList') && e.target.attributes.type.value == "zone" ) {
-                        this.shadowRoot.querySelector('#zonesList').shadowRoot.querySelector('#actions').selectAction(e);
-                    }
+                    return path.endsWith('/+create');
                 }
             });
         })();

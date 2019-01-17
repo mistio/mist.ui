@@ -8,7 +8,7 @@
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../app-form/app-form.html">
 
-<dom-module id="record-add">
+<dom-module id="record-create">
     <template>
         <style include="shared-styles forms single-page">
         #content {
@@ -39,7 +39,7 @@
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
-                        Add Record
+                        Create Record
                     </h2>
                     <div class="subtitle">
                     </div>
@@ -61,7 +61,7 @@
                     <p>Depending on the record type there maybe needed parameters. Choose a record type to continue.</p>
                 </div>
                 <div hidden$=[[!selectedRecordType]]>
-                    <app-form fields="[[fields]]" form="[[record]]" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]/records" on-response="_handleAddRecordResponse" on-error="_handleError"></app-form>
+                    <app-form fields="[[fields]]" form="[[record]]" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]/records" on-response="_handleCreateRecordResponse" on-error="_handleError"></app-form>
                 </div>
             </paper-material>
         </div>
@@ -71,7 +71,7 @@
             'use strict';
 
             Polymer({
-                is: 'record-add',
+                is: 'record-create',
 
                 properties: {
                     section: {
@@ -462,12 +462,12 @@
                 }
                 this.updateFields();
             },
-            _handleAddRecordResponse: function(e){
+            _handleCreateRecordResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Record was created successfully.',duration:3000} }));
 
-                var url = document.querySelector('app-location').path;
-                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: url.substring(0, url.indexOf("/+add"))} }));
+                var url = document.location.pathname;
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: url.substring(0, url.indexOf("/+create"))} }));
 
             },
             _handleError: function(e) {
