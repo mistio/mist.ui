@@ -1,6 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
@@ -31,20 +31,22 @@
 
         </style>
 
-        <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Schedule</h2>
-            <paper-dialog-scrollable>
-                <p>
-                    <paper-input id="name" label="Name" error-message="Please enter schedule's name" value="{{newSchedule.name}}"></paper-input>
-                    <paper-textarea id="description" label="Description (optional)" rows="3" max-rows="5" error-message="Please enter schedule's description" value="{{newSchedule.description}}"></paper-textarea>
-                    <br/>
-                </p>
-                <div class="clearfix btn-group">
-                    <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+        <vaadin-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <template>
+                <h2>Edit Schedule</h2>
+                <div class="paper-dialog-scrollable">
+                    <p>
+                        <paper-input id="name" label="Name" error-message="Please enter schedule's name" value="{{newSchedule.name}}"></paper-input>
+                        <paper-textarea id="description" label="Description (optional)" rows="3" max-rows="5" error-message="Please enter schedule's description" value="{{newSchedule.description}}"></paper-textarea>
+                        <br/>
+                    </p>
+                    <div class="clearfix btn-group">
+                        <paper-button class="blue-link" on-tap="_closeEditScheduleModal">Cancel</paper-button>
+                        <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+                    </div>
                 </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
 
         <iron-ajax  id="editSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -81,12 +83,10 @@
                     }
                 },
                 observers: [
-                    '_computeNewSchedule(schedule.*)'
+                    '_computeNewSchedule(schedule.*)',
+                    '_newScheduleChanged(newSchedule.*)'
                 ],
                 listeners: {
-                    'iron-overlay-closed': '_modalClosed',
-                    'input': '_updatePayload',
-                    'change': '_updatePayload'
                 },
                 _computeNewSchedule: function(schedule) {
                     if (this.schedule){
@@ -99,10 +99,10 @@
                     }
                 },
                 _openEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.open();
+                    this.$.editScheduleModal.opened = true;
                 },
                 _closeEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.close();
+                    this.$.editScheduleModal.opened = false;
                 },
                 _modalClosed: function() {
                     this._formReset();
@@ -127,7 +127,7 @@
                     this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
 
                 },
-                _updatePayload: function(e) {
+                _newScheduleChanged: function(e) {
                     var pl = {};
                     var plLength = 0;
                     for (var p in this.newSchedule) {
