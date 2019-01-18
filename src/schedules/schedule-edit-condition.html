@@ -1,12 +1,10 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
 <dom-module id="schedule-edit-condition">
     <template>
@@ -59,47 +57,49 @@
             }
         </style>
 
-        <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Schedule Conditions </h2>
-            <paper-dialog-scrollable>
-                <div>
-                    <paper-radio-group selected="{{isUuidsOrTags}}">
-                        <paper-radio-button name="uuids">Specific Machines</paper-radio-button>
-                        <paper-radio-button name="tags">Machines with tags</paper-radio-button>
-                    </paper-radio-group>
+        <vaadin-dialog id="editScheduleModal" with-backdrop>
+            <template>
+                <h2>Edit Schedule Conditions </h2>
+                <div class="paper-dialog-scrollable">
+                    <div>
+                        <paper-radio-group selected="{{isUuidsOrTags}}">
+                            <paper-radio-button name="uuids">Specific Machines</paper-radio-button>
+                            <paper-radio-button name="tags">Machines with tags</paper-radio-button>
+                        </paper-radio-group>
+                    </div>
+                    <div id="checkboxes" hidden$="{{!isUuids}}" class="background">
+                        <template is="dom-repeat" items="[[_computeMachinesArray(model.machines.*)]]" as="machine">
+                            <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machinesIds, machine.id)]]" data-value$="[[machine.id]]">[[machine.name]]</paper-checkbox>
+                        </template>
+                    </div>
+                    <div hidden$="{{!isTags}}" class="background">
+                        <paper-textarea value="{{tagsString}}"></paper-textarea>
+                    </div>
+                    <div class="background">
+                        <paper-input value="{{machinesAgeDisplayNumber::input}}" label="If older than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate></paper-input>
+                        <paper-radio-group selected="{{machinesAgeUnit::iron-select}}">
+                            <paper-radio-button name="minutes">minutes</paper-radio-button>
+                            <paper-radio-button name="hours">hours</paper-radio-button>
+                            <paper-radio-button name="days">days</paper-radio-button>
+                        </paper-radio-group>
+                    </div>
+                    <div class="background">
+                        <paper-input value="{{costDisplay::input}}" label="If costs more than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate>
+                            <div suffix slot="suffix">$/month</div>
+                        </paper-input>
+                    </div>
+                    <div class="progress">
+                        <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
+                        <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                        <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                    </div>
+                    <div class="clearfix btn-group">
+                        <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
+                        <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+                    </div>
                 </div>
-                <div id="checkboxes" hidden$="{{!isUuids}}" class="background">
-                    <template is="dom-repeat" items="[[_computeMachinesArray(model.machines.*)]]" as="machine">
-                        <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machinesIds, machine.id)]]" data-value$="[[machine.id]]">[[machine.name]]</paper-checkbox>
-                    </template>
-                </div>
-                <div hidden$="{{!isTags}}" class="background">
-                    <paper-textarea value="{{tagsString}}"></paper-textarea>
-                </div>
-                <div class="background">
-                    <paper-input value="{{machinesAgeDisplayNumber::input}}" label="If older than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate></paper-input>
-                    <paper-radio-group selected="{{machinesAgeUnit::iron-select}}">
-                        <paper-radio-button name="minutes">minutes</paper-radio-button>
-                        <paper-radio-button name="hours">hours</paper-radio-button>
-                        <paper-radio-button name="days">days</paper-radio-button>
-                    </paper-radio-group>
-                </div>
-                <div class="background">
-                    <paper-input value="{{costDisplay::input}}" label="If costs more than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate>
-                        <div suffix slot="suffix">$/month</div>
-                    </paper-input>
-                </div>
-                <div class="progress">
-                    <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
-                    <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                    <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-                </div>
-                <div class="clearfix btn-group">
-                    <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
-                </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
 
         <iron-ajax  id="editSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -186,12 +186,10 @@
                     '_computeTagsString(conditions)',
                     '_computeAgeParts(machinesAge)',
                     '_computeCostDisplay(machinesCost)',
+                    '_updatePayload(newSchedule.*)'
                 ],
                 listeners: {
-                    'iron-overlay-closed': '_modalClosed',
-                    'input': '_updatePayload',
-                    'change': '_updatePayload',
-                    'iron-select': '_updatePayload'
+                    'iron-overlay-closed': '_modalClosed'
                 },
                 _computeNewSchedule: function(schedule) {
                     if (this.schedule){
@@ -273,13 +271,12 @@
                         this.set('isUuids', false);
                         this.set('isTags', true);
                     }
-                    this.$.editScheduleModal.center();
                 },
                 _openEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.open();
+                    this.$.editScheduleModal.opened = true;
                 },
                 _closeEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.close();
+                    this.$.editScheduleModal.opened = false;
                 },
                 _modalClosed: function(e){
                     if (e.target == this.$.editScheduleModal)
@@ -308,9 +305,9 @@
                         message += " "+e.detail.request.statusText;
 
                     this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
-
                 },
-                _updatePayload: function(e) {
+                _updatePayload: function(newSchedule) {
+                    console.log('newSchedule', newSchedule);
                     var pl = {},
                         plLength,
                         valid = false;

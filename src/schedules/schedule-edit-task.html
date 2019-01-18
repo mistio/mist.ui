@@ -1,6 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
@@ -68,70 +68,75 @@
             }
         </style>
 
-        <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Schedule Task</h2>
-            <paper-dialog-scrollable>
+        <vaadin-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+            <template>
+                <h2>Edit Schedule Task</h2>
+                <paper-dialog-scrollable>
 
-                <h4>Task Type</h4>
-                <div>
-                    <paper-radio-group selected="{{taskType}}">
-                        <paper-radio-button name="action" tabindex="1">Perform action</paper-radio-button>
-                        <paper-radio-button name="script" tabindex="1">Run script</paper-radio-button>
-                    </paper-radio-group>
-                </div>
-                <div class="background" hidden$="[[!_computeIsAction(taskType)]]">
-                    <paper-dropdown-menu>
-                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newSchedule.action}}" class="dropdown-content">
-                            <template is="dom-repeat" items="[[actions]]" as="action">
-                                <paper-item value="[[action.name]]" tabindex="1">[[action.name]]</paper-item>
-                            </template>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                </div>
-                <div class="background" hidden$="[[_computeIsAction(taskType)]]">
-                    <paper-dropdown-menu>
-                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newSchedule.script_id}}" class="dropdown-content">
-                            <template is="dom-repeat" items="[[scripts]]" as="script">
-                                <paper-item value="[[script.id]]" tabindex="1">[[script.name]]</paper-item>
-                            </template>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                </div>
+                    <h4>Task Type</h4>
+                    <div>
+                        <paper-radio-group selected="{{taskType}}">
+                            <paper-radio-button name="action" tabindex="1">Perform action</paper-radio-button>
+                            <paper-radio-button name="script" tabindex="1">Run script</paper-radio-button>
+                        </paper-radio-group>
+                    </div>
+                    <div class="background" hidden$="[[!_computeIsAction(taskType)]]">
+                        <paper-dropdown-menu>
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newSchedule.action}}" class="dropdown-content">
+                                <template is="dom-repeat" items="[[actions]]" as="action">
+                                    <paper-item value="[[action.name]]" tabindex="1">[[action.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+                    <div class="background" hidden$="[[_computeIsAction(taskType)]]">
+                        <paper-dropdown-menu>
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newSchedule.script_id}}" class="dropdown-content">
+                                <template is="dom-if" if="[[!scripts.length]]">
+                                    <paper-item disabled>no scripts found</paper-item>
+                                </template>
+                                <template is="dom-repeat" items="[[scripts]]" as="script">
+                                    <paper-item value="[[script.id]]" tabindex="1">[[script.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
 
-                <h4>Task Schedule</h4>
-                <div>
-                    <paper-radio-group selected="{{newSchedule.schedule_type}}">
-                        <paper-radio-button name="interval" tabindex="1">Interval</paper-radio-button>
-                        <paper-radio-button name="crontab" tabindex="1">Crontab</paper-radio-button>
-                        <paper-radio-button name="one_off" tabindex="1">One off</paper-radio-button>
-                    </paper-radio-group>
-                </div>
-                <div class="background" hidden$="{{!_computeIsInterval(newSchedule.schedule_type)}}">
-                    <paper-input id="interval" value="{{newSchedule.schedule_entry.every}}" tabindex="1"></paper-input>
-                    <paper-radio-group id="period" selected="{{newSchedule.schedule_entry.period}}">
-                        <paper-radio-button name="days" tabindex="1">days</paper-radio-button>
-                        <paper-radio-button name="hours" tabindex="1">hours</paper-radio-button>
-                        <paper-radio-button name="minutes" tabindex="1">mins</paper-radio-button>
-                    </paper-radio-group>
-                    <div class="smaller">eg. every 10 minutes</div>
-                </div>
-                <div class="background" hidden$="{{!_computeIsCrontab(newSchedule.schedule_type)}}">
-                    <paper-input id="crontab" value="{{crontabEntry}}" tabindex="1"></paper-input>
-                    <span class="smaller">UTC Time only. Example */10 5 * * * . Space separated values for <br/> Minute, Hour, Day of the Month, Month of the Year, Day of the Week.</span>
-                </div>
-                <div class="background" hidden$="{{!_computeIsOneOff(newSchedule.schedule_type)}}">
-                    <div id="date" class$="simple-button invalid-[[invalidDatetime]]">
-                        <iron-icon icon="schedule"></iron-icon>
-                        [[_displayDate(datetime)]]
-                        <paper-input id="datetime" type="datetime-local" value="{{datetime}}"></paper-input>
+                    <h4>Task Schedule</h4>
+                    <div>
+                        <paper-radio-group selected="{{newSchedule.schedule_type}}">
+                            <paper-radio-button name="interval" tabindex="1">Interval</paper-radio-button>
+                            <paper-radio-button name="crontab" tabindex="1">Crontab</paper-radio-button>
+                            <paper-radio-button name="one_off" tabindex="1">One off</paper-radio-button>
+                        </paper-radio-group>
+                    </div>
+                    <div class="background" hidden$="{{!_computeIsInterval(newSchedule.schedule_type)}}">
+                        <paper-input id="interval" value="{{newSchedule.schedule_entry.every}}" tabindex="1"></paper-input>
+                        <paper-radio-group id="period" selected="{{newSchedule.schedule_entry.period}}">
+                            <paper-radio-button name="days" tabindex="1">days</paper-radio-button>
+                            <paper-radio-button name="hours" tabindex="1">hours</paper-radio-button>
+                            <paper-radio-button name="minutes" tabindex="1">mins</paper-radio-button>
+                        </paper-radio-group>
+                        <div class="smaller">eg. every 10 minutes</div>
+                    </div>
+                    <div class="background" hidden$="{{!_computeIsCrontab(newSchedule.schedule_type)}}">
+                        <paper-input id="crontab" value="{{crontabEntry}}" tabindex="1"></paper-input>
+                        <span class="smaller">UTC Time only. Example */10 5 * * * . Space separated values for <br/> Minute, Hour, Day of the Month, Month of the Year, Day of the Week.</span>
+                    </div>
+                    <div class="background" hidden$="{{!_computeIsOneOff(newSchedule.schedule_type)}}">
+                        <div id="date" class$="simple-button invalid-[[invalidDatetime]]">
+                            <iron-icon icon="schedule"></iron-icon>
+                            [[_displayDate(datetime)]]
+                            <paper-input id="datetime" type="datetime-local" value="{{datetime}}"></paper-input>
+                        </div>
+                    </div>
+                    <div class="clearfix btn-group">
+                        <paper-button class="blue-link" dialog-dismiss tabindex="1" on-tap="_closeEditScheduleModal">Cancel</paper-button>
+                        <paper-button class="blue" on-tap="_submitForm" tabindex="1" disabled$="[[!formReady]]">Save</paper-button>
                     </div>
                 </div>
-                <div class="clearfix btn-group">
-                    <paper-button class="blue-link" dialog-dismiss tabindex="1">Cancel</paper-button>
-                    <paper-button class="blue" on-tap="_submitForm" tabindex="1" disabled$="[[!formReady]]">Save</paper-button>
-                </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
 
         <iron-ajax  id="editSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -220,13 +225,10 @@
                 observers: [
                     '_computeNewSchedule(schedule.*)',
                     '_crontabEntryChanged(crontabEntry)',
-                    '_datetimeChanged(datetime)'
+                    '_datetimeChanged(datetime)',
+                    '_updatePayload(newSchedule.*)'
                 ],
-                listeners: {
-                    'iron-overlay-closed': '_modalClosed',
-                    'iron-select': '_updatePayload',
-                    'input': '_updatePayload',
-                },
+                listeners: {},
                 _computeNewSchedule: function(schedule) {
                     this.set('now', moment());
                     if (this.schedule){
@@ -296,10 +298,10 @@
                     }
                 },
                 _openEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.open();
+                    this.$.editScheduleModal.opened = true;
                 },
                 _closeEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.close();
+                    this.$.editScheduleModal.opened = false;
                     this._formReset();
                 },
                 _submitForm: function(e) {
@@ -362,18 +364,18 @@
                 _computePayloadEntry: function(entry) {
                     if (this.newSchedule.schedule_type == 'interval') {
                         return {
-                            every: parseInt(this.$.interval.value),
-                            period:  this.$.period.selected
+                            every: this.newSchedule.schedule_entry.every,
+                            period: this.newSchedule.schedule_entry.period
                         }
                     }
                     else if (this.newSchedule.schedule_type == 'crontab') {
-                        return this._processCrotab(this.$.crontab.value);
+                        return this._processCrontab(this.crontabEntry);
                     }
                     else if (this.newSchedule.schedule_type == 'one_off') {
                         return this.newSchedule.schedule_entry.entry;
                     }
                 },
-                _processCrotab: function(entry) {
+                _processCrontab: function(entry) {
                     var chunchs = entry.split(" ");
                     for (var i = 0; i < 5; i++) {
                         if (!chunchs[i])
@@ -393,13 +395,15 @@
                     return construct;
                 },
                 _updateformReady: function(sendingData) {
+                    console.log('_updateformReady');
                     // not sending data && payload has at least one property
                     if (!this.sendingData && JSON.stringify(this.payload) != '{}') {
                         // check valid values if needed
-                        if (((this.newSchedule.schedule_type == 'interval' || this.payload.schedule_type == 'interval') && this.payload.schedule_entry && !this._isValidInterval(this.payload.schedule_entry)) || ((this.newSchedule.schedule_type == 'crontab' || this.payload.schedule_type == 'crontab') && this.payload.schedule_entry && !this._isValidCrontab(this.payload.schedule_entry)))
+                        if (((this.newSchedule.schedule_type == 'interval' || this.payload.schedule_type == 'interval') && this.payload.schedule_entry && !this._isValidInterval(this.payload.schedule_entry)) || ((this.newSchedule.schedule_type == 'crontab' || this.payload.schedule_type == 'crontab') && this.payload.schedule_entry && !this._isValidCrontab(this.payload.schedule_entry))) {
                             this.set("formReady", false);
-                        else
+                        } else {
                             this.set("formReady", true);
+                        }
                     }
                     else {
                         this.set("formReady", false);
@@ -433,12 +437,11 @@
                     } else {
                         invalid = false;
                     }
-                    this.$.datetime.invalid = invalid;
                     this.set('invalidDatetime', invalid);
                 },
                 _crontabEntryChanged: function(crontab) {
                     if (this.schedule && this._computeIsCrontab(this.newSchedule.schedule_type) && crontab.value){
-                        this.set('newSchedule.schedule_entry', _processCrotab(crontab.value));
+                        this.set('newSchedule.schedule_entry', _processCrontab(crontab.value));
                     }
                 }
             });

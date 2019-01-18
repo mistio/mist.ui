@@ -1,9 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
 <dom-module id="schedule-edit-mrc">
     <template>
@@ -22,19 +20,21 @@
 
         </style>
 
-        <paper-dialog id="editMrcScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Maximum Run Count</h2>
-            <paper-dialog-scrollable>
-                <p>
-                    <paper-input id="mrc" label="Maximum Run Count" value="{{newMaxRunCount}}"></paper-input>
-                </p>
-                <p>Leave blank and save to delete maximum run count constraint.</p>
-                <div class="clearfix btn-group">
-                    <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+        <vaadin-dialog id="editMrcScheduleModal" with-backdrop>
+            <template>
+                <h2>Edit Maximum Run Count</h2>
+                <div class="paper-dialog-scrollable">
+                    <p>
+                        <paper-input id="mrc" label="Maximum Run Count" value="{{newMaxRunCount}}"></paper-input>
+                    </p>
+                    <p>Leave blank and save to delete maximum run count constraint.</p>
+                    <div class="clearfix btn-group">
+                        <paper-button class="blue-link" dialog-dismiss on-tap="_closeEditScheduleModal">Cancel</paper-button>
+                        <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+                    </div>
                 </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
 
         <iron-ajax  id="editSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -72,11 +72,11 @@
                 _openEditScheduleModal: function(e) {
                     if (this.schedule) {
                         this.set('newMaxRunCount', this.schedule.max_run_count);
-                        this.$.editMrcScheduleModal.open();
+                        this.$.editMrcScheduleModal.opened = true;
                     }
                 },
                 _closeEditScheduleModal: function(e) {
-                    this.$.editMrcScheduleModal.close();
+                    this.$.editMrcScheduleModal.opened = false;
                 },
                 _modalClosed: function() {
                     this._formReset();
