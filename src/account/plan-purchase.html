@@ -119,13 +119,13 @@
             <div class="purchase-logo"></div>
             <div class="head">
                 <p class="title" hidden$="[[addCard]]">
-                    <span hidden$="[[plan]]">Credit Card required</span>
-                    <span hidden$="[[!plan]]">[[plan.title]] plan</span>
+                    <span hidden$="[[hasPlan]]">Credit Card required</span>
+                    <span hidden$="[[!hasPlan]]">[[plan.title]] plan</span>
                 </p>
                 <p class="title" hidden$="[[!addCard]]"><span hidden$="[[!org.card]]">Update Card</span><span hidden$="[[org.card]]">Add Card</span></p>
                 <hr class="headhr"/>
                 <p class="desc" hidden$="[[addCard]]">
-                    <span hidden$="[[!plan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[displayInt(plan.vcpu_limit)]] vCPUs</span>
+                    <span hidden$="[[!hasPlan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[displayInt(plan.vcpu_limit)]] vCPUs</span>
                 </p>
                 <p class="desc" hidden$="[[!addCard]]"><span hidden$="[[org.card]]">Add a credit card to your account.<br/></span><span hidden$="[[!org.card]]" class="current_cc">Current card: **** **** **** [[org.card]]</span></p>
             </div>
@@ -170,6 +170,11 @@
             },
             plan: {
                 type: Object
+            },
+            hasPlan: {
+                type: Boolean,
+                computed: '_hasPlan(plan)',
+                value: false
             },
             payload: {
                 type: Object,
@@ -248,7 +253,10 @@
         close: function(e){
             this.shadowRoot.querySelector("#form").close();
         },
-        _computeHideCardFields (price, hasCard) {
+        _hasPlan: function () {
+            this.plan && this.plan.title ? true : false;
+        },
+        _computeHideCardFields: function (price, hasCard) {
             return price == 0 || hasCard;
         },
         _computeFormReady: function(hasCard, cardValid, hideCardFields){
