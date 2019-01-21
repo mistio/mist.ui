@@ -450,12 +450,14 @@
                     console.debug('updating', section);
                     this.set('model.' + section, _generateMap(data, primaryField));
                     this.set('model.' + section + 'Array', data);
-
-                    // update section count, necessary for propagating changes to sidebar & dashboard counters
-                    this.set('model.sections.' + section + '.count', data.length || 0);
                 } else {
                     if (DEBUG_SOCKET)
                         console.debug('no need to update', section);
+                }
+
+                if (this.model.sections[section] && this.model.sections[section].count != (data.length || 0)) {
+                    // update section count, necessary for propagating changes to sidebar & dashboard counters
+                    this.set('model.sections.' + section + '.count', data.length || 0);
                 }
 
                 if (pending) {
