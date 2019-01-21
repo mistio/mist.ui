@@ -19,18 +19,21 @@ mistLoadingBehavior = {
         isMissing: {
             type: Boolean,
             value: false
+        },
+        trials: {
+            type: Number
         }
     },
     observers: [
         '_updateState(resourceId, section.count)',
-        '_updateClasses(state)'
+        // '_updateClasses(state)'
     ],
     updateState: function() {
-        this._updateState(this.resourceId, this.section && this.section.count);
+        this._updateState(this.resourceId, this.section);
     },
     _updateState: function (resourceId, section) {
         if (this.resourceId && this.resourceId.indexOf('+add', '+create') == -1) {
-            // console.log('state resourceId', resourceId, section);
+            console.log('load state resourceId', resourceId, section);
             // // initial state
             this.set('state', 'loading');
             this.set('isMissing', false);
@@ -39,12 +42,11 @@ mistLoadingBehavior = {
             if (!this.section || !this.model[this.section.id]){
                 this.set('state', 'loading');
                 this.set('isMissing', false);
-                this._clearAsync();
+                this._tryAgain();
             }
             // if we have loaded the resources but resource is still missing
             else if (this.model[this.section.id] && !this.model[this.section.id][this.resourceId]){
-                this.set('state', 'missing');
-                this.set('isMissing', true);
+                this._tryAgain();
             }
             // if we found and loaded the resource
             else if (this.model[this.section.id] && this.model[this.section.id][this.resourceId]) {
@@ -52,6 +54,7 @@ mistLoadingBehavior = {
                 this.set('state', 'found');
                 this._clearAsync();
             }
+            this._updateClasses(this.state);
         }
     },
     _clearAsync: function() {
@@ -61,20 +64,36 @@ mistLoadingBehavior = {
             this.set("asyncID", null);
         }
     },
+    _tryAgain: function (){
+        console.log('load timeout', this.trials);
+        this.set('trials', this.trials ? this.trials + 1 : 1);
+        this._clearAsync();
+        if (this.trials > 5) {
+            this.set('state', 'missing');
+            this.set('isMissing', true);
+        } else {
+            setTimeout(function() {
+                this.updateState();
+            }.bind(this), 1000);
+        }
+    },
     _updateClasses: function(state) {
         console.log('load state', this.state);
-        if (state == 'loading')
+        if (state == 'loading') {
             this.classList.add('loadingResource');
-        else 
+        } else {
             this.classList.remove('loadingResource');
+        }
 
-        if (state == 'missing')
+        if (state == 'missing') {
             this.classList.add('missingResource');
-        else 
+        } else {
             this.classList.remove('missingResource');
+        }
 
-        if (state == 'found') 
+        if (state == 'found') {
             this.classList.remove(['loadingResource', 'missingResource']);
+        }
     }
 }
 </script>

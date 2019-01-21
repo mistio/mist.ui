@@ -87,7 +87,7 @@
         </template>
         <machine-create model="[[model]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]] docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-            <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
+            <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]" resource-id="[[data.machine]]"></machine-page>
         </template>
         <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
@@ -183,11 +183,11 @@
         },
 
         _isDetailsPageActive: function(path) {
-            if (path && path != '/+create' && this.shadowRoot && this.shadowRoot.querySelector('machine-page')) {
-                console.log('load _isDetailsPageActive')
-                this.shadowRoot.querySelector('machine-page').updateState();
-            }
+            // console.log('load _isDetailsPageActive', path);
             if (path && path != '/+create') {
+                if (this.shadowRoot && this.shadowRoot.querySelector('machine-page')) {
+                    this.shadowRoot.querySelector('machine-page').updateState();
+                }
                 return true;
             } else {
                 return false;
