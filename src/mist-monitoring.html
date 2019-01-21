@@ -234,8 +234,8 @@
                         </div>
                         <!-- if we have incidents -->
                         <template is="dom-if" if="[[incidents.length]]" restamp>
-                            <template is="dom-repeat" items={{incidents}} as="incident">
-                                <div class="incident" hidden$=[[_isIncidentFinished(incident.finished_at)]]>[[incident.logs.0.condition]]</div>
+                            <template is="dom-repeat" items={{openIncidents}} as="incident">
+                                <div class="incident" hidden$=[[_isIncidentFinished(incident.finished_at,)]]>[[incident.logs.0.condition]]</div>
                             </template>
                         </template>
                         <!-- monitoring is activated. we expect to have data -->
@@ -401,6 +401,10 @@
             },
             incidents: {
                 type: Array
+            },
+            openIncidents: {
+                type: Array,
+                computed: '_computeOpenIncidents(incidents, incidents.length, incidents.*)'
             },
             portalName: {
                 type: String,
@@ -711,6 +715,9 @@
         },
         _isIncidentFinished: function (finished_at) {
             return finished_at > 0;
+        },
+        _computeOpenIncidents: function () {
+            return this.incidents.filter(function(item) { return item.finished_at == 0; });
         }
     });
     </script>
