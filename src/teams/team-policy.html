@@ -189,6 +189,7 @@
                 bottom: 0;
                 z-index: 2;
             }
+            .pos
         </style>
         <div id="ruleslist">
             <div class="loading-data" hidden="{{!sendingData}}"></div>
@@ -320,7 +321,7 @@ Polymer({
         'delete-rule': '_deleteRule',
         'update-rtype': '_updateRtype',
         'update-raction': '_updateRaction',
-        'update-operator': '_updateOperator',
+        'update-operator': '_updateOperator'
     },
     attached: function() {},
     _computeCommonPermissions: function(model) {
@@ -339,20 +340,27 @@ Polymer({
             this.ruleHasChanges();
         }
     },
-    // _onSortStart: function() {
-    //     var el = this.$.ruleHead;
-    //     this.$.ruleHead.remove();
-    // },
-    // _onSortFinish: function(event) {
-    //     // const sortedItem = event.detail.target;
-    //     var parent = this.shadowRoot.querySelector("sortable-list#rules");
-    //     var newDiv = document.createElement("div").setAttribute('id', 'ruleHead');
-    //     parent.insertBefore(newDiv, null);
-        
-    //     this.$.ruleHead.classList.add('rule','head');
-    //     var content = '<span class="index">ord.</span><span>operator</span><span>resource</span><span>action</span><span>condition<iron-icon id="condition" icon="icons:help"></iron-icon><paper-tooltip for="condition" position="top">A conditional rule will apply to either a specified resource,<br/> or resources that have ALL specified tags.<br/> Tags must be comma separated. </paper-tooltip></span><span></span>';
-    //     this.$.ruleHead.innerHTML = content;
-    // },
+    _onSortStart: function(event) {
+        console.log('policy start', event);
+    },
+    _onSortFinish: function(event) {
+        console.log('policy finish', event);
+        var newOrder = [];
+        var elements = this.shadowRoot.querySelector('sortable-list').querySelectorAll('rbac-rule-item');
+            elements.forEach(function(el){
+                newOrder.push(parseInt(el.shadowRoot.querySelector('.index').textContent.trim().replace('.','')));
+            });
+        this._applyReordering(newOrder);
+    },
+    _applyReordering: function(newOrder) {
+        var orderedRules = [],
+            rules = this.rules.splice(0);
+        for (var i=0; i < newOrder.length; i++) {
+            orderedRules.push(rules[newOrder[i]]);
+        }
+        this.set('rules', orderedRules);
+        this._submitForm();
+    },
     _teamChanged: function(team, rules, teams) {
         // copy default operator to a new string
         if (this.team) {
@@ -523,6 +531,8 @@ Polymer({
     _submitForm: function() {
         var policy = {};
         policy.rules = this.rules;
+        
+        console.log('_submitForm', this.rules);
 
         policy.operator = this.defaultOperator;
         this.$.postPolicy.headers["Content-Type"] = 'application/json';
