@@ -108,16 +108,19 @@
         </div>
         <div hidden$="[[!field.cloud.length]]">
             <paper-dropdown-menu label="[[field.label]] machine" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[!useExistingMachine]]" style="width:100%">
-                <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{field.machine}}" selected-items="{{field.machinesList}}" multi="[[multi]]" class="dropdown-content">
-                    <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
-                        <paper-item disabled>No machines found</paper-item>
-                    </template>
-                    <template id="machinesDomRepeat" is="dom-repeat" items="[[machines]]" as="option">
-                        <paper-item value="[[option.machine_id]]" disabled$="[[option.disabled]]">
-                            <span class="flex">[[_showOption(option)]]</span>
-                        </paper-item>
-                    </template>
-                </paper-listbox>
+                <div slot="dropdown-content" class="dropdown-content">
+                    <paper-input class="search" label="Search machines" value="{{machineSearchKeywords}}" hidden$="[[_noOptions(machines)]]"></paper-input>
+                    <paper-listbox attr-for-selected="value" selected="{{field.machine}}" selected-items="{{field.machinesList}}" multi="[[multi]]">
+                        <template is="dom-if" if="[[_noOptions(machines)]]" restamp>
+                            <paper-item disabled>No machines found</paper-item>
+                        </template>
+                        <template id="machinesDomRepeat" is="dom-repeat" items="[[_filter(machines, machineSearchKeywords)]]" as="option">
+                            <paper-item value="[[option.machine_id]]" disabled$="[[option.disabled]]">
+                                <span class="flex">[[_showOption(option)]]</span>
+                            </paper-item>
+                        </template>
+                    </paper-listbox>
+                </div>
             </paper-dropdown-menu>
         </div>
         <!-- if !useExistingMachine -->
@@ -140,16 +143,19 @@
                 </paper-dropdown-menu>
                 <mist-size-field id$="app-form-[[id]]-[[field.name]]-size" field="{{fieldSize}}" hidden$="[[hideSize]]"></mist-size-field>
                 <paper-dropdown-menu label="[[field.label]] key" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]">
-                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{field.key}}" class="dropdown-content">
-                        <template is="dom-if" if="[[_noOptions(keys)]]" restamp>
-                            <paper-item disabled>No keys found</paper-item>
-                        </template>
-                        <template id="keysDomRepeat" is="dom-repeat" items="[[keys]]" as="option">
-                            <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
-                                <span class="flex">[[_showOption(option)]]</span>
-                            </paper-item>
-                        </template>
-                    </paper-listbox>
+                    <div slot="dropdown-content" class="dropdown-content">
+                        <paper-input class="search" label="Search keys" value="{{keySearchKeywords}}" hidden$="[[_noOptions(keys)]]"></paper-input>
+                        <paper-listbox attr-for-selected="value" selected="{{field.key}}">
+                            <template is="dom-if" if="[[_noOptions(keys)]]" restamp>
+                                <paper-item disabled>No keys found</paper-item>
+                            </template>
+                            <template id="keysDomRepeat" is="dom-repeat" items="[[_filter(keys, keySearchKeywords)]]" as="option">
+                                <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
+                                    <span class="flex">[[_showOption(option)]]</span>
+                                </paper-item>
+                            </template>
+                        </paper-listbox>
+                    </div>
                 </paper-dropdown-menu>
                 <paper-dropdown-menu label="[[field.label]] location" horizontal-align="left" disabled="[[field.disabled]]" required="[[field.required]]" hidden$="[[locationNotRequired]]">
                     <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{field.location}}" class="dropdown-content">
@@ -199,35 +205,35 @@
             },
             clouds: {
                 type: Array,
-                value: []
+                value: function () { return [];}
             },
             cloud: {
                 type: Object,
-                value: {}
+                value: function () { return {};}
             },
             machines: {
                 type: Array,
-                value: []
+                value: function () { return [];}
             },
             images: {
                 type: Array,
-                value: []
+                value: function () { return [];}
             },
             sizes: {
                 type: Array,
-                value: []
+                value: function () { return [];}
             },
             locations: {
                 type: Array,
-                value: []
+                value: function () { return [];}
             },
             keys: {
                 type: Array,
-                value: []
+                value: function () { return [];}
             },
             networks: {
                 type: Array,
-                value: []
+                value: function () { return [];}
             },
             hideFloatingIp: {
                 type: Boolean,
@@ -263,6 +269,14 @@
                 value: false
             },
             imageSearchKeywords: {
+                type: String,
+                value: ''
+            },
+            machineSearchKeywords: {
+                type: String,
+                value: ''
+            },
+            keySearchKeywords: {
                 type: String,
                 value: ''
             },

@@ -514,13 +514,15 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'ssh_key', fieldVisibility, index)]]">
                             <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left" hidden$="[[field.hidden]]">
-                                <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
-                                    class="dropdown-content">
-                                    <template is="dom-repeat" items="[[field.options]]" as="option">
-                                        <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-                                    </template>
-                                    <paper-button on-tap="_addKey" class="blue">Add Key</paper-button>
-                                </paper-listbox>
+                                <div slot="dropdown-content" class="dropdown-content">
+                                    <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]"></paper-input>
+                                    <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
+                                        <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
+                                            <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                                        </template>
+                                        <paper-button on-tap="_addKey" class="blue">Add Key</paper-button>
+                                    </paper-listbox>
+                                </div>
                             </paper-dropdown-menu>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'toggle', fieldVisibility, index)]]">

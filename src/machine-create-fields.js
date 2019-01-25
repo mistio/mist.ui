@@ -48,10 +48,11 @@ MACHINE_CREATE_FIELDS.push({
     }, {
         name: 'ex_resource_group',
         label: 'Resource Group',
-        type: 'mist_dropdown',
+        type: 'mist_dropdown_searchable',
         class: 'margin-bottom',
         value: '',
         defaultValue: '',
+        search: '',
         show: false,
         required: true,
         options: [],
@@ -96,8 +97,9 @@ MACHINE_CREATE_FIELDS.push({
     }, {
         name: 'ex_storage_account',
         label: 'Storage Account',
-        type: 'mist_dropdown',
+        type: 'mist_dropdown_searchable',
         value: '',
+        search: '',
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
@@ -134,9 +136,10 @@ MACHINE_CREATE_FIELDS.push({
     }, {
         name: 'networks',
         label: 'Networks',
-        type: 'mist_dropdown',
+        type: 'mist_dropdown_searchable',
         noPluralisation: true,
         value: '',
+        search: '',
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
@@ -230,7 +233,8 @@ MACHINE_CREATE_FIELDS.push({
     fields: [{
         name: 'subnet_id',
         label: 'Subnet',
-        type: 'mist_dropdown',
+        type: 'mist_dropdown_searchable',
+        search: '',
         value: '',
         defaultValue: '',
         show: false,
@@ -799,6 +803,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: true,
         options: [],
+        search: '',
     });
 
     // add cloud init field only to providers that accept and we support
@@ -938,8 +943,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }, {
         name: 'schedule_script_id',
         label: 'Script',
-        type: 'mist_dropdown',
+        type: 'mist_dropdown_searchable',
         value: '',
+        search: '',
         defaultValue: '',
         show: false,
         required: false,
