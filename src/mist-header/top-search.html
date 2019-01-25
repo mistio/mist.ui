@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/mist-list/mist-filter.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <link rel="import" href="search-suggestions.html">
@@ -27,40 +28,32 @@
                 width: 100%;
                 min-width: 48px;
                 transition: all 10ms ease-in;
+
+                --mist-filter-paper-menu-button-padding: 0;
+                --mist-filter-paper-menu-button-background-color: rgba(255,255,255,0.2);
+                --mist-filter-paper-menu-button-paper-button-margin: 0;
+                --mist-filter-paper-menu-button-paper-button-padding-left: 24px;
+                --mist-filter-paper-menu-button-paper-button-text-transform: none;
+                --mist-filter-paper-menu-button-paper-button-font-size: 16px;
+                --mist-filter-iron-icon-search-padding: 12px;
+                --mist-filter-iron-icon-search-align-self: center;
+                --mist-filter-paper-icon-buttons-margin-top: 4px;
+                --paper-input-container-underline: {display: none; height: 0;}
+                --paper-input-container-underline-focus: {display: none; height: 0;}
+                --paper-input-container-underline-disabled: {display: none; height: 0;}
+                --paper-input-container-color: transparent;
+                --paper-input-container-focus-color: transparent;
+                --paper-input-container-invalid-color: transparent;
             }
 
             :host::slotted(iron-icon) {
                 cursor: pointer;
                 color: inherit;
             }
-            
-            #search iron-icon {
-                align-self: center;
-            }
-            
-            #search iron-icon[icon="search"] {
-                margin-left: 8px;
-                margin-right: 8px;
-            }
 
-            #search iron-icon[icon="close"] {
-                margin-right: 8px;
-                margin-left: 0;
-            }
-
-            #search input {
-                font-size: 16px;
-                color: #fff;
+            mist-filter {
                 width: 100%;
-                height: 48px;
-                line-height: 48px;
-                border: 0;
-                border-radius: 2px;
-                -webkit-appearance: none;
-                align-self: center;
-                display: block;
-                background-color: transparent;
-                padding-right: 8px;
+                display: contents;
             }
 
             #search input:focus {
@@ -84,16 +77,16 @@
                 }
 
                 :host([overflow]) {
-                background-color: rgba(255,255,255,1);
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                height: 56px;
-                z-index: 99;
-                border-radius: 0;
-                transition: all 150ms ease-in;
+                    background-color: rgba(255,255,255,1);
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    height: 64px;
+                    z-index: 99;
+                    border-radius: 0;
+                    transition: all 150ms ease-in;
                 }
 
                 paper-icon-button {
@@ -109,61 +102,41 @@
                 }
 
                 #search {
-                display: none;
-                color: rgba(0,0,0,0.87);
-                transform: translate(0,-30px);
-                transition: all 10ms ease-in;
+                    display: none;
+                    color: rgba(0,0,0,0.87);
+                    transform: translate(0,-30px);
+                    transition: all 10ms ease-in;
                 }
 
                 #search input {
-                color: rgba(0,0,0,0.87); 
+                    color: rgba(0,0,0,0.87); 
                 }
 
                 :host([overflow]) #search {
-                display: flex;
-                height: 56px;
-                line-height: 56px;
-                transition: all 150ms ease-in;
-                transform: translate(0,0);
+                    display: flex;
+                    height: 56px;
+                    line-height: 56px;
+                    transition: all 150ms ease-in;
+                    transform: translate(0,0);
                 }
             }
             @media screen and (min-width: 600px) and (max-width: 800px){
                 :host([overflow]) {
-                height: 64px;
+                    height: 64px;
                 }
                 :host([overflow]) #search {
-                height: 64px;
-                line-height: 64px;
+                    height: 64px;
+                    line-height: 64px;
                 }
-            }
-            paper-menu-button {
-                padding: 0;
-                background-color: rgba(255,255,255,0.2);
-            }
-            paper-menu-button paper-button {
-                margin: 0;
-                padding-left: 24px;
-                text-transform: none;
-                font-size: 16px;
             }
         </style>
         <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
-        <div id="search" class="horizontal layout center">
-            <paper-menu-button vertical-offset="48" multi="true" hidden$="[[!ownership]]">
-                <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon>
-                </paper-button>
-                <paper-listbox id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
-                    <paper-item value="owner:$me" on-tap="updateLocalStorage">Your resources</paper-item>
-                    <paper-item value="" on-tap="updateLocalStorage">All resources</paper-item>
-                </paper-listbox>
-            </paper-menu-button>
-            <iron-icon icon="search"></iron-icon>
-            <form on-submit="performSearch" class="flex-1">
-                <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
-            </form>
-            <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!showClear]]"></iron-icon>
+        <div id="search" class="horizontal layout">
+            <mist-filter id$="[[id]]" name="All resources" searchable=[[searchable]] user-filter={{userFilter}} 
+                preset-filters=[[presetFilters]] editing-filter="true" always-show-input button-name="Filters" placeholder="Search">
+            </mist-filter>
         </div>
-        <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
+        <search-suggestions query="[[userFilter]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
     </template>
     <script>
         Polymer({
@@ -174,10 +147,12 @@
             ],
 
             properties: {
-                query: {
+                id: {
+                    type: String
+                },
+                userFilter: {
                     type: String,
-                    notify: true,
-                    value: ""
+                    notify: true
                 },
                 model: {
                     type: Object,
@@ -192,12 +167,13 @@
                 },
                 overflow: {
                     type: Boolean,
+                    value: false,
                     reflectToAttribute: true
                 },
                 width: {
                     type: Number
                 },
-                filter: {
+                selectedPresetFilter: {
                     type: String
                 },
                 ownership: {
@@ -207,13 +183,27 @@
                 visibleSuggestions: {
                     type: Boolean,
                     notify: true
+                },
+                userSavedFilters: {
+                    type: Array,
+                    value: function() {
+                        return [];
+                    }
+                },
+                presetFilters: {
+                    type: Array,
+                    value: function() {
+                        return [{name:'Your resources', filter: 'owner@me', default:true}]
+                    }
                 }
             },
 
             observers: [
-                '_queryChanged(query)',
                 'overflowChanged(overflow)',
-                '_filterChanged(filter)'
+                // '_userFilterChanged(userFilter)',
+                // '_selectedPresetFilterChanged(selectedPresetFilter)',
+                '_idChanged(id)',
+                '_updateSearch(userFilter)'
             ],
 
             listeners: {
@@ -222,106 +212,115 @@
             },
 
             attached: function() {
-                var filter;
-                try {
-                    filter = localStorage.getItem('mist-filter');
-                } catch (e) {
-                    console.warn(e);
-                }
-                if (filter) {
-                    this.set('filter', filter);
+
+            },
+
+            _idChanged: function(id) {
+                if (id && this.shadowRoot.querySelector('mist-filter')) {
+                    this.shadowRoot.querySelector('mist-filter').getLocalStorageData(this.id);
+                    // var userFilter;
+                    // try {
+                    //     userFilter = localStorage.getItem('mist-filter#'+this.id+'/userFilter');
+                    // } catch (e) {
+                    //     console.warn(e);
+                    // }
+                    // if (userFilter) {
+                    //     // this.set('selectedPresetFilter', userFilter);
+                    //     this.set('userFilter', userFilter);
+                    // }
+                    // console.log('get userFilter head-attached', 'mist-filter#'+this.id+'/userFilter', this.userFilter)
                 }
             },
 
             updateWidth: function() {
                 this.debounce('windowResize', function() {
-                    this.set('width', this.getBoundingClientRect()
-                        .width)
+                    this.set('width', this.getBoundingClientRect().width)
                 }, 100);
             },
 
-            performSearch: function(e) {
-                e.preventDefault();
+            _updateSearch: function(userFilter) {
+                console.log('filter _updateSearch', this.userFilter);
+                this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
             },
 
-            _filterChanged: function(filter) {
-                this.debounce('updateLocalStorageFilter', this.updateLocalStorage, 500);
-                if (filter.length) {
-                    this.$.query.focus();
-                    this.set('showClear', true);
-                    if (this.query.indexOf(filter) == -1)
-                        this.dispatchEvent(new CustomEvent('search', {
-                            bubbles: true,
-                            composed: true,
-                            detail: filter + ' ' + this.query.replace(/owner:\S*\s/, '')
-                        }));
+            // _selectedPresetFilterChanged: function(selectedPresetFilter) {
+            //     if (this.isAttached) {
+            //         if (selectedPresetFilter && selectedPresetFilter.length) {
 
-                } else {
-                    var newQ = this.query.replace(/owner:\S*\s?/g, '');
-                    this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: newQ }));
+            //             this.setTypedFilter(selectedPresetFilter);
+            //             this.$.query.focus();
+            //             this.set('showClear', true);
+                        
 
-                    if (!newQ.length)
-                        this.clearSearch();
-                }
-            },
+            //             if (this.userFilter.indexOf(selectedPresetFilter) == -1)
+            //                 this.dispatchEvent(new CustomEvent('search', {
+            //                     bubbles: true,
+            //                     composed: true,
+            //                     detail: selectedPresetFilter + ' ' + this.userFilter.replace(/owner:\S*\s/, '')
+            //                 }));
 
-            updateLocalStorage: function(e) {
-                try {
-                    if (typeof this.filter == 'string' && localStorage.getItem('mist-filter') != this.filter)
-                        localStorage.setItem('mist-filter', this.filter);
-                } catch (e) {
-                    console.warn(e);
-                }
-            },
+            //         } else {
+            //             var newQ = this.userFilter.replace(/owner:\S*\s?/g, '');
+            //             this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: newQ }));
 
-            _queryChanged: function(q) {
-                if (!q.length)
-                    this.setTypedFilter(q);
-                if (q && q.length) {
-                    this.$.query.focus();
-                    this.set('showClear', true);
-                } else
-                    this.set('showClear', this.overflow || false);
+            //             if (!newQ.length) {
+            //                 this.clearSearch();
+            //             }
+            //         }
+            //     }
+            // },
 
-                this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.query }));
-            },
+            // _userFilterChanged: function(q) {
+            //     console.log('filter userFilter head', this.userFilter);
+            //     if (!q.length) {
+            //         this.setTypedFilter(q);
+            //     }
+            //     if (q && q.length) {
+            //         this.$.query.focus();
+            //         this.set('showClear', true);
+            //     } else {
+            //         this.set('showClear', this.overflow || false);
+            //     }
 
-            setTypedFilter: function(q, caller) {
-                var filterOwner = q.indexOf('owner:') > -1,
-                    ownerRegex = /owner:(\S*)\s?/,
-                    owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+            //     this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
+            // },
 
-                if (!filterOwner || !q.length) {
-                    this.$.filterSelection.selected = -1;
-                    this.set('filter', '');
-                }
+            // setTypedFilter: function(q, caller) {
+            //     var filterOwner = q.indexOf('owner:') > -1,
+            //         ownerRegex = /owner:(\S*)\s?/,
+            //         owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
 
-                if (filterOwner && owner && owner.length && this.filter != 'owner:' + owner) {
-                    this.set('filter', 'owner:' + owner);
-                }
-                // update localStorage if user is typing
-                if (caller)
-                    this.updateLocalStorage();
-            },
+            //     if (!filterOwner || !q.length) {
+            //         this.$.filterSelection.selected = -1;
+            //         this.set('selectedPresetFilter', '');
+            //     }
+
+            //     if (filterOwner && owner && owner.length && this.filter != 'owner:' + owner) {
+            //         this.set('selectedPresetFilter', 'owner:' + owner);
+            //     }
+
+            // },
 
             clearSearch: function(e) {
-                this.set('query', "");
+                this.set('userFilter', "");
                 this.$.query.blur();
-                if (this.overflow)
+                if (this.overflow) {
                     this.set('overflow', false);
+                }
+                this.set('showClear', false);
             },
 
             hotkeys: function(e) {
-                this.setTypedFilter(this.query, 'hotkeys');
+                // this.setTypedFilter(this.userFilter, 'hotkeys');
                 // ESC
                 if (e.keyCode === 27 && Polymer.dom(e)
                     .rootTarget === this.$.query) {
-                    this.set('query', "");
+                    this.set('userFilter', "");
                     if (this.overflow)
                         this.set('overflow', false)
                 }
-                // ENTER
-                // if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$.query && this.query.length) {}
+                //ENTER
+                if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$.query && this.userFilter.length) {}
             },
 
             revealSearch: function(e) {
@@ -332,9 +331,10 @@
             overflowChanged: function(overflow) {
                 if (overflow) {
                     this.updateWidth();
-                    this.$.query.focus();
-                } else
-                    this.$.query.blur();
+                    // this.$.query.focus();
+                } else {
+                    // this.$.query.blur();
+                }
                 this.set('showClear', this.overflow);
             }
         });
