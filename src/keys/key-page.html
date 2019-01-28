@@ -251,8 +251,6 @@
 
         <iron-ajax id="keyPublicRequest" url="/api/v1/keys/[[key.id]]/public" on-response="handlePublicResponse" on-error="handleError"></iron-ajax>
         <iron-ajax id="keyPrivateRequest" url="/api/v1/keys/[[key.id]]/private" on-response="handlePrivateResponse" on-error="handleError"></iron-ajax>
-        <iron-ajax id="keyMakeDefaultAjaxRequest" url="/api/v1/keys/[[key.id]]" method="POST" on-response="_handleKeyMakeDefaultAjaxResponse" on-error="_handleMakeDefaultAjaxError"></iron-ajax>
-        <iron-ajax id="keyDeleteAjaxRequest" url="/api/v1/keys/[[key.id]]" method="DELETE" on-response="_handleKeyDeleteAjaxResponse" on-error="_handleKeyDeleteAjaxError"></iron-ajax>
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
     </template>
@@ -333,9 +331,6 @@
                     '_keyUpdated(key)',
                     '_hiddenUpdated(hidden)'
                 ],
-                listeners: {
-                    'confirmation': '_deleteKeyEventResponse'
-                },
                 _hiddenUpdated: function (hidden) {
                     this.$.keyActions.fire('resize');
                 },
@@ -439,16 +434,6 @@
                 handlePrivateResponse: function(data) {
                     this.set('privateKey', data.detail.response);
                 },
-                _makeDefaultKey: function(e) {
-                    this.$.keyMakeDefaultAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.keyMakeDefaultAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.keyMakeDefaultAjaxRequest.body = {};
-                    this.$.keyMakeDefaultAjaxRequest.generateRequest();
-                },
-                _handleKeyMakeDefaultAjaxResponse: function(e) {
-                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:this.key.name + ' has become your default Key!',duration:3000} }));
-
-                },
                 _editTags: function() {
                     var el = this.shadowRoot.querySelector('tags-list'),
                     items = [];
@@ -463,17 +448,6 @@
                         danger: true,
                         reason: "key.delete"
                     });
-                },
-                _deleteKeyEventResponse: function(e) {
-                    var reason = e.detail.reason,
-                        response = e.detail.response;
-
-                    if (response.confirmed && reason == "key.delete") {
-                        this.$.keyDeleteAjaxRequest.body = {};
-                        this.$.keyDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                        this.$.keyDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.$.keyDeleteAjaxRequest.generateRequest();
-                    }
                 },
                 _handleKeyDeleteAjaxResponse: function(e) {
                     this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/keys'} }));

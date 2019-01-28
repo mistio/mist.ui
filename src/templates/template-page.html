@@ -379,7 +379,6 @@
         </div>
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
-        <iron-ajax id="templateDeleteRequest" url="/api/v1/templates/[[template.id]]" contentType="application/json" handle-as="json" method="DELETE" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
     </template>
     <script>
         (function() {
@@ -441,9 +440,6 @@
                 observers: [
                     '_changed(template)'
                 ],
-                listeners: {
-                    'confirmation': '_deleteTemplateResponse'
-                },
                 ready: function() {
                     var wh = window.innerHeight;
                     this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
@@ -479,40 +475,6 @@
                 _createStack: function(e) {
                     e.stopImmediatePropagation();
                     this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/stacks/+create', params: {template: this.template._id}} }))
-                },
-                _deleteTemplate: function(e) {
-                    var hasStacksMessage = '',
-                        alert = '',
-                        subscript = '';
-                    if (this._computeHasStacks()){
-                        alert = this.stacks.length+' associated stack';
-                        if (this.stacks.length > 1)
-                            alert += 's'
-                        alert += '.'
-                        subscript = 'Stacks are not deleted, when their template is deleted.'
-                    }
-                    this._showDialog({
-                        title: 'Delete Template '+this.template.name+' ?',
-                        body: "Deleting templates cannot be undone. You are about to delete template: " + this.template.name,
-                        alert: alert,
-                        subscript: subscript,
-                        danger: true,
-                        reason: "delete_template"
-                    });
-                },
-                _deleteTemplateResponse: function(e) {
-                    console.log('_deleteTemplateResponse',e.detail, e.detail.reason, e.detail.response);
-                    var reason = e.detail.reason,
-                        response = e.detail.response;
-
-                    if (response.confirmed && reason == "delete_template") {
-                        this.$.templateDeleteRequest.body = {
-                            'template_id': this.template.id
-                        };
-                        this.$.templateDeleteRequest.headers["Content-Type"] = 'application/json';
-                        this.$.templateDeleteRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.$.templateDeleteRequest.generateRequest();                        
-                    }
                 },
                 _handleResponse: function(e){
                     // console.log('response',e);
