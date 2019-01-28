@@ -215,7 +215,7 @@ Polymer({
         }
     },
     observers: [
-        '_computeTags(model.cloudsArray, model.machines)'
+        '_computeTags(model.clouds, model.machines)'
     ],
     attached: function() {
         var rows = this.parentNode.querySelectorAll('block');
@@ -292,24 +292,25 @@ Polymer({
         if (this.model && this.model.machines) {
             Object.values(this.model.machines).forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
-                if (m.tags && m.tags.length  && mcost){
-                    m.tags.forEach(function(t){
+                if (m.tags && mcost){
+                    for (var t in m.tags) {
                         var tagExists = tagsArray.find(function(prevt, index){
-                            return prevt.key == t.key && prevt.value == t.value;
+                            return prevt.key == t && prevt.value == m.tags[t];
                         });
                         if (tagExists){
                                 tagExists.count ++;
                                 tagExists.cost = tagExists.cost + Math.round(parseInt(mcost));
                             }
                         else {
-                            var tag = t;
+                            var tag = {};
+                            tag.key = t;
+                            tag.value = m.tags[t];
                             tag.cost = Math.round(parseInt(mcost));
                             tag.count = 1;
                             tagsArray.push(tag);
                         }                        
-                    });
-                }                
-                
+                    }
+                }
             });
         }
         // sort by cost
