@@ -7,104 +7,125 @@
 <dom-module id="mist-rules">
     <template>
         <style include="shared-styles tags-and-labels">
-        :host {
-        }
+            paper-button {
+                background-color: transparent !important;
+                color: inherit !important;
+                padding: 0.7em 0.57em;
+                background-color: transparent;
+                margin: 0;
+            }
 
-        paper-button {
-            background-color: transparent !important;
-            color: inherit !important;
-            padding: 0.8em 1.57em 0.7em 1.57em;
-            font-weight: 500;
-            background-color: transparent;
-        }
+            paper-button[disabled] {
+                background-color: rgba(0, 0, 0, .13) !important;
+                color: rgba(0, 0, 0, 0.32) !important;
+            }
 
-        paper-button[disabled] {
-            background-color: rgba(0, 0, 0, .13) !important;
-            color: rgba(0, 0, 0, 0.32) !important;
-        }
+            paper-material {
+                border-top: 2px solid #ddd;
+                padding-bottom: 0;
+            }
 
-        paper-material {
-            border-top: 2px solid #ddd;
-            padding-bottom: 0;
-        }
+            paper-button.add-rule iron-icon {
+                opacity: 0.32;
+                padding: 4px;
+                font-weight: 500;
+            }
 
-        paper-button iron-icon {
-            opacity: 0.32;
-            padding: 4px;
-        }
+            rule-edit {
+                padding: 0 24px 16px 24px;
+            }
 
-        rule-edit {
-            padding: 0 24px 16px 24px;
-        }
+            .rule-actions {
+                justify-content: flex-end;
+                font-size: 0.9em;
+                margin-top: 16px;
+            }
 
-        .rule-actions {
-            justify-content: flex-end;
-            font-size: 0.9em;
-            margin-top: 16px;
-        }
+            .errormsg-container {
+                color: var(--red-color);
+                align-self: flex-start;
+                flex: 1;
+            }
 
-        .errormsg-container {
-            color: var(--red-color);
-            align-self: flex-start;
-            flex: 1;
-        }
+            .errormsg-container iron-icon {
+                color: inherit;
+            }
 
-        .errormsg-container iron-icon {
-            color: inherit;
-        }
+            paper-material>h2.title {
+                background-color: #eee;
+                color: #666;
+                padding: 0 24px;
+                margin: 0;
+                font-size: 12px;
+                line-height: 36px;
+                font-weight: 500;
+            }
 
-        paper-material>h2.title {
-            background-color: #424242;
-            color: #fff;
-            padding: 0 24px;
-            margin: 0;
-            font-size: 13px;
-            line-height: 36px;
-        }
+            .tag {
+                vertical-align: middle;
+                line-height: 1.5;
+            }
 
-        .tag {
-            vertical-align: middle;
-            line-height: 1.5;
-        }
+            .machine-link {
+                color: #81D4FA;
+                font-size: inherit;
+                font-weight: bold;
+            }
 
-        .machine-link {
-            color: #81D4FA;
-            font-size: inherit;
-            font-weight: bold;
-        }
+            .machine-link:hover {
+                text-decoration: underline;
+            }
 
-        .machine-link:hover {
-            text-decoration: underline;
-        }
+            .rules-head {
+                @apply --mist-monitoring-head-mixin
+            }
+
+            .rules-head > h2 {
+                margin: 0;
+                line-height: 24px;
+            }
+
+            .rules-head paper-button {
+                width: 100%;
+                text-transform: none;
+                justify-content: left;
+            }
         </style>
-        <template is="dom-repeat" items="[[ruleCategories]]" as="cat">
-            <paper-material elevation="0" id$=[[cat.id]]>
-                <h2 class="title">
-                    [[cat.name]]
-                    <template is="dom-repeat" items="[[cat.selectors]]" as="selector">
-                        <template is="dom-if" if="[[isObj(selector)]]">
-                            <template is="dom-repeat" items="[[arrayTags(selector)]]" as="tag">
-                                <span class="tag">[[tag]]</span>
+        <div class="horizontal layout rules-head" hidden$="[[!collapsible]]">
+            <h2 class="flex flex-1">
+                <paper-button toggles active={{expanded}}><iron-icon icon="icons:expand-more" style$="margin-right: 8px; [[_computeToggleButtonStyle(expanded)]]"></iron-icon>Rules</paper-button>
+            </h2>
+        </div>
+        <iron-collapse opened=[[expanded]]>
+            <template is="dom-repeat" items="[[ruleCategories]]" as="cat">
+                <paper-material elevation="0" id$=[[cat.id]]>
+                    <h2 class="title">
+                        [[cat.name]]
+                        <template is="dom-repeat" items="[[cat.selectors]]" as="selector">
+                            <template is="dom-if" if="[[isObj(selector)]]">
+                                <template is="dom-repeat" items="[[arrayTags(selector)]]" as="tag">
+                                    <span class="tag">[[tag]]</span>
+                                </template>
+                            </template>
+                            <template is="dom-if" if="[[isStr(selector)]]">
+                                <a class="regural blue-link machine-link" href$="/machines/[[selector]]"> [[printMachine(selector, machines)]]</a>
                             </template>
                         </template>
-                        <template is="dom-if" if="[[isStr(selector)]]">
-                            <a class="regural blue-link machine-link" href$="/machines/[[selector]]"> [[printMachine(selector, machines)]]</a>
-                        </template>
+                    </h2>
+                    <template is="dom-repeat" items="[[cat.rules]]">
+                        <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]] users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]] resource="[[resource]]"></rule-item>
+                        <rule-edit hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]] machines="[[machines]]" users=[[users]] teams=[[teams]]></rule-edit>
                     </template>
-                </h2>
-                <template is="dom-repeat" items="[[cat.rules]]">
-                    <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]] users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]] resource="[[resource]]"></rule-item>
-                    <rule-edit hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]] machines="[[machines]]" users=[[users]] teams=[[teams]]></rule-edit>
-                </template>
+                </paper-material>
+            </template>
+            <paper-material elevation="0" id="add-new-rule-dialog">
+                <paper-button toggles active="{{addingRule}}" hidden$="[[addingRule]]" class="add-rule">
+                    <iron-icon icon="icons:add-circle"></iron-icon> add new rule
+                </paper-button>
+                <rule-edit active={{addingRule}} available-metrics=[[availableMetrics]] resource=[[resource]] users=[[users]] teams=[[teams]] machines="[[machines]]" hidden$=[[!addingRule]]>
+                </rule-edit>
             </paper-material>
-        </template>
-        <paper-material elevation="0" id="add-new-rule-dialog">
-            <paper-button toggles active="{{addingRule}}" hidden$="[[addingRule]]">
-                <iron-icon icon="icons:add-circle"></iron-icon> add new rule
-            </paper-button>
-            <rule-edit active={{addingRule}} available-metrics=[[availableMetrics]] resource=[[resource]] users=[[users]] teams=[[teams]] machines="[[machines]]" hidden$=[[!addingRule]]>
-            </rule-edit>
-        </paper-material>
+        </iron-collapse>
     </template>
     <script>
     Polymer({
@@ -151,6 +172,14 @@
             },
             users: {
                 type: Array
+            },
+            collapsible: {
+                type: Boolean,
+                value: false
+            },
+            expanded: {
+                type: Boolean,
+                value: true
             }
         },
         ready: function() {},
@@ -358,6 +387,9 @@
                 return !i.finished_at && i.rule_id == rule.id;
             });
             return !find ? false : true;
+        },
+        _computeToggleButtonStyle: function (expanded) {
+            return !expanded && "transform: rotate(270deg);" || "";
         }
     });
     </script>
