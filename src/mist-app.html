@@ -314,8 +314,8 @@
             'mist-sidebar-toggle': 'mistSidebarToggle',
             'toast': 'showToast',
             'desktop-notification': 'showDesktopNotification',
-            // 'clear-search-on-nav': 'clearSearchPreservingFilters',
-            // 'preserve-filters': 'clearSearchPreservingFilters',
+            'clear-search-on-nav': 'clearSearchPreservingFilters',
+            'preserve-filters': 'clearSearchPreservingFilters',
             'search': 'updateSearchQuery',
             'open-and-select': 'openAndSelect',
             'cloud-edit-key': 'openCloudEdit',
@@ -335,7 +335,8 @@
             'forward-log': '_logReceived',
             'cc-dismiss': '_ccDismissed',
             'panel-added': 'panelAdded',
-            'update-dashboard': '_forwardEvent'
+            'update-dashboard': '_forwardEvent',
+            'import-script': '_importScript'
         },
 
         observers: [
@@ -1040,6 +1041,16 @@
 
         panelAdded: function(e) {
             console.log('panelAdded', e);
+        },
+
+        _importScript: function (e) {
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = e.detail.url;
+            script.async = false;
+            script.onreadystatechange = e.detail.cb;
+            script.onload = e.detail.cb;
+            document.body.appendChild(script);
         }
     });
 
