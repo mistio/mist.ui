@@ -29,15 +29,13 @@
                 min-width: 48px;
                 transition: all 10ms ease-in;
 
-                --mist-filter-paper-menu-button-padding: 0;
+                --mist-filter-paper-menu-button-padding: 4px 0px 0 16px;
                 --mist-filter-paper-menu-button-background-color: rgba(255,255,255,0.2);
                 --mist-filter-paper-menu-button-paper-button-margin: 0;
                 --mist-filter-paper-menu-button-paper-button-padding-left: 24px;
                 --mist-filter-paper-menu-button-paper-button-text-transform: none;
                 --mist-filter-paper-menu-button-paper-button-font-size: 16px;
-                --mist-filter-iron-icon-search-padding: 12px;
-                --mist-filter-iron-icon-search-align-self: center;
-                --mist-filter-paper-icon-buttons-margin-top: 4px;
+                --mist-filter-h2-title-margin: 4px;
                 --paper-input-container-underline: {display: none; height: 0;}
                 --paper-input-container-underline-focus: {display: none; height: 0;}
                 --paper-input-container-underline-disabled: {display: none; height: 0;}
@@ -133,7 +131,8 @@
         <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
         <div id="search" class="horizontal layout">
             <mist-filter id$="[[id]]" name="All resources" searchable=[[searchable]] user-filter={{userFilter}} 
-                preset-filters=[[presetFilters]] editing-filter="true" always-show-input button-name="Filters" placeholder="Search">
+                preset-filters=[[presetFilters]]> 
+                <!-- button-name="Filters" editing-filter="true" always-show-input placeholder="Search" -->
             </mist-filter>
         </div>
         <search-suggestions query="[[userFilter]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
@@ -200,8 +199,6 @@
 
             observers: [
                 'overflowChanged(overflow)',
-                // '_userFilterChanged(userFilter)',
-                // '_selectedPresetFilterChanged(selectedPresetFilter)',
                 '_idChanged(id)',
                 '_updateSearch(userFilter)'
             ],
@@ -218,17 +215,6 @@
             _idChanged: function(id) {
                 if (id && this.shadowRoot.querySelector('mist-filter')) {
                     this.shadowRoot.querySelector('mist-filter').getLocalStorageData(this.id);
-                    // var userFilter;
-                    // try {
-                    //     userFilter = localStorage.getItem('mist-filter#'+this.id+'/userFilter');
-                    // } catch (e) {
-                    //     console.warn(e);
-                    // }
-                    // if (userFilter) {
-                    //     // this.set('selectedPresetFilter', userFilter);
-                    //     this.set('userFilter', userFilter);
-                    // }
-                    // console.log('get userFilter head-attached', 'mist-filter#'+this.id+'/userFilter', this.userFilter)
                 }
             },
 
@@ -243,64 +229,6 @@
                 this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
             },
 
-            // _selectedPresetFilterChanged: function(selectedPresetFilter) {
-            //     if (this.isAttached) {
-            //         if (selectedPresetFilter && selectedPresetFilter.length) {
-
-            //             this.setTypedFilter(selectedPresetFilter);
-            //             this.$.query.focus();
-            //             this.set('showClear', true);
-                        
-
-            //             if (this.userFilter.indexOf(selectedPresetFilter) == -1)
-            //                 this.dispatchEvent(new CustomEvent('search', {
-            //                     bubbles: true,
-            //                     composed: true,
-            //                     detail: selectedPresetFilter + ' ' + this.userFilter.replace(/owner:\S*\s/, '')
-            //                 }));
-
-            //         } else {
-            //             var newQ = this.userFilter.replace(/owner:\S*\s?/g, '');
-            //             this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: newQ }));
-
-            //             if (!newQ.length) {
-            //                 this.clearSearch();
-            //             }
-            //         }
-            //     }
-            // },
-
-            // _userFilterChanged: function(q) {
-            //     console.log('filter userFilter head', this.userFilter);
-            //     if (!q.length) {
-            //         this.setTypedFilter(q);
-            //     }
-            //     if (q && q.length) {
-            //         this.$.query.focus();
-            //         this.set('showClear', true);
-            //     } else {
-            //         this.set('showClear', this.overflow || false);
-            //     }
-
-            //     this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
-            // },
-
-            // setTypedFilter: function(q, caller) {
-            //     var filterOwner = q.indexOf('owner:') > -1,
-            //         ownerRegex = /owner:(\S*)\s?/,
-            //         owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
-
-            //     if (!filterOwner || !q.length) {
-            //         this.$.filterSelection.selected = -1;
-            //         this.set('selectedPresetFilter', '');
-            //     }
-
-            //     if (filterOwner && owner && owner.length && this.filter != 'owner:' + owner) {
-            //         this.set('selectedPresetFilter', 'owner:' + owner);
-            //     }
-
-            // },
-
             clearSearch: function(e) {
                 this.set('userFilter', "");
                 this.$.query.blur();
@@ -311,7 +239,6 @@
             },
 
             hotkeys: function(e) {
-                // this.setTypedFilter(this.userFilter, 'hotkeys');
                 // ESC
                 if (e.keyCode === 27 && Polymer.dom(e)
                     .rootTarget === this.$.query) {
@@ -331,9 +258,6 @@
             overflowChanged: function(overflow) {
                 if (overflow) {
                     this.updateWidth();
-                    // this.$.query.focus();
-                } else {
-                    // this.$.query.blur();
                 }
                 this.set('showClear', this.overflow);
             }
