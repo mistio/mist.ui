@@ -624,7 +624,7 @@
                         <div class="cell">
                             <h4>Created:</h4>
                         </div>
-                        <div class="cell">
+                        <div class="cell" hidden$="[[!machine]]">
                             [[_fromNow(machine.created)]]
                             <span hidden$="[[!machine.created_by]]">
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
@@ -678,7 +678,9 @@
             <template is="dom-if" if=[[monitoring]]>
                 <paper-material id="monitoringBlock" class="info-card">
                     <mist-monitoring id="mistMonitoring" resource="[[machine]]" state="[[machineState]]" monitoring="[[model.monitoring]]" section="[[section]]" datasources="[[datasources]]" hidden$="[[hidden]]" machine-keys="[[machineKeys]]" incidents="[[_filterMachinesIncidents(model.incidentsArray, model.incidentsArray.length, model.incidents.*)]]" portal-name="[[portalName]]"></mist-monitoring>
-                    <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" hidden$="[[!isActivated]]"></mist-rules>
+                </paper-material>
+                <paper-material id="rulesBlock" class="info-card" hidden$="[[!machine.monitoring.hasmonitoring]]">
+                    <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" hidden$="[[!isActivated]]" collapsible></mist-rules>
                 </paper-material>
             </template>
             <paper-material class="info-card">
@@ -1012,7 +1014,7 @@ Polymer({
     },
     _isMonitored: function(machine, monitoredMachines) {
         if (this.machine) {
-            if (monitoredMachines) {
+            if (this.model.monitoring.machines) {
                 var mach = monitoredMachines.base.find(function(m) {
                     return m[1] == machine.id && m[0] == machine.cloud;
                 }, this);
@@ -1266,6 +1268,7 @@ Polymer({
     },
     _computeMachineImage: function(machine, cloud) {
         var item = this.machine;
+        if (!item) return;
         if (item && item.image && typeof(item.image) != "object") {
             return item.image;
         } else if (item && item.extra.image && typeof(item.extra.image) == "string") {
