@@ -300,11 +300,11 @@
             },
             _computeMember: function(params, members) {
                 return this.model.membersArray.find(function(member) {
-                    return member.id == params.member;
+                    return params && member.id == params.member;
                 }, this);
             },
             _computeTeams: function(member, teams) {
-                if (this.member && this.teams) {
+                if (this.member) {
                     var memberTeams = this.model.teamsArray.filter(function(t, index) {
                         return t.members.indexOf(this.member.id) > -1;
                     }, this);
@@ -337,7 +337,7 @@
                 var reason = e.detail.reason,
                     response = e.detail.response;
 
-                if (response.confirmed && reason == "delete_member") {
+                if (response == 'confirm' && reason == "delete_member") {
                     this.memberTeams.forEach(function(t) {
                         this.async(function() {
                             this.set('teamId', t.id);
@@ -355,7 +355,7 @@
             },
             _deleteMemberResponseAjax: function(e) {
                 // if user was in one single team return there, else in teams
-                if (this.memberTeams.length == 1) {
+                if (this.memberTeams && this.memberTeams.length == 1) {
                     this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.memberTeams[0].id } }));
 
                 } else {

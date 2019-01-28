@@ -16,8 +16,6 @@
 <dom-module id="tunnel-page">
     <template>
         <style include="shared-styles single-page tags-and-labels">
-        :host {
-        }
         .columns {
             @apply --layout-horizontal;
             flex: 1 100%;
@@ -245,7 +243,6 @@ Script:</code></pre>
             </div> -->
         </div>
         <tunnel-edit tunnel="[[tunnel]]"></tunnel-edit>
-        <iron-ajax id="tunnelDeleteAjaxRequest" url="/api/v1/tunnels/[[tunnel.id]]" method="DELETE" on-response="_handleTunnelDeleteAjaxResponse" on-error="_handleTunnelDeleteAjaxError"></iron-ajax>
         <iron-ajax id="scriptAjaxRequest" url="/api/v1/tunnels/[[tunnel.id]]/script" method="GET" on-response="_handleScriptAjaxRequest" on-error="_handleScriptAjaxError"></iron-ajax>
         <iron-ajax id="commandAjaxRequest" url="/api/v1/tunnels/[[tunnel.id]]/command" method="GET" on-response="_handleCommandAjaxRequest" handle-as="xml" on-error="_handleCommandAjaxError"></iron-ajax>
         <dialog-element></dialog-element>
@@ -299,7 +296,6 @@ Script:</code></pre>
                 "_clearCommandArea(tunnel.id)"
             ],
             listeners: {
-                'confirmation': '_deleteTunnelEventResponse',
                 'updateSelectedScript': '_updateScript',
                 'edit': '_editTunnel'
             },
@@ -344,33 +340,6 @@ Script:</code></pre>
                 var tunnel = e.detail.tunnel;
                 this.set('tunnel.name', tunnel.name);
                 this.set('script.description', script.description);
-            },
-            _deleteTunnel: function(e) {
-                this._showDialog({
-                    title: 'Delete Tunnel?',
-                    body: "Deleting tunnels cannot be undone. You are about to delete tunnel: '" + this.tunnel.name + "'." ,
-                    danger: true,
-                    reason: "tunnel.delete"
-                });
-            },
-            _deleteTunnelEventResponse: function(e) {
-                var reason = e.detail.reason,
-                    response = e.detail.response;
-
-                if (response.confirmed && reason == "tunnel.delete") {
-                    this.$.tunnelDeleteAjaxRequest.body = {};
-                    this.$.tunnelDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.tunnelDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.tunnelDeleteAjaxRequest.generateRequest();
-                }
-            },
-            _handleTunnelDeleteAjaxResponse: function(e) {
-                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/tunnels'} }));
-
-            },
-            _handleTunnelDeleteAjaxError: function(e) {
-                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"There was a problem deleting the tunnel",duration:3000} }));
-
             },
             // script
             _requestScript: function(){

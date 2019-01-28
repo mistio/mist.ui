@@ -14,117 +14,114 @@
 
 <dom-module id="script-page">
     <template>
-
         <style include="shared-styles single-page tags-and-labels">
-        :host {
-        }
-        [hidden] {
-            display: none !important;
-        }
-        .columns {
-            @apply --layout-horizontal;
-            flex: 1 100%;
-        }
-        .left, .right {
-            @apply --layout-vertical;
-            align-items: flex-start;
-            flex-direction: column;
-            flex: 1 100%;
-            overflow: hidden;
-        }
-        paper-material {
-            display: block;
-            padding: 20px;
-            overflow: hidden;
-        }
+            [hidden] {
+                display: none !important;
+            }
+            .columns {
+                @apply --layout-horizontal;
+                flex: 1 100%;
+            }
+            .left, .right {
+                @apply --layout-vertical;
+                align-items: flex-start;
+                flex-direction: column;
+                flex: 1 100%;
+                overflow: hidden;
+            }
+            paper-material {
+                display: block;
+                padding: 20px;
+                overflow: hidden;
+            }
 
-        paper-menu-button paper-button {
-            display: block;
-        }
+            paper-menu-button paper-button {
+                display: block;
+            }
 
-        .flex-horizontal-with-ratios {
-            @apply --layout-horizontal;
-        }
+            .flex-horizontal-with-ratios {
+                @apply --layout-horizontal;
+            }
 
-        .flexchild {
-            @apply --layout-flex;
-        }
+            .flexchild {
+                @apply --layout-flex;
+            }
 
-        .command-container {
-            background-color: #444;
-            color: #fff;
-            font-family: monospace;
-            padding: 10px;
-            width: 100%;
-            max-width: 100%;
-            overflow-x: scroll;
-            box-sizing: border-box;
-        }
+            .command-container {
+                background-color: #444;
+                color: #fff;
+                font-family: monospace;
+                padding: 10px;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: scroll;
+                box-sizing: border-box;
+            }
 
-        a {
-            color: black;
-            text-decoration: none;
-        }
+            a {
+                color: black;
+                text-decoration: none;
+            }
 
-        paper-icon-button {
-            transition: all 200ms;
-        }
+            paper-icon-button {
+                transition: all 200ms;
+            }
 
-        [size=xs] > * {
-            display: none;
-        }
+            [size=xs] > * {
+                display: none;
+            }
 
-        [size=xs] mist-sidebar {
-            min-width: 100%;
-            height: auto;
-        }
+            [size=xs] mist-sidebar {
+                min-width: 100%;
+                height: auto;
+            }
 
-        h4.id {
-            display: inline-block;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-right: 16px;
-        }
-        .id {
-            display: inline-block;
-        }
-        /* TODO: better */
-        .tag {
-            padding: 0.5em;
-            display: inline-flex;
-            align-self: center;
-        }
-        .info-table {
-            border-top: 1px solid #ddd;
-        }
-        a.inherit {
-            color: inherit;
-            font-size: inherit;
-            line-height: inherit;
-            padding: inherit;
-        }
+            h4.id {
+                display: inline-block;
+                text-transform: uppercase;
+                font-size: 0.9rem;
+                font-weight: 700;
+                margin-right: 16px;
+            }
+            .id {
+                display: inline-block;
+            }
+            /* TODO: better */
+            .tag {
+                padding: 0.5em;
+                display: inline-flex;
+                align-self: center;
+            }
+            .info-table {
+                border-top: 1px solid #ddd;
+            }
+            a.inherit {
+                color: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: inherit;
+            }
 
-        mist-list {
-            width: 100%;
-            padding: 0;
-            margin: 0;
-            max-height: 700px;
-            font-size: 75%;
-            min-height: 500px;
-            --row-height: 48px;
-        }
-        paper-material.script-logs {
-            padding: 0;
-            margin-top: 32px;
-        }
-        .single-head {
-            @apply --script-page-head-mixin
-        }
-        script-actions {
-            width: 50%;
-            fill: #fff;
-        }
+            mist-list {
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                max-height: 700px;
+                font-size: 75%;
+                min-height: 500px;
+                --row-height: 48px;
+            }
+            paper-material.script-logs {
+                padding: 0;
+                margin-top: 32px;
+            }
+            .single-head {
+                @apply --script-page-head-mixin
+            }
+            script-actions {
+                width: 50%;
+                fill: #fff;
+            }
         </style>
 
         <div id="content">
@@ -263,10 +260,6 @@
             '_changed(script)'
         ],
 
-        listeners: {
-            'confirmation': '_actions',
-        },
-
         _getHeaderStyle: function(section) {
             return 'background-color: ' + section.color + '; color: #fff;';
         },
@@ -285,41 +278,12 @@
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/scripts/' + this.script.id + '/+run'} }));
         },
 
-        _deleteScript: function(e) {
-            this._showDialog({
-                title: 'Delete Script?',
-                body: "Deleting scripts cannot be undone. You are about to delete script: '" + this.script.name + "'." ,
-                danger: true,
-                reason: "script.delete"
-            });
-        },
-
-        _actions: function(e) {
-            var reason = e.detail.reason,
-                response = e.detail.response;
-
-            if (response.confirmed && reason == "script.delete") {
-                this.$.scriptDeleteAjaxRequest.body = {};
-                this.$.scriptDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                this.$.scriptDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.scriptDeleteAjaxRequest.generateRequest();
-            }
-        },
-
         _handleScriptDeleteAjaxResponse: function(e) {
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/scripts'} }));
         },
 
         _encode: function(script) {
             return encodeURIComponent(script);
-        },
-
-        _showDialog: function(info) {
-            var dialog = this.shadowRoot.querySelector('dialog-element');
-            for (var i in info) {
-                dialog[i] = info[i];
-            }
-            dialog._openDialog();
         },
 
         _computeLink: function(location) {

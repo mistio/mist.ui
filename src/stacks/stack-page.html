@@ -664,7 +664,6 @@
         <tags-list model="[[model]]"></tags-list>
         <iron-ajax id="workflowRequest" method="POST" url="" on-response="handleWorkflowResponse" on-error="handleWorkflowError"></iron-ajax>
         <iron-ajax id="cancelJob" method="DELETE" url="/api/v1/jobs/[[stack.job_id]]" on-response="handleCanceled" on-error=""></iron-ajax>
-        <iron-ajax id="deleteStack" method="DELETE" url="/api/v1/stacks/[[stack.id]]" on-request="handleDeleteRequest" on-response="handleDelete"></iron-ajax>
     </template>
 
     <script type="text/javascript" src="../../bower_components/anchorme.js/dist-browser/anchorme.min.js"></script>
@@ -727,22 +726,22 @@
                 listMachines: {
                     type: Array,
                     computed: '_computeListMachines(stack.node_instances.*, model.machines.*)',
-                    value: []
+                    value: function () { return []; }
                 },
                 networks: {
                     type: Array,
                     computed: '_computeListNetworks(stack.node_instances.*, model.networks.*)',
-                    value: []
+                    value: function () { return []; }
                 },
                 zones: {
                     type: Array,
                     computed: '_computeListZones(stack.node_instances.*, model.zonesArray.*)',
-                    value: []
+                    value: function () { return []; }
                 },
                 keys: {
                     type: Array,
                     computed: '_computeListKeys(stack.node_instances.*, model.keys.*)',
-                    value: []
+                    value: function () { return []; }
                 },
                 workflows: {
                     type: Array,
@@ -828,7 +827,6 @@
                 '_stackStateChanged(stack.status)'
             ],
             listeners: {
-                'confirmation': '_confirmAction',
                 'show-workflows': 'openWorkflows',
                 'workflow': '_quickActionsNavigation',
                 'deploy-now': 'deployNowWork'
@@ -1217,47 +1215,6 @@
                     }
                 }
                 dialog._openDialog();
-            },
-            _editTags: function () {
-                var el = this.shadowRoot.querySelector('tags-list'),
-                    items = [];
-                items.push(itemUid(this.stack, this.section));
-                el.items = items;
-                el._openDialog();
-            },
-            _deleteStack: function () {
-                this._showDialog({
-                    title: 'Delete Stack',
-                    body: "Deleting stacks cannot be undone. Verify deletion.",
-                    danger: true,
-                    reason: "stack.delete",
-                    action: "Delete"
-                });
-            },
-            _confirmAction: function (e) {
-                console.log('_confirmAction', e);
-                var reason = e.detail.reason,
-                    response = e.detail.response;
-
-                if (response.confirmed && reason == "stack.delete") {
-                    this.$.deleteStack.body = {
-                        stack_id: this.stack.id
-                    };
-                    this.$.deleteStack.headers["Content-Type"] = 'application/json';
-                    this.$.deleteStack.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.deleteStack.generateRequest();
-                }
-            },
-            handleDeleteRequest: function (e) {
-                this.set('stack.error', false);
-                this.set('delete_request', true);
-            },
-            handleDelete: function (e) {
-                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
-                    msg: 'Deletion completed',
-                    duration: 3000
-                } }))
-                document.querySelector('app-location').set('path', '/stacks');
             },
             _workflowNavigation: function (action) {
                 this.$.workflows.classList.add('open');
