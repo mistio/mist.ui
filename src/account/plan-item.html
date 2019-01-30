@@ -473,13 +473,14 @@
             return this.plan && this.plan.title == "Enterprise";
         },
         _addCard: function(e) {
-            this.dispatchEvent(new CustomEvent('add-card'));
+            this.dispatchEvent(new CustomEvent('add-card', {bubbles: true, composed: true}));
         },
         _purchasePlan: function(e) {
+            console.log('purchasePlan', this.plan)
             if (this.plan && !this.plan.price) {
                 this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
             } else  {
-                this.dispatchEvent(new CustomEvent('plan-selected'));
+                this.dispatchEvent(new CustomEvent('plan-selected', {bubbles: true, composed: true}));
             }
         },
         _cancelPlan: function() {
@@ -492,8 +493,9 @@
                 undo: "not yet"
             });
         },
-        _updatePaymentMethod: function() {
-            this.dispatchEvent(new CustomEvent('update-payment-method'));
+        _updatePaymentMethod: function(e) {
+            console.log('_updatePaymentMethod', e);
+            this.dispatchEvent(new CustomEvent('update-payment-method', {bubbles: true, composed: true}));
         },
         _showDialog: function(info) {
             var dialog = this.$.plancancel;

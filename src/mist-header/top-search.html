@@ -181,6 +181,7 @@
                 },
                 visibleSuggestions: {
                     type: Boolean,
+                    value: false,
                     notify: true
                 },
                 userSavedFilters: {
@@ -215,6 +216,7 @@
             _idChanged: function(id) {
                 if (id && this.shadowRoot.querySelector('mist-filter')) {
                     this.shadowRoot.querySelector('mist-filter').getLocalStorageData(this.id);
+                    this.set("visibleSuggestions", false);
                 }
             },
 
@@ -229,15 +231,6 @@
                 this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
             },
 
-            clearSearch: function(e) {
-                this.set('userFilter', "");
-                this.$.query.blur();
-                if (this.overflow) {
-                    this.set('overflow', false);
-                }
-                this.set('showClear', false);
-            },
-
             hotkeys: function(e) {
                 // ESC
                 if (e.keyCode === 27 && Polymer.dom(e)
@@ -247,7 +240,9 @@
                         this.set('overflow', false)
                 }
                 //ENTER
-                if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$.query && this.userFilter.length) {}
+                if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$[this.id] && this.userFilter.length) {
+                    this.set("visibleSuggestions", true);
+                }
             },
 
             revealSearch: function(e) {

@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 <script src='../../bower_components/echarts/dist/echarts.common.min.js'></script>
 
@@ -190,16 +191,20 @@
             },
             updateChartWidth: function() {
                 var parentWidth = this.parentNode.offsetWidth;
-                console.log('updateChartWidth',parentWidth);
                 if (parentWidth) {
+                    console.log('updateChartWidth',parentWidth);
                     this.set('balanceGraphWidth', parentWidth);
                     this.resizeGraph();
                 }
             },
             resizeGraph: function() {
                 console.log('resizeGraph');
-                if (this.balanceGraph)
+                if (this.balanceGraph) {
                     this.balanceGraph.resize();
+                }
+            },
+            _handleError: function (e) {
+                console.error('Cannot get billing data',e);
             },
             _handleResponse: function(e) {
                 this.set('amountDue', e.detail.response.amount_due);
