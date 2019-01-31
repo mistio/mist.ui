@@ -85,6 +85,19 @@
                     z-index: 99;
                     border-radius: 0;
                     transition: all 150ms ease-in;
+
+                    --paper-input-container-input: {
+                        font-size: 16px;
+                        color: inherit;
+                        width: 100%;
+                        padding: 22px 0 0 0;
+                    }
+                    --paper-input-container-input_-_padding: 14px 0 0 8px;
+                }
+
+                :host([overflow]) mist-filter {
+                    display: flex;
+                    padding: 8px;
                 }
 
                 paper-icon-button {
@@ -113,7 +126,7 @@
                 :host([overflow]) #search {
                     display: flex;
                     height: 56px;
-                    line-height: 56px;
+                    /*line-height: 56px;*/
                     transition: all 150ms ease-in;
                     transform: translate(0,0);
                 }
@@ -124,7 +137,7 @@
                 }
                 :host([overflow]) #search {
                     height: 64px;
-                    line-height: 64px;
+                    /*line-height: 64px;*/
                 }
             }
         </style>
@@ -205,7 +218,8 @@
             ],
 
             listeners: {
-                'keyup': 'hotkeys',
+                'keydown': 'hotkeys',
+                'escape-pressed': 'hotkeys',
                 'iron-resize': 'updateWidth'
             },
 
@@ -232,15 +246,16 @@
             },
 
             hotkeys: function(e) {
+                console.log('hotkeys', e);
                 // ESC
-                if (e.keyCode === 27 && Polymer.dom(e)
-                    .rootTarget === this.$.query) {
-                    this.set('userFilter', "");
-                    if (this.overflow)
+                if (e.keyCode === 27 && e.path && e.path.indexOf(this) > -1) {
+                    this.set("visibleSuggestions", false);
+                    if (this.overflow) {
                         this.set('overflow', false)
+                    }
                 }
-                //ENTER
-                if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$[this.id] && this.userFilter.length) {
+                // ENTER
+                if (e.keyCode === 13 && e.path && e.path.indexOf(this) > -1 && this.userFilter.length) {
                     this.set("visibleSuggestions", true);
                 }
             },
