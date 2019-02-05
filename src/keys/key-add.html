@@ -191,15 +191,6 @@
                     value: false
                 }
             },
-            ready: function () {
-                if (this.shadowRoot.querySelector('custom-validator')) {
-                    this.shadowRoot.querySelector('custom-validator').validate = this.isUniqueValidator.bind(
-                        this);
-                }
-                if (document.querySelector('app-location')) {
-                    this.set('origin', document.querySelector('app-location').queryParams.origin)
-                }
-            },
             listeners: {
                 'iron-overlay-closed': '_modalClosed',
                 'file-uploaded': '_fileUploadedResponse'
@@ -207,6 +198,15 @@
             observers: [
                 '_filedsChanged(key.*, sendingData)'
             ],
+            ready: function () {
+                if (this.shadowRoot.querySelector('custom-validator')) {
+                    this.shadowRoot.querySelector('custom-validator').validate = this.isUniqueValidator.bind(
+                        this);
+                }
+                if (document.querySelector('mist-app').shadowRoot.querySelector('app-location')) {
+                    this.set('origin', document.querySelector('mist-app').shadowRoot.querySelector('app-location').queryParams.origin)
+                }
+            },
             _filedsChanged: function (key, sendingData) {
                 this.set('formError', false);
                 this.async(function () {
