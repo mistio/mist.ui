@@ -184,9 +184,9 @@
                 <paper-spinner active="[[loading]]"></paper-spinner>
             </div>
             <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
-                <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen=[[xsmallscreen]] docs=[[config.features.docs]]></page-dashboard>
+                <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen=[[xsmallscreen]] docs=[[config.features.docs]] currency=[[config.features.currency]]></page-dashboard>
                 <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
-                <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]] docs=[[config.features.docs]] portal-name="[[config.portal_name]]"></page-machines>
+                <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]] docs=[[config.features.docs]] portal-name="[[config.portal_name]]" currency=[[config.features.currency]]></page-machines>
                 <page-images name="images" route="{{subroute}}" model="[[model]]" portal-name="[[config.portal_name]]"></page-images>
                 <page-keys name="keys" route="{{subroute}}" model="[[model]]" config=[[config]]></page-keys>
                 <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
@@ -196,7 +196,7 @@
                     <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
                 </template>
                 <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]]></page-scripts>
-                <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]]></page-schedules>
+                <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]] currency=[[config.features.currency]]></page-schedules>
                 <page-rules name="rules" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]]></page-rules>
                 <template is="dom-if" if="[[config.features.orchestration]]">
                     <page-templates name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
@@ -769,6 +769,7 @@
             var orchestration = this.config && this.config.features && this.config.features.orchestration ? this.config.features.orchestration : false,
                 tunnels = this.config && this.config.features && this.config.features.tunnels ? this.config.features.tunnels : false,
                 insights = this.config && this.config.features && this.config.features.insights ? this.config.features.insights : false;
+                currency = this.config && this.config.features && this.config.features.currency ? this.config.features.currency :  {sign: '₹', rate:0.014};// test rupees {sign: '$', ratio: 1};
 
             let sectionsArray = [{
                 id: 'dashboard',
@@ -925,6 +926,8 @@
                 sidebar: insights,
                 tile: false
             }];
+
+            this.set('config.features.currency', currency);
 
             this.set('model.sections', _generateMap(sectionsArray));
             if (!this.config || !this.config.features || !this.config.features.docs) {
