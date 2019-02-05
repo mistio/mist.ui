@@ -139,7 +139,7 @@
 
         <div class="flex">
             <div class="main-section">
-                <section-tile name="total cost *" icon="" count="$[[totalCost]]" highlight>
+                <section-tile name="total cost *" icon="" count="[[currency.sign]][[totalCost]]" highlight>
                     <span class="sub">* current monthly rate</span>
                 </section-tile>
             </div>
@@ -158,12 +158,12 @@
                         <tr>
                             <td colspan="2" class="name">[[item.name]] </td>
                             <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
-                            <td class="text-right cost">$[[_formatMoney(item.cost)]]</td>
+                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.rate)]]</td>
                         </tr>
                     </template>
                 </table>
                 <div class="zero-clouds" hidden$="[[!zeroCostClouds.length]]">
-                    and [[zeroCostClouds.length]] more clouds of $0 cost
+                    and [[zeroCostClouds.length]] more clouds of [[currency.sign]]0 cost
                 </div>
             </div>
             <div id="tags" hidden$="[[showClouds]]">
@@ -172,7 +172,7 @@
                         <tr>
                             <td colspan="3" class="tag">[[item.key]] <span hidden$="[[!item.value]]"> = [[item.value]] </span></td>
                             <td class="count">[[item.count]] machines </td>
-                            <td class="text-right cost">$[[item.cost]]</td>
+                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.rate)]]</td>
                         </tr>
                     </template>
                 </table>
@@ -212,6 +212,9 @@ Polymer({
         docs: {
             type: String,
             value: ''
+        },
+        currency: {
+            type: Object
         }
     },
     observers: [
@@ -223,6 +226,9 @@ Polymer({
         setTimeout(function() {
             this.classList.add('active');
         }.bind(this), (index + 1) * 50);
+    },
+    _ratedCost: function(cost, rate) {
+        return cost ? this._formatMoney(parseFloat(cost)/this.currency.rate) : 0;
     },
     _computeTotalCost: function(machines) {
         var cost = 0;
@@ -242,6 +248,7 @@ Polymer({
                 return previous + current;
             });
         }
+        cost = cost / this.currency.rate;
         return cost.formatMoney(2, '.', ',');
     },
     _computeTopClouds: function(clouds, machines) {
@@ -290,9 +297,11 @@ Polymer({
     _computeTags: function(clouds, machines) {
         var tagsArray = [];
         if (this.model && this.model.machines) {
+            var that = this;
             Object.values(this.model.machines).forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && mcost){
+                    mcost = parseFloat(mcost)/that.currency.rate;
                     for (var t in m.tags) {
                         var tagExists = tagsArray.find(function(prevt, index){
                             return prevt.key == t && prevt.value == m.tags[t];
