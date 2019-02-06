@@ -84,8 +84,8 @@
                         </paper-radio-group>
                     </div>
                     <div class="background">
-                        <paper-input value="{{costDisplay::input}}" label="If costs more than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate>
-                            <div suffix slot="suffix">$/month</div>
+                        <paper-input value="{{costDisplay}}" label="If it costs more than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate>
+                            <div suffix slot="suffix">[[currency.sign]]/month</div>
                         </paper-input>
                     </div>
                     <div class="progress">
@@ -94,7 +94,7 @@
                         <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
                     </div>
                     <div class="clearfix btn-group">
-                        <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
+                        <paper-button on-tap="_closeEditScheduleModal">Cancel</paper-button>
                         <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
                     </div>
                 </div>
@@ -178,14 +178,17 @@
                     },
                     machinesAgeUnit: {
                         type: String
+                    },
+                    currency: {
+                        type: Object
                     }
                 },
                 observers: [
                     '_computeNewSchedule(schedule.*)',
                     '_isUuidsOrTagsChanged(isUuidsOrTags)',
-                    '_computeTagsString(conditions)',
-                    '_computeAgeParts(machinesAge)',
-                    '_computeCostDisplay(machinesCost)',
+                    '_updateTagsString(conditions)',
+                    '_updateAgeParts(machinesAge)',
+                    '_updateCostDisplay(machinesCost)',
                     '_updatePayload(newSchedule.*)'
                 ],
                 listeners: {
@@ -228,12 +231,13 @@
                     else 
                         this.set('isUuidsOrTags', 'tags')
                 },
-                _computeAgeParts: function(age){
-                    var machineAge = parseInt(age),
+                _updateAgeParts: function(age){
+                    var machineAge = age && parseInt(age) ? parseInt(age) : '',
                         duration;
 
-                    if (age)
+                    if (age) {
                         duration = 'minutes';
+                    }
                     if (age >= 60 && age%(60) == 0) {
                         duration = 'hours';
                         machineAge = age/60;
@@ -242,12 +246,11 @@
                         machineAge = age/(60*24);
                         duration = 'days';
                     }
-
                     this.set('machinesAgeDisplayNumber', machineAge);
                     this.set('machinesAgeUnit', duration);
                 },
-                _computeCostDisplay: function(cost){
-                    this.set('costDisplay', !cost ? "" : cost)
+                _updateCostDisplay: function(cost){
+                    this.set('costDisplay', !cost || parseFloat(cost) == NaN ? '' : cost);
                 },
                 _computeIsUuids: function(schedule) {
                     if (this.schedule && this.schedule.machines)
@@ -335,8 +338,8 @@
                         }
                         pl["conditions"].push({type: 'age', minutes: minutes});
                     }
-                    if (parseInt(this.costDisplay)) {
-                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseInt(this.costDisplay), operator:'gt'})
+                    if (this.costDisplay && this.costDisplay.length && parseFloat(this.costDisplay) != NaN) {
+                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseFloat(this.costDisplay), operator:'gt'})
                     }
                     this.set('payload', pl);
                     this.set('formReady', valid);
@@ -381,7 +384,7 @@
                     }
                     return arr;
                 },
-                _computeTagsString: function(conditions){
+                _updateTagsString: function(conditions){
                     if (this.conditions && this.schedule && this.conditions.length) {
                         var tags = this.conditions.find(function(c){return c.type=="tags"}) ? this.conditions.find(function(c){return c.type=="tags"}).tags : {};
                         var arrTags = Object.keys(tags); 
