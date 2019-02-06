@@ -242,7 +242,7 @@
                         <span hidden$="[[!isCrontab]]">UTC time</span>
                     </div>
                 </div>
-                <schedule-actions id="actions" actions="{{actions}}" items="[[itemArray]]" model="[[model]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></schedule-actions>
+                <schedule-actions id="actions" actions="{{actions}}" items="[[itemArray]]" model="[[model]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" currency=[[currency]] machines-cost=[[machineCost]] in-single-view></schedule-actions>
             </paper-material>
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Schedule not found</div>
@@ -321,7 +321,7 @@
                         </template>
                         &nbsp; [[filteredItems.length]] machines affected </span>
                     <span class="smaller" hidden$="[[!machineAge]]">when OLDER THAN [[_computeAgeText(machineAge)]]</span>
-                    <span class="smaller" hidden$="[[!machineCost]]">and if MACHINE COST is more than $[[machineCost]]/month</span>
+                    <span class="smaller" hidden$="[[!machineCost]]">and if MACHINE COST is more than [[currency.sign]] [[machineCost]]/month</span>
                     <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 </div>
                 <div class='missing-machines'>
@@ -491,7 +491,7 @@
                 machineCost: {
                     type: Number,
                     value: false,
-                    computed: '_computeMachineCost(schedule.conditions)'
+                    computed: '_computeMachineCost(schedule.conditions,currency.rate)'
                 },
                 selectedItems: {
                     type: Array
@@ -505,6 +505,9 @@
                 showId: {
                     type: Boolean,
                     value: false
+                },
+                currency: {
+                    type: Object
                 }
             },
             observers: [
@@ -601,13 +604,19 @@
                     return ageEntry ? ageEntry.minutes || false : false;
                 }
             },
-            _computeMachineCost: function(conditions){
+            _computeMachineCost: function(conditions,rate){
                 if (conditions){
                     var costEntry = conditions.find(function(c){
                         return c.type == 'field' && c.field == 'cost__monthly';
                     });
-                    return costEntry ? costEntry.value || false : false;
+                    return costEntry && costEntry.value != undefined ? costEntry.value : false;
+                } else {
+                    return false;
                 }
+            },
+            _ratedCost: function(cost, rate){
+                // TODO:  Does COST come in $ from backend? // cost ? (cost/this.currency.rate).formatMoney(2) : '';
+                return cost.formatMoney(2);
             },
             _computeAgeText: function(age){
                 var duration = 'minutes';
