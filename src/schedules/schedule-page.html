@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/iron-icons/av-icons.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
+<link rel="import" href="../helpers/owner-filter-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../machines/machine-actions.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
@@ -330,20 +331,20 @@
                 </div>
 
                 <template is="dom-if" if="[[filteredItems]]" restamp>
-                    <mist-list id="scheduleMachinesList"
-                        selectable
-                        items="[[filteredItems]]"
-                        name="Machines"
-                        selected-items="{{selectedItems}}"
-                        filtered-items-length="{{filteredItemsLength}}"
-                        apiurl="/api/v1/machines"
-                        frozen=[[_getFrozenLogColumn()]]
-                        visible=[[_getVisibleColumns()]]
-                        renderers=[[_getRenderers()]]
-                        route={{route}}
-                        primary-field-name="id" hidden$="[[!filteredItems]]">
-                        <p slot="no-items-found">No machines found.</p>
-                  </mist-list>
+                  <mist-list id="scheduleMachinesList" resizable column-menu multi-sort
+                    name="Machines" 
+                    items="[[filteredItems]]"
+                    selected-items={{selectedItems}}
+                    filtered-items-length="{{filteredItemsLength}}" 
+                    frozen=[[_getFrozenColumn()]] 
+                    visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers()]] 
+                    route={{route}} 
+                    primary-field-name="id"
+                    filter-method="[[_ownerFilter()]]">
+                    <p slot="no-items-found">No machines found.</p>
+                </mist-list>
+                <!-- selected-items="{{selectedItems}}" -->
               </template>
 
             </paper-material>
@@ -378,7 +379,8 @@
             is: 'schedule-page',
             behaviors: [
                 machinesListBehavior,
-                mistLoadingBehavior
+                mistLoadingBehavior,
+                ownerFilterBehavior
             ],
             properties: {
                 model: {
