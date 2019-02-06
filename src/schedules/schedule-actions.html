@@ -175,16 +175,16 @@ SCHEDULE_ACTIONS = {
           });
         }
       },
-      _delete: function() {
+      _delete: function(items) {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "DELETE";
 
-        for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/schedules/"+ this.items[i].id
+        for (var i = 0; i < items.length; i++) {
+          this.$.request.url = "/api/v1/schedules/"+ items[i].id
           this.$.request.generateRequest();
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + this.items[i].name , duration: 1000} }));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + items[i].name , duration: 1000} }));
         }
       },
       _showDialog: function(info) {
@@ -237,7 +237,7 @@ SCHEDULE_ACTIONS = {
       },
       performAction: function(action, items) {
         if (action.name == 'delete') {
-          this._delete();
+          this._delete(items);
         }
       },
       transferOwnership: function (e) {
@@ -331,14 +331,11 @@ SCHEDULE_ACTIONS = {
       },
 
       _actionConfirmed: function(e) {
-          console.log('_actionConfirmed');
+          console.log('_actionConfirmed', this.items, e);
           var reason = e.detail.reason,
               response = e.detail.response;
           if (response == 'confirm' && reason == "schedule.delete") {
-              this.$.request.method = "DELETE";
-              this.$.request.headers["Content-Type"] = 'application/json';
-              this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
-              this.$.request.generateRequest();
+              this._delete(this.items)
           }
 
           if (response == 'confirm' && reason == "schedule.run") {
