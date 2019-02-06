@@ -69,15 +69,15 @@
                     </div>
                     <div id="checkboxes" hidden$="{{!isUuids}}" class="background">
                         <template is="dom-repeat" items="[[_computeMachinesArray(model.machines.*)]]" as="machine">
-                            <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machinesIds, machine.id)]]" data-value$="[[machine.id]]">[[machine.name]]</paper-checkbox>
+                            <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machinesIds, machine.id)]]" data-value$="[[machine.id]]" on-change="_updatePayload">[[machine.name]]</paper-checkbox>
                         </template>
                     </div>
                     <div hidden$="{{!isTags}}" class="background">
                         <paper-textarea value="{{tagsString}}"></paper-textarea>
                     </div>
                     <div class="background">
-                        <paper-input value="{{machinesAgeDisplayNumber::input}}" label="If older than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate></paper-input>
-                        <paper-radio-group selected="{{machinesAgeUnit::iron-select}}">
+                        <paper-input value="{{machinesAgeDisplayNumber}}" label="If older than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate></paper-input>
+                        <paper-radio-group selected="{{machinesAgeUnit}}">
                             <paper-radio-button name="minutes">minutes</paper-radio-button>
                             <paper-radio-button name="hours">hours</paper-radio-button>
                             <paper-radio-button name="days">days</paper-radio-button>
@@ -189,7 +189,7 @@
                     '_updateTagsString(conditions)',
                     '_updateAgeParts(machinesAge)',
                     '_updateCostDisplay(machinesCost)',
-                    '_updatePayload(newSchedule.*)'
+                    '_updatePayload(newSchedule.*,isUuidsOrTags,costDisplay,machinesAgeDisplayNumber,machinesAgeUnit)'
                 ],
                 listeners: {
                     'iron-overlay-closed': '_modalClosed'
@@ -205,12 +205,14 @@
                     }
                 },
                 _computeMachinesIds: function(conditions) {
+                    console.log('schedule cond', conditions)
                     var ids = [];
                     if (!conditions || !conditions.length || !this._findCondition('machines')){
                         return ids;
                     }
                     else {
-                        ids = conditions.find(function(c){return c.type == "machines"}).ids;
+                        var cond = conditions.find(function(c){return c.type == "machines"});
+                        ids = cond.ids || [];
                     }
                     return ids;
                 },
@@ -226,10 +228,12 @@
                     return false;
                 },
                 _computeIsUuidsOrTags: function(schedule, machinesIds) {
-                    if (this.schedule && this.machinesIds.length)
+                    if (this.schedule && this.machinesIds && this.machinesIds.length) {
                         this.set('isUuidsOrTags', 'uuids')
-                    else 
+                    } else if (this.schedule && this.schedule.tags) {
                         this.set('isUuidsOrTags', 'tags')
+                    }
+                    console.log('schedule isUuidsOrTags',this.isUuidsOrTags)
                 },
                 _updateAgeParts: function(age){
                     var machineAge = age && parseInt(age) ? parseInt(age) : '',
@@ -252,16 +256,6 @@
                 _updateCostDisplay: function(cost){
                     this.set('costDisplay', !cost || parseFloat(cost) == NaN ? '' : cost);
                 },
-                _computeIsUuids: function(schedule) {
-                    if (this.schedule && this.schedule.machines)
-                        return this.schedule.machines.length;
-                    return false
-                },
-                _computeIsTags: function(schedule) {
-                    if (this.schedule && this.schedule.tags)
-                        return this.schedule.tags.length;
-                    return false;
-                },
                 _computeMachinesArray: function(machines) {
                     return Object.values(this.model.machines);
                 },
@@ -274,6 +268,7 @@
                         this.set('isUuids', false);
                         this.set('isTags', true);
                     }
+                    console.log('isUuidsOrTags')
                 },
                 _openEditScheduleModal: function(e) {
                     this.$.editScheduleModal.opened = true;
@@ -316,11 +311,13 @@
                         valid = false;
 
                     pl["conditions"] = [];
+
+                    console.log('newSchedule uuids', this.isUuids, 'tags', this.isTags);
                     
                     if (this.isUuids){
                         var ids = this._constructCheckboxValue();
                         pl["conditions"].push({type: 'machines', ids: ids});
-                        valid = this._constructCheckboxValue().length; 
+                        valid = ids.length; 
                     }
                     else if (this.isTags) {
                         var tags = this._constructTagsValue(this.textToArray(this.tagsString));
@@ -361,9 +358,9 @@
                     }
                 },
                 _constructCheckboxValue: function() {
-                    var checked = this.shadowRoot.querySelectorAll("paper-checkbox[name='machinesCheckboxes'][checked]"),
+                    var checked = document.querySelector('vaadin-dialog-overlay').shadowRoot.querySelector('#content').shadowRoot.querySelectorAll("paper-checkbox[checked]"),
                         arr = [];
-                    
+                    console.log('checked', checked);
                     for (var i = 0; i < checked.length; i++){
                         arr.push(checked[i].dataValue);
                     }
