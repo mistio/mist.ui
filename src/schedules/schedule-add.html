@@ -117,9 +117,40 @@
                 schedule: {
                     type: Object
                 },
+                currency: {
+                    type: Object
+                },
                 fields: {
                     type: Array,
-                    value: [{
+                    computed: '_computeFields(currency)',
+                    notify: true
+                },
+                actions: {
+                    type: Array,
+                    computed: "_computeActions(model.machines)"
+                },
+                docs: {
+                    type: String,
+                    value: ''
+                }
+            },
+            observers: [
+                '_fieldsChanged(fields.*)',
+                '_updateFields(fields, model.*)'
+            ],
+            listeners: {
+                'add-input': 'addInput'
+            },
+            ready: function(){
+                if (!this.docs) {
+                    for (var i=0; i < this.fields.length; i++) {
+                        this.fields[i].helpHref = '';
+                    }
+                }
+            },
+            _computeFields: function(currency) {
+                if (currency) {
+                    return [{
                         name: "name",
                         label: "Name *",
                         type: "text",
@@ -278,11 +309,11 @@
                         defaultValue: "",
                         show: true,
                         required: false,
-                        suffix: '$/month',
+                        suffix: this.currency.sign+'/month',
                         pattern: "[0-9]*",
                         errorMessage: "Please enter numbers only!",
                         excludeFromPayload: true,
-                        helptext: "Apply an extra filter of costing more than a certain ammount of $ per month",
+                        helptext: "Apply an extra filter of costing more than a certain ammount of "+this.currency.sign+" per month",
                         class: "bind-top background",
                     }, {
                         name: "conditions",
@@ -459,30 +490,9 @@
                             fieldName: "schedule_type",
                             fieldValues: ["interval", "crontab"]
                         }
-                    }],
-                    notify: true
-                },
-                actions: {
-                    type: Array,
-                    computed: "_computeActions(model.machines)"
-                },
-                docs: {
-                    type: String,
-                    value: ''
-                }
-            },
-            observers: [
-                '_fieldsChanged(fields.*)',
-                '_updateFields(fields, model.*)'
-            ],
-            listeners: {
-                'add-input': 'addInput'
-            },
-            ready: function(){
-                if (!this.docs) {
-                    for (var i=0; i < this.fields.length; i++) {
-                        this.fields[i].helpHref = '';
-                    }
+                    }]
+                } else {
+                    return [];
                 }
             },
             _computeActions: function (machines) {
