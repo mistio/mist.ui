@@ -189,11 +189,11 @@ Polymer({
         },
         totalCost: {
             type: Number,
-            computed: '_computeTotalCost(model.machines.*)'
+            computed: '_computeTotalCost(model.machines.*,q)'
         },
         topClouds: {
             type: Array,
-            computed: '_computeTopClouds(model.cloudsArray.*, model.machines.*)'
+            computed: '_computeTopClouds(model.cloudsArray.*, model.machines.*,q)'
         },
         zeroCostClouds: {
             type: Array
@@ -215,10 +215,13 @@ Polymer({
         },
         currency: {
             type: Object
+        },
+        q: {
+            type: String
         }
     },
     observers: [
-        '_computeTags(model.clouds, model.machines)'
+        '_computeTags(model.clouds, model.machines,q)'
     ],
     attached: function() {
         var rows = this.parentNode.querySelectorAll('block');
@@ -230,11 +233,21 @@ Polymer({
     _ratedCost: function(cost, rate) {
         return cost ? this._formatMoney(parseFloat(cost)/this.currency.rate) : 0;
     },
-    _computeTotalCost: function(machines) {
+    _getFilteredResources: function(resources, q) {
+        console.log('_getFilteredResources', q);
+        var owned;
+        if (q == "owner:$me" && this.model && resources) {
+            owned = Object.values(resources).filter(function(item){
+                return item.owned_by && item.owned_by == this.model.user.id;
+            }.bind(this))
+        }
+        return owned || Object.values(resources);
+    },
+    _computeTotalCost: function(machines,q) {
         var cost = 0;
         if (Object.keys(this.model.machines).length > 0){
             // map machines costs in an array
-            var machinesWithCost = Object.values(this.model.machines).map(function(m){
+            var machinesWithCost = this._getFilteredResources(this.model.machines, this.q).map(function(m){
                 return m && m.cost && m.cost.monthly ? m.cost.monthly : 0;
             });
             // add all cost values
@@ -251,11 +264,11 @@ Polymer({
         cost = cost / this.currency.rate;
         return cost.formatMoney(2, '.', ',');
     },
-    _computeTopClouds: function(clouds, machines) {
+    _computeTopClouds: function(clouds, machines,q) {
         var topCloudsArray = [];
         var zeroCostClouds = [];
         if (clouds.base.length > 0) {
-            this.model.cloudsArray.forEach(function(c){
+            this._getFilteredResources(this.model.clouds,this.q).forEach(function(c){
                 var cloudCost = 0;
                 var machinesCount = 0;
                 if (c.machines) {
@@ -294,11 +307,11 @@ Polymer({
         // return all clouds instead of topCloudsArray.slice(0,3);
         return topCloudsArray;
     },
-    _computeTags: function(clouds, machines) {
+    _computeTags: function(clouds, machines,q) {
         var tagsArray = [];
         if (this.model && this.model.machines) {
             var that = this;
-            Object.values(this.model.machines).forEach(function(m){
+            this._getFilteredResources(this.model.machines,this.q).forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && mcost){
                     mcost = parseFloat(mcost)/that.currency.rate;
