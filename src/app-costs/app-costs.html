@@ -158,7 +158,7 @@
                         <tr>
                             <td colspan="2" class="name">[[item.name]] </td>
                             <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
-                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.rate)]]</td>
+                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.ratio)]]</td>
                         </tr>
                     </template>
                 </table>
@@ -172,7 +172,7 @@
                         <tr>
                             <td colspan="3" class="tag">[[item.key]] <span hidden$="[[!item.value]]"> = [[item.value]] </span></td>
                             <td class="count">[[item.count]] machines </td>
-                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.rate)]]</td>
+                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.ratio)]]</td>
                         </tr>
                     </template>
                 </table>
@@ -189,11 +189,11 @@ Polymer({
         },
         totalCost: {
             type: Number,
-            computed: '_computeTotalCost(model.machines.*,q)'
+            computed: '_computeTotalCost(model.machines.*,q,currency)'
         },
         topClouds: {
             type: Array,
-            computed: '_computeTopClouds(model.cloudsArray.*, model.machines.*,q)'
+            computed: '_computeTopClouds(model.clouds.*,model.machines.*,q, currency)'
         },
         zeroCostClouds: {
             type: Array
@@ -221,7 +221,7 @@ Polymer({
         }
     },
     observers: [
-        '_computeTags(model.clouds, model.machines,q)'
+        '_computeTags(model.clouds, model.machines,q,currency)'
     ],
     attached: function() {
         var rows = this.parentNode.querySelectorAll('block');
@@ -231,55 +231,60 @@ Polymer({
         }.bind(this), (index + 1) * 50);
     },
     _ratedCost: function(cost, rate) {
-        return cost ? this._formatMoney(parseFloat(cost)/this.currency.rate) : 0;
+        return cost ? this._formatMoney(parseFloat(cost)/this.currency.ratio) : 0;
     },
     _getFilteredResources: function(resources, q) {
-        console.log('_getFilteredResources', q);
         var owned;
         if (q == "owner:$me" && this.model && resources) {
             owned = Object.values(resources).filter(function(item){
                 return item.owned_by && item.owned_by == this.model.user.id;
             }.bind(this))
         }
-        return owned || Object.values(resources);
+        return owned ? owned : Object.values(resources);
     },
-    _computeTotalCost: function(machines,q) {
+    _computeTotalCost: function(machines,q,currency) {
         var cost = 0;
         if (Object.keys(this.model.machines).length > 0){
             // map machines costs in an array
             var machinesWithCost = this._getFilteredResources(this.model.machines, this.q).map(function(m){
                 return m && m.cost && m.cost.monthly ? m.cost.monthly : 0;
             });
+            console.log('machinesWithCost', machinesWithCost);
             // add all cost values
-            cost = machinesWithCost.reduce(function(previous, current, index){
-                if (typeof previous != 'number'){
-                    previous = parseInt(previous);
-                }
-                if (typeof current != 'number'){
-                    current = parseInt(current);
-                }
-                return previous + current;
-            });
+            if (machinesWithCost.length) {
+                cost = machinesWithCost.reduce(function(previous, current, index){
+                    if (typeof previous != 'number'){
+                        previous = parseInt(previous);
+                    }
+                    if (typeof current != 'number'){
+                        current = parseInt(current);
+                    }
+                    return previous + current;
+                });
+            }
         }
-        cost = cost / this.currency.rate;
+        cost = cost / this.currency.ratio;
         return cost.formatMoney(2, '.', ',');
     },
-    _computeTopClouds: function(clouds, machines,q) {
-        var topCloudsArray = [];
-        var zeroCostClouds = [];
-        if (clouds.base.length > 0) {
-            this._getFilteredResources(this.model.clouds,this.q).forEach(function(c){
+    _computeTopClouds: function(clouds, machines,q,currency) {
+        var topCloudsArray = [],
+            zeroCostClouds = [],
+            that = this;
+        if (Object.values(clouds).length>0) {
+            var clouds = this._getFilteredResources(this.model.clouds,this.q);
+            clouds.forEach(function(c){
                 var cloudCost = 0;
                 var machinesCount = 0;
                 if (c.machines) {
-                    for (var m in c.machines) {
-                        if (c.machines[m].cost && c.machines[m].cost.monthly) {
+                    var cloudMachines = that._getFilteredResources(c.machines,that.q);
+                    for (var i=0; i < cloudMachines.length; i++) {
+                        if (cloudMachines[i].cost && cloudMachines[i].cost.monthly) {
                             var mcost;
-                            if (typeof c.machines[m].cost.monthly != 'number'){
-                                mcost = parseInt(c.machines[m].cost.monthly);
+                            if (typeof cloudMachines[i].cost.monthly != 'number'){
+                                mcost = parseInt(cloudMachines[i].cost.monthly);
                             }
                             else {
-                                mcost = c.machines[m].cost.monthly;
+                                mcost = cloudMachines[i].cost.monthly;
                             }
                             cloudCost = cloudCost + mcost;
                         }
@@ -288,11 +293,12 @@ Polymer({
                 }
                 var cloud = {};
                     cloud.name = c.title;
-                    cloud.cost = cloudCost;
+                    cloud.cost = cloudCost/this.currency.ratio;
                     cloud.machinesCount = machinesCount;
-                if (cloudCost > 0)
+                if (cloudCost > 0) {
+                    console.log('cloudCost',cloudCost);
                     topCloudsArray.push(cloud);
-                else {
+                } else {
                     zeroCostClouds.push(cloud);
                 }
             });
@@ -307,14 +313,15 @@ Polymer({
         // return all clouds instead of topCloudsArray.slice(0,3);
         return topCloudsArray;
     },
-    _computeTags: function(clouds, machines,q) {
+    _computeTags: function(clouds, machines,q,currency) {
         var tagsArray = [];
         if (this.model && this.model.machines) {
             var that = this;
-            this._getFilteredResources(this.model.machines,this.q).forEach(function(m){
+            var machines = this._getFilteredResources(this.model.machines,this.q);
+            machines.forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && mcost){
-                    mcost = parseFloat(mcost)/that.currency.rate;
+                    mcost = parseFloat(mcost)/that.currency.ratio;
                     for (var t in m.tags) {
                         var tagExists = tagsArray.find(function(prevt, index){
                             return prevt.key == t && prevt.value == m.tags[t];
