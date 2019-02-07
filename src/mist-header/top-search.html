@@ -142,9 +142,8 @@
         </style>
         <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
         <div id="search" class="horizontal layout">
-            <mist-filter id$="[[id]]" name="All resources" searchable=[[searchable]] user-filter={{userFilter}} 
-                preset-filters=[[presetFilters]] editing-filter="true" placeholder="Search">
-                <!-- button-name="Filters" editing-filter="true" always-show-input placeholder="Search" -->
+            <mist-filter id="topFilter" user-filter="{{userFilter}}"
+                preset-filters=[[presetFilters]] name$="[[_computeFilterPlaceholder(title)]]">
             </mist-filter>
         </div>
         <search-suggestions query="[[userFilter]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
@@ -161,13 +160,15 @@
                 id: {
                     type: String
                 },
+                title: {
+                    type: String
+                },
                 userFilter: {
                     type: String,
                     notify: true
                 },
                 model: {
-                    type: Object,
-                    notify: true
+                    type: Object
                 },
                 viewingList: {
                     type: Boolean
@@ -204,16 +205,13 @@
                 },
                 presetFilters: {
                     type: Array,
-                    value: function() {
-                        return [{name:'Your resources', filter: 'owner:$me', default:true}]
-                    }
+                    computed: "_computePresetFilters(title)"
                 }
             },
 
             observers: [
                 'overflowChanged(overflow)',
-                '_idChanged(id)',
-                '_updateSearch(userFilter)'
+                '_updateSearch(userFilter, title)'
             ],
 
             listeners: {
@@ -226,22 +224,17 @@
 
             },
 
-            _idChanged: function(id) {
-                if (id && this.shadowRoot.querySelector('mist-filter')) {
-                    this.shadowRoot.querySelector('mist-filter').getLocalStorageData(this.id);
-                    this.set("visibleSuggestions", false);
-                }
-            },
-
             updateWidth: function() {
                 this.debounce('windowResize', function() {
                     this.set('width', this.getBoundingClientRect().width)
                 }, 100);
             },
 
-            _updateSearch: function(userFilter) {
-                console.log('filter _updateSearch', this.userFilter);
-                this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
+            _updateSearch: function(userFilter, title) {
+                console.log('filter _updateSearch', this.userFilter, title);
+                this.debounce('_updateSearch', function () {
+                    this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
+                }, 200);
             },
 
             hotkeys: function(e) {
@@ -268,6 +261,24 @@
                     this.updateWidth();
                 }
                 this.set('showClear', this.overflow);
+            },
+
+            _computeFilterPlaceholder: function (title) {
+                if (!title) return '';
+                if (title == 'dashboard') return 'All resources';
+                return 'All ' + title;
+            },
+
+            _computePresetFilters: function(title) {
+                var resource_type;
+                if (!title) {
+                    return;
+                } else if (title == 'dashboard') {
+                    resource_type = 'resources';
+                } else {
+                    resource_type = title;
+                }
+                return [{name:'Your ' + resource_type, filter: 'owner:$me', default:true}]
             }
         });
 
