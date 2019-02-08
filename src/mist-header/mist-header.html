@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/iron-media-query/iron-media-query.html">
 
 <link rel="import" href="../app-user-menu/app-user-menu.html">
 <link rel="import" href="../notifications/notifications-indicator.html">
@@ -243,12 +244,13 @@
             </div>
             <div class="search layout horizontal">
                 <top-search model="[[model]]" tabindex="3" viewing-list=[[viewingList]] user-filter="{{query}}" ownership="[[ownership]]"
-                    visible-suggestions="{{visibleSuggestions}}" title=[[title]]></top-search>
+                    visible-suggestions="{{visibleSuggestions}}" title=[[title]] display-name="{{filterDisplayName}}"></top-search>
             </div>
             <notifications-indicator id="mist-notifications" notifications="[[model.notificationsArray]]" tabindex="5"></notifications-indicator>
             <app-user-menu user="[[model.user]]" org="[[model.org]]" teams="[[_computeUserTeams(model.user, model.teamsArray)]]"
                 tabindex="6" opened={{userMenuOpened}}></app-user-menu>
         </app-toolbar>
+        <iron-media-query query="(max-width: 800px)" query-matches="{{mediaQuerySmall}}"></iron-media-query>
     </template>
     <script>
         Polymer({
@@ -277,7 +279,7 @@
                 },
                 titleText: {
                     type: String,
-                    computed: '_titleText(title)'
+                    computed: '_titleText(title, filterDisplayName, mediaQuerySmall)'
                 },
                 count: {
                     type: Number
@@ -290,6 +292,12 @@
                     type: Boolean,
                     value: false,
                     notify: true
+                },
+                filterDisplayName: {
+                    type: String
+                },
+                mediaQuerySmall: {
+                    type: Boolean
                 }
             },
             observers: [
@@ -304,8 +312,8 @@
                 console.log('_pageChanged', page);
                 this.set('color', page + '-section-color');
             },
-            _titleText: function (title) {
-                return title.replace("my", "").replace("-", " ");
+            _titleText: function (title, filterDisplayName, mediaQuerySmall) {
+                return mediaQuerySmall && filterDisplayName && filterDisplayName.length ? filterDisplayName : title.replace("my", "").replace("-", " ");
             },
             toggleSidebar: function () {
                 this.dispatchEvent(new CustomEvent('mist-sidebar-toggle', { bubbles: true, composed: true}));
