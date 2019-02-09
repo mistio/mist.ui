@@ -6,24 +6,23 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
-
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <dom-module id="transfer-ownership">
 <template>
     <style include="shared-styles dialogs">
         :host {
-            display: block;
             width: 100%;
         }
         paper-dialog {
             width: 310px;
         }
-        paper-dialog ::content h2 {
+        paper-dialog ::slotted(h2) {
             text-transform: capitalize;
         }
         p.margin {
             margin: 16px 0 !important; 
         }
-        paper-dropdown-menu, paper-dropdown-menu ::content iron-dropdown {
+        paper-dropdown-menu ::slotted(iron-dropdown) {
             width: 257px;
         }
         ul {
@@ -46,7 +45,7 @@
             margin-right: -24px;
         }
 
-        paper-progress#progresserror ::content #primaryProgress {
+        paper-progress#progresserror ::slotted(#primaryProgress) {
             background-color: var(--red-color);
         }
 
@@ -78,11 +77,11 @@
         </paper-dialog-scrollable>
         <template is="dom-if" if="[[members.length]]" restamp>
             <paper-dropdown-menu label="Users">
-                 <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{newOwner}}" class="dropdown-content" verticalAlign="top">
+                 <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newOwner}}" class="dropdown-content" verticalAlign="top">
                     <template id="membersDomRepeat" is="dom-repeat" items="[[members]]" as="member">
                         <paper-item value="[[member.id]]">[[_displayUser(member)]]</paper-item>
                     </template>
-                 </paper-menu>
+                 </paper-listbox>
             </paper-dropdown-menu>
         </template>
         <div class="progress">
@@ -105,13 +104,19 @@
         is: 'transfer-ownership',
 
         properties: {
-            type: String,
-            members: Array,
+            type: {
+                type: String
+            },
+            members: {
+                type: Array
+            },
             newOwner: {
                 type: String,
                 value: false
             },
-            items: Array,
+            items: {
+                type: Array
+            },
             sendingData: {
                 type: Boolean,
                 value: false
@@ -148,7 +153,8 @@
         confirmTransfer: function (e) {
             // console.log('confirmation', e);
             e.stopPropagation();
-            this.fire('transfer-ownership', {user_id: this.newOwner});
+            this.dispatchEvent(new CustomEvent('transfer-ownership', { bubbles: true, composed: true, detail: {user_id: this.newOwner} }));
+
             this.set('sendingData', true)
         },
         _displayUser: function (member){

@@ -5,9 +5,8 @@
 <script src='../../bower_components/echarts/dist/echarts.common.min.js'></script>
 <dom-module id="metering-graphs">
     <template>
-        <style is="custom-style" include="shared-styles">
+        <style include="shared-styles">
          :host {
-            display: block;
         }
 
          :host paper-material {
@@ -178,7 +177,9 @@
         ],
 
         properties: {
-            isOverUsing: Boolean,
+            isOverUsing: {
+                type: Boolean
+            },
             user: {
                 type: Object
             },
@@ -189,9 +190,12 @@
                 type: Array,
                 computed: 'computePlans(user, org)'
             },
-            responseData: Object,
-
-            coresGraph: Object,
+            responseData: {
+                type: Object
+            },
+            coresGraph: {
+                type: Object
+            },
             coresGraphOptions: {
                 type: Object,
                 value: function() {
@@ -203,7 +207,9 @@
                 computed: '_computeData(responseData, "cores")'
             },
 
-            datapointsGraph: Object,
+            datapointsGraph: {
+                type: Object
+            },
             datapointsGraphOptions: {
                 type: Object,
                 value: function() {
@@ -214,7 +220,9 @@
                 type: Array,
                 computed: '_computeData(responseData, "datapoints")'
             },
-            checksGraph: Object,
+            checksGraph: {
+                type: Object
+            },
             checksGraphOptions: {
                 type: Object,
                 value: function() {
@@ -261,7 +269,7 @@
         },
         updateChartWidth: function() {
             var parentWidth = this.parentNode.offsetWidth;
-            console.log('updateChartWidth', parentWidth);
+            // console.log('updateChartWidth', parentWidth);
             if (parentWidth) {
                 this.set('graphWidth', parentWidth - 50);
                 this.resizeGraph();
@@ -281,6 +289,9 @@
             this.set('responseData', {
                 data: e.detail.response
             });
+        },
+        _handleError: function(e) {
+            console.error('Can not get metering data. ',e)
         },
         _computeData: function(responseData, graph) {
             var timeToCores = this.responseData.data.map(function(d) {

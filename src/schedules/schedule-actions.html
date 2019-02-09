@@ -4,22 +4,43 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
+
+<link rel="import" href="schedule-edit.html">
+<link rel="import" href="schedule-edit-mrc.html">
+<link rel="import" href="schedule-edit-condition.html">
+<link rel="import" href="schedule-edit-task.html">
 
 <dom-module id="schedule-actions">
   <template>
     <style include="shared-styles">
       :host {
-        display: inline;
-        color: rgba(255,255,255,0.87);
+      }
+      mist-list-actions {
+        width: 100%;
+        fill: #fff;
       }
     </style>
     
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <dialog-element id="confirm"></dialog-element>
+    <schedule-edit id="editScheduleDialog" schedule="[[items.0]]" model="[[model]]"></schedule-edit>
+    <schedule-edit-mrc id="editMaxRunCount" schedule="[[items.0]]"></schedule-edit-mrc>
+    <schedule-edit-task id="editScheduleTask" schedule="[[items.0]]" scripts="[[model.scriptsArray]]"></schedule-edit-task>
+    <schedule-edit-condition id="editScheduleCondition" 
+        schedule="[[items.0]]" 
+        model="[[model]]" 
+        machines-age="[[machineAge]]"
+        machines-cost="[[machinesCost]]" currency=[[currency]]></schedule-edit-condition>
+
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
 
     <iron-ajax id="request"
             handle-as="json"
@@ -65,9 +86,15 @@ SCHEDULE_ACTIONS = {
     Polymer({ 
       is: 'schedule-actions',
       properties: {
-        user: String,
-        members: Array,
-        org: Object,
+        user: {
+            type: String
+        },
+        members: {
+            type: Array
+        },
+        org: {
+            type: Object
+        },
         items: { 
           type: Array,
           value: []
@@ -84,14 +111,22 @@ SCHEDULE_ACTIONS = {
         inSingleView: {
           type: Boolean,
           reflectToAttribute: true
+        },
+        machinesCost: {
+          type: Number
+        },
+        currency: {
+          type: Object
         }
       },
       observers:[
         '_mapPolicyToActions(items.*,user,org)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction',
-        'transfer-ownership': 'transferOwnership'
+        'confirmation': 'confirmAction',
+        'transfer-ownership': 'transferOwnership',
+        'confirmation': '_actionConfirmed',
+        'select-action': 'selectAction'
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -113,12 +148,6 @@ SCHEDULE_ACTIONS = {
           }
           arr.push('delete');
         }
-        // if (schedule.enabled) {
-        //   arr.push('disable');
-        // }
-        // else {
-        //   arr.push('enable'); 
-        // }
         return arr;
       },
       _hasExpired: function(expirydate) {
@@ -146,28 +175,29 @@ SCHEDULE_ACTIONS = {
           });
         }
       },
-      _delete: function() {
+      _delete: function(items) {
         //set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.request.method = "DELETE";
 
-        for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/schedules/"+ this.items[i].id
+        for (var i = 0; i < items.length; i++) {
+          this.$.request.url = "/api/v1/schedules/"+ items[i].id
           this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + items[i].name , duration: 1000} }));
         }
       },
       _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
+          var dialog = this.shadowRoot.querySelector('dialog-element');
           for (var i in info) {
               dialog[i] = info[i];
           }
           dialog._openDialog();
       },
       confirmAction: function(e){
-        if (e.detail.confirmed)
+        if (e.detail.confirmed) {
           this.performAction(this.action, this.items);
+        }
       },
       selectAction: function(e){
         if (this.items.length) {
@@ -191,6 +221,12 @@ SCHEDULE_ACTIONS = {
           else if (action.name == "tag") {
             this.$.tagsdialog._openDialog();
           }
+          else if (action.name == 'edit') {
+            this._editSchedule();
+          }
+          else if (action.name == 'run') {
+            this._runOnceDialog();
+          }
           else if (action.name == 'transfer ownership') {
             this.$.ownershipdialog._openDialog();
           }
@@ -201,13 +237,7 @@ SCHEDULE_ACTIONS = {
       },
       performAction: function(action, items) {
         if (action.name == 'delete') {
-          this._delete();
-        }
-        else if (action.name == 'edit') {
-          this.fire('edit');
-        }
-        else if (action.name == 'run') {
-          this.fire('run');
+          this._delete(items);
         }
       },
       transferOwnership: function (e) {
@@ -225,20 +255,23 @@ SCHEDULE_ACTIONS = {
         this.$.request.generateRequest();
       },
       handleResponse: function(e) {
-        if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+        if (this.$.request && this.$.request.body && this.$.request.body.action) {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }));
+        } else if (this.$.request && this.$.request.body && !this.$.request.body.action) {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Successfully sent request to run once now.', duration: 3000 } }));
+        } else if (this.$.request && this.$.request.method == "DELETE") {
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  { url: '/schedules'} }));
+        }
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.fire('action-finished');
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('action-finished'));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
-          });
+          } }));
         }
       },
       _mapPolicyToActions: function (items) {
-        // recompute the actions array property as the intersection
-        // of the available actions of the selected items
         this.set('actions', []);
         var actions = new swiftSet.Set(), 
             isection = new swiftSet.Set();
@@ -269,10 +302,25 @@ SCHEDULE_ACTIONS = {
 
       handleError: function(e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000} }));
+
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
         }
+      },
+
+      _editSchedule: function(e) {
+          this.$.editScheduleDialog._openEditScheduleModal();
+      },
+
+      _runOnceDialog: function(e) {
+          this._showDialog({
+              title: 'Run once now?',
+              body: "The schedule will execute once and then continue as planned." ,
+              danger: false,
+              reason: "schedule.run",
+              action: 'run'
+          });
       },
 
       _makeList: function(items, property){
@@ -280,6 +328,24 @@ SCHEDULE_ACTIONS = {
           return items.map(function(item){
             return item[property];
           });
+      },
+
+      _actionConfirmed: function(e) {
+          console.log('_actionConfirmed', this.items, e);
+          var reason = e.detail.reason,
+              response = e.detail.response;
+          if (response == 'confirm' && reason == "schedule.delete") {
+              this._delete(this.items)
+          }
+
+          if (response == 'confirm' && reason == "schedule.run") {
+              this.$.request.url = "/api/v1/schedules/"+ this.items[i].id
+              this.$.request.method = "PATCH";
+              this.$.request.body = {'run_immediately': true}
+              this.$.request.headers["Content-Type"] = 'application/json';
+              this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+              this.$.request.generateRequest();
+          }
       },
     });
   </script>

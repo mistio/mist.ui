@@ -8,11 +8,8 @@
     <template>
         <style include="shared-styles">
         :host {
-            display: block;
             max-width: 400px;
             overflow: hidden;
-        }
-        #widget {
         }
         .plan-item {
             background-color: #eee;
@@ -38,14 +35,14 @@
         .plan-item.selected  .check {
             opacity: 1;
         }
-        .plan-item paper-icon-button ::content iron-icon {
+        .plan-item paper-icon-button ::slotted(iron-icon) {
             transform: rotate(0);
             transition: transform 200ms ease-in;
         }
-        .plan-item paper-icon-button.open ::content iron-icon {
+        .plan-item paper-icon-button.open ::slotted(iron-icon) {
             transform: rotate(-180deg);
         }
-        .plan-item.selected paper-icon-button ::content iron-icon,
+        .plan-item.selected paper-icon-button ::slotted(iron-icon),
         .plan-item.selected iron-icon {
             color: #fff !important;
         }
@@ -168,8 +165,9 @@
                     type: Boolean,
                     computed: '_computePrepaidIsSelected(selected)'
                 },
-                plans: Array,
-
+                plans: {
+                    type: Array
+                }
             },
             _expand: function(e){
                 e.stopImmediatePropagation();
@@ -180,7 +178,7 @@
                 this.$.viewMethod.classList.toggle('slideleft');
                 this.$.viewPrepaid.classList.toggle('slideright');
 
-                this.fire('refit');
+                this.dispatchEvent(new CustomEvent('refit'));
             },
             _selectPayg: function(e){
                 this.set('selected', 'payg');

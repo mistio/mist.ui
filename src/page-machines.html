@@ -2,32 +2,16 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
-
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <link rel="import" href="machines/machine-create.html">
 <link rel="import" href="machines/machine-page.html">
 <link rel="import" href="machines/machine-actions.html">
 
-<link rel="import" href="mist-actions.html">
-
-
 <dom-module id="page-machines">
     <template>
-        <style>
-            :host {
-                display: block;
-            }
-
-            #recommendationsDialog {
-                width: 400px;
-            }
-
-            #recommendationsDialog a.blue-link {
-                color: var(--blue-color) !important;
-            }
-
-            #recommendationsDialog iron-icon.orange {
-                color: #F57F17;
+        <style include="shared-styles">
+            [hidden] {
+                display: none !important;
             }
 
             .logs {
@@ -45,7 +29,7 @@
                 margin: 4px 8px;
             }
 
-            .logs>* {
+            .logs > * {
                 vertical-align: middle;
                 display: inline-block;
                 font-size: 14px;
@@ -60,165 +44,6 @@
                 color: var(--red-color);
             }
 
-            mist-list::content .recommendation-icon {
-                color: #F57F17;
-                width: 18px;
-                height: 18px;
-                display: inline-block;
-                margin-right: 10px;
-            }
-
-            mist-list::content .provider-icon {
-                width: 24px;
-                height: 24px;
-                margin-right: 8px;
-                box-sizing: border-box;
-                display: inline-block;
-                vertical-align: middle;
-            }
-
-            mist-list::content .error {
-                color: var(--red-color);
-            }
-
-            mist-list::content .orange {
-                color: var(--orange-color);
-            }
-
-            mist-list::content .green {
-                color: var(--green-color);
-            }
-
-            /* probe classes */
-
-            mist-list::content .state {
-                position: relative;
-                display: inline-block;
-            }
-
-            mist-list::content .state.hasprobe {
-                overflow: visible;
-            }
-
-            mist-list::content .state.hasprobe:after {
-                content: " ";
-                position: relative;
-                display: inline-block;
-                height: 8px;
-                width: 4px;
-                margin-left: 10px;
-            }
-
-            /* midterm */
-
-            mist-list::content .state.midlow:after {
-                background: #42A5F5;
-                /*cyan*/
-            }
-
-            mist-list::content .state.midmedium:after {
-                background: #FFCA28;
-                /*orange*/
-            }
-
-            mist-list::content .state.midhigh:after {
-                background: #EF5350;
-                /*red*/
-            }
-
-            mist-list::content .state.mideco:after {
-                background: #69b46c;
-                /*green*/
-            }
-
-            /* shortlow + long */
-
-            mist-list::content .state.shortlow.longlow:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #42A5F5;
-                /*cyan cyan*/
-            }
-
-            mist-list::content .state.shortlow.longmedium:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #FFCA28;
-                /*cyan orange*/
-            }
-
-            mist-list::content .state.shortlow.longhigh:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #EF5350;
-                /*cyan red*/
-            }
-
-            mist-list::content .state.shortlow.longeco:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #42A5F5, -1px 0 0 #fff, -4px 0 0 #69b46c;
-                /*cyan green*/
-            }
-
-            /* shortmedium + long */
-
-            mist-list::content .state.shortmedium.longlow:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #42A5F5;
-                /*orange cyan*/
-            }
-
-            mist-list::content .state.shortmedium.longmedium:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #FFCA28;
-                /*orange orange*/
-            }
-
-            mist-list::content .state.shortmedium.longhigh:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #EF5350;
-                /*orange red*/
-            }
-
-            mist-list::content .state.shortmedium.longeco:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #FFCA28, -1px 0 0 #fff, -4px 0 0 #69b46c;
-                /*orange green*/
-            }
-
-            /* shorthigh + long */
-
-            mist-list::content .state.shorthigh.longlow:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #42A5F5;
-                /*red cyan*/
-            }
-
-            mist-list::content .state.shorthigh.longmedium:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #FFCA28;
-                /*red orange*/
-            }
-
-            mist-list::content .state.shorthigh.longhigh:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #EF5350;
-                /*red red*/
-            }
-
-            mist-list::content .state.shorthigh.longeco:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #EF5350, -1px 0 0 #fff, -4px 0 0 #69b46c;
-                /*red green*/
-            }
-
-            /* shorteco + long */
-
-            mist-list::content .state.shorteco.longlow:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #42A5F5;
-                /*green cyan*/
-            }
-
-            mist-list::content .state.shorteco.longmedium:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #FFCA28;
-                /*green orange*/
-            }
-
-            mist-list::content .state.shorteco.longhigh:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #EF5350;
-                /*green red*/
-            }
-
-            mist-list::content .state.shorteco.longeco:after {
-                box-shadow: 1px 0 0 #fff, 4px 0 0 #69b46c, -1px 0 0 #fff, -4px 0 0 #69b46c;
-                /*green green*/
-            }
-
             h2[slot="header"] {
                 margin: 8px;
             }
@@ -228,10 +53,11 @@
                 padding: 5px;
             }
 
+            mist-list#machinesList {
+                max-width: 95%;
+            }
         </style>
-
         <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
-
         <div class="logs" hidden$="[[!jobId]]">
             <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner>
             <p> Creating machine: {{removeUnderscore(logItem.action)}}
@@ -240,627 +66,621 @@
                 </span>
             </p>
         </div>
-
         <div class="logs" hidden$="[[!performingAction]]">
             <paper-spinner active></paper-spinner>
             <p id="actionLogs"></p>
             <iron-icon class="close" icon="close" on-tap="hideLogs"></iron-icon>
         </div>
-
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="machinesList" selectable resizable column-menu multi-sort sorters=[[sorters]] apiurl="/api/v1/machines" item-map="[[model.machines]]"
-                name="Machines" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers()]]
-                route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="{{actions}}" type="machine" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <machine-actions slot="actions" actions="{{actions}}" items="[[selectedItems]]" model="[[model]]" user="[[model.user]]" org="[[model.org]]"></machine-actions>
-                <p slot="no-items-found">No machines found.</p>
-            </mist-list>
+            <machine-actions actions={{actions}} items=[[selectedItems]] model=[[model]]>
+                <mist-list id="machinesList" selectable resizable column-menu multi-sort
+                    sorters=[[sorters]] item-map="[[model.machines]]" name="Machines" selected-items={{selectedItems}}
+                    filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
+                    renderers=[[_getRenderers()]] route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id"
+                    actions=[[actions]] filter-method="[[_ownerFilter()]]">
+                    <p slot="no-items-found">No machines found.</p>
+                </mist-list>
+            </machine-actions>
             <div class="absolute-bottom-right">
                 <paper-fab id="machinesAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
-
-        <machine-create model="[[model]]" section="[[model.sections.machines]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]]
-            docs=[[docs]]></machine-create>
+        <machine-create model="[[model]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]] docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-            <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]"
-                hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]"></machine-page>
+            <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]" resource-id="[[data.machine]]" currency="[[currency]]"></machine-page>
         </template>
-        <paper-dialog id="recommendationsDialog" with-backdrop caller="[[caller]]">
-            <h2>Recommendation</h2>
-            <p>
-                <iron-icon icon="icons:report-problem" class="orange"></iron-icon>
-                Your machine is vulnerable to Dirty COW.
-                <br/>
-                <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">Learn more.</a>
-            </p>
-            <p class="recommendation-text"></p>
-            <p>We recommend you follow the
-                <a href="https://dirtycow.ninja/" target="new" class="regular blue-link">guide</a> and update your server kernel. You can use the shell to do it now.</p>
-            <div class="buttons">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button class="blue" dialog-confirm on-tap="_shell">open machine shell</paper-button>
-            </div>
-        </paper-dialog>
-
         <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
     <script>
-        Polymer({
-            is: 'page-machines',
-            behaviors: [
-                ownerFilterBehavior
-            ],
+    Polymer({
+        is: 'page-machines',
+        behaviors: [
+            ownerFilterBehavior
+        ],
 
-            properties: {
-                model: Object,
-                data: Object,
-                ownership: Boolean,
-                itemOfRecommendation: Object,
-                selectedItems: {
-                    type: Array
-                },
-                jobId: {
-                    type: String,
-                    value: false
-                },
-                logItem: {
-                    type: Object,
-                    value: false
-                },
-                intervalID: {
-                    type: String
-                },
-                performingAction: {
-                    type: Boolean,
-                    value: false
-                },
-                monitoring: false,
-                actions: {
-                    type: Array,
-                    notify: true
-                },
-                sorters: {
-                    type: Array,
-                    value: function() { return [['state', 'asc']]; }
-                },
-                currentMachine: {
-                    type: Object,
-                    computed: '_getMachine(data.machine, model.machines, model.machines.*)'
+        properties: {
+            model: {
+                type: Object
+            },
+            data: {
+                type: Object
+            },
+            ownership: {
+                type: Boolean
+            },
+            itemOfRecommendation: {
+                type: Object
+            },
+            selectedItems: {
+                type: Array
+            },
+            jobId: {
+                type: String,
+                value: false
+            },
+            logItem: {
+                type: Object,
+                value: false
+            },
+            intervalID: {
+                type: String
+            },
+            performingAction: {
+                type: Boolean,
+                value: false
+            },
+            monitoring: {
+                type: Boolean,
+                value: false
+            },
+            actions: {
+                type: Array
+            },
+            sorters: {
+                type: Array,
+                value: function() { return [
+                        ['state', 'asc']
+                    ]; }
+            },
+            currentMachine: {
+                type: Object,
+                computed: '_getMachine(data.machine, model.machines, model.machines.*)'
+            },
+            portalName: {
+                type: String,
+                value: 'Mist.io'
+            },
+            currency: {
+                type: Object
+            }
+        },
+
+        listeners: {
+            'open-recommendation-dialog': 'openRecommendationsDialog',
+            'performing-action': 'updateActionLogs',
+            'action-finished': 'stopActionLogs',
+            'recommendation': 'openRecommendationsDialog',
+            'set-job-id': 'setJobId'
+        },
+
+        observers: [
+            '_jobIdChanged(jobId)',
+            '_pathChanged(path)',
+            'stopPolling(logItem)'
+        ],
+
+        _getMachine: function(id, machines) {
+            if (id && this.model && this.model.machines && this.model.machines[id])
+                return this.model.machines[id];
+        },
+
+        setJobId: function(e) {
+            if (e.detail.jobId)
+                this.set('jobId', e.detail.jobId);
+            if (e.detail.job_id)
+                this.set('jobId', e.detail.job_id);
+        },
+
+        _isAddPageActive: function(path) {
+            return path == '/+create';
+        },
+
+        _isDetailsPageActive: function(path) {
+            // console.log('load _isDetailsPageActive', path);
+            if (path && path != '/+create') {
+                if (this.shadowRoot && this.shadowRoot.querySelector('machine-page')) {
+                    this.shadowRoot.querySelector('machine-page').updateState();
                 }
-            },
-            listeners: {
-                'open-recommendation-dialog': 'openRecommendationsDialog',
-                'performing-action': 'updateActionLogs',
-                'action-finished': 'stopActionLogs',
-                'recommendation': 'openRecommendationsDialog',
-                'select-action': 'selectAction',
-                'set-job-id': 'setJobId'
-            },
-            observers: [
-                '_jobIdChanged(jobId)',
-                '_pathChanged(path)',
-                'stopPolling(logItem)'
-            ],
+                return true;
+            } else {
+                return false;
+            }
+        },
 
-            _getMachine: function (id, machines) {
-                if (id && this.model && this.model.machines && this.model.machines[id])
-                    return this.model.machines[id];
-            },
+        _isListActive: function(path) {
+            if (path)
+                this.stopPolling();
+            return !path;
+        },
 
-            setJobId: function (e) {
-                if (e.detail.jobId)
-                    this.set('jobId', e.detail.jobId);
-                if (e.detail.job_id)
-                    this.set('jobId', e.detail.job_id);
-            },
+        _shell: function(event) {
+            var e = Polymer.dom(event);
+            var action = {
+                'name': 'shell',
+                'icon': 'vaadin:terminal',
+                'confirm': false,
+                'multi': true
+            }
+            if (this.caller == 'machine_page') {
+                this.$.actions_machine._performAction(action, [this.itemOfRecommendation]);
+            } else {
+                this.$.actions.performMachineAction(action, [this.itemOfRecommendation]);
+            }
+        },
 
-            _isAddPageActive: function (path) {
-                return path == '/+create';
-            },
-            _isDetailsPageActive: function (path) {
-                if (path && path != '/+create' && this.querySelector('machine-page'))
-                    this.querySelector('machine-page').updateState();
-                if (path && path != '/+create')
-                    return true;
-                else
-                    return false;
-            },
-            _isListActive: function (path) {
-                if (path)
-                    this.stopPolling();
-                return !path;
-            },
-            openRecommendationsDialog: function (e) {
-                var probe = this.model.probes[e.detail.item.id];
-                var text = 'Kernel ' + probe.kernel + ' OS ' + probe.os + ' ' + probe.os_version;
-                this.querySelector('.recommendation-text').textContent = text;
-                this.$.recommendationsDialog.open();
-                this.caller = e.detail.caller || 'list_machines';
-                this.set('itemOfRecommendation', e.detail.item);
-            },
-            _shell: function (event) {
-                var e = Polymer.dom(event);
-                var action = {
-                    'name': 'shell',
-                    'icon': 'vaadin:terminal',
-                    'confirm': false,
-                    'multi': true
-                }
-                if (this.caller == 'machine_page') {
-                    this.querySelector('#actions_machine')._performAction(action, [this.itemOfRecommendation]);
-                } else {
-                    this.querySelector('machine-actions').performMachineAction(action, [this.itemOfRecommendation]);
-                }
-            },
-            _jobIdChanged: function (jobid) {
-                if (!jobid) {
-                    this.resetPolling();
-                } else {
-                    this.startPolling(jobid);
-                }
-            },
-            startPolling: function (jobid) {
-                // console.log('logs -- startpolling', jobid);
-
-                this.intervalID = setInterval(function () {
-                    this.$.getJobLog.generateRequest();
-                }.bind(this), 1000);
-            },
-            stopPolling: function (logItems) {
-                // console.log('logs -- stopPolling', logItems, this.logItem.action);
-
-                if (this.logItem && this.logItem.action.endsWith('finished')) {
-                    //let log finished show
-                    if (!this.logItem.error)
-                        this.async(function () {
-                            this.resetPolling(this.logItem.error);
-                        }.bind(this), 1000);
-                }
-            },
-            resetPolling: function (error) {
-                // console.log('logs -- resetPolling', error);
-
-                if (!error) {
-                    this.set('logItem', '');
-                }
-                this.set('jobId', false);
-                window.clearInterval(this.intervalID);
-                this.set('intervalID', false);
-            },
-            handleGetJobLog: function (e) {
-                // console.log('logs -- handleGetJobLog', e.detail);
-
-                //save last log in logItem
-                this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
-            },
-            removeUnderscore: function (action) {
-                if (action)
-                    return action.replace(/_/g, " ");
-            },
-            clearLog: function (e) {
-                // console.log('logs -- clearLog',this.logItem);
-
+        _jobIdChanged: function(jobid) {
+            if (!jobid) {
                 this.resetPolling();
+            } else {
+                this.startPolling(jobid);
+            }
+        },
+
+        startPolling: function(jobid) {
+            this.intervalID = setInterval(function() {
+                this.$.getJobLog.generateRequest();
+            }.bind(this), 1000);
+        },
+
+        stopPolling: function(logItems) {
+            if (this.logItem && this.logItem.action.endsWith('finished')) {
+                //let log finished show
+                if (!this.logItem.error) {
+                    this.async(function() {
+                        this.resetPolling(this.logItem.error);
+                    }.bind(this), 1000);
+                }
+            }
+        },
+
+        resetPolling: function(error) {
+            if (!error) {
                 this.set('logItem', '');
-            },
-            updateActionLogs: function (e) {
-                // console.log('logs -- updateActionLogs',e.detail);
+            }
+            this.set('jobId', false);
+            window.clearInterval(this.intervalID);
+            this.set('intervalID', false);
+        },
 
-                this.set('performingAction', true);
-                this.$.actionLogs.textContent = e.detail.log;
-            },
-            stopActionLogs: function (e) {
-                // console.log('logs -- stopActionLogs',e.detail);
+        handleGetJobLog: function(e) {
+            // save last log in logItem
+            this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
+        },
 
-                var success = e.detail.success;
-                this.$.actionLogs.textContent = '';
-                this.set('performingAction', false);
-                if (success)
-                    this.clearListSelection();
-            },
-            hideLogs: function(e) {
-                this.set('performingAction', false);
-            },
-            clearListSelection: function () {
-                this.set('selectedItems', []);
-            },
-            _addResource: function (e) {
-                this.fire('go-to', {
-                    url: this.model.sections.machines.add
-                });
-            },
+        removeUnderscore: function(action) {
+            if (action)
+                return action.replace(/_/g, " ");
+        },
 
-            _getFrozenLogColumn: function () {
-                return ['name'];
-            },
+        clearLog: function(e) {
+            this.resetPolling();
+            this.set('logItem', '');
+        },
 
-            _getVisibleColumns: function () {
-                var ret = ['state', 'cloud', 'cost', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
-                if (this.model.org && this.model.org.ownership_enabled == true)
-                    ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-                // console.log('parent sets visible', ret);
-                return ret;
-            },
+        updateActionLogs: function(e) {
+            this.set('performingAction', true);
+            this.$.actionLogs.textContent = e.detail.log;
+        },
+        stopActionLogs: function(e) {
+            var success = e.detail.success;
+            this.$.actionLogs.textContent = '';
+            this.set('performingAction', false);
+            if (success)
+                this.clearListSelection();
+        },
 
-            _getRenderers: function () {
-                var _this = this;
-                return {
-                    'indicator': {
-                        'body': function (item, row) {
-                            var green = "#69b46c",
-                                pending = "#eee",
-                                red = "#d96557",
-                                color = 'transparent';
-                            // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
-                            if (row.monitoring.hasmonitoring) {
-                                color = green;
-                                if (_this._machineHasIncidents(row, _this.model.incidentsArray))
-                                    color = red;
-                                if (row.monitoring.installation_status == "installing" || !row.monitoring
-                                    .installation_status == "installing" || !row.monitoring.installation_status
-                                    .activated_at)
-                                    color = pending;
-                                return 'border-left: 8px solid ' + color + '; padding-left: 8px;';
-                            }
+        hideLogs: function(e) {
+            this.set('performingAction', false);
+        },
+
+        clearListSelection: function() {
+            this.set('selectedItems', []);
+        },
+
+        _addResource: function(e) {
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+                url: this.model.sections.machines.add
+            } }));
+
+        },
+
+        _getFrozenLogColumn: function() {
+            return ['name'];
+        },
+
+        _getVisibleColumns: function() {
+            var ret = ['state', 'cloud', 'cost', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
+            if (this.model.org && this.model.org.ownership_enabled == true)
+                ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+            // console.log('parent sets visible', ret);
+            return ret;
+        },
+
+        _getRenderers: function() {
+            var _this = this;
+            return {
+                'indicator': {
+                    'body': function(item, row) {
+                        var green = "#69b46c",
+                            pending = "#eee",
+                            red = "#d96557",
+                            color = 'transparent';
+                        // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
+                        if (row.monitoring && row.monitoring.hasmonitoring) {
+                            color = green;
+                            if (_this._machineHasIncidents(row, _this.model.incidentsArray))
+                                color = red;
+                            if (row.monitoring.installation_status == "installing" || !row.monitoring
+                                .installation_status == "installing" || !row.monitoring.installation_status
+                                .activated_at)
+                                color = pending;
+                            return 'border-left: 8px solid ' + color + '; padding-left: 8px;';
+                        }
+                        return '';
+                    }
+                },
+                'icon': {
+                    'body': function(item, row) {
+                        if (!_this.model.clouds[row.cloud])
                             return '';
+                        return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
+                            .replace(" ", "") + '.png';
+                    }
+                },
+                'name': {
+                    'body': function(item, row) {
+                        return '<strong class="name">' + item + '</strong>';
+                    }
+                },
+                'state': {
+                    'body': function(item, row) {
+                        var ret = '',
+                            prefix = '';
+                        if (_this.itemRecommendation(row)) {
+                            prefix =
+                                '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
                         }
-                    },
-                    'icon': {
-                        'body': function (item, row) {
-                            if (!_this.model.clouds[row.cloud])
-                                return '';
-                            return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                                .replace(" ", "") + '.png';
-                        }
-                    },
-                    'name': {
-                        'body': function (item, row) {
-                            return '<strong class="name">' + item + '</strong>';
-                        }
-                    },
-                    'state': {
-                        'body': function (item, row) {
-                            var ret = '',
-                                prefix = '';
-                            if (_this.itemRecommendation(row)) {
-                                prefix =
-                                    '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
-                            }
-                            if (item == "running")
-                                ret += "<div class='state " + _this.itemProbeClasses(row) +
-                                "'><span class='green'>" + item + "</span></div>";
-                            else if (item == "error")
-                                ret += "<div class='state " + _this.itemProbeClasses(row) +
-                                "'><span class='error'>" + item + "</span></div>";
-                            else if (item == "stopped")
-                                ret += "<div class='state " + _this.itemProbeClasses(row) +
-                                "'><span class='orange'>" + item + "</span></div>";
-                            else
-                                ret += "<div class='state'>" + item + "</span>";
+                        if (item == "running")
+                            ret += "<div class='state " + _this.itemProbeClasses(row) +
+                            "'><span class='green'>" + item + "</span></div>";
+                        else if (item == "error")
+                            ret += "<div class='state " + _this.itemProbeClasses(row) +
+                            "'><span class='error'>" + item + "</span></div>";
+                        else if (item == "stopped")
+                            ret += "<div class='state " + _this.itemProbeClasses(row) +
+                            "'><span class='orange'>" + item + "</span></div>";
+                        else
+                            ret += "<div class='state'>" + item + "</span>";
 
-                            return prefix + ret;
-                        },
-                        'cmp': function (item1, item2, row1, row2) {
-                            if (row1.monitoring && !row2.monitoring)
-                                return -1;
-                            else if (!row1.monitoring && row2.monitoring)
-                                return 1;
-                            return item1.localeCompare(item2);
-                        }
+                        return prefix + ret;
                     },
-                    'cloud': {
-                        'body': function (item, row) {
-                            if (_this.model && _this.model.clouds)
-                                return _this.model.clouds[item] ? _this.model.clouds[item].title :
-                                    '';
-                        },
-                        'cmp': function (item1, item2, row1, row2) {
-                            if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
-                                _this.model.clouds[item2.id]) {
-                                if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
-                                    return -1;
-                                if (_this.model.clouds[item1.id].title > _this.model.clouds[item2.id].title)
-                                    return 1;
-                            }
+                    'cmp': function(item1, item2, row1, row2) {
+                        if (row1.monitoring && !row2.monitoring) {
+                            return -1;
+                        } else if (!row1.monitoring && row2.monitoring) {
+                            return 1;
+                        }
+                        return 0; //item1.localeCompare(item2);
+                    }
+                },
+                'cloud': {
+                    'body': function(item, row) {
+                        if (_this.model && _this.model.clouds)
+                            return _this.model.clouds[item] ? _this.model.clouds[item].title :
+                                '';
+                    },
+                    'cmp': function(item1, item2, row1, row2) {
+                        if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
+                            _this.model.clouds[item2.id]) {
+                            if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
+                                return -1;
+                            if (_this.model.clouds[item1.id].title > _this.model.clouds[item2.id].title)
+                                return 1;
+                        }
+                        return 0;
+                    }
+                },
+                'cost': {
+                    'body': function(item, row) {
+                        var cost = parseFloat(item.monthly) / _this.currency.ratio;
+                        return item && item.monthly ? _this.currency.sign + cost.formatMoney(0) : '';
+                    },
+                    'cmp': function(item1, item2, row1, row2) {
+                        if (item1.monthly < item2.monthly)
+                            return -1;
+                        if (item1.monthly > item2.monthly)
+                            return 1;
+                        return 0;
+                    }
+                },
+                'owned_by': {
+                    'title': function(item, row) {
+                        return 'owner';
+                    },
+                    'body': function(item, row) {
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                    }
+                },
+                'created_by': {
+                    'title': function(item, row) {
+                        return 'created by';
+                    },
+                    'body': function(item, row) {
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                    }
+                },
+                'created': {
+                    'body': function(item, row) {
+                        return moment(item).isValid() ? moment.utc(item).fromNow() : "";
+                    }
+                },
+                'size': {
+                    'body': function(item, row) {
+                        return _this.computeSize(row, item);
+                    },
+                    'cmp': function(item1, item2, row1, row2) {
+                        var s1 = _this.computeSize(row1, item1),
+                            s2 = _this.computeSize(row2, item2);
+
+                        if (!s1.length && !s2.length)
                             return 0;
-                        }
+                        if (!s1.length)
+                            return 1;
+                        if (!s2.length)
+                            return -1;
+
+                        if (s1.toLowerCase() < s2.toLowerCase())
+                            return -1;
+                        if (s1.toLowerCase() > s2.toLowerCase())
+                            return 1;
+                        return 0;
+
+                    }
+                },
+                'image_id': {
+                    'title': function(item, row) {
+                        return 'image';
                     },
-                    'cost': {
-                        'body': function (item, row) {
-                            return item.monthly && '$' + item.monthly.formatMoney(0) || '';
-                        },
-                        'cmp': function (item1, item2, row1, row2) {
-                            if (item1.monthly < item2.monthly)
-                                return -1;
-                            if (item1.monthly > item2.monthly)
-                                return 1;
+                    'body': function(item, row) {
+                        return _this._computeImage(row, item);
+                    },
+                    'cmp': function(item1, item2, row1, row2) {
+                        var im1 = _this._computeImage(row1, item1),
+                            im2 = _this._computeImage(row2, item2);
+
+                        if (!im1.length && !im2.length)
                             return 0;
-                        }
-                    },
-                    'owned_by': {
-                        'title': function (item, row) {
-                            return 'owner';
-                        },
-                        'body': function (item, row) {
-                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
-                        }
-                    },
-                    'created_by': {
-                        'title': function (item, row) {
-                            return 'created by';
-                        },
-                        'body': function (item, row) {
-                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
-                        }
-                    },
-                    'created': {
-                        'body': function (item, row) {
-                            return moment(item).isValid() ? moment.utc(item).fromNow() : "";
-                        }
-                    },
-                    'size': {
-                        'body': function (item, row) {
-                            return _this.computeSize(row, item);
-                        },
-                        'cmp': function (item1, item2, row1, row2) {
-                            var s1 = _this.computeSize(row1, item1),
-                                s2 = _this.computeSize(row2, item2);
+                        if (!im1.length)
+                            return 1;
+                        if (!im2.length)
+                            return -1;
 
-                            if (!s1.length && !s2.length)
-                                return 0;
-                            if (!s1.length)
-                                return 1;
-                            if (!s2.length)
-                                return -1;
-
-                            if (s1.toLowerCase() < s2.toLowerCase())
-                                return -1;
-                            if (s1.toLowerCase() > s2.toLowerCase())
-                                return 1;
-                            return 0;
-
+                        if (im1.toLowerCase() < im2.toLowerCase())
+                            return -1;
+                        if (im1.toLowerCase() > im2.toLowerCase())
+                            return 1;
+                        return 0;
+                    }
+                },
+                'location': {
+                    'body': function(item, row) {
+                        if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud] &&
+                            _this.model.clouds[row.cloud].locations)
+                            var location = _this.model.clouds[row.cloud].locations[item];
+                        return location ? location.name : item || '';
+                    }
+                },
+                'tags': {
+                    'body': function(item, row) {
+                        var tags = item,
+                            display = "";
+                        for (key in tags) {
+                            display += "<span class='tag'>" + key;
+                            if (tags[key] != undefined && tags[key] != "")
+                                display += "=" + tags[key];
+                            display += "</span>";
                         }
-                    },
-                    'image_id': {
-                        'title': function (item, row) {
-                            return 'image';
-                        },
-                        'body': function (item, row) {
-                            return _this._computeImage(row, item);
-                        },
-                        'cmp': function (item1, item2, row1, row2) {
-                            var im1 = _this._computeImage(row1, item1),
-                                im2 = _this._computeImage(row2, item2);
-
-                            if (!im1.length && !im2.length)
-                                return 0;
-                            if (!im1.length)
-                                return 1;
-                            if (!im2.length)
-                                return -1;
-
-                            if (im1.toLowerCase() < im2.toLowerCase())
-                                return -1;
-                            if (im1.toLowerCase() > im2.toLowerCase())
-                                return 1;
-                            return 0;
-                        }
-                    },
-                    'location': {
-                        'body': function (item, row) {
-                            if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud.id] &&
-                                _this.model.clouds[row.cloud.id].locations)
-                                var location = _this.model.clouds[row.cloud.id].locations[item];
-                            return location ? location.name : item || '';
-                        }
-                    },
-                    'tags': {
-                        'body': function (item, row) {
-                            var tags = item,
-                                display = "";
-                            for (key in tags) {
-                                display += "<span class='tag'>" + key;
-                                if (tags[key] != undefined && tags[key] != "")
-                                    display += "=" + tags[key];
-                                display += "</span>";
-                            }
-                            return display;
-                        }
-                    },
-                    'machine_id': {
-                        'title': 'id (external)',
-                        'body': function (i) {
-                            return i;
-                        }
-                    },
-                    'public_ips': {
-                        'title': 'public ip\'s',
-                        'body': function (ips) {
-                            return ips.join(', ');
-                        }
-                    },
-                    'private_ips': {
-                        'title': 'private ip\'s',
-                        'body': function (ips) {
-                            return ips.join(', ');
-                        }
-                    },
-                    'hostname': {
-                        'body': function (hostname) {
-                            return hostname || '';
-                        }
+                        return display;
+                    }
+                },
+                'machine_id': {
+                    'title': 'id (external)',
+                    'body': function(i) {
+                        return i;
+                    }
+                },
+                'public_ips': {
+                    'title': 'public ip\'s',
+                    'body': function(ips) {
+                        return ips && ips.join(', ');
+                    }
+                },
+                'private_ips': {
+                    'title': 'private ip\'s',
+                    'body': function(ips) {
+                        return ips.join(', ');
+                    }
+                },
+                'hostname': {
+                    'body': function(hostname) {
+                        return hostname || '';
                     }
                 }
-            },
-            _computeImage: function (row, item) {
-                // FIXME This needs to be standarized in the backend to remove the cruft below
-                var image_id = item;
+            }
+        },
 
-                if (!image_id && row.extra && row.extra.image) {
-                    if (row.extra.image.distribution && row.extra.image.name) {
-                        return row.extra.image.distribution + " " + row.extra.image.name;
-                    }
-                    image_id = row.extra.image;
+        _computeImage: function(row, item) {
+            // FIXME This needs to be standarized in the backend to remove the cruft below
+            var image_id = item;
+
+            if (!image_id && row.extra && row.extra.image) {
+                if (row.extra.image.distribution && row.extra.image.name) {
+                    return row.extra.image.distribution + " " + row.extra.image.name;
                 }
-                if (!image_id && row.extra) {
-                    image_id = row.extra['image_id'] || row.imageId || (row.extra.image && (row.extra.image
-                        .slug || row.extra.image.name));
-                }
+                image_id = row.extra.image;
+            }
+            if (!image_id && row.extra) {
+                image_id = row.extra['image_id'] || row.imageId || (row.extra.image && (row.extra.image
+                    .slug || row.extra.image.name));
+            }
 
-                if (image_id && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud
-                        .id].images && this.model.clouds[row.cloud.id].images[image_id]) {
-                    return this.model.clouds[row.cloud.id].images[image_id].name
-                }
+            if (image_id && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud
+                    .id].images && this.model.clouds[row.cloud.id].images[image_id]) {
+                return this.model.clouds[row.cloud.id].images[image_id].name
+            }
 
-                return image_id || "";
-            },
-            computeSize: function (row, item) {
-                // FIXME This needs to be standarized in the backend to remove the cruft below
-                var size_id = item;
+            return image_id || "";
+        },
+
+        computeSize: function(row, item) {
+            // FIXME This needs to be standarized in the backend to remove the cruft below
+            var size_id = item;
 
 
-                // Try to figure out size_id
-                if (row.size && typeof (row.size) != 'object') {
-                    size_id = row.size || '';
-                }
+            // Try to figure out size_id
+            if (row.size && typeof(row.size) != 'object') {
+                size_id = row.size || '';
+            }
 
-                if (!size_id && row.extra) {
-                    if (row.extra.size && typeof (row.extra.size) == 'string') {
-                        size_id = row.extra.size;
-                    } else {
-                        size_id = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
-                            row.extra.PLANID;
-                    }
-                }
-
-                // Given size_id, try to figure out actual size name
-                if (size_id && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
-                        row.cloud.id].sizes && this.model.clouds[
-                        row.cloud.id].sizes[size_id]) {
-                    var size = this.model.clouds[row.cloud.id].sizes[size_id];
-                    return size.name || size.id;
-                }
-
-                // If that fails look for size info in the extra metadata
-                if (row.extra) {
-                    if (row.extra.size && row.extra.size.vcpus) {
-                        var size_name = row.extra.size.vcpus + 'vCPU';
-                        if (row.extra.size.memory)
-                            size_name += ', ' + row.extra.size.memory + 'MB RAM';
-                        return size_name;
-                    } else if (row.extra.maxCpu) {
-                        size_name = row.extra.maxCpu + 'vCPU';
-                        if (row.extra.maxMemory)
-                            size_name += ', ' + row.extra.maxMemory + 'MB RAM';
-                        return size_name;
-                    }
-                }
-
-                return size_id || '';
-            },
-
-            _getMachineWeight: function (machine, model) {
-                var weight = 0;
-                var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
-                    machineHasMonitor = this._machineHasMonitoring(machine),
-                    machineHasrecommendations = this._machineHasrecommendations(machine),
-                    machineHasProbe = this._machineHasProbe(machine);
-                machineState = this._machineState(machine);
-                weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations +
-                    machineHasProbe + machineState;
-                return weight != NaN ? weight : 0;
-            },
-
-            _machineHasIncidents: function (machine, incidents) {
-                var machineIncidents = incidents ? incidents.filter(function (inc) {
-                    return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud && !inc.finished_at
-                }) : [];
-                return machineIncidents ? machineIncidents.length * 1000 : 0;
-            },
-
-            _machineHasMonitoring: function (machine) {
-                return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
-            },
-
-            _machineHasrecommendations: function (machine, probes) {
-                return machine.probe && machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
-            },
-
-            _machineHasProbe: function (machine) {
-                return machine.probe && machine.probe.ssh && machine.probe.ssh.loadloadavg ? machine.probe.ssh
-                    .loadloadavg[0] + machine.probe.ssh.loadloadavg[1] + machine.probe.ssh.loadloadavg[2] :
-                    1;
-            },
-
-            _machineState: function (machine) {
-                if (machine.state == 'running')
-                    return 5;
-                if (machine.state == 'error')
-                    return 3;
-                if (machine.state == 'stopped')
-                    return 2;
-                if (machine.state == 'terminated')
-                    return 1;
-                if (machine.state == 'unknown')
-                    return 0;
-                return 0;
-            },
-            itemRecommendation: function (item) {
-                if (this.probes == {} || !item || !item.id) {
-                    return false;
+            if (!size_id && row.extra) {
+                if (row.extra.size && typeof(row.extra.size) == 'string') {
+                    size_id = row.extra.size;
                 } else {
-                    if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
-                        return false;
-                    return true;
-                }
-            },
-            itemProbeClasses: function (item) {
-                if (this.probes == {}) {
-                    return '';
-                } else {
-                    if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
-                        return "";
-                    } else {
-                        var probe = this.model.probes[item.id].loadavg;
-                        var cores = parseInt(this.model.probes[item.id].cores);
-                        var classes = '';
-                        var prefix = '';
-
-                        classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
-                        classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
-                        classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
-
-                        //has probe data
-                        if (classes != "")
-                            classes += "hasprobe "
-
-                        return classes;
-                    }
-                }
-            },
-            loadToColor: function (load, prefix) {
-                if (load > 1.2)
-                    return prefix + "high ";
-                else if (load > 0.8)
-                    return prefix + "medium ";
-                else if (load > 0.6)
-                    return prefix + "eco ";
-                else if (load > 0.2)
-                    return prefix + "low ";
-                else
-                    return prefix + "low ";
-            },
-
-            // redirect events
-            selectAction: function (e) {
-                e.stopImmediatePropagation();
-                if (this.querySelector('machine-actions')) {
-                    this.querySelector('machine-actions').selectAction(e);
+                    size_id = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
+                        row.extra.PLANID;
                 }
             }
 
-        });
+            // Given size_id, try to figure out actual size name
+            if (size_id && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
+                    row.cloud.id].sizes && this.model.clouds[
+                    row.cloud.id].sizes[size_id]) {
+                var size = this.model.clouds[row.cloud.id].sizes[size_id];
+                return size.name || size.id;
+            }
+
+            // If that fails look for size info in the extra metadata
+            if (row.extra) {
+                if (row.extra.size && row.extra.size.vcpus) {
+                    var size_name = row.extra.size.vcpus + 'vCPU';
+                    if (row.extra.size.memory)
+                        size_name += ', ' + row.extra.size.memory + 'MB RAM';
+                    return size_name;
+                } else if (row.extra.maxCpu) {
+                    size_name = row.extra.maxCpu + 'vCPU';
+                    if (row.extra.maxMemory)
+                        size_name += ', ' + row.extra.maxMemory + 'MB RAM';
+                    return size_name;
+                }
+            }
+
+            return size_id || '';
+        },
+
+        _getMachineWeight: function(machine, model) {
+            var weight = 0;
+            var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
+                machineHasMonitor = this._machineHasMonitoring(machine),
+                machineHasrecommendations = this._machineHasrecommendations(machine),
+                machineHasProbe = this._machineHasProbe(machine);
+            machineState = this._machineState(machine);
+            weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations +
+                machineHasProbe + machineState;
+            return weight != NaN ? weight : 0;
+        },
+
+        _machineHasIncidents: function(machine, incidents) {
+            var machineIncidents = incidents ? incidents.filter(function(inc) {
+                return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud && !inc.finished_at
+            }) : [];
+            return machineIncidents ? machineIncidents.length * 1000 : 0;
+        },
+
+        _machineHasMonitoring: function(machine) {
+            return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
+        },
+
+        _machineHasrecommendations: function(machine, probes) {
+            return machine.probe && machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
+        },
+
+        _machineHasProbe: function(machine) {
+            return machine.probe && machine.probe.ssh && machine.probe.ssh.loadloadavg ? machine.probe.ssh
+                .loadloadavg[0] + machine.probe.ssh.loadloadavg[1] + machine.probe.ssh.loadloadavg[2] :
+                1;
+        },
+
+        _machineState: function(machine) {
+            if (machine.state == 'running')
+                return 5;
+            if (machine.state == 'error')
+                return 3;
+            if (machine.state == 'stopped')
+                return 2;
+            if (machine.state == 'terminated')
+                return 1;
+            if (machine.state == 'unknown')
+                return 0;
+            return 0;
+        },
+
+        itemRecommendation: function(item) {
+            if (this.probes == {} || !item || !item.id) {
+                return false;
+            } else {
+                if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
+                    return false;
+                return true;
+            }
+        },
+
+        itemProbeClasses: function(item) {
+            if (this.probes == {}) {
+                return '';
+            } else {
+                if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
+                    return "";
+                } else {
+                    var probe = this.model.probes[item.id].loadavg;
+                    var cores = parseInt(this.model.probes[item.id].cores);
+                    var classes = '';
+                    var prefix = '';
+
+                    classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
+                    classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
+                    classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
+
+                    //has probe data
+                    if (classes != "")
+                        classes += "hasprobe "
+
+                    return classes;
+                }
+            }
+        },
+
+        loadToColor: function(load, prefix) {
+            if (load > 1.2)
+                return prefix + "high ";
+            else if (load > 0.8)
+                return prefix + "medium ";
+            else if (load > 0.6)
+                return prefix + "eco ";
+            else if (load > 0.2)
+                return prefix + "low ";
+            else
+                return prefix + "low ";
+        }
+    });
     </script>
 </dom-module>

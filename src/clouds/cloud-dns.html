@@ -14,8 +14,8 @@
                 position: relative;
                 --paper-toggle-button-label-color: #121212;
             }
-            :host[opened='true'],
-            :host[opened] {
+            :host([opened='true']),
+            :host([opened]) {
                 display: block;
             }
             paper-toggle-button {
@@ -40,7 +40,9 @@
             Polymer({
                 is: 'cloud-dns',
                 properties: {
-                    cloud: Object,
+                    cloud: {
+                        type: Object
+                    },
                     isToggleOn: {
                         type: Boolean,
                         computed: '_computeIsDNSEnabled(cloud.dns_enabled)'
@@ -63,12 +65,14 @@
                     return enabled;
                 },
                 _handleCloudEditDNSAjaxResponse: function() {
-                    var message = this.querySelector('#DNS-enable-disable').checked ? 'DNS support for ' + this.cloud.title + ' enabled!' : 'DNS support for ' + this.cloud.title + ' disabled!' ;
-                    this.fire('toast',{msg:message,duration:5000});
+                    var message = this.shadowRoot.querySelector('#DNS-enable-disable').checked ? 'DNS support for ' + this.cloud.title + ' enabled!' : 'DNS support for ' + this.cloud.title + ' disabled!' ;
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:5000} }));
+
                 },
                 _handleCloudEditDNSAjaxError: function(e) {
-                    this.querySelector('#DNS-enable-disable').checked=this.cloud.dns_enabled;
-                    this.fire('toast',{msg:e.detail.request.xhr.response,duration:10000});
+                    this.shadowRoot.querySelector('#DNS-enable-disable').checked=this.cloud.dns_enabled;
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:e.detail.request.xhr.response,duration:10000} }));
+
                 },
             });
         })();

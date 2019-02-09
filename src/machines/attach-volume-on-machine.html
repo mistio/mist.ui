@@ -2,16 +2,16 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+
 <dom-module id="attach-volume-on-machine">
     <template>
         <style include="shared-styles dialogs">
-         :host {
-            display: block;
+        :host {
             width: 100%;
         }
 
@@ -19,7 +19,7 @@
             min-width: 360px;
         }
 
-         :host .btn-group {
+        :host .btn-group {
             margin: 0 0 24px 0;
         }
 
@@ -36,7 +36,7 @@
             width: 100%;
         }
 
-        paper-progress.progresserror ::content #primaryProgress {
+        paper-progress.progresserror ::slotted(#primaryProgress) {
             background-color: var(--red-color);
         }
 
@@ -68,7 +68,7 @@
             margin-top: 0;
         }
 
-         :host paper-dropdown-menu ::content .dropdown-content {
+        :host paper-dropdown-menu ::slotted(.dropdown-content) {
             top: 55px !important;
         }
         </style>
@@ -78,19 +78,19 @@
                 <p>
                     <template is="dom-if" if="[[!volumes.length]]">
                         <span class="grey">No volumes in same region found.</span>
-                        <br/>
+                        <br />
                         <a href="/volumes/+create">Create a volume</a>
-                        <br/>
-                        <br/>
+                        <br />
+                        <br />
                     </template>
                     <template is="dom-if" if="[[volumes.length]]">
                         <span class="grey"> Choose from your existing volumes in the machine's region. </span>
                         <paper-dropdown-menu label="Select volume" horizontal-align="left">
-                            <paper-menu slot="dropdown-content" id="volumes" attr-for-selected="value" selected="{{selectedVolumeId}}" class="dropdown-content">
+                            <paper-listbox slot="dropdown-content" id="volumes" attr-for-selected="value" selected="{{selectedVolumeId}}" class="dropdown-content">
                                 <template is="dom-repeat" items="[[volumes]]" as="volumeId">
                                     <paper-item value="[[volumeId]]" disabled="[[_isAlreadyAttached(volumeId,machine)]]">[[_computeVolumeName(volumeId)]]</paper-item>
                                 </template>
-                            </paper-menu>
+                            </paper-listbox>
                         </paper-dropdown-menu>
                         <paper-input id="device" value="{{device}}" hidden$="[[hideDeviceInput]]"></paper-input>
                     </template>
@@ -99,7 +99,9 @@
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                 <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                </p>
             </div>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>
@@ -151,13 +153,13 @@ Polymer({
     },
     ready: function() {},
     computedSelectedMachineId: function(selected) {
-        this.set('selectedMachineId', this.querySelector('#machines').selected || '');
+        this.set('selectedMachineId', this.$.machines.selected || '');
     },
-    _computeVolumes: function(machine, volumes){
+    _computeVolumes: function(machine, volumes) {
         var that = this;
         var volumeIds = [];
-        if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) { 
-            var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v){ 
+        if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) {
+            var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v) {
                 return that._isOfSameLocation(v);
             });
         }
@@ -195,8 +197,8 @@ Polymer({
     },
     attachVolume: function(e) {
         var request = this.$.attachVolumeRequest;
-        request.url = "/api/v1/clouds/"+ this.machine.cloud +"/volumes/" + this.selectedVolumeId;
-        request.body = {action: 'attach', machine: this.machine.id};
+        request.url = "/api/v1/clouds/" + this.machine.cloud + "/volumes/" + this.selectedVolumeId;
+        request.body = { action: 'attach', machine: this.machine.id };
         if (!this.hideDeviceInput) {
             request.body.device = this.device;
         }
@@ -207,25 +209,29 @@ Polymer({
     _attachVolumeRequest: function() {
         this.clearError();
         var logMessage = 'Sending request to attach volume on machine.';
-        this.fire('performing-action', { log: logMessage });
+        this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
+
     },
     _attachVolumeResponse: function(e) {
         console.log(e, e.detail);
         this._closeDialog();
-        this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Attach request sent successfully. Review in machine logs.', duration: 5000 });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Attach request sent successfully. Review in machine logs.', duration: 5000 } }));
+
     },
     _attachVolumeError: function(e) {
         console.log(e, e.detail);
         var message = e.detail.request.xhr.response || e.detail.error.message;
         this.$.errormsg.textContent = message;
         this.set('formError', true);
-        this.fire('action-finished', { success: false });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
+
     },
-    clearError: function(){
+    clearError: function() {
         this.set('formError', false);
         this.$.errormsg.textContent = '';
         this.$.attachDialogModal.refit();
-      },
+    },
 });
 </script>

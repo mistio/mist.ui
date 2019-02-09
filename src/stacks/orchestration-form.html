@@ -5,34 +5,41 @@
     <template>
         <style include="shared-styles forms">
          :host {
-            display: block;
             max-width: calc(100% - 150px);
             position: relative;
+            display: block;
         }
         </style>
-        <app-form id$="stack_[[workflow]]" fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" btncontent="[[btncontent]]">[[workflow]]</app-form>
+        <app-form id$="stack_[[workflow]]" fields="{{fields}}" workflow="[[workflow]]" url="[[url]]" btncontent="[[btncontent]]"></app-form>
     </template>
     <script>
-    (function() {
-        'use strict';
-
         Polymer({
             is: 'orchestration-form',
-            behaviors: [
-                stackFormsBehavior
-            ],
             properties: {
-                model: Object,
-                fields: {
-                    type: Array,
-                    notify: true
+                model: {
+                    type: Object
                 },
-                workflow: String,
-                url: String,
-                onRequest: String,
-                onResponse: String,
-                onError: String,
-                btncontent: String,
+                fields: {
+                    type: Array
+                },
+                workflow: {
+                    type: String
+                },
+                url: {
+                    type: String
+                },
+                onRequest: {
+                    type: String
+                },
+                onResponse: {
+                    type: String
+                },
+                onError: {
+                    type: String
+                },
+                btncontent: {
+                    type: String
+                },
                 yaml_inputs: {
                     type: String,
                     notify: true
@@ -53,7 +60,6 @@
                     yaml_inputs += val + '\n';
                 }, this);
                 this.set('yaml_inputs', yaml_inputs);
-                this._updateFields();
             },
             attached: function() {
                 // prepare mist machine
@@ -113,7 +119,7 @@
                 }
             },
             _updateFields: function(e) {
-                var changeInYaml = e && e.path.indexOf(document.querySelector("paper-textarea#app-form-stack_" + this.workflow + "-stackinputs")) > -1;
+                var changeInYaml = e && e.path.indexOf(this.shadowRoot.querySelector('app-form').shadowRoot.querySelector("paper-textarea#app-form-stack_" + this.workflow + "-stackinputs")) > -1;
                 this.fields.forEach(function(inp) {
                     if (inp.name != 'yaml_or_form' && inp.name != 'stackinputs') {
 
@@ -219,7 +225,8 @@
                 }, this);
 
                 if (changeInYaml) {
-                    var yaml = this.shadowRoot.querySelector("paper-textarea#stackinputs").value;
+                    var yaml = this.shadowRoot.querySelector('app-form').shadowRoot.querySelector("paper-textarea#stackinputs").value;
+                    console.log('yaml', yaml);
                     var yaml_array = yaml.split('\n');
                     var inputs = [];
                     yaml_array.forEach(function(line) {
@@ -423,6 +430,5 @@
                     this.set('fields.' + stackinputsIndex + '.value', this.yaml_inputs);
             }
         });
-    })();
     </script>
 </dom-module>

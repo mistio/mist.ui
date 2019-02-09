@@ -9,10 +9,18 @@
         :host {
         	display: inline-block;
         	position: relative;
+            --paper-input-container-underline: {display: none; height: 0;}
+            --paper-input-container-underline-focus: {display: none; height: 0;}
+            --paper-input-container-underline-disabled: {display: none; height: 0;}
+            --paper-input-container-color: transparent;
+            --paper-input-container-focus-color: transparent;
+            --paper-input-container-invalid-color: transparent;
         }
 		.dateinput {
 		    position: absolute;
-		    top: -3px;
+            display: flex;
+            align-items: center;
+		    top: -5px;
 		    left: 0;
 		    width: 400px;
 		}
@@ -23,7 +31,6 @@
         	display: inline-block;
 		    background-color: #fff;
 		    width: 190px;
-		    height: 28px;
 		    font-size: 11px;
         }
         paper-button.blue-link[disabled] {
@@ -38,21 +45,15 @@
             margin: 0;
             padding: 0;
         }
-        paper-input ::content input {
-        	font-size: 14px;
-        }
-        paper-input ::content paper-input-container {
-        	padding: 0;
-        }
         </style>
         <span hidden$="[[!date]]">[[_computeAbsoluteDateText(date)]]</span>
         <span hidden$="[[date.length]]">[[nullText]]</span>
         <paper-button id="edit" on-tap="_edit" data-field="start_after" class="simple-button blue-link smaller" noink disabled$="[[disabledEdit]]" hidden$="[[editing]]">change</paper-button>
-        <span class="dateinput" hidden$="[[!editing]]">
+        <div class="dateinput" hidden$="[[!editing]]">
             <paper-input id="dateInput" type="datetime-local" value="{{value}}" no-label-float></paper-input>
             <paper-button class="simple-button blue-link smaller" on-tap="_saveDate" noink>save</paper-button>
             <paper-button class="simple-button blue-link smaller" on-tap="_stopEdit" noink>cancel</paper-button>
-        </span>
+        </div>
 
     </template>
     <script>
@@ -84,15 +85,16 @@
         	}
         },
         _computeAbsoluteDateText: function (time) {
-        	console.log('time: ',moment(time).format("MMMM D YYYY HH:mm:ss"));
-        	console.log('time utc: ',moment.utc(time).format("MMMM D YYYY HH:mm:ss"));
-        	console.log('time local: ',moment(time).local().format("MMMM D YYYY HH:mm:ss"));
-        	console.log('time utc local: ',moment.utc(time).local().format("MMMM D YYYY HH:mm:ss"));
+        	// console.log('time: ',moment(time).format("MMMM D YYYY HH:mm:ss"));
+        	// console.log('time utc: ',moment.utc(time).format("MMMM D YYYY HH:mm:ss"));
+        	// console.log('time local: ',moment(time).local().format("MMMM D YYYY HH:mm:ss"));
+        	// console.log('time utc local: ',moment.utc(time).local().format("MMMM D YYYY HH:mm:ss"));
         	return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
         },
         _saveDate: function() {
         	if (this.value) {
-        		this.fire('save-date', {name: this.field, date: this.value});
+        		this.dispatchEvent(new CustomEvent('save-date', { bubbles: true, composed: true, detail: {name: this.field, date: this.value} }));
+
         		this.set('editing', false);
         	}
         },
@@ -102,7 +104,6 @@
         _stopEdit: function() {
         	this.set('editing', false);
         }
-
     });
     </script>
 </dom-module>

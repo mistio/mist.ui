@@ -1,11 +1,11 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
 <link rel="import" href="../element-for-in/element-for-in.html">
 
 <dom-module id="session-item">
     <template>
         <style include="shared-styles">
             :host {
-                display: block;
                 width: 100%;
             }
 
@@ -40,10 +40,10 @@
                 font-size: 0.9em;
                 opacity: 0.54;
             }
-            element-for-in::content .flexchild {
+            element-for-in::slotted(.flexchild) {
                 padding: 8px 16px;
             }
-            element-for-in ::content .info-item > div {
+            element-for-in ::slotted(.info-item > div) {
                 word-break: break-all;
             }
             #moreinfo{
@@ -152,10 +152,11 @@
                     this.$.terminateSessionAjax.generateRequest();
                 },
                 terminatedSessionResponse: function(e){
-                    this.fire('session-terminated');
+                    this.dispatchEvent(new CustomEvent('session-terminated', { bubbles: true, composed: true }));
                 },
                 terminateSessionError: function(e){
-                    this.fire('terminating-session-error', {'event': e});
+                    this.dispatchEvent(new CustomEvent('terminating-session-error', { bubbles: true, composed: true, detail: {'event': e} }));
+
                 }
             });
     </script>

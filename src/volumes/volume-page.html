@@ -2,21 +2,13 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
-
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
-<link rel="import" href="../mist-actions.html">
-
 <link rel="import" href="volume-actions.html">
-
 <dom-module id="volume-page">
     <template>
         <style include="shared-styles tags-and-labels single-page">
-            :host {
-                display: block;
-            }
-
             paper-material {
                 display: block;
                 padding: 20px;
@@ -30,10 +22,6 @@
 
             .columns paper-material>.break {
                 word-break: break-all;
-            }
-
-            .left {
-                /*line-height: 1.6em;*/
             }
 
             .left,
@@ -120,15 +108,6 @@
                 transition: all 200ms;
             }
 
-            paper-icon-button.active-sort {
-                transform: rotate(180deg);
-            }
-
-            paper-icon-button.active-sort::content iron-icon {
-                color: #D48900 !important;
-            }
-
-
             .n-info-head {
                 text-transform: uppercase;
                 font-weight: bold;
@@ -148,20 +127,20 @@
             }
 
             :host .info-item,
-            :host ::content .info-item {
+            :host ::slotted(.info-item) {
                 word-break: break-all;
             }
 
             .single-head {
                 @apply --volume-page-head-mixin
             }
-        </style>
 
+            volume-actions {
+                width: 50%;
+                fill: #fff;
+            }
+        </style>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
-            <volume-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeVolumeMachines(volume.attached_to,model.machines)]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
@@ -172,7 +151,7 @@
                         [[volumeCloud]], [[_computeLocationsName(model,volume.location)]]
                     </div>
                 </div>
-                <mist-actions actions="[[actions]]" type="volume" items="[[itemArray]]" model="[[model]]" use-half-width hidden$="[[isMissing]]"></mist-actions>
+                <volume-actions items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeVolumeMachines(volume.attached_to,model.machines)]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
             </paper-material>
             <div class="columns">
                 <paper-material id="leftcolumn resource-description" class="left">
@@ -180,7 +159,7 @@
                     <div hidden$="[[isMissing]]">
                         <div hidden$="[[!volume.state]]">
                             <h4 class="id n-info-head">State:</h4>
-                            <span class="id">[[volume.state]] [[_computedAttachedMachine(volume)]]</span>
+                            <span class="id">[[volume.state]]</span>
                         </div>
                         <div>
                             <h4 class="id n-info-head">Size:</h4>
@@ -222,118 +201,123 @@
                 </div>
             </paper-material>
         </div>
-        <iron-ajax id="volumeDeleteAjaxRequest" url="/api/v1/clouds/[[volume.cloud]]/volumes/[[volume.id]]" method="DELETE"
-            on-response="_handleVolumeDeletekAjaxResponse"></iron-ajax>
+        <iron-ajax id="volumeDeleteAjaxRequest" url="/api/v1/clouds/[[volume.cloud]]/volumes/[[volume.id]]" method="DELETE" on-response="_handleVolumeDeletekAjaxResponse"></iron-ajax>
         <dialog-element></dialog-element>
     </template>
     <script>
-        Polymer({
-            is: 'volume-page',
-            behaviors: [
-                mistLoadingBehavior
-            ],
+    Polymer({
+        is: 'volume-page',
+        behaviors: [
+            mistLoadingBehavior
+        ],
 
-            properties: {
-                model: {
-                    type: Object,
-                    notify: true
-                },
-                section: {
-                    type: Object
-                },
-                volume: {
-                    type: Object
-                },
-                volumeTags: {
-                    type: Array,
-                    computed: '_computeVolumeTags(volume, volume.tags, volume.tags.*, model.volumes.*)'
-                },
-                isLoading: {
-                    type: Boolean,
-                    computed: '_computeIsloading(volume)',
-                    value: true
-                },
-                volumeCloud: {
-                    type: String,
-                    computed: '_computeVolumeCloud(volume, model.clouds)'
-                },
-                machinesVolumeCanAttachTo: {
-                    type: Array,
-                    computed: '_computedMachinesVolumeCanAttachTo(volume, model.machines)'
-                },
-                itemArray: Array
+        properties: {
+            model: {
+                type: Object
             },
-            observers: [
-                '_change(volume)'
-            ],
-            _displayUser: function (id, members) {
-                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+            section: {
+                type: Object
             },
-            _change: function (item) {
-                if (item)
-                    this.set('itemArray', [this.volume]);
+            volume: {
+                type: Object
             },
-            _computeLocationsName: function(model,loc) {
-                return this.model.clouds && this.model.clouds[this.volume.cloud] && this.model.clouds[this.volume.cloud].locations[this.volume.location] && this.model.clouds[this.volume.cloud].locations[this.volume.location].name;
+            volumeTags: {
+                type: Array,
+                computed: '_computeVolumeTags(volume, volume.tags, volume.tags.*, model.volumes.*)'
             },
-            _computeVolumeMachines: function(machineIds,machines){
-                return this.model.machines ? machineIds.map(i=>this.model.machines[i] || {name:'missing'}) : [];
+            isLoading: {
+                type: Boolean,
+                computed: '_computeIsloading(volume)',
+                value: true
             },
-            _computeVolumeCloud: function (volume, clouds) {
-                if (this.volume) {
-                    return this.model.clouds[this.volume.cloud].title;
-                }
+            volumeCloud: {
+                type: String,
+                computed: '_computeVolumeCloud(volume, model.clouds)'
             },
-            _computeVolumeProvider: function (volume, clouds){
-                if (this.volume) {
-                    return this.model.clouds[this.volume.cloud].provider;
-                }
+            machinesVolumeCanAttachTo: {
+                type: Array,
+                computed: '_computedMachinesVolumeCanAttachTo(volume, model.machines)'
             },
-            _computedMachinesVolumeCanAttachTo: function(provide, machines) {
-                if (this.volume) {
-                    var that = this,
-                        machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
-                    return machinesArray.filter(function(m){
-                        return m.cloud == that.volume.cloud && m.location == that.volume.location
-                    });
-                }
-            },
-            _computeVolumeTags: function (volume, volumeTags) {
-                return Object.entries(this.volume.tags).map(([key, value]) => ({key,value}));;
-            },
-            _editVolume: function (e) {
-                console.log(e);
-            },
-            _deleteVolume: function (e) {
-                this._showDialog({
-                    title: 'Delete Volume?',
-                    body: "Deleting volumes cannot be undone. You are about to delete volume: '" +
-                        this.volume.name + "'.",
-                    danger: true,
-                    reason: "volume.delete"
+            itemArray: {
+                type: Array
+            }
+        },
+        observers: [
+            '_change(volume)'
+        ],
+        _displayUser: function(id, members) {
+            return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+        },
+        _change: function(item) {
+            if (item)
+                this.set('itemArray', [this.volume]);
+        },
+        _computeLocationsName: function(model, loc) {
+            if (model && loc) {
+                return this.volume && this.model.clouds && this.model.clouds[this.volume.cloud] && this.model.clouds[this.volume.cloud].locations[this.volume.location] && this.model.clouds[this.volume.cloud].locations[this.volume.location].name;
+            }
+        },
+        _computeVolumeMachines: function(machineIds, machines) {
+            return this.model && this.model.machines && machineIds ? machineIds.map(i => this.model.machines[i] || { name: 'missing' }) : [];
+        },
+        _computeVolumeCloud: function(volume, clouds) {
+            if (this.volume) {
+                return this.model.clouds[this.volume.cloud].title;
+            }
+        },
+        _computeVolumeProvider: function(volume, clouds) {
+            if (this.volume) {
+                return this.model.clouds[this.volume.cloud].provider;
+            }
+        },
+        _computedMachinesVolumeCanAttachTo: function(provide, machines) {
+            if (this.volume) {
+                var that = this,
+                    machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
+                return machinesArray.filter(function(m) {
+                    return m.cloud == that.volume.cloud && m.location == that.volume.location
                 });
-            },
-            _handleVolumeDeletekAjaxResponse: function (e) {
-                this.fire('go-to', {
-                    url: '/volumes'
-                });
-            },
-            _showDialog: function (info) {
-                var dialog = this.querySelector('dialog-element');
-                for (var i in info) {
-                    dialog[i] = info[i];
-                }
-                dialog._openDialog();
-            },
-            _computeIsloading: function (volume) {
-                return !this.volume ? true : false;
-            },
-            _toArray: function (x, z) {
-                if (x) {
-                    return Object.keys(x).map(y => x[y])
-                }
-                return [];
-            },
-        });
+            }
+        },
+        _computeVolumeTags: function(volume, volumeTags) {
+            if (this.volume) {
+                return Object.entries(this.volume.tags).map(([key, value]) => ({ key, value }));
+            }
+        },
+        _editVolume: function(e) {
+            console.log(e);
+        },
+        _deleteVolume: function(e) {
+            this._showDialog({
+                title: 'Delete Volume?',
+                body: "Deleting volumes cannot be undone. You are about to delete volume: '" +
+                    this.volume.name + "'.",
+                danger: true,
+                reason: "volume.delete"
+            });
+        },
+        _handleVolumeDeletekAjaxResponse: function(e) {
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+                url: '/volumes'
+            } }));
+
+        },
+        _showDialog: function(info) {
+            var dialog = this.shadowRoot.querySelector('dialog-element');
+            for (var i in info) {
+                dialog[i] = info[i];
+            }
+            dialog._openDialog();
+        },
+        _computeIsloading: function(volume) {
+            return !this.volume ? true : false;
+        },
+        _toArray: function(x, z) {
+            if (x) {
+                return Object.keys(x).map(y => x[y])
+            }
+            return [];
+        }
+    });
     </script>
 </dom-module>

@@ -3,10 +3,8 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
-
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
-<link rel="import" href="../mist-actions.html">
 
 <link rel="import" href="network-actions.html">
 <link rel="import" href="subnet-item.html">
@@ -14,10 +12,6 @@
 <dom-module id="network-page">
     <template>
         <style include="shared-styles tags-and-labels single-page">
-            :host {
-                display: block;
-            }
-
             paper-material {
                 display: block;
                 padding: 20px;
@@ -31,10 +25,6 @@
 
             .columns paper-material>.break {
                 word-break: break-all;
-            }
-
-            .left {
-                /*line-height: 1.6em;*/
             }
 
             .left,
@@ -74,45 +64,6 @@
                 text-decoration: none;
             }
 
-            .paper-header [paper-drawer-toggle] {
-                margin-left: 10px;
-            }
-
-            .paper-header {
-                display: flex;
-                flex-direction: row;
-            }
-
-            .paper-header {
-                height: 60px;
-                font-size: 24px;
-                line-height: 60px;
-                padding: 0 10px;
-                color: white;
-                transition: height 0.2s;
-                transition: font-size 0.2s;
-            }
-
-            .paper-header.tall {
-                height: 320px;
-                font-size: 16px;
-            }
-
-            .paper-header h2 {
-                margin-left: 20px;
-                display: flex;
-                flex-direction: row;
-                text-transform: capitalize;
-            }
-
-            .paper-header .toggleViewButton {
-                --paper-icon-button-ink-color: transparent;
-            }
-
-            .paper-header .cartButton {
-                margin-right: 10px;
-            }
-
             #content {
                 -webkit-overflow-scrolling: touch;
             }
@@ -120,15 +71,6 @@
             paper-icon-button {
                 transition: all 200ms;
             }
-
-            paper-icon-button.active-sort {
-                transform: rotate(180deg);
-            }
-
-            paper-icon-button.active-sort::content iron-icon {
-                color: #D48900 !important;
-            }
-
 
             .n-info-head {
                 text-transform: uppercase;
@@ -148,21 +90,21 @@
                 padding-right: 8px;
             }
 
-            :host .info-item,
-            :host ::content .info-item {
+            :host .info-item {
                 word-break: break-all;
             }
 
             .single-head {
                 @apply --network-page-head-mixin
             }
+
+            network-actions {
+                width: 50%;
+                fill: #fff;
+            }
         </style>
 
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
-            <network-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
@@ -173,7 +115,7 @@
                         [[networkCloud]]
                     </div>
                 </div>
-                <mist-actions actions="[[actions]]" type="network" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <network-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></network-actions>
             </paper-material>
             <div class="columns">
                 <paper-material id="leftcolumn resource-description" class="left">
@@ -238,7 +180,7 @@
                 <h4 class="id">Subnets</h4>
                 <div class="info-table">
                     <div class="info-body">
-                        <template is="dom-repeat" items="[[_mapToArray(network.subnets, network.subnets.*)]]" as="subnet">
+                        <template is="dom-repeat" items="{{subnets}}" as="subnet">
                             <subnet-item subnet="[[subnet]]" itemindex="{{index}}"></subnet-item>
                         </template>
                     </div>
@@ -255,17 +197,20 @@
             behaviors: [
                 mistLoadingBehavior
             ],
-
             properties: {
                 model: {
-                    type: Object,
-                    notify: true
+                    type: Object
                 },
                 section: {
                     type: Object
                 },
                 network: {
                     type: Object
+                },
+                subnets: {
+                    type: Array,
+                    value: function () { return []; },
+                    computed: '_computeSubnets(network, network.subnets, network.subnets.*)'
                 },
                 hasSubnets: {
                     type: Boolean,
@@ -284,8 +229,12 @@
                     type: Array,
                     computed: '_computeNetworkTags(network, network.tags, network.tags.*, model.networks.*)'
                 },
-                itemArray: Array,
-                hidden: Boolean
+                itemArray: {
+                    type: Array
+                },
+                hidden: {
+                    type: Boolean
+                }
             },
             listeners: {
                 'network-deleted': '_networkDeleted'
@@ -294,7 +243,7 @@
                 '_change(network)'
             ],
             _displayUser: function (id, members) {
-                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                return this.model && id && this.model.members && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _change: function (item) {
                 if (item)
@@ -308,7 +257,9 @@
                     return this.model.clouds[this.network.cloud].title
             },
             _computeNetworkTags: function (network, networkTags) {
-                return Object.entries(this.network.tags).map(([key, value]) => ({key,value}));
+                if (this.network) {
+                    return Object.entries(this.network.tags).map(([key, value]) => ({key,value}));
+                }
             },
             _editNetwork: function (e) {
                 console.log(e);
@@ -323,12 +274,13 @@
                 });
             },
             _handleNetworDeletekAjaxResponse: function (e) {
-                this.fire('go-to', {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                     url: '/networks'
-                });
+                } }));
+
             },
             _showDialog: function (info) {
-                var dialog = this.querySelector('dialog-element');
+                var dialog = this.shadowRoot.querySelector('dialog-element');
                 for (var i in info) {
                     dialog[i] = info[i];
                 }
@@ -337,13 +289,14 @@
             _computeIsloading: function (network) {
                 return !this.network ? true : false;
             },
-            _mapToArray: function(subnets) {
-                return mapToArray(subnets);
+            _computeSubnets: function(network, subnets) {
+                return Object.values(this.network && this.network.subnets || {});
             },
             _networkDeleted: function(e) {
                 console.log(e);
                 if (!this.hidden && e.detail.responseURL.endsWith(this.network.id))
-                    this.fire('go-to', {url: '/networks'});
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/networks'} }));
+
             }
         });
     </script>

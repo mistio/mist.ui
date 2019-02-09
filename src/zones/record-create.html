@@ -2,17 +2,15 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../app-form/app-form.html">
 
-<dom-module id="record-add">
+<dom-module id="record-create">
     <template>
         <style include="shared-styles forms single-page">
-        :host {
-            display: block;
-        }
-        
         #content {
             max-width: 900px;
         }
@@ -30,7 +28,7 @@
             right: 0;
         }
         
-        :host >::content paper-input-container {
+        :host >::slotted(paper-input-container) {
             padding-top: 16px;
             padding-bottom: 16px;
         }
@@ -41,7 +39,7 @@
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
                     <h2>
-                        Add Record
+                        Create Record
                     </h2>
                     <div class="subtitle">
                     </div>
@@ -50,11 +48,11 @@
             <paper-material>
                 <div class="grid-row">
                     <paper-dropdown-menu class="dropdown-block l6 xs12" label="Choose Record Type" horizontal-align="left">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{selectedRecordType}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{selectedRecordType}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[recordTypes]]" as="recordType">
                                 <paper-item value="[[recordType]]">[[recordType]]</paper-item>
                             </template>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                 </div>
             </paper-material>
@@ -63,7 +61,7 @@
                     <p>Depending on the record type there maybe needed parameters. Choose a record type to continue.</p>
                 </div>
                 <div hidden$=[[!selectedRecordType]]>
-                    <app-form fields="[[fields]]" form="[[record]]" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]/records" on-response="_handleAddRecordResponse" on-error="_handleError"></app-form>
+                    <app-form fields="[[fields]]" form="[[record]]" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]/records" on-response="_handleCreateRecordResponse" on-error="_handleError"></app-form>
                 </div>
             </paper-material>
         </div>
@@ -73,7 +71,7 @@
             'use strict';
 
             Polymer({
-                is: 'record-add',
+                is: 'record-create',
 
                 properties: {
                     section: {
@@ -106,13 +104,11 @@
                                 rdata: '',
                                 ttl: 3600
                             }
-                        },
-                        notify: true
+                        }
                     },
                     fields: {
                         type: Array,
-                        value: [],
-                        notify: true
+                        value: function () { return []; }
                     },
                     fieldsA: {
                         type:Array,
@@ -466,11 +462,13 @@
                 }
                 this.updateFields();
             },
-            _handleAddRecordResponse: function(e){
+            _handleCreateRecordResponse: function(e){
                 var response = YAML.parse(e.detail.xhr.response);
-                this.fire('toast',{msg:'Record was created successfully.',duration:3000});
-                var url = document.querySelector('app-location').path;
-                this.fire('go-to', {url: url.substring(0, url.indexOf("/+add"))});
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Record was created successfully.',duration:3000} }));
+
+                var url = document.location.pathname;
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: url.substring(0, url.indexOf("/+create"))} }));
+
             },
             _handleError: function(e) {
                 console.log(e);

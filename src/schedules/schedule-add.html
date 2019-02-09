@@ -8,10 +8,6 @@
 <dom-module id="schedule-add">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
-                display: block;
-            }
-
             #content {
                 max-width: 900px;
             }
@@ -29,7 +25,7 @@
                 right: 0;
             }
 
-            app-form::content #schedule_entry_interval_period {
+            app-form::slotted(#schedule_entry_interval_period) {
                 width: 70px;
             }
 
@@ -112,12 +108,49 @@
             is: 'schedule-add',
 
             properties: {
-                section: Object,
-                model: Object,
-                schedule: Object,
+                section: {
+                    type: Object
+                },
+                model: {
+                    type: Object
+                },
+                schedule: {
+                    type: Object
+                },
+                currency: {
+                    type: Object
+                },
                 fields: {
                     type: Array,
-                    value: [{
+                    computed: '_computeFields(currency)',
+                    notify: true
+                },
+                actions: {
+                    type: Array,
+                    computed: "_computeActions(model.machines)"
+                },
+                docs: {
+                    type: String,
+                    value: ''
+                }
+            },
+            observers: [
+                '_fieldsChanged(fields.*)',
+                '_updateFields(fields, model.*)'
+            ],
+            listeners: {
+                'add-input': 'addInput'
+            },
+            ready: function(){
+                if (!this.docs) {
+                    for (var i=0; i < this.fields.length; i++) {
+                        this.fields[i].helpHref = '';
+                    }
+                }
+            },
+            _computeFields: function(currency) {
+                if (currency) {
+                    return [{
                         name: "name",
                         label: "Name *",
                         type: "text",
@@ -276,11 +309,11 @@
                         defaultValue: "",
                         show: true,
                         required: false,
-                        suffix: '$/month',
+                        suffix: this.currency.sign+'/month',
                         pattern: "[0-9]*",
                         errorMessage: "Please enter numbers only!",
                         excludeFromPayload: true,
-                        helptext: "Apply an extra filter of costing more than a certain ammount of $ per month",
+                        helptext: "Apply an extra filter of costing more than a certain ammount of "+this.currency.sign+" per month",
                         class: "bind-top background",
                     }, {
                         name: "conditions",
@@ -457,30 +490,9 @@
                             fieldName: "schedule_type",
                             fieldValues: ["interval", "crontab"]
                         }
-                    }],
-                    notify: true
-                },
-                actions: {
-                    type: Array,
-                    computed: "_computeActions(model.machines)"
-                },
-                docs: {
-                    type: String,
-                    value: ''
-                }
-            },
-            observers: [
-                '_fieldsChanged(fields.*)',
-                '_updateFields(fields, model.*)'
-            ],
-            listeners: {
-                'add-input': 'addInput'
-            },
-            ready: function(){
-                if (!this.docs) {
-                    for (var i=0; i < this.fields.length; i++) {
-                        this.fields[i].helpHref = '';
-                    }
+                    }]
+                } else {
+                    return [];
                 }
             },
             _computeActions: function (machines) {
@@ -509,13 +521,15 @@
 
                         if (f.name == "machines_uuids") {
                             f.options = this.model && this.model.machines && Object.keys(this.model.machines).map(function(m) {
-                                var machine = _this.model.machines[m];
-                                return {
-                                    id: m,
-                                    name: machine.name,
-                                    img: 'assets/providers/provider-' + _this.model.clouds[machine.cloud].provider.replace('_', '') + '.png'
-                                }
-                            }) || [];
+                                    var machine = _this.model.machines[m];
+                                    if (machine) {
+                                        return {
+                                            id: m,
+                                            name: machine.name,
+                                            img: 'assets/providers/provider-' + _this.model.clouds[machine.cloud].provider.replace('_', '') + '.png'
+                                        }
+                                    }
+                                }) || [];
                             this._updateCheckboxes();
                         }
 
@@ -645,6 +659,7 @@
                             this.set('fields.' + maxcountInd + '.disabled', false);
                             this.set('fields.' + maxcountInd + '.value', "");
                         } else if (changeRecord.value == "one_off") {
+                            // TODO: document.getElementById does not work
                             entry = document.getElementById("app-form-scheduleAddForm-schedule_entry_one_off").textContent.split(',')[
                                 1] ? document.getElementById("app-form-scheduleAddForm-schedule_entry_one_off").textContent.split(
                                 ',')[1].trim() + ":00" : "";
@@ -818,9 +833,10 @@
             _handleAddScheduleResponse: function (e) {
                 var response = YAML.parse(e.detail.xhr.response);
                 this.async(function () {
-                    this.fire('go-to', {
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                         url: '/schedules/' + response.id
-                    });
+                    } }));
+
                 }, 500)
             },
             _handleError: function (e) {
@@ -851,12 +867,13 @@
                     var qParams = {
                         'origin': origin
                     }
-                    this.fire('go-to', {
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                         url: '/scripts/+add',
                         params: qParams
-                    });
+                    } }));
+
                 }
-            },
+            }
         });
     </script>
 </dom-module>

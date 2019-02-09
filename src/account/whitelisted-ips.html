@@ -8,11 +8,7 @@
 
 <dom-module id="whitelisted-ips">
     <template>
-        <style is="custom-style" include="shared-styles forms">
-            :host {
-                display: block;
-            }
-
+        <style  include="shared-styles forms">
             :host paper-material {
                 display: block;
                 padding: 0;
@@ -64,7 +60,7 @@
                 margin: 32px 0 8px 0;
                 width: 100%;
             }
-            paper-progress.progresserror ::content #primaryProgress {
+            paper-progress.progresserror ::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
             .errormsg-container {
@@ -184,15 +180,17 @@
                 },
 
                 _showDialog: function(info) {
-                    var dialog = this.querySelector('dialog-element#saveIps');
-                    for (var i in info) {
-                        dialog[i] = info[i];
+                    var dialog = this.$.saveIps;
+                    if (info) {
+                        for (var i in info) {
+                            dialog[i] = info[i];
+                        }
                     }
                     dialog._openDialog();
                 },
 
                 _proceedToSaveWhitelist: function(e){
-                    if (!e || (e.detail.response.confirmed && e.detail.reason == "proceed.saveips")){
+                    if (!e || (e.detail.response == 'confirm' && e.detail.reason == "proceed.saveips")){
                         var payloadIPs = this.whiteIps.filter(function(ip){
                                 return ip.cidr && ip.cidr.length;
                             });
@@ -226,7 +224,7 @@
                 _updateFormReady: function(user, whitelist){
                     // console.log('_updateFormReady', whitelist);
                     // listen to array length changes
-                    if (whitelist.keySplices && whitelist.keySplices.length)
+                    if (whitelist && whitelist.keySplices && whitelist.keySplices.length)
                         this.set('ipsFormReady', true);
                 },
 
@@ -251,14 +249,15 @@
                 },
 
                 _handleIpResponse: function() {
-                    this.fire('toast',{msg:"IPs saved succesfully!",duration:3000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"IPs saved succesfully!",duration:3000} }));
+
                     this.set('ipsFormReady', false);
                 },
                 _handleIpError: function(e) {
                     this.set('ipError', true);
                     this.set('ipsFormReady', false);
                     this.$.iperrormsg.textContent = e.detail.request.xhr.responseText;
-                },
+                }
             });
         })();
     </script>

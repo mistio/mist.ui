@@ -5,7 +5,6 @@
     <template>
         <style>
         :host {
-            display: block;
             margin: 10px 10px 10px 0;
             cursor: pointer;
             border-radius: 4px;
@@ -170,9 +169,15 @@
         is: 'item-card',
         enableCustomStyleProperties: true,
         properties: {
-            item: Object,
-            color: String,
-            section: Object
+            item: {
+                type: Object
+            },
+            color: {
+                type: String
+            },
+            section: {
+                type: Object
+            }
         },
 
         observers: [
@@ -199,9 +204,10 @@
 
         _tagClicked: function(e) {
             e.stopPropagation();
-            this.fire('update-params', {
+            this.dispatchEvent(new CustomEvent('update-params', { bubbles: true, composed: true, detail: {
                 tag: e.currentTarget.name
-            });
+            } }));
+
         },
         _computeStyle: function(color) {
             return 'background-color:' + color;
@@ -230,8 +236,8 @@
                 sharedActionMenu = document.createElement('item-action-menu');
                 sharedActionMenu.classList.add('cards');
                 sharedActionMenu.classList.add('hidden');
-                sharedActionMenu.addEventListener('mouseenter', mouseEnter);
-                sharedActionMenu.addEventListener('mouseleave', mouseLeave);
+                sharedActionMenu.addEventListener('mouseenter', mouseEnter, {passive: true});
+                sharedActionMenu.addEventListener('mouseleave', mouseLeave, {passive: true});
             }
             if (!sharedActionMenu.parentNode) {
                 Polymer.dom(this.parentNode).appendChild(sharedActionMenu);

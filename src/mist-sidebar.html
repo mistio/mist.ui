@@ -1,11 +1,9 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/pushstate-anchor/pushstate-anchor.html">
 <link rel="import" href="../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
-
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="section-symbol/section-symbol.html">
 <link rel="import" href="tag-link/tag-link.html">
 <link rel="import" href="theme-color/theme-color.html">
-
 <dom-module id="mist-sidebar">
     <template>
         <style include="shared-styles">
@@ -27,7 +25,8 @@
             transition: left 350ms ease-in-out;
             height: 90vh;
         }
-        :host[smallscreen]{
+
+        :host([smallscreen]) {
             left: 0;
             padding-top: 16px;
             background: #fff;
@@ -36,29 +35,32 @@
             height: calc(100vh - 64px);
         }
 
-        :host[smallscreen][isclosed],
-        :host[isclosed] {
+        :host([smallscreen])[isclosed],
+        :host([isclosed]) {
             left: -210px;
         }
 
-        :host[smallscreen]:not([isclosed]),
-        :host:not([isclosed]) {
+        :host([smallscreen]):not([isclosed]),
+        :host(:not([isclosed])) {
             left: 0;
         }
 
-        ::content app-toolbar {
-            --paper-toolbar-background: #eee; /*var(--base-background-color);*/
+        ::slotted(app-toolbar) {
+            --paper-toolbar-background: #eee;
+            /*var(--base-background-color);*/
         }
 
-        ::content .content {
-            /*@apply(--layout-vertical);*/
+        ::slotted(.content) {
+            /*@apply --layout-vertical;*/
             display: flex;
             flex-direction: column;
             height: auto;
         }
 
         mist-sidebar app-toolbar {
-            --paper-toolbar-background: #eee; /*var(--base-background-color);*/
+            --paper-toolbar-background: #eee;
+
+            /*var(--base-background-color);*/
             --paper-toolbar: {
                 box-sizing: border-box;
             }
@@ -124,10 +126,10 @@
         }
 
         #section-list {
-            padding: 20px 0 10px;
+            padding: 20px 0 0px;
         }
 
-        :host[smallscreen] #section-list {
+        :host([smallscreen]) #section-list {
             padding: 0 0 10px;
         }
 
@@ -149,11 +151,11 @@
         }
 
         #section-list .section[active] {
-            background: rgba(0,0,0,0.03);
+            background: rgba(0, 0, 0, 0.03);
             border-left: 5px solid;
         }
 
-        #section-list .section[active] ::content iron-icon {
+        #section-list .section[active] ::slotted(iron-icon) {
             color: inherit;
         }
 
@@ -166,11 +168,15 @@
             margin-right: 12px;
         }
 
+        #section-list a:not([active]) {
+            color: rgba(0, 0, 0, .54);
+        }
+
         #section-list a:not([active]) span {
             color: rgba(0, 0, 0, .87);
         }
 
-        #section-list a:not([active]) ::content iron-icon {
+        #section-list a:not([active]) ::slotted(iron-icon) {
             opacity: 0.32;
         }
 
@@ -194,7 +200,7 @@
             text-transform: uppercase;
         }
 
-        .tags tag-link:last-of-type + span {
+        .tags tag-link:last-of-type+span {
             display: none;
         }
 
@@ -208,38 +214,93 @@
         a.section:focus {
             outline: 0;
         }
+
         .sidebar-sep {
             opacity: 0.32;
         }
+
         @media (max-width: 400px) {
-            :host[smallscreen] {
+            :host([smallscreen]) {
                 height: calc(100vh - 56px);
             }
         }
+
         /* <450px logo is hidden */
         @media (min-width: 451px) {
-            #section-list a:first-of-type, 
+
+            #section-list a:first-of-type,
             #section-list hr.sidebar-sep:first-of-type {
                 display: none;
             }
         }
-        a#machines  {color: var(--machines-section-color);}
-        a#images    {color: var(--images-section-color);}
-        a#dashboard {color: var(--dashboard-section-color);}
-        a#stacks    {color: var(--stacks-section-color);}
-        a#keys      {color: var(--keys-section-color);}
-        a#networks  {color: var(--networks-section-color);}
-        a#volumes   {color: var(--volumes-section-color);}
-        a#tunnels   {color: var(--tunnels-section-color);}
-        a#zones     {color: var(--zones-section-color);}
-        a#scripts   {color: var(--scripts-section-color);}
-        a#schedules {color: var(--schedules-section-color);}
-        a#templates {color: var(--templates-section-color);}
-        a#incidents {color: var(--incidents-section-color);}
-        a#teams     {color: var(--teams-section-color);}
-        a#members   {color: var(--members-section-color);}
-        a#my-account{color: var(--my-account-section-color);}
-        a#insights  {color: var(--insights-section-color);}
+
+        a#machines {
+            color: var(--machines-section-color);
+        }
+
+        a#images {
+            color: var(--images-section-color);
+        }
+
+        a#dashboard {
+            color: var(--dashboard-section-color);
+        }
+
+        a#stacks {
+            color: var(--stacks-section-color);
+        }
+
+        a#keys {
+            color: var(--keys-section-color);
+        }
+
+        a#networks {
+            color: var(--networks-section-color);
+        }
+
+        a#volumes {
+            color: var(--volumes-section-color);
+        }
+
+        a#tunnels {
+            color: var(--tunnels-section-color);
+        }
+
+        a#zones {
+            color: var(--zones-section-color);
+        }
+
+        a#scripts {
+            color: var(--scripts-section-color);
+        }
+
+        a#schedules {
+            color: var(--schedules-section-color);
+        }
+
+        a#templates {
+            color: var(--templates-section-color);
+        }
+
+        a#incidents {
+            color: var(--incidents-section-color);
+        }
+
+        a#teams {
+            color: var(--teams-section-color);
+        }
+
+        a#members {
+            color: var(--members-section-color);
+        }
+
+        a#my-account {
+            color: var(--my-account-section-color);
+        }
+
+        a#insights {
+            color: var(--insights-section-color);
+        }
         </style>
         <div class="content">
             <div id="section-list">
@@ -259,7 +320,7 @@
                                 </div>
                             </a>
                             <template is="dom-if" if="[[item.hr]]">
-                                <hr class="sidebar-sep"/>
+                                <hr class="sidebar-sep" />
                             </template>
                         </template>
                     </template>
@@ -314,32 +375,32 @@
         },
         observers: [],
         listeners: {
-            'iron-overlay-closed': 'closeSidebar', 
+            'iron-overlay-closed': 'closeSidebar',
         },
         attached: function() {
             this.updateResize();
         },
-        updateResize: function(e){
+        updateResize: function(e) {
             console.log('updateResize');
             var that = this;
             if (this.smallscreen)
                 this.closeSidebar();
-            else 
+            else
                 this.openSidebar();
         },
-        closeSidebar: function(){
+        closeSidebar: function() {
             // console.log('close sidebar');
             if (this.smallscreen)
                 this.close(); //control brackdrop
             this.set('isclosed', true);
         },
-        openSidebar: function(){
+        openSidebar: function() {
             // console.log('open sidebar')
             if (this.smallscreen)
                 this.open(); //control brackdrop
             this.set('isclosed', false);
         },
-        toggleSidebar: function(){
+        toggleSidebar: function() {
             console.log('toggle sidebar', this.isclosed, this.smallscreen);
             if (this.smallscreen)
                 this.toggle(); //control brackdrop
@@ -355,7 +416,7 @@
             return a === b;
         },
         _computeHasStacks: function(stacksArray) {
-            return stacksArray.length > 0;
+            return stacksArray ? stacksArray.length > 0 : false;
         },
         _getSections: function(sections) {
             return this.model.sectionsArray;
@@ -365,13 +426,16 @@
                 return true;
             return false;
         },
-        clearSearch: function(e){
-            this.fire('preserve-filters');
+        clearSearch: function(e) {
+            this.dispatchEvent(new CustomEvent('preserve-filters'));
         },
-        _toArray: function (x, z) {
-            return Object.keys(this.model.sections).map(y => this.model.sections[y])
+        _toArray: function(x) {
+            if (this.model.sections) {
+                return Object.keys(this.model.sections).map(y => this.model.sections[y])
+            }
+            return [];
         },
-        _getSectionCount: function (name, sections) {
+        _getSectionCount: function(name, sections) {
             return this.model.sections[name].count;
         }
     });

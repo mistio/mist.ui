@@ -1,12 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <dom-module id="key-edit">
     <template>
         <style include="shared-styles dialogs">
             :host {
-                display: block;
             }
 
             paper-card {
@@ -25,30 +25,29 @@
             }
         </style>
 
-        <paper-dialog id="editKeyModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Rename Key</h2>        
-            <paper-dialog-scrollable>
-                <p class="note">Alpha-numeric characters only.</p>
-                <p>
-                    <paper-input id="name" label="Name" required allowed-pattern="[A-Za-z0-9]" error-message="Please enter key's name" value="{{newKey.name}}"></paper-input>
-                </p>
-                <div class="clearfix btn-group">
-                    <paper-button dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="submit-btn btn-block" disabled$="[[!formReady]]" raised on-tap="_submitForm">Submit</paper-button>
+        <vaadin-dialog id="editKeyModal">
+            <template>
+                <h2>Rename Key</h2>        
+                <div class="paper-dialog-scrollable">
+                    <p class="note">Alpha-numeric characters only.</p>
+                    <p>
+                        <paper-input id="name" label="Name" required allowed-pattern="[A-Za-z0-9]" error-message="Please enter key's name" value="{{newKey.name}}"></paper-input>
+                    </p>
+                    <div class="clearfix btn-group">
+                        <paper-button on-tap="_dismissDialog">Cancel</paper-button>
+                        <paper-button class="submit-btn btn-block" disabled$="[[!formReady]]" raised on-tap="_submitForm" dialog-confirm>Submit</paper-button>
+                    </div>
                 </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
 
         <iron-ajax id="keyEditAjaxRequest" url="/api/v1/keys/[[key.id]]" method="PUT" on-response="_handleKeyEditAjaxResponse" on-error="_handleKeyEditAjaxError"></iron-ajax>
     </template>
 
     <script>
-        (function() {
-            'use strict';
-
             Polymer({
                 is: 'key-edit',
-
+                behaviors: [MistListActionsBehavior],
                 properties: {
                     key: {
                         type: Object
@@ -68,7 +67,7 @@
                     }
                 },
                 listeners: {
-                    'iron-overlay-closed': '_modalClosed'
+                    // 'iron-overlay-closed': '_modalClosed'
                 },
                 _computeNewKey: function(key) {
                     if (key) {
@@ -91,19 +90,18 @@
                     return formReady;
                 },
                 _openEditKeyModal: function(e) {
-                    this.$.editKeyModal.open();
+                    this.$.editKeyModal.opened = true;
                 },
                 _closeEditKeyModal: function(e) {
-                    this.$.editKeyModal.close();
+                    this.$.editKeyModal.opened = false;
                 },
                 _modalClosed: function() {
                     this._formReset();
                 },
                 _submitForm: function(e) {
-                    // this.fire('updateSelectedKey', {
+                    // this.dispatchEvent(new CustomEvent('updateSelectedKey', { bubbles: true, composed: true, detail: {
                     //     key: this.key
-                    // });
-
+                    // } }));
                     this.$.keyEditAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.keyEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.keyEditAjaxRequest.body = {
@@ -121,6 +119,5 @@
                     this._closeEditKeyModal();
                 }
             });
-        })();
     </script>
 </dom-module>

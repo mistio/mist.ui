@@ -1,15 +1,13 @@
 <link rel="import" href="../../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
-
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="token-item.html">
-
 <dom-module id="tokens-list">
     <template>
-        <style is="custom-style" include="shared-styles dialogs forms lists"></style>
-        <style >
+        <style include="shared-styles dialogs forms lists">
             :host {
-                display: block;
             }
 
             paper-material {
@@ -26,6 +24,7 @@
 
             .flexchild {
                 @apply --layout-flex;
+                display: flex;
             }
             .info-head {
                 padding: 8px 16px;
@@ -62,9 +61,6 @@
             .error {
                 color: var(--red-color);
             }
-            paper-item {
-                align-items: baseline;
-            }
         </style>
         <paper-material elevation="1">
             <div class="grid-row">
@@ -88,72 +84,71 @@
                     </div>
                 </div>
                 <div id="error" class="error" hidden$="[[!hasError]]"></div>
-                <paper-button on-tap="createToken" id="Create API Token"class="blue create-token">Create API Token</paper-button>
+                <paper-button on-tap="createToken" id="Create API Token" class="blue create-token">Create API Token</paper-button>
                 <paper-spinner active="{{loading}}"></paper-spinner>
-
-                <paper-dialog id="createTokenDialog" with-backdrop>
-                    <h2>Create API Token</h2>
-
-                    <paper-input id="tokenName" value="{{newToken.name::input}}" label="Token Name"></paper-input>
-
-                    <paper-dropdown-menu id="tokenExpires" label="Expires After">
-                         <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{newToken.ttl}}" class="dropdown-content">
-                            <paper-item value="0">Never</paper-item>
-                            <paper-item value="86400">1 Day</paper-item>
-                            <paper-item value="604800">1 Week</paper-item>
-                            <paper-item value="2592000">1 Month</paper-item>
-                            <paper-item value="31104000">1 Year</paper-item>
-                         </paper-menu>
-                    </paper-dropdown-menu>
-
-                    <paper-dropdown-menu label="Context">
-                         <paper-menu slot="dropdown-content" id="tokenContexts" class="dropdown-content">
-                             <template is="dom-repeat" items="[[user.orgs]]" as="org">
-                                <paper-item value="[[org.id]]">[[org.name]]</paper-item>
-                            </template>
-                         </paper-menu>
-                    </paper-dropdown-menu>
-
-                    <paper-input id="pass" value="{{newToken.password::input}}" label="Password *" type="password"></paper-input>
-
-                    <p>* Password is required to create a token</p>
-
-                    <div class="buttons">
-                        <paper-button dialog-dismiss>Cancel</paper-button>
-                        <paper-button id="Create" autofocus on-tap="createTokenSubmit" class="blue" disabled="[[!formReady]]">Create </paper-button>
-                    </div>
-                </paper-dialog>
+                <vaadin-dialog id="createTokenDialog" theme="mist-dialog" with-backdrop>
+                    <template>
+                        <h2>Create API Token</h2>
+                        <paper-input id="tokenName" value="{{newToken.name::input}}" label="Token Name"></paper-input>
+                        <paper-dropdown-menu id="tokenExpires" label="Expires After">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newToken.ttl}}" class="dropdown-content">
+                                <paper-item value="0">Never</paper-item>
+                                <paper-item value="86400">1 Day</paper-item>
+                                <paper-item value="604800">1 Week</paper-item>
+                                <paper-item value="2592000">1 Month</paper-item>
+                                <paper-item value="31104000">1 Year</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu label="Context">
+                            <paper-listbox slot="dropdown-content" id="tokenContexts" class="dropdown-content">
+                                <template is="dom-repeat" items="[[user.orgs]]" as="org">
+                                    <paper-item value="[[org.id]]">[[org.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-input id="pass" value="{{newToken.password::input}}" label="Password *" type="password"></paper-input>
+                        <p>* Password is required to create a token</p>
+                        <div class="buttons">
+                            <paper-button dialog-dismiss>Cancel</paper-button>
+                            <paper-button id="Create" autofocus on-tap="createTokenSubmit" class="blue" disabled="[[!formReady]]">Create </paper-button>
+                        </div>
+                    </template>
+                </vaadin-dialog>
             </div>
         </paper-material>
-
-        <paper-dialog id="copyToken" modal>
-            <h2>Copy your Token</h2>
-            <p>Grab your token below. This will be the last time that it will be visible to anybody.</p>
-            <paper-textarea id="tokenValue" value=""></paper-textarea>
-            <div class="buttons">
-                <paper-button class="blue" dialog-dismiss on-tap="resetAndClear">OK</paper-button>
-            </div>
-        </paper-dialog>
-
+        <vaadin-dialog id="copyToken" theme="mist-dialog" with-backdrop>
+            <template>
+                <h2>Copy your Token</h2>
+                <p>Grab your token below. This will be the last time that it will be visible to anybody.</p>
+                <paper-textarea id="tokenValue" value="[[tokenValue]]"></paper-textarea>
+                <div class="buttons">
+                    <paper-button class="blue" dialog-dismiss on-tap="copied">OK</paper-button>
+                </div>
+            </template>
+        </vaadin-dialog>
         <iron-ajax id="getTokensAjax" method="GET" url="/api/v1/tokens" auto on-response="getTokens" on-error="getTokensError" handle-as="json"></iron-ajax>
-
         <iron-ajax id="createTokenAjax" method="POST" url="/api/v1/tokens" loading="{{loading}}" on-request="createTokenRequest" on-response="createTokenResponse" on-error="createTokenError" handle-as="xml"></iron-ajax>
-
     </template>
     <script>
-        (function() {
-            'use strict';
+    (function() {
+        'use strict';
 
-            Polymer({
-                is: 'tokens-list',
+        Polymer({
+            is: 'tokens-list',
 
-                properties: {
-                  user: Object,
-                  org: Object,
-                  tokens: Array,
-                  newToken: {
+            properties: {
+                user: {
+                    type: Object
+                },
+                org: {
+                    type: Object
+                },
+                tokens: {
+                    type: Array
+                },
+                newToken: {
                     type: Object,
-                    value: function(){
+                    value: function() {
                         return {
                             name: '',
                             ttl: '',
@@ -162,87 +157,98 @@
                             email: ''
                         }
                     }
-                  },
-                  hasError: {
+                },
+                hasError: {
                     type: Boolean,
                     value: false
-                  }
                 },
-                listeners: {
-                    'input': 'hideErrors',
-                    'token-revoked': 'getTokensAgain',
-                    'token-revoking-error': 'showError'
-                },
-                observers: [
-                    '_orgUserChanged(org, user)'
-                ],
-                attached: function(){
-                },
-                createToken: function(e){
-                    this.$.createTokenDialog.open();
-                },
-                createTokenSubmit: function(e){
-                    var payload = this.newToken;
-                    this.$.createTokenAjax.headers["Content-Type"] = 'application/json';
-                    this.$.createTokenAjax.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.createTokenAjax.body = payload;
-                    this.$.createTokenAjax.generateRequest();
-                },
-                createTokenResponse: function(e){
-                    this.$.createTokenDialog.close();
-                    var res = JSON.parse(e.detail.xhr.response)
-                    this.$.tokenValue.value = res.token;
-                    this.$.copyToken.open();
-
-                    this.reset();
-                    this.getTokensAgain(e);
-                },
-                createTokenError: function(e){
-                    this.set("hasError", true);
-                    this.$.error.textContent = e.detail.request.xhr.responseText;
-                    this.$.createTokenDialog.close();
-                    this.reset();
-                },
-                getTokens: function(e){
-                    this.set('tokens', e.detail.response);
-                },
-                getTokensError: function(e){
-                    this.set("hasError", true);
-                    this.$.error.textContent = e.detail.error;
-                    this.$.createTokenDialog.close();
-                },
-                getTokensAgain: function(e){
-                    var that = this;
-                    this.async(function(){
-                        that.$.getTokensAjax.generateRequest();
-                    }, 100)
-                },
-                reset: function(){
-                    this.set('newToken.name', '');
-                    this.set('newToken.ttl', '');
-                    this.set('newToken.password', '');
-                },
-                copied: function(){
-                    this.reset();
-                    this.$.tokenValue.value = "";
-                },
-                showError: function(e){
-                    this.set("hasError", true);
-                    var error = e.detail.request.xhr.responseText;
-                    if (!error)
-                        error = e.detail.error;
-                    this.$.error.textContent = error;
-                    this.$.createTokenDialog.close();
-                },
-                hideErrors: function(){
-                    this.set('hasError', false);
-                },
-                _orgUserChanged: function(org, user){
-                    this.set('newToken.org_id', this.org.id);
-                    this.set('newToken.email', this.user.email);
-                    this.set('newToken.session.id', '');
+                tokenValue: {
+                    type: String
                 }
-            });
-        })();
+            },
+            listeners: {
+                'input': 'hideErrors',
+                'token-revoked': 'getTokensAgain',
+                'token-revoking-error': 'showError'
+            },
+            observers: [
+                '_orgUserChanged(org, user)'
+            ],
+            attached: function() {},
+            createToken: function(e) {
+                this.$.createTokenDialog.opened = true;
+            },
+            createTokenSubmit: function(e) {
+                var payload = this.newToken;
+                this.$.createTokenAjax.headers["Content-Type"] = 'application/json';
+                this.$.createTokenAjax.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.createTokenAjax.body = payload;
+                this.$.createTokenAjax.generateRequest();
+            },
+            createTokenResponse: function(e) {
+                this.$.createTokenDialog.opened = false;
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+                var res = JSON.parse(e.detail.xhr.response);
+                this.set('tokenValue', res.token);
+                this.getTokensAgain(e);
+                this.$.copyToken.opened = true;
+            },
+            createTokenError: function(e) {
+                this.set("hasError", true);
+                this.$.error.textContent = e.detail.request.xhr.responseText;
+                this.$.createTokenDialog.opened = false;
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+                this.reset();
+            },
+            getTokens: function(e) {
+                this.set('tokens', e.detail.response);
+            },
+            getTokensError: function(e) {
+                this.set("hasError", true);
+                this.$.error.textContent = e.detail.error;
+                this.$.createTokenDialog.opened = false;
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+            },
+            getTokensAgain: function(e) {
+                var that = this;
+                this.async(function() {
+                    that.$.getTokensAjax.generateRequest();
+                }, 100)
+            },
+            reset: function() {
+                this.set('newToken.name', '');
+                this.set('newToken.ttl', '');
+                this.set('newToken.password', '');
+                this.set('tokenValue', '');
+            },
+            copied: function() {
+                this.$.copyToken.opened = false;
+                this.reset();
+            },
+            showError: function(e) {
+                this.set("hasError", true);
+                var error = e.detail.request.xhr.responseText;
+                if (!error) {
+                    error = e.detail.error;
+                }
+                this.$.error.textContent = error;
+                this.$.createTokenDialog.opened = false;
+                // needed due to https://github.com/vaadin/vaadin-overlay/issues/49
+                // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+            },
+            hideErrors: function() {
+                this.set('hasError', false);
+            },
+            _orgUserChanged: function(org, user) {
+                if (org) {
+                    this.set('newToken.org_id', this.org.id);
+                }
+                if (user) {
+                    this.set('newToken.email', this.user.email);
+                }
+                this.set('newToken.session.id', '');
+            }
+        });
+    })();
     </script>
 </dom-module>

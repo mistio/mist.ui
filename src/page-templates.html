@@ -1,158 +1,153 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="templates/template-add.html">
 <link rel="import" href="templates/template-page.html">
 <link rel="import" href="templates/template-actions.html">
-
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
-<link rel="import" href="mist-actions.html">
 
 <dom-module id="page-templates">
     <template>
         <style include="shared-styles">
-            :host {
-                display: block;
+            [hidden] {
+                display: none !important;
             }
         </style>
         <app-route route="{{route}}" pattern="/:template" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <mist-list id="templatesList" selectable resizable column-menu multi-sort apiurl="/api/v1/templates" items="[[model.templatesArray]]"
-                name="Templates" selected-items="{{selectedItems}}" filtered-items-length="{{filteredItemsLength}}" combined-filter={{combinedFilter}}
-                frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.templates)]]
-                route={{route}} user-filter=[[model.sections.templates.q]] primary-field-name="id" filter-method="[[_ownerFilter()]]">
-                <mist-actions slot="action-buttons" actions="[[actions]]" type="template" items="[[selectedItems]]" model="[[model]]"></mist-actions>
-                <template-actions slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" org="[[model.org]]" members="[[model.membersArray]]"></template-actions>
-                <p slot="no-items-found">No templates found.</p>
-            </mist-list>
+            <template-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" org="[[model.org]]" members="[[model.membersArray]]">
+                <mist-list selectable resizable column-menu multi-sort
+                    apiurl="/api/v1/templates"
+                    id="templatesList"
+                    name="Templates"
+                    primary-field-name="id"
+                    frozen=[[_getFrozenColumn()]]
+                    visible=[[_getVisibleColumns()]]
+                    selected-items="{{selectedItems}}"
+                    sort-order=[[sortOrder]]
+                    renderers=[[_getRenderers()]]
+                    route={{route}}
+                    item-map="[[model.templates]]"
+                    actions=[[actions]]
+                    user-filter=[[model.sections.templates.q]]
+                    filter-method="[[_ownerFilter()]]"
+                    filtered-items-length="{{filteredItemsLength}}">
+                    <p slot="no-items-found">No templates found.</p>
+                </mist-list>
+            </template-actions>
             <div class="absolute-bottom-right">
                 <paper-fab id="templateAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
         <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
-        <template-page model="[[model]]" template-id="[[data.template]]" resource-id="[[data.template]]"
-            stacks="[[_getTemplateStacks(data.template, model.templates, model.stacks)]]" section="[[model.sections.templates]]"
-            hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
+        <template-page model="[[model]]" template-id="[[data.template]]" resource-id="[[data.template]]" stacks="[[_getTemplateStacks(data.template, model.templates, model.stacks, model.templates.*, model.stacks.*)]]" section="[[model.sections.templates]]" hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
     </template>
-
     <script>
-        Polymer({
-            is: 'page-templates',
-            behaviors: [
-                mistListsBehavior,
-                ownerFilterBehavior
-            ],
+    Polymer({
+        is: 'page-templates',
+        behaviors: [
+            mistListsBehavior,
+            ownerFilterBehavior
+        ],
 
-            properties: {
-                model: Object,
-                ownership: Boolean,
-                actions: {
-                    type: Array,
-                    notify: true
+        properties: {
+            model: {
+                type: Object
+            },
+            ownership: {
+                type: Boolean
+            },
+            actions: {
+                type: Array,
+                notify: true
+            },
+            selectedItems: {
+                type: Array,
+                notify: true
+            }
+        },
+
+        listeners: {
+            'action-finished': 'clearListSelection'
+        },
+        clearListSelection: function() {
+            this.set('selectedItems', []);
+        },
+        _isAddPageActive: function(path) {
+            return path == '/+add';
+        },
+        _isDetailsPageActive: function(path) {
+            return path && path != '/+add';
+        },
+        _isListActive: function(path) {
+            return !path;
+        },
+        _addResource: function(e) {
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+                url: this.model.sections.templates.add
+            } }));
+
+        },
+        _getTemplateStacks: function(id) {
+            return this.model.stacksArray.filter(
+                function(stack) {
+                    return stack.template == id;
                 },
-                selectedItems: {
-                    type: Array,
-                    notify: true
-                }
-            },
+                this);
+        },
+        _getFrozenColumn: function() {
+            return ['name'];
+        },
 
-            listeners: {
-                'select-action': 'selectAction',
-                'action-finished': 'clearListSelection',
-                'edit': '_edit'
-            },
-            clearListSelection: function () {
-                this.set('selectedItems', []);
-            },
-            _edit: function (e) {
-                e.stopImmediatePropagation();
-                this.fire('go-to', {
-                    url: '/templates/' + this.selectedItems[0].id
-                });
-                this.querySelector('template-page').fire('edit');
-            },
-            _isAddPageActive: function (path) {
-                return path == '/+add';
-            },
-            _isDetailsPageActive: function (path) {
-                if (path && path != '/+add' && this.querySelector('template-page'))
-                    this.querySelector('template-page').updateState();
-                return path && path != '/+add';
-            },
-            _isListActive: function (path) {
-                return !path;
-            },
-            _addResource: function (e) {
-                this.fire('go-to', {
-                    url: this.model.sections.templates.add
-                });
-            },
-            _getTemplateStacks: function (id) {
-                return this.model.stacksArray.filter(
-                    function (stack) {
-                        return stack.template == id;
-                    },
-                    this);
-            },
-            _getFrozenLogColumn: function () {
-                return ['name'];
-            },
+        _getVisibleColumns: function() {
+            var ret = ['exec_type', 'location_type', 'created_by', 'tags'];
+            if (this.model.org && this.model.org.ownership_enabled == true)
+                ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+            return ret;
+        },
 
-            _getVisibleColumns: function () {
-                var ret = ['exec_type', 'location_type', 'created_by', 'tags'];
-                if (this.model.org && this.model.org.ownership_enabled == true)
-                    ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-                return ret;
-            },
-
-            _getRenderers: function (templates) {
-                var _this = this;
-                return {
-                    'name': {
-                        'body': function (item, row) {
-                            return '<strong class="name">' + item + '</strong>';
-                        }
+        _getRenderers: function(templates) {
+            var _this = this;
+            return {
+                'name': {
+                    'body': function(item, row) {
+                        return '<strong class="name">' + item + '</strong>';
+                    }
+                },
+                'owned_by': {
+                    'title': function(item, row) {
+                        return 'owner';
                     },
-                    'owned_by': {
-                        'title': function (item, row) {
-                            return 'owner';
-                        },
-                        'body': function (item, row) {
-                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
-                        }
+                    'body': function(item, row) {
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                    }
+                },
+                'created_by': {
+                    'title': function(item, row) {
+                        return 'created by';
                     },
-                    'created_by': {
-                        'title': function (item, row) {
-                            return 'created by';
-                        },
-                        'body': function (item, row) {
-                            return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                    'body': function(item, row) {
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                    }
+                },
+                'tags': {
+                    'body': function(item, row) {
+                        var tags = item,
+                            display = "";
+                        for (key in tags) {
+                            display += "<span class='tag'>" + key;
+                            if (tags[key] != undefined && tags[key] != "")
+                                display += "=" + tags[key];
+                            display += "</span>";
                         }
-                    },
-                    'tags': {
-                        'body': function (item, row) {
-                            var tags = item,
-                                display = "";
-                            for (key in tags) {
-                                display += "<span class='tag'>" + key;
-                                if (tags[key] != undefined && tags[key] != "")
-                                    display += "=" + tags[key];
-                                display += "</span>";
-                            }
-                            return display;
-                        }
+                        return display;
                     }
                 }
-            },
-
-            selectAction: function (e) {
-                e.stopImmediatePropagation();
-                if (this.querySelector('template-actions')) {
-                    this.querySelector('template-actions').selectAction(e);
-                }
             }
-        });
+        }
+    });
     </script>
 </dom-module>

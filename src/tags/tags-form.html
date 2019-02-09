@@ -1,8 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 
@@ -12,7 +11,6 @@
     <template>
         <style include="shared-styles dialogs">
             :host {
-                display: block;
                 padding: 0;
                 margin: 0;
             }
@@ -35,17 +33,17 @@
                 width: 100%;
             }
 
-            paper-dialog {
+            vaadin-dialog {
                 min-width: 450px;
                 max-width: 100%;
             }
 
-            paper-button.add {
+            vaadin-button.add {
                 margin-left: 16px !important;
             }
 
             .pull-left {
-                float: let;
+                float: left;
             }
 
             .submit-btn.add {
@@ -76,13 +74,13 @@
                 width: calc(100% + 48px);
                 margin: 0 -24px;
             }
-            #progress paper-progress[error]>::content #primaryProgress {
+            #progress paper-progress[error]>::slotted(#primaryProgress) {
                 background-color: var(--red-color) !important;
             }
             paper-dialog-scrollable {
                 margin: 0;
             }
-            paper-dialog-scrollable::content #scrollable {
+            paper-dialog-scrollable::slotted(#scrollable) {
                 padding-right: 4px;
             }
             paper-button.keyboard-focus {
@@ -90,32 +88,33 @@
             }
         </style>
 
-        <paper-dialog id="tagsModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Tags</h2>
-            <paper-dialog-scrollable>
-                <div class="tag-list">
-                    <p hidden$="[[!showEmpty]]"><em>No tags. Save to clear all tags.</em></p>
-                    <template is="dom-repeat" items="[[tags]]" as="tag">
-                        <tag-item tag="[[tag]]" index=[[index]]></tag-item>
-                    </template>
+        <vaadin-dialog id="tagsModal" theme="mist-dialog" with-backdrop>
+            <template>
+                <h2>Tags</h2>
+                <div class="paper-dialog-scrollable">
+                    <div class="tag-list">
+                        <p hidden$="[[!showEmpty]]"><em>No tags. Save to clear all tags.</em></p>
+                        <template is="dom-repeat" items="[[tags]]" as="tag">
+                            <tag-item tag="[[tag]]" index=[[index]] on-tag-delete="_tagDeleteHandler" on-tag-change="_tagUpdate" existing-tag-keys="[[existingTagKeys]]" existing-tag-values="[[existingTagValues]]"></tag-item>
+                        </template>
+                    </div>
                 </div>
-            </paper-dialog-scrollable>
-            <paper-button class="submit-btn add" on-tap="_addTag">
-                <iron-icon icon="add"></iron-icon> Add Tag
-            </paper-button>
-            <div id="progress">
-                <paper-progress indeterminate hidden$="[[!showProgress]]"></paper-progress>
-                <paper-progress error hidden$="[[!hasError]]"></paper-progress>
-                <div class="errorarea" hidden$="[[!hasError]]">
-                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg" hidden$="[[!hasError]]"></span>
+                <paper-button class="submit-btn add" on-tap="_addTag">
+                    <iron-icon icon="add"></iron-icon> Add Tag
+                </paper-button>
+                <div id="progress">
+                    <paper-progress indeterminate hidden$="[[!showProgress]]"></paper-progress>
+                    <paper-progress error hidden$="[[!hasError]]"></paper-progress>
+                    <div class="errorarea" hidden$="[[!hasError]]">
+                        <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg" hidden$="[[!hasError]]">[[errormsg]]</span>
+                    </div>
                 </div>
-            </div>
-
-            <div class="clearfix bottom-actions xs12">
-                <paper-button class="pull-left" dialog-dismiss>Cancel</paper-button>
-                <paper-button class="submit-btn pull-right blue save" on-tap="_saveTags">Save</paper-button>
-            </div>
-        </paper-dialog>
+                <div class="clearfix bottom-actions xs12">
+                    <paper-button on-tap="_closeDialog">Cancel</paper-button>
+                    <paper-button class="submit-btn pull-right blue save" on-tap="_saveTags" dialog-confirm>Save</paper-button>
+                </div>
+            </template>
+        </vaadin-dialog>
         <iron-ajax id="tagsAjaxRequest" url="/api/v1/tags" method="POST" handle-as="xml" on-response="_handleTagsAjaxResponse" on-error="_handleTagsAjaxError"></iron-ajax>
     </template>
 
@@ -125,20 +124,40 @@
 
             Polymer({
                 is: 'tags-form',
-
                 properties: {
-                    resource: String,
-                    model: Object,
+                    resource: {
+                        type: String,
+                    },
+                    model: {
+                        type: Object
+                    },
+                    existingTags: {
+                        type: Array,
+                        computed: '_computeExistingTags(model.*)'
+                    },
+                    existingTagKeys: {
+                        type: Array,
+                        computed: '_computeExistingTagKeys(existingTags)'
+                    },
+                    existingTagValues: {
+                        type: Array,
+                        computed: '_computeExistingTagValues(existingTags)'
+                    },
                     items: {
                         type: Array,
-                        notify: true
+                        value: function() { return []; },
+                        observer: 'selectedItemsChanged'
                     },
-                    type: String,
+                    type: {
+                        type: String
+                    },
                     tags: {
-                        type: Array
+                        type: Array,
+                        value: function() { return []; },
                     },
                     tagsToDelete: {
-                        type: Array
+                        type: Array,
+                        value: function() { return []; },
                     },
                     hasError: {
                         type: Boolean,
@@ -151,46 +170,94 @@
                     showEmpty: {
                         type: Boolean,
                         computed: "_computeShowEmpty(tags, tags.length)",
-                        value: false,
-                        notify: true
+                        value: false
+                    },
+                    errormsg: {
+                        type: String
                     }
                 },
-                observers: [
-                    'selectedItemsChanged(items.splices)'
-                ],
                 listeners: {
-                    'iron-overlay-closed': '_modalClosed',
                     'tag-delete': '_tagDeleteHandler',
                     'tag-change': '_tagUpdate'
                 },
                 ready: function(){
-                    this.set('items', []);
-                    this.set('tags', []);
-                    this.set('tagsToDelete', []);
                 },
                 _openDialog: function(e) {
-                    this.querySelector('paper-dialog').open();
+                    this.shadowRoot.querySelector('vaadin-dialog').opened = true;
                 },
                 _closeDialog: function() {
-                    this.querySelector('paper-dialog').close();
+                    this.shadowRoot.querySelector('vaadin-dialog').opened = false;
                 },
-                _modalClosed: function(e) {
+                _modalReset: function(e) {
                     this.set('tagsToDelete', []);
                     this.set('showProgress', false);
                     this.set('hasError', false);
-                    this.$.errormsg.textContent = '';
+                    this.errormsg = '';
                 },
-                selectedItemsChanged: function(splices){
-                    // console.log('selectedItemsChanged', splices);
+                _computeExistingTags: function(model) {
+                    var existingTags = [];
+                    if (this.model) {
+                        // loop in taggable resources
+                        for (var resources in this.model) {
+                            if (['machines', 'clouds', 'stacks', 'volumes', 'networks', 'zones', 'keys', 'images', 'scripts', 'templates', 'schedules', 'schedules', 'teams'].indexOf(resources) > -1) {
+                                // loop in resources items
+                                for (var id in this.model[resources]) {
+                                    // loop in resources items with tags
+                                    if (this.model[resources][id] && this.model[resources][id].tags && Object.keys(this.model[resources][id].tags).length > 0) {
+                                        existingTags = this._addTags(existingTags, this.model[resources][id].tags);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return existingTags;
+                },
+                _computeExistingTagKeys: function(existingTags) {
+                    if (this.existingTags) {
+                        return this.existingTags.map(t=>Object.keys(t).join()).filter(function(v,i,s){
+                            return s.indexOf(v) === i;
+                        });
+                    }
+                    return [];
+                },
+                _computeExistingTagValues: function(existingTags) {
+                    if (this.existingTags) {
+                        return this.existingTags.map(t=>Object.values(t).join()).filter(function(v,i,s){return v && s.indexOf(v) === i;});
+                    }
+                    return [];
+                },
+                _addTags: function(arr, tags){
+                    if (arr && tags) {
+                        var keys = arr.map(tag => Object.keys(tag).join()) || [];
+                        for (var p in tags) {
+                            var index = keys.indexOf(p);
+                            if (index == -1 || (index > -1 && this._nonEqualTagValues(arr[index], tags[p])) ) {
+                                var obj = {};
+                                obj[p] = tags[p];
+                                arr.push( obj );
+                            }
+                        }
+                    }
+                    return arr;
+                },
+                _nonEqualTagValues: function(val1,val2){
+                    var val1 = val1 || '', val2 = val2 || '';
+                    return val1 != val2;
+                },
+                selectedItemsChanged: function(itemsNew, itemsOld){
                     // freeze updating of selectedItems when dialog is open
-                    if (!this.$.tagsModal.opened)
+                    // if (!this.$.tagsModal.opened)
+                    if (JSON.stringify(itemsNew) != JSON.stringify(itemsOld)) {
+                        console.log('selectedItemsChanged', itemsNew, itemsOld);
                         this._computeTags(this.items);
+                    }
                 },
                 _computeShowEmpty: function(tags, length){
-                    if (this.tags && this.tags.length>0)
+                    if (this.tags && this.tags.length>0) {
                         return false;
-                    else
+                    } else {
                         return true;
+                    }
                 },
                 _computeTags: function(lengths) {
                     var tags = this._computeCommonTags(this.items);
@@ -240,6 +307,7 @@
                     this.push('tags', newTag);
                 },
                 _tagDeleteHandler: function(e) {
+                    console.log('_tagDeleteHandler');
                     var tag = e.detail.tag,
                         index = this.tags.indexOf(tag);
                         this.splice('tags', index, 1);
@@ -265,7 +333,7 @@
                     var tin = this.tagsToDelete.find(function(t){
                         return t.key == tag.key;
                     })
-                    console.log('tin', tin);
+                    // console.log('tin', tin);
                     return tin ? true : false;
                 },
                 _saveTags: function() {
@@ -314,16 +382,18 @@
                     this.set('showProgress', true);
                 },
                 _handleTagsAjaxResponse: function(e) {
+                    console.log('_handleTagsAjaxResponse');
                     this._closeDialog();
-                    this.fire('action-finished', {success: true});
-                    this.fire('toast',{msg:'Tags were updated!',duration:3000});
+                    this._modalReset();
+                    this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {success: true} }));
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Tags were updated!',duration:3000} }));
                 },
                 _handleTagsAjaxError: function(e){
                     console.log('Tags Error',e, e.detail.request.xhr.responseText);
                     this.set('showProgress', false);
                     this.set('hasError', true);
-                    this.$.errormsg.textContent = e.detail.request.xhr.responseText;
-                },
+                    this.errormsg = e.detail.request.xhr.responseText;
+                }
             });
         })();
     </script>

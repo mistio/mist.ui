@@ -12,7 +12,6 @@
     <template>
         <style include="shared-styles dialogs">
             :host {
-                display: block;
                 width: 100%;
             }
 
@@ -70,7 +69,7 @@
                 width: calc(100% + 48px);
                 margin: 0 -24px;
             }
-            #progress paper-progress[error]>::content #primaryProgress {
+            #progress paper-progress[error]>::slotted(#primaryProgress) {
                 background-color: var(--red-color) !important;
             }
             paper-dialog-scrollable {
@@ -114,8 +113,12 @@
                 is: 'tags-list',
 
                 properties: {
-                    resource: String,
-                    model: Object,
+                    resource: {
+                        type: String,
+                    },
+                    model: {
+                        type: Object,
+                    },
                     items: {
                         type: Array,
                         notify: true
@@ -155,10 +158,10 @@
                     this.set('tagsToDelete', []);
                 },
                 _openDialog: function(e) {
-                    this.querySelector('paper-dialog').open();
+                    this.shadowRoot.querySelector('paper-dialog').open();
                 },
                 _closeDialog: function() {
-                    this.querySelector('paper-dialog').close();
+                    this.shadowRoot.querySelector('paper-dialog').close();
                 },
                 _modalClosed: function(e) {
                     this.set('tagsToDelete', []);
@@ -328,14 +331,15 @@
                 },
                 _handleTagsAjaxResponse: function(e) {
                     this._closeDialog();
-                    this.fire('toast',{msg:'Tags were updated!',duration:3000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Tags were updated!',duration:3000} }));
+
                 },
                 _handleTagsAjaxError: function(e){
                     console.log('Tags Error',e, e.detail.request.xhr.responseText);
                     this.set('showProgress', false);
                     this.set('hasError', true);
                     this.$.errormsg.textContent = e.detail.request.xhr.responseText;
-                },
+                }
             });
         })();
     </script>

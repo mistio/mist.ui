@@ -1,18 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
 <dom-module id="template-edit">
     <template>
         <style include="shared-styles dialogs">
             :host {
-                display: block;
-            }
-
-            paper-card {
-                display: block;
             }
 
             .submit-btn {
@@ -22,19 +16,21 @@
 
         </style>
 
-        <paper-dialog id="editTemplateModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Template</h2>            
-            <paper-dialog-scrollable>
-                <p>
-                    <paper-input id="name" label="Name" error-message="Please enter template's name" value="{{newTemplate.name}}"></paper-input>
-                    <paper-textarea id="description" label="Description (optional)" rows="5" max-rows="5" error-message="Please enter template's description" value="{{newTemplate.description}}"></paper-textarea>
-                </p>
-                <div class="clearfix btn-group">
-                    <paper-button class="close link" icon="clear" dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="submit-btn btn-block blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">Submit</paper-button>
+        <vaadin-dialog id="editTemplateModal" theme="mist-dialog" with-backdrop>
+            <template>
+                <h2>Edit Template</h2>            
+                <div class="paper-dialog-scrollable">
+                    <p>
+                        <paper-input id="name" label="Name" error-message="Please enter template's name" value="{{newTemplate.name}}"></paper-input>
+                        <paper-textarea id="description" label="Description (optional)" rows="5" max-rows="5" error-message="Please enter template's description" value="{{newTemplate.description}}"></paper-textarea>
+                    </p>
+                    <div class="clearfix btn-group">
+                        <paper-button class="close link" icon="clear" on-tap="_closeEditTemplateModal">Cancel</paper-button>
+                        <paper-button class="submit-btn btn-block blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">Submit</paper-button>
+                    </div>
                 </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
 
         <iron-ajax id="editTemplateAjax" url="/api/v1/templates/[[template._id]]" method="PUT" on-request="_editTemplateAjax" on-response="_ajaxResponse"></iron-ajax>
     </template>
@@ -92,10 +88,10 @@
                     return formReady;
                 },
                 _openEditTemplateModal: function(e) {
-                    this.$.editTemplateModal.open();
+                    this.$.editTemplateModal.opened = true;
                 },
                 _closeEditTemplateModal: function(e) {
-                    this.$.editTemplateModal.close();
+                    this.$.editTemplateModal.opened = false;
                 },
                 _modalClosed: function() {
                     this._formReset();

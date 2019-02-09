@@ -4,7 +4,8 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 
@@ -12,8 +13,11 @@
   <template>
     <style include="shared-styles">
       :host {
-        display: inline;
         color: rgba(255, 255, 255, 0.87);
+      }
+      :host ::slotted(mist-list-actions) {
+        width: 100%;
+        fill: #fff;
       }
     </style>
 
@@ -22,6 +26,10 @@
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
 
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
+
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
 
   </template>
   <script>
@@ -61,15 +69,22 @@
           type: String,
           value: 'network'
         },
-        members: Array,
-        user: String,
-        org: Object
+        members: {
+            type: Array
+        },
+        user: {
+            type: String
+        },
+        org: {
+            type: Object
+        }
       },
       observers: [
         '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction',
+        'select-action': 'selectAction',
+        'confirmation': 'confirmAction',
         'transfer-ownership': 'transferOwnership'
       },
       ready: function () {},
@@ -116,14 +131,14 @@
         for (var i = 0; i < this.items.length; i++) {
           this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/networks/" + this.items[i].id
           this.$.request.generateRequest();
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
             msg: 'Deleting ' + this.items[i].name,
             duration: 1000
-          })
+          } }))
         }
       },
       _showDialog: function (info) {
-        var dialog = this.querySelector('dialog-element');
+        var dialog = this.shadowRoot.querySelector('dialog-element');
         for (var i in info) {
           dialog[i] = info[i];
         }
@@ -181,22 +196,27 @@
         }
       },
       handleResponse: function (e) {
-        this.fire('action-finished');
+        this.dispatchEvent(new CustomEvent('action-finished'));
+
+
+
         // console.log('handleResponse',e);
         if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
-          })
+          } }))
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
-          });
+          } }));
+
         }
         if (!this.$.request.body || !this.$.request.body.action && this.$.request.method == "DELETE") {
-          this.fire('network-deleted', {responseURL: e.detail.xhr.responseURL});
+          this.dispatchEvent(new CustomEvent('network-deleted', { bubbles: true, composed: true, detail: {responseURL: e.detail.xhr.responseURL} }));
+
         }
       },
       _mapPolicyToActions: function (items) {
@@ -230,10 +250,11 @@
       },
       handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
           duration: 5000
-        });
+        } }));
+
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
         }

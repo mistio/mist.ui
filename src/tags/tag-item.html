@@ -1,12 +1,17 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+
 <dom-module id="tag-item">
     <template>
-        <style include="shared-styles">
+        <style include="shared-styles tags-and-labels">
              :host {
+                position: relative;
+            }
+
+            .input-box {
                 @apply --layout-horizontal;
-                align-items: flex-end;
+                align-items: flex-start;
             }
 
             strong {
@@ -14,19 +19,26 @@
                 font-size: 16px;
             }
 
-            paper-input.value {
-                padding-left: 8px;
+            vaadin-combo-box {
+                margin-right: 8px;
             }
 
-            paper-input {
-                padding-right: 8px;
-            }
         </style>
 
-        <strong>[[newIndex]].</strong>
-        <paper-input label="key" value="{{tag.key}}" class="flex key"></paper-input>
-        <paper-input label="value" value="{{tag.value}}" class="flex value"></paper-input>
-        <paper-icon-button icon="delete" on-tap="_deleteTag"></paper-icon-button>
+        <div class="input-box">
+            <strong>[[newIndex]].</strong>
+            <vaadin-combo-box class="key" value="{{tag.key}}" items="[[existingTagKeys]]" filter="[[tag.key]]" allow-custom-value>
+                <template>
+                    [[item]]
+                </template>
+            </vaadin-combo-box>
+            <vaadin-combo-box class="value" value="{{tag.value}}" items="[[existingTagValues]]" filter="[[tag.value]]" allow-custom-value>
+                <template>
+                    [[item]]
+                </template>
+            </vaadin-combo-box>
+            <paper-icon-button icon="delete" on-tap="_deleteTag"></paper-icon-button>
+        </div>
 
     </template>
 </dom-module>
@@ -39,21 +51,28 @@
                 type: Object,
                 notify: true
             },
+            existingTagKeys: {
+                type: Array
+            },
+            existingTagValues: {
+                type: Array
+            },
             oldTag: {
                 type: Object,
-                value: {},
+                value: function() { return {}; },
                 computed: 'storeOldTag(tag)'
             },
-            index: Number,
+            index: {
+                type: Number
+            },
             newIndex: {
                 type: Number,
                 computed: '_computeNewIndex(index)'
             }
         },
         listeners: {
-            'change': '_tagChange'
+            'change': '_tagChange',
         },
-        ready: function () {},
         storeOldTag: function (tag) {
             //store tag
             var oldTag = {};
@@ -66,16 +85,18 @@
             return index + 1;
         },
         _deleteTag: function (e) {
-            this.fire('tag-delete', {
-                tag: this.tag
-            });
+            var that = this;
+            this.dispatchEvent(new CustomEvent('tag-delete', { bubbles: true, composed: true, detail: {
+                tag: that.tag
+            } }));
         },
         _tagChange: function (e) {
-            this.fire('tag-change', {
-                'oldTag': this.oldTag,
-                'newTag': this.tag,
-                'index': this.index
-            });
+            var that = this;
+            this.dispatchEvent(new CustomEvent('tag-change', { bubbles: true, composed: true, detail: {
+                'oldTag': that.oldTag,
+                'newTag': that.tag,
+                'index': that.index
+            } }));
         }
     });
 </script>

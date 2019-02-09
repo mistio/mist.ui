@@ -29,7 +29,7 @@
                 <strong>[[indexPlusOne(index)]].</strong>
             </div>
             <paper-icon-button class="remove" icon="delete" on-tap="deleteItem" hidden$="[[_computeShowDelete(index)]]">-</paper-icon-button>
-            <app-form id$="sub-form-[[index]]" fields="{{item}}" display-buttons="[[_calcDisplayButtons()]]" horizontal-layout></app-form>
+            <app-form id$="sub-form-[[index]]" fields="{{item}}" display-buttons="[[_calcDisplayButtons()]]" horizontal-layout form-ready={{formReady}}></app-form>
             <br/>
         </template>
         <paper-icon-button class="add" icon="add" on-tap="addItem">+</paper-icon-button>
@@ -53,14 +53,18 @@
              * @event leadchange
              */
             properties: {
-                id: String,
+                id: {
+                    type: String
+                },
                 options: {
                     type: Array,
                     value: function () {
                         return []
                     }
                 },
-                itemName: String,
+                itemName: {
+                    type: String
+                },
                 items: {
                     type: Array,
                     value: function () {
@@ -68,13 +72,24 @@
                     },
                     notify: true
                 },
-                fieldName: String,
+                fieldName: {
+                    type: String
+                },
                 min: {
                     type: Number,
                     value: 1
                 },
-                max: Number,
-                activeItem: Number
+                max: {
+                    type: Number
+                },
+                activeItem: {
+                    type: String
+                },
+                formReady: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                }
             },
             observers: [
                 '_optionsChanged(options.*)',
@@ -101,7 +116,7 @@
                     this.set('activeItem', null);
             },
             _itemsChanged: function () {
-                this.fire('fields-changed');
+                this.dispatchEvent(new CustomEvent('fields-changed'));
             },
             _optionsChanged: function (options) {
                 var index = options.path.split('.')[1];
@@ -125,9 +140,11 @@
                 function copy(o) { // deep copy an array of objects
                     var output, v, key;
                     output = Array.isArray(o) ? [] : {};
-                    for (key in o) {
-                        v = o[key];
-                        output[key] = (typeof v === "object") ? copy(v) : v;
+                    if (o) {
+                        for (key in o) {
+                            v = o[key];
+                            output[key] = (typeof v === "object") ? copy(v) : v;
+                        }
                     }
                     return output;
                 }
@@ -140,28 +157,29 @@
                         })
                         this.push('items', opts);
                     } else {
-                        this.fire('toast', {
+                        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                             msg: 'Only up to ' + this.max + ' ' + this.itemName + 's are allowed.',
                             duration: 3000
-                        });
-                        this.querySelector('.add').setAttribute('disabled', true);
+                        } }));
+
+                        this.shadowRoot.querySelector('.add').setAttribute('disabled', true);
                     }
-                    this.fire('fields-changed');
+                    this.dispatchEvent(new CustomEvent('fields-changed'));
                 }
             },
             deleteItem: function (e) {
                 // console.log('deleteItem', e.model.__data__.index);
                 if (!this.min || this.items.length > this.min) {
-                    this.splice('items', e.model.__data__.index, 1);
-                    this.querySelector('.add').removeAttribute('disabled');
+                    this.splice('items', e.model.__data.index, 1);
+                    this.shadowRoot.querySelector('.add').removeAttribute('disabled');
                     this.async(function () {
-                        this.fire('fields-changed');
+                        this.dispatchEvent(new CustomEvent('fields-changed'));
                     }.bind(this), 200)
                 } else {
-                    this.fire('toast', {
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
                         msg: 'Minimun ' + this.max + ' ' + this.itemName + 's are required.',
                         duration: 3000
-                    })
+                    } }));
                 }
             },
             indexPlusOne: function (i) {

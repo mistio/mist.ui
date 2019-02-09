@@ -1,7 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
@@ -9,11 +11,12 @@
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/vaadin-upload/vaadin-upload.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/iron-image/iron-image.html">
 
 <dom-module id="details-page">
     <template>
-        <style is="custom-style" include="shared-styles forms">
+        <style include="shared-styles forms">
             :host {
                 display: block;
             }
@@ -75,7 +78,7 @@
                 margin: 32px 0 8px 0;
                 width: 100%;
             }
-            paper-progress.progresserror ::content #primaryProgress {
+            paper-progress.progresserror ::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
             .errormsg-container {
@@ -202,10 +205,9 @@
                             <vaadin-upload id="orgAvatarUpload" max-files="1" accept="image/png" max-file-size="262144"
                                 headers="[[_computeUploadHeaders()]]"
                                 target="/api/v1/avatars">
-                                <div class="drop-label">
-                                    <iron-icon icon="file-upload"></iron-icon>
+                                <span slot="drop-label">
                                     Drop file here - PNG up to 256kb
-                                </div>
+                                </span>
                                 <div class="org-logo-container">
                                     <iron-image src$="[[_computeAvatarURL(orgAvatar)]]" fades hidden$="[[!orgAvatar]]" sizing="contain" class="avatar-preview"></iron-image>
                                 </div>
@@ -276,7 +278,9 @@
                 is: 'details-page',
 
                 properties: {
-                    config: Object,
+                    config: {
+                        type: Object
+                    },
                     org: {
                         type: Object
                     },
@@ -323,14 +327,24 @@
                         type: String,
                         value: ''
                     },
-                    customLogo: false,
-                    enableR12ns: false,
-                    enableOwnership: false
+                    customLogo: {
+                        type: Boolean,
+                        value: false
+                    },
+                    enableR12ns: {
+                        type: Boolean,
+                        value: false
+                    },
+                    enableOwnership: {
+                        type: Boolean,
+                        value: false
+                    }
                 },
+
                 observers: [
                     '_userUpdated(user)',
                     '_orgUpdated(org)',
-                    '_enableOwnershipChanged(enableOwnership)'
+                    // '_enableOwnershipChanged(enableOwnership)'
                 ],
 
                 attached: function() {
@@ -339,10 +353,10 @@
                         if (e.detail.xhr.status == 200) {
                             that.orgAvatar = JSON.parse(e.detail.xhr.response).id;
                         }
-                    });
+                    },{passive: true});
                     this.$.orgAvatarUpload.addEventListener('file-remove', function(e) {
                         that.orgAvatar = '';
-                    });
+                    }),{passive: true};
                 },
 
                 _userUpdated: function(user) {
@@ -351,11 +365,11 @@
                 },
 
                 _orgUpdated: function(org) {
-                    this.orgName = org.name;
-                    this.orgAlertEmails = org.alerts_email.join('\n');
-                    this.customLogo = org.avatar ? true : false;
-                    this.enableR12ns = org.enable_r12ns;
-                    this.enableOwnership = org.ownership_enabled;
+                    this.orgName = this.org.name;
+                    this.orgAlertEmails = this.org.alerts_email.join('\n');
+                    this.customLogo = this.org.avatar ? true : false;
+                    this.enableR12ns = this.org.enable_r12ns;
+                    this.enableOwnership = this.org.ownership_enabled;
                 },
 
                 _computeUploadHeaders: function() {
@@ -425,7 +439,7 @@
                     if (!(this.org.ownership_enabled == undefined && this.enableOwnership == false) && this.enableOwnership != this.org.ownership_enabled)
                         this._toggleOwnership();
 
-                    if (orgName != org.name || enableR12ns != org.enable_r12ns || 
+                    if (this.orgName != org.name || this.enableR12ns != this.org.enable_r12ns || 
                             (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) || 
                             (orgAvatar && orgAvatar != org.avatar)) {
 
@@ -447,7 +461,8 @@
                 },
 
                 _handleAjaxResponse: function(e) {
-                    this.fire('toast',{msg:"Changes saved succesfully!",duration:3000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Changes saved succesfully!",duration:3000} }));
+
                 },
 
                 _handleAjaxError: function() {

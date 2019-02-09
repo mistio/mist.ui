@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/gold-cc-input/gold-cc-input.html">
 <link rel="import" href="../../bower_components/gold-cc-cvc-input/gold-cc-cvc-input.html">
@@ -75,7 +76,7 @@
                 display: inline-block;
                 width: 50%;
             }
-            #zipCode::content label {
+            #zipCode::slotted(label) {
                 top: -9px;
             }
             @media (max-width: 480px) {
@@ -121,8 +122,12 @@
             is: 'card-form',
 
             properties: {
-                user: Object,
-                org: Object,
+                user: {
+                    type: Object
+                },
+                org: {
+                    type: Object
+                },
                 payload: {
                     type: Object,
                     value: function(){
@@ -133,8 +138,7 @@
                             cvc: "",
                             address_zip: ""
                         }
-                    },
-                    notify: true
+                    }
                 },
                 addCard: {
                     type: Boolean,
@@ -218,13 +222,14 @@
                         }
                         this._setError('There seems to be an error in '+ errorsArray.join(', ') +'.');
                     }
-                    this.fire('card-response')
+                    this.dispatchEvent(new CustomEvent('card-response'));
                 }
             },
             _setToken: function(status, response) {
                 this.set('token', response.id);
                 this.set('errors', '');
-                this.fire('card-response', {token: this.token});
+                this.dispatchEvent(new CustomEvent('card-response', { bubbles: true, composed: true, detail: {token: this.token} }));
+
             },
             _setError: function(str){
                 this.set('errors', str);
@@ -236,7 +241,7 @@
                 if (month.length)
                     this.$.expirationMonth.invalid = !this._validateDate(month, year);
 
-                if (month && month.length === 2) {
+                if (month && month.length === 2 && !year.length) {
                     this._selectYear();
                 }
             },
@@ -266,9 +271,11 @@
                 }
             },
             _emptyProperty: function(obj) {
-                for (var p in obj) {
-                    if (!obj[p] || !obj[p].trim().length)
-                        return true;
+                if (obj) {
+                    for (var p in obj) {
+                        if (!obj[p] || !obj[p].trim().length)
+                            return true;
+                    }
                 }
                 return false;
             }

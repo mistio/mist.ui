@@ -4,7 +4,7 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
-
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../account/plan-purchase.html">
 <link rel="import" href="../app-form/app-form.html">
 
@@ -12,7 +12,6 @@
     <template>
         <style include="shared-styles forms single-page">
              :host {
-                display: block;
             }
 
             paper-material {
@@ -61,18 +60,18 @@
                 opacity: 0.87;
             }
 
-            paper-dropdown-menu ::content .dropdown-content {
+            paper-dropdown-menu ::slotted(.dropdown-content) {
                 max-height: 400px !important;
             }
 
-            :host paper-menu.providers paper-item {
+            :host paper-listbox.providers paper-item {
                 display: inline-block;
                 width: 20%;
                 min-width: 160px;
                 line-height: 48px;
             }
 
-            :host paper-menu.providers img {
+            :host paper-listbox.providers img {
                 margin-right: 8px;
                 vertical-align: middle;
             }
@@ -82,13 +81,13 @@
             }
 
             @media screen and (max-width: 870px) {
-                 :host paper-menu.providers paper-item {
+                 :host paper-listbox.providers paper-item {
                     width: 40%;
                 }
             }
 
             @media screen and (max-width: 1125px) and (min-width: 1024px) {
-                 :host paper-menu.providers paper-item {
+                 :host paper-listbox.providers paper-item {
                     width: 28%;
                 }
             }
@@ -116,14 +115,14 @@
             <paper-material>
                 <div class="grid-row">
                     <h3 class="xs12 smallcaps">Choose a Provider</h3>
-                    <paper-menu class="providers" attr-for-selected="value" selected="{{selectedProvider}}" class="dropdown-content">
+                    <paper-listbox class="providers" attr-for-selected="value" selected="{{selectedProvider}}" class="dropdown-content">
                         <template is="dom-repeat" items="[[providers]]" as="provider">
                             <paper-item value="[[provider.val]]">
                                 <img src="[[_computeProviderLogo(provider.className)]]" width="24px" />
                                 <span>[[provider.title]]</span>
                             </paper-item>
                         </template>
-                    </paper-menu>
+                    </paper-listbox>
                 </div>
             </paper-material>
             <paper-material class$="selected-[[!selectedProvider]]">
@@ -178,24 +177,37 @@
                     type: Boolean,
                     value: false
                 },
-                clouds: Array,
-                enableMonitoring: Boolean,
-                enableBilling: Boolean,
+                clouds: {
+                    type: String
+                },
+                enableMonitoring: {
+                    type: Boolean
+                },
+                enableBilling: {
+                    type: Boolean
+                },
                 disableAddCloud: {
                     type: Boolean,
                     computed: '_computeDisableAddCloud(enableBilling, org.*)',
                     value: false
                 },
-                portalName: 'Mist.io',
+                portalName: {
+                    type: String, 
+                    value: 'Mist.io'
+                },
                 docs: {
                     type: String,
                     value: ''
                 },
-                org: Object,
+                org: {
+                    type: Object
+                },
                 selectedPlan: {
                     type: String
                 },
-                hidden: Boolean
+                hidden: {
+                    type: Boolean
+                }
             },
             observers: [
                 '_providerChanged(selectedProvider, providers)',
@@ -219,30 +231,31 @@
             _hiddenChanged: function(hidden) {
                 if (this.disableAddCloud) {
                     if (!hidden)
-                        this.querySelector('#ccRequired').open();
+                        this.$.ccRequired.open();
                     else if (hidden)
-                        this.querySelector('#ccRequired').close();
+                        this.$.ccRequired.close();
                 }
             },
             _computeDisableAddCloud: function (enableBilling, org) {
-                return enableBilling && !this.org.card && !this.org.current_plan;
+                return enableBilling && this.org && !this.org.card && !this.org.current_plan;
             },
             _openCcRequired: function() {
                 // e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
-                this.querySelector('#ccRequired').open();
+                this.$.ccRequired.open();
             },
             _closeCcRequired: function() {
-                this.querySelector('#ccRequired').close();
+                this.$.ccRequired.close();
             },
             _cloudAddAjaxResponse: function (response) {
                 this._unsetProvider();
-                this.fire('go-to', {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
                     url: '/'
-                })
-                this.fire('toast', {
+                } }));
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: 'Cloud added successfully!',
                     duration: 3000
-                });
+                } }));
+
             },
             _cloudAddAjaxError: function (response) {
                 console.error('add-cloud error', response);
@@ -259,7 +272,8 @@
             },
             _providerChanged: function (selectedProvider, providers) {
                 if (selectedProvider)
-                    this.fire('user-action', 'select provider ' + selectedProvider);
+                    this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'select provider ' + selectedProvider }));
+
                 this._resetForm();
                 var selectedProviderDetails = providers.
                 filter(function (fields) {
@@ -329,7 +343,7 @@
             _resetField: function (el, index) {
                 this.set('providerFields.' + index + '.value', el.defaultValue);
 
-                var input = this.querySelector('#' + el.name);
+                var input = this.shadowRoot.querySelector('#' + el.name);
                 if (input) {
                     input.invalid = false;
                 }
@@ -338,7 +352,7 @@
                 history.back();
             },
             _updateCloudTitle: function (e) {
-                var form = this.querySelector('app-form');
+                var form = this.shadowRoot.querySelector('app-form');
                 // console.log('_updateCloudTitle',e);
                 if (e.target.id.startsWith('app-form-') && e.target.id.endsWith('-region')) {
                     var region = e.detail.item.textContent.trim();

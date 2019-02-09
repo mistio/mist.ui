@@ -4,7 +4,8 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
 
@@ -13,14 +14,19 @@
     <style include="shared-styles">
       :host {
         display: inline;
-        color: rgba(255,255,255,0.87);
+      }
+      mist-list-actions {
+        width: 100%;
+        fill: #fff;
       }
     </style>
     
     <dialog-element id="confirm"></dialog-element>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
-
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
     <iron-ajax id="request"
             handle-as="json"
             loading="{{loadingData}}"
@@ -84,7 +90,8 @@ TUNNEL_ACTIONS = {
         '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction',
+        'select-action': 'selectAction',
+        'confirmation': 'confirmAction',
         'transfer-ownership': 'transferOwnership'
       },
       attached: function() {
@@ -131,11 +138,11 @@ TUNNEL_ACTIONS = {
         for (var i = 0; i < this.items.length; i++) {
           this.$.request.url = "/api/v1/tunnels/"+ this.items[i].id
           this.$.request.generateRequest();
-          this.fire('toast', {msg: 'Deleting ' + this.items[i].name , duration: 1000})
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + this.items[i].name , duration: 1000} }))
         }
       },
       _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
+          var dialog = this.shadowRoot.querySelector('dialog-element');
           for (var i in info) {
               dialog[i] = info[i];
           }
@@ -194,19 +201,20 @@ TUNNEL_ACTIONS = {
           this._delete();
         }
         else if (action.name == 'edit') {
-          this.fire('edit');
+          this.dispatchEvent(new CustomEvent('edit'));
         }
       },
       handleResponse: function(e) {
         if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.fire('toast', {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000})
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }))
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.fire('action-finished');
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('action-finished'));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
-          });
+          } }));
+
         }
       },
       _mapPolicyToActions: function (items) {
@@ -242,7 +250,8 @@ TUNNEL_ACTIONS = {
 
       handleError: function(e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000} }));
+
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
         }

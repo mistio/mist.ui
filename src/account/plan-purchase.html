@@ -44,7 +44,7 @@
                 right: 0;
                 margin-left: -24px;
             }
-            paper-progress#progresserror ::content #primaryProgress {
+            paper-progress#progresserror ::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
             .errormsg-container {
@@ -119,19 +119,19 @@
             <div class="purchase-logo"></div>
             <div class="head">
                 <p class="title" hidden$="[[addCard]]">
-                    <span hidden$="[[plan]]">Credit Card required</span>
-                    <span hidden$="[[!plan]]">[[plan.title]] plan</span>
+                    <span hidden$="[[hasPlan]]">Credit Card required</span>
+                    <span hidden$="[[!hasPlan]]">[[plan.title]] plan</span>
                 </p>
                 <p class="title" hidden$="[[!addCard]]"><span hidden$="[[!org.card]]">Update Card</span><span hidden$="[[org.card]]">Add Card</span></p>
                 <hr class="headhr"/>
                 <p class="desc" hidden$="[[addCard]]">
-                    <span hidden$="[[!plan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[displayInt(plan.vcpu_limit)]] vCPUs</span>
+                    <span hidden$="[[!hasPlan]]">Subscription of $[[plan.price]]/mo. <br/> Up to [[displayInt(plan.vcpu_limit)]] vCPUs</span>
                 </p>
                 <p class="desc" hidden$="[[!addCard]]"><span hidden$="[[org.card]]">Add a credit card to your account.<br/></span><span hidden$="[[!org.card]]" class="current_cc">Current card: **** **** **** [[org.card]]</span></p>
             </div>
             <paper-dialog-scrollable>
                 <div class="form-inputs" hidden$="[[hideCardFields]]">
-                    <card-form id="inPlanPurchase" card-valid="{{cardValid}}" token="{{token}}"></card-form>
+                    <card-form id="inPlanPurchase" card-valid="{{cardValid}}" token="[[token]]"></card-form>
                 </div>
                 <div class="text-center secondary" hidden$="[[plan]]"><span hidden$="[[org.card]]">A 14 Day Free Trial applies.</span></div>
             </paper-dialog-scrollable>
@@ -162,10 +162,18 @@
         is: 'plan-purchase',
 
         properties: {
-            user: Object,
-            org: Object,
+            user: {
+                type: Object
+            },
+            org: {
+                type: Object
+            },
             plan: {
-                type: Object,
+                type: Object
+            },
+            hasPlan: {
+                type: Boolean,
+                computed: '_hasPlan(plan)',
                 value: false
             },
             payload: {
@@ -178,8 +186,7 @@
                         cvc: "",
                         address_zip: ""
                     }
-                },
-                notify: true
+                }
             },
             addCard: {
                 type: Boolean,
@@ -209,7 +216,7 @@
             },
             hideCardFields: {
                 type: Boolean,
-                computed: '_computeHideCardFields(plan.price, hasCard)',
+                computed: '_computeHideCardFields(plan.price, hasCard, addCard)',
                 value: false
             },
             buttonText: {
@@ -217,12 +224,11 @@
                 computed: '_computeButtonText(plan,org)',
                 value: 'Enable'
             },
-            cardValid: Boolean,
+            cardValid: {
+                type: Boolean
+            },
             target: {
-                type: Object,
-                value: function() {
-                    return this.$.form;
-                }
+                type: Object
             }
         },
         observers: [
@@ -233,28 +239,34 @@
             'iron-overlay-closed' : '_reset',
             'card-response': '_gotCardResponse'
         },
-        attached: function(){},
+        attached: function(){
+            this.set('target', this.$.form);
+        },
         updateHasCard: function(card){
-            if (card)
+            if (card) {
                 this.set('hasCard', true)
+            }
         },
         open: function(e){
-            this.querySelector("#form").open();
+            this.shadowRoot.querySelector("#form").open();
         },
         close: function(e){
-            this.querySelector("#form").close();
+            this.shadowRoot.querySelector("#form").close();
         },
-        _computeHideCardFields (price, hasCard) {
-            return price == 0 || hasCard;
+        _hasPlan: function () {
+            return this.plan && this.plan.title ? true : false;
+        },
+        _computeHideCardFields: function (price, hasCard, addCard) {
+            return (price == 0 || hasCard) && !addCard;
         },
         _computeFormReady: function(hasCard, cardValid, hideCardFields){
             return cardValid || hideCardFields;
         },
         _submit: function(e){
             if (this.cardValid) {
-                this.querySelector('card-form#inPlanPurchase').verify();
+                this.shadowRoot.querySelector('card-form#inPlanPurchase').verify();
             }
-            if ((this.org && this.org.card) || this.plan.price == 0) {
+            if ((this.org && this.org.card) || (this.plan && this.plan.price == 0)) {
                 var payload = { plan: this.plan.title };
                 this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
                 this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -272,7 +284,7 @@
         _gotCardResponse: function(e){
             console.log('_gotCardResponse', e.detail)
             if (this.cardValid) {
-                var card = this.querySelector('card-form#inPlanPurchase');
+                var card = this.shadowRoot.querySelector('card-form#inPlanPurchase');
                 if (e.detail.token) {
                     var payload = { token: e.detail.token };
                     if (this.plan) 
@@ -289,20 +301,23 @@
                     this.set('loading', true)
                 }
             } else
-                this.querySelector('#form').refit();
+                this.$.form.refit();
         },
         purchaseResponse: function(e){
             this._reset();
-            if (this.addCard)
-                this.fire('toast', {msg: 'Card added.', duration: 3000});
-            else
-                this.fire('toast', {msg: 'Plan changed.', duration: 3000});
+            if (this.addCard) {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Card added.', duration: 3000} }));
+            } else {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Plan changed.', duration: 3000} }));
+            }
+
         },
         _reset: function(){
             this.set('formError', false);
-            this.querySelector('card-form#inPlanPurchase').reset();
-            this.querySelector("#form").close();
-            this.fire('cc-dismiss');
+            this.shadowRoot.querySelector('card-form#inPlanPurchase').reset();
+            this.shadowRoot.querySelector("#form").close();
+            this.dispatchEvent(new CustomEvent('cc-dismiss'));
+
         },
         purchaseError: function(e){
             console.log('purchaseError',e);
@@ -310,12 +325,13 @@
             this.$.errormsg.textContent = e.detail.error;
         },
         displayInt: function(int){
-            if (int && int.toString())
+            if (int && int.toString()) {
                 return int.toString().split('').reverse().join('')
                     .replace('000000000','B').replace('000000','M').replace('000','k')
                     .split('').reverse().join('');
-            else
+            } else {
                 return int;
+            }
         },
         _computeButtonText: function(plan, org){
             // if (this.org.current_plan.vcpu_limit > plan.vcpu_limit){
@@ -333,10 +349,11 @@
         },
         _goBack: function(e) {
             e.stopImmediatePropagation();
-            if (history)
+            if (history) {
                 history.back();
-            else
-                this.fire('go-to','/');
+            } else {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: '/' }));
+            }
             this._reset();
         },
     });

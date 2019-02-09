@@ -671,6 +671,7 @@ PROVIDERS.push({
         type: "ssh_key",
         value: "",
         defaultValue: "",
+        search: "",
         show: true,
         required: false,
         options: [],
@@ -1293,8 +1294,9 @@ PROVIDERS.push({
                 label: "SSH Key",
                 type: "ssh_key",
                 value: "",
+                search: "",
                 defaultValue: "",
-                show: false,
+                show: true,
                 required: false,
                 options: [],
                 showIf: {

@@ -3,16 +3,17 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+
 <dom-module id="machine-snapshots">
     <template>
         <style include="shared-styles dialogs">
-         :host {
-            display: block;
+        :host {
             width: 100%;
         }
 
@@ -20,7 +21,7 @@
             min-width: 370px;
         }
 
-         :host .btn-group {
+        :host .btn-group {
             margin: 0 0 24px 0;
         }
 
@@ -37,7 +38,7 @@
             width: 100%;
         }
 
-        paper-progress.progresserror ::content #primaryProgress {
+        paper-progress.progresserror ::slotted(#primaryProgress) {
             background-color: var(--red-color);
         }
 
@@ -68,11 +69,12 @@
             padding: 4px;
             margin-top: 0;
         }
+
         .title {
             text-transform: capitalize;
         }
 
-         :host paper-dropdown-menu ::content .dropdown-content {
+        :host paper-dropdown-menu ::slotted(.dropdown-content) {
             top: 55px !important;
         }
         </style>
@@ -81,28 +83,31 @@
             <paper-dialog-scrollable hidden$="[[!isCreate]]">
                 <p> Fill in a name for the snapshot.
                     <paper-input label="Snapshot name" value="{{snapshotName}}"></paper-input>
-                    <paper-textarea label="Snapshot description (optional)" value="{{snapshotDescription}}"></paper-textarea><br/>
-                    <paper-checkbox checked="{{snapshotDumpMemory}}">Dump memory</paper-checkbox><br/><br/>
+                    <paper-textarea label="Snapshot description (optional)" value="{{snapshotDescription}}"></paper-textarea><br />
+                    <paper-checkbox checked="{{snapshotDumpMemory}}">Dump memory</paper-checkbox><br /><br />
                     <paper-checkbox checked="{{snapshotQuiesce}}">Enable guest file system quiescing</paper-checkbox>
                 </p>
             </paper-dialog-scrollable>
             <paper-dialog-scrollable hidden$="[[isCreate]]">
                 <paper-dropdown-menu label="Select a snapshot" class="dropdown-block" horizontal-align="left">
-                    <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{snapshotName}}" class="dropdown-content">
+                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{snapshotName}}" class="dropdown-content">
                         <template is="dom-repeat" items="[[snapshots]]">
                             <paper-item value="[[item.name]]">
-                              <paper-item-body two-line>
-                                <div>[[item.name]]</div> <div secondary>[[item.description]]</div>
-                              </paper-item-body>
+                                <paper-item-body two-line>
+                                    <div>[[item.name]]</div>
+                                    <div secondary>[[item.description]]</div>
+                                </paper-item-body>
                             </paper-item>
                         </template>
-                    </paper-menu>
+                    </paper-listbox>
                 </paper-dropdown-menu>
             </paper-dialog-scrollable>
             <div class="progress">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                 <paper-progress id="progresserror" class="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                <p id="progressmessage" class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span>
+                </p>
             </div>
             <div class="clearfix btn-group">
                 <paper-button dialog-dismiss>
@@ -126,7 +131,7 @@ Polymer({
         },
         snapshots: {
             type: Array,
-            value: []
+            value: function () { return []; }
         },
         snapshotName: {
             type: String,
@@ -156,17 +161,17 @@ Polymer({
             type: Boolean,
             value: false
         },
-        isCreate:{
+        isCreate: {
             type: Boolean,
             value: false,
             computed: '_computeIsCreate(action)'
         },
-        isRemove:{
+        isRemove: {
             type: Boolean,
             value: false,
             computed: '_computeIsRemove(action)'
         },
-        isRevertTo:{
+        isRevertTo: {
             type: Boolean,
             value: false,
             computed: '_computeIsRevertTo(action)'
@@ -175,7 +180,6 @@ Polymer({
     observers: [
         '_preselectSnapshot(snapshots, isCreate)'
     ],
-    ready: function() {},
     _openDialog: function(e) {
         this.clearError();
         this._preselectSnapshot();
@@ -199,48 +203,58 @@ Polymer({
         if (!this.isCreate && this.snapshots && this.snapshots.length) {
             this.set('snapshotName', this.snapshots[this.snapshots.length - 1].name);
         } else {
-            this.set('snapshotName','');
+            this.set('snapshotName', '');
         }
     },
     createSnapshot: function(e) {
         var request = this.$.snapshotRequest;
-        request.url = "/api/v1/machines/"+ this.machine.id;
+        request.url = "/api/v1/machines/" + this.machine.id;
         request.headers["Content-Type"] = 'application/json';
         request.headers["Csrf-Token"] = CSRF_TOKEN;
         if (this.isCreate) {
-            request.body = {action: 'create_snapshot', 
-                            snapshot_description: this.snapshotDescription,
-                            snapshot_name: this.snapshotName, 
-                            snapshot_dump_memory: this.snapshotDumpMemory,
-                            snapshot_quiesce: this.snapshotQuiesce};
+            request.body = {
+                action: 'create_snapshot',
+                snapshot_description: this.snapshotDescription,
+                snapshot_name: this.snapshotName,
+                snapshot_dump_memory: this.snapshotDumpMemory,
+                snapshot_quiesce: this.snapshotQuiesce
+            };
         } else if (this.isRemove) {
-            request.body = {action: 'remove_snapshot', 
-                            snapshot_name: this.snapshotName};
+            request.body = {
+                action: 'remove_snapshot',
+                snapshot_name: this.snapshotName
+            };
         } else if (this.isRevertTo) {
-            request.body = {action: 'revert_to_snapshot', 
-                            snapshot_name: this.snapshotName};
+            request.body = {
+                action: 'revert_to_snapshot',
+                snapshot_name: this.snapshotName
+            };
         }
         request.generateRequest();
     },
     _snapshotRequest: function() {
         this.clearError();
         var logMessage = 'Sending request to ' + this.action + '.';
-        this.fire('performing-action', { log: logMessage });
+        this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
+
     },
     _snapshotResponse: function(e) {
         console.log(e, e.detail);
         this._closeDialog();
-        this.fire('action-finished', { success: true });
-        this.fire('toast', { msg: 'Snapshot request sent successfully.', duration: 5000 });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
+
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Snapshot request sent successfully.', duration: 5000 } }));
+
     },
     _snapshotError: function(e) {
         console.log(e, e.detail);
         var message = e.detail.request.xhr.response || e.detail.error.message;
         this.$.errormsg.textContent = message;
         this.set('formError', true);
-        this.fire('action-finished', { success: false });
+        this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
+
     },
-    clearError: function(){
+    clearError: function() {
         this.set('formError', false);
         this.$.errormsg.textContent = '';
         this.$.createSnapshotModal.refit();

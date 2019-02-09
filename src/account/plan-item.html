@@ -3,7 +3,10 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
+
 <link rel="import" href="../helpers/dialog-element.html">
+
 <dom-module id="plan-item">
     <template>
         <style include="shared-styles">
@@ -19,33 +22,33 @@
             min-height: 300px;
         }
 
-        :host[current] {
+        :host([current]) {
             color: #ffffff;
             background-color: #039BE5;
             width: 100%;
             flex-basis: auto;
         }
 
-        :host[current] paper-button {
+        :host([current]) paper-button {
             color: #039BE5 !important;
             background-color: #ffffff !important;
         }
 
-        :host[current] paper-button#updatePaymentMethodButton,
-        :host[current] paper-button#cancelButton {
+        :host([current]) paper-button#updatePaymentMethodButton,
+        :host([current]) paper-button#cancelButton {
             color: #fff !important;
             background-color: transparent !important;
             font-weight: 500;
             font-size: 14px;
         }
 
-        :host[current] .plan h2 {
+        :host([current]) .plan h2 {
             font-weight: bold;
             margin-top: 0;
         }
 
-        :host[current] p {
-            margin: 16px;
+        :host([current]) p {
+            margin: 16px 0;
         }
 
         div[hidden] {
@@ -137,7 +140,7 @@
             padding: 30px 10px 30px 10px;
         }
 
-        :host[current] .plan-body-item:first-child {
+        :host([current]) .plan-body-item:first-child {
             padding: 0 10px 30px 10px;
         }
 
@@ -151,7 +154,7 @@
             border-top: 1px solid #d4d4d4;
         }
 
-        :host[current] .plan-body-item+.plan-body-item, :host[current] .plan-body-item:last-child{
+        :host([current]) .plan-body-item+.plan-body-item, :host([current]) .plan-body-item:last-child{
             border: 0 none;
         }
 
@@ -206,7 +209,7 @@
             border-bottom: 1px dashed #fff;
         }
 
-        paper-tooltip::content #tooltip {
+        paper-tooltip::slotted(#tooltip) {
             font-size: 14px;
         }
 
@@ -379,7 +382,9 @@
         is: 'plan-item',
 
         properties: {
-            email: Object,
+            email: {
+                type: Object
+            },
             plan: {
                 type: Object,
                 value: false,
@@ -459,7 +464,7 @@
             return date ? moment.utc(date * 1000).format("MMMM Do YYYY") : date;
         },
         _selectPlan: function(e) {
-            this.fire('plan-selected', { plan: this.plan });
+            this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
         },
         _triggerInfo: function() {
             console.log('info popup');
@@ -468,13 +473,15 @@
             return this.plan && this.plan.title == "Enterprise";
         },
         _addCard: function(e) {
-            this.fire('add-card');
+            this.dispatchEvent(new CustomEvent('add-card', {bubbles: true, composed: true}));
         },
         _purchasePlan: function(e) {
-            if (this.plan && !this.plan.price)
-                this.fire('plan-selected', { plan: this.plan });
-            else 
-                this.fire('plan-selected');
+            console.log('purchasePlan', this.plan)
+            if (this.plan && !this.plan.price) {
+                this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
+            } else  {
+                this.dispatchEvent(new CustomEvent('plan-selected', {bubbles: true, composed: true}));
+            }
         },
         _cancelPlan: function() {
             this._showDialog({
@@ -486,13 +493,15 @@
                 undo: "not yet"
             });
         },
-        _updatePaymentMethod: function() {
-            this.fire('update-payment-method');
+        _updatePaymentMethod: function(e) {
+            this.dispatchEvent(new CustomEvent('update-payment-method', {bubbles: true, composed: true}));
         },
         _showDialog: function(info) {
-            var dialog = this.querySelector('dialog-element');
-            for (var i in info) {
-                dialog[i] = info[i];
+            var dialog = this.$.plancancel;
+            if (info) {
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
             }
             dialog._openDialog();
         },
@@ -501,18 +510,18 @@
             var reason = e.detail.reason,
                 response = e.detail.response;
 
-            if (response.confirmed && reason == "plan.cancel") {
+            if (response == 'confirm' && reason == "plan.cancel") {
                 this.$.cancelPlanAjaxRequest.headers["Content-Type"] = 'application/json';
                 this.$.cancelPlanAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.cancelPlanAjaxRequest.generateRequest();
             }
         },
         _handleCancelAjaxResponse: function(e) {
-            this.fire('toast', { msg: 'You cancelled your plan. ', duration: 3000 });
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'You cancelled your plan. ', duration: 3000 } }));
         },
 
         _handleCancelAjaxError: function(e) {
-            this.fire('error-on-cancel-plan', { error: e.detail.request.xhr.responseText });
+            this.dispatchEvent(new CustomEvent('error-on-cancel-plan', { bubbles: true, composed: true, detail:  { error: e.detail.request.xhr.responseText } }));
         },
         showCancel: function(plan, current) {
             return this.current && this.plan.title && !this.plan.expiration;

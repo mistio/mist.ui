@@ -82,7 +82,9 @@ Polymer({
     is: 'empty-pages',
 
     properties: {
-        section: Object,
+        section: {
+            type: Array
+        },
         clouds: {
             type: Array
         },
@@ -114,10 +116,12 @@ Polymer({
         }
     },
     _addCloudAction: function(){
-        this.fire('go-to', {url: '/clouds/+add'});
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/clouds/+add'} }));
+
     },
     _goToTemplate: function(){
-        this.fire('go-to', {url: '/templates'});
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/templates'} }));
+
     },
     _computeIsStacks: function(section){
         return this.section.id == "stacks";
@@ -128,9 +132,9 @@ Polymer({
     _fabAction: function(e) {
         if(this.section.id != "teams") {
             console.debug('fabAction', e, this.section.add);
-            this.fire("go-to", {url: this.section.add})
+            this.dispatchEvent(new CustomEvent("go-to", { bubbles: true, composed: true, detail:  {url: this.section.add} }));
         } else {
-            var dialog = this.querySelector('team-add');
+            var dialog = this.shadowRoot.querySelector('team-add');
             dialog.openDialog();
         }
     }

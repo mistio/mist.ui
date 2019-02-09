@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../app-form/app-form.html">
@@ -9,8 +10,8 @@
 <dom-module id="zone-add">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
-                display: block;
+            :host [hidden] {
+                display: none !important;
             }
 
             #content {
@@ -30,7 +31,7 @@
                 right: 0;
             }
 
-            :host>::content paper-input-container {
+            :host >::slotted(paper-input-container) {
                 padding-top: 16px;
                 padding-bottom: 16px;
             }
@@ -55,16 +56,16 @@
             <paper-material hidden$="[[hasdnsClouds]]">
                 <p>To add a zone you need to have an enabled cloud in your account, and have DNS support enabled on that cloud.
                     <br/> Add and enable a cloud using the
-                    <a href="/clouds/+add" is="pushstate-anchor" class="blue-link regular">Add Cloud form</a> and enable the DNS support on that cloud.</p>
+                    <a href="/clouds/+add" class="blue-link regular">Add Cloud form</a> and enable the DNS support on that cloud.</p>
             </paper-material>
             <paper-material hidden$="[[!hasdnsClouds]]">
                 <div class="grid-row">
                     <paper-dropdown-menu class="dropdown-block l6 xs12" label="Select Cloud" horizontal-align="left">
-                        <paper-menu slot="dropdown-content" attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
+                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{selectedCloud}}" class="dropdown-content">
                             <template is="dom-repeat" items="[[dnsCloudsArray]]" as="dnsCloud">
                                 <paper-item value="[[dnsCloud]]">[[dnsCloud.title]]</paper-item>
                             </template>
-                        </paper-menu>
+                        </paper-listbox>
                     </paper-dropdown-menu>
                 </div>
                 <div class$="selected-[[!selectedCloud]]">
@@ -93,8 +94,7 @@
                 },
                 cloud: {
                     type: String,
-                    value: '',
-                    notify: true
+                    value: ''
                 },
                 selectedCloud: {
                     type: Object,
@@ -102,7 +102,7 @@
                 },
                 dnsCloudsArray: {
                     type: Array,
-                    value: []
+                    value: function () { return []; }
                 },
                 zone: {
                     type: Object,
@@ -112,12 +112,11 @@
                             type: '',
                             ttl: 0
                         }
-                    },
-                    notify: true
+                    }
                 },
                 fields: {
                     type: Array,
-                    value: []
+                    value: function () { return []; }
                 },
                 cloudSpecificFields: {
                     type: Object,
@@ -457,41 +456,43 @@
                 }
             },
             _cloudSelected: function (selectedCloud) {
-                if (selectedCloud.provider == "gce") {
-                    this.set('fields', this.cloudSpecificFields["Google"]);
-                    this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                        return (clouda.id == selectedCloud.id)
-                    })[0];
-                } else if (selectedCloud.provider == "ec2") {
-                    this.set('fields', this.cloudSpecificFields["Route53"]);
-                    this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                        return (clouda.id == selectedCloud.id)
-                    })[0];
-                } else if (selectedCloud.provider == "digitalocean") {
-                    this.set('fields', this.cloudSpecificFields["DigitalOcean"]);
-                    this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                        return (clouda.id == selectedCloud.id)
-                    })[0];
-                } else if (selectedCloud.provider == "linode") {
-                    this.set('fields', this.cloudSpecificFields["Linode"]);
-                    this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                        return (clouda.id == selectedCloud.id)
-                    })[0];
-                } else if (selectedCloud.provider == "rackspace") {
-                    this.set('fields', this.cloudSpecificFields["RackSpace"]);
-                    this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                        return (clouda.id == selectedCloud.id)
-                    })[0];
-                } else if (selectedCloud.provider == "softlayer") {
-                    this.set('fields', this.cloudSpecificFields["SoftLayer"]);
-                    this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                        return (clouda.id == selectedCloud.id)
-                    })[0];
-                } else if (selectedCloud.provider == "vultr") {
-                    this.set('fields', this.cloudSpecificFields["Vultr"]);
-                    this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                        return (clouda.id == selectedCloud.id)
-                    })[0];
+                if (selectedCloud) {
+                    if (selectedCloud.provider == "gce") {
+                        this.set('fields', this.cloudSpecificFields["Google"]);
+                        this.cloud = this.model.cloudsArray.filter(function (clouda) {
+                            return (clouda.id == selectedCloud.id)
+                        })[0];
+                    } else if (selectedCloud.provider == "ec2") {
+                        this.set('fields', this.cloudSpecificFields["Route53"]);
+                        this.cloud = this.model.cloudsArray.filter(function (clouda) {
+                            return (clouda.id == selectedCloud.id)
+                        })[0];
+                    } else if (selectedCloud.provider == "digitalocean") {
+                        this.set('fields', this.cloudSpecificFields["DigitalOcean"]);
+                        this.cloud = this.model.cloudsArray.filter(function (clouda) {
+                            return (clouda.id == selectedCloud.id)
+                        })[0];
+                    } else if (selectedCloud.provider == "linode") {
+                        this.set('fields', this.cloudSpecificFields["Linode"]);
+                        this.cloud = this.model.cloudsArray.filter(function (clouda) {
+                            return (clouda.id == selectedCloud.id)
+                        })[0];
+                    } else if (selectedCloud.provider == "rackspace") {
+                        this.set('fields', this.cloudSpecificFields["RackSpace"]);
+                        this.cloud = this.model.cloudsArray.filter(function (clouda) {
+                            return (clouda.id == selectedCloud.id)
+                        })[0];
+                    } else if (selectedCloud.provider == "softlayer") {
+                        this.set('fields', this.cloudSpecificFields["SoftLayer"]);
+                        this.cloud = this.model.cloudsArray.filter(function (clouda) {
+                            return (clouda.id == selectedCloud.id)
+                        })[0];
+                    } else if (selectedCloud.provider == "vultr") {
+                        this.set('fields', this.cloudSpecificFields["Vultr"]);
+                        this.cloud = this.model.cloudsArray.filter(function (clouda) {
+                            return (clouda.id == selectedCloud.id)
+                        })[0];
+                    }
                 }
                 // this.updatePayload();
             },
@@ -582,13 +583,14 @@
             },
             _handleAddZoneResponse: function (e) {
                 var response = JSON.parse(e.detail.xhr.response);
-                this.fire('toast', {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
                     msg: 'Zone was created successfully.',
                     duration: 3000
-                });
-                this.fire('go-to', {
+                } }));
+
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
                     url: '/zones/' + response.id
-                })
+                } }))
             },
             _handleError: function (e) {
                 console.log(e);

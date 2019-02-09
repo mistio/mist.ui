@@ -1,14 +1,18 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
 
 <link rel="import" href="../app-form/app-form.html">
 
 <dom-module id="other-cloud-add-machine">
     <template>
+        <style>
+            :host {
+                display: block;
+                margin-bottom: 16px;
+            }
+        </style>
         <app-form fields="{{fields}}" url="/api/v1/clouds/[[cloud.id]]/machines" method="PUT" on-request="_addMachineRequest" on-response="_addMachineResponse"
             btncontent="Add Host" show-cancel></app-form>
-
     </template>
     <script>
         ADD_MACHINES_FIELDS = [{
@@ -108,7 +112,9 @@
         Polymer({
             is: 'other-cloud-add-machine',
             properties: {
-                cloud: Object,
+                cloud: {
+                    type: Object
+                },
                 keys: {
                     type: Array
                 },
@@ -117,20 +123,17 @@
                     value: function () {
                         return ADD_MACHINES_FIELDS;
                     }
-
-                },
-                providers: {
-                    type: Array,
-                    value: PROVIDERS
                 }
-
             },
+
             observers: [
                 '_keysChanged(keys.*, fields)'
             ],
+
             listeners: {
                 'update-keys': 'updateKeys'
             },
+
             _fieldIndexByName: function (name, fields) {
                 var index;
                 if (this.fields) {
@@ -141,11 +144,9 @@
                 }
                 return index;
             },
-            _addMachineRequest: function () {},
-            _addMachineResponse: function () {},
+
             _keysChanged: function (keys, fields) {
                 // Set list of keys in providerFields when model keys change
-
                 var index = this.fields.findIndex(function (field) {
                     return field.type == "ssh_key";
                 }, this);
@@ -164,6 +165,7 @@
                     }
                 }, this);
             },
+
             fieldsOfType: function (data, type) {
                 var typeIndexes = [];
                 var fieldsOfType = data.filter(function (f, ind) {
@@ -173,6 +175,7 @@
                 });
                 return typeIndexes;
             },
+
             updateKeys: function (e) {
                 var keyFieldsIndexes = this.fieldsOfType(this.fields, 'ssh_key');
                 console.log('updateKeys', keyFieldsIndexes);
@@ -186,6 +189,7 @@
                     }
                 }.bind(this), 1000);
             },
+
             updateKeysInLists: function (e, lists) {
                 for (var j = 0; j < lists.length; j++) {
                     var keyFieldsIndexes = this.fieldsOfType(this.fields[lists[i]].options, 'ssh_key');
@@ -200,6 +204,14 @@
                         }
                     }.bind(this), 500);
                 }
+            },
+
+            _addMachineResponse: function () {
+                console.warn('_addMachineResponse');
+            },
+
+            _addMachineRequest: function () {
+                console.warn('_addMachineRequest');
             }
         });
     </script>

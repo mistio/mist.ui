@@ -8,12 +8,10 @@
 <dom-module id="members-add">
     <template>
         <style include="shared-styles forms single-page">
-        :host {
-            display: block;
-        }
         #content {
             max-width: 900px;
         }
+
         paper-material {
             display: block;
             padding: 24px;
@@ -27,7 +25,7 @@
             right: 0;
         }
 
-        :host >::content paper-input-container {
+        :host>::slotted(paper-input-container) {
             padding-top: 16px;
             padding-bottom: 16px;
         }
@@ -45,7 +43,7 @@
                 </div>
             </paper-material>
             <paper-material>
-                <app-form fields="[[fields]]" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members" method="POST" on-request="_addMembersRequest" on-response="_addMembersResponse" ></app-form>
+                <app-form fields="[[fields]]" url="/api/v1/org/[[model.org.id]]/teams/[[team.id]]/members" method="POST" on-request="_addMembersRequest" on-response="_addMembersResponse"></app-form>
             </paper-material>
         </div>
     </template>
@@ -93,25 +91,27 @@
 
             },
             _computeTeam: function(params, teamsArray) {
-                var team = this.model.teamsArray.find(function(t){
-                    return t.id == params.team
-                });
-                if (team){
-                    return team;
-                }
-                else {
-                    return {
-                        name: "team not found"
-                    };
+                if (params) {
+                    var team = this.model.teamsArray.find(function(t) {
+                        return t.id == params.team
+                    });
+                    if (team) {
+                        return team;
+                    } else {
+                        return {
+                            name: "team not found"
+                        };
+                    }
                 }
             },
             _addMembersRequest: function() {
                 this.set('sendingData', true);
             },
             _addMembersResponse: function(e) {
-                this.fire('go-to', {url: '/teams/'+this.team.id});
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.team.id } }));
+
                 this.set('sendingData', false);
-            },
+            }
         });
     })();
     </script>

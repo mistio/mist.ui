@@ -1,20 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
 <dom-module id="schedule-edit-condition">
     <template>
         <style include="shared-styles dialogs">
-            :host {
-                display: block;
-            }
-
             .submit-btn {
                 background-color: var(--mist-blue);
                 color: #fff;
@@ -35,7 +29,7 @@
             paper-progress {
                 width: 100%;
             }
-            paper-progress#progresserror ::content #primaryProgress {
+            paper-progress#progresserror ::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
             .errormsg-container {
@@ -63,47 +57,49 @@
             }
         </style>
 
-        <paper-dialog id="editScheduleModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
-            <h2>Edit Schedule Conditions </h2>
-            <paper-dialog-scrollable>
-                <div>
-                    <paper-radio-group selected="{{isUuidsOrTags}}">
-                        <paper-radio-button name="uuids">Specific Machines</paper-radio-button>
-                        <paper-radio-button name="tags">Machines with tags</paper-radio-button>
-                    </paper-radio-group>
+        <vaadin-dialog id="editScheduleModal" theme="mist-dialog" with-backdrop>
+            <template>
+                <h2>Edit Schedule Conditions </h2>
+                <div class="paper-dialog-scrollable">
+                    <div>
+                        <paper-radio-group selected="{{isUuidsOrTags}}">
+                            <paper-radio-button name="uuids">Specific Machines</paper-radio-button>
+                            <paper-radio-button name="tags">Machines with tags</paper-radio-button>
+                        </paper-radio-group>
+                    </div>
+                    <div id="checkboxes" hidden$="{{!isUuids}}" class="background">
+                        <template is="dom-repeat" items="[[_computeMachinesArray(model.machines.*)]]" as="machine">
+                            <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machinesIds, machine.id)]]" data-value$="[[machine.id]]" on-change="_updatePayload">[[machine.name]]</paper-checkbox>
+                        </template>
+                    </div>
+                    <div hidden$="{{!isTags}}" class="background">
+                        <paper-textarea value="{{tagsString}}"></paper-textarea>
+                    </div>
+                    <div class="background">
+                        <paper-input value="{{machinesAgeDisplayNumber}}" label="If older than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate></paper-input>
+                        <paper-radio-group selected="{{machinesAgeUnit}}">
+                            <paper-radio-button name="minutes">minutes</paper-radio-button>
+                            <paper-radio-button name="hours">hours</paper-radio-button>
+                            <paper-radio-button name="days">days</paper-radio-button>
+                        </paper-radio-group>
+                    </div>
+                    <div class="background">
+                        <paper-input value="{{costDisplay}}" label="If it costs more than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate>
+                            <div suffix slot="suffix">[[currency.sign]]/month</div>
+                        </paper-input>
+                    </div>
+                    <div class="progress">
+                        <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
+                        <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
+                        <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+                    </div>
+                    <div class="clearfix btn-group">
+                        <paper-button on-tap="_closeEditScheduleModal">Cancel</paper-button>
+                        <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
+                    </div>
                 </div>
-                <div id="checkboxes" hidden$="{{!isUuids}}" class="background">
-                    <template is="dom-repeat" items="[[_computeMachinesArray(model.machines.*)]]" as="machine">
-                        <paper-checkbox name="machinesCheckboxes" checked$="[[_computeIfChecked(machinesIds, machine.id)]]" data-value$="[[machine.id]]">[[machine.name]]</paper-checkbox>
-                    </template>
-                </div>
-                <div hidden$="{{!isTags}}" class="background">
-                    <paper-textarea value="{{tagsString}}"></paper-textarea>
-                </div>
-                <div class="background">
-                    <paper-input value="{{machinesAgeDisplayNumber::input}}" label="If older than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate></paper-input>
-                    <paper-radio-group selected="{{machinesAgeUnit::iron-select}}">
-                        <paper-radio-button name="minutes">minutes</paper-radio-button>
-                        <paper-radio-button name="hours">hours</paper-radio-button>
-                        <paper-radio-button name="days">days</paper-radio-button>
-                    </paper-radio-group>
-                </div>
-                <div class="background">
-                    <paper-input value="{{costDisplay::input}}" label="If costs more than" pattern="[0-9]*" errorMessage="Please enter numbers only!" autovalidate>
-                        <div suffix slot="suffix">$/month</div>
-                    </paper-input>
-                </div>
-                <div class="progress">
-                    <paper-progress id="progress" indeterminate active="{{loading}}" hidden$="[[!loading]]"></paper-progress>
-                    <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                    <p class="errormsg-container" hidden$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-                </div>
-                <div class="clearfix btn-group">
-                    <paper-button class="blue-link" dialog-dismiss>Cancel</paper-button>
-                    <paper-button class="blue" disabled$="[[!formReady]]" on-tap="_submitForm">Save</paper-button>
-                </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
+            </template>
+        </vaadin-dialog>
 
         <iron-ajax  id="editSchedule"
                     url="/api/v1/schedules/[[schedule.id]]"
@@ -121,8 +117,12 @@
                 is: 'schedule-edit-condition',
 
                 properties: {
-                    schedule: Object,
-                    model: Object,
+                    schedule: {
+                        type: Object
+                    },
+                    model: {
+                        type: Object
+                    },
                     // modelmachines: Array,
                     newSchedule: {
                         type: Object,
@@ -135,8 +135,12 @@
                     isUuidsOrTags: {
                         type: String
                     },
-                    isUuids: Boolean,
-                    isTags: Boolean,
+                    isUuids: {
+                        type: Boolean
+                    },
+                    isTags: {
+                        type: Boolean
+                    },
                     loading: {
                         type: Boolean,
                         value: false
@@ -174,20 +178,21 @@
                     },
                     machinesAgeUnit: {
                         type: String
+                    },
+                    currency: {
+                        type: Object
                     }
                 },
                 observers: [
                     '_computeNewSchedule(schedule.*)',
                     '_isUuidsOrTagsChanged(isUuidsOrTags)',
-                    '_computeTagsString(conditions)',
-                    '_computeAgeParts(machinesAge)',
-                    '_computeCostDisplay(machinesCost)',
+                    '_updateTagsString(conditions)',
+                    '_updateAgeParts(machinesAge)',
+                    '_updateCostDisplay(machinesCost)',
+                    '_updatePayload(newSchedule.*,isUuidsOrTags,costDisplay,machinesAgeDisplayNumber,machinesAgeUnit)'
                 ],
                 listeners: {
-                    'iron-overlay-closed': '_modalClosed',
-                    'input': '_updatePayload',
-                    'change': '_updatePayload',
-                    'iron-select': '_updatePayload'
+                    'iron-overlay-closed': '_modalClosed'
                 },
                 _computeNewSchedule: function(schedule) {
                     if (this.schedule){
@@ -200,12 +205,14 @@
                     }
                 },
                 _computeMachinesIds: function(conditions) {
+                    console.log('schedule cond', conditions)
                     var ids = [];
                     if (!conditions || !conditions.length || !this._findCondition('machines')){
                         return ids;
                     }
                     else {
-                        ids = conditions.find(function(c){return c.type == "machines"}).ids;
+                        var cond = conditions.find(function(c){return c.type == "machines"});
+                        ids = cond.ids || [];
                     }
                     return ids;
                 },
@@ -221,17 +228,20 @@
                     return false;
                 },
                 _computeIsUuidsOrTags: function(schedule, machinesIds) {
-                    if (this.schedule && this.machinesIds.length)
+                    if (this.schedule && this.machinesIds && this.machinesIds.length) {
                         this.set('isUuidsOrTags', 'uuids')
-                    else 
+                    } else if (this.schedule && this.schedule.tags) {
                         this.set('isUuidsOrTags', 'tags')
+                    }
+                    console.log('schedule isUuidsOrTags',this.isUuidsOrTags)
                 },
-                _computeAgeParts: function(age){
-                    var machineAge = parseInt(age),
+                _updateAgeParts: function(age){
+                    var machineAge = age && parseInt(age) ? parseInt(age) : '',
                         duration;
 
-                    if (age)
+                    if (age) {
                         duration = 'minutes';
+                    }
                     if (age >= 60 && age%(60) == 0) {
                         duration = 'hours';
                         machineAge = age/60;
@@ -240,22 +250,11 @@
                         machineAge = age/(60*24);
                         duration = 'days';
                     }
-
                     this.set('machinesAgeDisplayNumber', machineAge);
                     this.set('machinesAgeUnit', duration);
                 },
-                _computeCostDisplay: function(cost){
-                    this.set('costDisplay', !cost ? "" : cost)
-                },
-                _computeIsUuids: function(schedule) {
-                    if (this.schedule && this.schedule.machines)
-                        return this.schedule.machines.length;
-                    return false
-                },
-                _computeIsTags: function(schedule) {
-                    if (this.schedule && this.schedule.tags)
-                        return this.schedule.tags.length;
-                    return false;
+                _updateCostDisplay: function(cost){
+                    this.set('costDisplay', !cost || parseFloat(cost) == NaN ? '' : cost);
                 },
                 _computeMachinesArray: function(machines) {
                     return Object.values(this.model.machines);
@@ -269,13 +268,13 @@
                         this.set('isUuids', false);
                         this.set('isTags', true);
                     }
-                    this.$.editScheduleModal.center();
+                    console.log('isUuidsOrTags')
                 },
                 _openEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.open();
+                    this.$.editScheduleModal.opened = true;
                 },
                 _closeEditScheduleModal: function(e) {
-                    this.$.editScheduleModal.close();
+                    this.$.editScheduleModal.opened = false;
                 },
                 _modalClosed: function(e){
                     if (e.target == this.$.editScheduleModal)
@@ -289,7 +288,7 @@
                     this.$.editSchedule.generateRequest();
                 },
                 _formReset: function() {
-                    var checkboxes = this.querySelectorAll('paper-checkbox');
+                    var checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox');
                     Array.prototype.forEach.call(checkboxes, function(c){
                         c.checked = this._computeIfChecked(this.machinesIds, c.dataValue);
                     }.bind(this));
@@ -303,19 +302,22 @@
                     if (e.detail.request.statusText)
                         message += " "+e.detail.request.statusText;
 
-                    this.fire('toast', { msg: message, duration: 5000 });
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
                 },
-                _updatePayload: function(e) {
+                _updatePayload: function(newSchedule) {
+                    console.log('newSchedule', newSchedule);
                     var pl = {},
                         plLength,
                         valid = false;
 
                     pl["conditions"] = [];
+
+                    console.log('newSchedule uuids', this.isUuids, 'tags', this.isTags);
                     
                     if (this.isUuids){
                         var ids = this._constructCheckboxValue();
                         pl["conditions"].push({type: 'machines', ids: ids});
-                        valid = this._constructCheckboxValue().length; 
+                        valid = ids.length; 
                     }
                     else if (this.isTags) {
                         var tags = this._constructTagsValue(this.textToArray(this.tagsString));
@@ -333,8 +335,8 @@
                         }
                         pl["conditions"].push({type: 'age', minutes: minutes});
                     }
-                    if (parseInt(this.costDisplay)) {
-                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseInt(this.costDisplay), operator:'gt'})
+                    if (this.costDisplay && this.costDisplay.length && parseFloat(this.costDisplay) != NaN) {
+                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseFloat(this.costDisplay), operator:'gt'})
                     }
                     this.set('payload', pl);
                     this.set('formReady', valid);
@@ -356,11 +358,15 @@
                     }
                 },
                 _constructCheckboxValue: function() {
-                    var checked = this.querySelectorAll("paper-checkbox[name='machinesCheckboxes'][checked]"),
+                    var dialog = document.querySelector('vaadin-dialog-overlay'),
+                        content = dialog && dialog.shadowRoot.querySelector('#content'),
+                        checked = content && content.shadowRoot.querySelectorAll("paper-checkbox[checked]"),
                         arr = [];
-                    
-                    for (var i = 0; i < checked.length; i++){
-                        arr.push(checked[i].dataValue);
+                    console.log('checked', checked);
+                    if (checked) {
+                        for (var i = 0; i < checked.length; i++){
+                            arr.push(checked[i].dataset.value);
+                        }
                     }
                     return arr;
                 },
@@ -379,7 +385,7 @@
                     }
                     return arr;
                 },
-                _computeTagsString: function(conditions){
+                _updateTagsString: function(conditions){
                     if (this.conditions && this.schedule && this.conditions.length) {
                         var tags = this.conditions.find(function(c){return c.type=="tags"}) ? this.conditions.find(function(c){return c.type=="tags"}).tags : {};
                         var arrTags = Object.keys(tags); 

@@ -4,7 +4,6 @@
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
@@ -14,7 +13,6 @@
     <template>
         <style include="shared-styles forms">
          :host {
-            display: block;
             padding: 24px;
             border: 1px solid #eee;
             max-width: 100%;
@@ -106,7 +104,7 @@
             'item-value-changed' : '_updateValue'
         },
         observers: [
-            '_fieldChanged(field,field.options)'
+            '_fieldChanged(field, field.options, field.options.*)'
         ],
 
         ready: function() {
@@ -118,6 +116,7 @@
             this.set('field.value', []);
             this.set('field.valid', !this.field.required);
             this.$['mist-networks-item-repeater'].render();
+            this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
         },
 
         _itemChanged: function(e) {
@@ -130,8 +129,8 @@
 
             var selectedOptionIndex = this.selectedOptions.findIndex(function(option){return option.id == item.id});
 
-            if (this.querySelector('mist-networks-item[id="'+elementId+'"]')) {
-                var el = this.querySelector('mist-networks-item[id="'+elementId+'"]'),
+            if (this.shadowRoot.querySelector('mist-networks-item[id="'+elementId+'"]')) {
+                var el = this.shadowRoot.querySelector('mist-networks-item[id="'+elementId+'"]'),
                     checked = el.checked,
                     valid = el.valid;
             }
@@ -156,9 +155,9 @@
             this.set('field.valid', this._checkValidity());
         },
         _checkValidity: function() {
-            var checkedItems = this.querySelectorAll('mist-networks-item[checked]'),
-                validItems = this.querySelectorAll('mist-networks-item[checked][valid]');
-            // console.log('check valid ', checkedItems.length, validItems.length, this.selectedOptions.length)
+            var checkedItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked]'),
+                validItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked][valid]');
+            console.log('check valid ', checkedItems.length, validItems.length, this.selectedOptions.length)
             if (!checkedItems){
                 return !this.field.required;
             }

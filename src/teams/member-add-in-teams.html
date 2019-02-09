@@ -9,9 +9,6 @@
 <dom-module id="member-add-in-teams">
     <template>
         <style include="shared-styles forms single-page">
-        :host {
-            display: block;
-        }
         #content {
             max-width: 900px;
         }
@@ -24,7 +21,7 @@
             left: 0;
             right: 0;
         }
-        :host >::content paper-input-container {
+        :host >::slotted(paper-input-container) {
             padding-top: 16px;
             padding-bottom: 16px;
         }
@@ -42,7 +39,7 @@
             margin: 32px 0 8px 0;
             width: 100%;
         }
-        paper-progress#progresserror ::content #primaryProgress {
+        paper-progress#progresserror ::slotted(#primaryProgress) {
             background-color: var(--red-color);
         }
         .errormsg-container {
@@ -136,18 +133,20 @@
 
             },
             _computeMember: function(params, membersArray) {
-                if (this.model && this.model.membersArray) {
-                    var member = this.model.membersArray.find(function(m){
-                        return m.id == params.id
-                    });
-                }
-                if (member){
-                    return member;
-                }
-                else {
-                    return {
-                        name: "member not found"
-                    };
+                if (params && membersArray) {
+                    if (this.model && this.model.membersArray) {
+                        var member = this.model.membersArray.find(function(m){
+                            return m.id == params.id
+                        });
+                    }
+                    if (member){
+                        return member;
+                    }
+                    else {
+                        return {
+                            name: "member not found"
+                        };
+                    }
                 }
             },
             updateSelectedTeams: function(e){
@@ -183,7 +182,8 @@
 
             },
             _handleResponse: function(e) {
-                this.fire('go-to', {url: '/members/'+this.member.id});
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/members/'+this.member.id} }));
+
                 this.set('sendingData', false);
             },
             _handleError: function(e){
@@ -191,18 +191,21 @@
                 console.log('member add in teams error');
             },
             _memberIsInTeam: function(team, member){
-                var index = this.model.teams[team].members.indexOf(this.member.id);
-                // console.log(index, team);
-                if (index > -1) {
-                    return true;
+                if (this.member) {
+                    var index = this.model.teams[team].members.indexOf(this.member.id);
+                    // console.log(index, team);
+                    if (index > -1) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
                 }
-                else {
-                    return false;
-                }
-
+                return false;
             },
             goToMember: function(){
-                this.fire('go-to', {url: '/members/'+this.member.id});
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/members/'+this.member.id} }));
+
             }
         });
     })();

@@ -11,9 +11,6 @@
 <dom-module id="cc-required">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
-                display: block;
-            }
             paper-material {
                 display: block;
                 padding: 24px;
@@ -29,7 +26,7 @@
                 right: 0;
                 margin-left: -24px;
             }
-            paper-progress#progresserror ::content #primaryProgress {
+            paper-progress#progresserror ::slotted(#primaryProgress),
                 background-color: var(--red-color);
             }
             .errormsg-container {
@@ -85,7 +82,7 @@
                     <strong>[[plan]] Plan</strong><br/>
                     <a class="regular blue-link" href="/my-account/billing" dialog-dismiss>Other plans</a> also available.
                 </p>
-                <card-form id="inAddCloud" card-valid="{{cardValid}}" token="{{token}}"></card-form>
+                <card-form id="inAddCloud" card-valid="{{cardValid}}" token="[[token]]"></card-form>
             </paper-dialog-scrollable>
             <div class="progress" hidden$="[[!showProgress]]">
                 <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
@@ -119,7 +116,9 @@
                         type: Boolean,
                         value: false
                     },
-                    cardErrors: String,
+                    cardErrors: {
+                        type: String
+                    },
                     loading: {
                         type: Boolean,
                         value: false
@@ -146,7 +145,9 @@
                         type: Boolean,
                         value: false
                     },
-                    title: String
+                    title: {
+                        type: String
+                    }
                 },
                 listeners: {
                     'open-cc-required': 'open',
@@ -161,22 +162,22 @@
                 },
                 open: function() {
                     this._clearErrors();
-                    this.querySelector('#ccRequired').open();
+                    this.$.ccRequired.open();
                 },
                 close: function() {
-                    this.querySelector('#ccRequired').close();
-                    this.querySelector('card-form#inAddCloud').reset();
+                    this.$.ccRequired.close();
+                    this.shadowRoot.querySelector('card-form#inAddCloud').reset();
                     this._clearErrors();
                 },
                 _submitCard: function(e){
                     this._clearErrors();
                     if (this.cardValid) {
-                        this.querySelector('card-form#inAddCloud').verify();
+                        this.shadowRoot.querySelector('card-form#inAddCloud').verify();
                     }
                 },
                 _gotCardResponse: function(e){
                     if (this.cardValid) {
-                        var card = this.querySelector('card-form#inAddCloud');
+                        var card = this.shadowRoot.querySelector('card-form#inAddCloud');
                         if (e.detail.token) {
                             var payload = {token: e.detail.token};
                             if (this.plan)
@@ -194,11 +195,13 @@
                             this.set('loading', true)
                         }
                     }
-                    this.querySelector('#ccRequired').refit();
+                    this.$.ccRequired.refit();
                 },
                 _handleCardResponse: function(e){
-                    this.fire('close-cc-required');
-                    this.fire('toast', {msg:'Successfull subscription. Welcome onboard!', duration: 3000});
+                    this.dispatchEvent(new CustomEvent('close-cc-required'));
+
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Successfull subscription. Welcome onboard!', duration: 3000} }));
+
                 },
                 _handleCardError: function(e){;
                     this.set('cardErrors', e.detail.request.xhr.responseText);
@@ -213,8 +216,9 @@
                 },
                 _cloudAddAjaxResponse: function(response) {
                     this._unsetProvider();
-                    this.fire('go-to', {url: '/'})
-                    this.fire('toast', {msg:'Cloud added successfully!',duration:3000} );
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/'} }));
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Cloud added successfully!',duration:3000} }));
+
                 },
                 _cloudAddAjaxError: function(response) {
                     console.error('add-cloud error', response);
@@ -231,7 +235,8 @@
                     if (history)
                         history.back();
                     else
-                        this.fire('go-to','/');
+                        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: '/' }));
+
                 },
                 _cancel: function(e) {
                     this.close();

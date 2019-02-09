@@ -1,27 +1,22 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
-<link rel="import" href="../bower_components/paper-menu/paper-submenu.html">
-<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
-<!-- <link rel="import" href="../bower_components/juicy-ace-editor/juicy-ace-editor.html"> -->
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/iron-behaviors/iron-control-state.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
-
 <link rel="import" href="metric-menu.html">
-
+<link rel="import" href="custom-graph.html">
 <dom-module id="add-graph">
     <template>
         <style include="shared-styles forms">
-         :host {
-            display: block;
+        :host {
             position: relative;
         }
 
@@ -30,41 +25,19 @@
             min-width: 300px;
         }
 
-        .progress {
-            margin: 32px 0 0 0;
-            width: 100%;
-        }
-
-        paper-textarea#juicyScript ::content paper-input-container #inner-editor,
-        paper-textarea#juicyScript ::content paper-input-container textarea#textarea {
+        paper-textarea#juicyScript ::slotted(paper-input-container #inner-editor),
+        paper-textarea#juicyScript ::slotted(paper-input-container textarea#textarea) {
             font-family: monospace !important;
             font-size: 12px;
         }
 
-        paper-textarea#juicyScript ::content .floated-label-placeholder {
+        paper-textarea#juicyScript ::slotted(.floated-label-placeholder) {
             display: none;
-        }
-
-        paper-progress {
-            width: 100%;
-            margin-left: -24px;
-        }
-
-        paper-progress#progresserror ::content #primaryProgress {
-            background-color: var(--red-color);
         }
 
         hr {
             margin-left: -24px;
             margin-right: 24px;
-        }
-
-        h2 {
-            padding: 0 24px;
-        }
-
-        div>h2 {
-            padding: 24px 0;
         }
 
         div>h2.textarea-h2 {
@@ -94,23 +67,23 @@
             opacity: 0.32;
         }
 
-        paper-dialog-scrollable {
+        .paper-dialog-scrollable {
             padding: 0 !important;
         }
 
-        paper-dialog-scrollable ::content paper-item {
+        .paper-dialog-scrollable paper-item {
             padding-left: 10px !important;
             position: relative;
             cursor: pointer;
             border-bottom: 1px solid #ddd;
         }
 
-        paper-dialog-scrollable ::content .expand-more {
+        .paper-dialog-scrollable .expand-more {
             position: absolute;
             right: 4px;
         }
 
-        paper-dialog-scrollable ::content paper-menu:not(.main) {
+        .paper-dialog-scrollable paper-listbox:not(.main) {
             padding: 0 0 0 16px;
         }
 
@@ -133,61 +106,30 @@
         }
         </style>
         <paper-button on-tap="openDialog" class="add-button">
-            <iron-icon icon="icons:add-circle"></iron-icon>
-            </iron-icon> Add Graph</paper-button>
-        <paper-dialog id="selectTarget" horizontal-align="right">
-            <h2>Select target for graph</h2>
-            <paper-dialog-scrollable>
-                <paper-menu class="main">
-                    <paper-button id="customButton" on-tap="_showCustomGraphDialog" class="blue">Custom</paper-button>
-                    <template is="dom-repeat" items="[[responseMetricsArray]]">
-                      <metric-menu metric=[[item]]></metric-menu>
-                    </template>
-                </paper-menu>
-                <div class="loader" hidden$="{{!loadingMetrics}}">Loading custom server metrics
-                    <br/>
-                    <paper-spinner active="{{loadingMetrics}}"></paper-spinner>
+            <iron-icon icon="icons:add-circle"></iron-icon> Add Graph
+        </paper-button>
+        <vaadin-dialog id="selectTarget" theme="mist-dialog" with-backdrop>
+            <template>
+                <h2>Select target for graph</h2>
+                <div class="paper-dialog-scrollable">
+                    <paper-listbox class="main">
+                        <paper-button id="customButton" on-tap="_showCustomGraphDialog" class="blue">Custom</paper-button>
+                        <template is="dom-repeat" items="[[responseMetricsArray]]">
+                            <metric-menu machine="[[machine.id]]" metric=[[item]]></metric-menu>
+                        </template>
+                    </paper-listbox>
+                    <div class="loader" hidden$="{{!loadingMetrics}}">Loading custom server metrics
+                        <br />
+                        <paper-spinner active="{{loadingMetrics}}"></paper-spinner>
+                    </div>
                 </div>
-            </paper-dialog-scrollable>
-        </paper-dialog>
-        <paper-dialog id="customOptions" with-backdrop>
-            <h2>Custom graph</h2>
-            <paper-dialog-scrollable>
-                <p hidden="[[!sshKeyExists]]">
-                    Your Python script will be saved in scripts section, even if it fails to be deployed. Scripts must have a unique name.
-                </p>
-                <div id="sshKeyMissing" hidden="[[sshKeyExists]]">
-                    <span>You need to have an associated SSH key to add custom graphs</span>
-                    <paper-button id="addKey" on-tap="_openAddKeyPanel">Add Key</paper-button>
-                </div>
-                <div>
-                    <paper-input id="name" value="{{metric.name}}" label="Name" placeholder="e.g my metric" disabled$="[[!sshKeyExists]]"></paper-input>
-                    <paper-input id="unit" value="{{metric.unit}}" label="Unit" placeholder="e.g bytes (optional)" disabled$="[[!sshKeyExists]]"></paper-input>
-                </div>
-                <div>
-                    <h2 class$="sshKey-[[sshKeyExists]] textarea-h2">Python script</h2>
-                    <paper-textarea id="juicyScript" value="{{metricScript}}" no-label-float hidden$=[[!sshKeyExists]]></paper-textarea>
-                </div>
-                <div>
-                    <h2 class$="sshKey-[[sshKeyExists]]">Advance settings</h2>
-                    <paper-checkbox id="derivative" disabled$="[[!sshKeyExists]]">Calculate derivative</paper-checkbox>
-                </div>
-            </paper-dialog-scrollable>
-            <div class="progress">
-                <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
-                <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
-                <hr class="appform" />
-                <p class="errormsg-container" hidden$="[[!formError]]">
-                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
-            </div>
-            <div class="buttons">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button id="submit" align="center" on-tap="_generateCustomgraphrequest" disabled="[[!formReady]]" class="blue"> Add custom graph</paper-button>
-            </div>
-        </paper-dialog>
-        <iron-ajax id="postCustomgraph" url="[[uri]]" handle-as="xml" method="POST" contentType="application/json" on-response="_customgraphResponse" on-error="_handleError"></iron-ajax>
-        <iron-ajax id="associateMetric" handle-as="xml" method="PUT" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
-        </iron-ajax>
+            </template>
+        </vaadin-dialog>
+        <vaadin-dialog id="customOptions" theme="mist-dialog" with-backdrop>
+            <template>
+                <custom-graph ssh-key-exists="[[sshKeyExists]]" metric="{{metric}}" machine="{{machine}}" uri="[[uri]]"></custom-graph>
+            </template>
+        </vaadin-dialog>
         <iron-ajax id="metrics" url="[[_computeMetricsUri(machine.id)]]" handle-as="json" method="GET" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleMetricResponse" on-error="_handleMetricError">
         </iron-ajax>
     </template>
@@ -201,7 +143,9 @@
             data: {
                 type: Object
             },
-            machine: Object,
+            machine: {
+                type: Object
+            },
             responseMetrics: {
                 type: Object,
                 value: null
@@ -220,29 +164,18 @@
             metricScript: {
                 type: String,
             },
-            formReady: {
-                type: Boolean,
-                value: false,
-                computed: 'computeFormReady(metric.*)'
-            },
-            sendingData: {
-                type: Boolean,
-                value: false
-            },
-            formError: {
-                type: Boolean,
-                value: false
-            },
             machineKeys: {
                 type: Array,
-                value: []
+                value: function () { return []; }
             },
             sshKeyExists: {
                 type: Boolean,
                 computed: "computeSshKeyExists(machineKeys)",
                 value: true
             },
-            uri: String,
+            uri: {
+                type: String,
+            },
             metric: {
                 type: Object,
                 value: function() {
@@ -257,69 +190,29 @@
             }
         },
         observers: [
-            '_computepluginId(metric.name)',
             '_metricScriptChanged(metricScript)'
         ],
         listeners: {
             'keyup': '_scriptValue',
-            'panelAdded': '_associateMetric'
+            'panel-added': '_associateMetric'
         },
-        _scriptValue: function(e) {
+        _scriptValue: function (e) {
             if (e.target.id == "juicyScript") {
                 this.set("metric.script", e.target.value.trim());
-            }
-        },
-        _customgraphResponse: function(data) {
-            this.set('sendingData', false);
-            this.set('formError', false);
-            console.log("CUSTOM GRAPH", data.detail.response);
-            this.fire('update-dashboard');
-            this.$.customOptions.close();
-            this.$.selectTarget.close();
-        },
-        _handleError: function(e, d) {
-            this.set('sendingData', false);
-            this.set('formError', true);
-            console.log('error', e, e.detail)
-            var errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
-            this.$.errormsg.textContent = errorMessage;
-        },
-        _computepluginId: function(name) {
-            if (!this.metric.name) return;
-            var newPluginId = this.metric.name
-                .toLowerCase() // Remove upper case letters
-                .replace(/[^\w]/g, '_') // keep only alphanumeric and _ chars
-                .replace(/__*/g, '_') // don't allow double underscores
-                .replace(/^_/, '') // trim heading underscore
-                .replace(/_$/, ''); // trim trailing underscore
-            this.set('metric.pluginId', newPluginId);
-            this.set('metric.name', name);
-            if (this.metric.script) {
-                this.debounce('_updateMetricScript', function() {
-                    var lines = this.metricScript.trim().split('\n');
-                    lines[lines.length] = 'print "' + this.metric.name + ' value=%s" % read()';
-                    this.set('metricScript', lines.join('\n'));
-                }, 500);
             }
         },
         _computeMetricsUri: function(machineId) {
             return "/api/v1/machines/" + machineId + "/metrics";
         },
-        _computeUrl: function(machineId, pluginId) {
-            this.uri = '/api/v1/machines/' + machineId + '/plugins/' + pluginId;
-        },
         openDialog: function() {
-            if (!this.responseMetrics)
-                this.querySelector("#metrics").generateRequest();
-            this.querySelector("#selectTarget").open();
-        },
-        computeFormReady: function(metric) {
-            return metric.base.name != '' && metric.base.name != null && typeof metric.base.name !== "undefined" && metric.base.script != '' && typeof metric.base.script !== "undefined";
+            if (!this.responseMetrics) {
+                this.shadowRoot.querySelector("#metrics").generateRequest();
+            }
+            this.shadowRoot.querySelector("#selectTarget").opened = true;
         },
         _handleMetricResponse: function(data) {
             console.log('_handleMetricResponse', data);
             var output = {};
-
             Object.keys(data.detail.response).forEach(function(i) {
                 var res = output;
                 var splitArray = i.split(".")
@@ -336,95 +229,37 @@
             this.set('responseMetrics', output);
             this.set('responseMetricsArray', this._makeArray(output));
         },
-        _makeArray: function(output){
-          var arr = [];
-          if (output) {
-            if (typeof(output) == 'object'){
-              var obj = {};
-              for (var p in output) {
-                if (typeof(output[p]) == 'object'){
-                  obj = {name: p, options: this._makeArray(output[p])};
+        _makeArray: function(output) {
+            var arr = [];
+            if (output) {
+                if (output && typeof(output) == 'object') {
+                    var obj = {};
+                    for (var p in output) {
+                        if (typeof(output[p]) == 'object') {
+                            obj = { name: p, options: this._makeArray(output[p]) };
+                        } else {
+                            obj = { name: output[p], options: [] };
+                        }
+                        arr.push(obj);
+                    }
                 }
-                else {
-                  obj = {name: output[p], options: []};
-                }
-                arr.push(obj);
-              }
             }
-          }
-          return arr;
+            return arr;
         },
         _showCustomGraphDialog: function() {
-            var dialog = this.querySelector('#customOptions');
-            dialog.open();
-            this.querySelector('#juicyScript').value = this.metric.script;
+            this.$.customOptions.opened = true;
         },
         computeSshKeyExists: function(keys) {
             return keys.length > 0;
         },
         _openAddKeyPanel: function() {
-            this.querySelector('#customOptions').close();
-            this.querySelector('#selectTarget').close();
-            this.fire("open-and-select");
+            document.querySelector('#customOptions').opened = false;
+            document.querySelector('#selectTarget').opened = false;
+            this.dispatchEvent(new CustomEvent('open-and-select', {bubbles: true, composed: true}));
         },
-        checkIfInGraph: function(i) {
-            var isIn = this.dashboard.rows.forEach(function(r) {
-                return r.panels.forEach(function(p) {
-                    return p.targets.find(function(t) {
-                        return i.indexOf(t.target) != 1;
-                    });
-                });
-            });
-            return isIn ? true : false;
-        },
-        _associateMetric: function(e) {
-            this._exit('selectTarget');
-            var metric = e.detail.metric;
-            var payload = {
-                metric_id: metric
-            };
-            this.$.associateMetric.url = "/api/v1/machines/" + this.machine.id + "/metrics";
-            this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.associateMetric.params = payload;
-            this.$.associateMetric.generateRequest();
-        },
-        _handleAssociateResponse: function() {
-            this.fire('update-dashboard');
-        },
-        _exit: function(who) {
-            if (who == null) {
-                var dialog = this.querySelector('paper-dialog');
-            } else {
-                var dialog = this.querySelector('#' + who);
-            }
-            dialog.close();
-        },
-        _generateCustomgraphrequest() {
-            this.set('formError', false);
-            this._computeUrl(this.machine.id, this.metric.pluginId);
-            this.metric.script = this.querySelector('#juicyScript').value;
-            if (this.querySelector('#derivative').checked) {
-                this.metric.type = "derive";
-            } else {
-                this.metric.type = "gauge"
-            }
-            var payload = {
-                "plugin_type": "python",
-                "name": this.metric.name,
-                "unit": this.metric.unit,
-                "value_type": this.metric.type,
-                "read_function": this.metric.script,
-                "host": this.machine.public_ips[0]
-            };
-            this.querySelector('#postCustomgraph').contentType = "application/json"
-            this.querySelector('#postCustomgraph').headers["Csrf-Token"] = CSRF_TOKEN;
-            this.querySelector('#postCustomgraph').body = payload;
-            this.querySelector('#postCustomgraph').generateRequest();
-            this.set('sendingData', true);
-        },
-        _metricScriptChanged: function(m){
+        _metricScriptChanged: function(m) {
             // make sure long scripts don't push buttons out of the screen
-            this.querySelector('#customOptions').refit();
+            this.$.customOptions.refit();
         }
     });
     </script>

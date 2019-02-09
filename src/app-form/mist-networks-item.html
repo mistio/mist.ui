@@ -23,21 +23,24 @@
             --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
         }
         .options {
-        	margin-left: 24px;
+            margin-left: 8px;
         }
         :host app-form#manual-net-form {
         	margin-left: 36px;
         }
-        :host app-form#manual-net-form ::content .grid {
+        :host app-form#manual-net-form ::slotted(.grid) {
         	width: 100% !important;
         	max-width: 100% !important;
         }
-        :host app-form#manual-net-form ::content paper-input-container {
+        :host app-form#manual-net-form ::slotted(paper-input-container)  {
         	padding: 0;
         }
         :host paper-radio-group.options {
         	display: block;
         	margin-top: 0 !important;
+        }
+        paper-checkbox {
+            display: block;
         }
     	</style>
     	<paper-checkbox on-change="_updateCheckboxesField" id$="[[network.id]]" checked={{checked}}>
@@ -46,7 +49,7 @@
             </template>
             <span class$="item-desc noimg-[[!network.img]]" data-prefix$=[[network.prefix]] data-suffix$=[[network.suffix]]>[[network.name]]</span>
         </paper-checkbox>
-        <div class="options-box" hidden$="[[!checked]]">
+        <div class="options-box m12" hidden$="[[!checked]]">
 	        <paper-radio-group class="options" selected="{{type}}">
 	        	<paper-radio-button name="">dhcp</paper-radio-button>
 	        	<paper-radio-button name="manual">manual configuration</paper-radio-button>
@@ -127,7 +130,6 @@
             },
             valid: {
             	type: Boolean,
-            	value: true,
             	notify: true,
             	reflectToAttribute: true
             }
@@ -138,7 +140,7 @@
         	'_networkFieldValueChanged(network.fieldValue, network.fieldValue.*, valid)'
         ],
         ready: function() {},
-        _updateValue: function() {
+        _updateValue: function(type,checked,network,form,formValid) {
         	if (this.network && this.fields) {
 	        	if (this.checked) {
                     // set net id
@@ -151,16 +153,18 @@
 	        												}).every(function(el){
 	        													return this.form && this.form[el.name] && this.form[el.name].length;
 	        												}.bind(this));
-		        	this.set('network.fieldValue', this.type && this.fields ? this.form : this.network.id );
-		        	this.set('valid', this.type ? requiredFieldsHaveValues && this.formValid : this.network.fieldValue == this.network.id);
+                    this.set('network.fieldValue', this.type && this.fields ? this.form : this.network.id );
+                    this.set('valid', this.type ? requiredFieldsHaveValues && this.formValid : this.network.fieldValue == this.network.id);
+                    console.log('requiredFieldsHaveValues',requiredFieldsHaveValues, this.formValid, this.network.fieldValue);
 	        	} else {
 	        		this.set('network.fieldValue', null);
 	        		this.set('valid', false);
 	        	}
 	        }
+            this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
         },
         _networkFieldValueChanged: function(e) {
-        	this.fire('item-value-changed');
+            this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
         },
         _calcDisplayButtons: function() {
         	return false;

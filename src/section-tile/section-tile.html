@@ -1,18 +1,14 @@
-<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+
 <link rel="import" href="../theme-color/theme-color.html">
+
 <dom-module id="section-tile">
     <template>
-        <style>
+        <style include="shared-styles">
         :host {
-            display: block;
             transition: var(--material-curve-320);
             transform: translate(0, 60px);
             opacity: 0;
             width: 100%;
-        }
-
-        :host paper-material {
-            background-color: var(--tiles-background-color);
         }
 
         :host(.active) {
@@ -20,7 +16,11 @@
             opacity: 1;
         }
 
-        h2 {
+        :host paper-material {
+            background-color: var(--tiles-background-color);
+        }
+
+        :host h2 {
             font-weight: 300;
             font-size: 54px;
             padding: 36px 0;
@@ -39,7 +39,7 @@
             opacity: 1;
         }
 
-        h3 {
+        :host h3 {
             transform: translate(-50px, 0);
             opacity: 0;
             transition: all 600ms 320ms;
@@ -52,14 +52,14 @@
             margin-left: 8px;
             color: var(--tiles-title-color);
         }
-        h3.icon-true {
+        :host h3.icon-true {
             margin-left: 40px;
         }
         :host(.active) h3 {
             transform: translate(0, 0);
             opacity: 1;
         }
-        iron-icon {
+        :host iron-icon {
             width: 24px;
             height: 24px;
             opacity: 1;
@@ -77,19 +77,32 @@
             overflow: hidden !important;
         }
 
-        :host[incidents] paper-material {
+        :host([incidents]) paper-material {
             background-color: var(--red-color);
         }
-        :host[incidents] iron-icon {
+        :host([incidents]) iron-icon {
             background-color: var(--red-color);
             color: #fff;
         }
-        :host[incidents] h2,
-        :host[incidents] h3 {
+        :host([incidents]) h2,
+        :host([incidents]) h3 {
             color: #fff;
+        }
+
+        paper-material > h2 {
+            font-weight: 300
+        }
+
+        :host([highlight]) paper-material,
+        :host([highlight]) ::slotted(paper-material) {
+            background-color: var(--app-costs-highlight-background-color, var(--tiles-background-color));
+        }
+        :host([highlight]) h2, 
+        :host([highlight]) h3 {
+            color: var(--app-costs-highlight-text-color, rgba(0,0,0,0.54));
         }
         </style>
-        <paper-material>
+        <paper-material id="bg">
             <template is="dom-if" if="[[icon]]">
                 <iron-icon icon="[[icon]]"></iron-icon>
             </template>
@@ -119,11 +132,18 @@ Polymer({
             type: String,
             computed: "_computeStateColor(count, color)"
         },
-        icon: String,
+        icon: {
+            type: String
+        },
         hasIcon: {
             type: Boolean,
             value: true,
             computed: "_computeHasIcon(icon)"
+        },
+        highlight: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
         }
     },
     _computeStateColor: function (count, color){

@@ -4,317 +4,287 @@
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/mist-list/mist-filter.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <link rel="import" href="search-suggestions.html">
 
 <dom-module id="top-search">
-  <template>
-    <style include="shared-styles">
-      :host * {
-        box-sizing: border-box;
-        outline: none;
-      }
+    <template>
+        <style include="shared-styles">
+            :host * {
+                box-sizing: border-box;
+                outline: none;
+            }
 
-      :host {
-        outline: none;
-        max-width: 800px;
-        display: block;
-        align-items: center;
-        background-color: rgba(255,255,255,.15);
-        height: 48px;
-        border-radius: 4px;
-        width: 100%;
-        min-width: 48px;
-        transition: all 10ms ease-in;
-      }
+            :host {
+                outline: none;
+                max-width: 800px;
+                display: block;
+                align-items: center;
+                background-color: rgba(255,255,255,.15);
+                height: 48px;
+                border-radius: 4px;
+                width: 100%;
+                min-width: 48px;
+                transition: all 10ms ease-in;
 
-      :host::content iron-icon {
-        cursor: pointer;
-        color: inherit;
-      }
-      
-      #search iron-icon {
-        align-self: center;
-      }
-      
-      #search iron-icon[icon="search"] {
-        margin-left: 8px;
-        margin-right: 8px;
-      }
+                --mist-filter-paper-menu-button-padding: 4px 0px 0 16px;
+                --mist-filter-paper-menu-button-background-color: rgba(255,255,255,0.2);
+                --mist-filter-paper-menu-button-paper-button-margin: 0;
+                --mist-filter-paper-menu-button-paper-button-padding-left: 24px;
+                --mist-filter-paper-menu-button-paper-button-text-transform: none;
+                --mist-filter-paper-menu-button-paper-button-font-size: 16px;
+                --mist-filter-h2-title-margin: 4px;
+                --paper-input-container-underline: {display: none; height: 0;}
+                --paper-input-container-underline-focus: {display: none; height: 0;}
+                --paper-input-container-underline-disabled: {display: none; height: 0;}
+                --paper-input-container-color: transparent;
+                --paper-input-container-focus-color: transparent;
+                --paper-input-container-invalid-color: transparent;
+            }
 
-      #search iron-icon[icon="close"] {
-        margin-right: 8px;
-        margin-left: 0;
-      }
+            :host::slotted(iron-icon) {
+                cursor: pointer;
+                color: inherit;
+            }
 
-      #search input {
-        font-size: 16px;
-        color: #fff;
-        width: 100%;
-        height: 48px;
-        line-height: 48px;
-        border: 0;
-        border-radius: 2px;
-        -webkit-appearance: none;
-        align-self: center;
-        display: block;
-        background-color: transparent;
-        padding-right: 8px;
-      }
+            mist-filter {
+                width: 100%;
+                display: contents;
+            }
 
-      #search input:focus {
-        outline: 0;
-      }
+            #search input:focus {
+                outline: 0;
+            }
 
-      ::-webkit-input-placeholder {
-        color: #fff !important;
-      }
+            ::-webkit-input-placeholder {
+                color: #fff !important;
+            }
 
-      ::-webkit-search-cancel-button {
-        display: none;
-      }
-      paper-icon-button {
-        display: none;
-      }
+            ::-webkit-search-cancel-button {
+                display: none;
+            }
+            paper-icon-button {
+                display: none;
+            }
 
-      @media screen and (max-width: 800px) {
-        :host {
-            background-color: transparent;
-        }
+            @media screen and (max-width: 800px) {
+                :host {
+                    background-color: transparent;
+                }
 
-        :host([overflow]) {
-          background-color: rgba(255,255,255,1);
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 56px;
-          z-index: 99;
-          border-radius: 0;
-          transition: all 150ms ease-in;
-        }
+                :host([overflow]) {
+                    background-color: rgba(255,255,255,1);
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    height: 64px;
+                    z-index: 99;
+                    border-radius: 0;
+                    transition: all 150ms ease-in;
 
-        paper-icon-button {
-            display: block;
-            margin: 4px;
-            float: right;
-        }
+                    --paper-input-container-input: {
+                        font-size: 16px;
+                        color: inherit;
+                        width: 100%;
+                        padding: 22px 0 0 0;
+                    }
+                    --mist-filter-paper-buttons-margin-top: 5px;
+                    --paper-input-container-input_-_padding: 14px 0 0 8px;
+                }
 
-        :host([overflow]) paper-icon-button {
-            display: none;
-            margin: 0;
-            float: none;
-        }
+                :host([overflow]) mist-filter {
+                    display: flex;
+                    padding: 8px;
+                }
 
-        #search {
-          display: none;
-          color: rgba(0,0,0,0.87);
-          transform: translate(0,-30px);
-          transition: all 10ms ease-in;
-        }
+                paper-icon-button {
+                    display: block;
+                    margin: 4px;
+                    float: right;
+                }
 
-        #search input {
-          color: rgba(0,0,0,0.87); 
-        }
+                :host([overflow]) paper-icon-button {
+                    display: none;
+                    margin: 0;
+                    float: none;
+                }
 
-        :host([overflow]) #search {
-          display: flex;
-          height: 56px;
-          line-height: 56px;
-          transition: all 150ms ease-in;
-          transform: translate(0,0);
-        }
-      }
-      @media screen and (min-width: 600px) and (max-width: 800px){
-        :host([overflow]) {
-          height: 64px;
-        }
-        :host([overflow]) #search {
-          height: 64px;
-          line-height: 64px;
-        }
-      }
-      paper-menu-button {
-        padding: 0 0 0 16px;
-        background-color: rgba(255,255,255,0.2);
-      }
-      paper-menu-button paper-button {
-        margin: 0;
-        text-transform: none;
-        font-size: 16px;
-      }
-    </style>
-    <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
-    <div id="search" class="horizontal layout center">
-      <paper-menu-button vertical-offset="48" multi="true" hidden$="[[!ownership]]">
-          <paper-button class="dropdown-trigger" slot="dropdown-trigger">Filters <iron-icon icon="icons:arrow-drop-down"></iron-icon></paper-button>
-          <paper-listbox id="filterSelection" class="dropdown-content" slot="dropdown-content" attr-for-selected="value" selected="{{filter}}" selectedAttribute="selected">
-            <paper-item value="owner:$me" on-tap="updateLocalStorage">Your resources</paper-item>
-            <paper-item value="" on-tap="updateLocalStorage">All resources</paper-item>
-          </paper-listbox>
-      </paper-menu-button>
-      <iron-icon icon="search"></iron-icon>
-      <form on-submit="performSearch" class="flex-1">
-          <input type="search" id="query" value="{{query::keyup}}" autocomplete="off" placeholder="Search">
-      </form>
-      <iron-icon icon="close" on-tap="clearSearch" hidden$="[[!showClear]]"></iron-icon>
-    </div>
-    <search-suggestions query="[[query]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
-  </template>
-  <script>
-  Polymer({
-    is: 'top-search',
+                #search {
+                    display: none;
+                    color: rgba(0,0,0,0.87);
+                    transform: translate(0,-30px);
+                    transition: all 10ms ease-in;
+                }
 
-    behaviors: [
-      Polymer.IronResizableBehavior
-    ],
+                #search input {
+                    color: rgba(0,0,0,0.87); 
+                }
 
-    properties: {
-      query: {
-        type: String,
-        notify: true,
-        value: ""
-      },
-      model: {
-        type: Object,
-        notify: true
-      },
-      viewingList: Boolean,
-      showClear: {
-        type: Boolean,
-        value: false
-      },
-      overflow: {
-        type: Boolean,
-        reflectToAttribute: true
-      },
-      width: {
-        type: Number
-      },
-      filter: String,
-      ownership: {
-        type: Boolean,
-        value: false
-      },
-      visibleSuggestions: {
-        type: Boolean,
-        notify: true
-      }
-    },
+                :host([overflow]) #search {
+                    display: flex;
+                    height: 56px;
+                    transition: all 150ms ease-in;
+                    transform: translate(0,0);
+                }
+            }
+            @media screen and (min-width: 600px) and (max-width: 800px){
+                :host([overflow]) {
+                    height: 64px;
+                }
+                :host([overflow]) #search {
+                    height: 64px;
+                }
+            }
+        </style>
+        <paper-icon-button icon="search" on-tap="revealSearch"></paper-icon-button>
+        <div id="search" class="horizontal layout">
+            <mist-filter id="topFilter" user-filter="{{userFilter}}" display-name="{{displayName}}"
+                preset-filters=[[presetFilters]] name$="[[_computeFilterPlaceholder(title)]]">
+            </mist-filter>
+        </div>
+        <search-suggestions query="[[userFilter]]" model="[[model]]" hide$="[[viewingList]]" width="[[width]]" visible="{{visibleSuggestions}}"></search-suggestions>
+    </template>
+    <script>
+        Polymer({
+            is: 'top-search',
 
-    observers: [
-      '_queryChanged(query)',
-      'overflowChanged(overflow)',
-      '_filterChanged(filter)'
-    ],
+            behaviors: [
+                Polymer.IronResizableBehavior
+            ],
 
-    listeners: {
-      'keyup': 'hotkeys',
-      'iron-resize': 'updateWidth'
-    },
+            properties: {
+                id: {
+                    type: String
+                },
+                title: {
+                    type: String
+                },
+                userFilter: {
+                    type: String,
+                    notify: true
+                },
+                model: {
+                    type: Object
+                },
+                viewingList: {
+                    type: Boolean
+                },
+                showClear: {
+                    type: Boolean,
+                    value: false
+                },
+                overflow: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
+                width: {
+                    type: Number
+                },
+                selectedPresetFilter: {
+                    type: String
+                },
+                ownership: {
+                    type: Boolean,
+                    value: false
+                },
+                visibleSuggestions: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                },
+                userSavedFilters: {
+                    type: Array,
+                    value: function() {
+                        return [];
+                    }
+                },
+                presetFilters: {
+                    type: Array,
+                    computed: "_computePresetFilters(title)"
+                },
+                displayName: {
+                    type: String,
+                    notify: true
+                }
+            },
 
-    attached: function() {
-      var filter;
-      try {
-        filter = localStorage.getItem('mist-filter');
-      } catch(e) {
-        console.warn(e);
-      }
-      if (filter) {
-          this.set('filter', filter);
-      }
-    },
+            observers: [
+                'overflowChanged(overflow)',
+                '_updateSearch(userFilter, title)'
+            ],
 
-    updateWidth: function() {
-        this.debounce('windowResize', function() {
-            this.set('width', this.getBoundingClientRect().width)
-        }, 100);
-    },
+            listeners: {
+                'keyup': 'hotkeys',
+                'escape-pressed': 'hotkeys',
+                'iron-resize': 'updateWidth'
+            },
 
-    performSearch: function(e) {
-      e.preventDefault();
-    },
-    _filterChanged: function(filter) {
-      this.debounce('updateLocalStorageFilter', this.updateLocalStorage, 500);
-      if (filter.length){
-        this.$.query.focus();
-        this.set('showClear', true);
-        if (this.query.indexOf(filter)==-1)
-          this.fire('search', filter + ' ' + this.query.replace(/owner:\S*\s/, ''));
-      } else {
-        var newQ = this.query.replace(/owner:\S*\s?/g, '');
-        this.fire('search', newQ);
-        if (!newQ.length)
-          this.clearSearch();
-      }
-    },
-    updateLocalStorage: function(e) {
-      try {
-        if (typeof this.filter == 'string' && localStorage.getItem('mist-filter') != this.filter)
-          localStorage.setItem('mist-filter', this.filter);
-      } catch(e) {
-        console.warn(e);
-      }
-    },
-    _queryChanged: function(q) {
-      if (!q.length) 
-        this.setTypedFilter(q);
-      if (q && q.length) {
-        this.$.query.focus();
-        this.set('showClear', true);
-      } else
-        this.set('showClear', this.overflow || false);
+            attached: function() {
 
-      this.fire('search', this.query);
-    },
-    setTypedFilter: function(q,caller) {
-      var filterOwner = q.indexOf('owner:')>-1,
-          ownerRegex = /owner:(\S*)\s?/,
-          owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
-      
-      if (!filterOwner || !q.length) {
-          this.$.filterSelection.selected = -1;
-          this.set('filter','');
-        }
+            },
 
-      if (filterOwner && owner && owner.length && this.filter != 'owner:'+owner) {
-          this.set('filter', 'owner:'+owner);
-        }
-      // update localStorage if user is typing
-      if (caller)
-          this.updateLocalStorage();
-    },
-    clearSearch: function(e){
-      this.set('query',"");
-      this.$.query.blur();
-      if (this.overflow)
-        this.set('overflow', false);
-    },
-    hotkeys: function(e) {
-        this.setTypedFilter(this.query,'hotkeys');
-        // ESC
-        if (e.keyCode === 27 && Polymer.dom(e).rootTarget === this.$.query) {
-            this.set('query',"");
-            if (this.overflow)
-              this.set('overflow', false)
-        }
-        // ENTER
-        // if (e.keyCode === 13 && Polymer.dom(e).rootTarget === this.$.query && this.query.length) {}
-    },
-    revealSearch: function(e) {
-      this.set('overflow', true);
-      this.set('showClear', true);
-    },
-    overflowChanged: function(overflow) {
-      if (overflow){
-        this.updateWidth();
-        this.$.query.focus();
-      } else
-        this.$.query.blur();
-      this.set('showClear', this.overflow);
-    }
-  });
-  </script>
+            updateWidth: function() {
+                this.debounce('windowResize', function() {
+                    this.set('width', this.getBoundingClientRect().width)
+                }, 100);
+            },
+
+            _updateSearch: function(userFilter, title) {
+                console.log('filter _updateSearch', this.userFilter, title);
+                this.debounce('_updateSearch', function () {
+                    this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: this.userFilter }));
+                }, 200);
+            },
+
+            hotkeys: function(e) {
+                console.log('hotkeys', e);
+                // ESC
+                if (e.type === 'escape-pressed') {
+                    this.set('overflow', false)
+                }
+                if (e.keyCode === 27) {
+                    this.set("visibleSuggestions", false);
+                    this.set('overflow', false)
+                }
+                // ENTER
+                if (e.keyCode === 13 && e.path && e.path.indexOf(this) > -1 && this.userFilter.length) {}
+            },
+
+            revealSearch: function(e) {
+                this.set('overflow', true);
+                this.set('showClear', true);
+            },
+
+            overflowChanged: function(overflow) {
+                if (overflow) {
+                    this.updateWidth();
+                }
+                this.set('showClear', this.overflow);
+            },
+
+            _computeFilterPlaceholder: function (title) {
+                if (!title) return '';
+                if (title == 'dashboard') return 'All resources';
+                return 'All ' + title;
+            },
+
+            _computePresetFilters: function(title) {
+                var resource_type;
+                if (!title) {
+                    return;
+                } else if (title == 'dashboard') {
+                    resource_type = 'resources';
+                } else {
+                    resource_type = title;
+                }
+                return [{name:'Your ' + resource_type, filter: 'owner:$me', default:true}]
+            }
+        });
+
+    </script>
 </dom-module>

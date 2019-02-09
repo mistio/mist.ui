@@ -8,10 +8,6 @@
 <dom-module id="tunnel-add">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
-                display: block;
-            }
-
             #content {
                 max-width: 900px;
             }
@@ -29,16 +25,16 @@
                 right: 0;
             }
 
-            :host>::content paper-input-container {
+            :host>::slotted(paper-input-container) {
                 padding-top: 16px;
                 padding-bottom: 16px;
             }
 
-            :host ::content paper-radio-group {
+            :host ::slotted(paper-radio-group) {
                 margin-bottom: 16px !important;
             }
 
-            :host ::content paper-radio-group:before {
+            :host ::slotted(paper-radio-group:before) {
                 content: "Protocol";
                 position: relative;
                 display: block;
@@ -104,8 +100,7 @@
                 },
                 typedName: {
                     type: String,
-                    value: '',
-                    notify: true
+                    value: ''
                 },
                 fields: {
                     type: Array,
@@ -181,18 +176,24 @@
                     }]
                 }
             },
-            listeners: {},
             _addTunnelAjaxRequest: function () {},
             _addTunnelAjaxResponse: function (e) {
                 var response = YAML.parse(e.detail.xhr.response);
                 if (response.id) {
-                    this.fire('go-to', {
-                        url: '/tunnels/' + response.id
-                    });
+                    this.dispatchEvent(new CustomEvent('go-to', {
+                        bubbles: true, composed: true,
+                        detail: {
+                            url: '/tunnels/' + response.id
+                        }
+                    }));
                 } else {
-                    this.fire('go-to', {
-                        url: '/tunnels'
-                    });
+                    this.dispatchEvent(new CustomEvent('go-to', {
+                        bubbles: true,
+                        composed: true,
+                        detail: {
+                            url: '/tunnels'
+                        }
+                    }));
                 }
             },
         });

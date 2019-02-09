@@ -10,9 +10,8 @@
 
 <dom-module id="plans-list">
     <template>
-        <style is="custom-style" include="shared-styles">
+        <style include="shared-styles">
          :host {
-            display: block;
         }
 
          :host paper-material {
@@ -23,8 +22,8 @@
         .plans {
             padding-left: 8px;
             padding-right: 8px;
-            /*@apply(--layout-horizontal);
-            @apply(--layout-wrap);*/
+            /*@apply --layout-horizontal;
+            @apply --layout-wrap;*/
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
@@ -169,8 +168,6 @@
                 </div>
             </div>
         </paper-material>
-        <plan-purchase id="purchasePlan" org="[[org]]"></plan-purchase>
-        <plan-purchase id="addCard" org="[[org]]" add-card></plan-purchase>
         <paper-dialog id="paygRatesDialog" with-backdrop>
             <h2>Pay As You Go Rates</h2>
             <paper-dialog-scrollable>
@@ -191,13 +188,19 @@
                 <paper-button class="blue-link" dialog-dismiss> Close</paper-button>
             </div>
         </paper-dialog>
+
+        <plan-purchase id="purchasePlan" org="[[org]]"></plan-purchase>
+        <plan-purchase id="addCard" org="[[org]]" add-card></plan-purchase>
+
     </template>
     <script>
     Polymer({
         is: 'plans-list',
 
         properties: {
-            email: Object,
+            email: {
+                type: Object
+            },
             org: {
                 type: Object,
                 value: function() {return {}}
@@ -229,17 +232,20 @@
             }.bind(this));
         },
         purchasePlan: function(e) {
-            if (e.detail.plan && e.detail.plan.title)
-                this.$.purchasePlan.plan = e.detail.plan;
-            else
+            console.log('purchasePlan',e.detail.plan);
+            if (e.detail.plan && e.detail.plan.title) {
+                this.shadowRoot.querySelector('plan-purchase#purchasePlan').plan = e.detail.plan;
+            } else {
                 this.$.purchasePlan.plan = false;
-            this.$.purchasePlan.open();
+            }
+            this.shadowRoot.querySelector('plan-purchase#purchasePlan').open();
         },
         addCard: function(e) {
-            this.$.addCard.open();
+            console.log('_updatePaymentMethod', e, this.shadowRoot.querySelector('plan-purchase#addCard'));
+            this.shadowRoot.querySelector('plan-purchase#addCard').open();
         },
         openRates: function(){
-            this.$.paygRatesDialog.open();
+            this.shadowRoot.querySelector('#paygRatesDialog').open();
         },
         computeStartChargingDay: function(days) {
             return moment().add(days,'days').format("dddd MMMM Do");

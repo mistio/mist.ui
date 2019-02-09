@@ -5,15 +5,9 @@
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../tags/tags-list.html">
 
-<link rel="import" href="key-edit.html">
-
 <dom-module id="key-page">
     <template>
         <style include="shared-styles single-page tags-and-labels">
-            :host {
-                display: block;
-            }
-
             paper-material {
                 display: block;
                 padding: 24px;
@@ -124,6 +118,10 @@
                 display: inline-block;
             }
 
+            paper-button iron-icon {
+                margin-right: 8px; 
+            }
+
             paper-button.right,
             #showPrivateKeybtn {
                 font-size: 0.9rem;
@@ -162,12 +160,17 @@
                     display: inline;
                 }
             }
+
             .single-head {
                 @apply --key-page-head-mixin
             }
+
+            key-actions {
+                fill: #fff;
+                min-width: 50%;
+            }
         </style>
         <div id="content">
-            <key-actions actions="{{actions}}" items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></key-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -184,15 +187,14 @@
                     </div>
 
                 </div>
-                <mist-actions actions="[[actions]]" type="key" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <key-actions id="keyActions" actions="{{actions}}" items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" in-single-view></key-actions>
             </paper-material>
 
             <div class="key-info">
                 <paper-material>
                     <div class="missing" hidden$="[[!isMissing]]">Key not found.</div>
                     <h4 class="id">Key ID:</h4><span class="id">[[key.id]]</span>
-                    <h4 class="id" hidden$="[[!key.owned_by.length]]">Owner:</h4><span class="id">[[_displayUser(
-                    key.owned_by,model.members)]]</span>
+                    <h4 class="id" hidden$="[[!key.owned_by.length]]">Owner:</h4><span class="id">[[_displayUser(key.owned_by,model.members)]]</span>
                     <h4 class="id" hidden$="[[!key.created_by.length]]">Created by:</h4><span class="id">[[_displayUser(key.created_by,model.members)]]</span>
                     <template is="dom-if" if="[[keyTags.length]]">
                         <h4 class="id tags">Tags </h4>
@@ -249,9 +251,6 @@
 
         <iron-ajax id="keyPublicRequest" url="/api/v1/keys/[[key.id]]/public" on-response="handlePublicResponse" on-error="handleError"></iron-ajax>
         <iron-ajax id="keyPrivateRequest" url="/api/v1/keys/[[key.id]]/private" on-response="handlePrivateResponse" on-error="handleError"></iron-ajax>
-        <iron-ajax id="keyMakeDefaultAjaxRequest" url="/api/v1/keys/[[key.id]]" method="POST" on-response="_handleKeyMakeDefaultAjaxResponse" on-error="_handleMakeDefaultAjaxError"></iron-ajax>
-        <iron-ajax id="keyDeleteAjaxRequest" url="/api/v1/keys/[[key.id]]" method="DELETE" on-response="_handleKeyDeleteAjaxResponse" on-error="_handleKeyDeleteAjaxError"></iron-ajax>
-        <key-edit key="[[key]]"></key-edit>
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
     </template>
@@ -265,7 +264,13 @@
                     mistLoadingBehavior
                 ],
                 properties: {
-                    ownership: Boolean,
+                    hidden: {
+                        type: Boolean,
+                        reflectToAttribute: true
+                    },
+                    ownership: {
+                        type: Boolean
+                    },
                     section: {
                         type: Object
                     },
@@ -315,17 +320,21 @@
                         type: Array,
                         computed: 'computeTagItems(key)'
                     },
-                    itemArray: Array,
-                    actions: Array
+                    itemArray: {
+                        type: Array
+                    },
+                    actions: {
+                        type: Array
+                    }
                 },
                 observers: [
-                    'update(key)'
+                    '_keyUpdated(key)',
+                    '_hiddenUpdated(hidden)'
                 ],
-                listeners: {
-                    'confirmation': '_deleteKeyEventResponse',
-                    'rename': '_editKey'
+                _hiddenUpdated: function (hidden) {
+                    this.$.keyActions.fire('resize');
                 },
-                update: function(key){
+                _keyUpdated: function(key){
                     if (key){
                         this.$.keyPublicRequest.headers["Content-Type"] = 'application/json';
                         this.$.keyPublicRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -333,22 +342,22 @@
                         this.$.keyPublicRequest.generateRequest();
 
                         this.set('itemArray', [this.key]);
-                    }
-                    else {
+                    } else {
                         this.set('itemArray', []);
                         this.set('publicKey', '');
                     }
                     this.set('visiblePrivateKey', false);
                 },
                 _displayUser: function (id, members) {
-                    return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                    return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
                 },
                 _getHeaderStyle: function(section) {
                     return 'background-color: ' + section.color + '; color: #fff;';
                 },
                 _computeKeyTags: function(key, tags){
-                    return Object.entries(this.key.tags).map(([key, value]) => ({key,value}));;
-
+                    if (this.key) {
+                        return Object.entries(this.key.tags).map(([key, value]) => ({key,value}));
+                    }
                 },
                 computeTagItems: function(key){
                     if (key) {
@@ -396,7 +405,8 @@
                     this.setSelection(el);
                     var successful = document.execCommand('copy');
                     var message = successful ? 'The Public Key was copied to clipboard!' : 'There was an error copying to clipboard!';
-                    this.fire('toast',{msg:message,duration:3000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:3000} }));
+
                 },
                 copyPrivateKey: function() {
                     this.clearSelection();
@@ -404,7 +414,8 @@
                     this.setSelection(el);
                     var successful = document.execCommand('copy');
                     var message = successful ? 'The Private Key was copied to clipboard!' : 'There was an error copying to clipboard!';
-                    this.fire('toast',{msg:message,duration:3000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:3000} }));
+
                 },
                 handlePublicResponse: function(data) {
                     //console.log(data);
@@ -423,22 +434,8 @@
                 handlePrivateResponse: function(data) {
                     this.set('privateKey', data.detail.response);
                 },
-                _editKey: function(e) {
-                    e.stopImmediatePropagation();
-                    var el = this.querySelector('key-edit');
-                    el._openEditKeyModal();
-                },
-                _makeDefaultKey: function(e) {
-                    this.$.keyMakeDefaultAjaxRequest.headers["Content-Type"] = 'application/json';
-                    this.$.keyMakeDefaultAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.keyMakeDefaultAjaxRequest.body = {};
-                    this.$.keyMakeDefaultAjaxRequest.generateRequest();
-                },
-                _handleKeyMakeDefaultAjaxResponse: function(e) {
-                    this.fire('toast',{msg:this.key.name + ' has become your default Key!',duration:3000});
-                },
                 _editTags: function() {
-                    var el = this.querySelector('tags-list'),
+                    var el = this.shadowRoot.querySelector('tags-list'),
                     items = [];
                     items.push(itemUid(this.key, this.section));
                     el.items = items;
@@ -452,29 +449,21 @@
                         reason: "key.delete"
                     });
                 },
-                _deleteKeyEventResponse: function(e) {
-                    var reason = e.detail.reason,
-                        response = e.detail.response;
-
-                    if (response.confirmed && reason == "key.delete") {
-                        this.$.keyDeleteAjaxRequest.body = {};
-                        this.$.keyDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-                        this.$.keyDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.$.keyDeleteAjaxRequest.generateRequest();
-                    }
-                },
                 _handleKeyDeleteAjaxResponse: function(e) {
-                    this.fire('go-to',{url: '/keys'});
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/keys'} }));
+
                 },
                 _showDialog: function(info) {
-                    var dialog = this.querySelector('dialog-element');
-                    for (var i in info) {
-                        dialog[i] = info[i];
+                    var dialog = this.shadowRoot.querySelector('dialog-element');
+                    if (info) {
+                        for (var i in info) {
+                            dialog[i] = info[i];
+                        }
                     }
                     dialog._openDialog();
                 },
                 clearSelection: function(){
-                if (window.getSelection) {
+                    if (window.getSelection) {
                         if (window.getSelection().empty) {  // Chrome
                             window.getSelection().empty();
                         } else if (window.getSelection().removeAllRanges) {  // Firefox

@@ -2,12 +2,13 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 <script src='../../bower_components/echarts/dist/echarts.common.min.js'></script>
 
 <dom-module id="balance-chart">
     <template>
-        <style is="custom-style" include="shared-styles">
+        <style include="shared-styles">
         :host {
             display: block;
         }
@@ -128,14 +129,18 @@
             ],
 
             properties: {
-                balanceGraph: Object,
+                balanceGraph: {
+                    type: Object
+                },
                 balanceGraphOptions: {
                     type: Object,
                     value: function() {
                         return BALANCE_GRAPH_OPTIONS;
                     }
                 },
-                balanceData: Object,
+                balanceData: {
+                    type: Object
+                },
                 data: {
                     type: Array,
                     computed: '_computeData(balanceData)'
@@ -186,16 +191,20 @@
             },
             updateChartWidth: function() {
                 var parentWidth = this.parentNode.offsetWidth;
-                console.log('updateChartWidth',parentWidth);
                 if (parentWidth) {
+                    console.log('updateChartWidth',parentWidth);
                     this.set('balanceGraphWidth', parentWidth);
                     this.resizeGraph();
                 }
             },
             resizeGraph: function() {
                 console.log('resizeGraph');
-                if (this.balanceGraph)
+                if (this.balanceGraph) {
                     this.balanceGraph.resize();
+                }
+            },
+            _handleError: function (e) {
+                console.error('Cannot get billing data',e);
             },
             _handleResponse: function(e) {
                 this.set('amountDue', e.detail.response.amount_due);
@@ -209,8 +218,8 @@
                 this.set('currentPaygRate', e.detail.response.current_payg_rate);
 
                 if (!e.detail.response.series.length) {
-                    this.$.balanceGraph.hidden = true;
-                    return
+                    this.$.balanceGraph.setAttribute('hidden', true);
+                    return;
                 }
 
                 this.initCharts();

@@ -5,21 +5,37 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/polyana-dashboard/polyana-dashboard.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+
 <link rel="import" href="helpers/dialog-element.html">
 <link rel="import" href="add-graph.html">
+
 <script src="../bower_components/yaml.js/dist/yaml.min.js"></script>
+
+
 <dom-module id="mist-monitoring">
     <template>
         <style include="shared-styles">
+            :host {
+                background-color: #fafafa;
+                display: block;
+            }
             .monitoringArea {
-                padding: 24px;
+                padding: 16px;
             }
-
             h2 {
-                margin: 4px;
+                margin: 0px;
+                line-height: 24px;
             }
 
-            #monitorindialog ::content paper-dialog h2 {
+            h2 > paper-button {
+                text-transform: none;
+                margin: 0;
+                width: 100%;
+                justify-content: left;
+            }
+
+            #monitorindialog ::slotted(paper-dialog h2) {
                 padding: 0 24px !important;
             }
 
@@ -44,7 +60,6 @@
             }
 
             polyana-dashboard {
-                padding-bottom: 24px;
                 overflow: visible;
             }
 
@@ -76,16 +91,16 @@
                 margin-right: 8px;
             }
 
-            paper-icon-button ::content iron-icon {
+            paper-icon-button ::slotted(iron-icon) {
                 color: inherit;
             }
 
-            paper-menu-button#monitoring-menu-wrapper ::content .dropdown-menu {
+            paper-menu-button#monitoring-menu-wrapper ::slotted(.dropdown-menu) {
                 margin-top: 0 !important;
             }
 
             #monitoring-actions {
-                padding: 4px;
+                padding: 8px;
             }
 
             #disable {
@@ -117,19 +132,19 @@
                 margin: 2px 0;
             }
 
-            polyana-dashboard::content paper-button[dialog-confirm] {
+            polyana-dashboard::slotted(paper-button[dialog-confirm]) {
                 background-color: var(--mist-blue);
                 color: #fff;
             }
 
-            polyana-dashboard::content paper-dialog h2 {
+            polyana-dashboard::slotted(paper-dialog h2) {
                 padding: 16px;
                 background-color: #424242;
                 color: #fff;
                 margin: 0;
             }
 
-            polyana-dashboard::content h3 {
+            polyana-dashboard::slotted(h3) {
                 text-transform: uppercase;
                 opacity: 0.54;
                 font-size: 13px;
@@ -144,154 +159,186 @@
                 right: 8px;
                 top: 8px;
             }
+
+            paper-button.action {
+                display: block;
+                flex-wrap: nowrap;
+                white-space: nowrap;
+                width: 100%;
+                min-width: auto;
+                padding: 0.8em 1.57em 0.7em .57em;
+                fill: inherit;
+                color: #000;
+            }
+
+            paper-button.action iron-icon {
+                fill: inherit;
+                margin-right: 8px;
+            }
+
+            paper-menu-button {
+                padding: 0;
+            }
+
         </style>
-        <template is="dom-if" if="[[!resource.id]]" restamp>
+        <template is="dom-if" if="[[!singleResource]]" restamp>
             <template is="dom-if" if="[[showHomeDashboard]]" restamp>
-                <polyana-dashboard uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
+                <polyana-dashboard id="dashboard" uri="/api/v1/dashboard" datasources="[[datasources]]" replace-targets="[[replaceTargets]]"></polyana-dashboard>
             </template>
         </template>
-        <template is="dom-if" if="[[resource.id]]" restamp>
+        <template is="dom-if" if="[[singleResource]]" restamp>
             <div class="horizontal layout monitoring-head">
-                <h2 class="flex flex-1">Monitoring</h2>
+                <h2 class="flex flex-1">
+                    <paper-button toggles active={{showMonitoring}}><iron-icon icon="icons:expand-more" style$="margin-right: 8px; [[_computeToggleButtonStyle(showMonitoring)]]"></iron-icon>Monitoring</paper-button>
+                </h2>
                 <div class="monitoring-menu" hidden$="[[!isActivated]]">
                     <paper-menu-button id="monitoring-menu-wrapper" horizontal-align="right" vertical-align="top">
                         <paper-icon-button icon="icons:more-vert" class="dropdown-trigger" slot="dropdown-trigger"></paper-icon-button>
-                        <paper-menu id="monitoring-actions" class="dropdown-content" slot="dropdown-content">
-                            <paper-button id="disable" on-tap="_showDisableDialog" class="simple">Disable Monitoring </paper-button>
-                        </paper-menu>
+                        <div id="monitoring-actions" class="dropdown-content" slot="dropdown-content">
+                            <paper-button on-tap="_exportPdf" class="action"><iron-icon icon="image:picture-as-pdf"></iron-icon> Export pdf </paper-button>
+                            <paper-button id="disable" on-tap="_showDisableDialog" class="action"><iron-icon icon="icons:visibility-off"></iron-icon>Disable Monitoring </paper-button>
+                        </div>
                     </paper-menu-button>
                 </div>
             </div>
-            <div class="monitoringArea">
-                <!-- the machine is running -->
-                <div hidden$="[[!isRunning]]">
-                    <!-- the machine is considered monitored -->
-                    <div hidden$="[[!isMonitored]]">
-                        <!-- monitoring is not activated -->
-                        <div hidden$="[[isActivated]]">
-                            <div hidden$="[[resourceMonitoringInfo.installation_status.activated_at]]">
-                                <h4 class="head">
-                                    <strong>Monitoring is not yet activated</strong>
-                                </h4>
-                            </div>
-                            <!-- machine has keys: automatic installation -->
-                            <p hidden$="[[isManual]]">
-                                When you enable monitoring on a machine, [[portalName]] automatically installs the telegraf monitoring agent which starts transmitting data.
-                            </p>
-                        </div>
-                    </div>
-                    <div hidden$="[[isManual]]">
-                        <div class="logs" hidden$="[[!showLogs]]">
-                            <p hidden$="[[!jobId]]">
-                                LOGS <iron-icon class="close-logs" icon="close" on-tap="resetPolling"></iron-icon>
-                                <br/>
-                                <template is="dom-repeat" items="{{logItems}}" as="logItem">
-                                    <div>
-                                        [[removeUnderscore(logItem.action)]]
-                                        <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]]</span>
-                                    </div>
-                                </template>
-                                <paper-spinner active="[[!isActivated]]"></paper-spinner>
-                            </p>
-                            <div hidden$="[[jobId]]">
-                                <p hidden$="[[failed]]">
-                                    Agent installation status: [[monitoringState(resource, monitoring)]]
-                                    <br/> [[resourceMonitoringInfo.installation_status.error_msg]]
-                                </p>
-                                <!-- installation failed-->
-                                <p class="error" hidden$="[[!failed]]">
-                                    Installation of the monitoring agent failed. [[resourceMonitoringInfo.installation_status.error_msg]]
-                                </p>
-                            </div>
-                            <div hidden$="[[!waitingData]]">
-                                <p>Waiting for data</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="isMonitored" hidden$="[[!isMonitored]]">
-                        <!-- monitoring is not activated -->
-                        <div class="isActivated" hidden$="[[isActivated]]">
-                            <!-- machine has NO keys: manual installation -->
-                            <p hidden$="[[!isManual]]">
-                                [[portalName]] can not install the monitoring agent automatically, because there are no associated keys with this machine.
-                            </p>
-                            <!-- always show script -->
-                            <div>
-                                You can install the agent manually by running the following command with ssh.
-                                <div class="console">
-                                    <code id="monitoringscript">
-                                        [[script]]
-                                    </code>
+            <iron-collapse opened=[[showMonitoring]]>
+                <div class="monitoringArea collapse-content">
+                    <!-- the machine is running -->
+                    <div hidden$="[[!isRunning]]">
+                        <!-- the machine is considered monitored -->
+                        <div hidden$="[[!isMonitored]]">
+                            <!-- monitoring is not activated -->
+                            <div hidden$="[[isActivated]]">
+                                <div hidden$="[[resourceMonitoringInfo.installation_status.activated_at]]">
+                                    <h4 class="head">
+                                        <strong>Monitoring is not yet activated</strong>
+                                    </h4>
                                 </div>
-                                <h4 class="tip">
-                                    <strong>Tip:</strong> Alternatively you can disable monitoring, associate a key, and enable monitoring
-                                    again, so [[portalName]] will automativally connect and install the monitoring agent.</h4>
+                                <!-- machine has keys: automatic installation -->
+                                <p hidden$="[[isManual]]">
+                                    When you enable monitoring on a machine, [[portalName]] automatically installs the telegraf monitoring agent which starts transmitting data.
+                                </p>
                             </div>
                         </div>
-                        <!-- if we have incidents -->
-                        <template is="dom-if" if="[[incidents.length]]" restamp>
-                            <template is="dom-repeat" items={{incidents}} as="incident">
-                                <div class="incident" hidden$=[[_isIncidentFinished(incident.finished_at)]]>[[incident.logs.0.condition]]</div>
+                        <div hidden$="[[isManual]]">
+                            <div class="logs" hidden$="[[!showLogs]]">
+                                <p hidden$="[[!jobId]]">
+                                    LOGS <iron-icon class="close-logs" icon="close" on-tap="resetPolling"></iron-icon>
+                                    <br />
+                                    <template is="dom-repeat" items="{{logItems}}" as="logItem">
+                                        <div>
+                                            [[removeUnderscore(logItem.action)]]
+                                            <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]]</span>
+                                        </div>
+                                    </template>
+                                    <paper-spinner active="[[!isActivated]]"></paper-spinner>
+                                </p>
+                                <div hidden$="[[jobId]]">
+                                    <p hidden$="[[failed]]">
+                                        Agent installation status: [[monitoringState(resource, monitoring)]]
+                                        <br /> [[resourceMonitoringInfo.installation_status.error_msg]]
+                                    </p>
+                                    <!-- installation failed-->
+                                    <p class="error" hidden$="[[!failed]]">
+                                        Installation of the monitoring agent failed. [[resourceMonitoringInfo.installation_status.error_msg]]
+                                    </p>
+                                </div>
+                                <div hidden$="[[!waitingData]]">
+                                    <p>Waiting for data</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="isMonitored" hidden$="[[!isMonitored]]">
+                            <!-- monitoring is not activated -->
+                            <div class="isActivated" hidden$="[[isActivated]]">
+                                <!-- machine has NO keys: manual installation -->
+                                <p hidden$="[[!isManual]]">
+                                    [[portalName]] can not install the monitoring agent automatically, because there are no associated keys with this machine.
+                                </p>
+                                <!-- always show script -->
+                                <div>
+                                    You can install the agent manually by running the following command with ssh.
+                                    <div class="console">
+                                        <code id="monitoringscript">
+                                            [[script]]
+                                        </code>
+                                    </div>
+                                    <h4 class="tip">
+                                        <strong>Tip:</strong> Alternatively you can disable monitoring, associate a key, and enable monitoring
+                                        again, so [[portalName]] will automativally connect and install the monitoring agent.</h4>
+                                </div>
+                            </div>
+                            <!-- if we have incidents -->
+                            <template is="dom-if" if="[[incidents.length]]" restamp>
+                                <template is="dom-repeat" items={{openIncidents}} as="incident">
+                                    <div class="incident" hidden$=[[_isIncidentFinished(incident.finished_at,)]]>[[incident.logs.0.condition]]</div>
+                                </template>
                             </template>
-                        </template>
-                        <!-- monitoring is activated. we expect to have data -->
-                        <template is="dom-if" if="[[isActivated]]" restamp>
-                            <polyana-dashboard uri="[[_computeDashboardUri(resource)]]" datasources="[[datasources]]"></polyana-dashboard>
-                            <add-graph machine="[[resource]]" dashboard="[[dashboard]]" machine-keys="[[machineKeys]]"></add-graph>
-                        </template>
+                            <!-- monitoring is activated. we expect to have data -->
+                            <template is="dom-if" if="[[isActivated]]" restamp>
+                                <polyana-dashboard id="dashboard" uri="[[_computeDashboardUri(resource)]]" datasources="[[datasources]]"></polyana-dashboard>
+                                <add-graph machine="[[resource]]" machine-keys="[[machineKeys]]"></add-graph>
+                            </template>
+                        </div>
+                        <div id="errormsgArea">
+                            <p class="errormsg-container" hidden$="[[!monitoringError]]">
+                                <iron-icon icon="icons:error-outline"></iron-icon>
+                                <span id="errormsg"></span>
+                            </p>
+                        </div>
+                        <!-- we can request monitoring button -->
+                        <div class="enableMonitoring" hidden$="[[isMonitored]]">
+                            <paper-button class="blue" on-tap="toggleMonitoring" disabled="{{showLogs}}">Enable Monitoring</paper-button>
+                        </div>
+                        <!-- the machine is considered monitored -->
+                        <div class="monitored" hidden$="[[!isMonitored]]">
+                            <!-- instalation succeeded but is not yet activated ie. we have no data yet-->
+                            <paper-button class="red" on-tap="toggleMonitoring" hidden$="[[isActivated]]">Disable Monitoring</paper-button>
+                        </div>
                     </div>
-                    <div id="errormsgArea">
-                        <p class="errormsg-container" hidden$="[[!monitoringError]]">
-                            <iron-icon icon="icons:error-outline"></iron-icon>
-                            <span id="errormsg"></span>
-                        </p>
-                    </div>
-                    <!-- we can request monitoring button -->
-                    <div class="enableMonitoring" hidden$="[[isMonitored]]">
-                        <paper-button class="blue" on-tap="toggleMonitoring" disabled="{{showLogs}}">Enable Monitoring</paper-button>
-                    </div>
-                    <!-- the machine is considered monitored -->
-                    <div class="monitored" hidden$="[[!isMonitored]]">
-                        <!-- instalation succeeded but is not yet activated ie. we have no data yet-->
-                        <paper-button class="red" on-tap="toggleMonitoring" hidden$="[[isActivated]]">Disable Monitoring</paper-button>
+                    <!-- the machine cannot be monitored, it is not running -->
+                    <div hidden$="[[isRunning]]">
+                        The machine is [[state]]. It must be running to enable monitoring.
+                        <br />
+                        <paper-button class="blue" on-tap="toggleMonitoring" disabled>enable Monitoring</paper-button>
                     </div>
                 </div>
-                <!-- the machine cannot be monitored, it is not running -->
-                <div hidden$="[[isRunning]]">
-                    The machine is [[state]]. It must be running to enable monitoring.
-                    <br/>
-                    <paper-button class="blue" on-tap="toggleMonitoring" disabled>enable Monitoring</paper-button>
-                </div>
-            </div>
+            </iron-collapse>
         </template>
         <dialog-element id="monitorindialog"></dialog-element>
-        <iron-ajax id="monitoringRequest" url="/api/v1/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse"
-            on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
-        <iron-ajax id="getStats" url="/api/v1/machines/[[resource.id]]/stats" handle-as="xml" method="GET" contentType="application/json"
-            loading="{{loadingStats}}" on-response="_handleStatsResponse" on-error="_handleStatsError">
+        <iron-ajax id="monitoringRequest" url="/api/v1/machines/[[resource.id]]/monitoring" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="getStats" url="/api/v1/machines/[[resource.id]]/stats" handle-as="xml" method="GET" contentType="application/json" loading="{{loadingStats}}" on-response="_handleStatsResponse" on-error="_handleStatsError">
         </iron-ajax>
-        <iron-ajax id="disassociateMetric" handle-as="xml" method="DELETE" contentType="application/json" loading="{{loadingMetrics}}"
-            on-response="_handleAssociateResponse" on-error="_handleAssociateError">
+        <iron-ajax id="disassociateMetric" handle-as="xml" method="DELETE" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
         </iron-ajax>
         <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
-</dom-module>
-<script>
+
+    <script>
     Polymer({
         is: 'mist-monitoring',
 
         properties: {
             resource: {
                 type: Object, //currently machines only, later other resources too
-                value: function () {
+                value: function() {
                     return {
                         id: false
                     }
                 }
             },
-            state: String,
-            monitoring: Object,
-            section: Object,
+            singleResource: {
+                computed: '_computeSingleResource(resource, resource.*)'
+            },
+            state: {
+                type: String
+            },
+            monitoring: {
+                type: Object
+            },
+            section: {
+                type: Object
+            },
             isRunning: {
                 type: Boolean,
                 computed: '_computeIsRunning(resource, resource.*, state)'
@@ -357,8 +404,13 @@
             logItems: {
                 type: Array
             },
-            intervalID: String,
-            intervalMonitoringID: String,
+            intervalID: {
+                type: String
+            },
+            intervalMonitoringID: {
+                type: String,
+                value: ''
+            },
             showLogs: {
                 type: Boolean,
                 computed: 'computeShowLogs(jobId, isMonitored, isActivated)',
@@ -385,8 +437,29 @@
             replaceTargets: {
                 type: Object,
             },
-            incidents: Array,
-            portalName: 'Mist.io'
+            incidents: {
+                type: Array
+            },
+            openIncidents: {
+                type: Array,
+                computed: '_computeOpenIncidents(incidents, incidents.length, incidents.*)'
+            },
+            portalName: {
+                type: String,
+                value: 'Mist.io'
+            },
+            loadingStats: {
+                type: Boolean,
+                value: true
+            },
+            loadingMetrics: {
+                type: Boolean,
+                value: true
+            },
+            showMonitoring: {
+                type: Boolean,
+                value: true
+            }
         },
 
         observers: [
@@ -403,15 +476,9 @@
             'confirmation': '_monitoringDisableConfirmation',
             'delete-panel': '_disassociateMetric'
         },
-        ready: function () {
-
-        },
-        attached: function () {
-
-        },
-        detached: function () {},
         _forwardEvent: function (e) {
-            this.querySelector('polyana-dashboard')._updateDashboard(e);
+            e.stopPropagation();
+            this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard(e);
         },
         _computeDashboardUri: function (resource) {
             if (resource)
@@ -425,6 +492,9 @@
             } else {
                 this.set('isMonitored', true);
             }
+        },
+        _computeSingleResource: function ()  {
+            return this.resource && this.resource.id ? true : false;
         },
         _computeIsRunning: function (resource, resourceChangePath, state) {
             return this.resource && this.resource.state && (this.resource.state == "running" || this.resource
@@ -448,18 +518,20 @@
                     resource.id]) {
                 return "";
             } else {
-                if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed")
+                if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed") {
                     this.set("failed", true);
+                }
                 return this.monitoring.monitored_machines[resource.id].installation_status.state;
             }
         },
         toggleMonitoring: function (e, action) {
             var payload = {};
             console.log('toggleMonitoring', action)
-            if (action != 'disable')
+            if (action != 'disable') {
                 payload.action = this.isMonitored ? "disable" : "enable";
-            else
+            } else {
                 payload.action = action;
+            }
 
             payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
             payload.name = this.resource.name ? this.resource.name : this.resource.id;
@@ -474,8 +546,9 @@
         },
         _monitoringDisableConfirmation: function (e) {
             console.log('mist-monitoring', e)
-            if (e.detail.reason == "monitoring.disable" && e.detail.response.confirmed)
+            if (e.detail.reason == "monitoring.disable" && e.detail.response == "confirm") {
                 this.toggleMonitoring(e, 'disable');
+            }
         },
         _monitoringRequest: function (e) {
             this.set("failed", false);
@@ -514,7 +587,7 @@
             }
         },
         startPolling: function (jobid) {
-            this.intervalID = setInterval(function () {
+            this.intervalID = setInterval(function() {
                 this.$.getJobLog.generateRequest();
             }.bind(this), 1000);
             console.log('startpolling');
@@ -544,7 +617,7 @@
         },
         _monitoringError: function (e) {
             console.log("_monitoringError", e.detail.request.xhr.responseText);
-            this.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
+            this.shadowRoot.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
             this.set("monitoringError", true);
         },
         _reset: function (resource) {
@@ -553,7 +626,7 @@
             this.set("failed", false);
         },
         _computeScript: function (resource, monitoring) {
-            if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[
+            if (!this.monitoring || !this.monitoring.monitored_machines || !resource || !this.monitoring.monitored_machines[
                     resource.id]) {
                 return "";
             } else if (this.monitoring.monitored_machines[resource.id].commands) {
@@ -563,7 +636,7 @@
                 return "";
             }
         },
-        _computeIsActivated(resource, monitoring, hidden) {
+        _computeIsActivated (resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
             if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines ||
@@ -576,22 +649,24 @@
 
         },
         _computeResourceMonitoringInfo: function (resource, monitoring) {
-            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
-                .monitored_machines[resource.id])
+            if (!resource || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
+                .monitored_machines[resource.id]) {
                 return false;
-            else
+            } else {
                 return this.monitoring.monitored_machines[resource.id];
+            }
         },
         _computeHasKeys: function (keys) {
-            if (this.resource.keys)
+            if (this.resource && this.resource.keys) {
                 return this.resource.keys.length > 0;
-            else
+            } else {
                 return false;
+            }
         },
         _computeIsManual: function (isMonitored, resource, monitoring) {
-            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
-                .monitored_machines[this.resource.id] || !this.monitoring.monitored_machines[this.resource.id]
-                .installation_status.manual)
+            if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines ||
+                (this.resource && !this.monitoring.monitored_machines[this.resource.id] || !this.monitoring.monitored_machines[this.resource.id]
+                .installation_status.manual))
                 return false;
             else
                 return true;
@@ -611,9 +686,11 @@
             });
         },
         _showDialog: function (info) {
-            var dialog = this.querySelector('#monitorindialog');
-            for (var i in info) {
-                dialog[i] = info[i];
+            var dialog = this.$.monitorindialog;
+            if (info) {
+                for (var i in info) {
+                    dialog[i] = info[i];
+                }
             }
             dialog._openDialog();
         },
@@ -641,7 +718,7 @@
             }, this);
         },
         _handleAssociateResponse: function (target) {
-            this.querySelector('polyana-dashboard')._updateDashboard();
+            this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard();
         },
         clearJobID: function (resource) {
             // clear job when navigating away
@@ -656,15 +733,17 @@
             }
         },
         monitoringPolling: function () {
-            this.intervalMonitoringID = window.setInterval(function () {
-                this.$.getStats.generateRequest();
+            var that = this;
+            console.log('_getStats', that.shadowRoot.querySelector('#getStats'), window);
+            this.intervalMonitoringID = window.setInterval(function() {
+                that.shadowRoot.querySelector('#getStats').generateRequest();
                 console.log('monitoringPolling');
-            }.bind(this), 5000);
+            }, 5000);
         },
-        _handleStatsResponse: function(e) {
+        _handleStatsResponse: function (e) {
             this.stopGetStats();
         },
-        _handleStatsError: function(e) {
+        _handleStatsError: function (e) {
             this.stopGetStats();
         },
         stopGetStats: function () {
@@ -676,8 +755,55 @@
                 return false;
             return true;
         },
-        _isIncidentFinished: function(finished_at) {
+        _isIncidentFinished: function (finished_at) {
             return finished_at > 0;
+        },
+        _computeOpenIncidents: function () {
+            return this.incidents.filter(function(item) { return item.finished_at == 0; });
+        },
+        _computeToggleButtonStyle: function (expanded) {
+            return !expanded && "transform: rotate(270deg);" || "";
+        },
+        _exportPdf: function () {
+            var generatePdf = function (pdf) {
+                var pdf = new jsPDF(), offset = 10,
+                    timerange_button = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelector('timerange-picker').shadowRoot.querySelector('#currentTimeRangeButton'),
+                    timerange_html = timerange_button.outerHTML;
+                var resource = this.resource ? '<strong>' + this.resource.name + '</strong> &nbsp;&nbsp;' : '';
+                pdf.fromHTML(resource + timerange_html, 10, offset);
+                offset += 10;
+
+                var incidents = this.shadowRoot.querySelectorAll('.incident');
+                for (var i=0; i < incidents.length; i++) {
+                    pdf.fromHTML(incidents[i].outerHTML, 10, offset);
+                    offset += 10;
+                }
+                offset += 10;
+                var panels = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelectorAll('dashboard-panel');
+                for (var i=0; i<panels.length; i++) {
+                    if (i && i%2 == 0) {
+                        pdf.addPage();
+                        offset = 10
+                    }
+                    var canvas = panels[i].shadowRoot.querySelector('canvas');
+                    pdf.fromHTML(panels[i].shadowRoot.querySelector('div.title').outerHTML, 10, offset+(i%2)*120);
+                    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, offset + 10 + (i%2)*120);
+                }
+                pdf.save(this.resource.name + '-' + timerange_button.textContent.replace(' ', '') + '.pdf');
+            }.bind(this);
+            try {
+                new jsPDF();
+                generatePdf();
+            } catch (e) { // import jspdf if not loaded
+                return this.dispatchEvent(
+                    new CustomEvent('import-script', {
+                        bubbles: true, composed: true, detail: {
+                            url: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js',
+                            cb: generatePdf
+                        }
+                    }));
+            }
         }
     });
-</script>
+    </script>
+</dom-module>

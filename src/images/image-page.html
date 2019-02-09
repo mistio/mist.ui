@@ -3,7 +3,6 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../helpers/mist-loading-behavior.html">
-<link rel="import" href="../mist-actions.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../tags/tags-list.html">
 
@@ -12,10 +11,6 @@
 <dom-module id="image-page">
     <template>
         <style include="shared-styles single-page">
-            :host {
-                display: block;
-            }
-
             paper-material {
                 display: block;
                 padding: 20px;
@@ -86,14 +81,6 @@
                 transition: all 200ms;
             }
 
-            paper-icon-button.active-sort {
-                transform: rotate(180deg);
-            }
-
-            paper-icon-button.active-sort::content iron-icon {
-                color: #D48900 !important;
-            }
-
             [size=xs] > * {
                 display: none;
             }
@@ -144,12 +131,11 @@
             .single-head {
                 @apply --image-page-head-mixin
             }
+            image-actions {
+                width: 50%;
+            }
         </style>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
-            <image-actions actions="{{actions}}" items="[[itemArray]]"></image-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -161,7 +147,7 @@
                         on [[image.cloud.title]]
                     </div>
                 </div>
-                <mist-actions actions="[[actions]]" type="image" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <image-actions actions="{{actions}}" items="[[itemArray]]"></image-actions>
             </paper-material>
             <paper-material>
                 <div class="missing" hidden$="[[!isMissing]]">Image not found.</div>
@@ -229,16 +215,12 @@
                     }
                 },
                 observers: [
-                  '_changed(image)',
-                  '_count(section.count)'
+                  '_changed(image)'
                 ],
                 ready: function() {
                 },
                 _displayUser: function (id, members) {
-                    return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
-                },
-                _count: function(count){
-                    console.log('state count', count);
+                    return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
                 },
                 _changed: function(image){
                     if (image)
@@ -254,7 +236,7 @@
                     return name == "<none>:<none>" ? this.image.id : name;
                 },
                 _editTags: function() {
-                    var el = this.querySelector('tags-list'),
+                    var el = this.shadowRoot.querySelector('tags-list'),
                     items = [];
                     items.push(itemUid(this.image, this.section));
                     el.items = items;
@@ -267,19 +249,20 @@
                     this.$.imageStarAjaxRequest.generateRequest();
                 },
                 _handleImageStarAjaxResponse: function(e) {
-                    console.log('star', this.image.star);
                     var starred = !this.image.star;
                     var message = starred ? 'Updating image as starred. It will now appear on top when creating machines' :
                     'Updating image as unstarred. It will no longer appear on top when creating machines';
                     // this.set('image.star', starred);
-                    this.fire('toast',{msg:message,duration:5000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:5000} }));
+
                 },
                 _handleImageStarAjaxError: function(e) {
                     // TODO: Show a toast after request response. Toast text:
                     // "There was a problem starring image IMAGE_NAME. It can not yet appear as an option when creating machines"
                     // or
                     // "There was a problem unstarring image IMAGE_NAME. It will still appear as an option when creating machines"
-                    this.fire('toast',{msg:'There was a problem unstarring image ' + this.image.name + '. It will still appear as an option when creating machines',duration:5000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'There was a problem unstarring image ' + this.image.name + '. It will still appear as an option when creating machines',duration:5000} }));
+
                 },
 
                 _computeIsloading: function(image) {

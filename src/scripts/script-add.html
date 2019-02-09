@@ -8,10 +8,6 @@
 <dom-module id="script-add">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
-                display: block;
-            }
-
             #content {
                 max-width: 900px;
             }
@@ -29,7 +25,7 @@
                 right: 0;
             }
 
-            :host>::content paper-input-container {
+            :host>::slotted(paper-input-container) {
                 padding-top: 16px;
                 padding-bottom: 16px;
             }
@@ -185,9 +181,9 @@
                         name: "script_inline",
                         label: "Script *",
                         type: "textarea",
-                        value: "",
+                        value: "#!/bin/sh\necho \"Hello world\"",
+                        class: "script",
                         defaultValue: "",
-                        placeholder: "",
                         show: false,
                         required: true,
                         errorMessage: "Please enter inline script",
@@ -234,7 +230,9 @@
                 'iron-select': 'showAppropriatePlaceholder'
             },
             ready: function () {
-                this.set('origin', document.querySelector('app-location').queryParams.origin);
+                if (document.querySelector('app-location')) {
+                    this.set('origin', document.querySelector('app-location').queryParams.origin);
+                }
                 if (!this.docs)
                     for (var i=0; i < this.fields.length; i++)
                         this.fields[i].helpHref = '';
@@ -279,13 +277,15 @@
             _addScriptAjaxResponse: function (e) {
                 var response = YAML.parse(e.detail.xhr.response);
                 if (!this.origin) {
-                    this.fire('go-to', {
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                         url: '/scripts/' + response.id
-                    });
+                    } }));
+
                 } else {
-                    this.fire('update-scripts', {
+                    this.dispatchEvent(new CustomEvent('update-scripts', { bubbles: true, composed: true, detail: {
                         script: response.id
-                    });
+                    } }));
+
                     history.back();
                 }
             },

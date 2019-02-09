@@ -12,7 +12,6 @@
             }
 
             :host {
-                display: block;
                 text-transform: lowercase;
                 background-color: #f5f5f5;
             }
@@ -49,7 +48,7 @@
                 margin-left: -3px;
             }
 
-            paper-icon-button::content iron-icon {
+            paper-icon-button::slotted(iron-icon) {
                 opacity: 0.32;
             }
 
@@ -73,7 +72,7 @@
                 display: inline-block;
             }
 
-            .rule-item.incident-true {
+            .incident-true {
                 color: var(--red-color);
             }
 
@@ -226,7 +225,9 @@
                     type:Object,
                     value: false
                 },
-                rule: Object,
+                rule: {
+                    type: Object
+                },
                 isNoData: {
                     type: Boolean,
                     computed: '_computeIsNoData(rule)',
@@ -243,8 +244,12 @@
                     type: Boolean,
                     value: false
                 },
-                teams: Array,
-                users: Array,
+                teams: {
+                    type: Array
+                },
+                users: {
+                    type: Array
+                },
                 canEdit: {
                     type: Boolean,
                     computed: '_computeCanEdit(rule,resource)'
@@ -355,7 +360,7 @@
                 return verb;
             },
             deleteRule: function (e) {
-                var ruleid = e.target.parentElement.dataAttr;
+                var ruleid = this.rule.id;
                 this.$.deleteRuleRequest.url = '/api/v1/rules/' + ruleid;
                 this.$.deleteRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.deleteRuleRequest.generateRequest();

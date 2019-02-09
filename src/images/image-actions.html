@@ -4,20 +4,25 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="../tags/tags-form.html">
 
 <dom-module id="image-actions">
   <template>
-    <style include="shared-styles">
+    <style>
       :host {
-        display: inline;
-        color: rgba(255,255,255,0.87);
+        min-width: 50%;
+      }
+      mist-list-actions {
+        width: 100%;
+        fill: #fff;
       }
     </style>
-    
     <dialog-element id="confirm"></dialog-element>
-    <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
     <iron-ajax id="request"
             handle-as="xml"
             loading="{{loadingData}}"
@@ -72,11 +77,23 @@ IMAGE_ACTIONS = {
         '_mapPolicyToActions(items.*)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction'
+        'confirmation': 'confirmAction',
+        'select-action': 'selectAction',
+        'create_machine': '_createMachine'
       },
       attached: function() {
         this.$.request.headers["Content-Type"] = 'application/json';
         this.$.request.method = "POST";
+      },
+      _createMachine: function (e) {
+        // console.log('_createMachine', e.detail);
+        this.dispatchEvent(new CustomEvent("go-to", { bubbles: true, composed: true, detail:  {
+            url: '/machines/+create',
+            params: {
+                cloud: e.detail.cloud,
+                image: e.detail.image
+            }
+        } }))
       },
       itemActions: function(image) {
         var arr = [];
@@ -133,7 +150,8 @@ IMAGE_ACTIONS = {
           }
           else if (action.name == "create machine") {
             // single image only
-            this.fire('create_machine', {cloud: this.items[0].cloud.id, image: this.items[0].id});
+            this.dispatchEvent(new CustomEvent('create_machine', { bubbles: true, composed: true, detail: {cloud: this.items[0].cloud.id, image: this.items[0].id} }));
+
           }
         }
       },
@@ -144,18 +162,23 @@ IMAGE_ACTIONS = {
           this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
           this.$.request.generateRequest();
         }
-        this.fire('toast', {msg: action+' request sent.', duration: 1000})
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: action+' request sent.', duration: 1000} }));
       },
       _showDialog: function(info) {
-          var dialog = this.querySelector('dialog-element');
-          for (var i in info) {
-              dialog[i] = info[i];
+          var dialog = this.shadowRoot.querySelector('dialog-element');
+          if (info) {
+            for (var i in info) {
+                dialog[i] = info[i];
+            }
           }
           dialog._openDialog();
       },
       handleResponse: function(e) {
-        this.fire('toast', {msg: 'Successfully '+this.action.name+'ed image.', duration: 3000})
-        this.fire('action-finished');
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Successfully '+this.action.name+'ed image.', duration: 3000} }));
+        this.dispatchEvent(new CustomEvent('action-finished'));
+
+
+
       },
       _mapPolicyToActions: function (items) {
         // recompute the actions array property as the intersection
@@ -190,7 +213,8 @@ IMAGE_ACTIONS = {
 
       handleError: function(e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000});
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000} }));
+
       },
 
       _makeList: function(items, property){
@@ -198,7 +222,8 @@ IMAGE_ACTIONS = {
           return items.map(function(item){
             return item[property];
           });
-      }
+      },
+
     });
   </script>
 </dom-module>

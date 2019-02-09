@@ -1,128 +1,19 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
-<link rel="import" href="../bower_components/paper-menu/paper-submenu.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <dom-module id="metric-menu">
     <template>
         <style include="shared-styles">
          :host {
-            display: block;
             position: relative;
-        }
-        #selectTarget {
-            position: absolute !important;
-            min-width: 300px;
-        }
-
-        .progress {
-            margin: 32px 0 0 0;
-            width: 100%;
-        }
-
-        paper-textarea#juicyScript {
-            width: 500px;
-        }
-
-        paper-textarea#juicyScript ::content paper-input-container #inner-editor,
-        paper-textarea#juicyScript textarea {
-            font-family: monospace !important;
-        }
-
-        paper-textarea#juicyScript ::content .floated-label-placeholder {
-            display: none;
-        }
-
-        paper-progress {
-            width: 100%;
-            margin-left: -24px;
-        }
-
-        paper-progress#progresserror ::content #primaryProgress {
-            background-color: var(--red-color);
-        }
-
-        hr {
-            margin-left: -24px;
-            margin-right: 24px;
-        }
-
-        h2 {
-            padding: 0 24px;
-        }
-
-        div>h2 {
-            padding: 24px 0;
-        }
-
-        div>h2.textarea-h2 {
-            padding-bottom: 0;
-        }
-
-        .errormsg-container {
-            color: var(--red-color);
-        }
-
-        .errormsg-container iron-icon {
-            color: inherit;
-            vertical-align: bottom;
-            padding-right: 8px;
-        }
-
-        .add-button {
-            background-color: #f1f1f1;
-            float: right;
-            display: block;
-            text-align: right;
-            margin-top: 4px;
-        }
-
-        .add-button iron-icon {
-            color: inherit;
-            opacity: 0.32;
-        }
-
-        paper-dialog-scrollable {
-            padding: 0 !important;
-        }
-
-        paper-dialog-scrollable ::content paper-item {
-            padding-left: 10px !important;
-            position: relative;
+            outline: none;
             cursor: pointer;
-            border-bottom: 1px solid #ddd;
         }
-
-        paper-dialog-scrollable ::content .expand-more {
-            position: absolute;
-            right: 4px;
-        }
-
-        paper-dialog-scrollable ::content paper-menu:not(.main) {
-            padding: 0 0 0 16px;
-        }
-
-        .loader {
-            margin: 8px;
-            display: block;
-            text-align: center;
-        }
-
-        .loader paper-spinner {
-            padding: 8px
-        }
-
-        #customButton {
-            width: 100%;
-        }
-
-        #customOptions {
-            max-width: 500px;
-        }
-        :host metric-menu {
-            margin-left: 10px;
+        paper-item {
+            cursor: pointer;
         }
         </style>
 
@@ -130,7 +21,7 @@
             <paper-item on-tap="toggle">[[metric.name]] <iron-icon icon="icons:expand-more"></iron-icon></paper-item>
             <iron-collapse id="collapse">
                 <template is="dom-repeat" items="[[metric.options]]">
-                    <metric-menu metric="[[item]]"></metric-menu>
+                    <metric-menu machine="[[machine]]" metric="[[item]]"></metric-menu>
                 </template>
             </iron-collapse>
         </template>
@@ -139,22 +30,41 @@
             <paper-item on-tap="addGraph">[[metric.name]] </paper-item>
         </template>
 
+        <iron-ajax id="associateMetric" handle-as="xml" method="PUT" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleAssociateResponse" on-error="_handleAssociateError">
+        </iron-ajax>
+
     </template>
     <script>
     Polymer({
         is: "metric-menu",
-        properties: {            
+        properties: {
             metric: {
                 type: Object
+            },
+            machine: {
+                type: String
             }
         },
         toggle: function(e) {
-            this.querySelector('iron-collapse').toggle();
+            this.shadowRoot.querySelector('iron-collapse').toggle();
         },
-        addGraph: function(e){
-            this.fire('panelAdded', { metric: this.metric.name });
+        addGraph: function(e) {
+            console.log('addGraph', this.machine);
+            document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+            var metric = this.metric.name;
+            var payload = {
+                metric_id: metric
+            };
+            this.$.associateMetric.url = "/api/v1/machines/" + this.machine + "/metrics";
+            this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.associateMetric.params = payload;
+            this.$.associateMetric.generateRequest();
+        },
+        _handleAssociateResponse: function(e) {
+            console.log('event in add-graph');
+            e.stopPropagation();
+            document.querySelector('mist-app').fire('update-dashboard');
         }
-
     });
     </script>
 </dom-module>

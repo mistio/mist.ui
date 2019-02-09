@@ -123,13 +123,13 @@
                 width: 70%;
                 margin: 0 auto;
             }
-            #progress paper-progress[error]>::content #primaryProgress {
+            #progress paper-progress[error]>::slotted(#primaryProgress) {
                 background-color: var(--red-color) !important;
             }
         </style>
 
         <div id="onboarding-area">
-            <img class="onb-graphics top" src="../../assets/onboarding/clouds.svg"/>
+            <img class="onb-graphics top" src="[[rootPath]]/assets/onboarding/clouds.svg"/>
             <div id="org-form" hidden$="[[hasOrg]]">
                 <h1>Welcome!</h1>
                 <p>One small step to complete your sign up:<br/>
@@ -165,11 +165,11 @@
                         <div class="grid-row">
                             <div class="xs12 m6 l6">
                                 <paper-dropdown-menu id="selectteam" label="Team">
-                                    <paper-menu slot="dropdown-content" class="dropdown-content" attr-for-selected="value">
+                                    <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="value">
                                         <template is="dom-repeat" items="[[model.teamsArray]]">
                                             <paper-item id="teamoption" value="[[item.id]]">[[item.name]]</paper-item>
                                         </template>
-                                    </paper-menu>
+                                    </paper-listbox>
                                 </paper-dropdown-menu>
                             </div>
                             <div class="field-helptext xs12 m6 l6">
@@ -265,8 +265,9 @@
                     this.saveOrg();
             },
             saveOrg: function(){
-                var new_name = this.querySelector("#orginput").value;
-                this.fire('user-action', 'Save org ' + new_name);
+                var new_name = this.shadowRoot.querySelector("#orginput").value;
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'Save org ' + new_name }));
+
                 this.$.saveOrgRequest.headers["Content-Type"] = 'application/json';
                 this.$.saveOrgRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.saveOrgRequest.body = { 'new_name': new_name };
@@ -276,11 +277,14 @@
                 this.$.addFirstCloudBtn.focus();
             },
             goToAddCloud: function(){
-                this.fire('user-action', 'add cloud click');
-                this.fire('go-to', {url: '/clouds/+add'});
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add cloud click' }));
+
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/clouds/+add'} }));
+
             },
             showInviteForm: function(){
-                this.fire('user-action', 'invite people click');
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'invite people click' }));
+
                 var addform = document.querySelector("#cloud-or-invite-form"),
                     inviteform = document.querySelector("#invite-form"),
                     container = document.querySelector("#onboarding-area");
@@ -289,7 +293,8 @@
                 container.setAttribute('higher', true);
             },
             hideInviteForm: function(){
-                this.fire('user-action', 'cancel click');
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'cancel click' }));
+
                 var addform = document.querySelector("#cloud-or-invite-form"),
                     inviteform = document.querySelector("#invite-form"),
                     container = document.querySelector("#onboarding-area");
@@ -310,7 +315,8 @@
                 }
             },
             invitePeopleResponse: function(){
-                this.fire('go-to', {url: '/teams/' + this.selectedTeamId});
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/teams/' + this.selectedTeamId} }));
+
                 this.set('showProgress', false);
                 this.async(function(){
                     this.hideInviteForm();
@@ -340,8 +346,9 @@
                 }
             },
             _addTeam: function(e) {
-                this.fire('user-action', 'add team click');
-                var dialog = this.querySelector('team-add');
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add team click' }));
+
+                var dialog = this.shadowRoot.querySelector('team-add');
                 dialog.openDialog();
             },
             updateToNewTeam: function(newTeam) {

@@ -11,10 +11,6 @@
 <dom-module id="stack-create">
     <template>
         <style include="shared-styles forms single-page">
-            :host {
-                display: block;
-            }
-
             paper-material {
                 display: block;
                 padding: 24px;
@@ -32,7 +28,7 @@
                 right: 0;
             }
 
-            :host>::content paper-input-container {
+            :host>::slotted(paper-input-container) {
                 padding-top: 16px;
                 padding-bottom: 16px;
             }
@@ -41,11 +37,11 @@
                 font-size: 2em;
             }
 
-            paper-toggle-button[disabled]::content {
+            paper-toggle-button[disabled]::slotted() {
                 color: rgba(0, 0, 0, 0.32);
             }
 
-            paper-toggle-button::content paper-input-container input {
+            paper-toggle-button::slotted(paper-input-container input) {
                 color: color: rgba(0, 0, 0, 0.54);
             }
 
@@ -554,7 +550,7 @@
                                 }) || cloud;
                                 cloudId = fieldCloud.value;
                                 if (cloudId)
-                                    inp['options'] = this.model.clouds[cloudId].locationsArray;
+                                    inp['options'] = Object.values(this.model.clouds[cloudId].locations);
                             }
                             if (inp.name.startsWith("mist_image")) {
                                 xid = inp.name.split("mist_image")[0];
@@ -652,9 +648,10 @@
                 // console.log('create stack ', e);
                 var response = YAML.parse(e.detail.xhr.response);
                 var sid = response.id;
-                this.fire('go-to', {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                     url: '/stacks/' + sid
-                });
+                } }));
+
                 this.debounce('resetForm', function () {
                     this._resetForm();
                 }, 500);
@@ -683,7 +680,7 @@
             },
             _resetField: function (el, index) {
                 // this.set('fields.' + index + '.value', el.defaultValue);
-                // var input = this.querySelector('#' + el.name);
+                // var input = this.shadowRoot.querySelector('#' + el.name);
                 // if (input) {
                 //     input.invalid = false;
                 // }

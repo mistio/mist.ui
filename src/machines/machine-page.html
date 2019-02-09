@@ -3,29 +3,32 @@
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
+
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../mist-monitoring.html">
-<link rel="import" href="../mist-actions.html">
+
 <link rel="import" href="machine-actions.html">
 <link rel="import" href="machine-r12ns.html">
+
 <dom-module id="machine-page">
     <template>
         <style include="shared-styles tags-and-labels info-table-style single-page">
-             :host {
-                display: block;
-            }
-
             a:hover {
                 cursor: pointer;
             }
 
+            machine-actions {
+                width: 50%;
+            }
+
             .columns {
-                @apply --layout-horizontal;
+                display: flex;
                 flex: 1 100%;
                 margin-bottom: 16px;
+                flex-wrap: wrap;
             }
 
             .columns paper-material>.break {
@@ -38,10 +41,10 @@
 
             .left,
             .right {
-                @apply --layout-vertical;
+                display: flex;
                 align-items: flex-start;
                 flex-direction: column;
-                flex: 1 100%;
+                flex: 1 50%;
             }
 
             .left h3,
@@ -57,10 +60,6 @@
 
             .flexchild {
                 @apply --layout-flex;
-            }
-
-            .paper-header h2 {
-                @apply --layout-flex-none;
             }
 
             .machine-ip {
@@ -160,7 +159,7 @@
                 margin-right: 4px;
             }
 
-            polyana-dashboard ::content h3 {
+            polyana-dashboard ::slotted(h3) {
                 text-transform: uppercase;
                 font-size: 16px;
                 font-weight: 500;
@@ -213,28 +212,6 @@
                 width: 24px !important;
                 height: 24px !important;
                 vertical-align: middle !important;
-            }
-
-            machine-actions {
-                display: flex;
-                font-size: 1em;
-            }
-
-            machine-actions ::content .actions {
-                height: auto;
-                display: flex;
-                vertical-align: auto;
-                padding: 0;
-            }
-
-            machine-actions ::content .item-actions {
-                margin-left: 0 !important;
-            }
-
-            :host machine-actions ::content mist-actions ::content paper-button:not(.more).actions,
-            :host machine-actions ::content mist-actions ::content paper-button.dropdown-trigger {
-                padding: 16px !important;
-                margin: 0 !important;
             }
 
             span[class*="dc-"] {
@@ -439,7 +416,7 @@
             }
 
             @media screen and (max-width: 450px) {
-                paper-menu-button[vertical-align="top"] ::content .dropdown-content.paper-menu-button {
+                paper-menu-button[vertical-align="top"] ::slotted(.dropdown-content.paper-menu-button) {
                     max-height: 200px !important;
                 }
             }
@@ -505,10 +482,6 @@
             }
         </style>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
-            <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" in-single-page></machine-actions>
             <paper-material class="single-head layout horizontal machine-page-head">
                 <span class="icon">
                     <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
@@ -518,20 +491,17 @@
                         [[machineName]]
                     </h2>
                     <div class="subtitle">
-                        [[machineState]]
+                        <span>[[machineState]]</span>
                         <span class="desc" hidden$="[[_hasExtraStatus(machine)]]">[[_computeExtraStatus(machine, machine.*, model.machines.*)]]</span>
                     </div>
                 </div>
-                <template is="dom-if" if="[[itemArray]]" restamp>
-                    <mist-actions type="machine" id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="[[actions]]" use-half-width>
-                    </mist-actions>
-                </template>
+                <machine-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" in-single-page></machine-actions>
             </paper-material>
             <paper-material hidden$="[[!isMissing]]">
                 <div class="missing">Machine not found.</div>
             </paper-material>
             <div class="columns">
-                <paper-material id="leftcolumn resource-description" class="left">
+                <paper-material id="leftcolumn" class="left resource-description">
                     <div class="resource-info">
                         <div class="table">
                             <div class="row" hidden$="[[!machine.cloud]]">
@@ -540,7 +510,7 @@
                                 </div>
                                 <div class="cell">
                                     <iron-icon class="cloud icon" src$="[[_computeCloudIcon(cloud.provider)]]"></iron-icon>
-                                    [[cloud.title]]
+                                    <span>[[cloud.title]]</span>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!cloud.tenant]]">
@@ -557,7 +527,7 @@
                                 </div>
                                 <div class="cell">
                                     <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
-                                    [[_computeMachineImage(machine,model.images)]]
+                                    <span>[[_computeMachineImage(machine,model.images)]]</span>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!machineSize]]">
@@ -565,7 +535,7 @@
                                     <h4>Size:</h4>
                                 </div>
                                 <div class="cell">
-                                    [[machineSize]]
+                                    <span>[[machineSize]]</span>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!_getLocationName(machine,cloud)]]">
@@ -573,10 +543,10 @@
                                     <h4>Location:</h4>
                                 </div>
                                 <div class="cell">
-                                    [[_getLocationName(machine,cloud)]]
+                                    <span>[[_getLocationName(machine,cloud)]]</span>
                                 </div>
                             </div>
-                            <br/>
+                            <br />
                             <div class="row" hidden$="[[!machine.probe.ssh.updated_at]]">
                                 <div class="cell" hidden$="[[!machine.probe.ssh.loadavg]]">
                                     <h4>Load:</h4>
@@ -655,13 +625,13 @@
                         <div class="cell">
                             <h4>Created:</h4>
                         </div>
-                        <div class="cell">
+                        <div class="cell" hidden$="[[!machine]]">
                             [[_fromNow(machine.created)]]
                             <span hidden$="[[!machine.created_by]]">
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
                             </span>
                         </div>
-                        <br/>
+                        <br />
                     </div>
                     <div hidden$="[[!machine.key_associations.length]]">
                         <div class="m-info-head">Associated Keys:</div>
@@ -670,15 +640,14 @@
                                 <div class="machine-key" hidden$="[[!_visibleKey(model,key)]]">
                                     <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]">
                                         <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
-                                    <iron-icon icon="icons:cancel" on-tap="disassociateKey"
-                                        class="delete"></iron-icon>
+                                    <iron-icon icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
                             <div class="machine-key" id="pendingKeyRequest">
                                 <paper-spinner active hidden$="[[!isPendingKeyRequest]]"></paper-spinner>
                             </div>
                         </div>
-                        <br/>
+                        <br />
                     </div>
                     <div hidden$="[[!volumes.length]]">
                         <div class="m-info-head">Attached Volumes:</div>
@@ -687,14 +656,14 @@
                                 <div class="machine-volume">
                                     <a class="regular blue-link flexchild" href$="/volumes/[[volumeId]]">
                                         <iron-icon icon="device:storage"></iron-icon>[[_computeVolumeName(volumeId)]]</a>
-                                        <iron-icon icon="icons:cancel" class="delete" on-tap="detachVolume">
+                                    <iron-icon icon="icons:cancel" class="delete" on-tap="detachVolume">
                                 </div>
                             </template>
                             <div class="machine-volume" id="pendingVolumeRequest">
                                 <paper-spinner active hidden$="[[!isPendingVolumeRequest]]"></paper-spinner>
                             </div>
                         </div>
-                        <br/>
+                        <br />
                     </div>
                     <div hidden$="[[!machineTags.length]]">
                         <div class="m-info-head tags">TAGS:</div>
@@ -709,28 +678,10 @@
             </paper-material>
             <template is="dom-if" if=[[monitoring]]>
                 <paper-material id="monitoringBlock" class="info-card">
-                    <mist-monitoring
-                        id="mistMonitoring"
-                        resource="[[machine]]"
-                        state="[[machineState]]"
-                        monitoring="[[model.monitoring]]"
-                        section="[[section]]"
-                        datasources="[[datasources]]"
-                        hidden$="[[hidden]]"
-                        machine-keys="[[machineKeys]]"
-                        incidents="[[_filterMachinesIncidents(model.incidentsArray, model.incidentsArray.length, model.incidents.*)]]"
-                        portal-name="[[portalName]]"></mist-monitoring>
-                    <mist-rules
-                        id="monitoringRules"
-                        cloud="[[machine.cloud]]"
-                        builtin-metrics="[[model.monitoring.builtin_metrics]]"
-                        custom-metrics="[[model.monitoring.custom_metrics]]"
-                        incidents="[[model.incidentsArray]]"
-                        rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]"
-                        teams="[[model.teamsArray]]"
-                        users="[[model.membersArray]]"
-                        resource="[[machine]]"
-                        hidden$="[[!isActivated]]"></mist-rules>
+                    <mist-monitoring id="mistMonitoring" resource="[[machine]]" state="[[machineState]]" monitoring="[[model.monitoring]]" section="[[section]]" datasources="[[datasources]]" hidden$="[[hidden]]" machine-keys="[[machineKeys]]" incidents="[[_filterMachinesIncidents(model.incidentsArray, model.incidentsArray.length, model.incidents.*)]]" portal-name="[[portalName]]"></mist-monitoring>
+                </paper-material>
+                <paper-material id="rulesBlock" class="info-card">
+                    <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" hidden$="[[!isActivated]]" collapsible></mist-rules>
                 </paper-material>
             </template>
             <paper-material class="info-card">
@@ -790,273 +741,282 @@
             </paper-material>
             <paper-material class="machine-logs" hidden$=[[!count]]>
                 <template is="dom-if" if=[[machine.machine_id]] restamp>
-                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1/logs"
-                        name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]]
-                        primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1/logs" name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
                 </template>
             </paper-material>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
-        <iron-ajax id="machineDeleteAjaxRequest" url="/api/v1/machines/[[machine.id]]" method="DELETE" on-response="_handleMachineDeleteAjaxResponse"
-            on-error="_handleMachineDeleteAjaxError"></iron-ajax>
-        <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse"
-            on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
-        <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]" method="PUT" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}"
-            on-error="_detachVolumeError" handle-as="xml"></iron-ajax>
-        <iron-ajax id="probeMachine" url="/api/v1/machines/[[machine.id]]/probe" method="POST" loading="{{probeLoading}}" on-error="_probeError"
-            handle-as="xml"></iron-ajax>
+        <iron-ajax id="machineDeleteAjaxRequest" url="/api/v1/machines/[[machine.id]]" method="DELETE" on-response="_handleMachineDeleteAjaxResponse" on-error="_handleMachineDeleteAjaxError"></iron-ajax>
+        <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse" on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
+        <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]" method="PUT" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}" on-error="_detachVolumeError" handle-as="xml"></iron-ajax>
+        <iron-ajax id="probeMachine" url="/api/v1/machines/[[machine.id]]/probe" method="POST" loading="{{probeLoading}}" on-error="_probeError" handle-as="xml"></iron-ajax>
         <paper-toast></paper-toast>
     </template>
 </dom-module>
 <script>
-    Polymer({
-        is: 'machine-page',
-        behaviors: [
-            mistLoadingBehavior
-        ],
-        properties: {
-            model: {
-                type: Object
-            },
-            user: String,
-            router: Object,
-            machine: {
-                type: Object
-            },
-            cloud: {
-                type: Object,
-                computed: '_getMachineCloud(model.clouds.*, machine.cloud)'
-            },
-            volumes: {
-                type: Array,
-                computed: '_getMachineVolumes(model.volumes.*, machine)'
-            },
-            sections: {
-                type: Array
-            },
-            section: {
-                type: Object
-            },
-            tag: {
-                type: String,
-                value: ""
-            },
-            isMonitored: {
-                type: Boolean,
-                value: false
-            },
-            isActivated: {
-                type: Boolean,
-                value: false,
-                computed: '_computeIsActivated(machine, model.monitoring.monitored_machines.*)'
-            },
-            machineName: {
-                type: String,
-                computed: "_computeMachineName(machine.*, model.machines.*)"
-            },
-            machineState: {
-                type: String,
-                computed: "_computeMachineState(machine.state, model.machines.*)"
-            },
-            machineSize: {
-                type: String,
-                computed: "_computeMachineSize(machine, machine.*, model.machines.*, cloud.*)"
-            },
-            machineTags: {
-                type: Array,
-                computed: "_computeMachineTags(machine, machine.tags, machine.tags.*, model.machines.*)"
-            },
-            dashboard: {
-                type: Object
-            },
-            isLoading: {
-                type: Boolean,
-                computed: '_computeIsloading(machine)',
-                value: true
-            },
-            newKeyId: {
-                type: String,
-                value: ''
-            },
-            machineIp: {
-                type: String,
-                computed: 'computeMachineIp(machine, machine.public_ips)'
-            },
-            disassociateKeyId: {
-                type: String
-            },
-            detachVolumeId: {
-                type: String
-            },
-            isPendingKeyRequest: {
-                type: Boolean
-            },
-            isPendingVolumeRequest: {
-                type: Boolean,
-                value: false
-            },
-            hideAssociatedKeys: {
-                type: Boolean
-            },
-            machineKeys: {
-                type: Array,
-                computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
-                value: function () {
-                    return []
-                }
-            },
-            itemUid: {
-                type: Array,
-                computed: '_computeThisItemUid(machine)'
-            },
-            actions: {
-                type: Array
-                // computed: '_computeActions(machine, machine.*, model.machines.*, user)'
-            },
-            dirtyCowAlert: {
-                type: String,
-                computed: '_computeDirtyCowAlert(machine)',
-                value: false
-            },
-            hidden: {
-                type: Boolean,
-                value: false
-            },
-            machineLogFilter: {
-                type: Object,
-                computed: "_computeMachineLogFilter(machine)"
-            },
-            monitoring: {
-                type: Boolean,
-                value: false
-            },
-            itemArray: Array,
-            actions: {
-                type: Array,
-                notify: true
-            },
-            r12ns: {
-                type: Array,
-                value: function () {
-                    return []
-                },
-                computed: '_computeMachineR12ns(machine, model.notificationsArray.length)'
-            },
-            portalName: 'Mist.io'
+Polymer({
+    is: 'machine-page',
+    behaviors: [
+        mistLoadingBehavior
+    ],
+    properties: {
+        model: {
+            type: Object
         },
-        observers: [
-            '_isMonitored(machine, model.monitoring.machines.*)',
-            '_machineChanged(machine.*, model.machines.*)',
-            '_machineKeysChanged(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)'
-        ],
-        listeners: {
-            'confirmation': '_machineActionConfirmation',
-            'pending-key-request': '_updateKeyLoader',
-            'select-action': 'selectAction'
+        user: {
+            type: String
         },
-        ready: function () {
-            this.set('hideAssociatedKeys', true);
-            this.set('isPendingKeyRequest', false);
+        router: {
+            type: Object
         },
-        _rulesApplyOnMachine: function (rules, machine, machineTags) {
-            var machineRules = {}, check;
+        machine: {
+            type: Object
+        },
+        cloud: {
+            type: Object,
+            value: {}
+        },
+        volumes: {
+            type: Array,
+            computed: '_getMachineVolumes(model.volumes.*, machine)'
+        },
+        sections: {
+            type: Array
+        },
+        section: {
+            type: Object
+        },
+        tag: {
+            type: String,
+            value: ""
+        },
+        isMonitored: {
+            type: Boolean,
+            value: false
+        },
+        isActivated: {
+            type: Boolean,
+            value: false,
+            computed: '_computeIsActivated(machine, model.monitoring.monitored_machines.*)'
+        },
+        machineName: {
+            type: String,
+            computed: "_computeMachineName(machine.*, model.machines.*)"
+        },
+        machineState: {
+            type: String,
+            computed: "_computeMachineState(machine.state, model.machines.*)"
+        },
+        machineSize: {
+            type: String,
+            computed: "_computeMachineSize(machine, machine.*, model.machines.*, cloud.*)"
+        },
+        machineTags: {
+            type: Array,
+            computed: "_computeMachineTags(machine, machine.tags, machine.tags.*, model.machines.*)"
+        },
+        dashboard: {
+            type: Object
+        },
+        isLoading: {
+            type: Boolean,
+            computed: '_computeIsloading(machine)',
+            value: true
+        },
+        newKeyId: {
+            type: String,
+            value: ''
+        },
+        machineIp: {
+            type: String,
+            computed: 'computeMachineIp(machine, machine.public_ips)'
+        },
+        disassociateKeyId: {
+            type: String
+        },
+        detachVolumeId: {
+            type: String
+        },
+        isPendingKeyRequest: {
+            type: Boolean
+        },
+        isPendingVolumeRequest: {
+            type: Boolean,
+            value: false
+        },
+        hideAssociatedKeys: {
+            type: Boolean
+        },
+        machineKeys: {
+            type: Array,
+            computed: '_computeAssociatedKeys(machine, machine.key_associations, machine.key_associations.length, machine.*, model.machines.*, model.keys.*)',
+            value: function() {
+                return []
+            }
+        },
+        itemUid: {
+            type: Array,
+            computed: '_computeThisItemUid(machine)'
+        },
+        dirtyCowAlert: {
+            type: String,
+            computed: '_computeDirtyCowAlert(machine)',
+            value: false
+        },
+        hidden: {
+            type: Boolean,
+            value: false
+        },
+        machineLogFilter: {
+            type: Object,
+            computed: "_computeMachineLogFilter(machine)"
+        },
+        monitoring: {
+            type: Boolean,
+            value: false
+        },
+        itemArray: {
+            type: Array
+        },
+        r12ns: {
+            type: Array,
+            value: function() {
+                return []
+            },
+            computed: '_computeMachineR12ns(machine, model.notificationsArray.length)'
+        },
+        portalName: {
+            type: String,
+            value: 'Mist.io'
+        }
+    },
+    observers: [
+        '_isMonitored(machine, model.monitoring.machines.*)',
+        '_machineChanged(machine.*, model.machines.*)',
+        '_getMachineCloud(model.clouds.*, machine.cloud)',
+        '_renderMachineKeys(machineKeys.length)'
+    ],
+    listeners: {
+        'confirmation': '_machineActionConfirmation',
+        'pending-key-request': '_updateKeyLoader',
+        'select-action': 'selectAction'
+    },
+    ready: function() {
+        this.set('hideAssociatedKeys', true);
+        this.set('isPendingKeyRequest', false);
+    },
+    _renderMachineKeys: function () {
+        this.$.machineKeysDomRepeat.render();
+    },
+    _rulesApplyOnMachine: function(rules, machine, machineTags) {
+        var machineRules = {},
+            check;
+        if (rules && machine) {
             for (var p in rules) {
-                var noData = rules[p].actions.find(function(a){return a.type == 'no_data'}) != undefined;
+                var noData = rules[p].actions.find(function(a) { return a.type == 'no_data' }) != undefined;
                 // applies on all machines
                 if (!rules[p].selectors.length || noData) {
                     check = true;
-                }
-                else {
+                } else {
                     for (var i = 0; i < rules[p].selectors.length; i++) {
                         var selector = rules[p].selectors[i];
                         // applies on specific machines
-                        if (selector.type == 'machines' ){
+                        if (selector.type == 'machines') {
                             if (selector.ids.indexOf(machine.id) > -1)
                                 check = true;
                             else
                                 check = false;
-                        } else if (selector.type == 'tags' ) { // applies on tags
+                        } else if (selector.type == 'tags') { // applies on tags
                             if (!this.machineTags.length)
                                 check = false; // machine has no tags
                             else {
                                 for (var q in selector.tags) {
-                                    var mtag = this.machineTags.find(function(t){ return t.key == q });
-                                    if (!mtag) // machine has no such tag
+                                    var mtag = this.machineTags.find(function(t) { return t.key == q });
+                                    if (!mtag) { // machine has no such tag
                                         check = false;
-                                    else { 
-                                        if (!selector.tags[q])
+                                    } else {
+                                        if (!selector.tags[q]) {
                                             check = mtag.value == ""; // if tag value is null machine tag value must be empty string
-                                        else if (selector.tags[q])
+                                        } else if (selector.tags[q]) {
                                             check = selector.tags[q] == mtag.value; // if tag value is !null machine tag value must be equal 
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-                if (check == true)
+                if (check == true) {
                     machineRules[p] = rules[p];
+                }
             }
-            return machineRules;
-        },
-        _getMachineCloud: function (clouds, id) {
-            return this.model.clouds[id];
-        },
-        _getMachineVolumes: function (volumes, machine) {
-            var that = this;
-            return Object.keys(that.model.volumes).filter(function(k){
+        }
+        return machineRules;
+    },
+    _getMachineCloud: function(clouds, id) {
+        if (this.model && this.model.clouds && this.machine && this.machine.cloud) {
+            this.set('cloud',this.model.clouds[id]);
+        }
+    },
+    _getMachineVolumes: function(volumes, machine) {
+        var that = this;
+        if (this.machine) {
+            return Object.keys(that.model.volumes).filter(function(k) {
                 return that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
             });
-        },
-        _displayUser: function (id, members) {
-            return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
-        },
-        _showRecommendationDialog: function () {
-            this.fire("open-recommendation-dialog", {
-                'item-type': 'machines',
-                'item': this.machine,
-                'caller': "machine_page"
-            });
-        },
-        _machineChanged: function (machine) {
-            // console.log('perform action machine changed', machine);
-            if (this.machine)
-                this.set('itemArray', [this.machine]);
-        },
-        _visibleKey: function (model, key) {
-            if (model)
-                return this.model.keys && this.model.keys[key.keypair];
-        },
-        _computeKeyName: function (keyid) {
-            if (this.model.keys[keyid])
-                return this.model.keys[keyid].name || 'not found';
-        },
-        _computeVolumeName: function (id) {
-            if (this.model.volumes[id])
-                return this.model.volumes[id].name || 'not found';
-        },
-        _computeThisItemUid: function (machine) {
-            var itemUidInArray = [];
-            itemUidInArray.push(itemUid(this.machine, this.model.sections['machines']));
-            return itemUidInArray;
-        },
-        _computeAssociatedKeys: function (machine, keys, keyLength, machineChangeRecord) {
-            return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
-        },
-        _renderArray: function (array) {
-            if (array && array.length)
-                return array.join(', ');
-            return '';
-        },
-        computeMachineIp: function (machineips) {
-            return this.machine.public_ips ? this.machine.public_ips[0] : '';
-        },
-        _isEqual: function (a, b) {
-            return a === b;
-        },
-        _isMonitored: function (machine, monitoredMachines) {
-            if (monitoredMachines) {
-                var mach = monitoredMachines.base.find(function (m) {
+        }
+    },
+    _displayUser: function(id, members) {
+        return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+    },
+    _showRecommendationDialog: function() {
+        this.dispatchEvent(new CustomEvent("open-recommendation-dialog", { bubbles: true, composed: true, detail:  {
+            'item-type': 'machines',
+            'item': this.machine,
+            'caller': "machine_page"
+        } }))
+    },
+    _machineChanged: function(machine) {
+        // console.log('perform action machine changed', machine);
+        if (this.machine)
+            this.set('itemArray', [this.machine]);
+    },
+    _visibleKey: function(model, key) {
+        if (model)
+            return this.model.keys && this.model.keys[key.keypair];
+    },
+    _computeKeyName: function(keyid) {
+        if (this.model.keys && this.model.keys[keyid])
+            return this.model.keys[keyid].name || 'not found';
+    },
+    _computeVolumeName: function(id) {
+        if (this.model.volumes[id])
+            return this.model.volumes[id].name || 'not found';
+    },
+    _computeThisItemUid: function(machine) {
+        var itemUidInArray = [];
+        itemUidInArray.push(itemUid(this.machine, this.model.sections['machines']));
+        return itemUidInArray;
+    },
+    _computeAssociatedKeys: function(machine, keys, keyLength, machineChangeRecord) {
+        this.async(function () {this._renderMachineKeys()}, 500);
+        return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
+    },
+    _renderArray: function(array) {
+        if (array && array.length)
+            return array.join(', ');
+        return '';
+    },
+    computeMachineIp: function(machineips) {
+        return this.machine && this.machine.public_ips ? this.machine.public_ips[0] : '';
+    },
+    _isEqual: function(a, b) {
+        return a === b;
+    },
+    _isMonitored: function(machine, monitoredMachines) {
+        if (this.machine) {
+            if (this.model.monitoring.machines) {
+                var mach = monitoredMachines.base.find(function(m) {
                     return m[1] == machine.id && m[0] == machine.cloud;
                 }, this);
             }
@@ -1065,518 +1025,529 @@
             } else {
                 this.set('isMonitored', false);
             }
-        },
-        _computeIsActivated: function (machine, monitoring) {
-            // console.log('_computeIsActivated', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
-            if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !
-                this.model.monitoring.monitored_machines[machine.id] || !this.model.monitoring.monitored_machines[
-                    machine.id].installation_status.activated_at) {
-                return false;
-            } else if (this.model && this.model.monitoring && this.model.monitoring.monitored_machines &&
-                this.model.monitoring.monitored_machines[machine.id] && this.model.monitoring.monitored_machines[
-                    machine.id].installation_status) {
-                return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
-            }
-        },
-        _computeMachineName: function (machine) {
-            return this.machine && this.machine.name || '';
-        },
-        _computeMachineState: function (machine) {
-            return this.machine && this.machine.state || '';
-        },
-        _computeMachineTags: function (machine, machineTags) {
-            return Object.entries(this.machine.tags).map(([key, value]) => ({key,value}));;
-        },
-        confirmAction: function (action) {
-            this._showDialog({
-                title: action + ' Machine?',
-                body: "You are about to " + action + " machine '" + this.machine.name + "'.",
-                danger: false,
-                reason: "machine." + action,
-                action: action
-            });
-        },
-        _showDialog: function (info) {
-            var dialog = this.querySelector('#machinedialog');
+        }
+    },
+    _computeIsActivated: function(machine, monitoring) {
+        // console.log('_computeIsActivated', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
+        if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !
+            this.model.monitoring.monitored_machines[machine.id] || !this.model.monitoring.monitored_machines[
+                machine.id].installation_status.activated_at) {
+            return false;
+        } else if (this.model && this.model.monitoring && this.model.monitoring.monitored_machines &&
+            this.model.monitoring.monitored_machines[machine.id] && this.model.monitoring.monitored_machines[
+                machine.id].installation_status) {
+            return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
+        }
+    },
+    _computeMachineName: function(machine) {
+        return this.machine && this.machine.name || '';
+    },
+    _computeMachineState: function(machine) {
+        return this.machine && this.machine.state || '';
+    },
+    _computeMachineTags: function(machine, machineTags) {
+        if (this.machine) {
+            return Object.entries(this.machine.tags).map(([key, value]) => ({ key, value }));
+        }
+    },
+    confirmAction: function(action) {
+        this._showDialog({
+            title: action + ' Machine?',
+            body: "You are about to " + action + " machine '" + this.machine.name + "'.",
+            danger: false,
+            reason: "machine." + action,
+            action: action
+        });
+    },
+    _showDialog: function(info) {
+        var dialog = this.shadowRoot.querySelector('dialog-element#machinedialog');
+        if (info) {
             for (var i in info) {
                 dialog[i] = info[i];
             }
-            dialog._openDialog();
-        },
-        _showToast: function (msg) {
-            var toast = this.querySelector('paper-toast');
-            toast.text = msg;
-            toast.show();
-        },
-        _hasExtraStatus: function (machine) {
-            if (machine && machine.state && machine.extra.status)
-                return machine.state.toLowerCase() == machine.extra.status.toLowerCase();
-        },
-        _computeExtraStatus: function (machine) {
-            return machine && machine.extra && machine.extra.status && machine.extra.status.toLowerCase();
-        },
-        _computeIsloading: function (machine) {
-            return !this.machine ? true : false;
-        },
-        disassociateKey: function (e) {
-            var keyId = e.model.key.keypair;
-            var keyName = this._computeKeyName(e.model.key.keypair);
-
-            this.set('disassociateKeyId', keyId);
-
-            this._showDialog({
-                title: 'Disassociate key',
-                body: "Disassociating key '" + keyName +
-                    "' from machine, will remove the key from the machine.",
-                danger: false,
-                reason: "disassociate.key",
-                action: 'disassociate',
-                key: keyId
-            });
-        },
-        _disassociateKeyRequest: function (e) {
-            this.set('isPendingKeyRequest', true);
-        },
-        _disassociateKeyResponse: function (e) {
-            this.set('isPendingKeyRequest', false);
-            this.fire('toast', {
-                msg: 'Key was removed from machine',
-                duration: 3000
-            });
-        },
-        _disassociateKeyError: function (e) {
-            this.set('isPendingKeyRequest', false);
-            this.fire('toast', {
-                msg: e.detail.request.xhr.responseText,
-                duration: 3000
-            });
-        },
-        detachVolume: function (e) {
-            var volumeId = e.model.volumeId;
-            var volumeName = this._computeVolumeName(volumeId);
-
-            this.set('dettachVolumeId', this.model.volumes[volumeId].external_id);
-
-            this._showDialog({
-                title: 'Detach volume',
-                body: "Detaching volume '" + volumeName +
-                    "' from machine.",
-                danger: true,
-                reason: "detach.volume",
-                action: 'detach',
-                volume: volumeId
-            });
-        },
-        _detachVolumeResponse: function (e) {
-            this.set('isPendingVolumeRequest', false);
-            this.fire('toast', {
-                msg: 'Volume was detached from machine',
-                duration: 3000
-            });
-        },
-        _detachVolumeError: function (e) {
-            this.fire('toast', {
-                msg: e.detail.request.xhr.responseText,
-                duration: 3000
-            });
-        },
-        _machineActionConfirmation: function (e) {
-            if (e.detail.response.confirmed && e.detail.reason == "disassociate.key") {
-                this.$.disassociateKeyRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.disassociateKeyRequest.generateRequest();
-            } else if (e.detail.response.confirmed && e.detail.reason == "detach.volume") {
-                this.$.detachVolumeRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                this.$.detachVolumeRequest.body = {action: 'detach', machine: this.machine.id};
-                this.$.detachVolumeRequest.generateRequest();
-            }
-        },
-        _updateKeyLoader: function (e) {
-            if (e.detail.request) {
-                this.set('isPendingKeyRequest', true);
-            } else if (e.detail.response) {
-                this.set('isPendingKeyRequest', false);
-            } else if (e.detail.error) {
-                this.set('isPendingKeyRequest', false);
-                this.fire('toast', {
-                    msg: e.detail.errormsg,
-                    duration: 3000
-                });
-            }
-        },
-        _feedbackOnScript: function (e) {
-            if (e.detail.response) {
-                this.fire('toast', {
-                    msg: 'Script run request succeded. Script ' + this.model.scripts[e.detail.scriptId]
-                        .name + ' has been queued for execution',
-                    duration: 5000
-                });
-            }
-            if (e.detail.error) {
-                this.fire('toast', {
-                    msg: e.detail.errormsg,
-                    duration: 3000
-                });
-            }
-        },
-        _feedbackOnRename: function (e) {
-            if (e.detail.request) {
-                this.fire('toast', {
-                    msg: 'Rename request sent. Waiting for machine to respond',
-                    duration: 3000
-                });
-            }
-            if (e.detail.response) {
-                this.fire('toast', {
-                    msg: 'Renaming was successful.',
-                    duration: 3000
-                });
-            }
-            if (e.detail.error) {
-                this.fire('toast', {
-                    msg: e.detail.errormsg,
-                    duration: 3000
-                });
-            }
-        },
-        _computeDirtyCowAlert: function (machine) {
-            var info = "";
-            if (this.machine && this.machine.probe && this.machine.probe.ssh && this.machine.probe.ssh.dirty_cow)
-                info += "Dirty COW vulnerability detected. Update your kernel.";
-            return info.length ? info : '';
-        },
-        _fromNow: function (time) {
-            return moment.utc(time).fromNow();
-        },
-        itemProbeClasses: function (machine) {
-            if (!machine || !machine.probe) {
-                return false;
-            } else {
-                if (!machine.probe.ssh || !machine.probe.ssh.loadavg) {
-                    return false;
-                } else {
-                    var probe = machine.probe.ssh.loadavg;
-                    var cores = parseInt(machine.probe.ssh.cores);
-                    var classes = '';
-                    var prefix = '';
-
-                    classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
-                    classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
-                    classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
-
-                    //has probe data
-                    if (classes != "")
-                        classes += "hasprobe "
-
-                    return classes;
-                }
-            }
-        },
-        loadToColor: function (load, prefix) {
-            if (load > 1.2)
-                return prefix + "high ";
-            else if (load > 0.8)
-                return prefix + "medium ";
-            else if (load > 0.6)
-                return prefix + "eco ";
-            else if (load > 0.2)
-                return prefix + "low ";
-            else
-                return prefix + "low ";
-        },
-        readableUptime: function (str) {
-            if (str) {
-                var a = str.split(" ")[0],
-                    b = str.split(" ")[1];
-                return "Up " + a + ". Idle:" + b;
-            } else
-                return "";
-
-        },
-        _computeMachineImage: function (machine, cloud) {
-            var item = this.machine;
-            if (item && item.image && typeof (item.image) != "object") {
-                return item.image;
-            } else if (item && item.extra.image && typeof (item.extra.image) == "string") {
-                return item.extra.image;
-            } else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
-                return item.extra.image.distribution + " " + item.extra.image.name;
-            } else if (item && item.extra && item.image_id && this.model.images[item.image_id]) {
-                return this.model.images[item.image_id].name;
-            } else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id ||
-                    item.extra.image)) {
-                return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug ||
-                    item.extra.image.name;
-            } else
-                return "not found";
-        },
-        _computeMachineSize: function (item, itemChangeRecord, machines, clouds) {
-            // field could be in the 'extra' section, but should not be an object
-            if (item) {
-                var ret = item['size'];
-
-                if (ret && typeof (ret) != 'object')
-                    return this._getSizeName(item, ret);
-                if (!ret && item.extra && item.extra['size'] && typeof (item.extra['size']) != 'object')
-                    ret = item.extra['size'];
-                if (item.extra && item.extra.size && item.extra.size.vcpus)
-                    return item.extra.size.vcpus + 'vcpu, ' + item.extra.size.memory + 'M ram';;
-                if (item.extra && item.extra.size && typeof (item.extra.size) == 'string')
-                    return item.extra.size;
-                if (item.extra && item.extra.instance_type)
-                    return item.extra.instance_type;
-                if (item.extra && item.extra.instance_size)
-                    return item.extra.instance_size;
-                if (item.extra && item.extra.maxCpu && item.extra.maxMemory)
-                    return item.extra.maxCpu + 'cpu, ' + item.extra.maxMemory + 'M ram';
-                if (item.extra && item.extra.cpu && item.extra.memory)
-                    return item.extra.cpu + 'cpu, ' + item.extra.memory + 'M ram';
-                if (item.extra && item.extra.PLANID) {
-                    var cloud = this.model.clouds[item.cloud.id];
-                    return (cloud && cloud.sizes && cloud.sizes[item.extra.PLANID]) ? cloud.sizes[item.extra.PLANID].name + ": " + cloud.sizes[
-                            item.extra.PLANID].ram + " ram, " + cloud.sizes[item.extra.PLANID].disk +
-                        " disk, " + cloud.sizes[item.extra.PLANID].bandwidth + " bandwidth" : item.extra.PLANID
-                }
-                if (item.extra && item.extra.service_type)
-                    return item.extra.service_type;
-            }
-            return '';
-        },
-        _getSizeName: function (machine, ret) {
-            return this.model.clouds[machine.cloud].sizes && this.model.clouds[machine.cloud].sizes[
-                ret] && this.model.clouds[machine.cloud].sizes[ret].name ? this.model.clouds[machine
-                .cloud].sizes[ret].name : ret;
-        },
-        _getLocationName: function (machine, cloud) {
-            return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
-                    machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name != undefined ?
-                this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
-        },
-        _probeMachine: function (e) {
-            var payload = {
-                'key': this.machineKeys[0].keypair
-            };
-            this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
-            this.$.probeMachine.params = payload;
-            this.$.probeMachine.generateRequest();
-            this.async(function () {
-                this.notifyPath('machine.probe.ssh')
-            }, 5000);
-        },
-        _probeError: function (e) {
-            this.fire('toast', {
-                msg: 'Error probing machine ' + e.detail.request.xhr.responseText,
-                duration: 3000
-            });
-        },
-        _computeMachineLogFilter: function (machine) {
-            if (machine)
-                return {
-                    "cloud_id": machine.cloud,
-                    "machine_id": machine.machine_id
-                }
-        },
-        _existsImage: function (extra) {
-            if (extra)
-                return extra.image || extra.image_id || extra.imageId;
-            return false;
-        },
-        _computeCloudIcon: function (cloud) {
-            if (!cloud) {
-                return '';
-            } else {
-                console.log('cloud', cloud);
-                return './assets/providers/provider-' + cloud.replace(/_/g, "") + '.png';
-            }
-        },
-        _computeImageIcon: function (machine, probe) {
-            if (!machine) {
-                return false;
-            } else {
-                var image = machine.extra.image_id || machine.extra.software_name || machine.operating_system ||
-                    machine.operating_system_distro || machine.imageId || machine.os_type,
-                    imageIcon = "";
-                image = image.toLowerCase();
-
-                if (machine.probe && machine.probe.ssh && machine.probe.ssh.distro && machine.probe.ssh.distro
-                    .toLowerCase().indexOf('clearos') != -1){
-                    imageIcon = "clearos";
-                    this.enableWebconfig();
-                }
-                else if (image.indexOf('ubuntu') != -1)
-                    imageIcon = "ubuntu";
-                else if (image.indexOf('netbsd') != -1)
-                    imageIcon = "netbsd";
-                else if (image.indexOf('freebsd') != -1)
-                    imageIcon = "freebsd";
-                else if (image.indexOf('openbsd') != -1)
-                    imageIcon = "openbsd";
-                else if (image.indexOf('alpine') != -1)
-                    imageIcon = "alpine";
-                else if (image.indexOf('red hat') != -1)
-                    imageIcon = "red-hat";
-                else if (image.indexOf('gentoo') != -1)
-                    imageIcon = "gentoo";
-                else if (image.indexOf('arch') != -1)
-                    imageIcon = "arch";
-                else if (image.indexOf('coreos') != -1)
-                    imageIcon = "coreos";
-                else if (image.indexOf('mongo') != -1)
-                    imageIcon = "mongo";
-                else if (image.indexOf('clearos') != -1){
-                    imageIcon = "clearos";
-                    this.enableWebconfig();
-                }
-                else if (image.indexOf('ami-') != -1)
-                    imageIcon = "aws";
-                else if (image.indexOf('centos') != -1)
-                    imageIcon = "centos";
-                else if (image.indexOf('debian') != -1)
-                    imageIcon = "debian";
-                else if (image.indexOf('fedora') != -1)
-                    imageIcon = "fedora";
-                else if (image.indexOf('suse') != -1)
-                    imageIcon = "suse";
-                else if (image.indexOf('linux') != -1)
-                    imageIcon = "linux";
-                else if (image.indexOf('windows') != -1)
-                    imageIcon = "windows";
-
-                if (imageIcon.length)
-                    return './assets/image-icons/' + imageIcon + '.svg';
-                else
-                    return false;
-            }
-        },
-
-        enableWebconfig: function() {
-            this.set('machine.actions.webconfig', true);
-            this._computeActions(this.machine);
-        },
-
-        _getVisibleColumns: function () {
-            return ['type', 'action', 'user_id']
-        },
-
-        _getFrozenLogColumn: function () {
-            return ['time']
-        },
-
-        _getRenderers: function () {
-            var _this = this;
-            return {
-                'time': {
-                    'body': function (item, row) {
-                        var ret = '<span title="' + moment(item * 1000).format() + '">' + moment(item *
-                            1000).fromNow() + '</span>';
-                        if (row.error)
-                            ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
-                        return ret;
-                    }
-                },
-                'user_id': {
-                    'title': function () {
-                        return 'user';
-                    },
-                    'body': function (item) {
-                        if (_this.model && _this.model.members && item in _this.model.members &&
-                            _this.model.members[item] && _this.model.members[item].name &&
-                            _this.model.members[item].name != undefined) {
-                            var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name +
-                                '</a>';
-                            return ret;
-                        } else console.log(item);
-                        return item || '';
-                    }
-                }
-            };
-        },
-
-        _toFixed: function (inp) {
-            return inp && inp.formatMoney() || '';
-        },
-
-        _hasExtra: function (machine) {
-            if (this.machine && this.machine.extra)
-                return Object.keys(this.machine.extra).length
-            return false
-        },
-
-        _hasPowerInfo: function (machine) {
-            return this._hasExtra(machine) && (
-                this.machine.extra.power_control_info ||
-                this.machine.extra.power_supply_info);
-        },
-
-        _filterMachinesIncidents: function (incarray) {
-            if (this.model && this.model.incidentsArray)
-                return this.model.incidentsArray.filter(function (inc) {
-                    return this._isMachinesIncident(inc);
-                }.bind(this));
-        },
-
-        _isMachinesIncident: function (inc) {
-            if (this.machine)
-                return this.machine.machine_id == inc.machine_id && this.machine.cloud == inc.cloud_id;
-        },
-
-        // redirect events
-        selectAction: function (e) {
-            e.stopImmediatePropagation();
-            if (this.querySelector('machine-actions')) {
-                this.querySelector('machine-actions').selectAction(e);
-            }
-        },
-
-        // this should not be necessary, yet it is :(
-        _machineKeysChanged: function (machineKeys) {
-            this.$.machineKeysDomRepeat.render();
-        },
-
-        _computeMachineR12ns: function () {
-            var ret = [],
-                _this = this;
-            if (this.machine && this.model.notificationsArray.length) {
-                this.model.notificationsArray.forEach(function (i) {
-                    if (i.machine && i.machine._ref.$id == _this.machine.id && i.machine._ref.$ref ==
-                        'machines' &&
-                        i._cls == 'Notification.InAppNotification.InAppRecommendation') {
-                        ret.push(i);
-                    }
-                });
-            }
-
-            return ret;
-        },
-
-        _listToString: function (l) {
-            return l && l.length && l.join(' ') || '';
-        },
-
-        _computePacketLossPercent: function () {
-            if (!this.machine || !this.machine.probe || !this.machine.probe.ping)
-                return 0;
-            return this.machine.probe.ping.packets_loss;
-        },
-
-        _computeProbeString: function () {
-            var sshFrom = '',
-                icmpFrom = '';
-            if (!this.machine.probe)
-                return;
-            var sshLastUpdate = this.machine.probe.ssh && this.machine.probe.ssh.updated_at,
-                icmpLastUpdate = this.machine.probe.ping && this.machine.probe.ping.updated_at;
-            sshFrom = sshLastUpdate && moment.utc(sshLastUpdate).fromNow() || '';
-            icmpFrom = icmpLastUpdate && moment.utc(icmpLastUpdate).fromNow() || '';
-            if (!sshFrom && !icmpFrom)
-                return '';
-            if (sshFrom == icmpFrom)
-                return sshFrom + ' over ssh & icmp';
-            if (sshFrom && icmpFrom)
-                return sshFrom + ' over ssh, ' + icmpFrom + ' over icmp';
-            if (sshFrom)
-                return sshFrom + ' over ssh';
-            if (icmpFrom)
-                return icmpFrom + ' over icmp';
         }
-    });
+        dialog._openDialog();
+    },
+    _showToast: function(msg) {
+        var toast = this.shadowRoot.querySelector('paper-toast');
+        toast.text = msg;
+        toast.show();
+    },
+    _hasExtraStatus: function(machine) {
+        if (machine && machine.state && machine.extra.status)
+            return machine.state.toLowerCase() == machine.extra.status.toLowerCase();
+    },
+    _computeExtraStatus: function(machine) {
+        return machine && machine.extra && machine.extra.status && machine.extra.status.toLowerCase();
+    },
+    _computeIsloading: function(machine) {
+        return !this.machine ? true : false;
+    },
+    disassociateKey: function(e) {
+        var keyId = e.model.key.keypair;
+        var keyName = this._computeKeyName(e.model.key.keypair);
+
+        this.set('disassociateKeyId', keyId);
+
+        this._showDialog({
+            title: 'Disassociate key',
+            body: "Disassociating key '" + keyName +
+                "' from machine, will remove the key from the machine.",
+            danger: false,
+            reason: "disassociate.key",
+            action: 'disassociate',
+            key: keyId
+        });
+    },
+    _disassociateKeyRequest: function(e) {
+        this.set('isPendingKeyRequest', true);
+    },
+    _disassociateKeyResponse: function(e) {
+        this.set('isPendingKeyRequest', false);
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+            msg: 'Key was removed from machine',
+            duration: 3000
+        } }));
+
+    },
+    _disassociateKeyError: function(e) {
+        this.set('isPendingKeyRequest', false);
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+            msg: e.detail.request.xhr.responseText,
+            duration: 3000
+        } }));
+
+    },
+    detachVolume: function(e) {
+        var volumeId = e.model.volumeId;
+        var volumeName = this._computeVolumeName(volumeId);
+
+        this.set('dettachVolumeId', this.model.volumes[volumeId].external_id);
+
+        this._showDialog({
+            title: 'Detach volume',
+            body: "Detaching volume '" + volumeName +
+                "' from machine.",
+            danger: true,
+            reason: "detach.volume",
+            action: 'detach',
+            volume: volumeId
+        });
+    },
+    _detachVolumeResponse: function(e) {
+        this.set('isPendingVolumeRequest', false);
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+            msg: 'Volume was detached from machine',
+            duration: 3000
+        } }));
+
+    },
+    _detachVolumeError: function(e) {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+            msg: e.detail.request.xhr.responseText,
+            duration: 3000
+        } }));
+
+    },
+    _machineActionConfirmation: function(e) {
+        if (e.detail.response == "confirm" && e.detail.reason == "disassociate.key") {
+            this.shadowRoot.querySelector('#disassociateKeyRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+            this.shadowRoot.querySelector('#disassociateKeyRequest').generateRequest();
+        } else if (e.detail.response == "confirm" && e.detail.reason == "detach.volume") {
+            this.shadowRoot.querySelector('#detachVolumeRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+            this.shadowRoot.querySelector('#detachVolumeRequest').body = { action: 'detach', machine: this.machine.id };
+            this.shadowRoot.querySelector('#detachVolumeRequest').generateRequest();
+        }
+    },
+    _updateKeyLoader: function(e) {
+        if (e.detail.request) {
+            this.set('isPendingKeyRequest', true);
+        } else if (e.detail.response) {
+            this.set('isPendingKeyRequest', false);
+        } else if (e.detail.error) {
+            this.set('isPendingKeyRequest', false);
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+                msg: e.detail.errormsg,
+                duration: 3000
+            } }));
+
+        }
+    },
+    _feedbackOnScript: function(e) {
+        if (e.detail.response) {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+                msg: 'Script run request succeded. Script ' + this.model.scripts[e.detail.scriptId]
+                    .name + ' has been queued for execution',
+                duration: 5000
+            } }));
+
+        }
+        if (e.detail.error) {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+                msg: e.detail.errormsg,
+                duration: 3000
+            } }));
+
+        }
+    },
+    _feedbackOnRename: function(e) {
+        if (e.detail.request) {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+                msg: 'Rename request sent. Waiting for machine to respond',
+                duration: 3000
+            } }));
+
+        }
+        if (e.detail.response) {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+                msg: 'Renaming was successful.',
+                duration: 3000
+            } }));
+
+        }
+        if (e.detail.error) {
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+                msg: e.detail.errormsg,
+                duration: 3000
+            } }));
+
+        }
+    },
+    _computeDirtyCowAlert: function(machine) {
+        var info = "";
+        if (this.machine && this.machine.probe && this.machine.probe.ssh && this.machine.probe.ssh.dirty_cow)
+            info += "Dirty COW vulnerability detected. Update your kernel.";
+        return info.length ? info : '';
+    },
+    _fromNow: function(time) {
+        return moment.utc(time).fromNow();
+    },
+    itemProbeClasses: function(machine) {
+        if (!machine || !machine.probe) {
+            return false;
+        } else {
+            if (!machine.probe.ssh || !machine.probe.ssh.loadavg) {
+                return false;
+            } else {
+                var probe = machine.probe.ssh.loadavg;
+                var cores = parseInt(machine.probe.ssh.cores);
+                var classes = '';
+                var prefix = '';
+
+                classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
+                classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
+                classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
+
+                //has probe data
+                if (classes != "")
+                    classes += "hasprobe "
+
+                return classes;
+            }
+        }
+    },
+    loadToColor: function(load, prefix) {
+        if (load > 1.2)
+            return prefix + "high ";
+        else if (load > 0.8)
+            return prefix + "medium ";
+        else if (load > 0.6)
+            return prefix + "eco ";
+        else if (load > 0.2)
+            return prefix + "low ";
+        else
+            return prefix + "low ";
+    },
+    readableUptime: function(str) {
+        if (str) {
+            var a = str.split(" ")[0],
+                b = str.split(" ")[1];
+            return "Up " + a + ". Idle:" + b;
+        } else
+            return "";
+
+    },
+    _computeMachineImage: function(machine, cloud) {
+        var item = this.machine;
+        if (!item) return;
+        if (item && item.image && typeof(item.image) != "object") {
+            return item.image;
+        } else if (item && item.extra.image && typeof(item.extra.image) == "string") {
+            return item.extra.image;
+        } else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
+            return item.extra.image.distribution + " " + item.extra.image.name;
+        } else if (item && item.extra && item.image_id && this.model.images[item.image_id]) {
+            return this.model.images[item.image_id].name;
+        } else if (item && item.extra && (item.extra['image_id'] || item.imageId || item.image_id ||
+                item.extra.image)) {
+            return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug ||
+                item.extra.image.name;
+        } else
+            return "not found";
+    },
+    _computeMachineSize: function(item, itemChangeRecord, machines, clouds) {
+        // field could be in the 'extra' section, but should not be an object
+        if (item) {
+            var ret = item['size'];
+
+            if (ret && typeof(ret) != 'object')
+                return this._getSizeName(item, ret);
+            if (!ret && item.extra && item.extra['size'] && typeof(item.extra['size']) != 'object')
+                ret = item.extra['size'];
+            if (item.extra && item.extra.size && item.extra.size.vcpus)
+                return item.extra.size.vcpus + 'vcpu, ' + item.extra.size.memory + 'M ram';
+            if (item.extra && item.extra.size && typeof(item.extra.size) == 'string')
+                return item.extra.size;
+            if (item.extra && item.extra.instance_type)
+                return item.extra.instance_type;
+            if (item.extra && item.extra.instance_size)
+                return item.extra.instance_size;
+            if (item.extra && item.extra.maxCpu && item.extra.maxMemory)
+                return item.extra.maxCpu + 'cpu, ' + item.extra.maxMemory + 'M ram';
+            if (item.extra && item.extra.cpu && item.extra.memory)
+                return item.extra.cpu + 'cpu, ' + item.extra.memory + 'M ram';
+            if (item.extra && item.extra.PLANID) {
+                var cloud = this.model.clouds[item.cloud.id];
+                return (cloud && cloud.sizes && cloud.sizes[item.extra.PLANID]) ? cloud.sizes[item.extra.PLANID].name + ": " + cloud.sizes[
+                        item.extra.PLANID].ram + " ram, " + cloud.sizes[item.extra.PLANID].disk +
+                    " disk, " + cloud.sizes[item.extra.PLANID].bandwidth + " bandwidth" : item.extra.PLANID
+            }
+            if (item.extra && item.extra.service_type)
+                return item.extra.service_type;
+        }
+        return '';
+    },
+    _getSizeName: function(machine, ret) {
+        return this.model.clouds[machine.cloud].sizes && this.model.clouds[machine.cloud].sizes[
+            ret] && this.model.clouds[machine.cloud].sizes[ret].name ? this.model.clouds[machine
+            .cloud].sizes[ret].name : ret;
+    },
+    _getLocationName: function(machine, cloud) {
+        if (this.machine) {
+            return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
+                machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name != undefined ?
+            this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
+        }
+    },
+    _probeMachine: function(e) {
+        var payload = {
+            'key': this.machineKeys[0].keypair
+        };
+        this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.probeMachine.params = payload;
+        this.$.probeMachine.generateRequest();
+        this.async(function() {
+            this.notifyPath('machine.probe.ssh')
+        }, 5000);
+    },
+    _probeError: function(e) {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
+            msg: 'Error probing machine ' + e.detail.request.xhr.responseText,
+            duration: 3000
+        } }));
+
+    },
+    _computeMachineLogFilter: function(machine) {
+        if (machine)
+            return {
+                "cloud_id": machine.cloud,
+                "machine_id": machine.machine_id
+            }
+    },
+    _existsImage: function(extra) {
+        if (extra)
+            return extra.image || extra.image_id || extra.imageId;
+        return false;
+    },
+    _computeCloudIcon: function(cloud) {
+        if (!cloud) {
+            return '';
+        } else {
+            console.log('cloud', cloud);
+            return './assets/providers/provider-' + cloud.replace(/_/g, "") + '.png';
+        }
+    },
+    _computeImageIcon: function(machine, probe) {
+        if (!machine) {
+            return false;
+        } else {
+            var image = machine.extra.image_id || machine.extra.software_name || machine.operating_system ||
+                machine.operating_system_distro || machine.imageId || machine.os_type,
+                imageIcon = "";
+            image = image.toLowerCase();
+
+            if (machine.probe && machine.probe.ssh && machine.probe.ssh.distro && machine.probe.ssh.distro
+                .toLowerCase().indexOf('clearos') != -1) {
+                imageIcon = "clearos";
+                this.enableWebconfig();
+            } else if (image.indexOf('ubuntu') != -1)
+                imageIcon = "ubuntu";
+            else if (image.indexOf('netbsd') != -1)
+                imageIcon = "netbsd";
+            else if (image.indexOf('freebsd') != -1)
+                imageIcon = "freebsd";
+            else if (image.indexOf('openbsd') != -1)
+                imageIcon = "openbsd";
+            else if (image.indexOf('alpine') != -1)
+                imageIcon = "alpine";
+            else if (image.indexOf('red hat') != -1)
+                imageIcon = "red-hat";
+            else if (image.indexOf('gentoo') != -1)
+                imageIcon = "gentoo";
+            else if (image.indexOf('arch') != -1)
+                imageIcon = "arch";
+            else if (image.indexOf('coreos') != -1)
+                imageIcon = "coreos";
+            else if (image.indexOf('mongo') != -1)
+                imageIcon = "mongo";
+            else if (image.indexOf('clearos') != -1) {
+                imageIcon = "clearos";
+                this.enableWebconfig();
+            } else if (image.indexOf('ami-') != -1)
+                imageIcon = "aws";
+            else if (image.indexOf('centos') != -1)
+                imageIcon = "centos";
+            else if (image.indexOf('debian') != -1)
+                imageIcon = "debian";
+            else if (image.indexOf('fedora') != -1)
+                imageIcon = "fedora";
+            else if (image.indexOf('suse') != -1)
+                imageIcon = "suse";
+            else if (image.indexOf('linux') != -1)
+                imageIcon = "linux";
+            else if (image.indexOf('windows') != -1)
+                imageIcon = "windows";
+
+            if (imageIcon.length)
+                return './assets/image-icons/' + imageIcon + '.svg';
+            else
+                return false;
+        }
+    },
+
+    enableWebconfig: function() {
+        this.set('machine.actions.webconfig', true);
+    },
+
+    _getVisibleColumns: function() {
+        return ['type', 'action', 'user_id']
+    },
+
+    _getFrozenLogColumn: function() {
+        return ['time']
+    },
+
+    _getRenderers: function() {
+        var _this = this;
+        return {
+            'time': {
+                'body': function(item, row) {
+                    var ret = '<span title="' + moment(item * 1000).format() + '">' + moment(item *
+                        1000).fromNow() + '</span>';
+                    if (row.error)
+                        ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                    return ret;
+                }
+            },
+            'user_id': {
+                'title': function() {
+                    return 'user';
+                },
+                'body': function(item) {
+                    if (_this.model && _this.model.members && item in _this.model.members &&
+                        _this.model.members[item] && _this.model.members[item].name &&
+                        _this.model.members[item].name != undefined) {
+                        var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name +
+                            '</a>';
+                        return ret;
+                    } else console.log(item);
+                    return item || '';
+                }
+            }
+        };
+    },
+
+    _toFixed: function(inp) {
+        return inp && inp.formatMoney() || '';
+    },
+
+    _hasExtra: function(machine) {
+        if (this.machine && this.machine.extra)
+            return Object.keys(this.machine.extra).length
+        return false
+    },
+
+    _hasPowerInfo: function(machine) {
+        return this._hasExtra(machine) && (
+            this.machine.extra.power_control_info ||
+            this.machine.extra.power_supply_info);
+    },
+
+    _filterMachinesIncidents: function(incarray) {
+        if (this.model && this.model.incidentsArray)
+            return this.model.incidentsArray.filter(function(inc) {
+                return this._isMachinesIncident(inc);
+            }.bind(this));
+    },
+
+    _isMachinesIncident: function(inc) {
+        if (this.machine)
+            return this.machine.machine_id == inc.machine_id && this.machine.cloud == inc.cloud_id;
+    },
+
+    // redirect events
+    selectAction: function(e) {
+        e.stopImmediatePropagation();
+        if (this.shadowRoot.querySelector('#machinesList')) {
+            this.shadowRoot.querySelector('#machinesList').shadowRoot.querySelector('#actions').selectAction(e);
+        }
+    },
+
+    _computeMachineR12ns: function() {
+        var ret = [],
+            _this = this;
+        if (this.machine && this.model.notificationsArray.length) {
+            this.model.notificationsArray.forEach(function(i) {
+                if (i.machine && i.machine._ref.$id == _this.machine.id && i.machine._ref.$ref ==
+                    'machines' &&
+                    i._cls == 'Notification.InAppNotification.InAppRecommendation') {
+                    ret.push(i);
+                }
+            });
+        }
+
+        return ret;
+    },
+
+    _listToString: function(l) {
+        return l && l.length && l.join(' ') || '';
+    },
+
+    _computePacketLossPercent: function() {
+        if (!this.machine || !this.machine.probe || !this.machine.probe.ping)
+            return 0;
+        return this.machine.probe.ping.packets_loss;
+    },
+
+    _computeProbeString: function() {
+        var sshFrom = '',
+            icmpFrom = '';
+        if (!this.machine || !this.machine.probe)
+            return;
+        var sshLastUpdate = this.machine.probe.ssh && this.machine.probe.ssh.updated_at,
+            icmpLastUpdate = this.machine.probe.ping && this.machine.probe.ping.updated_at;
+        sshFrom = sshLastUpdate && moment.utc(sshLastUpdate).fromNow() || '';
+        icmpFrom = icmpLastUpdate && moment.utc(icmpLastUpdate).fromNow() || '';
+        if (!sshFrom && !icmpFrom)
+            return '';
+        if (sshFrom == icmpFrom)
+            return sshFrom + ' over ssh & icmp';
+        if (sshFrom && icmpFrom)
+            return sshFrom + ' over ssh, ' + icmpFrom + ' over icmp';
+        if (sshFrom)
+            return sshFrom + ' over ssh';
+        if (icmpFrom)
+            return icmpFrom + ' over icmp';
+    }
+});
 </script>

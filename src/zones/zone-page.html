@@ -2,26 +2,22 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
-<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
-<link rel="import" href="../mist-actions.html">
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../helpers/mist-lists-behavior.html">
 
 <link rel="import" href="zone-actions.html">
-<link rel="import" href="record-add.html">
+<link rel="import" href="record-create.html">
 <link rel="import" href="record-actions.html">
 
 <dom-module id="zone-page">
     <template>
         <style include="shared-styles single-page tags-and-labels">
-            :host {
-                display: block;
-            }
-
             [hidden] {
                 display: none !important;
             }
@@ -77,111 +73,103 @@
             mist-list {
                 padding: 0;
                 width: 100%;
+                min-height: 200px;
             }
             .single-head {
                 @apply --zone-page-head-mixin
             }
+            zone-actions {
+                width: 50%;
+                fill: #fff;
+            }
         </style>
         <app-location route="{{route}}"></app-location>
-        <zone-actions items="[[itemArray]]" actions="{{actions}}" members="[[model.membersArray]]" user="[[model.user.id]]" org="[[model.org]]"></zone-actions>
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active="[[isLoading]]"></paper-spinner>
-                <div class="notify"> Retrieving details from the provider...</div>
-            </div> -->
-            <!-- <div> -->
-                <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
-                    <paper-material class="single-head layout horizontal">
-                        <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
-                        <div class="title flex">
-                            <h2>[[zone.domain]]</h2>
-                            <div class="subtitle">
-                                [[zoneCloud]]
-                            </div>
+            <div hidden$=[[_computeAddRecordPageActive(route.path)]]>
+                <paper-material class="single-head layout horizontal">
+                    <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
+                    <div class="title flex">
+                        <h2>[[zone.domain]]</h2>
+                        <div class="subtitle">
+                            [[zoneCloud]]
                         </div>
-                        <mist-actions actions="[[actions]]" type="zone" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
-                        <!-- <div class="item-actions">
-                            <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                            <paper-button on-tap="_deleteZone" class="simple">delete
-                                <iron-icon icon="delete"></iron-icon>
-                            </paper-button>
-                        </div> -->
-                    </paper-material>
-                    <paper-material>
-                        <div class="missing" hidden$="[[!isMissing]]">Zone not found.</div>
+                    </div>
+                    <zone-actions items="[[itemArray]]" actions="{{actions}}" members="[[model.membersArray]]" user="[[model.user.id]]" org="[[model.org]]"></zone-actions>
+                </paper-material>
+                <paper-material>
+                    <div class="missing" hidden$="[[!isMissing]]">Zone not found.</div>
+                    <div class='resource-info'>
+                        <h4 class="id">Zone ID:</h4> <span class="id">[[zone.id]]</span>
+                    </div>
+                    <div class='resource-info' hidden$="[[!zone.owned_by.length]]">
+                        <h4 class="id">Owner:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.owned_by,model.members)]]</a></span>
+                    </div>
+                    <div class='resource-info' hidden$="[[!zone.created_by.length]]">
+                        <h4 class="id">Created by:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.created_by,model.members)]]</a></span>
+                    </div>
+                    <template is="dom-if" if="[[zoneTags.length]]">
                         <div class='resource-info'>
-                            <h4 class="id">Zone ID:</h4> <span class="id">[[zone.id]]</span>
+                            <h4 class="id tags">Tags </h4>
+                            <template is="dom-repeat" items="[[zoneTags]]">
+                                <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
+                            </template>
                         </div>
-                        <div class='resource-info' hidden$="[[!zone.owned_by.length]]">
-                            <h4 class="id">Owner:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.owned_by,model.members)]]</a></span>
-                        </div>
-                        <div class='resource-info' hidden$="[[!zone.created_by.length]]">
-                            <h4 class="id">Created by:</h4> <span class="id"> <a href$="/members/[[zone.owned_by]]">[[_displayUser(zone.created_by,model.members)]]</a></span>
-                        </div>
-                        <template is="dom-if" if="[[zoneTags.length]]">
-                            <div class='resource-info'>
-                                <h4 class="id tags">Tags </h4>
-                                <template is="dom-repeat" items="[[zoneTags]]">
-                                    <span class="id tag">[[item.key]]<span hidden="[[!item.value]]">=[[item.value]]</span></span>
-                                </template>
+                    </template>
+                </paper-material>
+                <paper-material>
+                    <h4 class="id">Zone Info</h4>
+                    <div class="info-table">
+                        <div class="info-body info-group">
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Domain</div>
+                                <div id="domain-name" class="flexchild">[[zone.domain]]</div>
                             </div>
-                        </template>
-                    </paper-material>
-                    <paper-material>
-                        <h4 class="id">Zone Info</h4>
-                        <div class="info-table">
-                            <div class="info-body info-group">
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Domain</div>
-                                    <div id="domain-name" class="flexchild">[[zone.domain]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">ID</div>
-                                    <div class="flexchild id">[[zone.id]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Provider</div>
-                                    <div class="flexchild">[[zone.provider]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Type</div>
-                                    <div class="flexchild">[[zone.zone_type]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">TTL</div>
-                                    <div class="flexchild">[[zone.ttl]]</div>
-                                </div>
-                                <div class="info-item flex-horizontal-with-ratios">
-                                    <div class="flexchild">Records</div>
-                                    <div class="flexchild">
-                                        [[_computeRecordsLength(zone.records)]]
-                                    </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">ID</div>
+                                <div class="flexchild id">[[zone.id]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Provider</div>
+                                <div class="flexchild">[[zone.provider]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Type</div>
+                                <div class="flexchild">[[zone.zone_type]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">TTL</div>
+                                <div class="flexchild">[[zone.ttl]]</div>
+                            </div>
+                            <div class="info-item flex-horizontal-with-ratios">
+                                <div class="flexchild">Records</div>
+                                <div class="flexchild">
+                                    [[_computeRecordsLength(zone.records)]]
                                 </div>
                             </div>
                         </div>
-                    </paper-material>
-                    <paper-material hidden$="[[!hasRecords]]">
-                        <h4 class="id">Records</h4>
-                        <template is="dom-if" if="[[renderRecordsList]]" restamp>
-                            <mist-list id="recordsList" class$="[[zone.id]]"
-                                selectable column-menu multi-sort
+                    </div>
+                </paper-material>
+                <paper-material hidden$="[[!hasRecords]]">
+                    <h4 class="id">Records</h4>
+                    <template is="dom-if" if="[[renderRecordsList]]" restamp>
+                        <record-actions id="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]>
+                            <mist-list id="recordsList" selectable column-menu multi-sort resizable
                                 items=[[zoneRecords]]
                                 name="Records"
                                 selected-items="{{selectedRecordItems}}"
                                 frozen=[[_getFrozenLogColumn()]]
                                 visible=[[_getVisibleColumns()]]
-                                renderers=[[_getRenderers()]]>
-                                <mist-actions slot="action-buttons" actions="[[recordActions]]" type="record" items="[[selectedRecordItems]]" model="[[model]]"></mist-actions>
-                                <record-actions slot="actions" items="[[selectedRecordItems]]" actions="{{recordActions}}" cloud=[[zone.cloud]]></record-actions>
-                          </mist-list>
-                      </template>
-                    </paper-material>
-                    <div class="absolute-bottom-right">
-                        <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
-                    </div>
+                                renderers=[[_getRenderers()]]
+                                actions=[[recordActions]]>
+                            </mist-list>
+                        </record-actions>
+                  </template>
+                </paper-material>
+                <div class="absolute-bottom-right">
+                    <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
                 </div>
-            <!-- </div> -->
-            <record-add model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-add>
+            </div>
+            <record-create model="[[model]]" section="[[recordsSections]]" zone="[[zone]]" hidden$=[[!_computeAddRecordPageActive(route.path)]]></record-create>
         </div>
         <iron-ajax id="zoneDeleteAjaxRequest" url="/api/v1/clouds/[[zone.cloud]]/zones/[[zone.id]]" method="DELETE" on-response="_handleZoneDeleteAjaxResponse" on-error="_handleZoneDeleteAjaxError"></iron-ajax>
         <dialog-element class='zone-dialog'></dialog-element>
@@ -273,7 +261,6 @@
                 ],
                 listeners: {
                     'confirmation': '_deleteZoneEventResponse',
-                    'select-action': 'selectAction',
                     'action-finished': 'clearListSelection'
                 },
                 _changed: function(zone) {
@@ -301,22 +288,28 @@
                         return this.model.clouds[this.zone.cloud].title
                 },
                 _computeZoneTags: function (zone, zoneTags) {
-                    return Object.entries(this.zone.tags).map(([key, value]) => ({key,value}));;
+                    if (this.zone) {
+                        return Object.entries(this.zone.tags).map(([key, value]) => ({key,value}));
+                    }
                 },
                 _computeRecordsLength: function(records) {
                     return records ? Object.keys(records).length : 0
                 },
                 _computeRecords: function(records) {
-                    return Object.values(this.zone.records);
+                    if (this.zone) {
+                        return Object.values(this.zone.records);
+                    }
                 },
                 _editZone: function(e) {
                     console.log(e);
                 },
                 _displayUser: function (id, members) {
-                    return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                    if (id && members) {
+                        return this.model && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                    }
                 },
                 // _editTags: function() {
-                //     var el = this.querySelector('tags-list'),
+                //     var el = this.shadowRoot.querySelector('tags-list'),
                 //     items = [];
                 //     items.push(itemUid(this.zone, this.section));
                 //     el.items = items;
@@ -340,14 +333,15 @@
                 //     }
                 // },
                 _fabAction: function(e) {
-                    console.debug('fabAction', e, this.section.add);
-                    this.fire('go-to', {url:'zones/' + this.zone.id + '/+add'})
+                    if (this.zone) {
+                        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:'zones/' + this.zone.id + '/+create'} }))
+                    }
                 },
                 _deleteZoneEventResponse: function(e) {
                     var reason = e.detail.reason,
                         response = e.detail.response;
 
-                    if (response.confirmed && reason == "zone.delete") {
+                    if (response == 'confirm' && reason == "zone.delete") {
                         this.$.zoneDeleteAjaxRequest.body = {};
                         this.$.zoneDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
                         this.$.zoneDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -355,17 +349,18 @@
                     }
                 },
                 _handleZoneDeleteAjaxResponse: function(e) {
-                    this.fire('toast',{msg:'Delete was successful.', duration:3000});
-                    this.fire('go-to', {url:'/zones'})
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Delete was successful.', duration:3000} }));
+
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:'/zones'} }))
                 },
                 _handleZoneDeleteAjaxError: function(e) {
-                    this.fire('toast',{msg:e.detail.response, duration:3000});
+                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:e.detail.response, duration:3000} }));
+
                 },
                 _computeTagsExist: function(zone, tags){
-                    if (this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0]['key'] && this.zone.tags[0]['key'] != "") {
+                    if (this.zone && this.zone.tags && this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0]['key'] && this.zone.tags[0]['key'] != "") {
                         return true;
-                    }
-                    else {
+                    } else {
                         return false;
                     }
                 },
@@ -378,23 +373,23 @@
                     }
                 },
                 _addResource: function(e) {
-                  this.fire('go-to', {url: this.model.sections.zones.add});
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: this.model.sections.zones.add} }));
                 },
                 _getFrozenLogColumn: function(){
-                  return ['name'];
+                    return ['name'];
                 },
 
                 _getVisibleColumns: function(){
-                  return ['type', 'id', 'ttl', 'rdata'];
+                    return ['type', 'id', 'ttl', 'rdata'];
                 },
 
                 _getRenderers: function() {
-                  var _this = this;
-                  return {
-                      'name': {
-                          'body': function(item) {
-                              return '<strong class="name">'+ item + '</strong>';
-                          }
+                    var _this = this;
+                    return {
+                        'name': {
+                            'body': function(item) {
+                                return '<strong class="name">'+ item + '</strong>';
+                            }
                       },
                       'rdata': {
                           'body': function(item, row){
@@ -423,7 +418,7 @@
                   }
                 },
                 _showDialog: function(info) {
-                    var dialog = this.querySelector('.zone-dialog');
+                    var dialog = this.shadowRoot.querySelector('.zone-dialog');
                     for (var i in info) {
                         dialog[i] = info[i];
                     }
@@ -433,19 +428,7 @@
                     return !this.zone ? true : false;
                 },
                 _computeAddRecordPageActive: function(path) {
-                    return path.endsWith('/+add');
-                },
-
-                // redirect events
-                selectAction: function(e) {
-                  e.stopImmediatePropagation();
-                  console.log('selectAction',e.target.attributes);
-                  if (this.querySelector('record-actions') && e.target.attributes.type.value == "record") {
-                    this.querySelector('record-actions').selectAction(e);
-                  }
-                  else if (this.querySelector('zone-actions') && e.target.attributes.type.value == "zone" ) {
-                    this.querySelector('zone-actions').selectAction(e);
-                  }
+                    return path.endsWith('/+create');
                 }
             });
         })();

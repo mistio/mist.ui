@@ -3,24 +3,18 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
-
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../app-togglable/app-togglable-list.html">
 <link rel="import" href="../tags/tags-list.html">
-<link rel="import" href="../mist-actions.html">
 
-<link rel="import" href="template-edit.html">
 <link rel="import" href="template-stack-item.html">
 <link rel="import" href="template-actions.html">
 
 <dom-module id="template-page">
     <template>
         <style include="shared-styles lists single-page tags-and-labels">
-            :host {
-                display: block;
-            }
-
             paper-material {
                 display: block;
                 padding: 24px;
@@ -104,14 +98,6 @@
                 transition: all 200ms;
             }
 
-            paper-icon-button.active-sort {
-                transform: rotate(180deg);
-            }
-
-            paper-icon-button.active-sort::content iron-icon {
-                color: #D48900 !important;
-            }
-
             [size=xs] > * {
                 display: none;
             }
@@ -146,7 +132,7 @@
                 width: 100%;
             }
 
-            .parsing-loader.error paper-progress::content #primaryProgress {
+            .parsing-loader.error paper-progress::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
 
@@ -205,14 +191,14 @@
             .single-head {
                 @apply --template-page-head-mixin
             }
+            template-actions {
+                width: 50%;
+                fill: #fff;
+            }
         </style>
 
 
         <div id="content">
-            <!-- <div class="is-loading" hidden$="[[!isLoading]]">
-                <paper-spinner active hidden$="[[!isLoading]]"></paper-spinner>
-            </div> -->
-            <template-actions org="[[model.org]]" items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" in-single-view></template-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon"><iron-icon icon="[[section.icon]]"></iron-icon></span>
                 <div class="title flex">
@@ -223,22 +209,11 @@
                         <span hidden$="[[!isInline]]">Inline Template</span>
                         <span hidden$="[[isInline]]">
                             Script source
-                            <a href$="[[template.template]]" target="_blank" class="regular"> [[template.template]] <iron-icon icon="icons:link"></iron-icon></a>
+                            <a href$="[[template.template]]" target="_blank" class="regular"><iron-icon icon="icons:link"></iron-icon></a>
                         </span>
                     </div>
                 </div>
-                <mist-actions actions="[[actions]]" type="template" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
-                <!-- <div class="item-actions">
-                    <paper-button on-tap="_editTags" class="simple">tags</paper-button>
-                    <paper-menu-button horizontal-align="right">
-                        <paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
-                        <paper-menu id="machine_actions" class="dropdown-content">
-                            <paper-button on-tap="_editTemplate" class="simple">Edit Template</paper-button>
-                            <paper-button on-tap="_deleteTemplate" class="simple">Delete Template</paper-button>
-                        </paper-menu>
-                    </paper-menu-button>
-                    <paper-button on-tap="_createStack" class="simple white right-icon" style$="color: [[section.color]]"> Create Stack <iron-icon icon="av:play-arrow" style$="color: [[section.color]]"></iron-icon></paper-button>
-                </div> -->
+                <template-actions org="[[model.org]]" items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" in-single-view></template-actions>
             </paper-material>
             <paper-material class="parsing-loader" hidden$="[[hideprogress]]">
                 <h3>Parsing template [[template.name]]</h3>
@@ -402,10 +377,8 @@
         <div class="absolute-bottom-right">
             <paper-fab icon="av:play-arrow" on-tap="_createStack"></paper-fab>
         </div>
-        <template-edit template="[[template]]"></template-edit>
         <dialog-element></dialog-element>
         <tags-list model="[[model]]"></tags-list>
-        <iron-ajax id="templateDeleteRequest" url="/api/v1/templates/[[template.id]]" contentType="application/json" handle-as="json" method="DELETE" on-response="_handleResponse" on-error="_handleError"></iron-ajax>
     </template>
     <script>
         (function() {
@@ -467,12 +440,6 @@
                 observers: [
                     '_changed(template)'
                 ],
-                listeners: {
-                    'confirmation': '_deleteTemplateResponse',
-                    'updateSelectedTemplate': '_updateTemplate',
-                    'create': '_createStack',
-                    'edit': '_editTemplate',
-                },
                 ready: function() {
                     var wh = window.innerHeight;
                     this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
@@ -482,90 +449,43 @@
                         return this.model.templates[id];
                 },
                 _displayUser: function (id, members) {
-                    return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                    return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
                 },
                 _computeReadableDate: function(date) {
                     return moment.utc(date).fromNow();
                 },
                 _computeHasStacks: function(stacks) {
-                    if (stacks)
+                    if (this.stacks) {
                         return this.stacks.length > 0;
-                    else
+                    } else {
                         return false;
+                    }
                 },
                 _computeIsInline: function(source) {
                     return source == 'inline';
                 },
                 _computeTemplateTags: function (template, templateTags) {
-                    return Object.entries(this.template.tags).map(([key, value]) => ({key,value}));;
+                    if (this.template) {
+                        return Object.entries(this.template.tags).map(([key, value]) => ({key,value}));
+                    }
                 },
                 _class: function(isinline) {
                     return isinline ? "command-container" : "";
                 },
                 _createStack: function(e) {
                     e.stopImmediatePropagation();
-                    this.fire('go-to', {url: '/stacks/+create', params: {template: this.template._id}})
-                },
-                _editTemplate: function(e) {
-                    e.stopImmediatePropagation();
-                    var el = this.querySelector('template-edit');
-                    el._openEditTemplateModal();
-                },
-                _editTags: function() {
-                    var el = this.querySelector('tags-list'),
-                    items = [];
-                    items.push(itemUid(this.template, this.section));
-                    el.items = items;
-                    el._openDialog();
-                },
-                _updateTemplate: function(e) {
-                    var template = e.detail.template;
-                    this.set('template.name', template.name);
-                    this.set('template.description', template.description);
-                },
-                _deleteTemplate: function(e) {
-                    var hasStacksMessage = '',
-                        alert = '',
-                        subscript = '';
-                    if (this._computeHasStacks()){
-                        alert = this.stacks.length+' associated stack';
-                        if (this.stacks.length > 1)
-                            alert += 's'
-                        alert += '.'
-                        subscript = 'Stacks are not deleted, when their template is deleted.'
-                    }
-                    this._showDialog({
-                        title: 'Delete Template '+this.template.name+' ?',
-                        body: "Deleting templates cannot be undone. You are about to delete template: " + this.template.name,
-                        alert: alert,
-                        subscript: subscript,
-                        danger: true,
-                        reason: "delete_template"
-                    });
-                },
-                _deleteTemplateResponse: function(e) {
-                    console.log('_deleteTemplateResponse',e.detail, e.detail.reason, e.detail.response);
-                    var reason = e.detail.reason,
-                        response = e.detail.response;
-
-                    if (response.confirmed && reason == "delete_template") {
-                        this.$.templateDeleteRequest.body = {
-                            'template_id': this.template.id
-                        };
-                        this.$.templateDeleteRequest.headers["Content-Type"] = 'application/json';
-                        this.$.templateDeleteRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-                        this.$.templateDeleteRequest.generateRequest();                        
-                    }
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/stacks/+create', params: {template: this.template._id}} }))
                 },
                 _handleResponse: function(e){
                     // console.log('response',e);
-                    this.fire('go-to', {url: '/templates'});
+                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/templates'} }));
+
                 },
                 _handleError: function(e){
                     console.log('error',e);
                 },
                 _showDialog: function(info) {
-                    var dialog = this.querySelector('dialog-element'),
+                    var dialog = this.shadowRoot.querySelector('dialog-element'),
                         i;
                     for (i in info) {
                         dialog[i] = info[i];
@@ -577,7 +497,7 @@
                 },
                 toggleAll: function(e) {
                     var t = e.target;
-                    var els = this.querySelectorAll('app-togglable');
+                    var els = this.shadowRoot.querySelectorAll('app-togglable');
                     [].forEach.call(els, function(el, index) {
                         el.open = true;
                     });

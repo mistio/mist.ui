@@ -1,17 +1,19 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 
 <dom-module id="app-user-menu">
     <template>
-        <style>
+        <style include="shared-styles">
             :host {
                 outline: none;
             }
 
-            :host::content iron-dropdaown {
+            :host::slotted(iron-dropdown) {
                 width: 300px !important;
             }
 
@@ -48,6 +50,7 @@
                 margin-top: 0;
                 /*flex-flow: row-reverse wrap;*/
                 border-top: 1px solid #ddd;
+                cursor: pointer;
             }
 
             .add-org a {
@@ -66,12 +69,6 @@
 
             a.grid-row {
                 width: 100%;
-            }
-
-            iron-image {
-                width: 40px;
-                height: 40px;
-                background-color: transparent;
             }
 
             paper-item {
@@ -155,7 +152,7 @@
                 border: 1px solid #ddd !important;
             }
 
-            paper-menu {
+            paper-listbox {
                 padding: 0;
                 margin-top: 0;
             }
@@ -215,9 +212,9 @@
                         </template>
                     </div>
                 </div>
-                <paper-menu>
+                <paper-listbox>
                     <template is="dom-repeat" items="{{orgsList}}" as="organization" restamp>
-                        <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row" tabindex="-1">
+                        <a href="javascript:void(0)" on-tap="_goToOrg" id="[[organization.id]]" class="grid-row" tabindex="1">
                             <paper-item class="context" hidden$=[[_isCurrentOrg(organization)]]>
                                 <div class="org-logo">
                                     <iron-icon class="user-menu-icon" icon="social:group" hidden=[[_hasLogo(organization)]]></iron-icon>
@@ -229,13 +226,13 @@
                             </paper-item>
                         </a>
                     </template>
-                    <a href="javascript:void(0)" on-tap="_addOrg" class="grid-row" tabindex="-1">
-                        <paper-item class="noborder add-org">
-                            <iron-icon icon="icons:add-circle-outline"></iron-icon>Add Organization
-                        </paper-item>
-                    </a>
+                    <!-- <a href="javascript:void(0)" > -->
+                    <paper-item class="noborder add-org" on-tap="_addOrg" class="grid-row" tabindex="1">
+                        <iron-icon icon="icons:add-circle-outline"></iron-icon>Add Organization
+                    </paper-item>
+                    <!-- </a> -->
                     <hr/>
-                    <a href="[[supportUri]]" target="_blank" class="flex" tabindex="-1">
+                    <a href="[[supportUri]]" target="_blank" class="flex" tabindex="1">
                         <paper-item hidden$=[[!supportUri.length]]>
                             <iron-icon icon="question-answer"></iron-icon>Support
                         </paper-item>
@@ -245,7 +242,7 @@
                             <iron-icon icon="description"></iron-icon>Docs
                         </paper-item>
                     </a>
-                    <a href="/my-account/profile" class="flex" id="Account" tabindex="-1">
+                    <a href="/my-account/profile" class="flex" id="Account" tabindex="1">
                         <paper-item>
                             <iron-icon icon="account-circle"></iron-icon>Account
                         </paper-item>
@@ -254,7 +251,7 @@
                     <paper-item on-tap="_logout">
                         <iron-icon icon="power-settings-new"></iron-icon> Logout
                     </paper-item>
-                </paper-menu>
+                </paper-listbox>
             </div>
         </paper-menu-button>
         <div class="tip" closed$="[[!opened]]"></div>
@@ -270,7 +267,8 @@
                 type: Object
             },
             org: {
-                type: Object
+                type: Object,
+                value: {}
             },
             size: {
                 type: Number,
@@ -314,10 +312,10 @@
             }
         },
         _hasLogo: function(org) {
-            if (org && org.avatar && org.avatar.length)
+            if (org && org.avatar && org.avatar.length) {
                 return true;
-            else
-                return false;
+            }
+            return false;
         },
         _computeLogo: function (org) {
             if (org && org.avatar && org.avatar.length)
@@ -325,8 +323,9 @@
             return '';
         },
         _computeGravatar: function (email, size, placeholder) {
-            var avatarString = md5(email),
-                url = '//www.gravatar.com/avatar/' + avatarString + '.jpg?s=' + size + '&d=' + placeholder;
+            var avatarString = email && md5(email);
+                // url = '//www.gravatar.com/avatar/' + avatarString + '.jpg?s=' + size + '&d=' + placeholder;
+                url = placeholder;
             return url;
         },
         _computeGravatarName: function (first_name, last_name, email) {
@@ -334,16 +333,18 @@
         },
         _computeUserName: function (user) {
             var ret = '';
-            if (user.first_name)
-                ret += user.first_name + ' ';
-            if (user.last_name)
-                ret += user.last_name;
-            if (!ret.length)
-                ret += user.email;
+            if (user) {
+                if (user.first_name)
+                    ret += user.first_name + ' ';
+                if (user.last_name)
+                    ret += user.last_name;
+                if (!ret.length)
+                    ret += user.email;
+            }
             return ret;
         },
         _computeOrganizationsList: function (user, org) {
-            if (!user || !user.orgs)
+            if (!user || !user.orgs || !org)
                 return [];
 
             return user.orgs.filter(function (o) {
@@ -368,7 +369,7 @@
             return organization && this.org && organization.id == this.org.id;
         },
         _addOrg: function (e) {
-            this.fire('add-org');
+            this.dispatchEvent(new CustomEvent('add-org', {bubbles: true, composed: true, detail: null}));
         },
         _goToOrg: function (e) {
             var orgId = e.currentTarget.getAttribute('id');

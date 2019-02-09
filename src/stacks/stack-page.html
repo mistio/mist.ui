@@ -16,6 +16,7 @@
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
 
+<link rel="import" href="stack-actions.html">
 <link rel="import" href="stack-machine-item.html">
 <link rel="import" href="stack-network-item.html">
 <link rel="import" href="stack-key-item.html">
@@ -24,7 +25,7 @@
 
 <dom-module id="stack-page">
     <template>
-        <style is="custom-style">
+        <style include="lists forms tags-and-labels single-page shared-styles">
             paper-button#minimal:not([disabled]) {
                 background-color: #eee;
                 text-transform: none;
@@ -32,15 +33,9 @@
                 color: inherit;
             }
 
-            paper-button#minimal::content iron-icon {
+            paper-button#minimal::slotted(iron-icon) {
                 opacity: 0.32;
             }
-        </style>
-        <style is="custom-style" include="lists forms tags-and-labels single-page shared-styles">
-            :host {
-                display: block;
-            }
-
             paper-material {
                 display: block;
                 padding: 24px;
@@ -157,14 +152,6 @@
                 float: right;
             }
 
-            paper-icon-button.active-sort {
-                transform: rotate(180deg);
-            }
-
-            paper-icon-button.active-sort::content iron-icon {
-                color: #D48900 !important;
-            }
-
             [size=xs]>* {
                 display: none;
             }
@@ -195,11 +182,11 @@
                 text-transform: uppercase;
             }
 
-            paper-tabs::content #selectionBar {
+            paper-tabs::slotted(#selectionBar) {
                 background-color: var(--mist-blue);
             }
 
-            paper-tab::content paper-ripple {
+            paper-tab::slotted(paper-ripple) {
                 color: #999;
             }
 
@@ -363,7 +350,7 @@
                 margin-bottom: 32px;
             }
 
-            .parsing-loader.error paper-progress ::content #primaryProgress {
+            .parsing-loader.error paper-progress ::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
 
@@ -451,13 +438,18 @@
             .single-head {
                 @apply --stack-page-head-mixin
             }
+
             .inStartCreationState-true {
                 opacity: 0.3;
                 pointer-events: none;
             }
+
+            stack-actions {
+                width: 50%;
+                fill: #fff;
+            }
         </style>
         <div id="content">
-            <stack-actions items="[[itemArray]]" actions="{{actions}}" workflows="[[workflows]]" single deploy-now="[[!ok]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></stack-actions>
             <paper-material class="single-head layout horizontal">
                 <span class="icon">
                     <iron-icon icon="[[section.icon]]"></iron-icon>
@@ -474,7 +466,7 @@
                         <span hidden$="[[template.id]]"> missing template</span>
                     </div>
                 </div>
-                <mist-actions class$="inStartCreationState-[[inStartCreationState]]" actions="[[actions]]" type="stack" items="[[itemArray]]" model="[[model]]" use-half-width></mist-actions>
+                <stack-actions items="[[itemArray]]" actions="{{actions}}" workflows="[[workflows]]" single deploy-now="[[!ok]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></stack-actions>
             </paper-material>
 
             <paper-material>
@@ -531,7 +523,7 @@
                                     <h2 class="pad app-form-title">[[workflow.name]]</h2>
                                     <div class="pad">
                                         <orchestration-form id$="[[workflow.name]]" model="[[model]]" fields="{{workflow.params}}" workflow="[[workflow.name]]" url$="/api/v1/stacks/[[stack.id]]" on-request="handleWorkflowRequest"
-                                            on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]">[[workflow.name]]</orchestration-form>
+                                            on-response="handleWorkflowResponse" on-error="handleWorkflowError" btncontent="[[workflow.name]]"></orchestration-form>
                                     </div>
                                 </template>
 
@@ -672,7 +664,6 @@
         <tags-list model="[[model]]"></tags-list>
         <iron-ajax id="workflowRequest" method="POST" url="" on-response="handleWorkflowResponse" on-error="handleWorkflowError"></iron-ajax>
         <iron-ajax id="cancelJob" method="DELETE" url="/api/v1/jobs/[[stack.job_id]]" on-response="handleCanceled" on-error=""></iron-ajax>
-        <iron-ajax id="deleteStack" method="DELETE" url="/api/v1/stacks/[[stack.id]]" on-request="handleDeleteRequest" on-response="handleDelete"></iron-ajax>
     </template>
 
     <script type="text/javascript" src="../../bower_components/anchorme.js/dist-browser/anchorme.min.js"></script>
@@ -734,23 +725,23 @@
                 },
                 listMachines: {
                     type: Array,
-                    computed: '_listMachines(stack.node_instances.*, model.machines.*)',
-                    notify: true
+                    computed: '_computeListMachines(stack.node_instances.*, model.machines.*)',
+                    value: function () { return []; }
                 },
                 networks: {
                     type: Array,
-                    computed: '_listNetworks(stack.node_instances.*, model.networks.*)',
-                    notify: true
+                    computed: '_computeListNetworks(stack.node_instances.*, model.networks.*)',
+                    value: function () { return []; }
                 },
                 zones: {
                     type: Array,
-                    computed: '_listZones(stack.node_instances.*, model.zonesArray.*)',
-                    notify: true
+                    computed: '_computeListZones(stack.node_instances.*, model.zonesArray.*)',
+                    value: function () { return []; }
                 },
                 keys: {
                     type: Array,
-                    computed: '_listKeys(stack.node_instances.*, model.keys.*)',
-                    notify: true
+                    computed: '_computeListKeys(stack.node_instances.*, model.keys.*)',
+                    value: function () { return []; }
                 },
                 workflows: {
                     type: Array,
@@ -760,7 +751,9 @@
                     type: String,
                     computed: '_getFormattedTimestamp(stack)'
                 },
-                vpHeight: String,
+                vpHeight: {
+                    type: String,
+                },
                 payload: {
                     type: Object,
                     value: {}
@@ -794,7 +787,9 @@
                     type: Boolean,
                     computed: '_showAll(stack)'
                 },
-                intervalID: String,
+                intervalID: {
+                    type: String,
+                },
                 hasResources: {
                     type: Boolean,
                     computed: '_computeHasResources(listMachines.*, networks.*, zones.*, keys.*, stack.node_instances.*)'
@@ -804,9 +799,17 @@
                     computed: '_computeIsloading(stack)',
                     value: true
                 },
-                delete_request: false,
-                actions: Array,
-                itemArray: Array,
+                delete_request: {
+                    type: Boolean,
+                    value: false
+                },
+                actions: {
+                    type: Array,
+                    notify: true
+                },
+                itemArray: {
+                    type: Array,
+                },
                 workflowsOpen: {
                     type: Boolean,
                     value: false
@@ -817,15 +820,13 @@
                 }
             },
             observers: [
-                'newStackPage(stack.id)',
+                'newStackPage(stack.id, stack.template)',
                 'stackoutputsChanged(stack.outputs)',
                 'updateTerm(showOutput)',
                 'enhanceWorkflowLogs(stack.workflows)',
                 '_stackStateChanged(stack.status)'
             ],
             listeners: {
-                'iron-activate': '_handleInterval',
-                'confirmation': '_confirmAction',
                 'show-workflows': 'openWorkflows',
                 'workflow': '_quickActionsNavigation',
                 'deploy-now': 'deployNowWork'
@@ -836,13 +837,14 @@
                 if (show) {
                     this.attachTerm();
                 } else {
-                    var xterm = this.querySelector("xterm-dialog");
-                    if (xterm)
+                    var xterm = this.shadowRoot.querySelector("xterm-dialog");
+                    if (xterm) {
                         xterm.remove();
+                    }
                 }
             },
             attachTerm: function () {
-                var xterm = this.querySelector("xterm-dialog");
+                var xterm = this.shadowRoot.querySelector("xterm-dialog");
                 if (xterm)
                     xterm.remove();
                 xterm = document.createElement("xterm-dialog");
@@ -852,7 +854,7 @@
                 xterm.height = 500;
                 xterm.controls = false;
                 xterm.classList.add('inparent');
-                var parent = this.querySelector("div#cfyshell");
+                var parent = this.shadowRoot.querySelector("div#cfyshell");
                 parent.insertBefore(xterm, parent.firstChild);
                 console.warn('xterm open', xterm);
             },
@@ -894,7 +896,7 @@
                 run(this);
             },
             _displayUser: function (id, members) {
-                return this.model && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+                return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
             },
             _computeStack: function (params) {
                 var stack = {};
@@ -953,7 +955,7 @@
                 return this.listMachines.length || this.networks.length || this.keys.length;
             },
             _computeOutputsAreEmpty: function (stack) {
-                if (stack)
+                if (stack && stack.outputs)
                     for (var p in stack.outputs) {
                         return false;
                     }
@@ -968,7 +970,7 @@
                 });
             },
             _computeStackTags: function (stack, stackTags) {
-                return Object.entries(this.stack.tags).map(([key, value]) => ({key,value}));;
+                return this.stack && Object.entries(this.stack.tags).map(([key, value]) => ({key,value}));
             },
             _stackStateChanged: function(status) {
                 this.set('inStartCreationState', false) 
@@ -1011,7 +1013,7 @@
             openWorkflows: function (e) {
                 this.$.workflows.classList.toggle('open');
                 this.set('workflowsOpen', !this.workflowsOpen);
-                var pages = this.querySelector('#workflowsView').children;
+                var pages = this.$.workflowsView.children;
                 [].forEach.call(pages, function (p, index) {
                     if (index != 0) {
                         p.setAttribute("show", false);
@@ -1043,20 +1045,20 @@
                 return sum > 0 ? true : false;
             },
             _computeTemplate: function (stacktemplate, templates) {
-                if (this.stack)
-                    if (this.model.templates[this.stack.template])
-                        return this.model.templates[this.stack.template];
+                if (this.stack && this.model && this.model.templates) {
+                    return this.model.templates[this.stack.template];
+                }
             },
             _machines: function (stack) {
                 return stack && stack.machines;
             },
-            _listMachines: function (nis) {
+            _computeListMachines: function (nodeInstances, machines) {
                 var machines = [];
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'machine') {
                             var mac = Object.values(this.model.machines).find(function (mach) {
-                                return mach.id == rtpy.runtime_properties.info.id;
+                                return rtpy.runtime_properties && rtpy.runtime_properties.info != null && mach && mach.id == rtpy.runtime_properties.info.id;
                             });
 
                             if (mac) {
@@ -1075,27 +1077,28 @@
                                 machines.push(deadMachine)
                             }
                         }
-                    }, this);
+                    }.bind(this));
                 }
                 return machines;
             },
-            _listNetworks: function (nis) {
+            _computeListNetworks: function (nodeInstances, networks) {
                 var networks = [];
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'network') {
                             var net = this.model.networks[rtpy.runtime_properties.info.id];
-                            if (net)
+                            if (net) {
                                 networks.push(net);
+                            }
                         }
                     }, this);
                 }
                 return networks;
             },
-            _listZones: function (nis) {
+            _computeListZones: function (nodeInstances, zones) {
                 var zones = [];
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'zone') {
                             var zone = this.model.zonesArray.find(function (zone) {
                                 return zone.id == rtpy.runtime_properties.info.id
@@ -1107,26 +1110,11 @@
                 }
                 return zones;
             },
-            // _listRecords: function(nis) {
-            //     var records = [];
-            //     if (nis) {
-            //         nis.base.forEach(function(rtpy) {
-            //             if (rtpy.runtime_properties.mist_type == 'record') {
-            //                 var record = this.model.recordsArray.find(function(record) {
-            //                     return record.id == rtpy.runtime_properties.info.id
-            //                 }, this);
-            //                 if (record)
-            //                     records.push(record);
-            //             }
-            //         }, this);
-            //     }
-            //     return records;
-            // },
-            _listKeys: function (nis) {
+            _computeListKeys: function (nodeInstances, keys) {
                 var keys = [];
 
-                if (nis) {
-                    nis.base.forEach(function (rtpy) {
+                if (nodeInstances && nodeInstances.base) {
+                    nodeInstances.base.forEach(function (rtpy) {
                         if (rtpy.runtime_properties.mist_type == 'keypair') {
                             var key = this.model.keys[rtpy.runtime_properties.key];
 
@@ -1153,14 +1141,15 @@
                 if (this.template && this.template.workflows) {
                     workflows = this.template.workflows.filter(function (wf) {
                         return wf.name != 'scale' && wf.name != 'execute_operation';
-                    });
+                    }).slice(0);
                 }
                 var param1 = {
                     name: "yaml_or_form",
                     label: "YAML or form",
                     type: "radio",
                     value: "form",
-                    defaultValue: "yaml",
+                    defaultValue: "form",
+                    default: "form",
                     helptext: "Choose the way you want to insert inputs",
                     errorMessage: "Choose an input format",
                     show: true,
@@ -1182,7 +1171,7 @@
                     placeholder: "",
                     helptext: "Enter the stack inputs in yaml format",
                     errorMessage: "Please enter stacks's inputs",
-                    show: true,
+                    show: false,
                     required: true,
                     showIf: {
                         fieldName: "yaml_or_form",
@@ -1192,19 +1181,22 @@
                 for (var i=0; i<workflows.length; i++) {
                     var yaml_inputs = '',
                         wf = workflows[i];
-                    if (wf.params && wf.params.length > 0) {
+                        var radioField = wf.params.findIndex(function(p){ return p.name == "yaml_or_form"});
+                    if (wf.params && wf.params.length > 0 && radioField === -1) {
                         for (var j=0; j<wf.params.length; j++) {
-                            var wp = wf.params[j];
-                            yaml_inputs += wp.name + ': ' + wp.default+'\n';
-                            wp.showIf = {
-                                fieldName: "yaml_or_form",
-                                fieldValues: ["form"]
+                            var workflowField = wf.params[j];
+                            yaml_inputs += workflowField.name + ': ' + workflowField.default+'\n';
+                            if (['yaml_or_form','stackinputs'].indexOf(workflowField.name) == -1) {
+                                workflowField.show = true;
+                                workflowField.showIf = {
+                                    fieldName: "yaml_or_form",
+                                    fieldValues: ["form"]
+                                }
+                                workflowField.label = workflowField.name;
+                                workflowField.value = workflowField.defaultValue = workflowField.default;
                             }
-                            wp.label = wp.name;
-                            wp.value = wp.defaultValue = wp.default;
                         }
-                        var radioField = wf.params.find(function(p){ return p.name == "yaml_or_form"});
-                        if (!radioField) {
+                        if (radioField === -1) {
                             wf.params.unshift(param1, param2);
                         }
                     }
@@ -1215,66 +1207,29 @@
                 return moment.utc(date).fromNow();
             },
             _showDialog: function (info) {
-                var dialog = this.querySelector('dialog-element'),
+                var dialog = this.shadowRoot.querySelector('dialog-element'),
                     i;
-                for (i in info) {
-                    dialog[i] = info[i];
+                if (info){
+                    for (i in info) {
+                        dialog[i] = info[i];
+                    }
                 }
                 dialog._openDialog();
-            },
-            _editTags: function () {
-                var el = this.querySelector('tags-list'),
-                    items = [];
-                items.push(itemUid(this.stack, this.section));
-                el.items = items;
-                el._openDialog();
-            },
-            _deleteStack: function () {
-                this._showDialog({
-                    title: 'Delete Stack',
-                    body: "Deleting stacks cannot be undone. Verify deletion.",
-                    danger: true,
-                    reason: "stack.delete",
-                    action: "Delete"
-                });
-            },
-            _confirmAction: function (e) {
-                console.log('_confirmAction', e);
-                var reason = e.detail.reason,
-                    response = e.detail.response;
-
-                if (response.confirmed && reason == "stack.delete") {
-                    this.$.deleteStack.body = {
-                        stack_id: this.stack.id
-                    };
-                    this.$.deleteStack.headers["Content-Type"] = 'application/json';
-                    this.$.deleteStack.headers["Csrf-Token"] = CSRF_TOKEN;
-                    this.$.deleteStack.generateRequest();
-                }
-            },
-            handleDeleteRequest: function (e) {
-                this.set('stack.error', false);
-                this.set('delete_request', true);
-            },
-            handleDelete: function (e) {
-                this.fire('toast', {
-                    msg: 'Deletion completed',
-                    duration: 3000
-                })
-                document.querySelector('app-location').set('path', '/stacks');
             },
             _workflowNavigation: function (action) {
                 this.$.workflows.classList.add('open');
                 this.set('workflowsOpen', true)
-                var pages = this.querySelector('#workflowsView').children;
+                var pages = this.$.workflowsView.children;
                 [].forEach.call(pages, function (p, index) {
                     p.setAttribute("show", false);
                 });
-                var page = this.querySelector('#' + action + 'show');
-                page.setAttribute("show", true);
+                var page = this.shadowRoot.querySelector('#' + action + 'show');
+                if (page) {
+                    page.setAttribute("show", true);
+                }
             },
             _quickActionsNavigation: function (e) {
-                console.log(e);
+                // console.log(e);
                 this.selected = 1;
                 this._workflowNavigation(e.detail.name || e.target.id);
             },
@@ -1347,15 +1302,16 @@
                 console.log('un setting interval for', this.intervalID);
                 window.clearInterval(this.intervalID);
                 this.intervalID = null;
-                var xterm = this.querySelector("xterm-dialog");
+                var xterm = this.shadowRoot.querySelector("xterm-dialog");
                 if (xterm)
                     xterm.remove();
                 this.set('showOutput', false);
                 this.set('delete_request', false);
                 // this.showLogs = false;
 
-                if (this.stack)
+                if (this.stack) {
                     this.set('itemArray', [this.stack]);
+                }
             },
             _computeIsloading: function (stack) {
                 return !this.stack ? true : false;

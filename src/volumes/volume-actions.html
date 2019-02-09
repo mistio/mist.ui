@@ -5,9 +5,12 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 
 <link rel="import" href="../helpers/transfer-ownership.html">
 <link rel="import" href="../tags/tags-form.html">
+
 <link rel="import" href="attach-volume.html">
 <link rel="import" href="detach-volume.html">
 
@@ -15,8 +18,12 @@
   <template>
     <style include="shared-styles">
       :host {
-        display: inline;
-        color: rgba(255, 255, 255, 0.87);
+        width: 50%;
+      }
+      mist-list-actions {
+        width: 100%;
+        fill: #fff;
+        width: 100%;
       }
     </style>
 
@@ -26,6 +33,9 @@
     <attach-volume id="attachVolume" items="[[items]]" provider="[[provider]]" machines="[[machinesToAttachTo]]"></attach-volume>
     <detach-volume id="detachVolume" items="[[items]]" machines="[[machines]]"></detach-volume>
     <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
+    <slot>
+        <mist-list-actions actions=[[actions]]></mist-list-actions>
+    </slot>
 
   </template>
   <script>
@@ -68,19 +78,19 @@
       properties: {
         items: {
           type: Array,
-          value: []
+          value: function () { return []; },
         },
         machines: {
           type: Array,
-          value: []
+          value: function () { return []; },
         },
         machinesToAttachTo: {
           type: Array,
-          value: []
+          value: function () { return []; },
         },
         actions: {
           type: Array,
-          value: [],
+          value: function () { return []; },
           notify: true
         },
         provider: String,
@@ -92,15 +102,22 @@
           type: Boolean,
           reflectToAttribute: true
         },
-        members: Array,
-        user: String,
-        org: Object
+        members: {
+          type: Array
+        },
+        user: {
+          type: String
+        },
+        org: {
+          type: Object
+        }
       },
       observers: [
         '_mapPolicyToActions(items.*,org,user)'
       ],
       listeners: {
-        'iron-overlay-closed': 'confirmAction',
+        'select-action': 'selectAction',
+        'confirmation': 'confirmAction',
         'transfer-ownership': 'transferOwnership'
       },
       ready: function () {},
@@ -155,14 +172,14 @@
         for (var i = 0; i < this.items.length; i++) {
           this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/volumes/" + this.items[i].external_id;
           this.$.request.generateRequest();
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
             msg: 'Deleting ' + this.items[i].name,
             duration: 1000
-          })
+          } }))
         }
       },
       _showDialog: function (info) {
-        var dialog = this.querySelector('dialog-element');
+        var dialog = this.shadowRoot.querySelector('dialog-element');
         for (var i in info) {
           dialog[i] = info[i];
         }
@@ -226,58 +243,64 @@
       handleResponse: function (e) {
         // console.log('on-response', e, this.$.request, this.$.request.body)
         if (this.$.request && this.$.request.body && this.$.request.body.action) {
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
-          })
+          } }))
         }
         if (e.target && e.target.__data__ && e.target.__data__.method == "DELETE") {
-          this.fire('go-to', {url:'/volumes'});
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url:'/volumes'} }));
+
         }
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.fire('action-finished');
-          this.fire('toast', {
+          this.dispatchEvent(new CustomEvent('action-finished'));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
-          });
+          } }));
+
         }
       },
-      _mapPolicyToActions: function (items) {
+      _mapPolicyToActions: function (items,org,user) {
         // recompute the actions array property as the intersection
         // of the available actions of the selected items
-        this.set('actions', []);
-        var actions = new swiftSet.Set(),
-          isection = new swiftSet.Set();
+        if (items && org && user) {
+          this.set('actions', []);
+          var actions = new swiftSet.Set(),
+            isection = new swiftSet.Set();
 
-        if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
+          if (this.items.length > 0) {
+            actions.addItems(this.itemActions(this.items[0]) || []);
 
-          for (var i = 1; i < this.items.length; i++) {
-            isection.clear()
-            isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-            actions.clear();
-            actions.addItems(isection.items());
+            for (var i = 1; i < this.items.length; i++) {
+              isection.clear()
+              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+              actions.clear();
+              actions.addItems(isection.items());
+            }
+
+            var multiActions;
+
+            if (this.items.length > 1) {
+              multiActions = this.actionDetails(actions.items()).filter(function (a) {
+                return a.multi;
+              });
+            } else {
+              multiActions = this.actionDetails(actions.items());
+            }
+            console.log('_mapPolicyToActions', multiActions);
           }
-
-          var multiActions;
-
-          if (this.items.length > 1) {
-            multiActions = this.actionDetails(actions.items()).filter(function (a) {
-              return a.multi;
-            });
-          } else {
-            multiActions = this.actionDetails(actions.items());
-          }
+          this.set('actions', multiActions);
         }
-        this.set('actions', multiActions);
       },
       handleError: function (e) {
         // console.log(e.detail.request.xhr.statusText);
-        this.fire('toast', {
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
           duration: 5000
-        });
+        } }));
+
         if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
         }

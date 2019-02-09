@@ -5,14 +5,11 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 <dom-module id="notifications-settings">
     <template>
-        <style is="custom-style" include="lists shared-styles forms">
-            :host {
-                display: block;
-            }
-
+        <style include="lists shared-styles forms">
             :host paper-material {
                 display: block;
                 padding: 0;
@@ -84,7 +81,7 @@
                 margin: 32px 0 8px 0;
                 width: 100%;
             }
-            paper-progress.progresserror ::content #primaryProgress {
+            paper-progress.progresserror ::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
             .errormsg-container {
@@ -102,12 +99,6 @@
 
             paper-icon-button.delete-avatar-icon {
                 top: -12px;
-            }
-
-            iron-image.avatar-preview {
-                width: 80px;
-                height: 36px;
-                margin: 2px 6px;
             }
 
             div.existing-org-logo {
@@ -193,17 +184,16 @@
                         <div class="flexchild text-right">&nbsp;</div>
                     </div>
                     <div class="info-body">
-                        <template is="dom-repeat" hidden$="[[!hasOverrides]]" items="[[notificationOverrides]]" as="override">
+                        <template is="dom-repeat" items="[[notificationOverrides]]" as="override">
                             <paper-item class="row flex-horizontal-with-ratios">
                                 <div class="flexchild">
                                     <span class="name">[[_computeOverrideLabel(override, machines)]]</span>
                                 </div>
                                 <div class="flexchild">
-                                    <!--<paper-toggle-button checked="{{_computeAllowed(override)}}" on-change="_overrideChanged" index="[[index]]">[[_computeOverrideStateLabel(override, machines)]]</paper-toggle-button>-->
                                     <span class="status">[[_computeOverrideStateLabel(override, machines)]]</span>
                                 </div> 
                                 <div class="flexchild text-right">
-                                    <paper-button class="red" index="[[index]]" on-tap="_deleteOverrideTapped">Delete</paper-button>
+                                    <paper-button class="red" tabindex$="[[index]]" on-tap="_deleteOverrideTapped">Delete</paper-button>
                                 </div>   
                             </paper-item>                        
                         </template>
@@ -213,7 +203,6 @@
                     </div>
                 </div>
             </div>
-            <div id="error" class="error" hidden$="[[!hasError]]"></div>
         </paper-card>
 
         <iron-ajax auto id="getNotificationOverridesRequest" 
@@ -234,13 +223,19 @@
         Polymer({
             is: 'notifications-settings',
             properties: {
-                machines: Object,
-                notificationOverrides: Array,
+                machines: {
+                    type: Object
+                },
+                notificationOverrides: {
+                    type: Array
+                },
                 hasOverrides: {
                     type: Boolean,
                     computed: "_computeHasOverrides(notificationOverrides.length)"
                 },
-                overridesError: Boolean
+                overridesError: {
+                    type: Boolean
+                }
             },
 
             _computeAllowed: function(override) {
@@ -321,7 +316,7 @@
             },
 
             _deleteOverrideTapped: function(e) {
-                var override_id = this.notificationOverrides[e.target.index]._id.$oid;
+                var override_id = e.model.override._id.$oid;
                 this.$.deleteNotificationOverrideRequest.headers["Content-Type"] = 'application/json';
                 this.$.deleteNotificationOverrideRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.deleteNotificationOverrideRequest.url = '/api/v1/notification-overrides/' + override_id;
@@ -330,7 +325,8 @@
 
             _handleDeleteOverrideResponse: function(e) {
                 this.$.getNotificationOverridesRequest.generateRequest();
-                this.fire('toast',{msg:"Notification override deleted succesfully!",duration:3000});
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Notification override deleted succesfully!",duration:3000} }));
+
             },
 
             _handleDeleteOverrideError: function() {
@@ -339,7 +335,8 @@
             },
 
             _handleSetOverridesResponse: function(e) {
-                this.fire('toast',{msg:"Changes saved succesfully!",duration:3000});
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Changes saved succesfully!",duration:3000} }));
+
             },
 
             _handleSetOverridesError: function() {

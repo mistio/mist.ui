@@ -6,9 +6,8 @@
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
-
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <!-- needed for the forms' inputs -->
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
@@ -20,6 +19,7 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
+
 <link rel="import" href="cidr-validator.html">
 <link rel="import" href="ip-validator.html">
 <link rel="import" href="sub-form.html">
@@ -36,7 +36,6 @@
             :host {
                 display: block;
             }
-
             paper-material {
                 display: block;
                 padding: 24px;
@@ -48,12 +47,13 @@
                 right: 0;
             }
 
-            :host>::content paper-input-container {
+            :host paper-input-container {
                 padding-top: 16px;
                 padding-bottom: 16px;
             }
 
-            :host[single-column] .m6 {
+            :host([single-column]) .m6,
+            :host([single-column]) .m12 {
                 flex-basis: 100% !important;
             }
 
@@ -67,11 +67,11 @@
                 line-height: 20px;
             }
 
-            paper-toggle-button[disabled]::content {
+            paper-toggle-button[disabled]::slotted() {
                 color: rgba(0, 0, 0, 0.32);
             }
 
-            paper-toggle-button::content paper-input-container input {
+            paper-toggle-button::slotted(paper-input-container input) {
                 color: color: rgba(0, 0, 0, 0.54);
             }
 
@@ -84,16 +84,14 @@
                 margin-right: 8px;
             }
 
-            *:not(paper-button)[disabled] {
-                /*display: none;*/
-            }
-
             *:not(paper-button)[hidden] {
                 display: none;
             }
 
-            paper-button.blue.add-input:not([disabled]) {
-                width: 97% !important;
+            paper-button.add-input {
+                margin: 0 16px 16px;
+                flex: 1 100%;
+                display: flex;
             }
 
             paper-icon-button.docs {
@@ -124,7 +122,7 @@
                 width: 100%;
             }
 
-            paper-progress#progresserror ::content #primaryProgress {
+            paper-progress#progresserror ::slotted(#primaryProgress) {
                 background-color: var(--red-color);
             }
 
@@ -143,7 +141,7 @@
                 margin-right: 4px;
             }
 
-            paper-dropdown-menu ::content .dropdown-content {
+            paper-dropdown-menu ::slotted(.dropdown-content) {
                 max-height: 300px !important;
             }
 
@@ -255,7 +253,7 @@
                 /*background-color: #eee;*/
             }
 
-            paper-slider::content .slider-input {
+            paper-slider::slotted(.slider-input) {
                 width: 80px !important;
             }
 
@@ -283,6 +281,10 @@
                 opacity: 0.67;
                 font-size: .8em;
                 margin-left: 10px;
+            }
+
+            paper-textarea.script {
+                --paper-input-container-shared-input-style_-_font-family: monospace;
             }
 
             paper-checkbox {
@@ -352,7 +354,7 @@
                 align-self: flex-start;
             }
 
-            paper-menu img {
+            paper-listbox img {
                 margin-right: 8px;
                 vertical-align: middle;
             }
@@ -368,22 +370,22 @@
         </style>
 
         <div class$="grid [[_computeLayoutClass(horizontalLayout)]]">
-            <template id$="app-form-[[id]]" is="dom-repeat" items="{{fields}}" as="field">
+            <template id="app-form-[[id]]" is="dom-repeat" items="{{fields}}" as="field">
                 <cidr-validator id="cidr-validator" validator-name="cidr-validator"></cidr-validator>
                 <ip-validator id="ip-validator" validator-name="ip-validator"></ip-validator>
-                <template is="dom-if" if="[[field.show]]">
+                <template is="dom-if" if="[[_showField(field, index, fieldVisibility.*)]]" restamp>
                     <div class="grid-row">
                         <h3 class="xs12 s12 m12 l12" hidden$="[[!field.h3]]">[[field.h3]]</h3>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'text', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'text', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" validator="[[field.validator]]"
                                 value="{{field.value}}" auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
-                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
+                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"
                                 placeholder=[[field.placeholder]]>
                                 <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
                                 <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
                             </paper-input>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'number', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'number', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" type="number" min="{{field.min}}"
                                 max="{{field.max}}" value="{{field.value}}" auto-validate auto-validate allowed-pattern="[[field.pattern]]" required="[[field.required]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
@@ -392,22 +394,22 @@
                                 <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
                             </paper-input>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'password', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'password', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" type="password" placeholder="[[field.placeholder]]"
                                 label="[[field.label]]" value="{{field.value}}" pattern="[[field.pattern]]" auto-validate required="[[field.required]]"
                                 error-message="[[field.errorMessage]]"></paper-input>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'textarea', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'textarea', fieldVisibility, index)]]" restamp>
                             <paper-textarea class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" label="[[field.label]]" rows="2" max-rows="10"
                                 value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-textarea>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'ip_textarea', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'ip_textarea', fieldVisibility, index)]]" restamp>
                             <paper-textarea class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" label="[[field.label]]" rows="2" max-rows="15"
                                 value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"></paper-textarea>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'radio', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'radio', fieldVisibility, index)]]" restamp>
                             <paper-radio-group id$="app-form-[[id]]-[[field.name]]" selected="{{field.value}}" class$="xs12 m6 [[field.class]]" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]">
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
@@ -415,7 +417,7 @@
                                 </template>
                             </paper-radio-group>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'checkboxes', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'checkboxes', fieldVisibility, index)]]" restamp>
                             <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" hidden$="[[field.hidden]]">
                                 <div hidden$="[[!_noOptions(field.options, field.options.length)]]">
                                     <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
@@ -434,10 +436,10 @@
                                 </template>
                             </div>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'dropdown', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'dropdown', fieldVisibility, index)]]" restamp>
                             <paper-dropdown-menu id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]"
                                 horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]" required="[[field.required]]">
-                                <paper-menu slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
+                                <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
                                         <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
@@ -445,25 +447,25 @@
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
                                         <paper-item value="[[option.val]]">[[option.title]]</paper-item>
                                     </template>
-                                </paper-menu>
+                                </paper-listbox>
                             </paper-dropdown-menu>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_size', field.show)]]" restamp>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_size', fieldVisibility, index)]]" restamp>
                             <mist-size-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-size-field>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_machine', field.show)]]" restamp>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_machine', fieldVisibility, index)]]" restamp>
                             <mist-machine-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-machine-field>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_networks', field.show)]]" restamp>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_networks', fieldVisibility, index, field.options)]]" restamp>
                             <mist-networks-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-networks-field>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_tags', field.show)]]" restamp>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_tags', fieldVisibility, index)]]" restamp>
                             <mist-tags-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-tags-field>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_dropdown', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_dropdown', fieldVisibility, index)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]" required="[[field.required]]">
-                                <paper-menu slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
+                                <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
                                         <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
@@ -480,15 +482,15 @@
                                         </paper-item>
                                     </template>
                                     <paper-button on-tap="_addInput" class="blue add-input" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
-                                </paper-menu>
+                                </paper-listbox>
                             </paper-dropdown-menu>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'mist_dropdown_searchable', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_dropdown_searchable', fieldVisibility, index)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]">
                                 <div slot="dropdown-content" class="dropdown-content">
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
-                                    <paper-menu id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
+                                    <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
                                         <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
                                             <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                         </template>
@@ -501,29 +503,31 @@
                                             </paper-item>
                                         </template>
                                         <paper-button on-tap="_addInput" class="blue add-input" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
-                                    </paper-menu>
+                                    </paper-listbox>
                                 </div>
                             </paper-dropdown-menu>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'slider', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'slider', fieldVisibility, index)]]">
                             <div class="xs12 m12 l12" hidden="[[field.hidden]]">[[field.label]]
                                 <span class="field-helptext">min [[field.min]], max [[field.max]] [[field.unit]]</span>
                             </div>
                             <paper-slider class$="xs12 m6 [[field.class]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" min="[[field.min]]"
                                 max="[[field.max]]" value="{{field.value}}" step="[[field.step]]" pin snaps editable></paper-slider>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'ssh_key', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'ssh_key', fieldVisibility, index)]]">
                             <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left" hidden$="[[field.hidden]]">
-                                <paper-menu slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
-                                    class="dropdown-content">
-                                    <template is="dom-repeat" items="[[field.options]]" as="option">
-                                        <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-                                    </template>
-                                    <paper-button on-tap="_addKey" class="blue">Add Key</paper-button>
-                                </paper-menu>
+                                <div slot="dropdown-content" class="dropdown-content">
+                                    <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]"></paper-input>
+                                    <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
+                                        <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
+                                            <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                                        </template>
+                                        <paper-button on-tap="_addKey" class="blue add-input">Add Key</paper-button>
+                                    </paper-listbox>
+                                </div>
                             </paper-dropdown-menu>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'toggle', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'toggle', fieldVisibility, index)]]">
                             <div class="xs12 m6">
                                 <paper-toggle-button id$="app-form-[[id]]-[[field.name]]" checked="{{field.value}}" disabled="[[field.disabled]]" hidden$="[[field.hidden]]">
                                     <span hidden$="[[!field.label]]">[[field.label]]</span>
@@ -531,7 +535,7 @@
                                 </paper-toggle-button>
                             </div>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'date', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'date', fieldVisibility, index)]]">
                             <div class$="xs12 m6 date [[field.class]]">
                                 <div class="date-label">[[field.label]]</div>
                                 <div id="date" class$="simple-button valid-[[_validateDatetime(field, field.value)]]">
@@ -541,7 +545,7 @@
                                 </div>
                             </div>
                         </template>
-                        <template is="dom-if" if="[[_compareFieldType(field, 'list', field.show)]]">
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'list', fieldVisibility, index)]]">
                             <div class$="xs12 m6 [[field.class]]">
                                 <span>
                                     <strong>[[field.label]]</strong>
@@ -580,7 +584,7 @@
                 </div>
 
                 <div class="clearfix bottom-actions xs12">
-                    <paper-button class="submit-btn pull-left" on-tap="_cancel" hidden$="[[!showCancel]]">Cancel</paper-button>
+                    <paper-button class="submit-btn" on-tap="_cancel" hidden$="[[!showCancel]]">Cancel</paper-button>
                     <!--paper-button class="submit-btn pull-left" on-tap="_resetForm"><iron-icon icon="icons:refresh"></iron-icon>Reset Form</paper-button-->
                     <paper-button id="appformsubmit" class="submit-btn pull-right blue" disabled$="[[!formReady]]" raised on-tap="_submitForm">
                         <template is="dom-if" if="[[btncontent]]">
@@ -647,7 +651,9 @@
                 },
                 fields: {
                     type: Array,
-                    value: [],
+                    value: function(){
+                        return []
+                    },
                     notify: true
                 },
                 method: {
@@ -686,7 +692,9 @@
                 },
                 dateTriggerField: {
                     type: Object,
-                    value: {}
+                    value: function(){
+                        return {}
+                    },
                 },
                 showCancel: {
                     type: Boolean,
@@ -696,40 +704,51 @@
                     type: Boolean,
                     value: false
                 },
-                formatPayload: Boolean,
+                formatPayload: {
+                    type: Boolean
+                },
                 singleColumn: {
                     type: Boolean,
                     value: false,
                     reflectToAttribute: true
+                },
+                fieldVisibility: {
+                    type: Object
                 }
             },
+
             observers: [
                 '_fieldsChanged(fields.*, sendingData)'
             ],
+
             listeners: {
                 'fields-changed': 'runFieldsChanged',
-                'field-value-changed': 'runValidateFields'
+                'field-value-changed': 'runValidateFields',
+                'app-form-ready': 'runValidateFields'
             },
-            ready: function () {
-            },
+
             renderForm: function() {
-                this.$['app-form-'+this.id].render();
+                this.shadowRoot.querySelector('#app-form-'+this.id).render();
             },
+
             _computeLayoutClass: function (layout) {
                 return this.horizontalLayout ? 'horizontal-grid' : '';
             },
+
             _updateForm: function () {
                 var uniqueFields = {};
-                for (var field in this.fields) {
-                    if (this.fields[field].defaultValue) {
-                        uniqueFields[this.fields[field].name] = this.fields[field].defaultValue
-                    } else {
-                        uniqueFields[this.fields[field].name] = null
+                if (this.fields) {
+                    for (var i=0; i<this.fields.length; i++) {
+                        if (this.fields[i].defaultValue) {
+                            uniqueFields[this.fields[i].name] = this.fields[i].defaultValue
+                        } else {
+                            uniqueFields[this.fields[i].name] = null
+                        }
                     }
-
                 }
                 this.set('form', uniqueFields);
             },
+
             showOption: function (option) {
                 if (option.title)
                     return option.title;
@@ -738,161 +757,192 @@
                 if (option.id)
                     return option.id;
             },
-            _compareFieldType: function (field, value, show) {
-                return field.type == value;
+
+            _compareFieldType: function (fieldType, value, fieldVisibility, index) {
+                return fieldVisibility[index] && fieldType == value;
             },
+
             _handleRequest: function (e) {
-                this.fire("request", e.detail)
+                this.dispatchEvent(new CustomEvent("request", { bubbles: true, composed: true, detail:  e.detail }));
             },
+
             _handleResponse: function (e, d) {
-                this.fire("response", e.detail);
+                this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));
                 this.set('sendingData', false);
                 //clear form only on response not on error
                 this._resetForm();
+                var overlay = document.querySelector('vaadin-dialog-overlay');
+                if (overlay) {
+                    overlay.opened = false;
+                }
             },
+
             _handleError: function (e, d) {
                 this.set('sendingData', false);
                 this.set('formError', true);
                 console.log('FAIL', e)
                 // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
-                this.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
+                this.shadowRoot.querySelector("#errormsg").textContent = e.detail.request.xhr.responseText;
             },
+
             runFieldsChanged: function () {
                 this._fieldsChanged()
             },
+
             runValidateFields: function() {
                 var valid = this._validateFields();
+                var prevFormReady = this.formReady;
                 this.set('formReady', valid && !this.sendingData);
+                if (!prevFormReady && this.formReady) {
+                    this.fire('app-form-ready');
+                }
             },
+
             _fieldsChanged: function (fields, sendingData) {
                 if (this.formError) {
                     this.set('formError', false);
                 }
                 if (fields && fields.path && fields.path == 'fields') {
                     this._updateForm();
+                    // construct fieldVisibility 
+                    var fv = {};
+                    for (var i = this.fields.length - 1; i >= 0; i--) {
+                        fv[i] = this.fields[i].show;
+                    }
+                    this.set('fieldVisibility', fv);
+                    // console.log('fieldVisibility', this.fieldVisibility);
                 }
-                var that = this;
-                this.async(function () {
-                    var form = that.form,
-                        show = true,
-                        dependency, reset = true;
+                // a consumer changed show values
+                if (fields && fields.path.endsWith('.show')) {
+                    var index = parseInt(fields.path.split('.')[1]);
+                    this.set('fieldVisibility.' + index, fields.value);
+                }
+                if (fields && !fields.path.endsWith('.show')) {
+                    var that = this;
+                    // this.async(function () {
+                        var form = that.form,
+                            show = true,
+                            dependency, reset = true;
 
-                    // Update show field flag after calculating dependencies
-                    that.fields.forEach(function (el, index) {
-                        // if field has a dependency
-                        if (el.showIf) {
-                            dependency = form[el.showIf.fieldName];
-                            if (el.showIf.fieldExists) {
-                                show = dependency ? true : false;
+                        // Update show field flag after calculating dependencies
+                        that.fields.forEach(function (el, index) {
+                            // if field has a dependency
+                            if (el.showIf) {
+                                dependency = form[el.showIf.fieldName];
+                                if (el.showIf.fieldExists) {
+                                    show = dependency ? true : false;
+                                } else {
+                                    show = el.showIf.fieldValues.indexOf(dependency) !=
+                                        -1;
+                                }
+
+                                //check for second level dependency
+                                var parent = that.fields.find(function (f) {
+                                    return f.name == el.showIf.fieldName;
+                                });
+
+                                if (parent && parent.showIf) {
+                                    var parentShow,
+                                        parentDependency = form[parent.showIf.fieldName];
+
+                                    if (parent.showIf.fieldExists) {
+                                        parentShow = parentDependency ? true : false;
+                                    } else {
+                                        parentShow = parent.showIf.fieldValues.indexOf(
+                                            parentDependency) != -1;
+                                    }
+                                    show = show && parentShow;
+                                }
+
+                                that.set('fieldVisibility.' + index, show);
+                                // console.log('form set visibility', el.name , show);
+
+                                // update form values regardless of el.show
+                                if (el.type == "ip_textarea") {
+                                    var textToArray = el.value.split('\n');
+                                    that.set('form.' + el.name, textToArray);
+                                } else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    that.set('form.' + el.name, that._constructTagsValue(
+                                        textToArray));
+                                } else if (el.type == "checkboxes") {
+                                    that.set('form.' + el.name, el.value || []);
+                                } else if (el.type == "number") {
+                                    that.set('form.' + el.name, parseInt(el.value));
+                                } else if (el.type == "date" && el.value) {
+                                    that.set('form.' + el.name, el.value && el.value.replace('T',' ')+':00');
+                                } else {
+                                    that.set('form.' + el.name, el.value);
+                                }
                             } else {
-                                show = el.showIf.fieldValues.indexOf(dependency) !=
-                                    -1;
+                                if (el.type == "ip_textarea") {
+                                    var textToArray = el.value.split('\n');
+                                    that.set('form.' + el.name, textToArray);
+                                } else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    that.set('form.' + el.name, that._constructTagsValue(
+                                        textToArray));
+                                } else if (el.type == "checkboxes") {
+                                    that.set('form.' + el.name, el.value || []);
+                                } else if (el.type == "number") {
+                                    that.set('form.' + el.name, parseInt(el.value));
+                                } else if (el.type == "date" && el.value) {
+                                    that.set('form.' + el.name, el.value.replace('T',' ')+':00');
+                                } else {
+                                    that.set('form.' + el.name, el.value);
+                                }
                             }
 
-                            //check for second level dependency
-                            var parent = that.fields.find(function (f) {
-                                return f.name == el.showIf.fieldName;
+                            // if field is a dependency of another field
+                            that.fields.forEach(function (depel, index) {
+                                if (depel.showIf &&
+                                    depel.showIf.fieldName != 'yaml_or_form' &&
+                                    depel.showIf.fieldName == el.name) {
+                                    if (depel.options) {
+                                        that.set('fields.' + index + '.options',
+                                            depel.options);
+                                    }
+                                }
                             });
 
-                            if (parent && parent.showIf) {
-                                var parentShow,
-                                    parentDependency = form[parent.showIf.fieldName];
-
-                                if (parent.showIf.fieldExists) {
-                                    parentShow = parentDependency ? true : false;
-                                } else {
-                                    parentShow = parent.showIf.fieldValues.indexOf(
-                                        parentDependency) != -1;
-                                }
-                                show = show && parentShow;
-                            }
-
-                            that.set('fields.' + index + '.show', show);
-
-                            // update form values regardless of el.show
-                            if (el.type == "ip_textarea") {
-                                var textToArray = el.value.split('\n');
-                                that.set('form.' + el.name, textToArray);
-                            } else if (el.name == "machines_tags") {
-                                var textToArray = el.value.split(',');
-                                that.set('form.' + el.name, that._constructTagsValue(
-                                    textToArray));
-                            } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, el.value || []);
-                            } else if (el.type == "number") {
-                                that.set('form.' + el.name, parseInt(el.value));
-                            } else if (el.type == "date" && el.value) {
-                                that.set('form.' + el.name, el.value && el.value.replace('T',' ')+':00');
-                            } else {
-                                that.set('form.' + el.name, el.value);
-                            }
-                        } else {
-                            if (el.type == "ip_textarea") {
-                                var textToArray = el.value.split('\n');
-                                that.set('form.' + el.name, textToArray);
-                            } else if (el.name == "machines_tags") {
-                                var textToArray = el.value.split(',');
-                                that.set('form.' + el.name, that._constructTagsValue(
-                                    textToArray));
-                            } else if (el.type == "checkboxes") {
-                                that.set('form.' + el.name, el.value || []);
-                            } else if (el.type == "number") {
-                                that.set('form.' + el.name, parseInt(el.value));
-                            } else if (el.type == "date" && el.value) {
-                                that.set('form.' + el.name, el.value.replace('T',' ')+':00');
-                            } else {
-                                that.set('form.' + el.name, el.value);
-                            }
-                        }
-
-                        // if field is a dependency of another field
-                        that.fields.forEach(function (depel, index) {
-                            if (depel.showIf &&
-                                depel.showIf.fieldName != 'yaml_or_form' &&
-                                depel.showIf.fieldName == el.name) {
-                                if (depel.options) {
-                                    that.set('fields.' + index + '.options',
-                                        depel.options);
-                                }
+                            if (el.placeholderIf) {
+                                dependency = form[el.placeholderIf.fieldName];
+                                that.set('fields.' + index + '.placeholder', el.placeholderIf
+                                    .fieldOptions[dependency]);
                             }
                         });
-
-                        if (el.placeholderIf) {
-                            dependency = form[el.placeholderIf.fieldName];
-                            that.set('fields.' + index + '.placeholder', el.placeholderIf
-                                .fieldOptions[dependency]);
-                        }
-                    });
-
-                    var valid = that._validateFields(that.fields);
-                    // console.log("Validate Fields", valid);
-                    that.set('form', form);
-                    that.set('formReady', valid && !sendingData);
-                });
+                        that.set('form', form);
+                        that.runValidateFields();
+                    // });
+                }
             },
+
             _validateFields: function (fields) {
                 var fieldsToValidate = fields || this.fields;
                 return fieldsToValidate.every(function (el, index) {
+                    var fieldIndex = this.fields.findIndex(function(f){return f.name === el.name}),
+                        elShow = this.fieldVisibility[fieldIndex];
+                    // console.log(el.name, 'el.show, elShow',el.show, elShow);
                     if (el.type == "ip_textarea") {
-                        return el.show && el.required ? this.validatecidr(el.value, index) :
+                        return elShow && el.required ? this.validatecidr(el.value, index) :
                             true;
                     } if (el.validator == "cidr-validator") {
-                        return el.show && el.required ? this.cidr(el.value) :
+                        return elShow && el.required ? this.cidr(el.value) :
                             true;
                     } if (el.validator == "ip-validator") {
-                        return el.show && el.required ? this.ip(el.value) :
+                        return elShow && el.required ? this.ip(el.value) :
                             true;
                     } else if (el.type == "checkboxes") {
                         if (DEBUG_FORM) {
                             console.log('validation', el.type, el.value && el.value.length);
                         }
-                        return el.show && el.required ? el.value && el.value.length : true;
+                        return elShow && el.required ? el.value && el.value.length : true;
                     } else if (el.type == "machines_tags") {
                         if (DEBUG_FORM) {
-                            console.log('validate ',el.type, el.show && el.required ? JSON.stringify(this._constructTagsValue(textToArray)).length > 2 : true);
+                            console.log('validate ',el.type, elShow && el.required ? JSON.stringify(this._constructTagsValue(textToArray)).length > 2 : true);
                         }
                         var textToArray = el.value.split(',');
-                        return el.show && el.required ? JSON.stringify(this._constructTagsValue(
+                        return elShow && el.required ? JSON.stringify(this._constructTagsValue(
                             textToArray)).length > 2 : true;
                     } else if (el.type == "date" ) {
                         if (DEBUG_FORM) {
@@ -903,7 +953,7 @@
                         if (DEBUG_FORM) {
                             console.log('validate ', el.name, el.type, this._allItemsValid(el));
                         }
-                        return el.min && el.show && el.required ? this._allItemsValid(el) :
+                        return el.min && elShow && el.required ? this._allItemsValid(el) :
                             true;
                     } else if (el.name == "admin_state_up") {
                         return true;
@@ -922,49 +972,52 @@
                         return this._validatePatternedField(el);
                     } else if (el.type == "mist_size") {
                         if (DEBUG_FORM) {
-                            console.log('validate ',el.name, el.type, el.show && el.required ? this._validateMistSize(el) : true);
+                            console.log('validate ',el.name, el.type, elShow && el.required ? this._validateMistSize(el) : true);
                         }
-                        return el.show && el.required ? this._validateMistSize(el) : true;
+                        return elShow && el.required ? this._validateMistSize(el) : true;
                     } else if (el.type == "mist_machine") {
                         if (DEBUG_FORM) {
-                            console.log('validate '+this.id, el.name, el.type, el.show && el.required ? el.valid : true);
+                            console.log('validate '+this.id, el.name, el.type, elShow && el.required ? el.valid : true);
                         }
-                        return el.show && el.required ? el.valid : true;
+                        return elShow && el.required ? el.valid : true;
                     } else if (el.type == "mist_networks") {
                         if (DEBUG_FORM) {
-                            console.log('validate '+this.id, el.name, el.type, el.show ? el.valid : true);
+                            console.log('validate '+this.id, el.name, el.type, elShow, el.valid, elShow ? el.valid : true);
                         }
-                        return el.show ? el.valid : true;
+                        return elShow && el.required ? el.valid : true;
                     } else if (el.type == "toggle" || el.type == "radio"){
                         if (DEBUG_FORM) {
                             console.log('validate ',el.name,el.type, true);
                         }
                         return  true;
                     } else {
-                        if (el.show && el.required && (el.value == undefined || !el.value.length)) {
-                            console.warn(el.type, 'not valid', el.name, el.value);
-                        }
                         if (DEBUG_FORM) {
-                            console.log('validate ', el.name, el.type, el.show, el.required,  el.value);
+                            console.log('validate ', el.name, el.type, elShow, el.required,  el.value);
                         }
-                        return el.show && el.required ? (el.value && el.value.length ? el.value : false) : true;
+                        return elShow && el.required ? (el.value && el.value.length ? el.value : false) : true;
                     }
                     return true;
                 }.bind(this));
+                if (fields) {
+                    this._validateFields();
+                }
             },
+
             _validateDatetime: function(el) {
                 if (el.validate == "inFuture") {
                     var now = moment();
-                    console.log('validate ',el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true);
+                    // console.log('validate ',el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true);
                     return el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true;
                 } else {
                     console.log('validate ',el.show && el.value ? moment(el.value).isValid() : true);
                     return el.show && el.value ? moment(el.value).isValid() : true;
                 }
             },
+
             _validateMistSize: function (el) {
                 return el.value == "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length; 
             },
+
             _validateCustomValue: function (customSizeFields, customValue) {
                 // console.log('_validateCustomValue',customSizeFields, customValue);
                 if (customSizeFields && customValue) {
@@ -979,6 +1032,7 @@
                     console.warn('customSizeFields empty')
                 return true;
             },
+
             _allItemsValid: function (el) {
                 var allItemsValid;
                 // console.log("validate list", el.items);
@@ -994,24 +1048,27 @@
                 // console.log("validate list", allItemsValid);
                 return allItemsValid;
             },
+
             _validatePatternedField: function (el) {
                 var fieldName = this.id ? "paper-input#app-form-" + this.id + "-" + el.name :
                     "paper-input#app-form--" + el.name;
-                if (this.querySelector(fieldName)) {
-                    return el.value && !this.querySelector(fieldName).invalid;
+                if (this.shadowRoot.querySelector(fieldName)) {
+                    return el.value && !this.shadowRoot.querySelector(fieldName).invalid;
                 }
                 return false;
             },
+
             _submitForm: function (e) {
                 // notify the parent element to format the form's payload if necessary
-                if (this.formatPayload)
-                    this.fire('format-payload');
+                if (this.formatPayload){
+                    this.dispatchEvent(new CustomEvent('format-payload', {bubbles: true, composed: true}));
+                }
 
                 var payload = {};
                 if (this.workflow) {
-                    var inps = YAML.parse(this.form.stackinputs);
+                    var inps = YAML.parse(this.form.stackinputs) || {};
                     for (var p in inps) {
-                        var field = this.fields.find(function(f){return f.name == p});
+                        var field = this.fields.find(function(f) { return f.name == p });
                         if (field.excludeFromPayload == true) {
                             delete inps[p];
                         } else {
@@ -1067,14 +1124,14 @@
 
                     // clean up form for payload
                     var excludeFields = this.fields.filter(function (el) {
-                        return el.excludeFromPayload == true || (!el.show && el.showIf);
+                        return el.excludeFromPayload == true;
                     });
 
                     for (var i = 0; i < excludeFields.length; i++) {
                         delete payload[excludeFields[i].name];
                     }
                 }
-                console.log('Payload', payload, this.form);
+                console.log('form _submitForm',payload, this.form);
 
                 this.$.formAjax.headers["Content-Type"] = 'application/json';
                 this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -1083,6 +1140,7 @@
 
                 this.set('sendingData', true);
             },
+
             _asssertToInclude: function (list, field) {
                 // console.log('_asssertToInclude', list, field);
                 if (field.show)
@@ -1097,9 +1155,13 @@
                 }
                 return false;
             },
+
             _cancel: function () {
-                this.fire('cancel');
+                var overlay = document.querySelector('vaadin-dialog-overlay');
+                if (overlay)
+                    overlay.opened = false;
             },
+
             _resetForm: function (e) {
                 // Reset script
                 for (var attr in this.form) {
@@ -1122,16 +1184,17 @@
                     // Reset Form Fields Validation
                     this._resetField(el, index);
                 }.bind(this));
-
-                this.fire('reset-form');
+                this.dispatchEvent(new CustomEvent('reset-form'));
             },
+
             _resetField: function (el, index) {
                 this.set('fields.' + index + '.value', el.defaultValue);
-                var input = this.querySelector('#' + el.name);
+                var input = this.shadowRoot.querySelector('#' + el.name);
                 if (input) {
                     input.invalid = false;
                 }
             },
+
             _assertShowIfQuery: function (name) {
                 this.fields.forEach(function (el, index) {
                     if (el.showIf && el.showIf.fieldName == name) {
@@ -1141,6 +1204,7 @@
                     }
                 })
             },
+
             _recomputeDependentFields: function (name) {
                 this.fields.forEach(function (el, index) {
                     if (el.showIf && el.showIf.fieldName == name) {
@@ -1207,16 +1271,17 @@
                 var qParams = {
                     'origin': origin
                 }
-                this.fire('go-to', {
+                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
                     url: '/keys/+add',
                     params: qParams
-                })
+                } }));
             },
             _addInput: function (e) {
-                this.fire('add-input', {
+                this.dispatchEvent(new CustomEvent('add-input', { bubbles: true, composed: true, detail: {
                     event: e,
                     fieldname: e.model.field.name
-                });
+                } }));
+
             },
             _computeResourceTypeForField: function (str, length) {
                 var ret = str ? str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("uuids", "").replace("ids", "").replace("id", "").replace(/s$/,'').trim() : '';
@@ -1233,7 +1298,7 @@
                 }
             },
             _constructCheckboxValue: function (fieldname) {
-                var checkboxes = this.querySelectorAll('paper-checkbox[name=' + fieldname + ']'); // get checkboxes
+                var checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox[name=' + fieldname + ']'); // get checkboxes
                 var arr = [];
                 checkboxes.forEach(function (c) {
                     if (c.checked)
@@ -1272,7 +1337,7 @@
                 return arr;
             },
             _helpTap: function (e) {
-                this.fire('user-action', 'open help ' + e.model.field.helpHref);
+                this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'open help ' + e.model.field.helpHref }));
             },
             _noOptions: function (options, length) {
                 return !options || options.length == 0;
@@ -1288,6 +1353,13 @@
             _getFieldNameById: function (str) {
                 return this.id ? str.split('app-form-' + this.id + '-')[1] : str.split('app-form--')[
                     1];
+            },
+            _showField: function (field, index, fieldVisibility) {
+                if (fieldVisibility) {
+                    // console.log('_showField', field.name, this.fieldVisibility[index])
+                    return this.fieldVisibility[index];
+                }
+                return true;
             }
         });
     </script>

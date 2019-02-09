@@ -19,11 +19,6 @@
       .no-clouds {
         font-style: italic;
       }
-      .btn-group {
-        display: flex;
-        justify-content: flex-end;
-        margin: 24px 0;
-      }
       .progress {
         margin: 14px -24px 0 -24px;
         width: 100%;
@@ -31,7 +26,7 @@
       .progress paper-progress {
         width: 100%;
       }
-      paper-progress.progresserror ::content #primaryProgress {
+      paper-progress.progresserror ::slotted(#primaryProgress) {
         background-color: var(--red-color);
       }
       .error {
@@ -51,6 +46,7 @@
       }
       .errormsg-container iron-icon {
         color: inherit;
+        margin: -2px 4px 0px -2px;
       }
       .checkboxes {
         margin: 24px 0;
@@ -61,12 +57,6 @@
       <h2>Search and Import Images</h2>
       <paper-dialog-scrollable>
           <paper-input value="{{queryTerm}}" label="Search term" autofocus></paper-input>
-          <!-- <div class="checkboxes">
-            <p hidden$="[[!clouds]]">Search in </p>
-            <template is="dom-repeat" items="[[clouds]]">
-              <paper-checkbox name="searchableClouds" data-value="[[item.id]]">[[item.title]]</paper-checkbox><br/>
-            </template>
-          </div> -->
           <p class="no-clouds" hidden$="[[clouds.length]]">No clouds found.</p>
           <p class="sup">Image search is supported in EC2 and Docker clouds.</p>
       </paper-dialog-scrollable>
@@ -97,7 +87,8 @@
       is: 'image-provider-search',
       properties: {
         queryTerm: { 
-          type: String
+          type: String,
+          value: ''
         },
         clouds: {
           type: Array
@@ -136,19 +127,19 @@
         this.$.providerSearch.open();
       },
       updateFormReady(queryTerm, selectedClouds, loading){
-        this.set('formReady', this.queryTerm.length && this.selectedClouds.length && !this.loading);
-
+        this.set('formReady', this.queryTerm && this.queryTerm.length && this.clouds.length && !this.loading);
       },
       handleResponse: function(e) {
         this.$.providerSearch.close();
         var newImages = JSON.parse(e.detail.xhr.response);
         console.log('handleResponse',e, newImages.length);
         if (newImages.length) {
-          this.fire('toast',{msg: newImages.length+' new images in '+this.get('clouds.'+this.activeSearchIndex+'.title')+'. Updating..', duration: 3000})
-          this.fire('add-new-images', {images: newImages, cloud: this.get('clouds.'+this.activeSearchIndex)});
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: newImages.length+' new images in '+this.get('clouds.'+this.activeSearchIndex+'.title')+'. Updating..', duration: 3000} }));
+          this.dispatchEvent(new CustomEvent('add-new-images', { bubbles: true, composed: true, detail: {images: newImages, cloud: this.get('clouds.'+this.activeSearchIndex)} }));
+
         }
         else {
-          this.fire('toast',{msg: 'No new images found in '+this.get('clouds.'+this.activeSearchIndex+'.title'), duration: 3000})
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'No new images found in '+this.get('clouds.'+this.activeSearchIndex+'.title'), duration: 3000} }));
         }
         this.set('activeSearchIndex', this.activeSearchIndex+1);
         this.nextSearch(this.activeSearchIndex);
@@ -169,7 +160,7 @@
           this._updateSelectedClouds();
       },
       _updateSelectedClouds: function() {
-        var checkboxes = this.querySelectorAll('paper-checkbox[name="searchableClouds"]'); // get checkboxes
+        var checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox[name="searchableClouds"]'); // get checkboxes
         var arr = [];
         checkboxes.forEach(function(c){
             if (c.checked)

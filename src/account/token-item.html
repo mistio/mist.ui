@@ -1,12 +1,12 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
 <link rel="import" href="../element-for-in/element-for-in.html">
 
 <dom-module id="token-item">
     <template>
         <style include="shared-styles">
             :host {
-                display: block;
                 width: 100%;
             }
 
@@ -50,7 +50,7 @@
             paper-button.red {
                 padding: 4px !important;
             }
-            element-for-in ::content .info-item > div {
+            element-for-in ::slotted(.info-item > div) {
                 word-break: break-all;
             }
         </style>
@@ -145,10 +145,11 @@
                     this.$.spinner.setAttribute('active', true);
                 },
                 revokeTokenResponse: function(e){
-                    this.fire('token-revoked');
+                    this.dispatchEvent(new CustomEvent('token-revoked', { bubbles: true, composed: true }));
                 },
                 revokeTokenError: function(e){
-                    this.fire('token-revoking-error', {'event': e});
+                    this.dispatchEvent(new CustomEvent('token-revoking-error', { bubbles: true, composed: true, detail: {'event': e} }));
+
                 }
             });
     </script>
