@@ -111,13 +111,13 @@
                 this.push('inputsArray', obj);
             },
             removeInput: function(e){
+                console.log('removeInput',e.model.index);
                 var inputValue = this.get('inputsArray.'+e.model.index+'.'+this.inputLabel);
-                    if (inputValue)
-                        inputValue = inputValue.trim();
-                if (this.withConfirmRemove != true || inputValue == '')
-                    this.splice('inputsArray', e.target.dataIndex, 1);
+                if (this.withConfirmRemove != true || inputValue == '') {
+                    this.splice('inputsArray', e.model.index, 1);
+                }
                 else {
-                    this.set('toRemove', e.target.dataIndex);
+                    this.set('toRemove', e.model.index);
                     this._showDialog({
                         title: 'Remove '+this.inputLabel,
                         body: "This cannot be undone. You will need to manually re-add "+ inputValue +" if you need so." ,
@@ -136,10 +136,11 @@
                 dialog._openDialog();
             },
             _confirmRemove: function(e){
+                console.log('_confirmRemove',e);
                 var reason = e.detail.reason,
                     response = e.detail.response;
 
-                if (response == 'confirm' && reason == "input.remove") {
+                if (response.confirmed == 'confirm' && reason == "input.remove") {
                     this.splice('inputsArray', this.toRemove, 1);
                     this.set('toRemove', null);
                 }
