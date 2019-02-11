@@ -100,7 +100,7 @@
                 </div>
 
                 <div class="bottom-actions clearfix xs12">
-                    <paper-button id="save_ips" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]">Save IPs</paper-button>
+                    <paper-button id="save_ips" on-tap="_saveWhitelist" raised disabled$="[[!ipsFormReady]]" class="blue">Save IPs</paper-button>
 
                     <iron-ajax id="ipsRequest"
                         url="/api/v1/whitelist"
@@ -153,7 +153,7 @@
                 observers: [
                     '_userUpdated(user)',
                     '_showAddCurrent(whiteIps.length, user.current_ip)',
-                    '_updateFormReady(user, whiteIps.splices)',
+                    '_updateFormReady(user, whiteIps.*)',
                     '_whitelistedIpsChanged(user.ips)'
                 ],
 
@@ -222,10 +222,11 @@
                 },
 
                 _updateFormReady: function(user, whitelist){
-                    // console.log('_updateFormReady', whitelist);
+                    console.log('_updateFormReady', whitelist);
                     // listen to array length changes
-                    if (whitelist && whitelist.keySplices && whitelist.keySplices.length)
+                    if (whitelist && this.isAttached) {
                         this.set('ipsFormReady', true);
+                    }
                 },
 
                 _formInput: function(){
@@ -256,6 +257,7 @@
                 _handleIpError: function(e) {
                     this.set('ipError', true);
                     this.set('ipsFormReady', false);
+                    console.log('_handleIpError', e.detail.request.xhr.responseText);
                     this.$.iperrormsg.textContent = e.detail.request.xhr.responseText;
                 }
             });
