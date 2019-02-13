@@ -36,6 +36,7 @@
 <link rel="import" href="mist-icons.html">
 <link rel="import" href="organizations/organization-add.html">
 <link rel="import" href="account/plan-purchase.html">
+<link rel="import" href="helpers/owner-filter-behavior.html">
 <script type="text/javascript" src="providers.js" inline></script>
 <dom-module id="mist-app">
     <!-- styles/app-theme  -->
@@ -226,7 +227,8 @@
     Polymer({
         is: 'mist-app',
         behaviors: [
-            Polymer.IronResizableBehavior
+            Polymer.IronResizableBehavior,
+            ownerFilterBehavior
         ],
 
         properties: {
@@ -1094,7 +1096,7 @@
         _restoreSectionsCounts: function() {
             var that = this;
             for (var prop in this.model) {
-                if (this.model.sections[prop]) {
+                if (this.model.sections[prop] && this.model[prop]) {
                     // set counts to full model resources length
                     this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).length);
                 }
@@ -1103,7 +1105,7 @@
         _updateSectionsCounts: function(q) {
             var that = this;
             for (var prop in this.model) {
-                if (this.model.sections[prop]) {
+                if (this.model.sections[prop] && this.model[prop]) {
                     // set counts to filtered model resources length
                     this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).filter(function(r){
                         return that._filterModel(r, q);
@@ -1112,14 +1114,9 @@
             }
         },
         _filterModel: function(r,q) {
-            var q = q.trim();
-            if (q.indexOf('owner:') > -1 ) {
-                if (q=="owner:$me") {
-                    return r.owned_by == this.model.user.id;
-                } else {
-                    return r.owned_by == q.split('owner:')[1];
-                }
-            }
+            var q = this._ownerFilter().apply(r, q);
+            if (q == true) return true;
+            if (q == false) return false;
             return JSON.stringify(r).indexOf(q) > -1;
         }
     });
