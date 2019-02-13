@@ -36,7 +36,6 @@
 <link rel="import" href="mist-icons.html">
 <link rel="import" href="organizations/organization-add.html">
 <link rel="import" href="account/plan-purchase.html">
-<link rel="import" href="helpers/owner-filter-behavior.html">
 <script type="text/javascript" src="providers.js" inline></script>
 <dom-module id="mist-app">
     <!-- styles/app-theme  -->
@@ -227,8 +226,7 @@
     Polymer({
         is: 'mist-app',
         behaviors: [
-            Polymer.IronResizableBehavior,
-            ownerFilterBehavior
+            Polymer.IronResizableBehavior
         ],
 
         properties: {
@@ -1113,11 +1111,44 @@
                 }
             }
         },
-        _filterModel: function(r,q) {
-            var q = this._ownerFilter().apply(r, q);
-            if (q == true) return true;
-            if (q == false) return false;
-            return JSON.stringify(r).indexOf(q) > -1;
+        _filterModel: function(item,q) {
+            var q = q || '',
+                filterOwner = q.indexOf('owner:') > -1,
+                ownerRegex = /owner:(\S*)\s?/,
+                owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1],
+                queryTerms, str;
+
+            if (filterOwner && owner && owner.length) {
+                q = q.replace('owner:', '').replace(owner + '', '');
+
+                if (owner == "$me") {
+                    if (!item.owned_by || item.owned_by != this.model.user.id)
+                        return false;
+                } else {
+                    var ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
+                        return [m.name, m.email, m.id].indexOf(owner) > -1;
+                    });
+                    if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
+                        return false;
+                }
+            }
+
+            queryTerms = q.split(' ');
+            str = JSON.stringify(item);
+            if (this.model && this.model.clouds && item.cloud && this.model.clouds[item.cloud]) {
+                str += this.model.clouds[item.cloud].provider + '' + this.model.clouds[item.cloud].title;
+            }
+
+            if (q && q.trim().length > 0) {
+                // Check if all terms exist in stringified item
+                for (var i = 0; i < queryTerms.length; i++) {
+                    if (queryTerms[i] && queryTerms[i].length &&
+                        str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     });
 
