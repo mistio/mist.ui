@@ -158,7 +158,7 @@
                         <tr>
                             <td colspan="2" class="name">[[item.name]] </td>
                             <td class="count">[[item.machinesCount]]<iron-icon icon="hardware:computer"></iron-icon></td>
-                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.ratio)]]</td>
+                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.rate)]]</td>
                         </tr>
                     </template>
                 </table>
@@ -172,7 +172,7 @@
                         <tr>
                             <td colspan="3" class="tag">[[item.key]] <span hidden$="[[!item.value]]"> = [[item.value]] </span></td>
                             <td class="count">[[item.count]] machines </td>
-                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.ratio)]]</td>
+                            <td class="text-right cost">[[currency.sign]][[_ratedCost(item.cost,currency.rate)]]</td>
                         </tr>
                     </template>
                 </table>
@@ -231,7 +231,7 @@ Polymer({
         }.bind(this), (index + 1) * 50);
     },
     _ratedCost: function(cost, ratio) {
-        return cost && ratio ? this._formatMoney(parseFloat(cost)/this.currency.ratio) : 0;
+        return cost && ratio ? this._formatMoney(parseFloat(cost) * this.currency.rate) : 0;
     },
     _getFilteredResources: function(resources, q) {
         var owned;
@@ -262,7 +262,7 @@ Polymer({
                 });
             }
         }
-        cost = cost / this.currency.ratio;
+        cost = cost * this.currency.rate;
         return cost.formatMoney(2, '.', ',');
     },
     _computeTopClouds: function(clouds, machines,q,currency) {
@@ -292,7 +292,7 @@ Polymer({
                 }
                 var cloud = {};
                     cloud.name = c.title;
-                    cloud.cost = cloudCost/this.currency.ratio;
+                    cloud.cost = cloudCost * this.currency.rate;
                     cloud.machinesCount = machinesCount;
                 if (cloudCost > 0) {
                     topCloudsArray.push(cloud);
@@ -319,7 +319,7 @@ Polymer({
             machines.forEach(function(m){
                 var mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && mcost){
-                    mcost = parseFloat(mcost)/that.currency.ratio;
+                    mcost = parseFloat(mcost)/that.currency.rate;
                     for (var t in m.tags) {
                         var tagExists = tagsArray.find(function(prevt, index){
                             return prevt.key == t && prevt.value == m.tags[t];
