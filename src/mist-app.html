@@ -346,7 +346,7 @@
             '_sizeChanged(smallscreen)',
             '_configUpdated(config)',
             '_ccRequiredChanged(ccRequired)',
-            'qChanged(q)'
+            '_qChanged(q)'
         ],
 
         attached: function() {
@@ -1077,21 +1077,21 @@
             script.onload = e.detail.cb;
             document.body.appendChild(script);
         },
-        qChanged: function(q) {
+        _qChanged: function(q) {
             if (this._isPage('dashboard')) {
                 if (!q.trim()) { 
                     // restore section counts
-                    this.restoreSectionsCounts();
+                    this._restoreSectionsCounts();
                 } else {
                     // update section counts according to q
-                    this.updateSections(q);
+                    this.updateSectionsCounts(q);
                 }
             } else {
                 // update section counts according to stored default
-                this.updateSections(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
+                this.updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
             }
         },
-        restoreSectionsCounts: function() {
+        _restoreSectionsCounts: function() {
             var that = this;
             for (var prop in this.model) {
                 if (this.model.sections[prop]) {
@@ -1100,18 +1100,18 @@
                 }
             }
         },
-        updateSections: function(q) {
+        _updateSectionsCounts: function(q) {
             var that = this;
             for (var prop in this.model) {
                 if (this.model.sections[prop]) {
                     // set counts to filtered model resources length
                     this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).filter(function(r){
-                        return that.filterModel(r, q);
+                        return that._filterModel(r, q);
                     }).length);
                 }
             }
         },
-        filterModel: function(r,q) {
+        _filterModel: function(r,q) {
             var q = q.trim();
             if (q.indexOf('owner:') > -1 ) {
                 if (q=="owner:$me") {
