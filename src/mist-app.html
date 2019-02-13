@@ -401,11 +401,13 @@
         },
 
         setHeaderCount: function(e) {
-            if (e.path && e.path[1] && e.path[1].tagName && e.path[1].tagName.toLowerCase().split('-')[1] == this.page) {
+            console.log('setHeaderCount ==================', e, e.detail);
+            if (!this._isPage('dashboard') && !this._isPage('my-account') && !this._isPage('insights')) {
                 this.set('count', e.detail.length);
-            } else if (this.shadowRoot.querySelector('cloud-page')) {
-                this.shadowRoot.querySelector('cloud-page')._cloudArraysChanged();
+            } else {
+                this.set('count', '');
             }
+            this.set('model.sections.'+this.page+'.count', e.detail.length);
         },
 
         setLocationPath: function(e) {
@@ -515,6 +517,7 @@
         },
 
         _routePageChanged: function(page, subpath) {
+            this.set('count','');
             if (this.smallscreen) {
                 this.$.sidebar.closeSidebar();
             }
@@ -564,6 +567,7 @@
         },
 
         _pageChanged: function(page) {
+            this.set('count','');
             this.set('loading', true);
             // Load page import on demand. Show 404 page if fails
             var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
@@ -1088,7 +1092,7 @@
                 }
             } else {
                 // update section counts according to stored default
-                this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
+                // this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
             }
         },
         _restoreSectionsCounts: function() {
