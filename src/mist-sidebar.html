@@ -366,14 +366,15 @@
                 computed: "_computeHasStacks(model.stacksArray)"
             },
             sectionsArray: {
-                type: Array,
-                computed: '_toArray(model.sections, model.sections.*)'
+                type: Array
             }
         },
         style: function(color) {
             return "color: " + color + ";"
         },
-        observers: [],
+        observers: [
+            '_sectionsChanged(model.sections.*)'
+        ],
         listeners: {
             'iron-overlay-closed': 'closeSidebar',
         },
@@ -418,20 +419,17 @@
         _computeHasStacks: function(stacksArray) {
             return stacksArray ? stacksArray.length > 0 : false;
         },
-        _getSections: function(sections) {
-            return this.model.sectionsArray;
-        },
         _isHidden: function(item) {
             if (item.hideZero && item.count == 0)
                 return true;
             return false;
         },
         clearSearch: function(e) {
-            this.dispatchEvent(new CustomEvent('preserve-filters'));
+            this.dispatchEvent(new CustomEvent('preserve-filters'), {composed: true, bubbles: true});
         },
-        _toArray: function(x) {
-            if (this.model.sections) {
-                return Object.keys(this.model.sections).map(y => this.model.sections[y])
+        _sectionsChanged: function(x) {
+            if (this.model && this.model.sections) {
+                this.set('sectionsArray', Object.keys(this.model.sections).map(y => this.model.sections[y]));
             }
             return [];
         },
