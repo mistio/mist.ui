@@ -184,7 +184,7 @@
                 <paper-spinner active="[[loading]]"></paper-spinner>
             </div>
             <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
-                <page-dashboard name="dashboard" model="[[model]]"  q="[[q]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen=[[xsmallscreen]] docs=[[config.features.docs]] currency=[[config.features.currency]]></page-dashboard>
+                <page-dashboard name="dashboard" model="[[model]]"  q="[[q]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen=[[xsmallscreen]] docs=[[config.features.docs]] currency=[[config.features.currency]]></page-dashboard>
                 <template is="dom-if" restamp if="[[model.sections]]">
                     <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
                     <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
@@ -414,11 +414,11 @@
                 if (e.detail.params) {
                     this.$.appLocation.set('queryParams', e.detail.params);
                 }
+                // use in redirects to filtered lists, ex from ec2 cloud page to ec2 filtered machine list
                 if (e.detail.search) {
                     console.log('setLocationPath', e.detail.search)
                     this.async(function() {
                         this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: e.detail.search }));
-
                     }, 200);
                 }
             } else {
@@ -580,7 +580,7 @@
             this.page = 'not-found';
         },
 
-        computeIsViewing: function(page) {
+        _isPage: function(page) {
             return this.page == page;
         },
 
@@ -1078,7 +1078,7 @@
             document.body.appendChild(script);
         },
         qChanged: function(q) {
-            if (this.computeIsViewing('dashboard')) {
+            if (this._isPage('dashboard')) {
                 if (!q.trim()) { 
                     // restore section counts
                     this.restoreSectionsCounts();
