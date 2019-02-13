@@ -345,7 +345,8 @@
             '_routePageChanged(routeData.page, subroute.path)',
             '_sizeChanged(smallscreen)',
             '_configUpdated(config)',
-            '_ccRequiredChanged(ccRequired)'
+            '_ccRequiredChanged(ccRequired)',
+            'qChanged(q)'
         ],
 
         attached: function() {
@@ -1075,6 +1076,51 @@
             script.onreadystatechange = e.detail.cb;
             script.onload = e.detail.cb;
             document.body.appendChild(script);
+        },
+        qChanged: function(q) {
+            if (this.computeIsViewing('dashboard')) {
+                if (!q.trim()) { 
+                    // restore section counts
+                    this.restoreSectionsCounts();
+                } else {
+                    // update section counts according to q
+                    this.updateSections(q);
+                }
+            } else {
+                // update section counts according to stored default
+                this.updateSections(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
+            }
+        },
+        restoreSectionsCounts: function() {
+            var that = this;
+            for (var prop in this.model) {
+                if (this.model.sections[prop]) {
+                    // set counts to full model resources length
+                    this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).length);
+                }
+            }
+        },
+        updateSections: function(q) {
+            var that = this;
+            for (var prop in this.model) {
+                if (this.model.sections[prop]) {
+                    // set counts to filtered model resources length
+                    this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).filter(function(r){
+                        return that.filterModel(r, q);
+                    }).length);
+                }
+            }
+        },
+        filterModel: function(r,q) {
+            var q = q.trim();
+            if (q.indexOf('owner:') > -1 ) {
+                if (q=="owner:$me") {
+                    return r.owned_by == this.model.user.id;
+                } else {
+                    return r.owned_by == q.split('owner:')[1];
+                }
+            }
+            return JSON.stringify(r).indexOf(q) > -1;
         }
     });
 
