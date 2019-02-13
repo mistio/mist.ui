@@ -83,7 +83,7 @@
                             <a href="/clouds/[[item.id]]" on-tap="closeSuggestions">[[item.title]]</a>
                         </li>
                     </template>
-                    <a class="more" on-tap="goDashboard" href="/clouds">
+                    <a class="more" on-tap="goToResultsList" href="/clouds">
                         [[_displayViewResultsText(results.cloudsArrayFullLength)]]
                     </a>
                 </ul>
@@ -389,15 +389,6 @@
             }, 500);
         },
 
-        goDashboard: function(e) {
-            this.set('visible', false);
-            var that = this;
-            this.async(function() {
-                that.fire('search', '');
-                that.fire('clear-search');
-            }, 500);
-        },
-
         viewingListsChanged: function(hide) {
             if (this.hide) {
                 this.set('visible', false);
@@ -406,7 +397,7 @@
 
         closeSuggestions: function(e) {
             this.set('visible', false);
-            this.dispatchEvent(new CustomEvent('clear-search'));
+            this.dispatchEvent(new CustomEvent('clear-search', {composed: true, bubbles: true}));
         },
 
         _displayViewResultsText: function(num) {
