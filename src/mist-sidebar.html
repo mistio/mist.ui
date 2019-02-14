@@ -366,15 +366,13 @@
                 computed: "_computeHasStacks(model.stacksArray)"
             },
             sectionsArray: {
-                type: Array
+                type: Array,
+                computed: '_computeSectionsArray(model.sections.*)'
             }
         },
         style: function(color) {
             return "color: " + color + ";"
         },
-        observers: [
-            '_sectionsChanged(model.sections.*)'
-        ],
         listeners: {
             'iron-overlay-closed': 'closeSidebar',
         },
@@ -427,11 +425,11 @@
         clearSearch: function(e) {
             this.dispatchEvent(new CustomEvent('preserve-filters'), {composed: true, bubbles: true});
         },
-        _sectionsChanged: function(x) {
+        _computeSectionsArray: function(sections) {
             if (this.model && this.model.sections) {
-                this.set('sectionsArray', Object.keys(this.model.sections).map(y => this.model.sections[y]));
+                return Object.keys(this.model.sections).map(y => this.model.sections[y]);
             } else {
-                this.set('sectionsArray',[]);
+                return [];
             }
         },
         _getSectionCount: function(name, sections) {
