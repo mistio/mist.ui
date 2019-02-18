@@ -184,7 +184,7 @@
                 <paper-spinner active="[[loading]]"></paper-spinner>
             </div>
             <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
-                <page-dashboard name="dashboard" model="[[model]]"  q="[[q]]" viewing-dashboard="[[computeIsViewing('dashboard', page)]]" xsmallscreen=[[xsmallscreen]] docs=[[config.features.docs]] currency=[[config.features.currency]]></page-dashboard>
+                <page-dashboard name="dashboard" model="[[model]]"  q="[[model.sections.dashboard.q]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen=[[xsmallscreen]] docs=[[config.features.docs]] currency=[[config.features.currency]]></page-dashboard>
                 <template is="dom-if" restamp if="[[model.sections]]">
                     <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
                     <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
@@ -316,8 +316,6 @@
             'mist-sidebar-toggle': 'mistSidebarToggle',
             'toast': 'showToast',
             'desktop-notification': 'showDesktopNotification',
-            'clear-search-on-nav': 'clearSearchPreservingFilters',
-            'preserve-filters': 'clearSearchPreservingFilters',
             'search': 'updateSearchQuery',
             'open-and-select': 'openAndSelect',
             'cloud-edit-key': 'openCloudEdit',
@@ -326,7 +324,7 @@
             'user-action': '_onUserAction',
             'add-new-images': 'addImages',
             'go-to': 'setLocationPath',
-            'mist-list-filtered-items-length-changed': 'setHeaderCount',
+            // 'mist-list-filtered-items-length-changed': 'setHeaderCount', // disable header count and sections count updates
             'export-list-csv': '_exportCsvMessage',
             'add-org': '_addOrg',
             'tap': 'closeIfClickedElsewhere',
@@ -345,7 +343,8 @@
             '_routePageChanged(routeData.page, subroute.path)',
             '_sizeChanged(smallscreen)',
             '_configUpdated(config)',
-            '_ccRequiredChanged(ccRequired)'
+            '_ccRequiredChanged(ccRequired)',
+            // '_qChanged(q)' // disable sections count updates
         ],
 
         attached: function() {
@@ -400,24 +399,27 @@
         },
 
         setHeaderCount: function(e) {
-            if (e.path && e.path[1] && e.path[1].tagName && e.path[1].tagName.toLowerCase().split('-')[1] == this.page) {
+            // console.log('setHeaderCount ', e, e.detail);
+            if (!this._isPage('dashboard') && !this._isPage('my-account') && !this._isPage('insights')) {
                 this.set('count', e.detail.length);
-            } else if (this.shadowRoot.querySelector('cloud-page')) {
-                this.shadowRoot.querySelector('cloud-page')._cloudArraysChanged();
+            } else {
+                this.set('count', '');
             }
+            this.set('model.sections.'+this.page+'.count', e.detail.length);
         },
 
         setLocationPath: function(e) {
+            console.log('search: setLocationPath with search query', e.detail);
             if (e.detail.url && this.$.appLocation) {
                 this.$.appLocation.set('path', e.detail.url);
                 if (e.detail.params) {
                     this.$.appLocation.set('queryParams', e.detail.params);
                 }
+                // use in redirects to filtered lists, ex from ec2 cloud page to ec2 filtered machine list
                 if (e.detail.search) {
                     console.log('setLocationPath', e.detail.search)
                     this.async(function() {
                         this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: e.detail.search }));
-
                     }, 200);
                 }
             } else {
@@ -514,6 +516,7 @@
         },
 
         _routePageChanged: function(page, subpath) {
+            this.set('count','');
             if (this.smallscreen) {
                 this.$.sidebar.closeSidebar();
             }
@@ -521,22 +524,14 @@
                 page = 'dashboard';
             this.page = page || 'dashboard';
             if (this.page == 'dashboard') {
-                this.clearSearchPreservingFilters();
                 this.async(function() { this.set('visibleSuggestions', false); }.bind(this), 100);
-            }
-        },
-
-        _manageSearch: function(changeRecord) {
-            // console.log('_manageSearch',changeRecord)
-            // '_manageSearch(route.*)'
-            if (changeRecord.path == 'route.path' && changeRecord.value.startsWith('/' + this.page +'/')) {
-                this.clearSearch();
             }
         },
 
         clearSearch: function() {
             document.querySelector('top-search').clearSearch();
             this.set('q', '');
+            // console.log('search: clear search' )
             if (this.model && this.model.sections) {
                 for (var sec in this.model.sections) {
                     this.set('model.sections.' + sec + '.q', '');
@@ -559,10 +554,12 @@
                     this.set('model.sections.' + sec + '.q', this.q.replace(q, ''));
                 }
             }
+            // console.log('search: clear clearSearchPreservingFilters', q)
             this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail:  this.q.replace(q, '') }));
         },
 
         _pageChanged: function(page) {
+            this.set('count','');
             this.set('loading', true);
             // Load page import on demand. Show 404 page if fails
             var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
@@ -579,14 +576,17 @@
             this.page = 'not-found';
         },
 
-        computeIsViewing: function(page) {
+        _isPage: function(page) {
             return this.page == page;
         },
 
         updateSearchQuery: function(e) {
-            if (e.detail != undefined) {
-                this.set('q', e.detail);
-                this.set('model.sections.' + this.page + '.q', e.detail || '');
+            if (e.detail != undefined && e.detail.q != undefined) {
+                if (this.page == e.detail.page) {
+                    // console.log('search: update Search Query', e.detail);
+                    this.set('q', e.detail.q);
+                    this.set('model.sections.' + this.page + '.q', e.detail.q || '');
+                }
             }
         },
 
@@ -1075,6 +1075,79 @@
             script.onreadystatechange = e.detail.cb;
             script.onload = e.detail.cb;
             document.body.appendChild(script);
+        },
+        _qChanged: function(q) {
+            if (this._isPage('dashboard')) {
+                if (!q || !q.trim || !q.trim()) {
+                    // restore section counts
+                    this._restoreSectionsCounts();
+                } else {
+                    // update section counts according to q
+                    this._updateSectionsCounts(q);
+                }
+            } else {
+                // update section counts according to stored default
+                // this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
+            }
+        },
+        _restoreSectionsCounts: function() {
+            var that = this;
+            for (var prop in this.model) {
+                if (this.model.sections[prop] && this.model[prop]) {
+                    // set counts to full model resources length
+                    this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).length);
+                }
+            }
+        },
+        _updateSectionsCounts: function(q) {
+            var that = this;
+            for (var prop in this.model) {
+                if (this.model.sections[prop] && this.model[prop]) {
+                    // set counts to filtered model resources length
+                    this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).filter(function(r){
+                        return that._filterModel(r, q);
+                    }).length);
+                }
+            }
+        },
+        _filterModel: function(item,q) {
+            var q = q || '',
+                filterOwner = q.indexOf('owner:') > -1,
+                ownerRegex = /owner:(\S*)\s?/,
+                owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1],
+                queryTerms, str;
+
+            if (filterOwner && owner && owner.length) {
+                q = q.replace('owner:', '').replace(owner + '', '');
+
+                if (owner == "$me") {
+                    if (!item.owned_by || item.owned_by != this.model.user.id)
+                        return false;
+                } else {
+                    var ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
+                        return [m.name, m.email, m.id].indexOf(owner) > -1;
+                    });
+                    if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
+                        return false;
+                }
+            }
+
+            queryTerms = q.split(' ');
+            str = JSON.stringify(item);
+            if (this.model && this.model.clouds && item.cloud && this.model.clouds[item.cloud]) {
+                str += this.model.clouds[item.cloud].provider + '' + this.model.clouds[item.cloud].title;
+            }
+
+            if (q && q.trim().length > 0) {
+                // Check if all terms exist in stringified item
+                for (var i = 0; i < queryTerms.length; i++) {
+                    if (queryTerms[i] && queryTerms[i].length &&
+                        str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     });
 

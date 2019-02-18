@@ -1,8 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
@@ -21,9 +19,6 @@
         }
         p.margin {
             margin: 16px 0 !important; 
-        }
-        paper-dropdown-menu ::slotted(iron-dropdown) {
-            width: 257px;
         }
         ul {
             padding-left: 18px;
@@ -60,7 +55,7 @@
         }
     </style>
 
-    <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+    <paper-dialog id="dialogModal" with-backdrop>
         <h2>Transfer Ownership</h2>
         <paper-dialog-scrollable>
             <p>
@@ -74,16 +69,16 @@
             <template is="dom-if" if="[[!members.length]]" restamp>
                 <p class="margin">No users found. <a href="/teams" class="blue-link" dialog-dismiss>Add users in teams. </a></p>
             </template>
+            <template is="dom-if" if="[[members.length]]" restamp>
+                <paper-dropdown-menu label="Users">
+                     <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newOwner}}" class="dropdown-content" verticalAlign="top">
+                        <template id="membersDomRepeat" is="dom-repeat" items="[[members]]" as="member">
+                            <paper-item value="[[member.id]]">[[_displayUser(member)]]</paper-item>
+                        </template>
+                     </paper-listbox>
+                </paper-dropdown-menu>
+            </template>
         </paper-dialog-scrollable>
-        <template is="dom-if" if="[[members.length]]" restamp>
-            <paper-dropdown-menu label="Users">
-                 <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newOwner}}" class="dropdown-content" verticalAlign="top">
-                    <template id="membersDomRepeat" is="dom-repeat" items="[[members]]" as="member">
-                        <paper-item value="[[member.id]]">[[_displayUser(member)]]</paper-item>
-                    </template>
-                 </paper-listbox>
-            </paper-dropdown-menu>
-        </template>
         <div class="progress">
             <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
             <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
