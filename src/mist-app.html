@@ -336,7 +336,8 @@
             'cc-dismiss': '_ccDismissed',
             'panel-added': 'panelAdded',
             'update-dashboard': '_forwardEvent',
-            'import-script': '_importScript'
+            'import-script': '_importScript',
+            'list-attached': '_listAttached'
         },
 
         observers: [
@@ -346,6 +347,23 @@
             '_ccRequiredChanged(ccRequired)',
             // '_qChanged(q)' // disable sections count updates
         ],
+
+        _listAttached: function(e) {
+            var key = e.detail.id.replace("List", "");
+            if (this.model.sections[key]) {
+                var local = localStorage.getItem('mist-filter#topFilter/all-'+key+'/userFilter');
+                if (!local) {
+                    local = localStorage.getItem('mist-filter#topFilter/all-resources/userFilter');
+                }
+                if (!local) {
+                    local = this.model.sections[key].q
+                }
+                if (!local) {
+                    local = '';
+                }
+                this.set('model.sections.'+key+'.q', local+' ');
+            }
+        },
 
         attached: function() {
             if (this.ccRequired) {
