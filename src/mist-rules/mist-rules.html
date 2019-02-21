@@ -277,7 +277,19 @@
             rulesArray.forEach(function(r) {
                 var s = r.selectors;
                 // rule applies on all machines or rule is no-data-rule
-                if (!s.length || r.title == "NoData") {
+                if (!s && r.data_type == "logs") {
+                    if (!categories.find(function(c) { return c.type == "logs" }))
+                        categories.push({
+                            name: 'Rules on Logs',
+                            type: 'logs',
+                            rules: [r],
+                            selectors: []
+                        })
+                    else {
+                        categories.find(function(c) { return c.type == "logs" }).rules.push(r);
+                    }
+                } 
+                if ((s && !s.length) || r.title == "NoData") {
                     if (!categories.find(function(c) { return c.type == "all_machines" }))
                         categories.push({
                             name: 'Apply on all machines',
@@ -291,46 +303,48 @@
                     }
                 }
                 // rule applies on specific or tagged
-                for (var l = 0; l < s.length; l++) {
-                    var sl = s[l];
-                    if (sl.type == "tags") {
-                        var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
-                        if (!categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags })) {
-                            categories.push({
-                                id: 'apply-on-tags',
-                                name: 'Apply on machines with tags ',
-                                type: 'tagged_machines',
-                                stringifiedTags: stringifiedTags,
-                                rules: [r],
-                                selectors: [sl.tags]
-                            });
-                        } else {
-                            categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags }).rules.push(r);
-                        }
-
-                    }
-                    if (sl.type == "machines") {
-                        var thisMachine = resource ? 'this ' : '';
-                        var specificCategory = categories.find(function(c) {
-                            var allSame = true;
-                            for (var n = 0; n < c.selectors.length; n++) {
-                                if (sl.ids.indexOf(c.selectors[n]) == -1)
-                                    allSame = false;
+                if (s) {
+                    for (var l = 0; l < s.length; l++) {
+                        var sl = s[l];
+                        if (sl.type == "tags") {
+                            var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
+                            if (!categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags })) {
+                                categories.push({
+                                    id: 'apply-on-tags',
+                                    name: 'Apply on machines with tags ',
+                                    type: 'tagged_machines',
+                                    stringifiedTags: stringifiedTags,
+                                    rules: [r],
+                                    selectors: [sl.tags]
+                                });
+                            } else {
+                                categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags }).rules.push(r);
                             }
-                            return c.type == "specific_machines" && allSame;
-                        });
-                        if (!specificCategory)
-                            categories.push({
-                                id: 'apply-on-' + thisMachine.trim(),
-                                name: 'Apply on ' + thisMachine + 'machine ',
-                                type: 'specific_machines',
-                                rules: [r],
-                                count: 1,
-                                selectors: sl.ids,
+
+                        }
+                        if (sl.type == "machines") {
+                            var thisMachine = resource ? 'this ' : '';
+                            var specificCategory = categories.find(function(c) {
+                                var allSame = true;
+                                for (var n = 0; n < c.selectors.length; n++) {
+                                    if (sl.ids.indexOf(c.selectors[n]) == -1)
+                                        allSame = false;
+                                }
+                                return c.type == "specific_machines" && allSame;
                             });
-                        else {
-                            specificCategory.rules.push(r);
-                            specificCategory.count++;
+                            if (!specificCategory)
+                                categories.push({
+                                    id: 'apply-on-' + thisMachine.trim(),
+                                    name: 'Apply on ' + thisMachine + 'machine ',
+                                    type: 'specific_machines',
+                                    rules: [r],
+                                    count: 1,
+                                    selectors: sl.ids,
+                                });
+                            else {
+                                specificCategory.rules.push(r);
+                                specificCategory.count++;
+                            }
                         }
                     }
                 }
