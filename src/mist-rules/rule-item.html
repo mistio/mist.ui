@@ -150,10 +150,15 @@
                             <span class="and" hidden$="[[!index]]"> AND </span>
                             <span class="keyword if">if</span>
                             <span class="strong">
-                                [[_computeTargetName(query.target, availableMetrics)]] [[_computeOperator(query.operator)]] [[query.threshold]][[_computeUnit(query.target,
-                                availableMetrics)]]
+                                [[_computeTargetName(query.target, availableMetrics)]] 
+                                <span class="keyword log" hidden$="[[!isLogData]]"> log appears </span>
+                                [[_computeOperator(query.operator)]] 
+                                [[query.threshold]]
+                                <span hidden$="[[!isLogData]]"> times </span>
+                                <span hidden$="[[isLogData]]">[[_computeUnit(query.target, availableMetrics)]]</span>
                             </span>
-                            <span class="keyword">for</span> [[_computeAggregation(query.aggregation)]] value
+                            <span class="keyword" hidden$="[[isLogData]]">for</span> 
+                            <span hidden$="[[isLogData]]">[[_computeAggregation(query.aggregation)]] value</span>
                             <span hidden$="[[!_hasWindow(query.aggregation)]]">
                                 <span class="keyword">within</span> [[rule.window.start]] [[rule.window.period]]
                             </span>
@@ -232,6 +237,10 @@
                     computed: '_computeIsNoData(rule)',
                     value: false
                 },
+                isLogData: {
+                    type: Boolean,
+                    computed: '_computeIsLogData(rule)'
+                },
                 availableMetrics: {
                     type: Array
                 },
@@ -270,6 +279,9 @@
             _computeIsNoData: function (rule) {
                 return rule.title == 'NoData';
             },
+            _computeIsLogData: function (rule) {
+                return rule.data_type == 'logs';
+            },
             _computeCanEdit: function (rule, resource) {
                 var that = this;
                 if (resource) {
@@ -300,6 +312,12 @@
                         return i.id == metric
                     });
                 return ref && ref.name ? ref.name : metric;
+            },
+            _computeLogAppears: function(rule){
+                if (rule.data_type == "logs"){
+                    return ' log appears ';
+                }
+                return '';
             },
             _computeOperator: function (op) {
                 if (op == "gt")
