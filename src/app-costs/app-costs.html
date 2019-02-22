@@ -148,7 +148,7 @@
             <div class="tabs">
                 <div class="buttons">
                     <paper-button id="cloudsBtn" class="blue-link active" on-tap="changeTab">Monthly cost per cloud</paper-button>
-                    <paper-button id="tagsBtn" class="blue-link" on-tap="changeTab" hidden$="[[!tags.length]]">Top [[tags.length]] tag<span hidden$="[[!plural(tags.length)]]">s</span></paper-button>
+                    <paper-button id="tagsBtn" class="blue-link" on-tap="changeTab" hidden$="[[!tags.length]]">Top [[_pluralTags(tags)]]</paper-button>
                 </div>
                 <a href="http://docs.mist.io/article/103-cost-reporting-with-mist-io" target="new" hidden$=[[!docs]]> <iron-icon id="costdocs" icon="help" position="left"></iron-icon></a>
             </div>
@@ -263,7 +263,8 @@ Polymer({
             }
         }
         cost = cost * rate;
-        return cost.formatMoney(2, '.', ',');
+        // return cost._formatMoney(2, '.', ',');
+        return this._formatMoney(cost);
     },
     _computeTopClouds: function(clouds, machines,q,currency) {
         var topCloudsArray = [],
@@ -364,11 +365,19 @@ Polymer({
             }
         }
     },
-    plural: function(length){
-        return length > 1;
+    _pluralTags: function(tags){
+        return tags.length > 1 ? tags.length + ' tags' : 'tag';
     },
     _formatMoney: function(cost) {
-        return cost.formatMoney(2, '.', ',');
+        if (cost/1000 < 1) {
+            return cost.formatMoney(2, '.', ',');
+        }
+        if (cost/1000 >= 1 && cost/1000000 < 1) {
+            return Math.fround(cost/1000).formatMoney(1, '.', ',')+"k";
+        }
+        if (cost/1000000 >= 1) {
+            return Math.fround(cost/1000000).formatMoney(1, '.', ',')+"M";
+        }
     }
 });
 
