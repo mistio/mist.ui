@@ -263,7 +263,8 @@ Polymer({
             }
         }
         cost = cost * rate;
-        return cost.formatMoney(2, '.', ',');
+        // return cost._formatMoney(2, '.', ',');
+        return this._formatMoney(cost);
     },
     _computeTopClouds: function(clouds, machines,q,currency) {
         var topCloudsArray = [],
@@ -368,7 +369,15 @@ Polymer({
         return tags.length > 1 ? tags.length + ' tags' : 'tag';
     },
     _formatMoney: function(cost) {
-        return cost.formatMoney(2, '.', ',');
+        if (cost/1000 < 1) {
+            return cost.formatMoney(2, '.', ',');
+        }
+        if (cost/1000 >= 1 && cost/1000000 < 1) {
+            return Math.fround(cost/1000).formatMoney(1, '.', ',')+"k";
+        }
+        if (cost/1000000 >= 1) {
+            return Math.fround(cost/1000000).formatMoney(1, '.', ',')+"M";
+        }
     }
 });
 
