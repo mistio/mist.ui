@@ -610,7 +610,7 @@
                     <div hidden$="[[!machine.cost.monthly]]">
                         <div class="m-info-head cost-head">Monthly Cost:</div>
                         <div class="cost">
-                            $[[_toFixed(machine.cost.monthly)]]
+                            [[currency.sign]][[_toFixed(machine.cost.monthly)]]
                         </div>
                     </div>
                     <div class="row" hidden$="[[!machine.owned_by.length]]">
@@ -888,6 +888,10 @@ Polymer({
         portalName: {
             type: String,
             value: 'Mist.io'
+        },
+        currency: {
+            type: Object,
+            value: function () { return {'sign': '$', 'rate': 1};}
         }
     },
     observers: [
@@ -1468,7 +1472,7 @@ Polymer({
     },
 
     _toFixed: function(inp) {
-        return inp && inp.formatMoney() || '';
+        return inp && (this.currency.rate * inp).formatMoney() || '';
     },
 
     _hasExtra: function(machine) {
