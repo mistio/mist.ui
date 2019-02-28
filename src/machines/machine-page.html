@@ -695,7 +695,7 @@
                     <mist-monitoring id="mistMonitoring" resource="[[machine]]" state="[[machineState]]" monitoring="[[model.monitoring]]" section="[[section]]" datasources="[[datasources]]" hidden$="[[hidden]]" machine-keys="[[machineKeys]]" incidents="[[_filterMachinesIncidents(model.incidentsArray, model.incidentsArray.length, model.incidents.*)]]" portal-name="[[portalName]]"></mist-monitoring>
                 </paper-material>
                 <paper-material id="rulesBlock" class="info-card">
-                    <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" hidden$="[[!isActivated]]" collapsible></mist-rules>
+                    <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine.id, machineTags)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" hidden$="[[!isActivated]]" collapsible></mist-rules>
                 </paper-material>
             </template>
             <paper-material class="info-card">
@@ -831,7 +831,7 @@ Polymer({
         },
         machineTags: {
             type: Array,
-            computed: "_computeMachineTags(machine, machine.tags, machine.tags.*, model.machines.*)"
+            computed: "_computeMachineTags(machine.id, machine.tags)"
         },
         dashboard: {
             type: Object
@@ -933,23 +933,23 @@ Polymer({
     _renderMachineKeys: function () {
         this.$.machineKeysDomRepeat.render();
     },
-    _rulesApplyOnMachine: function(rules, machine, machineTags) {
+    _rulesApplyOnMachine: function(rules, machineId, machineTags) {
         var machineRules = {},
             check;
-        if (rules && machine) {
+        if (rules && machineId) {
             for (var p in rules) {
                 var noData = rules[p].actions.find(function(a) { return a.type == 'no_data' }) != undefined;
                 // applies on all machines
                 if (rules[p].selectors == [] || noData) {
                     check = true;
-                } else if (rules[p].data_type == "logs" && rules[p].queries.find(function(q) { return q.target.indexOf("machine_id:"+machine.id) > -1 }) != undefined) {
+                } else if (rules[p].data_type == "logs" && rules[p].queries.find(function(q) { return q.target.indexOf("machine_id:"+machineId) > -1 }) != undefined) {
                     check = true;
                 } else if (rules[p].selectors && rules[p].selectors.length > 0) {
                     for (var i = 0; i < rules[p].selectors.length; i++) {
                         var selector = rules[p].selectors[i];
                         // applies on specific machines
                         if (selector.type == 'machines') {
-                            if (selector.ids.indexOf(machine.id) > -1)
+                            if (selector.ids.indexOf(machineId) > -1)
                                 check = true;
                             else
                                 check = false;
@@ -978,6 +978,7 @@ Polymer({
                 }
             }
         }
+        console.log('machine rules', machineRules);
         return machineRules;
     },
     _getMachineCloud: function(clouds, id) {
@@ -1072,7 +1073,7 @@ Polymer({
     _computeMachineState: function(machine) {
         return this.machine && this.machine.state || '';
     },
-    _computeMachineTags: function(machine, machineTags) {
+    _computeMachineTags: function(machineId, machineTags) {
         if (this.machine) {
             return Object.entries(this.machine.tags).map(([key, value]) => ({ key, value }));
         }
