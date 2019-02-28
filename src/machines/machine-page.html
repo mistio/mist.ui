@@ -940,9 +940,11 @@ Polymer({
             for (var p in rules) {
                 var noData = rules[p].actions.find(function(a) { return a.type == 'no_data' }) != undefined;
                 // applies on all machines
-                if (!rules[p].selectors || !rules[p].selectors.length || noData) {
+                if (rules[p].selectors == [] || noData) {
                     check = true;
-                } else {
+                } else if (rules[p].data_type == "logs" && rules[p].queries.find(function(q) { return q.target.indexOf("machine_id:"+machine.id) > -1 }) != undefined) {
+                    check = true;
+                } else if (rules[p].selectors && rules[p].selectors.length > 0) {
                     for (var i = 0; i < rules[p].selectors.length; i++) {
                         var selector = rules[p].selectors[i];
                         // applies on specific machines
@@ -1052,14 +1054,15 @@ Polymer({
         }
     },
     _computeIsActivated: function(machine, monitoring) {
-        // console.log('_computeIsActivated', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
         if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !
             this.model.monitoring.monitored_machines[machine.id] || !this.model.monitoring.monitored_machines[
                 machine.id].installation_status.activated_at) {
+            console.warn('machine monitoring is not activated');
             return false;
         } else if (this.model && this.model.monitoring && this.model.monitoring.monitored_machines &&
             this.model.monitoring.monitored_machines[machine.id] && this.model.monitoring.monitored_machines[
                 machine.id].installation_status) {
+            console.warn('machine monitoring is activated at: ', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
             return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
         }
     },
