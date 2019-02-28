@@ -638,7 +638,7 @@
                 }
                 this.set('targetValid', this.rule.queries.length && allTargetsDefined);
             }
-            // Currently only count is supported
+            // Currently only count is supported for logs
             if (e.model.index != undefined) {
                 this.set('rule.aggregation','count')
             }
@@ -764,9 +764,21 @@
                     threshold: this.rule.queries[i].threshold,
                     aggregation: this.rule.aggregation ? this.rule.aggregation : 'any'
                 };
-                // if (this.ruleType == 'logs' || this.dataType == 'logs') {
-                //     payload.queries[i].aggregation = 'count';
-                // }
+                if (this.dataType == 'logs') {
+                    // Currently only count is supported for logs
+                    payload.queries[i].aggregation = 'count';
+                }
+                if (this.ruleType == 'logs') {
+                    // Currently only count is supported for logs
+                    payload.queries[i].aggregation = 'count';
+                    // target logs of specific machine
+                    if (this.ruleType == 'specific') {
+                        payload.queries[i].target = payload.queries[i].target + " machine_id:" +[this.machineId];
+                    } else if (this.ruleType == 'tagged') {
+                        // target logs of tagged machines. either parse model.machines, get tagged, duplicate guery for every specific
+                        // or change backend to allow for rules on logs for tagged resources
+                    }
+                }
             }
             for (var i = 0; i < this.rule.actions.length; i++) {
                 if (this.rule.actions[i].type == 'alert') {
