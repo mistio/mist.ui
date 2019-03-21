@@ -230,8 +230,10 @@ Polymer({
             this.classList.add('active');
         }.bind(this), (index + 1) * 50);
     },
-    _ratedCost: function(cost, ratio) {
-        return cost && ratio ? this._formatMoney(parseFloat(cost) * this.currency.rate) : 0;
+    _ratedCost: function(cost, rate) {
+        var c = parseFloat(cost || 0);
+        var rc = c * this.currency.rate;
+        return c && rc ? numeral(rc).format('0,0.00a') : numeral(cost).format('0,0.00a'); 
     },
     _getFilteredResources: function(resources, q) {
         var owned;
@@ -262,9 +264,7 @@ Polymer({
                 });
             }
         }
-        cost = cost * rate;
-        // return cost._formatMoney(2, '.', ',');
-        return this._formatMoney(cost);
+        return this._ratedCost(cost, this.currency.rate);
     },
     _computeTopClouds: function(clouds, machines,q,currency) {
         var topCloudsArray = [],
@@ -293,7 +293,7 @@ Polymer({
                 }
                 var cloud = {};
                     cloud.name = c.title;
-                    cloud.cost = cloudCost * this.currency.rate;
+                    cloud.cost = cloudCost;
                     cloud.machinesCount = machinesCount;
                 if (cloudCost > 0) {
                     topCloudsArray.push(cloud);
@@ -367,17 +367,6 @@ Polymer({
     },
     _pluralTags: function(tags){
         return tags.length > 1 ? tags.length + ' tags' : 'tag';
-    },
-    _formatMoney: function(cost) {
-        if (cost/1000 < 1) {
-            return cost.formatMoney(2, '.', ',');
-        }
-        if (cost/1000 >= 1 && cost/1000000 < 1) {
-            return Math.fround(cost/1000).formatMoney(1, '.', ',')+"k";
-        }
-        if (cost/1000000 >= 1) {
-            return Math.fround(cost/1000000).formatMoney(1, '.', ',')+"M";
-        }
     }
 });
 
