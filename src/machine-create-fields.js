@@ -391,40 +391,7 @@ MACHINE_CREATE_FIELDS.push({
             fieldName: 'networks',
             fieldExists: true,
         },
-    }, {
-        name: 'volumes',
-        label: 'Create and attach volume',
-        itemName: 'volume',
-        type: 'list',
-        items: [],
-        show: true,
-        required: false,
-        min: '1',
-        max: '1',
-        options: [{
-            name: "name",
-            label: "Name *",
-            type: "text",
-            value: "",
-            defaultValue: "",
-            placeholder: "",
-            errorMessage: "Please enter volume's name",
-            show: true,
-            required: true
-        },{
-            name: 'size',
-            label: 'Size in GB *',
-            type: 'number',
-            min: 1,
-            value: '1',
-            defaultValue: '1',
-            suffix: ' GB',
-            show: true,
-            required: true,
-            options: [],
-            custom: false
-        }]
-    }],
+    }]
 });
 
 // PACKET
@@ -872,6 +839,36 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             show: true,
             required: false,
         });
+    }
+
+    // add create volume fields for 
+    // 'openstack', 'gce', 'digitalocean', 'ec2' (azure?)
+
+    if (['openstack', 'gce', 'digitalocean', 'ec2'].indexOf(p.provider) != -1) {
+        p.fields.push({
+            name: 'addvolume',
+            excludeFromPayload: true,
+            label: 'Create and attach volume',
+            type: 'toggle',
+            value: false,
+            defaultValue: false,
+            show: true,
+            required: false
+        }, {
+            name: 'volumes',
+            itemName: 'volume',
+            type: 'list',
+            items: [],
+            show: false,
+            required: false,
+            min: '1',
+            max: '1',
+            showIf: {
+                fieldName: 'addvolume',
+                fieldValues: ['true', true],
+            },
+            options: []
+        })
     }
 
     // add common post provision fields

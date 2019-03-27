@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../app-form/app-form.html">
 <script type="text/javascript" src="../machine-create-fields.js" inline></script>
+<script type="text/javascript" src="../volume-create-fields.js" inline></script>
 <dom-module id="machine-create">
     <template>
         <style include="shared-styles forms single-page">
@@ -209,6 +210,12 @@
                     return MACHINE_CREATE_FIELDS;
                 }
             },
+            volumeFields: {
+                type: Array,
+                value: function(){
+                    return VOLUME_CREATE_FIELDS;
+                }
+            },
             providers: {
                 type: Array,
                 value: function() {
@@ -361,7 +368,7 @@
 
                 this.machineFields.forEach(function(f, index) {
                     // clear options
-                    if (['radio', 'list'].indexOf(f.type) == -1  && f.options) {
+                    if (['radio'].indexOf(f.type) == -1  && f.options) {
                         f.options = [];
                     }
 
@@ -445,6 +452,21 @@
                         f.options = subnets;
                         if (f.options.length < 2)
                             this.set('machineFields.' + index + '.required', false);
+                    }
+
+                    // for volumes options
+                    if (f.name == 'volumes') {
+                        var provider = this.model.clouds[this.selectedCloud].provider;
+                        var fieldset = this.volumeFields.find(function (fieldset) {
+                            return fieldset.provider == provider;
+                        });
+                        // remove location field if it exists,
+                        // the location of the machine will be used instead
+                        var locationIndex = fieldset.fields.findIndex(function(f){return f.name == 'location'})
+                        if (locationIndex > -1) {
+                            fieldset.fields.splice(locationIndex,1);
+                        }
+                        f.options = fieldset.fields;
                     }
 
                     // update options
