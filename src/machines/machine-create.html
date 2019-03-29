@@ -368,7 +368,7 @@
 
                 this.machineFields.forEach(function(f, index) {
                     // clear options
-                    if (['radio'].indexOf(f.type) == -1  && f.options) {
+                    if (['radio','list'].indexOf(f.type) == -1  && f.options) {
                         f.options = [];
                     }
 
@@ -462,11 +462,27 @@
                         });
                         // remove location field if it exists,
                         // the location of the machine will be used instead
-                        var locationIndex = fieldset.fields.findIndex(function(f){return f.name == 'location'})
+                        var options = fieldset.fields;
+                        var locationIndex = options.findIndex(function(f){return f.name == 'location'})
                         if (locationIndex > -1) {
-                            fieldset.fields.splice(locationIndex,1);
+                            options.splice(locationIndex,1);
                         }
-                        f.options = fieldset.fields;
+                        options.forEach(function(f){
+                            f.showIf = {
+                                fieldName: 'new-or-existing-volume',
+                                fieldValues: ['new'],
+                            }
+                        })
+                        // add exiting volume options
+                        var existingIndex = f.options.findIndex(function(f){return f.name == 'volume_id'})
+                        if (existingIndex > -1) {
+                            var volumes = this.model.clouds[cloudId].volumes ? Object.values(this.model.clouds[cloudId].volumes) : [];
+                            f.options[existingIndex].options = volumes;
+                            this.set('machineFields.' + index + '.options.' + existingIndex +'.options', volumes);
+                        }
+                        for (var i=0; i<options.length;i++){
+                            f.options.push(options[i]);
+                        }
                     }
 
                     // update options

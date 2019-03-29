@@ -848,7 +848,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
-            label: 'Create and attach volume',
+            label: 'Attach volume',
             type: 'toggle',
             value: false,
             defaultValue: false,
@@ -861,13 +861,45 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             items: [],
             show: false,
             required: false,
+            horizontal: false,
+            moderateTop: true,
             min: '1',
-            max: '1',
+            max: '3',
             showIf: {
                 fieldName: 'addvolume',
                 fieldValues: ['true', true],
             },
-            options: []
+            options: [{
+                name: 'new-or-existing-volume',
+                type: 'radio',
+                class: 'x12 s12 m12',
+                value: 'new',
+                defaultValue: 'new',
+                show: true,
+                required: false,
+                excludeFromPayload: true,
+                options: [{
+                    title: 'Create new Volume',
+                    val: 'new',
+                }, {
+                    title: 'Attach Existing',
+                    val: 'existing',
+                }]
+            },{
+                name: 'volume_id',
+                label: 'Existing Volume',
+                type: 'mist_dropdown',
+                value: '',
+                defaultValue: '',
+                show: true,
+                required: false,
+                options: [],
+                showIf: {
+                    fieldName: 'new-or-existing-volume',
+                    fieldValues: ['existing'],
+                },
+
+            }]
         })
     }
 
