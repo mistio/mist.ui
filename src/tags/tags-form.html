@@ -145,8 +145,7 @@
                     },
                     items: {
                         type: Array,
-                        value: function() { return []; },
-                        observer: 'selectedItemsChanged'
+                        value: function() { return []; }
                     },
                     type: {
                         type: String
@@ -176,6 +175,9 @@
                         type: String
                     }
                 },
+                observers: [
+                    'selectedItemsChanged(items.*)'
+                ],
                 listeners: {
                     'tag-delete': '_tagDeleteHandler',
                     'tag-change': '_tagUpdate'
@@ -244,12 +246,10 @@
                     var val1 = val1 || '', val2 = val2 || '';
                     return val1 != val2;
                 },
-                selectedItemsChanged: function(itemsNew, itemsOld){
+                selectedItemsChanged: function(itemsNew){
                     // freeze updating of selectedItems when dialog is open
-                    // if (!this.$.tagsModal.opened)
-                    if (JSON.stringify(itemsNew) != JSON.stringify(itemsOld)) {
-                        console.log('selectedItemsChanged', itemsNew, itemsOld);
-                        this._computeTags(this.items);
+                    if (!this.$.tagsModal.opened) {
+                        this._computeTags();
                     }
                 },
                 _computeShowEmpty: function(tags, length){
