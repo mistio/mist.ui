@@ -898,8 +898,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     fieldName: 'new-or-existing-volume',
                     fieldValues: ['existing'],
                 },
-
-            }]
+            },{
+                name: 'delete_with_vm',
+                label: 'Delete volume when machine is deleted',
+                type: 'checkbox',
+                value: '',
+                defaultValue: '',
+                show: true,
+                required: false,
+            },]
         })
     }
 
