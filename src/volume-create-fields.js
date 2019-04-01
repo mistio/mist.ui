@@ -25,11 +25,73 @@ var VOLUME_CREATE_FIELDS = []
 //   type: string
 //   description: EC2-specific. Needs to be specified if volume_type='io1'
 
+// AZURE ARM  
+// https://docs.microsoft.com/en-us/rest/api/dtl/disks/createorupdate
+VOLUME_CREATE_FIELDS.push({
+    provider: 'azure_arm',
+    fields: [{
+        name: "disk_type",
+        label: "Disk type",
+        type: 'dropdown',
+        value: "premium",
+        defaultValue: "premium",
+        required: true,
+        show: true,
+        errorMessage: "Please enter volume's type",
+        options: [{
+            title: 'Premium SSD',
+            val: 'Premium',
+        }, {
+            title: 'Standard SSD',
+            val: 'Standard',
+        }]
+    },{
+        name: "host_caching",
+        label: "Host caching policy",
+        type: 'dropdown',
+        value: "none",
+        defaultValue: "none",
+        required: true,
+        show: true,
+        errorMessage: "Please enter host caching policy of the disk",
+        options: [{
+            title: 'None',
+            val: 'None',
+        }, {
+            title: 'Read Only',
+            val: 'ReadOnly',
+        }, {
+            title: 'Read Write',
+            val: 'ReadQrite',
+        }]
+    }]
+});
+
 
 // DIGITAL OCEAN
+// https://developers.digitalocean.com/documentation/v2/#create-a-new-block-storage-volume
 VOLUME_CREATE_FIELDS.push({
     provider: 'digitalocean',
-    fields: []
+    fields: [{
+        name: "filesystem_type",
+        type: 'radio',
+        label: 'Filesystem type',
+        value: "",
+        defaultValue: "",
+        helptext: "If a filesystem type is selected, the volume will automatically be formated to the specified filesystem type.",
+        show: true,
+        required: false,
+        options: [{
+            title: 'Do not automatically format.',
+            val: '',
+        }, {
+            title: 'Ext4',
+            val: 'ext4',
+        },{
+            title: 'XFS',
+            val: 'xfs',
+        }]
+    }]
 });
 
 // OPENSTACK
@@ -141,7 +203,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
             value: '',
             defaultValue: '',
             show: true,
-            required: true,
+            required: false, // non required for os, do, // required for azure
             options: []
         });
     }
