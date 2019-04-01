@@ -74,7 +74,7 @@ VOLUME_CREATE_FIELDS.push({
     provider: 'digitalocean',
     fields: [{
         name: "filesystem_type",
-        type: 'radio',
+        type: 'dropdown',
         label: 'Filesystem type',
         value: "",
         defaultValue: "",
@@ -85,10 +85,10 @@ VOLUME_CREATE_FIELDS.push({
             title: 'Do not automatically format.',
             val: '',
         }, {
-            title: 'Ext4',
+            title: 'Ext4 filesystem type',
             val: 'ext4',
         },{
-            title: 'XFS',
+            title: 'XFS filesystem type',
             val: 'xfs',
         }]
     }]
