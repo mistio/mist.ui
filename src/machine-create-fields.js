@@ -844,7 +844,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 
     // 'openstack', 'gce', 'digitalocean', 'ec2' (azure?)
 
-    if (['openstack', 'gce', 'digitalocean', 'ec2'].indexOf(p.provider) != -1) {
+    if (['openstack', 'gce', 'digitalocean', 'ec2', 'azure_arm'].indexOf(p.provider) != -1) {
+        var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
@@ -864,7 +865,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             horizontal: false,
             moderateTop: true,
             min: '1',
-            max: '3',
+            max: allowedVolumes,
             showIf: {
                 fieldName: 'addvolume',
                 fieldValues: ['true', true],
