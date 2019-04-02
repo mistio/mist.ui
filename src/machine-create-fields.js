@@ -864,6 +864,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: false,
             horizontal: false,
             moderateTop: true,
+            helptext: 'Attach a volume to the machine.',
             min: '1',
             max: allowedVolumes,
             showIf: {
@@ -890,6 +891,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 name: 'volume_id',
                 label: 'Existing Volume',
                 type: 'mist_dropdown',
+                helptext: "The machine's location must be first selected, to add existing volumes. Only volumes of the same location can be attached to a machine.",
                 value: '',
                 defaultValue: '',
                 show: true,
