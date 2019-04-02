@@ -1141,7 +1141,7 @@
                         delete payload[excludeFields[i].name];
                     }
                 }
-                console.log('form _submitForm',payload, this.form);
+                console.log('form _submitForm', payload, this.form);
 
                 this.$.formAjax.headers["Content-Type"] = 'application/json';
                 this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -1152,15 +1152,20 @@
             },
 
             _asssertToInclude: function (list, field) {
-                // console.log('_asssertToInclude', list, field);
-                if (field.show)
+                if (field.excludeFromPayload)
+                    return false;
+                if (field.show && !field.showIf)
                     return true;
-                else if (field.showIf && (field.fieldExists || field.fieldName)) {
+                else if (field.showIf && (field.showIf.fieldExists || field.showIf.fieldName)) {
                     var d = list.find(function (f) {
-                        f.name == field.fieldName;
+                        return f.name == field.showIf.fieldName;
                     })
-                    if ((field.fieldExists && d.value) || (field.fieldValues && d.value.indexOf(
-                            field.fieldValues)))
+                    // try in fields
+                    if (!d) {
+                        d = this.fields.find(function (l) {return l.name == field.showIf.fieldName;})
+                    }
+                    if (d && (field.showIf.fieldExists && d.value) || (field.showIf.fieldValues && d.value.indexOf(
+                            field.showIf.fieldValues) > -1))
                         return true;
                 }
                 return false;
