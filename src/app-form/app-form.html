@@ -291,6 +291,9 @@
                 position: relative;
                 margin-bottom: 8px; 
             }
+            paper-checkbox.single-checkbox {
+                margin: 16px 0;
+            }
 
             paper-checkbox .item-desc{
                 display: inline-block;
@@ -416,6 +419,13 @@
                                     <paper-radio-button id$="app-form-[[id]]-[[field.name]]" name="[[option.val]]">[[option.title]]</paper-radio-button>
                                 </template>
                             </paper-radio-group>
+                        </template>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'checkbox', fieldVisibility, index)]]" restamp>
+                            <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" hidden$="[[field.hidden]]">
+                                <paper-checkbox class="single-checkbox" name$="[[field.name]]" checked="{{field.value}}">
+                                    <span data-prefix$=[[field.prefix]] data-suffix$=[[field.suffix]]>[[field.label]]</span>
+                                </paper-checkbox>
+                            </div>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'checkboxes', fieldVisibility, index)]]" restamp>
                             <div id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]] checkboxes" hidden$="[[field.hidden]]">
@@ -551,7 +561,7 @@
                                     <strong>[[field.label]]</strong>
                                 </span>
                             </div>
-                            <sub-form item-name="[[field.itemName]]" options="[[field.options]]" min="[[field.min]]" max="[[field.max]]" field-name="[[field.name]]"
+                            <sub-form item-name="[[field.itemName]]" options="[[field.options]]" min="[[field.min]]" max="[[field.max]]" field-name="[[field.name]]" horizontal="[[f.horizontal]]" moderate-top="[[f.moderateTop]]"
                                 items="[[field.items]]" class$="xs12 m12 [[field.class]]"></sub-form>
                         </template>
                         <div class$="field-helptext xs12 m6 [[field.class]]" hidden="[[!_hasHelptext(field)]]">[[field.helptext]]
@@ -1131,7 +1141,7 @@
                         delete payload[excludeFields[i].name];
                     }
                 }
-                console.log('form _submitForm',payload, this.form);
+                console.log('form _submitForm', payload, this.form);
 
                 this.$.formAjax.headers["Content-Type"] = 'application/json';
                 this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -1142,15 +1152,20 @@
             },
 
             _asssertToInclude: function (list, field) {
-                // console.log('_asssertToInclude', list, field);
-                if (field.show)
+                if (field.excludeFromPayload)
+                    return false;
+                if (field.show && !field.showIf)
                     return true;
-                else if (field.showIf && (field.fieldExists || field.fieldName)) {
+                else if (field.showIf && (field.showIf.fieldExists || field.showIf.fieldName)) {
                     var d = list.find(function (f) {
-                        f.name == field.fieldName;
+                        return f.name == field.showIf.fieldName;
                     })
-                    if ((field.fieldExists && d.value) || (field.fieldValues && d.value.indexOf(
-                            field.fieldValues)))
+                    // try in fields
+                    if (!d) {
+                        d = this.fields.find(function (l) {return l.name == field.showIf.fieldName;})
+                    }
+                    if (d && (field.showIf.fieldExists && d.value) || (field.showIf.fieldValues && d.value.indexOf(
+                            field.showIf.fieldValues) > -1))
                         return true;
                 }
                 return false;

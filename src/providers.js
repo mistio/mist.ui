@@ -1254,6 +1254,7 @@ PROVIDERS.push({
             label: '',
             show: true,
             required: true,
+            horizontal: true,
             type: 'list',
             min: '1',
             max: '5',
