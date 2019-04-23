@@ -139,7 +139,7 @@ Polymer({
         },
         volumes: {
             type: Array,
-            value: [],
+            value: function () { return [] },
             computed: '_computeVolumes(machine, model.volumes.*)'
         },
         loading: {
@@ -160,7 +160,7 @@ Polymer({
         var volumeIds = [];
         if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) {
             var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v) {
-                return that._isOfSameLocation(v);
+                return that._isOfSameLocation(v) && that.model.clouds[that.machine.cloud].volumes[v].attached_to.indexOf(that.machine.id) == -1;
             });
         }
         return volumeIds;
