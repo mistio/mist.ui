@@ -115,13 +115,15 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
+    var minimumSize = p.provider != 'packet' ? 1 : 10;
     p.fields.splice(0, 0, {
         name: 'size',
         label: 'Size in GB *',
         type: 'number',
-        min: 1,
-        value: '1',
-        defaultValue: '1',
+        min: minimumSize,
+        value: minimumSize,
+        defaultValue: minimumSize,
+        helptext: 'A minimum of '+minimumSize+' GB is required.',
         suffix: ' GB',
         show: true,
         required: true,
