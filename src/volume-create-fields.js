@@ -100,6 +100,12 @@ VOLUME_CREATE_FIELDS.push({
     fields: []
 });
 
+// PACKET
+VOLUME_CREATE_FIELDS.push({
+    provider: 'packet',
+    fields: []
+});
+
 // GCE
 VOLUME_CREATE_FIELDS.push({
     provider: 'gce',
@@ -171,29 +177,34 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
+    var minimumSize = p.provider != 'packet' ? 1 : 10;
     p.fields.splice(0, 0, {
-        name: "name",
-        label: "Name *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        placeholder: "",
-        errorMessage: "Please enter volume's name",
-        show: true,
-        required: true
-    }, {
         name: 'size',
         label: 'Size in GB *',
         type: 'number',
-        min: 1,
-        value: '1',
-        defaultValue: '1',
+        min: minimumSize,
+        value: minimumSize,
+        defaultValue: minimumSize,
+        helptext: 'A minimum of '+minimumSize+' GB is required.',
         suffix: ' GB',
         show: true,
         required: true,
         options: [],
         custom: false
-    })
+    });
+
+    if (p.provider != 'packet') {
+        p.fields.splice(0, 0, {
+            name: "name",
+            label: "Name *",
+            type: "text",
+            value: "",
+            defaultValue: "",
+            placeholder: "",
+            errorMessage: "Please enter volume's name",
+            show: true,
+            required: true});
+    }
 
     if (p.provider != 'openstack') {
         p.fields.splice(1, 0, {
