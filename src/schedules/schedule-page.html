@@ -303,7 +303,8 @@
                 </div>
                 <div hidden$="[[!schedule.last_run_at]]"><span class="m-info-head">Last Run:</span> [[_computeAbsoluteDateText(schedule.last_run_at)]] ([[_computeDateFromNow(schedule.last_run_at)]])</div>
                 <div>
-                    <span class="m-info-head">Schedule:</span> [[_makeCleanerTask(schedule.task_type)]], [[_parseToLocalTime(schedule.schedule)]]
+                    <span class="m-info-head">Schedule:</span> 
+                    [[_makeCleanerTask(schedule.task_type)]], [[_parseToLocalTime(schedule.schedule)]]
                     <span hidden$="[[!isCrontab]]">UTC time</span>
                     <a href$="[[_computeScriptLink(schedule)]]" class="blue-link regular smaller" hidden$="[[!isRunScript]]"> <iron-icon icon="link"></iron-icon>view script</a>
                     <paper-button id="editTask" on-tap="_editTask" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
@@ -570,11 +571,11 @@
             },
             _computeIsAction: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.task_type.startsWith("Action:");
+                    return this.schedule.task_type.action;
             },
             _computeIsRunScript: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.task_type.startsWith("Run script:");
+                    return this.schedule.task_type.script_id;
             },
             _computeIsSpecificMachines: function(schedule) {
                 if (this.schedule)
@@ -701,20 +702,16 @@
                 }
                 dialog._openDialog();
             },
-            _makeCleanerTask: function(str) {
-                if (str) {
-                    var ret = str.replace(" script:", "").replace("Action:", "");
-
-                    if (this.isAction) {
-                        ret = ret.toUpperCase();
+            _makeCleanerTask: function(task) {
+                if (task) {
+                    var ret = '';
+                    if (task.action) {
+                        ret = task.action.toUpperCase();
                         ret += " machines";
                     }
-                    else if (this.isRunScript) {
-                        var script = str.split(": ")[1],
-                            scriptName = this.model.scripts[script] ? this.model.scripts[script].name : "Missing Script";
-
-                        ret = ret.replace(script, "");
-                        ret += scriptName;
+                    else if (task.script_id) {
+                        var scriptName = this.model && this.model.scripts && this.model.scripts[task.script_id] ? this.model.scripts[task.script_id].name : "missing script";
+                        ret = 'RUN ' + scriptName;
                     }
                     return ret;
                 }
@@ -730,8 +727,8 @@
                 }
             },
             _computeScriptLink: function(schedule) {
-                if (this.schedule && this.schedule.task_type.startsWith("Run script:")) {
-                    return '/scripts/'+this.schedule.task_type.split(": ")[1]
+                if (this.schedule && this.schedule.task_type.script_id) {
+                    return '/scripts/'+this.schedule.task_type.script_id
                 }
             },
             _computeMachines: function(schedule, machines) {
@@ -768,22 +765,24 @@
                 var fulfillsAge = true,
                     fulfillsCost = true;
 
-                if (this._findCondition('age')){
-                    fulfillsAge = m.created && m.created.trim() != "" ? moment().diff(m.created, 'minutes') > this.schedule.conditions.find(function(con){
-                            return con.type == 'age';
-                        }).minutes : false;
-                }
-                if (this._findCondition('cost__monthly')){
-                    fulfillsCost = m.cost && m.cost.monthly ? m.cost.monthly > this.schedule.conditions.find(function(con){
-                            return con.field == 'cost__monthly';
-                        }).value : false;
-                }
+                if (m) {
+                    if (this._findCondition('age')){
+                        fulfillsAge = m.created && m.created.trim() != "" ? moment().diff(m.created, 'minutes') > this.schedule.conditions.find(function(con){
+                                return con.type == 'age';
+                            }).minutes : false;
+                    }
+                    if (this._findCondition('cost__monthly')){
+                        fulfillsCost = m.cost && m.cost.monthly ? m.cost.monthly > this.schedule.conditions.find(function(con){
+                                return con.field == 'cost__monthly';
+                            }).value : false;
+                    }
 
-                if (this.isSpecificMachines) {
-                    return this.isSelectedMachine(m.id); // && fulfillsAge && fulfillsCost;
-                }
-                else if (this.isMachinesWithTags) {
-                    return this.machineHasTag(m) && fulfillsAge && fulfillsCost;
+                    if (this.isSpecificMachines) {
+                        return this.isSelectedMachine(m.id); // && fulfillsAge && fulfillsCost;
+                    }
+                    else if (this.isMachinesWithTags) {
+                        return this.machineHasTag(m) && fulfillsAge && fulfillsCost;
+                    }
                 }
                 return false;
             },

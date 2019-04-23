@@ -80,7 +80,7 @@
                         </paper-radio-group>
                     </div>
                     <div class="background" hidden$="[[!_computeIsAction(taskType)]]">
-                        <paper-dropdown-menu>
+                        <paper-dropdown-menu label="action">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newSchedule.action}}" class="dropdown-content">
                                 <template is="dom-repeat" items="[[actions]]" as="action">
                                     <paper-item value="[[action.name]]" tabindex="1">[[action.name]]</paper-item>
@@ -89,7 +89,7 @@
                         </paper-dropdown-menu>
                     </div>
                     <div class="background" hidden$="[[_computeIsAction(taskType)]]">
-                        <paper-dropdown-menu>
+                        <paper-dropdown-menu label="script">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newSchedule.script_id}}" class="dropdown-content">
                                 <template is="dom-if" if="[[!scripts.length]]">
                                     <paper-item disabled>no scripts found</paper-item>
@@ -99,6 +99,7 @@
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
+                        <paper-textarea label="parameters" value="{{newSchedule.params}}"></paper-textarea>
                     </div>
 
                     <h4>Task Schedule</h4>
@@ -234,7 +235,8 @@
                         var newSchedule = {
                             action: this._computeAction(this.schedule.task_type),
                             script_id: this._computeScript(this.schedule.task_type),
-                            schedule_type: this.schedule.schedule_type 
+                            schedule_type: this.schedule.schedule_type,
+                            params: this.schedule.task_type.params
                         };
                         this.set('newSchedule', newSchedule);
 
@@ -274,13 +276,13 @@
                     return false;
                 },
                 _computeAction: function(task){
-                    if (task && task.startsWith('Action: ')){
-                        return task.replace('Action: ', '')
+                    if (task && task.action){
+                        return task.action;
                     }
                 },
                 _computeScript: function(task){
-                    if (task && task.startsWith('Run script: ')){
-                        return task.replace('Run script: ', '')
+                    if (task && task.script_id){
+                        return task.script_id;
                     }
                 },
                 _stringifyCrontab: function(entry){
@@ -307,6 +309,7 @@
                     this.$.editSchedule.body = this.payload;
                     this.$.editSchedule.headers["Content-Type"] = 'application/json';
                     this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+                    console.log('payload', this.payload);
                     this.$.editSchedule.generateRequest();
                 },
                 _formReset: function() {
@@ -341,8 +344,9 @@
                         if (this.taskType == 'action' && this._computeAction(this.schedule.task_type) != this.newSchedule.action) {
                             pl.action = this.newSchedule.action;
                         }
-                        else if (this.taskType == 'script' && this._computeScript(this.schedule.task_type) != this.newSchedule.script_id) {
-                            pl.script_id = this.newSchedule.script_id; 
+                        else if (this.taskType == 'script' && (this.schedule.task_type.script_id != this.newSchedule.script_id || this.schedule.task_type.params != this.newSchedule.params)) {
+                            pl.script_id = this.newSchedule.script_id;
+                            pl.params = this.newSchedule.params;
                         }
                         //check if entry changed
                         if (this.schedule.schedule_type != this.newSchedule.schedule_type) {
