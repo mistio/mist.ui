@@ -841,10 +841,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         });
     }
 
-    // add create volume fields for 
-    // 'openstack', 'gce', 'digitalocean', 'ec2' (azure?)
+    // add create volume fields for 'openstack'
+    // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'gce', 'digitalocean', 'ec2', 'azure_arm'].indexOf(p.provider) != -1) {
+    if (['openstack'].indexOf(p.provider) > -1) {
         var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',
@@ -887,7 +887,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     title: 'Attach Existing',
                     val: 'existing',
                 }]
-            },{
+            }, {
                 name: 'volume_id',
                 label: 'Existing Volume',
                 type: 'mist_dropdown',
@@ -901,15 +901,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     fieldName: 'new-or-existing-volume',
                     fieldValues: ['existing'],
                 },
-            },{
-                name: 'delete_with_vm',
+            }, {
+                name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
                 type: 'checkbox',
                 value: '',
                 defaultValue: '',
                 show: true,
                 required: false,
-            },]
+            }]
         })
     }
 

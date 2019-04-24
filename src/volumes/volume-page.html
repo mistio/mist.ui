@@ -145,7 +145,7 @@
                     <iron-icon icon="[[section.icon]]"></iron-icon>
                 </span>
                 <div class="title flex">
-                    <h2>[[volume.name]]</h2>
+                    <h2>[[_getVolumeNameOrExternalId(volume)]]</h2>
                     <div class="subtitle">
                         [[volumeCloud]], [[_computeLocationsName(model,volume.location)]]
                     </div>
@@ -274,7 +274,7 @@
                 var that = this,
                     machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
                 return machinesArray.filter(function(m) {
-                    return m.cloud == that.volume.cloud && m.location == that.volume.location && that.volume.attached_to.indexOf(m.id) == -1
+                    return m.cloud == that.volume.cloud && (!that.volume.location || m.location == that.volume.location) && that.volume.attached_to.indexOf(m.id) == -1
                 });
             }
         },
@@ -316,6 +316,9 @@
                 return Object.keys(x).map(y => x[y])
             }
             return [];
+        },
+        _getVolumeNameOrExternalId: function (volume) {
+            return volume && (volume.name || volume.external_id)
         }
     });
     </script>
