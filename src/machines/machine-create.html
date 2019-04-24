@@ -1,3 +1,4 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
@@ -6,6 +7,7 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../app-form/app-form.html">
 <script type="text/javascript" src="../machine-create-fields.js" inline></script>
+<script type="text/javascript" src="../volume-create-fields.js" inline></script>
 <dom-module id="machine-create">
     <template>
         <style include="shared-styles forms single-page">
@@ -208,6 +210,12 @@
                     return MACHINE_CREATE_FIELDS;
                 }
             },
+            volumeFields: {
+                type: Array,
+                value: function(){
+                    return VOLUME_CREATE_FIELDS;
+                }
+            },
             providers: {
                 type: Array,
                 value: function() {
@@ -360,7 +368,7 @@
 
                 this.machineFields.forEach(function(f, index) {
                     // clear options
-                    if (f.type != 'radio' && f.options) {
+                    if (['radio','list'].indexOf(f.type) == -1  && f.options) {
                         f.options = [];
                     }
 
@@ -446,6 +454,36 @@
                             this.set('machineFields.' + index + '.required', false);
                     }
 
+                    // for volumes options
+                    if (f.name == 'volumes') {
+                        var provider = this.model.clouds[cloudId].provider;
+                        var fieldset = this.volumeFields.find(function (fieldset) {
+                            return fieldset.provider == provider;
+                        });
+                        // remove location field if it exists,
+                        // the location of the machine will be used instead
+                        var options = fieldset.fields;
+                        var locationIndex = options.findIndex(function(f){return f.name == 'location'})
+
+                        if (locationIndex > -1) {
+                            options.splice(locationIndex,1);
+                        }
+                        options.forEach(function(f){
+                            f.showIf = {
+                                fieldName: 'new-or-existing-volume',
+                                fieldValues: ['new'],
+                            }
+                        })
+                        var existingIndex = f.options.findIndex(function(f){return f.name == 'volume_id'});
+                        // add provider dependent fields if they do yet not exist
+                        var names = f.options.map(f => f.name);
+                        for (var i = options.length-1; i>=0;i--){
+                            if (names.indexOf(options[i].name) == -1) {
+                                f.options.splice(existingIndex, 0, options[i]);
+                            }
+                        }
+                    }
+
                     // update options
                     if (f.options) {
                         this.set('machineFields.' + index + '.options', f.options);
@@ -480,7 +518,6 @@
                             else
                                 this.set('machineFields.' + index + '.value', f.options[0].id);
                         }
-
 
                         if (!f.required && f.options && f.options.length == 0) {
                             this.set('machineFields.' + index + '.show', false);
@@ -548,6 +585,29 @@
                     .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                     .name == 'name') {
                     this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                }
+
+                // if location changed and volumes are allowed
+                if (changeRecord.path.endsWith('value') && ['location', 'volumes'].indexOf(this.get(changeRecord.path.replace(
+                        '.value', '')).name) > -1 && this._fieldIndexByName('volumes') > -1) {
+                    // add existing volume options filtered by location
+                    var volumesInd = this._fieldIndexByName('volumes');
+                    var volumeField = this.get('machineFields.' + volumesInd);
+                    var existingIndex = volumeField.options.findIndex(function(f){return f.name == 'volume_id'});
+                    // reset
+                    this.set('machineFields.' + volumesInd + '.options.' + existingIndex +'.options', []);
+                    this.set('machineFields.' + volumesInd + '.options.' + existingIndex +'.value', '');
+                    this.notifyPath('machineFields.' + volumesInd + '.options.' + existingIndex +'.value');
+                    // add
+                    if (existingIndex > -1) {
+                        var volumes = this.model.clouds[this.selectedCloud].volumes ? Object.values(this.model.clouds[this.selectedCloud].volumes).filter(
+                            function(v) {
+                                return !v.location || v.location == changeRecord.value
+                            }) : [];
+                        volumeField.options[existingIndex].options = volumes;
+                        this.set('machineFields.' + volumesInd + '.options.' + existingIndex +'.options', volumes);
+                        this.notifyPath('machineFields.' + volumesInd + '.options.' + existingIndex +'.options');
+                    }
                 }
 
                 // if it's ec2 and location is selected filter subnets

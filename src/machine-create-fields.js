@@ -391,7 +391,7 @@ MACHINE_CREATE_FIELDS.push({
             fieldName: 'networks',
             fieldExists: true,
         },
-    }],
+    }]
 });
 
 // PACKET
@@ -839,6 +839,78 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             show: true,
             required: false,
         });
+    }
+
+    // add create volume fields for 'openstack'
+    // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
+
+    if (['openstack'].indexOf(p.provider) > -1) {
+        var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
+        p.fields.push({
+            name: 'addvolume',
+            excludeFromPayload: true,
+            label: 'Attach volume',
+            type: 'toggle',
+            value: false,
+            defaultValue: false,
+            show: true,
+            required: false
+        }, {
+            name: 'volumes',
+            itemName: 'volume',
+            type: 'list',
+            items: [],
+            show: false,
+            required: false,
+            horizontal: false,
+            moderateTop: true,
+            helptext: 'Attach a volume to the machine.',
+            min: '1',
+            max: allowedVolumes,
+            showIf: {
+                fieldName: 'addvolume',
+                fieldValues: ['true', true],
+            },
+            options: [{
+                name: 'new-or-existing-volume',
+                type: 'radio',
+                class: 'x12 s12 m12',
+                value: 'new',
+                defaultValue: 'new',
+                show: true,
+                required: false,
+                excludeFromPayload: true,
+                options: [{
+                    title: 'Create new Volume',
+                    val: 'new',
+                }, {
+                    title: 'Attach Existing',
+                    val: 'existing',
+                }]
+            }, {
+                name: 'volume_id',
+                label: 'Existing Volume',
+                type: 'mist_dropdown',
+                helptext: "The machine's location must be first selected, to add existing volumes. Only volumes of the same location can be attached to a machine.",
+                value: '',
+                defaultValue: '',
+                show: true,
+                required: false,
+                options: [],
+                showIf: {
+                    fieldName: 'new-or-existing-volume',
+                    fieldValues: ['existing'],
+                },
+            }, {
+                name: 'delete_on_termination',
+                label: 'Delete volume when machine is deleted',
+                type: 'checkbox',
+                value: '',
+                defaultValue: '',
+                show: true,
+                required: false,
+            }]
+        })
     }
 
     // add common post provision fields
