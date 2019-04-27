@@ -636,10 +636,10 @@
                     <div hidden$="[[!machine.key_associations.length]]">
                         <div class="m-info-head">Associated Keys:</div>
                         <div class="associatedKeys">
-                            <template is="dom-repeat" items="{{machineKeys}}" as="key" id="machineKeysDomRepeat">
-                                <div class="machine-key" hidden$="[[!_visibleKey(model,key)]]">
-                                    <a class="regular blue-link flexchild" href$="/keys/[[key.keypair]]">
-                                        <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(key.keypair)]]</a>
+                            <template is="dom-repeat" items="{{machineKeys}}" as="association" id="machineKeysDomRepeat">
+                                <div class="machine-key" hidden$="[[!_visibleKey(model,association)]]">
+                                    <a class="regular blue-link flexchild" href$="/keys/[[association.key]]">
+                                        <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(association.key)]]</a>
                                     <iron-icon icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
@@ -985,9 +985,9 @@ Polymer({
         if (this.machine)
             this.set('itemArray', [this.machine]);
     },
-    _visibleKey: function(model, key) {
+    _visibleKey: function(model, association) {
         if (model)
-            return this.model.keys && this.model.keys[key.keypair];
+            return this.model.keys && this.model.keys[association.key];
     },
     _computeKeyName: function(keyid) {
         if (this.model.keys && this.model.keys[keyid])
@@ -1088,8 +1088,8 @@ Polymer({
         return !this.machine ? true : false;
     },
     disassociateKey: function(e) {
-        var keyId = e.model.key.keypair;
-        var keyName = this._computeKeyName(e.model.key.keypair);
+        var keyId = e.model.association.key;
+        var keyName = this._computeKeyName(e.model.association.key);
 
         this.set('disassociateKeyId', keyId);
 
@@ -1336,7 +1336,7 @@ Polymer({
     },
     _probeMachine: function(e) {
         var payload = {
-            'key': this.machineKeys[0].keypair
+            'key': this.machineKeys[0].key
         };
         this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.probeMachine.params = payload;
