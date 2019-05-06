@@ -102,81 +102,6 @@ PROVIDERS.push({
 });
 
 /*
-// COREOS
-PROVIDERS.push(
-    {
-        title: 'CoreOS',
-        val: 'coreos',
-        className: 'provider-coreos',
-        options: [{
-            name: "title",
-            label: "Title *",
-            type: "text",
-            value: "CoreOS",
-            defaultValue: "CoreOS",
-            show: true,
-            required: true,
-            errorMessage: "Please enter title"
-        }, {
-            name: "machine_ip",
-            label: "Hostname *",
-            type: "text",
-            value: "",
-            defaultValue: "",
-            placeholder: "DNS or IP",
-            show: true,
-            required: true,
-            errorMessage: "Please enter hostname"
-        }, {
-            name: "machine_key",
-            label: "SSH Key",
-            type: "dropdown",
-            value: "",
-            defaultValue: "",
-            show: true,
-            required: false,
-            options: []
-        }, {
-            name: "machine_user",
-            label: "User",
-            type: "text",
-            value: "root",
-            defaultValue: "root",
-            show: true,
-            required: false,
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "machine_port",
-            label: "Port",
-            type: "text",
-            value: 22,
-            defaultValue: 22,
-            show: true,
-            required: false,
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "monitoring",
-            label: "Enable monitoring",
-            type: "switch",
-            value: true,
-            defaultValue: true,
-            show: true,
-            required: false,
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }]
-    }
-);
-*/
-
 // CLEARCENTER
 PROVIDERS.push({
     title: 'ClearCenter',
@@ -238,7 +163,7 @@ PROVIDERS.push({
         errorMessage: "Please enter the API key",
         helptext: ""
     }]
-});
+});*/
 
 // DIGITALOCEAN
 PROVIDERS.push({
@@ -418,49 +343,30 @@ PROVIDERS.push({
         required: true,
         // SUPPORTED_PROVIDERS[3].regions.map(function(i){return {val:i.id, title: i.location}})
         //ec2_ap_northeast should be ap-northeast
-        options: [{
-            'val': 'ap-northeast-1',
-            'title': 'Tokyo'
-        }, {
-            'val': 'ap-northeast-2',
-            'title': 'Seoul'
-        }, {
-            'val': 'ap-southeast-1',
-            'title': 'Singapore'
-        }, {
-            'val': 'ap-southeast-2',
-            'title': 'Sydney'
-        }, {
-            'val': 'eu-central-1',
-            'title': 'Frankfurt'
-        }, {
-            'val': 'eu-west-1',
-            'title': 'Ireland'
-        }, {
-            'val': 'eu-west-2',
-            'title': 'London'
-        }, {
-            'val': 'ca-central-1',
-            'title': 'Canada Central'
-        }, {
-            'val': 'sa-east-1',
-            'title': 'Sao Paulo'
-        }, {
-            'val': 'us-east-1',
-            'title': 'N. Virginia'
-        }, {
-            'val': 'us-west-1',
-            'title': 'N. California'
-        }, {
-            'val': 'us-west-2',
-            'title': 'Oregon'
-        }, {
-            'val': 'us-east-2',
-            'title': 'Ohio'
-        }, {
-            'val': 'ap-south-1',
-            'title': 'Mumbai'
-        }]
+        options: [
+            {'val': 'ap-northeast-1', 'title': 'Tokyo'},
+            {'val': 'ap-northeast-2', 'title': 'Seoul'},
+            {'val': 'ap-northeast-3', 'title': 'Osaka'},
+            {'val': 'ap-southeast-1', 'title': 'Singapore'},
+            {'val': 'ap-southeast-2', 'title': 'Sydney'},
+            {'val': 'eu-central-1', 'title': 'Frankfurt'},
+            {'val': 'eu-west-1', 'title': 'Ireland'},
+            {'val': 'eu-west-2', 'title': 'London'},
+            {'val': 'eu-west-3', 'title': 'Paris'},
+            {'val': 'eu-north-1', 'title': 'Stockholm'},
+            {'val': 'ca-central-1', 'title': 'Canada Central'},
+            {'val': 'sa-east-1', 'title': 'Sao Paulo'},
+            {'val': 'us-east-1', 'title': 'N. Virginia'},
+            {'val': 'us-west-1', 'title': 'N. California'},
+            {'val': 'us-west-2', 'title': 'Oregon'},
+            {'val': 'us-east-2', 'title': 'Ohio'},
+            {'val': 'ap-south-1', 'title': 'Mumbai'},
+            {'val': 'ap-east-1', 'title': 'Hong Kong'},
+            {'val': 'cn-north-1', 'title': 'Beijing'},
+            {'val': 'cn-northwest-1', 'title': 'Ningxia'},
+            {'val': 'us-gov-west-1', 'title': 'GovCloud (US)'},
+            {'val': 'us-gov-east-1', 'title': 'GovCloud (US-East)'}
+        ]
     }, {
         name: "title",
         label: "Title *",
@@ -517,13 +423,27 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        options: [{
-            'title': 'China East 1 (Hangzhou)',
-            'val': 'cn-hangzhou'
-        }, {
-            'title': 'EU Central 1 (Frankfurt)',
-            'val': 'eu-central-1'
-        }]
+        options: [
+            {'val': 'cn-qingdao', 'title': 'China North 1 (Qingdao)'},
+            {'val': 'cn-beijing', 'title': 'China North 2 (Beijing)'},
+            {'val': 'cn-zhangjiakou', 'title': 'China North 3 (Zhangjiakou)'},
+            {'val': 'cn-huhehaote', 'title': 'China North 5 (Huhehaote)'},
+            {'val': 'cn-hangzhou', 'title': 'China East 1 (Hangzhou)'},
+            {'val': 'cn-shanghai', 'title': 'China East 2 (Shanghai)'},
+            {'val': 'cn-shenzhen', 'title': 'China South 1 (Shenzhen)'},
+            {'val': 'cn-hongkong', 'title': 'Hong Kong'},
+            {'val': 'eu-central-1', 'title': 'EU Central 1 (Frankfurt)'},
+            {'val': 'me-east-1', 'title': 'Middle East 1 (Dubai)'},
+            {'val': 'eu-west-1', 'title': 'England (London)'},
+            {'val': 'us-west-1', 'title': 'US West 1 (Silicon Valley)'},
+            {'val': 'us-east-1', 'title': 'US East 1 (Virginia)'},
+            {'val': 'ap-south-1', 'title': 'South Asia 1 (Mumbai)'},
+            {'val': 'ap-southeast-5', 'title': 'Southeast Asia 5 (Jakarta)'},
+            {'val': 'ap-southeast-3', 'title': 'Southeast Asia 3 (Kuala Lumpur)'},
+            {'val': 'ap-southeast-2', 'title': 'Southeast Asia 2 (Sydney)'},
+            {'val': 'ap-southeast-1', 'title': 'Southeast Asia 1 (Singapore)'},
+            {'val': 'ap-northeast-1', 'title': 'Northeast Asia Pacific 1 (Tokyo)'}
+        ]
     }, {
         name: "title",
         label: "Title *",

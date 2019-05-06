@@ -250,11 +250,11 @@ MACHINE_CREATE_FIELDS.push({
 
 
 // Alibaba Cloud
-/*MACHINE_CREATE_FIELDS.push({
+MACHINE_CREATE_FIELDS.push({
     provider: 'aliyun_ecs',
     fields: [
     ],
-});*/
+});
 
 
 // GCE
@@ -844,7 +844,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack'].indexOf(p.provider) > -1) {
+    if (['openstack', 'packet'].indexOf(p.provider) > -1) {
         var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',

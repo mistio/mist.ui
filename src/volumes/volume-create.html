@@ -11,9 +11,6 @@
 <dom-module id="volume-create">
     <template>
         <style include="shared-styles forms single-page">
-             :host {
-            }
-
             #content {
                 max-width: 900px;
             }
@@ -58,10 +55,9 @@
                 </div>
             </paper-material>
             <paper-material hidden$="[[hasCloudsWithVolumes]]">
-                <p>Creating volumes is available in Openstack, GCE, EC2, Azure Arm, Packet and Digital Ocean clouds
+                <p>Creating volumes is available in OpenStack, GCE, AWS, Azure ARM, Packet and Digital Ocean clouds
                     <br/> Add a cloud using the
-                    <a href="/clouds/+add" class="blue-link regular">add cloud form</a>
-                    or enable your Openstack or GCE clouds available in <a href="/dashboard" class="blue-link regular">dashboard</a>.
+                    <a href="/clouds/+add" class="blue-link regular">add cloud form</a>.
                 </p>
             </paper-material>
             <paper-material hidden$=[[!hasCloudsWithVolumes]]>
@@ -104,20 +100,17 @@
                     type: Object,
                     value: function () {
                         return {}
-                    },
-                    notify: true
+                    }
                 },
                 fields: {
                     type: Array,
-                    value: [],
-                    notify: true
+                    value: function () { return [] }
                 },
                 volumesFields: {
                     type: Array,
                     value: function () {
                         return VOLUME_CREATE_FIELDS;
-                    },
-                    notify: true
+                    }
                 },
                 hasCloudsWithVolumes: {
                     type: Boolean,
@@ -130,7 +123,8 @@
             },
             observers: [
                 '_cloudsChanged(model.clouds.*)',
-                '_cloudChanged(selectedCloud)'
+                '_cloudChanged(selectedCloud)',
+                '_locationChanged(fields.1.value)'
             ],
             _cloudsChanged: function (clouds) {
                 var volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
@@ -151,14 +145,14 @@
                 this.set('machineFields', []);
                 var volumeFields = [];
                 if (this.selectedCloud) {
-                    var cloudName = this.model.clouds[selectedCloud].provider;
+                    var provider = this.model.clouds[selectedCloud].provider;
                     volumeFields = this.volumesFields.find(function (c) {
-                        return c.provider == cloudName;
+                        return c.provider == provider;
                     });
                 }
                 // add cloud fields
                 if (volumeFields.fields)
-                    this.set('fields', volumeFields.fields);
+                    this.set('fields', JSON.parse(JSON.stringify(volumeFields.fields)));
 
                 // set values by provider
                 this._updateFields(selectedCloud);
@@ -182,10 +176,29 @@
                                         return true;
                                     }
                                 });
+                            } else if (this.model.clouds[cloudId].provider == 'aliyun_ecs') {
+                                locations = locations.filter(function(l) {
+                                    if (l.extra.available_disk_categories.length) {
+                                        return true;
+                                    }
+                                });
                             }
                             f.options = locations;
                         }
                     }.bind(this));
+                }
+            },
+            _locationChanged: function (locationId, what) {
+                if (!locationId || !this.selectedCloud || !this.model.clouds[this.selectedCloud]) return;
+                var provider = this.model.clouds[this.selectedCloud].provider,
+                    location = this.model.clouds[this.selectedCloud].locations[locationId];
+                if (provider == 'aliyun_ecs') {
+                    var diskCategoryOptions = this.volumesFields.find(function (cloud) {
+                        return cloud.provider == provider;
+                    }).fields[3].options.filter(function(option) {
+                        return location.extra.available_disk_categories.indexOf(option.val) > -1;
+                    });
+                    this.set('fields.3.options', diskCategoryOptions);
                 }
             },
             fieldIndexByName: function (name) {
