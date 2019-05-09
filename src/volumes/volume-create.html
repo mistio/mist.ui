@@ -124,7 +124,8 @@
             observers: [
                 '_cloudsChanged(model.clouds.*)',
                 '_cloudChanged(selectedCloud)',
-                '_locationChanged(fields.1.value)'
+                '_locationChanged(fields.1.value)',
+                '_diskCategoryChanged(fields.3.value)'
             ],
             _cloudsChanged: function (clouds) {
                 var volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
@@ -199,6 +200,22 @@
                         return location.extra.available_disk_categories.indexOf(option.val) > -1;
                     });
                     this.set('fields.3.options', diskCategoryOptions);
+                }
+            },
+            _diskCategoryChanged: function(diskCategory) {
+                if (!diskCategory || !this.selectedCloud || !this.model.clouds[this.selectedCloud]) return;
+                var provider = this.model.clouds[this.selectedCloud].provider, minSize = 1;
+                if (provider == 'aliyun_ecs') {
+                    if (diskCategory != 'cloud') {
+                        minSize = 20;
+                    } else {
+                        minSize = 5;
+                    }
+                    this.set('fields.2.min', minSize);
+                    if (Number(this.fields[2].value) < minSize) {
+                        this.set('fields.2.value', minSize);
+                    }
+                    this.set('fields.2.helptext', 'A minimum of '+ minSize + ' GB is required.')
                 }
             },
             fieldIndexByName: function (name) {
