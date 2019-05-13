@@ -639,7 +639,7 @@
                             <template is="dom-repeat" items="{{machineKeys}}" as="association" id="machineKeysDomRepeat">
                                 <div class="machine-key" hidden$="[[!_visibleKey(model,association)]]">
                                     <a class="regular blue-link flexchild" href$="/keys/[[association.key]]">
-                                        <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(association.key)]]</a>
+                                        <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(association.key, model.keys)]]</a>
                                     <iron-icon icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
@@ -966,7 +966,7 @@ Polymer({
         var that = this;
         if (this.machine) {
             return Object.keys(that.model.volumes).filter(function(k) {
-                return that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
+                return that.model.volumes[k] && that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
             });
         }
     },
@@ -986,8 +986,7 @@ Polymer({
             this.set('itemArray', [this.machine]);
     },
     _visibleKey: function(model, association) {
-        if (model)
-            return this.model.keys && this.model.keys[association.key];
+        return this.model && this.model.keys && this.model.keys[association.key];
     },
     _computeKeyName: function(keyid) {
         if (this.model.keys && this.model.keys[keyid])
