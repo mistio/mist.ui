@@ -16,6 +16,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input-behavior.html">
 <link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input-addon-behavior.html">
+<link rel="import" href="../../bower_components/datetime-picker/datetime-picker.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
@@ -551,7 +552,7 @@
                                 <div id="date" class$="simple-button valid-[[_validateDatetime(field, field.value)]]">
                                     <iron-icon icon="schedule"></iron-icon>
                                     [[_displayDate(field, field.value)]]
-                                    <paper-input id$="app-form-[[id]]-[[field.name]]" type="datetime-local" value="{{field.value}}" placeholder="dd/mm/yyyy --:--"></paper-input>
+                                    <datetime-picker id$="app-form-[[id]]-[[field.name]]" value="{{field.value}}" auto-confirm></datetime-picker>
                                 </div>
                             </div>
                         </template>
@@ -880,7 +881,7 @@
                                 } else if (el.type == "number") {
                                     that.set('form.' + el.name, parseInt(el.value));
                                 } else if (el.type == "date" && el.value) {
-                                    that.set('form.' + el.name, el.value && el.value.replace('T',' ')+':00');
+                                    that.set('form.' + el.name, el.value);
                                 } else {
                                     that.set('form.' + el.name, el.value);
                                 }
@@ -897,7 +898,7 @@
                                 } else if (el.type == "number") {
                                     that.set('form.' + el.name, parseInt(el.value));
                                 } else if (el.type == "date" && el.value) {
-                                    that.set('form.' + el.name, el.value.replace('T',' ')+':00');
+                                    that.set('form.' + el.name, el.value);
                                 } else {
                                     that.set('form.' + el.name, el.value);
                                 }
@@ -1100,6 +1101,8 @@
                                 }
                             }
                             payload[field.name] = subformPayload;
+                        } else if (field.type == 'date' && field.value) {
+                            payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:MM:SS");
                         }
                     }.bind(this));
 
@@ -1272,10 +1275,10 @@
 
             },
             _displayDate: function (field, value) {
-                if (!moment(field.value).isValid() || (field.value && field.value.trim() == ""))
+                if (!field.value || !moment.unix(field.value/1000).isValid()) {
                     return field.placeholder ? field.placeholder : "SELECT DATE";
-                else {
-                    return moment.utc(field.value).local().fromNow();
+                } else {
+                    return moment.unix(field.value/1000).utc().fromNow();
                 }
             },
             _constructCheckboxValue: function (fieldname) {

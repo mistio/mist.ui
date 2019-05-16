@@ -654,7 +654,7 @@
                             this.set('fields.' + maxcountInd + '.disabled', false);
                             this.set('fields.' + maxcountInd + '.value', "");
                         } else if (changeRecord.value == "crontab") {
-                            entry = this._processCrotab(this.get('fields.' + entryCronTabInd + '.value'));
+                            entry = this._processCrontab(this.get('fields.' + entryCronTabInd + '.value'));
                             this.set('fields.' + expInd + '.disabled', false);
                             this.set('fields.' + maxcountInd + '.disabled', false);
                             this.set('fields.' + maxcountInd + '.value', "");
@@ -664,6 +664,7 @@
                             this.set('fields.' + maxcountInd + '.value', 1);
                             this.set('fields.' + maxcountInd + '.disabled', true);
                             this.set('fields.' + runImmediatelyInd + '.value', false);
+                            entry = moment.unix(entry/1000).utc().format("MM/DD/YYYY HH:MM");
                         }
                         this.set('fields.' + entryInd + '.value', entry);
                     }
@@ -671,13 +672,13 @@
                     // date in shedule entry
                     if (this.get(changeRecord.path.replace('.value', '')).name == "schedule_entry_one_off") {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        this.set('fields.' + entryInd + '.value', changeRecord.value.replace('T',' ')+':00');
+                        this.set('fields.' + entryInd + '.value', moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:MM:SS"));
                     }
 
                     // crontab in schedule entry
                     if (this.get(changeRecord.path.replace('.value', '')).name == "schedule_entry_crontab") {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        this.set('fields.' + entryInd + '.value', this._processCrotab(changeRecord.value));
+                        this.set('fields.' + entryInd + '.value', this._processCrontab(changeRecord.value));
                     }
 
                     // interval changes in schedule entry
@@ -689,8 +690,20 @@
 
                     if (this.get(changeRecord.path.replace('.value', '')).name == "expires") {
                         var expiresInd = this._fieldIndexByName("expires");
-                        var include = changeRecord.value != "" ? false : true;
-                        this.set('fields.' + expiresInd + '.excludeFromPayload', include);
+                        var excludeFromPayload = changeRecord.value == "" && true || false;
+                        this.set('fields.' + expiresInd + '.excludeFromPayload', excludeFromPayload);
+                        if (!excludeFromPayload) {
+                            this.set('fields.' + expiresInd + '.value', moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:MM:SS"));
+                        }
+                    }
+
+                    if (this.get(changeRecord.path.replace('.value', '')).name == "start_after") {
+                        var startAfterInd = this._fieldIndexByName("start_after");
+                        var excludeFromPayload = changeRecord.value == "" && true || false;
+                        this.set('fields.' + startAfterInd + '.excludeFromPayload', excludeFromPayload);
+                        if (!excludeFromPayload) {
+                            this.set('fields.' + expiresInd + '.value', moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:MM:SS"));
+                        }
                     }
 
                     if (this.get(changeRecord.path.replace('.value', '')).name == "max_run_count") {
@@ -792,7 +805,7 @@
 
                 return interval;
             },
-            _processCrotab: function (entry) {
+            _processCrontab: function (entry) {
                 var chunchs = entry.split(" ");
                 // "minute" : "30", "hour" : "2", "day_of_week" : "*", "day_of_month" : "*", "month_of_year" : "*"
                 // fill in missing
