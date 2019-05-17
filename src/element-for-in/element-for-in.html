@@ -98,18 +98,28 @@
                 }
                 tpl += "<div class='info-item flex-horizontal-with-ratios'>";
                 tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
-                if (content[i].value instanceof Object || content[i].value instanceof Array)
+                // if value is an array
+                if (content[i].value instanceof Object || content[i].value instanceof Array) {
                     tpl += "<div class='flexchild' style='width: 70%'><json-viewer json='" + JSON.stringify(content[i].value) + "'></json-viewer></div>";
-                else if (content[i].key.indexOf("password") > -1)
+                }
+                // if key is password
+                else if (content[i].key.indexOf("password") > -1) {
                     tpl += "<div class='flexchild'>" + content[i].value.replace('<', '&lt;').replace('>', '&gt;') + "</div>";
-                else if (content[i].key.indexOf("power_state") > -1 && content[i].value == 1)
+                }
+                // if key is state
+                else if (content[i].key.indexOf("power_state") > -1 && content[i].value == 1) {
                     tpl += "<div class='flexchild'>running</div>";
+                }
                 else {
                     try {
+                        // if key is state
+                        console.log("==================", content[i].key, content[i].value);
                         if (new window.DOMParser().parseFromString(unescapeHtml(content[i].value), "text/xml").documentElement.nodeName == 'html') {
                             tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";
-                        } else {
+                        } else if (new window.DOMParser().parseFromString(unescapeHtml(content[i].value), "text/xml").documentElement.nodeName != 'parsererror'){
                             tpl += "<div class='flexchild'><xml-viewer xml='" + content[i].value.replace(/'/g, '"') + "'></xml-viewer></div>";
+                        } else {
+                            tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";    
                         }
                     } catch (e) {
                         tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";
