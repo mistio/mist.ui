@@ -250,11 +250,34 @@ MACHINE_CREATE_FIELDS.push({
 
 
 // Alibaba Cloud
-/*MACHINE_CREATE_FIELDS.push({
+MACHINE_CREATE_FIELDS.push({
     provider: 'aliyun_ecs',
-    fields: [
-    ],
-});*/
+    fields: [/*{
+        name: 'assign_public_ip',
+        label: 'Assign Public IP',
+        type: 'toggle',
+        value: true,
+        defaultValue: true,
+        show: true,
+        required: false,
+    }, {
+        name: 'internet_max_bandwidth_out',
+        label: 'Maximum outgoing bandwidth',
+        type: 'slider',
+        value: 5,
+        defaultValue: 5,
+        min: 1,
+        max: 100,
+        unit: 'Mbps',
+        helptext: 'Mbps',
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: 'assign_public_ip',
+            fieldValues: [true],
+        }
+    }*/],
+});
 
 
 // GCE
@@ -694,7 +717,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
-            type: 'mist_dropdown',
+            type: 'mist_size',
             value: '',
             defaultValue: '',
             show: true,
@@ -844,7 +867,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack'].indexOf(p.provider) > -1) {
+    if (['openstack', 'packet'].indexOf(p.provider) > -1) {
         var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',

@@ -106,6 +106,44 @@ VOLUME_CREATE_FIELDS.push({
     fields: []
 });
 
+// ALIYUN ECS
+VOLUME_CREATE_FIELDS.push({
+    provider: 'aliyun_ecs',
+    fields: [{
+        name: "disk_category",
+        label: "Disk category *",
+        type: 'dropdown',
+        value: "cloud",
+        defaultValue: "cloud",
+        required: true,
+        show: true,
+        errorMessage: "Please enter disk's category",
+        options: [{
+            title: 'Basic cloud disk',
+            val: 'cloud',
+        }, {
+            title: 'Efficiency cloud disk',
+            val: 'cloud_efficiency'
+        }, {
+            title: 'Cloud SSD',
+            val: 'cloud_ssd'
+        }, {
+            title: 'Cloud ESSD',
+            val: 'cloud_essd'
+        }]
+    }, {
+        name: "description",
+        label: "Description",
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: "A human friendly description of the volume."
+    }]
+});
+
+
 // GCE
 VOLUME_CREATE_FIELDS.push({
     provider: 'gce',
@@ -177,7 +215,8 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
-    var minimumSize = p.provider != 'packet' ? 1 : 10;
+    var minimumSize = (p.provider == 'packet' && 10) ||
+                      (p.provider == 'aliyun_ecs' && 5) || 1;
     p.fields.splice(0, 0, {
         name: 'size',
         label: 'Size in GB *',
