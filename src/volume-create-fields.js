@@ -111,7 +111,7 @@ VOLUME_CREATE_FIELDS.push({
     provider: 'aliyun_ecs',
     fields: [{
         name: "disk_category",
-        label: "Disk category",
+        label: "Disk category *",
         type: 'dropdown',
         value: "cloud",
         defaultValue: "cloud",
