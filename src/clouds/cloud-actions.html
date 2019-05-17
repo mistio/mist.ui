@@ -235,21 +235,21 @@
           // console.log('perform action mist-action', this.items);
           if (action.confirm && action.name == 'delete' && this.items.length == 1) {
             this._showDialog({
-              title: 'Delete "' + this.cloud.title + '" cloud?',
+              title: 'Delete cloud?',
               body: "Deleting a cloud can not be undone.",
               danger: true,
+              list: this._makeList(this.items, 'title'),
               reason: "cloud.delete"
             });
           } else if (action.confirm && action.name != 'tag') {
-            var property = ['zone'].indexOf(this.resourceType) == -1 ? "name" : "domain",
-              plural = this.items.length == 1 ? '' : 's',
+            var plural = this.items.length == 1 ? '' : 's',
               count = this.items.length > 1 ? this.items.length + ' ' : '';
             //this.tense(this.action.name) + " " + this.resourceType + "s can not be undone. 
             this._showDialog({
               title: this.action.name + ' ' + count + this.resourceType + plural + '?',
               body: "You are about to " + this.action.name + " " + this.items.length + " " + this.resourceType +
                 plural + ".",
-              list: this._makeList(this.items, property),
+              list: this._makeList(this.items, 'title'),
               action: action.name,
               danger: true,
               reason: this.resourceType + "." + this.action.name
@@ -299,7 +299,11 @@
         if (action.name == 'rename') {
           this.$.renameDialog.opened = true;
         } else if (action.name == 'delete') {
-          this._deleteCloud();
+          var l = items.length;
+          for (var i=0;i<l;i++) {
+            this._deleteCloud();
+            this.set('items', items.splice(1));
+          }
         }
       },
 
@@ -325,9 +329,11 @@
         var title = '';
         if (this.cloud && this.cloud.title)
           title = this.cloud.title;
-        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-          url: '/'
-        } }));
+
+        if (this.__dataHost.tagName == 'CLOUD-PAGE')
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+            url: '/'
+          } }));
 
         this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Cloud ' + title + ' was deleted',
@@ -360,7 +366,7 @@
       },
 
       _computeCloud: function (items) {
-        if (this.items.length == 1)
+        if (this.items.length > 0)
           return this.items[0];
       },
 
