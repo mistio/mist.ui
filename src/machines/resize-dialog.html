@@ -102,7 +102,7 @@
                             <paper-radio-button name="[[size.id]]" disabled$="[[isCurrent(size.id)]]">
                                 [[size.name]] <span class='sup' hidden$="[[!isCurrent(size.id)]]">Current machine size</span>
                                 <br />
-                                <div class='sup'>RAM [[size.ram]], Disk [[size.disk]], Price $[[displayPrice(size)]]/hour</div>
+                                <div class='sup'>RAM [[size.ram]]<span hidden$="[[!size.disk]]">, Disk [[size.disk]]</span><span hidden$="[[!displayPrice(size)]]">, Price $[[displayPrice(size)]]/hour</span></div>
                             </paper-radio-button>
                         </template>
                     </paper-radio-group>
@@ -248,9 +248,19 @@
                 return ['onapp'].indexOf(this.clouds[this.machine.cloud].provider) > -1;
         },
         _updateSizes: function(machine, clouds) {
-            if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path == 'clouds.' + this.machine.cloud + '.sizesArray')) {
-                console.log('update sizes', clouds.path);
-                this.set('sizes', this.clouds[this.machine.cloud].sizesArray);
+            if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path.startsWith('clouds.' + this.machine.cloud + '.sizes'))) {
+                // console.log('update sizes', clouds.path);
+                if (this.clouds[this.machine.cloud].provider.startsWith("aliyun")) {
+                    var machineLocationID = this.machine.location;
+                    var machineLocation = this.clouds[this.machine.cloud].locations[machineLocationID];
+                    var availableLocationSizes = this.clouds[this.machine.cloud].sizesArray.filter(function(size){
+                        return machineLocation.extra.available_instance_types.indexOf(size.external_id) > -1;
+                    })
+                    this.set('sizes', availableLocationSizes);
+                    // console.log("sizes", this.clouds[this.machine.cloud].locations[machineLocationID].extra.available_instance_types.length == this.sizes.length);
+                } else {
+                    this.set('sizes', this.clouds[this.machine.cloud].sizesArray);
+                }
                 this.$.dialogModal.refit();
             }
         },
@@ -318,7 +328,7 @@
                 // && this.machine.os_type == 'unix' //show linux price for all other machines
                 return price.linux;
             } else {
-                return JSON.stringify(price);
+                return !(!price) ? JSON.stringify(price) : false;
             }
         },
         hotkeys: function(e) {
