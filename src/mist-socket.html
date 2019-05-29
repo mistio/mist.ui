@@ -330,7 +330,13 @@
                     }
 
                     // Apply patch operation to the model
-                    jsonpatch.applyOperation(_this.model, operation, true);
+
+                    try {
+                        jsonpatch.applyOperation(_this.model, operation, true);
+                    } catch(error) {
+                        if (DEBUG_SOCKET)
+                            console.error("jsonpatch applyOperation error", error);
+                    }
 
                     if (resource_type && cloud_id && _this.model.clouds && _this.model.clouds[cloud_id] && _this.model.clouds[cloud_id][resource_type]) {
                         var new_cloud_resources = _this.model.clouds[cloud_id][resource_type],
