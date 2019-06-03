@@ -386,6 +386,8 @@
                     this._updateFieldsForOpenstack();
                 }
 
+                var that = this;
+
                 this.machineFields.forEach(function(f, index) {
                     // clear options
                     if (['radio','list'].indexOf(f.type) == -1  && f.options) {
@@ -393,14 +395,21 @@
                     }
 
                     if (f.name.endsWith("location")) {
-                        var locations = this._toArray(this.model.clouds[cloudId].locations);
+                        var allLocations = this._toArray(this.model.clouds[cloudId].locations);
+                        var locations = allLocations.filter(function(l){
+                                var check_perm = that.check_perm('create_resources', 'location', l.id);
+                                //console.log('LOOP', l.name, check_perm);
+                                return check_perm == true;
+                            });
+                        console.log('LOCATIONS', locations.length);
                         if (locations.length == 1 && locations[0].name == "") {
-                            // If there's a single location preselct it and hide the field
+                            // If there's a single location preselect it and hide the field
                             f.value = locations[0].id;
                             f.show = false;
                             locations = [];
                         }
                         f.options = locations;
+                        // console.log(f.options);
                     }
                     if (f.name.endsWith("image")) {
                         f.options = this._toArray(this.model.clouds[cloudId].images).sort(function(ima, imb) {
@@ -511,6 +520,7 @@
                     if (f.options) {
                         this.set('machineFields.' + index + '.options', f.options);
                     }
+                    // console.log(this.get('machineFields.' + index + '.options'));
 
                 }, this);
 
@@ -1463,6 +1473,51 @@
             }
             return [];
         },
+        check_perm: function(action, rtype, rid, user, org) {
+            var org = org || this.model.org;
+            var user = user || this.model.user;
+            var action = action || "";
+            if (org.is_owner) {
+                return true;
+            } else {
+                var that = this;
+                var teamsMemberIsIn = Object.values(this.model.teams).filter(function(t){
+                        return that.is_member(user.id,t);
+                    });
+                for (var i=0; i<teamsMemberIsIn.length; i++) {
+                    var team = teamsMemberIsIn[i];
+                    var rules = team.policy.rules.filter(function(r){
+                            return r.rtype == rtype && r.action == action;
+                        });
+                    if (rules.length) {
+                        for (var j=0; j<rules.length; j++) {
+                            var rule = rules[j];
+                            // console.log("check perm", rule)
+                            if (rule.rid == rid && rule.operator == "ALLOW") {
+                                // console.log("1. check perm", rule.rid);
+                                return true;
+                            } else if (Object.keys(rule.rtags).length > 0) {
+                                // console.log("2. check perm", rule.rtags);
+                                return {tags: rule.rtags, operator: rule.operator};
+                            } else {
+                                if (team.policy == "ALLOW") {
+                                    // console.log("3. check perm ALLOW");
+                                    return true;
+                                }
+                            }
+                        }
+                    } else {
+                        if (team.policy.operator == "ALLOW") {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        },
+        is_member: function(userId, team) {
+            return team.members.indexOf(userId) > -1;
+        }
     });
     </script>
 </dom-module>
