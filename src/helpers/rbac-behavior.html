@@ -1,0 +1,57 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<script>
+/**
+ * Behavior that enables the check-permissions function for users.
+ *
+ * @polymerBehavior
+ */
+rbacBehavior = {
+    properties: {},
+    check_perm: function(action, rtype, rid, user, org) {
+        var org = org || this.model.org;
+        var user = user || this.model.user;
+        var action = action || "";
+        if (org.is_owner) {
+            return true;
+        } else {
+            var that = this;
+            var teamsMemberIsIn = Object.values(this.model.teams).filter(function(t){
+                    return that.is_member(user.id,t);
+                });
+            for (var i=0; i<teamsMemberIsIn.length; i++) {
+                var team = teamsMemberIsIn[i];
+                var rules = team.policy.rules.filter(function(r){
+                        return r.rtype == rtype && r.action == action;
+                    });
+                if (rules.length) {
+                    for (var j=0; j<rules.length; j++) {
+                        var rule = rules[j];
+                        // console.log("check perm", rule)
+                        if (rule.rid == rid && rule.operator == "ALLOW") {
+                            // console.log("1. check perm", rule.rid);
+                            return true;
+                        } else if (Object.keys(rule.rtags).length > 0) {
+                            // console.log("2. check perm", rule.rtags);
+                            return {tags: rule.rtags, operator: rule.operator};
+                        } else {
+                            if (team.policy == "ALLOW") {
+                                // console.log("3. check perm ALLOW");
+                                return true;
+                            }
+                        }
+                    }
+                } else {
+                    if (team.policy.operator == "ALLOW") {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    },
+    is_member: function(userId, team) {
+        return team.members.indexOf(userId) > -1;
+    }
+};
+</script>

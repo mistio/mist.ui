@@ -6,6 +6,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../app-form/app-form.html">
+<link rel="import" href="../helpers/rbac-behavior.html">
 <script type="text/javascript" src="../machine-create-fields.js" inline></script>
 <script type="text/javascript" src="../volume-create-fields.js" inline></script>
 <dom-module id="machine-create">
@@ -189,7 +190,9 @@
 
     Polymer({
         is: 'machine-create',
-
+        behaviors: [
+            rbacBehavior
+        ],
         properties: {
             model: {
                 type: Object
@@ -504,9 +507,9 @@
                             }
                         })
                         var existingIndex = f.options.findIndex(function(f){return f.name == 'volume_id'});
-                        // add provider dependent fields if they do yet not exist
+                        // add provider dependent fields if they do not yet exist
                         var names = f.options.map(f => f.name);
-                        for (var i = options.length-1; i>=0;i--){
+                        for (var i = 0; i < options.length;i++){
                             if (names.indexOf(options[i].name) == -1) {
                                 f.options.splice(existingIndex, 0, options[i]);
                             }
@@ -1472,51 +1475,6 @@
                 return Object.keys(x).map(y => x[y])
             }
             return [];
-        },
-        check_perm: function(action, rtype, rid, user, org) {
-            var org = org || this.model.org;
-            var user = user || this.model.user;
-            var action = action || "";
-            if (org.is_owner) {
-                return true;
-            } else {
-                var that = this;
-                var teamsMemberIsIn = Object.values(this.model.teams).filter(function(t){
-                        return that.is_member(user.id,t);
-                    });
-                for (var i=0; i<teamsMemberIsIn.length; i++) {
-                    var team = teamsMemberIsIn[i];
-                    var rules = team.policy.rules.filter(function(r){
-                            return r.rtype == rtype && r.action == action;
-                        });
-                    if (rules.length) {
-                        for (var j=0; j<rules.length; j++) {
-                            var rule = rules[j];
-                            // console.log("check perm", rule)
-                            if (rule.rid == rid && rule.operator == "ALLOW") {
-                                // console.log("1. check perm", rule.rid);
-                                return true;
-                            } else if (Object.keys(rule.rtags).length > 0) {
-                                // console.log("2. check perm", rule.rtags);
-                                return {tags: rule.rtags, operator: rule.operator};
-                            } else {
-                                if (team.policy == "ALLOW") {
-                                    // console.log("3. check perm ALLOW");
-                                    return true;
-                                }
-                            }
-                        }
-                    } else {
-                        if (team.policy.operator == "ALLOW") {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        },
-        is_member: function(userId, team) {
-            return team.members.indexOf(userId) > -1;
         }
     });
     </script>
