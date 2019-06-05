@@ -176,6 +176,12 @@ MACHINE_CREATE_FIELDS.push({
     fields: [],
 });
 
+// MAXIHOST
+MACHINE_CREATE_FIELDS.push({
+    provider: 'maxihost',
+    fields: [],
+});
+
 // DOCKER
 MACHINE_CREATE_FIELDS.push({
     provider: 'docker',
