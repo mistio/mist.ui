@@ -663,6 +663,34 @@ PROVIDERS.push({
     }]
 });
 
+// MAXIHOST
+PROVIDERS.push({
+    title: 'Maxihost',
+    val: 'maxihost',
+    className: 'provider-maxihost',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Maxihost",
+        defaultValue: "Maxihost",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "token",
+        label: "API token *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API key",
+        helptext: ""
+    }]
+});
+
+
 // NEPHOSCALE
 PROVIDERS.push({
     title: 'NephoScale',
