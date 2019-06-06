@@ -150,7 +150,7 @@
                         [[volumeCloud]], [[_computeLocationsName(model,volume.location)]]
                     </div>
                 </div>
-                <volume-actions items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeVolumeMachines(volume.attached_to,model.machines)]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
+                <volume-actions items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeVolumeMachines(volume.attached_to.*,model.machines)]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
             </paper-material>
             <div class="columns">
                 <paper-material id="leftcolumn resource-description" class="left">
@@ -179,9 +179,9 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
-                    <div hidden$="[[!volume.attached_to.length]]">
-                        <h4 class="n-info-head">Attached to machines:</h4>
-                        <template is="dom-repeat" items="[[_computeVolumeMachines(volume.attached_to,model.machines.*)]]" as="machine">
+                    <div>
+                        <h4 class="n-info-head" hidden$="[[!showVolumeMachines]]">Attached to machines:</h4>
+                        <template is="dom-repeat" items="[[_computeVolumeMachines(volume.attached_to.*,model.machines.*)]]" as="machine">
                             <a class="blue-link" href$="/machines/[[machine.id]]">[[machine.name]]</a>
                         </template>
                     </div>
@@ -239,6 +239,10 @@
             },
             itemArray: {
                 type: Array
+            },
+            showVolumeMachines: {
+                type: Boolean,
+                computed: '_computeShowVolumeMachines(volume.attached_to.*,model.machines)'
             }
         },
         observers: [
@@ -256,18 +260,29 @@
                 return this.volume && this.model.clouds && this.model.clouds[this.volume.cloud] && this.model.clouds[this.volume.cloud].locations[this.volume.location] && this.model.clouds[this.volume.cloud].locations[this.volume.location].name;
             }
         },
+        _computeShowVolumeMachines: function(machines) {
+            if (this.volume) {
+                return this.volume.attached_to && this.volume.attached_to.length > 0;
+            }
+            return false;
+        },
         _computeVolumeMachines: function(machineIds, machines) {
-            return this.model && this.model.machines && machineIds ? machineIds.map(i => this.model.machines[i] || { name: 'missing' }) : [];
+            if (this.volume) {
+                return this.model && this.model.machines && this.volume.attached_to && this.volume.attached_to.length ? this.volume.attached_to.map(i => this.model.machines[i] || { name: 'missing' , id: "#"}) : [];
+            }
+            return [];
         },
         _computeVolumeCloud: function(volume, clouds) {
             if (this.volume) {
                 return this.model.clouds[this.volume.cloud].title;
             }
+            return "";
         },
         _computeVolumeProvider: function(volume, clouds) {
             if (this.volume) {
                 return this.model.clouds[this.volume.cloud].provider;
             }
+            return "";
         },
         _computedMachinesVolumeCanAttachTo: function(provide, machines) {
             if (this.volume) {
@@ -277,6 +292,7 @@
                     return m.cloud == that.volume.cloud && (!that.volume.location || m.location == that.volume.location) && that.volume.attached_to.indexOf(m.id) == -1
                 });
             }
+            return [];
         },
         _computeVolumeTags: function(volume, volumeTags) {
             if (this.volume) {
