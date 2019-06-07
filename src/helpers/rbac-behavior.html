@@ -27,25 +27,26 @@ rbacBehavior = {
                 if (rules.length) {
                     for (var j=0; j<rules.length; j++) {
                         var rule = rules[j];
-                        // console.log("check perm", rule)
-                        if (!rid && rule.rid.length == Object.keys(rule.rtags).length == 0 && rule.operator == "ALLOW") {
-                            // console.log("1. check perm", rule.rid);
+                        console.log("check perm", rule)
+                        if (!rid && rule.rid.length == 0 && Object.keys(rule.rtags).length == 0 && rule.operator == "ALLOW") {
+                            console.log("1. check perm", rule.rid);
                             return true;
                         } else if (rule.rid == rid && rule.operator == "ALLOW") {
-                            // console.log("2. check perm", rule.rid);
+                            console.log("2. check perm", rule.rid);
                             return true;
                         } else if (Object.keys(rule.rtags).length > 0) {
-                            // console.log("3. check perm", rule.rtags);
+                            console.log("3. check perm", rule.rtags);
                             return {tags: rule.rtags, operator: rule.operator};
                         } else {
                             if (team.policy == "ALLOW") {
-                                // console.log("4. check perm ALLOW");
+                                console.log("4. check perm ALLOW");
                                 return true;
                             }
                         }
                     }
                 } else {
                     if (team.policy.operator == "ALLOW") {
+                        console.log("5. check perm policy operator ALLOW");
                         return true;
                     }
                 }
@@ -57,7 +58,7 @@ rbacBehavior = {
         return team.members.indexOf(userId) > -1;
     },
     _showAddResource: function(resource) {
-        return this.check_perm('add', resource); //action, rtype, rid, user, org
+        return ['machine','stack'].indexOf(resource) > -1 ? this.check_perm('create', resource) : this.check_perm('add', resource); //action, rtype, rid, user, org
     }
 };
 </script>
