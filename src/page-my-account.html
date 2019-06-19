@@ -5,7 +5,7 @@
 
 <link rel="import" href="account/details-page.html">
 <link rel="import" href="account/password-page.html">
-<link rel="import" href="account/plans-list.html">
+<!-- <link rel="import" href="account/plans-list.html"> -->
 <link rel="import" href="account/subscriptions-list.html">
 <link rel="import" href="account/sessions-list.html">
 <link rel="import" href="account/tokens-list.html">
@@ -57,7 +57,9 @@
             <iron-pages attr-for-selected="name" selected="{{data.page}}">
                 <details-page config=[[config]] name="profile" org="[[org]]" user="[[user]]" data-route="0"></details-page>
                 <password-page name="password" user="[[user]]" data-route="1"></password-page>
-                <plans-list name="billing" org="[[org]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list>
+
+                <!-- <plans-list name="billing" org="[[org]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list> -->
+                
                 <sessions-list name="sessions" org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
                 <tokens-list name="tokens" org="[[org]]" user="[[user]]" data-route="4"></tokens-list>
                 <whitelisted-ips name="ips" user="[[user]]" data-route="5"></whitelisted-ips>
@@ -100,8 +102,28 @@
             }
         },
         _showBilling: function(is_owner, has_billing) {
+            if (is_owner && has_billing){
+                this._importPlansList();
+            }
             return is_owner && has_billing;
-        }
+        },
+        _importPlansList: function() {
+            // Load plan purchase element
+            let cbLoad = this._plansListAppend();
+            Polymer.importHref(
+                this.resolveUrl('plan-list.html'),
+                cbLoad, function() {console.error("could not load plan-list.html", billing)}, true);
+        },
+        _plansListAppend: function() {
+            // <plans-list name="billing" org="[[org]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list> 
+            var pl = document.createElement('plans-list');
+                pl.setAttribute('name', 'billing');
+                pl.setAttribute('org', this.org);
+                pl.setAttribute('data-route', '2');
+                pl.setAttribute('email', this.config.email);
+                pl.setAttribute('hidden',this.org.is_owner)
+            this.shadowRoot.querySelector('iron-pages').appendChild(pl);
+        },
     });
     </script>
 </dom-module>
