@@ -54,12 +54,9 @@
                 <paper-tab id="notifications" name="notifications" data-route="7">Notifications</paper-tab>
                 <paper-tab id="metering" name="metering" data-route="8">Metering</paper-tab>
             </paper-tabs>
-            <iron-pages attr-for-selected="name" selected="{{data.page}}">
+            <iron-pages id="ironpages" attr-for-selected="name" selected="{{data.page}}">
                 <details-page config=[[config]] name="profile" org="[[org]]" user="[[user]]" data-route="0"></details-page>
                 <password-page name="password" user="[[user]]" data-route="1"></password-page>
-
-                <!-- <plans-list name="billing" org="[[org]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list> -->
-                
                 <sessions-list name="sessions" org="[[org]]" user="[[user]]" data-route="3"></sessions-list>
                 <tokens-list name="tokens" org="[[org]]" user="[[user]]" data-route="4"></tokens-list>
                 <whitelisted-ips name="ips" user="[[user]]" data-route="5"></whitelisted-ips>
@@ -111,18 +108,20 @@
             // Load plan purchase element
             let cbLoad = this._plansListAppend();
             Polymer.importHref(
-                this.resolveUrl('plan-list.html'),
+                this.resolveUrl('account/plans-list.html'),
                 cbLoad, function() {console.error("could not load plan-list.html")}, true);
         },
         _plansListAppend: function() {
+            // Append element
             // <plans-list name="billing" org="[[org]]" data-route="2" hidden$="[[!org.is_owner]]" email=[[config.email]]></plans-list> 
-            var pl = document.createElement('plans-list');
+            if (this.org.is_owner) {
+                var pl = document.createElement('plans-list');
                 pl.setAttribute('name', 'billing');
                 pl.setAttribute('org', this.org);
                 pl.setAttribute('data-route', '2');
                 pl.setAttribute('email', this.config.email);
-                pl.setAttribute('hidden',this.org.is_owner)
-            this.querySelector('iron-pages').appendChild(pl);
+                this.$.ironpages.appendChild(pl);
+            }
         },
     });
     </script>
