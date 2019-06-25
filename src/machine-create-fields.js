@@ -554,7 +554,7 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         helptext: "Choose the private IPv6 subnet size that you would like to allocate when provisioning this device.",
-        options: [{ title: '/28', val: '/28'
+        options: [{ title: '/28', val: '28'
         }, { title: '/29', val: '29'
         }, { title: '/30', val: '30'
         }, { title: '/31', val: '31'
