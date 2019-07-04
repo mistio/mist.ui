@@ -227,9 +227,7 @@
     Polymer.passiveTouchGestures = true;
     Polymer({
         is: 'mist-app',
-        behaviors: [
-            Polymer.IronResizableBehavior
-        ],
+        behaviors: getBehaviors(),
 
         properties: {
             page: {
@@ -608,6 +606,16 @@
             }
         },
 
+        beforeRegister: function(){
+            var event = new CustomEvent('add-behavior',{
+                detail:{
+                    func: function(){console.log(this.myProp,"!")}
+                    // rbacBehavior
+                }
+            });
+            document.dispatchEvent(event);
+        },
+
         ready: function() {
             var model = {
                 machines: {},
@@ -795,6 +803,14 @@
             this.shadowRoot.appendChild(pp);
         },
 
+        _rbacBehaviorAppend: function() {
+            console.log('RBAC Behavior Append');
+        },
+
+        _rbacBehaviorAppendError: function() {
+            console.log('Error when appending RBAC Behavior');
+        },
+
         _configUpdated: function(config) {
             if (!Object.keys(config).length) return;
             console.log('Config updated');
@@ -802,6 +818,7 @@
                 tunnels = this.config && this.config.features && this.config.features.tunnels ? this.config.features.tunnels : false,
                 insights = this.config && this.config.features && this.config.features.insights ? this.config.features.insights : false,
                 billing = this.config && this.config.features && this.config.features.billing ? this.config.features.billing : false,
+                rbac = this.config && this.config.features && this.config.features.rbac ? this.config.features.rbac : false,
                 currency = this.config && this.config.features && this.config.features.currency ? this.config.features.currency : {sign: '$', rate: 1};
                 // currency =  {sign: '$', rate: 1}; 
                 // test {sign: '₹', rate:0.014}
@@ -813,6 +830,15 @@
                 Polymer.importHref(
                     this.resolveUrl('account/plan-purchase.html'),
                     cbLoad, function() {console.error("could not load plan-purchase.html", billing)}, true);
+            }
+
+            // Load rbac behavior element
+            if (rbac == true) {
+                let rbacLoad = this._rbacBehaviorAppend(),
+                    rbacError = this._rbacBehaviorAppendError();
+                Polymer.importHref(
+                    this.resolveUrl('/static/ui/mist-rbac-behavior/mist-rbac-behavior.html'),
+                    rbacLoad, rbacError, true);
             }
 
             let sectionsArray = [{
@@ -1189,6 +1215,15 @@
             return true;
         }
     });
+
+    function getBehaviors() {
+        return [Polymer.IronResizableBehavior];
+        document.addEventListener('add-behavior',function(e){
+            debugger;
+            myArr.push(e.detail);
+        });
+        return myArr;
+    };
 
     function ratedCost(cost, rate) {
         var c = parseFloat(cost || 0);
