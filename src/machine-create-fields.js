@@ -1011,6 +1011,74 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldValues: ['select'],
         },
     }, {
+        name: 'post_provision_expiration_date',
+        label: 'Set an expiration date',
+        type: 'toggle',
+        value: false,
+        defaultValue: false,
+        excludeFromPayload: true,
+        helptext: 'Set an expiration date when the machine will stop or be destroyed',
+        show: true,
+        required: false
+    }, {
+        name: 'expiration_date',
+        type: 'duration_field',
+        label: 'Expire in',
+        class: 'bind-both',
+        value: '',
+        defaultValue: '',
+        helptext: '',
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: 'post_provision_expiration_date',
+            fieldValues: [true],
+        },
+        options: [
+            {val: 'mon', title: 'months'},
+            {val: 'w', title: 'weeks'}, 
+            {val: 'd', title: 'days'},
+            {val: 'h', title: 'hours'}
+        ]
+    }, {
+        name: 'expiration_action',
+        label: 'Expiration action',
+        type: 'dropdown',
+        class: 'bind-both',
+        value: '',
+        defaultValue: '',
+        helptext: '',
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: 'post_provision_expiration_date',
+            fieldValues: [true],
+        },
+        options: [
+            'STOP',
+            'DESTROY'
+        ]
+    }, {
+        name: 'expiration_notify',
+        type: 'duration_field',
+        label: 'Notify me before',
+        value: '',
+        defaultValue: '',
+        class: 'bind-top',
+        helptext: '',
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: 'post_provision_expiration_date',
+            fieldValues: [true],
+        },
+        options: [
+            {val: 'mon', title: 'months'},
+            {val: 'w', title: 'weeks'}, 
+            {val: 'd', title: 'days'},
+            {val: 'h', title: 'hours'}
+        ]
+    }, {
         name: 'post_provision_scheduler',
         label: 'Schedule a task',
         type: 'toggle',
