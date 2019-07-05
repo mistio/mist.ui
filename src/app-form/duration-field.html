@@ -23,8 +23,9 @@
             color: inherit !important;
         }
 
-        paper-input {
+        paper-input, paper-dropdown-menu {
             width: 50%;
+            float: left;
         }
 
         paper-button.keyboard-focus {
@@ -48,13 +49,15 @@
             <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
             <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
         </paper-input>
-        <paper-radio-group id$="app-form-[[id]]-[[field.name]]-duration-unit" selected="{{durationunit}}" disabled="[[field.disabled]]"
-            hidden="[[field.hidden]]">
-            <template is="dom-repeat" items="[[field.options]]" as="option">
-                <paper-radio-button id$="app-form-[[id]]-[[field.name]]" name="[[option.val]]">[[option.title]]</paper-radio-button>
-            </template>
-        </paper-radio-group>
-
+        <paper-dropdown-menu id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]"
+            horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]" required="[[field.required]]">
+            <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]-duration-unit" attr-for-selected="value" selected="{{durationunit}}"
+                class="dropdown-content">
+                <template is="dom-repeat" items="[[field.options]]" as="option">
+                    <paper-item value="[[option.val]]">[[option.title]]</paper-item>
+                </template>
+            </paper-listbox>
+        </paper-dropdown-menu>
     </template>
     <script>
         Polymer({
@@ -66,10 +69,12 @@
                     notify: true
                 },
                 durationspan: {
-                    type: Number
+                    type: Number,
+                    value: 1
                 },
                 durationunit: {
-                    type: String
+                    type: String,
+                    value: 'd'
                 }
             },
             observers: [

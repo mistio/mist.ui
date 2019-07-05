@@ -1023,10 +1023,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }, {
         name: 'expiration_date',
         type: 'duration_field',
-        label: 'Expire in',
+        label: 'Expire after',
         class: 'bind-both',
-        value: '',
-        defaultValue: '',
+        value: '1',
+        defaultValue: '1',
         helptext: '',
         show: true,
         required: false,
