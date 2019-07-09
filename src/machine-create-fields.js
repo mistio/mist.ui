@@ -1025,8 +1025,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         type: 'duration_field',
         label: 'Expire after',
         class: 'bind-both',
-        value: '1',
-        defaultValue: '1',
+        value: '',
+        defaultValue: '',
+        valueType: 'date',
+        valueDefaultSpan: 1,
+        valueDefaultUnit: 'days',
         helptext: '',
         show: true,
         required: false,
@@ -1035,18 +1038,18 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldValues: [true],
         },
         options: [
-            {val: 'mon', title: 'months'},
-            {val: 'w', title: 'weeks'}, 
-            {val: 'd', title: 'days'},
-            {val: 'h', title: 'hours'}
+            {val: 'months', title: 'months'},
+            {val: 'weeks', title: 'weeks'}, 
+            {val: 'days', title: 'days'},
+            {val: 'hours', title: 'hours'}
         ]
     }, {
         name: 'expiration_action',
         label: 'Expiration action',
         type: 'dropdown',
         class: 'bind-both',
-        value: '',
-        defaultValue: '',
+        value: 'stop',
+        defaultValue: 'stop',
         helptext: '',
         show: true,
         required: false,
@@ -1055,15 +1058,18 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldValues: [true],
         },
         options: [
-            'STOP',
-            'DESTROY'
+            {val: 'stop', title: 'STOP'},
+            {val: 'destroy', title: 'DESTROY'}
         ]
     }, {
         name: 'expiration_notify',
         type: 'duration_field',
         label: 'Notify me before',
-        value: '',
-        defaultValue: '',
+        valueType: 'secs',
+        value: 3600,
+        defaultValue: 3600,
+        valueDefaultSpan: 1,
+        valueDefaultUnit: 'hours',
         class: 'bind-top',
         helptext: '',
         show: true,
@@ -1073,10 +1079,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldValues: [true],
         },
         options: [
-            {val: 'mon', title: 'months'},
-            {val: 'w', title: 'weeks'}, 
-            {val: 'd', title: 'days'},
-            {val: 'h', title: 'hours'}
+            {val: 'months', title: 'months'},
+            {val: 'weeks', title: 'weeks'}, 
+            {val: 'days', title: 'days'},
+            {val: 'hours', title: 'hours'}
         ]
     }, {
         name: 'post_provision_scheduler',
