@@ -1076,7 +1076,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }
 
     // add common post provision fields
-    p.fields.push({
+    p.fields.push(
+    {
         name: 'post_provision_script',
         label: 'Run Script',
         type: 'toggle',
@@ -1150,78 +1151,80 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldValues: ['select'],
         },
     }, {
-        name: 'post_provision_expiration_date',
-        label: 'Set an expiration date',
-        type: 'toggle',
-        value: false,
-        defaultValue: false,
-        excludeFromPayload: true,
+        name: 'post_provision_expiration-date',
+        label: 'Expiration Date',
+        type: 'sub-fieldgroup',
+        value: null,
+        defaultValue: null,
         helptext: 'Set an expiration date when the machine will stop or be destroyed',
         show: true,
-        required: false
-    }, {
-        name: 'expiration_date',
-        type: 'duration_field',
-        label: 'Expire after',
-        class: 'bind-both',
-        value: '',
-        defaultValue: '',
-        valueType: 'date',
-        valueDefaultSpan: 1,
-        valueDefaultUnit: 'days',
-        helptext: '',
-        show: true,
         required: false,
-        showIf: {
-            fieldName: 'post_provision_expiration_date',
-            fieldValues: [true],
-        },
-        options: [
-            {val: 'months', title: 'months'},
-            {val: 'weeks', title: 'weeks'}, 
-            {val: 'days', title: 'days'},
-            {val: 'hours', title: 'hours'}
-        ]
-    }, {
-        name: 'expiration_action',
-        label: 'Expiration action',
-        type: 'dropdown',
-        class: 'bind-both',
-        value: 'stop',
-        defaultValue: 'stop',
-        helptext: '',
-        show: true,
-        required: false,
-        showIf: {
-            fieldName: 'post_provision_expiration_date',
-            fieldValues: [true],
-        },
-        options: [
-            {val: 'stop', title: 'STOP'},
-            {val: 'destroy', title: 'DESTROY'}
-        ]
-    }, {
-        name: 'expiration_notify',
-        type: 'duration_field',
-        label: 'Notify me before',
-        valueType: 'secs',
-        value: 3600,
-        defaultValue: 3600,
-        valueDefaultSpan: 1,
-        valueDefaultUnit: 'hours',
-        class: 'bind-top',
-        helptext: '',
-        show: true,
-        required: false,
-        showIf: {
-            fieldName: 'post_provision_expiration_date',
-            fieldValues: [true],
-        },
-        options: [
-            {val: 'months', title: 'months'},
-            {val: 'weeks', title: 'weeks'}, 
-            {val: 'days', title: 'days'},
-            {val: 'hours', title: 'hours'}
+        subfields: [
+            {
+                name: 'expiration_date',
+                type: 'duration_field',
+                label: 'Expire after',
+                class: 'bind-both',
+                value: '',
+                defaultValue: '',
+                valueType: 'date',
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'days',
+                helptext: '',
+                show: true,
+                required: false,
+                showIf: {
+                    fieldName: 'post_provision_expiration_date',
+                    fieldValues: [true],
+                },
+                options: [
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'}, 
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'}
+                ]
+            }, {
+                name: 'expiration_action',
+                label: 'Expiration action',
+                type: 'dropdown',
+                class: 'bind-both',
+                value: 'stop',
+                defaultValue: 'stop',
+                helptext: '',
+                show: true,
+                required: false,
+                showIf: {
+                    fieldName: 'post_provision_expiration_date',
+                    fieldValues: [true],
+                },
+                options: [
+                    {val: 'stop', title: 'STOP'},
+                    {val: 'destroy', title: 'DESTROY'}
+                ]
+            }, {
+                name: 'expiration_notify',
+                type: 'duration_field',
+                label: 'Notify me before',
+                valueType: 'secs',
+                value: 3600,
+                defaultValue: 3600,
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'hours',
+                class: 'bind-top',
+                helptext: '',
+                show: true,
+                required: false,
+                showIf: {
+                    fieldName: 'post_provision_expiration_date',
+                    fieldValues: [true],
+                },
+                options: [
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'}, 
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'}
+                ]
+            }
         ]
     }, {
         name: 'post_provision_scheduler',

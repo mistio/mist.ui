@@ -1,0 +1,100 @@
+<link rel="import" href="app-form.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<dom-module id="sub-fieldgroup">
+    <template>
+        <style include="shared-styles forms">
+            :host app-form {
+                
+            }
+        </style>
+        <template is="dom-if" if="[[optional]]">
+            <paper-toggle-button id$="[[id]]-[[field.name]]-toggler" checked="{{enabled}}">
+                <span>[[field.label]]</span>
+            </paper-toggle-button>
+        </template>
+        <!-- <template is="dom-if" if="[[enabled]]"> -->
+            <app-form id$="[[id]]" fields="[[field.subfields]]" display-buttons="[[_calcDisplayButtons()]]"></app-form>
+        <!-- </template> -->
+    </template>
+    <script>
+        Polymer({
+            is: 'sub-fieldgroup',
+            /**
+             * Fired when a response is received.
+             *
+             * @event response
+             */
+            /**
+             * Fired when a request is made.
+             *
+             * @event request
+             */
+            /**
+             * Fired when the leadValue is changed.
+             *
+             * @event leadchange
+             */
+            properties: {
+                field: {
+                    type: Object
+                },
+                optional: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
+                enabled: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
+                formReady: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                }
+            },
+            observers: [
+                '_optionsChanged(options.*)',
+                '_itemsChanged(items.splices, items.*)',
+                '_minChanged(min)'
+            ],
+            listeners: {
+                'keyup': '_itemsChanged',
+                'tap': '_setActiveItem'
+            },
+            _setActiveItem: function (e) {
+                //set changing item
+                var parent = e.path.find(function(p){
+                    return p.tagName == 'APP-FORM';
+                });
+                if (parent && parent.id)
+                    this.set('activeItem', parent.id.split('sub-form-')[1]);
+                else
+                    this.set('activeItem', null);
+            },
+            _itemsChanged: function () {
+                this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
+            },
+            _optionsChanged: function (options) {
+                var index = options.path.split('.')[1];
+                if (this.activeItem && index) {
+                    // update specific item value
+                    if (options.path.endsWith('value')){
+                        this.set('items.'+this.activeItem+'.'+index.replace('#','')+'.value', options.value);
+                    }
+                    // update all items options
+                    else if (options.path.endsWith('options')) {
+                        for (var i=0; i<this.items.length; i++){
+                            this.set('items.'+i+'.'+index.replace('#','')+'.options', options.value);
+                        }
+                    }
+                }
+            },
+            _calcDisplayButtons: function(){
+                return false;
+            }
+        });
+    </script>
+</dom-module>
