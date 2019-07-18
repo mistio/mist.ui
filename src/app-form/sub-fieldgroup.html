@@ -1,22 +1,24 @@
 <link rel="import" href="app-form.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <dom-module id="sub-fieldgroup">
     <template>
         <style include="shared-styles forms">
-            :host app-form {
-                
+            :host {
+                width: 50%;
+            }
+            :host([optional]) app-form {
+                padding-left: 46px; 
             }
         </style>
-        <template is="dom-if" if="[[optional]]">
+        <template is="dom-if" if="[[optional]]" restamp>
             <paper-toggle-button id$="[[id]]-[[field.name]]-toggler" checked="{{enabled}}">
                 <span>[[field.label]]</span>
             </paper-toggle-button>
         </template>
-        <!-- <template is="dom-if" if="[[enabled]]"> -->
-            <app-form id$="[[id]]" fields="[[field.subfields]]" display-buttons="[[_calcDisplayButtons()]]"></app-form>
-        <!-- </template> -->
+        <template is="dom-if" if="[[_showForm(optional,enabled)]]" restamp>
+            <app-form id$="[[id]]" form="{{fieldValue}}" fields="{{field.subfields}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
+        </template>
     </template>
     <script>
         Polymer({
@@ -37,6 +39,9 @@
              * @event leadchange
              */
             properties: {
+                id: {
+                    type: String
+                },
                 field: {
                     type: Object
                 },
@@ -46,54 +51,37 @@
                 },
                 enabled: {
                     type: Boolean,
-                    value: false,
+                    value: true,
                     reflectToAttribute: true
-                },
-                formReady: {
-                    type: Boolean,
-                    value: false,
-                    notify: true
                 }
             },
             observers: [
-                '_optionsChanged(options.*)',
-                '_itemsChanged(items.splices, items.*)',
-                '_minChanged(min)'
-            ],
+                '_fieldChanged(field)',
+                '_subfieldsChanged(field.subfields.*)'
+            ],  
             listeners: {
-                'keyup': '_itemsChanged',
-                'tap': '_setActiveItem'
+
             },
-            _setActiveItem: function (e) {
-                //set changing item
-                var parent = e.path.find(function(p){
-                    return p.tagName == 'APP-FORM';
-                });
-                if (parent && parent.id)
-                    this.set('activeItem', parent.id.split('sub-form-')[1]);
-                else
-                    this.set('activeItem', null);
-            },
-            _itemsChanged: function () {
-                this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
-            },
-            _optionsChanged: function (options) {
-                var index = options.path.split('.')[1];
-                if (this.activeItem && index) {
-                    // update specific item value
-                    if (options.path.endsWith('value')){
-                        this.set('items.'+this.activeItem+'.'+index.replace('#','')+'.value', options.value);
-                    }
-                    // update all items options
-                    else if (options.path.endsWith('options')) {
-                        for (var i=0; i<this.items.length; i++){
-                            this.set('items.'+i+'.'+index.replace('#','')+'.options', options.value);
-                        }
-                    }
+            _fieldChanged: function(field) {
+                var form = this.shadowRoot.querySelector('app-form#'+this.id);
+                if (form) {
+                    form.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
                 }
+            },
+            _subfieldsChanged: function(subfields) {
+                var fieldValue = {};
+                for (var i=0; i<this.field.subfields.length; i++) {
+                    fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                }
+                this.set('field.value', fieldValue);
+                // this.shadowRoot.querySelector('app-form#'+this.id).dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
+
             },
             _calcDisplayButtons: function(){
                 return false;
+            },
+            _showForm: function(optional, enabled) {
+                return optional ? enabled : true;
             }
         });
     </script>

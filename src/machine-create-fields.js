@@ -1153,7 +1153,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }, {
         name: 'post_provision_expiration-date',
         label: 'Expiration Date',
-        type: 'sub-fieldgroup',
+        type: 'fieldgroup',
         value: null,
         defaultValue: null,
         helptext: 'Set an expiration date when the machine will stop or be destroyed',
@@ -1173,10 +1173,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 helptext: '',
                 show: true,
                 required: false,
-                showIf: {
-                    fieldName: 'post_provision_expiration_date',
-                    fieldValues: [true],
-                },
                 options: [
                     {val: 'months', title: 'months'},
                     {val: 'weeks', title: 'weeks'}, 
@@ -1193,10 +1189,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 helptext: '',
                 show: true,
                 required: false,
-                showIf: {
-                    fieldName: 'post_provision_expiration_date',
-                    fieldValues: [true],
-                },
                 options: [
                     {val: 'stop', title: 'STOP'},
                     {val: 'destroy', title: 'DESTROY'}
@@ -1214,10 +1206,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 helptext: '',
                 show: true,
                 required: false,
-                showIf: {
-                    fieldName: 'post_provision_expiration_date',
-                    fieldValues: [true],
-                },
                 options: [
                     {val: 'months', title: 'months'},
                     {val: 'weeks', title: 'weeks'}, 
