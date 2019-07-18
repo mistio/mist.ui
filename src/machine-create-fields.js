@@ -1151,7 +1151,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldValues: ['select'],
         },
     }, {
-        name: 'post_provision_expiration-date',
+        name: 'expiration_schedule',
         label: 'Expiration Date',
         type: 'fieldgroup',
         value: null,
@@ -1210,7 +1210,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     {val: 'months', title: 'months'},
                     {val: 'weeks', title: 'weeks'}, 
                     {val: 'days', title: 'days'},
-                    {val: 'hours', title: 'hours'}
+                    {val: 'hours', title: 'hours'},
+                    {val: 'minutes', title: 'minutes'}
                 ]
             }
         ]

@@ -10,6 +10,10 @@
             :host([optional]) app-form {
                 padding-left: 46px; 
             }
+            paper-toggle-button {
+                margin-top: 16px;
+                margin-bottom: 16px;
+            }
         </style>
         <template is="dom-if" if="[[optional]]" restamp>
             <paper-toggle-button id$="[[id]]-[[field.name]]-toggler" checked="{{enabled}}">
@@ -51,8 +55,9 @@
                 },
                 enabled: {
                     type: Boolean,
-                    value: true,
-                    reflectToAttribute: true
+                    value: false,
+                    reflectToAttribute: true,
+                    observer: '_enabledChanged'
                 }
             },
             observers: [
@@ -61,6 +66,14 @@
             ],  
             listeners: {
 
+            },
+            _enabledChanged: function(enabled) {
+                if (!this.enabled) {
+                    this._resetValue();
+                }
+            },
+            _resetValue: function() {
+                this.set('field.value', {});
             },
             _fieldChanged: function(field) {
                 var form = this.shadowRoot.querySelector('app-form#'+this.id);
