@@ -190,13 +190,13 @@
                 vertical-align: top;
             }
 
-            .machine-key iron-icon, .machine-volume iron-icon {
+            .machine-key iron-icon, .machine-volume iron-icon, .expiration iron-icon {
                 margin-right: 8px;
                 opacity: 0.32;
                 cursor: pointer;
             }
 
-            .machine-key iron-icon.delete, .machine-volume iron-icon.delete {
+            iron-icon.delete {
                 opacity: 0.13;
                 margin-right: 16px;
                 height: 12px;
@@ -204,7 +204,7 @@
                 transition: opacity 100 ease-in;
             }
 
-            .machine-key:hover iron-icon.delete, .machine-volume:hover iron-icon.delete {
+            .expiration iron-icon.delete, .machine-key:hover iron-icon.delete, .machine-volume:hover iron-icon.delete {
                 opacity: 0.32;
             }
 
@@ -630,6 +630,23 @@
                             <span hidden$="[[!machine.created_by]]">
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
                             </span>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="row" hidden$="[[!machine.expiration_date]]">
+                        <div class="cell">
+                            <h4>Expiration:</h4>
+                        </div>
+                        <div class="cell expiration" hidden$="[[!machine]]">
+                            [[_expirationVerb(machine.expiration_date, machine.expiration_action)]] 
+                            [[_fromNow(machine.expiration_date)]].
+                            <span hidden$="[[_isPast(machine.expiration_date)]]">
+                                Notify me [[_expirationNotify(machine.expiration_notify)]] before.
+                            </span>
+                            <span hidden$="[[_isPast(machine.expiration_date)]]"></span>
+                                <iron-icon icon="icons:cancel" on-tap="deleteExpiration" class="delete"></iron-icon>
+                            </span>
+                            <iron-icon icon="editor:mode-edit" on-tap="editExpiration" class="edit"></iron-icon>
                         </div>
                         <br />
                     </div>
@@ -1552,6 +1569,36 @@ Polymer({
             return sshFrom + ' over ssh';
         if (icmpFrom)
             return icmpFrom + ' over icmp';
+    },
+
+    _expirationVerb: function(time, action) {
+        if (moment().isBefore(time)) {
+            return action == "stop" ? 'Will stop' : 'Will be destroyed'
+        } else {
+            return action == "stop" ? 'Stopped' : 'Destroyed';
+        }
+    },
+
+    _isPast: function(time) {
+        return moment(time).isValid() ? !moment().isBefore(time) : false;
+    },
+
+    _expirationNotify: function(secs) {
+        if (secs) {
+            var seconds = moment.duration(secs,'seconds');
+            if (seconds<60)
+                return moment.duration(seconds,'seconds').humanize();
+            else if (seconds<3600)
+                return moment.duration(seconds,'minutes').humanize();
+            else if (seconds<=3600*24)
+                return moment.duration(seconds,'hours').humanize();
+            else if (seconds<=3600*24*7)
+                return moment.duration(seconds,'days').humanize();
+            else if (seconds<=3600*24*7*31)
+                return moment.duration(seconds,'weeks').humanize();
+            else 
+                return moment.duration(seconds,'months').humanize();
+        }
     }
 });
 </script>
