@@ -1151,17 +1151,19 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldValues: ['select'],
         },
     }, {
-        name: 'expiration_schedule',
+        name: 'expiration',
         label: 'Expiration Date',
         type: 'fieldgroup',
         value: {},
         defaultValue: {},
+        defaultToggleValue: false,
         helptext: 'Set an expiration date when the machine will stop or be destroyed',
         show: true,
         required: false,
+        optional: true,
         subfields: [
             {
-                name: 'expiration_date',
+                name: 'date',
                 type: 'duration_field',
                 label: 'Expire after',
                 class: 'bind-both',
@@ -1180,7 +1182,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     {val: 'hours', title: 'hours'}
                 ]
             }, {
-                name: 'expiration_action',
+                name: 'action',
                 label: 'Expiration action',
                 type: 'dropdown',
                 class: 'bind-both',
@@ -1194,7 +1196,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     {val: 'destroy', title: 'DESTROY'}
                 ]
             }, {
-                name: 'expiration_notify',
+                name: 'notify',
                 type: 'duration_field',
                 label: 'Notify me before',
                 valueType: 'secs',

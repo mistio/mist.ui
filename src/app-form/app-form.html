@@ -658,6 +658,7 @@
                 },
                 form: {
                     type: Object,
+                    value: function() {return {}},
                     notify: true
                 },
                 fields: {
@@ -799,8 +800,8 @@
                 this.shadowRoot.querySelector("#errormsg").textContent = e.detail.request.xhr.responseText;
             },
 
-            runFieldsChanged: function () {
-                this._fieldsChanged()
+            runFieldsChanged: function (e) {
+                this._fieldsChanged();
             },
 
             runValidateFields: function() {
@@ -813,6 +814,7 @@
             },
 
             _fieldsChanged: function (fields, sendingData) {
+                console.log('_fieldsChanged', fields ? fields.path : 'run by event')
                 if (this.formError) {
                     this.set('formError', false);
                 }
@@ -840,6 +842,10 @@
 
                         // Update show field flag after calculating dependencies
                         that.fields.forEach(function (el, index) {
+                            console.log(el.name);
+                            if (el.name == "expiration") {
+                                console.log(el.value);
+                            }
                             // if field has a dependency
                             if (el.showIf) {
                                 dependency = form[el.showIf.fieldName];
@@ -903,7 +909,8 @@
                                 } else if (el.type == "date" && el.value) {
                                     that.set('form.' + el.name, el.value);
                                 } else {
-                                    that.set('form.' + el.name, el.value);                                }
+                                    that.set('form.' + el.name, el.value);
+                                }
                             }
 
                             // if field is a dependency of another field
@@ -1088,6 +1095,9 @@
                     this.fields.forEach(function (field) {
                         if (field.type == 'mist_size' && field.value == "custom") {
                             payload[field.name] = field.customValue;
+                        }
+                        if (field.type == 'fieldgroup') {
+                            payload[field.name] = field.value;
                         }
                         if (field.type == 'list') {
                             var subformPayload = [];

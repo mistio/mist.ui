@@ -15,13 +15,13 @@
                 margin-bottom: 16px;
             }
         </style>
-        <template is="dom-if" if="[[optional]]" restamp>
+        <template is="dom-if" if="[[field.optional]]" restamp>
             <paper-toggle-button id$="[[id]]-[[field.name]]-toggler" checked="{{enabled}}">
                 <span>[[field.label]]</span>
             </paper-toggle-button>
         </template>
-        <template is="dom-if" if="[[_showForm(optional,enabled)]]" restamp>
-            <app-form id$="[[id]]" form="{{fieldValue}}" fields="{{field.subfields}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
+        <template is="dom-if" if="[[_showForm(field.optional,enabled)]]" restamp>
+            <app-form id$="[[id]]" fields="{{field.subfields}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
         </template>
     </template>
     <script>
@@ -47,7 +47,8 @@
                     type: String
                 },
                 field: {
-                    type: Object
+                    type: Object,
+                    notify: true
                 },
                 optional: {
                     type: Boolean,
@@ -63,9 +64,8 @@
             observers: [
                 '_fieldChanged(field)',
                 '_subfieldsChanged(field.subfields.*)'
-            ],  
-            listeners: {
-                'fields-changed': '_updateFields'
+            ],
+            ready: function() {
             },
             _enabledChanged: function(enabled) {
                 if (!this.enabled) {
@@ -73,25 +73,30 @@
                 }
             },
             _resetValue: function() {
+                console.log('reset field value');
                 this.set('field.value', {});
             },
             _fieldChanged: function(field) {
+                this.set('enabled', this.field.defaultToggleValue);
+                this.set('optional', this.field.optional);
+                this._fieldsChangedNotifyEvent();
+            },
+            _subfieldsChanged: function(subfields) {
+                if (this.field) {
+                    var fieldValue = {};
+                    for (var i=0; i<this.field.subfields.length; i++) {
+                        fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                    }
+                    this.set('field.value', fieldValue);
+                }
+                this.notifyPath('field.value');
+                this._fieldsChangedNotifyEvent();
+            },
+            _fieldsChangedNotifyEvent: function(){
                 var form = this.shadowRoot.querySelector('app-form#'+this.id);
                 if (form) {
                     form.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
                 }
-            },
-            _updateFields: function() {
-                this._subfieldsChanged(this.subfields);
-            },
-            _subfieldsChanged: function(subfields) {
-                var fieldValue = {};
-                for (var i=0; i<this.field.subfields.length; i++) {
-                    fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
-                }
-                this.set('field.value', fieldValue);
-                // this.shadowRoot.querySelector('app-form#'+this.id).dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
-
             },
             _calcDisplayButtons: function(){
                 return false;
