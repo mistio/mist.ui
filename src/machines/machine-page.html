@@ -634,15 +634,17 @@
                         </div>
                         <br />
                     </div>
-                    <div class="row" hidden$="[[!machine.expiration_date]]">
+                    <div class="row">
                         <div class="cell">
                             <h4>Expiration:</h4>
                         </div>
                         <div class="cell expiration" hidden$="[[!machine]]">
-                            [[_expirationVerb(machine.expiration_date, machine.expiration_action)]] 
-                            [[_fromNow(machine.expiration_date)]].
-                            <span hidden$="[[_isPast(machine.expiration_date)]]">
-                                Notify me [[_expirationNotify(machine.expiration_notify)]] before.
+                            <span hidden$="[[!machine.expiration_date]]">
+                                [[_expirationVerb(machine.expiration_date, machine.expiration_action)]] 
+                                [[_fromNow(machine.expiration_date)]].
+                                <span hidden$="[[_isPast(machine.expiration_date)]]">
+                                    Notify me [[_expirationNotify(machine.expiration_notify)]] before.
+                                </span>
                             </span>
                             <span hidden$="[[_isPast(machine.expiration_date)]]">
                                 <iron-icon icon="icons:cancel" on-tap="deleteExpiration" class="delete"></iron-icon>
@@ -1590,8 +1592,8 @@ Polymer({
     },
 
     _isPast: function(time) {
-        console.log('_isPast', time, moment(time).isValid(), !moment().isBefore(time));
-        return moment(time).isValid() ? !moment().isBefore(time) : false;
+        // console.log('_isPast', time, moment(time).isValid(), !moment().isBefore(time));
+        return time && moment(time).isValid() ? !moment().isBefore(time) : true;
     },
 
     _expirationNotify: function(secs) {

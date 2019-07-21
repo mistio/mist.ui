@@ -149,13 +149,13 @@
         _initialiseValues: function() {
             var date = this.machine.expiration_date, 
                 fromNow = this._dateToDurationFromNow(date);
-            var notify = this.machine.notification,
+            var notify = this.machine.expiration_notify,
                 before = this._secondsToDuration(notify);
-            this.set('expiration.subfields.0.valueDefaultSpan', fromNow.span); //date to duration
-            this.set('expiration.subfields.0.valueDefaultUnit', fromNow.unit); //date to duration
-            this.set('expiration.subfields.1.value', this.machine.expiration_action);
-            this.set('expiration.subfields.2.valueDefaultSpan', before.span);
-            this.set('expiration.subfields.2.valueDefaultUnit', before.unit); 
+            this.set('field.0.subfields.0.valueDefaultSpan', fromNow.span); //date to duration
+            this.set('field.0.subfields.0.valueDefaultUnit', fromNow.unit); //date to duration
+            this.set('field.0.subfields.1.value', this.machine.expiration_action);
+            this.set('field.0.subfields.2.valueDefaultSpan', before.span);
+            this.set('field.0.subfields.2.valueDefaultUnit', before.unit); 
         },
         _dateToDurationFromNow: function(date) {
             var fromNow = moment(date).fromNow(true);
@@ -166,16 +166,16 @@
         },
         _secondsToDuration: function(seconds) {
             var step, span;
-            if (seconds % 3600*24*7 == 0) {
+            if (seconds%(3600*24*7) == 0) {
                 step = 'weeks';
-                span = seconds/3600*24*7;
-            } else if (seconds % 3600*24 == 0) {
+                span = seconds/(3600*24*7);
+            } else if (seconds%(3600*24) == 0) {
                 step = 'days';
-                span = seconds/3600*24;
-            } else if (seconds % 3600 == 0) {
+                span = seconds/(3600*24);
+            } else if (seconds%3600 == 0) {
                 step = 'hours';
                 span = seconds/3600;
-            } else if (seconds % 60 == 0) {
+            } else if (seconds%60 == 0) {
                 step = 'minutes';
                 span = seconds;
             }
