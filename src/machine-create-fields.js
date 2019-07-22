@@ -1152,7 +1152,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         },
     }, {
         name: 'expiration',
-        label: 'Expiration Date',
+        label: 'Expires',
         type: 'fieldgroup',
         value: {},
         defaultValue: {},
@@ -1163,25 +1163,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         optional: true,
         subfields: [
             {
-                name: 'date',
-                type: 'duration_field',
-                label: 'Expire after',
-                class: 'bind-both',
-                value: '',
-                defaultValue: '',
-                valueType: 'date',
-                valueDefaultSpan: 1,
-                valueDefaultUnit: 'days',
-                helptext: '',
-                show: true,
-                required: false,
-                options: [
-                    {val: 'months', title: 'months'},
-                    {val: 'weeks', title: 'weeks'}, 
-                    {val: 'days', title: 'days'},
-                    {val: 'hours', title: 'hours'}
-                ]
-            }, {
                 name: 'action',
                 label: 'Expiration action',
                 type: 'dropdown',
@@ -1191,14 +1172,33 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 helptext: '',
                 show: true,
                 required: false,
+                class: 'width-150 inline-block',
                 options: [
                     {val: 'stop', title: 'STOP'},
                     {val: 'destroy', title: 'DESTROY'}
                 ]
             }, {
+                name: 'date',
+                type: 'duration_field',
+                class: 'bind-both',
+                value: '',
+                defaultValue: '',
+                valueType: 'date',
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'days',
+                helptext: '',
+                show: true,
+                required: false,
+                prefixText: 'in ',
+                options: [
+                    {val: 'months', title: 'month'},
+                    {val: 'weeks', title: 'week'}, 
+                    {val: 'days', title: 'day'},
+                    {val: 'hours', title: 'hour'}
+                ]
+            }, {
                 name: 'notify',
                 type: 'duration_field',
-                label: 'Notify me before',
                 valueType: 'secs',
                 value: 3600,
                 defaultValue: 3600,
@@ -1208,12 +1208,16 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 helptext: '',
                 show: true,
                 required: false,
+                prefixText: 'Notify me ',
+                suffixText: 'before',
+                smallfont: true,
+                optional: true,
                 options: [
-                    {val: 'months', title: 'months'},
-                    {val: 'weeks', title: 'weeks'}, 
-                    {val: 'days', title: 'days'},
-                    {val: 'hours', title: 'hours'},
-                    {val: 'minutes', title: 'minutes'}
+                    {val: 'months', title: 'month'},
+                    {val: 'weeks', title: 'week'}, 
+                    {val: 'days', title: 'day'},
+                    {val: 'hours', title: 'hour'},
+                    {val: 'minutes', title: 'minute'}
                 ]
             }
         ]

@@ -9,26 +9,53 @@
             padding: 0;
             margin: 0;
         }
-
+        :host([smallfont]), :host([smallfont]) * {
+            font-size: .9em;
+        }
         iron-icon {
             color: inherit !important;
         }
-
         paper-input, paper-dropdown-menu {
             width: 50%;
             float: left;
         }
-
         paper-button.keyboard-focus {
             font-weight: bold !important;
         }
-
         paper-radio-button {
             display: inline;
         }
-
+        paper-input {
+            text-align: center;
+            width: 30px;
+        }
+        paper-dropdown-menu {
+            text-align: center;
+            width: 120px;
+        }
+        paper-checkbox, .prefix, .suffix {
+            float: left;
+            padding-top: 30px;
+        }
+        paper-checkbox {
+            padding-right: 8px;
+            --paper-checkbox-checked-color: var(--mist-blue) !important;
+            --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+        }
+        .prefix {
+            padding-right: 16px;
+        }
+        .suffix {
+            padding-left: 8px;
+        }
         </style>
-
+        
+        <template is="dom-if" if="[[field.optional]]">
+            <paper-checkbox checked="{{checked}}"></paper-checkbox>
+        </template>
+        <template is="dom-if" if="[[field.prefixText]]">
+            <span class="prefix">[[field.prefixText]]</span>
+        </template>
         <paper-input id$="app-form-[[id]]-[[field.name]]-duration" placeholder="[[field.placeholder]]" label="[[field.label]]" validator="[[field.validator]]"
             value="{{field.valueDefaultSpan}}" auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
             error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"
@@ -45,6 +72,9 @@
                 </template>
             </paper-listbox>
         </paper-dropdown-menu>
+        <template is="dom-if" if="[[field.suffixText]]">
+            <span class="suffix">[[field.suffixText]].</span>
+        </template>
     </template>
     <script>
         Polymer({
@@ -54,9 +84,20 @@
                 field: {
                     type: Object,
                     notify: true
+                },
+                smallfont: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
+                checked:{
+                    type: Boolean,
+                    value: true,
+                    reflectToAttribute: true
                 }
             },
             observers: [
+                '_initialise(field)',
+                '_checkedChanged(checked)',
                 '_durationChanged(field.valueDefaultSpan, field.valueDefaultUnit, field.valueType)'
             ],
             listeners: {
@@ -64,6 +105,18 @@
             },
             ready: function() {
 
+            },
+            _checkedChanged: function(checked){
+                if (!this.checked) {
+                    if (this.field.type == 'secs') {
+                        this.set('field.value', 0);
+                    } else {
+                        this.set('field.value', '');
+                    }
+                }
+            },
+            _initialise: function(field) {
+                this.set('smallfont', this.field.smallfont);
             },
             _durationChanged: function(span,unit,type) {
                 var newValue;
