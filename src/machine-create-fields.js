@@ -1079,7 +1079,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     p.fields.push(
     {
         name: 'post_provision_script',
-        label: 'Run Script',
+        label: 'Run script',
         type: 'toggle',
         value: false,
         defaultValue: false,
@@ -1152,7 +1152,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         },
     }, {
         name: 'expiration',
-        label: 'Expires',
+        label: 'Set expiration',
         type: 'fieldgroup',
         value: {},
         defaultValue: {},
@@ -1164,7 +1164,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         subfields: [
             {
                 name: 'action',
-                label: 'Expiration action',
                 type: 'dropdown',
                 class: 'bind-both',
                 value: 'stop',
@@ -1433,7 +1432,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     if (['onapp'].indexOf(p.provider) == -1) {
         p.fields.push({
             name: 'create_hostname_machine',
-            label: 'Create Hostname',
+            label: 'Create hostname',
             type: 'toggle',
             value: false,
             defaultValue: false,
