@@ -1117,11 +1117,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false,
                 prefixText: 'in ',
                 options: [
-                    {val: 'months', title: 'month'},
-                    {val: 'weeks', title: 'week'}, 
-                    {val: 'days', title: 'day'},
-                    {val: 'hours', title: 'hour'},
-                    {val: 'minutes', title: 'minute'}
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'},
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'},
+                    {val: 'minutes', title: 'minutes'}
                 ]
             }, {
                 name: 'notify',
@@ -1140,11 +1140,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 secondary: true,
                 optional: true,
                 options: [
-                    {val: 'months', title: 'month'},
-                    {val: 'weeks', title: 'week'}, 
-                    {val: 'days', title: 'day'},
-                    {val: 'hours', title: 'hour'},
-                    {val: 'minutes', title: 'minute'}
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'},
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'},
+                    {val: 'minutes', title: 'minutes'}
                 ]
             }
         ]
