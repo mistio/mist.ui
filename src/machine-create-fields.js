@@ -1137,7 +1137,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false,
                 prefixText: 'Notify me ',
                 suffixText: 'before',
-                smallfont: true,
+                secondary: true,
                 optional: true,
                 options: [
                     {val: 'months', title: 'month'},
