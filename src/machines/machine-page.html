@@ -627,7 +627,7 @@
                             <h4>Created:</h4>
                         </div>
                         <div class="cell" hidden$="[[!machine]]">
-                            [[_fromNow(machine.created)]]
+                            [[_fromNow(machine.created)]].
                             <span hidden$="[[!machine.created_by]]">
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
                             </span>
@@ -636,17 +636,11 @@
                     </div>
                     <div class="row">
                         <div class="cell">
-                            <h4>Expiration:</h4>
+                            <h4>Expires:</h4>
                         </div>
                         <div class="cell expiration" hidden$="[[!machine]]">
+                            [[_fromNow(machine.expiration.date)]]
                             <span hidden$="[[!machine.expiration.date]]">
-                                [[_expirationVerb(machine.expiration.date, machine.expiration.action)]] 
-                                [[_fromNow(machine.expiration.date)]].
-                                <span hidden$="[[_isPast(machine.expiration.date)]]">
-                                    Notify me [[_expirationNotify(machine.expiration.notify)]] before.
-                                </span>
-                            </span>
-                            <span hidden$="[[_isPast(machine.expiration.date)]]">
                                 <iron-icon icon="icons:cancel" on-tap="deleteExpiration" class="delete"></iron-icon>
                             </span>
                             <iron-icon icon="editor:mode-edit" on-tap="editExpiration" class="edit"></iron-icon>
@@ -1175,7 +1169,7 @@ Polymer({
     },
     _machineActionConfirmation: function(e) {
         if (e.detail.response == "confirm" && e.detail.reason == "machine.expiration_delete") {
-            var emptyExpDate = {expiration: {date:''}};
+            var emptyExpDate = {expiration: {}};
             this.shadowRoot.querySelector('#deleteExpirationDate').headers["Csrf-Token"] = CSRF_TOKEN;
             this.shadowRoot.querySelector('#deleteExpirationDate').headers["Content-Type"] = 'application/json';
             this.shadowRoot.querySelector('#deleteExpirationDate').body = emptyExpDate;
@@ -1253,7 +1247,7 @@ Polymer({
         return info.length ? info : '';
     },
     _fromNow: function(time) {
-        return moment.utc(time).fromNow();
+        return time && moment(time).isValid() ? moment.utc(time).fromNow() : 'never.';
     },
     itemProbeClasses: function(machine) {
         if (!machine || !machine.probe) {
