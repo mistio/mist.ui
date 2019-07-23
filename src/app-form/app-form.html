@@ -89,6 +89,10 @@
                 flex-basis: 100% ;
             }
 
+            :host([indialog]) sub-fieldgroup {
+                width: 100%;
+            }
+
             .grid-row>* {
                 margin-top: 8px;
                 margin-bottom: 8px;
@@ -1134,6 +1138,9 @@
                         if (field.type == 'fieldgroup') {
                             payload[field.name] = field.value;
                         }
+                        if (field.type == 'duration-field' && field.value && field.valueType == 'date') {
+                            payload[field.name] = this._updateDateCalculationOnRequest(field.value);
+                        }
                         if (field.type == 'list') {
                             var subformPayload = [];
                             if (field.items && field.items.length) {
@@ -1149,7 +1156,7 @@
                             }
                             payload[field.name] = subformPayload;
                         } else if (field.type == 'date' && field.value) {
-                            payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:MM:SS");
+                            payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:mm:ss");
                         }
                     }.bind(this));
 
@@ -1170,6 +1177,10 @@
                 this.$.formAjax.generateRequest();
 
                 this.set('sendingData', true);
+            },
+
+            _updateDateCalculationOnRequest: function(fieldValue) {
+                return moment().add(span,unit).utc().format("YYYY-MM-DD HH:mm:ss");
             },
 
             _asssertToInclude: function (list, field) {
