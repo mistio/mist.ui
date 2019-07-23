@@ -1078,8 +1078,79 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add common post provision fields
     p.fields.push(
     {
+        name: 'expiration',
+        label: 'Set expiration',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: false,
+        helptext: 'Set an expiration date when the machine will stop or be destroyed',
+        show: true,
+        required: false,
+        optional: true,
+        subfields: [
+            {
+                name: 'action',
+                type: 'dropdown',
+                class: 'bind-both',
+                value: 'stop',
+                defaultValue: 'stop',
+                helptext: '',
+                show: true,
+                required: false,
+                class: 'width-150 inline-block',
+                options: [
+                    {val: 'stop', title: 'STOP'},
+                    {val: 'destroy', title: 'DESTROY'}
+                ]
+            }, {
+                name: 'date',
+                type: 'duration_field',
+                class: 'bind-both',
+                value: '',
+                defaultValue: '',
+                valueType: 'date',
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'days',
+                helptext: '',
+                show: true,
+                required: false,
+                prefixText: 'in ',
+                options: [
+                    {val: 'months', title: 'month'},
+                    {val: 'weeks', title: 'week'}, 
+                    {val: 'days', title: 'day'},
+                    {val: 'hours', title: 'hour'},
+                    {val: 'minutes', title: 'minute'}
+                ]
+            }, {
+                name: 'notify',
+                type: 'duration_field',
+                valueType: 'secs',
+                value: 3600,
+                defaultValue: 3600,
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'hours',
+                class: 'bind-top',
+                helptext: '',
+                show: true,
+                required: false,
+                prefixText: 'Notify me ',
+                suffixText: 'before',
+                smallfont: true,
+                optional: true,
+                options: [
+                    {val: 'months', title: 'month'},
+                    {val: 'weeks', title: 'week'}, 
+                    {val: 'days', title: 'day'},
+                    {val: 'hours', title: 'hour'},
+                    {val: 'minutes', title: 'minute'}
+                ]
+            }
+        ]
+    }, {
         name: 'post_provision_script',
-        label: 'Run script',
+        label: 'Run post-deploy script',
         type: 'toggle',
         value: false,
         defaultValue: false,
@@ -1150,76 +1221,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldName: 'run_script',
             fieldValues: ['select'],
         },
-    }, {
-        name: 'expiration',
-        label: 'Set expiration',
-        type: 'fieldgroup',
-        value: {},
-        defaultValue: {},
-        defaultToggleValue: false,
-        helptext: 'Set an expiration date when the machine will stop or be destroyed',
-        show: true,
-        required: false,
-        optional: true,
-        subfields: [
-            {
-                name: 'action',
-                type: 'dropdown',
-                class: 'bind-both',
-                value: 'stop',
-                defaultValue: 'stop',
-                helptext: '',
-                show: true,
-                required: false,
-                class: 'width-150 inline-block',
-                options: [
-                    {val: 'stop', title: 'STOP'},
-                    {val: 'destroy', title: 'DESTROY'}
-                ]
-            }, {
-                name: 'date',
-                type: 'duration_field',
-                class: 'bind-both',
-                value: '',
-                defaultValue: '',
-                valueType: 'date',
-                valueDefaultSpan: 1,
-                valueDefaultUnit: 'days',
-                helptext: '',
-                show: true,
-                required: false,
-                prefixText: 'in ',
-                options: [
-                    {val: 'months', title: 'month'},
-                    {val: 'weeks', title: 'week'}, 
-                    {val: 'days', title: 'day'},
-                    {val: 'hours', title: 'hour'}
-                ]
-            }, {
-                name: 'notify',
-                type: 'duration_field',
-                valueType: 'secs',
-                value: 3600,
-                defaultValue: 3600,
-                valueDefaultSpan: 1,
-                valueDefaultUnit: 'hours',
-                class: 'bind-top',
-                helptext: '',
-                show: true,
-                required: false,
-                prefixText: 'Notify me ',
-                suffixText: 'before',
-                smallfont: true,
-                optional: true,
-                options: [
-                    {val: 'months', title: 'month'},
-                    {val: 'weeks', title: 'week'}, 
-                    {val: 'days', title: 'day'},
-                    {val: 'hours', title: 'hour'},
-                    {val: 'minutes', title: 'minute'}
-                ]
-            }
-        ]
     }, {
         name: 'post_provision_scheduler',
         label: 'Schedule a task',
