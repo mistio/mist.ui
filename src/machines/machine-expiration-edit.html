@@ -102,7 +102,8 @@
                                     {val: 'months', title: 'months'},
                                     {val: 'weeks', title: 'weeks'},
                                     {val: 'days', title: 'days'},
-                                    {val: 'hours', title: 'hours'}
+                                    {val: 'hours', title: 'hours'},
+                                    {val: 'minutes', title: 'minutes'}
                                 ]
                             }, {
                                 name: 'notify',
@@ -142,12 +143,12 @@
             
         },
         _openDialog: function(e) {
-            this._initialiseValues();
+            this._initialiseValues(this.machine);
         },
         _closeDialog: function(e) {
             this.$.dialogModal.opened = false;
         },
-        _initialiseValues: function() {
+        _initialiseValues: function(machine) {
             var date = this.machine.expiration ? this.machine.expiration.date : '', 
                 fromNow = this._dateToDurationFromNow(date);
             var notify = this.machine.expiration ? this.machine.expiration.notify : 0,
@@ -156,19 +157,15 @@
             this.set('fields.0.subfields.0.value',  this.machine.expiration ? this.machine.expiration.action : this.fields[0].subfields[0].defaultValue);
             this.notifyPath('fields.0.subfields.0.value');
             
-            if (fromNow.span) {
+            if (date) {
                 this.set('fields.0.subfields.1.valueDefaultSpan', fromNow.span);
                 this.notifyPath('fields.0.subfields.1.valueDefaultSpan');
-            }
-            if (fromNow.unit) {
                 this.set('fields.0.subfields.1.valueDefaultUnit', fromNow.unit);
                 this.notifyPath('fields.0.subfields.1.valueDefaultUnit');
             }
-            if (before.span) {
+            if (notify) {
                 this.set('fields.0.subfields.2.valueDefaultSpan', before.span);
                 this.notifyPath('fields.0.subfields.2.valueDefaultSpan');
-            }
-            if (before.unit) {
                 this.set('fields.0.subfields.2.valueDefaultUnit', before.unit);
                 this.notifyPath('fields.0.subfields.2.valueDefaultUnit');
             }
@@ -178,7 +175,7 @@
         _dateToDurationFromNow: function(date) {
             var fromNow = moment(date).fromNow(true),
                 span, unit;
-            if (moment(fromNow).isValid()){
+            if (moment(date).isValid()){
                 var chunks = fromNow.split(' ');
                 span = chunks[0];
                 unit = chunks[1];
