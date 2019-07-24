@@ -148,48 +148,60 @@
             this.$.dialogModal.opened = false;
         },
         _initialiseValues: function() {
-            // debugger;
+            debugger;
             var date = this.machine.expiration ? this.machine.expiration.date : '', 
                 fromNow = this._dateToDurationFromNow(date);
             var notify = this.machine.expiration ? this.machine.expiration.notify : 0,
                 before = this._secondsToDuration(notify);
 
-            this.set('fields.0.subfields.0.value',  this.machine.expiration ? this.machine.expiration.action : '');
-            this.set('fields.0.subfields.1.valueDefaultSpan', fromNow.span); //date to duration
-            this.set('fields.0.subfields.1.valueDefaultUnit', fromNow.unit); //date to duration
-            this.set('fields.0.subfields.2.valueDefaultSpan', before.span);
-            this.set('fields.0.subfields.2.valueDefaultUnit', before.unit);
-
-            this.notifyPath('fields.0.subfields.0.valueDefaultSpan');
-            this.notifyPath('fields.0.subfields.0.valueDefaultUnit');
-            this.notifyPath('fields.0.subfields.1.value');
-            this.notifyPath('fields.0.subfields.2.valueDefaultSpan');
-            this.notifyPath('fields.0.subfields.2.valueDefaultUnit');
-
+            this.set('fields.0.subfields.0.value',  this.machine.expiration ? this.machine.expiration.action : this.fields[0].subfields[0].defaultValue);
+            this.notifyPath('fields.0.subfields.0.value');
+            
+            if (fromNow.span) {
+                this.set('fields.0.subfields.1.valueDefaultSpan', fromNow.span);
+                this.notifyPath('fields.0.subfields.1.valueDefaultSpan');
+            }
+            if (fromNow.unit) {
+                this.set('fields.0.subfields.1.valueDefaultUnit', fromNow.unit);
+                this.notifyPath('fields.0.subfields.1.valueDefaultUnit');
+            }
+            if (before.span) {
+                this.set('fields.0.subfields.2.valueDefaultSpan', before.span);
+                this.notifyPath('fields.0.subfields.2.valueDefaultSpan');
+            }
+            if (before.unit) {
+                this.set('fields.0.subfields.2.valueDefaultUnit', before.unit);
+                this.notifyPath('fields.0.subfields.2.valueDefaultUnit');
+            }
             // console.log('DIALOG EXPIRATION', this.machine.expiration);
             this.$.dialogModal.opened = true;
         },
         _dateToDurationFromNow: function(date) {
-            var fromNow = moment(date).fromNow(true);
-            var chunks = fromNow.split(' ');
-            var span = chunks[0]
-            var unit = chunks[1];
+            var fromNow = moment(date).fromNow(true),
+                span, unit;
+            if (moment(fromNow).isValid()){
+                var chunks = fromNow.split(' ');
+                span = chunks[0];
+                unit = chunks[1];
+            }
             return {span: span, unit: unit}
         },
         _secondsToDuration: function(seconds) {
             var step, span;
-            if (seconds%(3600*24*7) == 0) {
-                step = 'weeks';
-                span = seconds/(3600*24*7);
-            } else if (seconds%(3600*24) == 0) {
-                step = 'days';
-                span = seconds/(3600*24);
-            } else if (seconds%3600 == 0) {
-                step = 'hours';
-                span = seconds/3600;
-            } else if (seconds%60 == 0) {
-                step = 'minutes';
-                span = seconds;
+            if (seconds) {
+                if (seconds%(3600*24*7) == 0) {
+                    step = 'weeks';
+                    span = seconds/(3600*24*7);
+                } else if (seconds%(3600*24) == 0) {
+                    step = 'days';
+                    span = seconds/(3600*24);
+                } else if (seconds%3600 == 0) {
+                    step = 'hours';
+                    span = seconds/3600;
+                } else if (seconds%60 == 0) {
+                    step = 'minutes';
+                    span = seconds;
+                }
             }
             return {span: span, unit: step}
         }
