@@ -162,12 +162,15 @@
                 this.notifyPath('fields.0.subfields.1.valueDefaultSpan');
                 this.set('fields.0.subfields.1.valueDefaultUnit', fromNow.unit);
                 this.notifyPath('fields.0.subfields.1.valueDefaultUnit');
-            }
-            if (notify) {
-                this.set('fields.0.subfields.2.valueDefaultSpan', before.span);
-                this.notifyPath('fields.0.subfields.2.valueDefaultSpan');
-                this.set('fields.0.subfields.2.valueDefaultUnit', before.unit);
-                this.notifyPath('fields.0.subfields.2.valueDefaultUnit');
+                if (!notify) {
+                    this.set('fields.0.subfields.2.disabled', true);
+                } else if (notify) {
+                    this.set('fields.0.subfields.2.valueDefaultSpan', before.span);
+                    this.notifyPath('fields.0.subfields.2.valueDefaultSpan');
+                    this.set('fields.0.subfields.2.valueDefaultUnit', before.unit);
+                    this.notifyPath('fields.0.subfields.2.valueDefaultUnit');
+                    this.set('fields.0.subfields.2.disabled', false);
+                } 
             }
             // console.log('DIALOG EXPIRATION', this.machine.expiration);
             this.$.dialogModal.opened = true;
@@ -200,7 +203,7 @@
                     span = seconds/3600;
                 } else if (seconds%60 == 0) {
                     step = 'minutes';
-                    span = seconds;
+                    span = seconds/60;
                 }
             }
             return {span: span, unit: step}

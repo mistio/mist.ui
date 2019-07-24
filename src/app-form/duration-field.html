@@ -51,20 +51,20 @@
         </style>
         
         <template is="dom-if" if="[[field.optional]]">
-            <paper-checkbox checked="{{checked}}"></paper-checkbox>
+            <paper-checkbox checked="{{!field.disabled}}"></paper-checkbox>
         </template>
         <template is="dom-if" if="[[field.prefixText]]">
             <span class="prefix">[[field.prefixText]]</span>
         </template>
         <paper-input id$="app-form-[[id]]-[[field.name]]-duration" placeholder="[[field.placeholder]]" label="[[field.label]]" validator="[[field.validator]]"
             value="{{field.valueDefaultSpan}}" auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
-            error-message="[[field.errorMessage]]" disabled="[[!checked]]"
+            error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"
             placeholder=[[field.placeholder]] hidden$="[[field.hidden]]" type="number" min="1">
             <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
             <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
         </paper-input>
         <paper-dropdown-menu id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]"
-            horizontal-align="left" disabled="[[!checked]]" hidden="[[field.hidden]]" required="[[field.required]]">
+            horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]" required="[[field.required]]">
             <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]-duration-unit" attr-for-selected="value" selected="{{field.valueDefaultUnit}}"
                 class="dropdown-content">
                 <template id="durationRepeater" is="dom-repeat" items="[[field.options]]" as="option">
@@ -100,7 +100,7 @@
             },
             observers: [
                 '_initialise(field)',
-                '_checkedChanged(checked)',
+                '_checkedChanged(field.disabled)',
                 '_durationChanged(field.valueDefaultSpan, field.valueDefaultUnit, field.valueType)'
             ],
             listeners: {
@@ -109,8 +109,8 @@
             ready: function() {
 
             },
-            _checkedChanged: function(checked){
-                if (!this.checked) {
+            _checkedChanged: function(disabled){
+                if (this.field.disabled && this.field.optional) {
                     if (this.field.type == 'secs') {
                         this.set('field.value', 0);
                     } else {
