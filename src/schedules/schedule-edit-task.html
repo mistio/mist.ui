@@ -354,13 +354,13 @@
                                 delete pl.max_run_count;
                         }
                         if (this.schedule.schedule_entry && this.newSchedule.schedule_entry && this.newSchedule.schedule_type && JSON.stringify(this.schedule.schedule_entry) != JSON.stringify(this._computePayloadEntry(this.newSchedule.schedule_entry)))  {
-                            pl.schedule_entry = this.newSchedule.schedule_type != 'one_off' ? this._computePayloadEntry(this.newSchedule.schedule_entry) : moment(this.datetime).utc().format('YYYY-MM-DD HH:mm:ss').toString();
+                            pl.schedule_entry = this._computePayloadEntry(this.newSchedule.schedule_entry, this.newSchedule.schedule_type, this.datetime);
                         }
                         this.set('payload', pl);
                     }
                     this._updateformReady(this.sendingData);
                 },
-                _computePayloadEntry: function(entry) {
+                _computePayloadEntry: function(entry,type,datetime) {
                     if (this.newSchedule.schedule_type == 'interval') {
                         return {
                             every: this.newSchedule.schedule_entry.every,
@@ -371,7 +371,7 @@
                         return this._processCrontab(this.crontabEntry);
                     }
                     else if (this.newSchedule.schedule_type == 'one_off') {
-                        return this.newSchedule.schedule_entry.entry;
+                        return moment(this.datetime).utc().format('YYYY-MM-DD HH:mm:ss')
                     }
                 },
                 _processCrontab: function(entry) {
@@ -438,6 +438,7 @@
                         invalid = false;
                     }
                     this.set('invalidDatetime', invalid);
+                    this._updatePayload();
                 },
                 _crontabEntryChanged: function(crontab) {
                     if (this.schedule && this._computeIsCrontab(this.newSchedule.schedule_type) && crontab.value){
