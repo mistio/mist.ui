@@ -1131,13 +1131,22 @@
                         payload[p] = this.form[p]
                     }
 
+                    // clean up form for payload
+                    var excludeFields = this.fields.filter(function (el) {
+                        return el.excludeFromPayload == true;
+                    });
+
                     // if there's a list field add it as a nested object under the subform title.
                     this.fields.forEach(function (field) {
                         if (field.type == 'mist_size' && field.value == "custom") {
                             payload[field.name] = field.customValue;
                         }
                         if (field.type == 'fieldgroup') {
-                            payload[field.name] = field.value;
+                            if (JSON.stringify(field.value) == '{}') {
+                                excludeFields.push(field);
+                            } else {
+                                payload[field.name] = field.value;
+                            }
                         }
                         if (field.type == 'duration-field' && field.value && field.valueType == 'date') {
                             payload[field.name] = this._updateDateCalculationOnRequest(field.value);
@@ -1160,11 +1169,6 @@
                             payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:mm:ss");
                         }
                     }.bind(this));
-
-                    // clean up form for payload
-                    var excludeFields = this.fields.filter(function (el) {
-                        return el.excludeFromPayload == true;
-                    });
 
                     for (var i = 0; i < excludeFields.length; i++) {
                         delete payload[excludeFields[i].name];

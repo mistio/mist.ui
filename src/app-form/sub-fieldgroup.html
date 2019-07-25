@@ -96,15 +96,17 @@
                 this._fieldsChangedNotifyEvent();
             },
             _subfieldsChanged: function(subfields) {
-                if (this.field) {
+                if (this.field && this.enabled) {
                     var fieldValue = {};
                     for (var i=0; i<this.field.subfields.length; i++) {
                         fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
                     }
                     this.set('field.value', fieldValue);
+                } else if (!this.enabled) {
+                    this.set('field.value', {});
+                    this.notifyPath('field.value');
+                    this._fieldsChangedNotifyEvent();
                 }
-                this.notifyPath('field.value');
-                this._fieldsChangedNotifyEvent();
             },
             _fieldsChangedNotifyEvent: function(){
                 var form = this.shadowRoot.querySelector('app-form#'+this.id);
