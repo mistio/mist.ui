@@ -397,7 +397,7 @@
                 'cost': {
                     'body': function(item, row) {
                         var cost = parseFloat(item.monthly);
-                        return item && item.monthly ? _this.currency.sign + _this._ratedCost(cost, _this.currency.rate) : '';
+                        return item && item.monthly && _this.currency? _this.currency.sign + _this._ratedCost(cost, _this.currency.rate) : '';
                     },
                     'cmp': function(item1, item2, row1, row2) {
                         if (item1.monthly < item2.monthly)
@@ -481,11 +481,11 @@
                         return 'expiration';
                     },
                     'body': function(item, row) {
-                        return item ? moment.utc(item.date).fromNow() : '';
+                        return item && item.date ? moment.utc(item.date).fromNow() : '';
                     },
                     'cmp': function(item1, item2, row1, row2) {
-                        var exp1 = moment(item1.date),
-                            exp2 = moment(item2.date);
+                        var exp1 = item1 && item1.date ? moment(item1.date) : moment(''),
+                            exp2 = item2 && item2.date ? moment(item2.date) : moment('');
 
                         if (!exp1.isValid() && !exp2.isValid())
                             return 0;
