@@ -1076,9 +1076,81 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }
 
     // add common post provision fields
-    p.fields.push({
+    p.fields.push(
+    {
+        name: 'expiration',
+        label: 'Set expiration',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: false,
+        helptext: 'Set an expiration date when the machine will stop or be destroyed',
+        show: true,
+        required: false,
+        optional: true,
+        subfields: [
+            {
+                name: 'action',
+                type: 'dropdown',
+                class: 'bind-both',
+                value: 'stop',
+                defaultValue: 'stop',
+                helptext: '',
+                show: true,
+                required: false,
+                class: 'width-150 inline-block',
+                options: [
+                    {val: 'stop', title: 'STOP'},
+                    {val: 'destroy', title: 'DESTROY'}
+                ]
+            }, {
+                name: 'date',
+                type: 'duration_field',
+                class: 'bind-both',
+                value: '',
+                defaultValue: '',
+                valueType: 'date',
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'days',
+                helptext: '',
+                show: true,
+                required: false,
+                prefixText: 'in ',
+                options: [
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'},
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'},
+                    {val: 'minutes', title: 'minutes'}
+                ]
+            }, {
+                name: 'notify',
+                type: 'duration_field',
+                valueType: 'secs',
+                value: 3600,
+                defaultValue: 3600,
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'hours',
+                class: 'bind-top',
+                helptext: '',
+                show: true,
+                required: false,
+                prefixText: 'Notify me ',
+                suffixText: 'before',
+                secondary: true,
+                optional: true,
+                options: [
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'},
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'},
+                    {val: 'minutes', title: 'minutes'}
+                ]
+            }
+        ]
+    }, {
         name: 'post_provision_script',
-        label: 'Run Script',
+        label: 'Run post-deploy script',
         type: 'toggle',
         value: false,
         defaultValue: false,
@@ -1361,7 +1433,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     if (['onapp'].indexOf(p.provider) == -1) {
         p.fields.push({
             name: 'create_hostname_machine',
-            label: 'Create Hostname',
+            label: 'Create hostname',
             type: 'toggle',
             value: false,
             defaultValue: false,

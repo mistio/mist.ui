@@ -9,7 +9,7 @@
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../mist-monitoring.html">
-
+<link rel="import" href="machine-expiration-edit.html">
 <link rel="import" href="machine-actions.html">
 <link rel="import" href="machine-r12ns.html">
 
@@ -190,13 +190,13 @@
                 vertical-align: top;
             }
 
-            .machine-key iron-icon, .machine-volume iron-icon {
+            .machine-key iron-icon, .machine-volume iron-icon, .expiration iron-icon {
                 margin-right: 8px;
                 opacity: 0.32;
                 cursor: pointer;
             }
 
-            .machine-key iron-icon.delete, .machine-volume iron-icon.delete {
+            iron-icon.delete {
                 opacity: 0.13;
                 margin-right: 16px;
                 height: 12px;
@@ -204,7 +204,7 @@
                 transition: opacity 100 ease-in;
             }
 
-            .machine-key:hover iron-icon.delete, .machine-volume:hover iron-icon.delete {
+            .expiration iron-icon.delete, .machine-key:hover iron-icon.delete, .machine-volume:hover iron-icon.delete {
                 opacity: 0.32;
             }
 
@@ -482,6 +482,7 @@
             }
         </style>
         <div id="content">
+            <machine-expiration-edit id="expirationdialog" machine="[[machine]]"></machine-expiration-edit>
             <paper-material class="single-head layout horizontal machine-page-head">
                 <span class="icon">
                     <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
@@ -626,10 +627,23 @@
                             <h4>Created:</h4>
                         </div>
                         <div class="cell" hidden$="[[!machine]]">
-                            [[_fromNow(machine.created)]]
+                            [[_fromNow(machine.created)]].
                             <span hidden$="[[!machine.created_by]]">
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
                             </span>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="row">
+                        <div class="cell">
+                            <h4>Expires:</h4>
+                        </div>
+                        <div class="cell expiration" hidden$="[[!machine]]">
+                            [[_fromNow(machine.expiration.date, machine.*, model.machines.*)]]
+                            <span hidden$="[[!machine.expiration.date]]">
+                                <iron-icon icon="icons:cancel" on-tap="deleteExpiration" class="delete"></iron-icon>
+                            </span>
+                            <iron-icon icon="editor:mode-edit" on-tap="editExpiration" class="edit"></iron-icon>
                         </div>
                         <br />
                     </div>
@@ -746,6 +760,7 @@
             </paper-material>
         </div>
         <dialog-element id="machinedialog"></dialog-element>
+        <iron-ajax id="deleteExpirationDate" url="/api/v1/machines/[[machine.id]]" method="PUT" on-response="_handleMachineDeleteAjaxResponse" on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="machineDeleteAjaxRequest" url="/api/v1/machines/[[machine.id]]" method="DELETE" on-response="_handleMachineDeleteAjaxResponse" on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse" on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
         <iron-ajax id="detachVolumeRequest" url="/api/v1/clouds/[[machine.cloud]]/volumes/[[dettachVolumeId]]" method="PUT" on-response="_detachVolumeResponse" loading="{{isPendingVolumeRequest}}" on-error="_detachVolumeError" handle-as="xml"></iron-ajax>
@@ -762,6 +777,9 @@ Polymer({
     properties: {
         model: {
             type: Object
+        },
+        path: {
+            type: String
         },
         user: {
             type: String
@@ -908,6 +926,9 @@ Polymer({
     ready: function() {
         this.set('hideAssociatedKeys', true);
         this.set('isPendingKeyRequest', false);
+        if (this.path.endsWith("expiration")) {
+            this.editExpiration();
+        }
     },
     _renderMachineKeys: function () {
         this.$.machineKeysDomRepeat.render();
@@ -1153,7 +1174,13 @@ Polymer({
 
     },
     _machineActionConfirmation: function(e) {
-        if (e.detail.response == "confirm" && e.detail.reason == "disassociate.key") {
+        if (e.detail.response == "confirm" && e.detail.reason == "machine.expiration_delete") {
+            var emptyExpDate = {expiration: {date:false}};
+            this.shadowRoot.querySelector('#deleteExpirationDate').headers["Csrf-Token"] = CSRF_TOKEN;
+            this.shadowRoot.querySelector('#deleteExpirationDate').headers["Content-Type"] = 'application/json';
+            this.shadowRoot.querySelector('#deleteExpirationDate').body = emptyExpDate;
+            this.shadowRoot.querySelector('#deleteExpirationDate').generateRequest();
+        } else if (e.detail.response == "confirm" && e.detail.reason == "disassociate.key") {
             this.shadowRoot.querySelector('#disassociateKeyRequest').headers["Csrf-Token"] = CSRF_TOKEN;
             this.shadowRoot.querySelector('#disassociateKeyRequest').generateRequest();
         } else if (e.detail.response == "confirm" && e.detail.reason == "detach.volume") {
@@ -1161,6 +1188,8 @@ Polymer({
             this.shadowRoot.querySelector('#detachVolumeRequest').headers["Content-Type"] = 'application/json';
             this.shadowRoot.querySelector('#detachVolumeRequest').body = { action: 'detach', machine: this.machine.id };
             this.shadowRoot.querySelector('#detachVolumeRequest').generateRequest();
+        } else if (e.detail.response == "confirm" && e.detail.reason == "detach.volume") {
+
         }
     },
     _updateKeyLoader: function(e) {
@@ -1224,7 +1253,7 @@ Polymer({
         return info.length ? info : '';
     },
     _fromNow: function(time) {
-        return moment.utc(time).fromNow();
+        return time && moment(time).isValid() ? moment.utc(time).fromNow() : 'never.';
     },
     itemProbeClasses: function(machine) {
         if (!machine || !machine.probe) {
@@ -1552,6 +1581,52 @@ Polymer({
             return sshFrom + ' over ssh';
         if (icmpFrom)
             return icmpFrom + ' over icmp';
-    }
+    },
+
+    _expirationVerb: function(time, action) {
+        if (moment().isBefore(time)) {
+            return action == "stop" ? 'Will stop' : 'Will be destroyed'
+        } else {
+            return action == "stop" ? 'Stopped' : 'Destroyed';
+        }
+    },
+
+    _isPast: function(time) {
+        // console.log('_isPast', time, moment(time).isValid(), !moment().isBefore(time));
+        return time && moment(time).isValid() ? !moment().isBefore(time) : true;
+    },
+
+    _expirationNotify: function(secs) {
+        if (secs) {
+            var seconds = moment.duration(secs,'seconds');
+            if (seconds<60)
+                return moment.duration(seconds,'seconds').humanize();
+            else if (seconds<3600)
+                return moment.duration(seconds,'minutes').humanize();
+            else if (seconds<=3600*24)
+                return moment.duration(seconds,'hours').humanize();
+            else if (seconds<=3600*24*7)
+                return moment.duration(seconds,'days').humanize();
+            else if (seconds<=3600*24*7*31)
+                return moment.duration(seconds,'weeks').humanize();
+            else 
+                return moment.duration(seconds,'months').humanize();
+        }
+    },
+
+    deleteExpiration: function() {
+        this._showDialog({
+            title: 'Delete expiration of machine?',
+            body: "You can always add an expiration date later on.",
+            danger: false,
+            reason: "machine.expiration_delete",
+            action: 'delete'
+        });
+    },
+
+    editExpiration: function() {
+        this.$['expirationdialog']._openDialog();
+    },
+
 });
 </script>

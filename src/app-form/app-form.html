@@ -21,11 +21,13 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
 
+<link rel="import" href="sub-fieldgroup.html">
 <link rel="import" href="sub-form.html">
 <link rel="import" href="mist-size-field.html">
 <link rel="import" href="mist-networks-field.html">
 <link rel="import" href="mist-machine-field.html">
 <link rel="import" href="mist-tags-field.html">
+<link rel="import" href="duration-field.html">
 
 <script src="../../bower_components/yaml.js/dist/yaml.min.js"></script>
 
@@ -51,9 +53,45 @@
                 padding-bottom: 16px;
             }
 
+            :host([inline]) .grid {
+                display: inline-flex;
+                justify-content: flex-start;
+                align-items: center;
+                align-self: center;
+                flex-wrap: wrap;
+            }
+
+            :host([inline]) .grid-row {
+                display: inline-block;
+                margin-left: 0;
+                margin-right: 0;
+                max-width: 97%;
+            }
+
+            :host([inline]) .grid-row h3,
+            :host([inline]) .grid-row .field-helptext {
+                padding: 0;
+                margin: 0;
+                display: none !important;
+            }
+
+            :host .width-150 {
+                width: 150px !important;
+                max-width: 150px !important;
+            }
+
+            :host .inline-block {
+                display: inline-block !important;
+            }
+
             :host([single-column]) .m6,
             :host([single-column]) .m12 {
-                flex-basis: 100% !important;
+                flex-basis: 100% ;
+            }
+
+            :host([indialog]) sub-fieldgroup {
+                width: 100%;
+                padding-bottom: 24px;
             }
 
             .grid-row>* {
@@ -365,6 +403,10 @@
                     width: 100%;
                 }
             }
+
+            subfield-group {
+                background-color: #ddd;
+            }
         </style>
 
         <div class$="grid [[_computeLayoutClass(horizontalLayout)]]">
@@ -465,6 +507,9 @@
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_tags', fieldVisibility, index)]]" restamp>
                             <mist-tags-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-tags-field>
                         </template>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'duration_field', fieldVisibility, index)]]" restamp>
+                            <duration-field id$="app-form-[[id]]-[[field.name]]" class$="xs12 m6 {{field.class}}" field="{{field}}"></mist-tags-field>
+                        </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_dropdown', fieldVisibility, index)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]" required="[[field.required]]">
@@ -556,6 +601,9 @@
                             </div>
                             <sub-form item-name="[[field.itemName]]" options="[[field.options]]" min="[[field.min]]" max="[[field.max]]" field-name="[[field.name]]" horizontal="[[f.horizontal]]" moderate-top="[[f.moderateTop]]"
                                 items="[[field.items]]" class$="xs12 m12 [[field.class]]"></sub-form>
+                        </template>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'fieldgroup', fieldVisibility, index)]]">
+                            <sub-fieldgroup id$="fieldgroup-[[id]]" field="[[field]]" class$="xs12 m6 l6 [[field.class]]" optional></sub-fieldgroup>
                         </template>
                         <div class$="field-helptext xs12 m6 [[field.class]]" hidden="[[!_hasHelptext(field)]]">[[field.helptext]]
                             <a hidden$="[[!field.helpHref]]" href$="[[field.helpHref]]" target="new" class="helpHref" on-tap="_helpTap">
@@ -650,6 +698,7 @@
                 },
                 form: {
                     type: Object,
+                    value: function() {return {}},
                     notify: true
                 },
                 fields: {
@@ -762,6 +811,9 @@
             },
 
             _compareFieldType: function (fieldType, value, fieldVisibility, index) {
+                if (fieldType == 'fieldgroup') {
+                    console.log('fieldgroup visibility', fieldVisibility[index],fieldType == value)
+                }
                 return fieldVisibility[index] && fieldType == value;
             },
 
@@ -788,8 +840,8 @@
                 this.shadowRoot.querySelector("#errormsg").textContent = e.detail.request.xhr.responseText;
             },
 
-            runFieldsChanged: function () {
-                this._fieldsChanged()
+            runFieldsChanged: function (e) {
+                this._fieldsChanged();
             },
 
             runValidateFields: function() {
@@ -802,6 +854,7 @@
             },
 
             _fieldsChanged: function (fields, sendingData) {
+                console.log('_fieldsChanged', fields ? fields.path : 'run by event')
                 if (this.formError) {
                     this.set('formError', false);
                 }
@@ -829,6 +882,10 @@
 
                         // Update show field flag after calculating dependencies
                         that.fields.forEach(function (el, index) {
+                            console.log(el.name);
+                            if (el.name == "expiration") {
+                                console.log(el.value);
+                            }
                             // if field has a dependency
                             if (el.showIf) {
                                 dependency = form[el.showIf.fieldName];
@@ -1074,10 +1131,25 @@
                         payload[p] = this.form[p]
                     }
 
+                    // clean up form for payload
+                    var excludeFields = this.fields.filter(function (el) {
+                        return el.excludeFromPayload == true;
+                    });
+
                     // if there's a list field add it as a nested object under the subform title.
                     this.fields.forEach(function (field) {
                         if (field.type == 'mist_size' && field.value == "custom") {
                             payload[field.name] = field.customValue;
+                        }
+                        if (field.type == 'fieldgroup') {
+                            if (JSON.stringify(field.value) == '{}') {
+                                excludeFields.push(field);
+                            } else {
+                                payload[field.name] = field.value;
+                            }
+                        }
+                        if (field.type == 'duration-field' && field.value && field.valueType == 'date') {
+                            payload[field.name] = this._updateDateCalculationOnRequest(field.value);
                         }
                         if (field.type == 'list') {
                             var subformPayload = [];
@@ -1094,14 +1166,9 @@
                             }
                             payload[field.name] = subformPayload;
                         } else if (field.type == 'date' && field.value) {
-                            payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:MM:SS");
+                            payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:mm:ss");
                         }
                     }.bind(this));
-
-                    // clean up form for payload
-                    var excludeFields = this.fields.filter(function (el) {
-                        return el.excludeFromPayload == true;
-                    });
 
                     for (var i = 0; i < excludeFields.length; i++) {
                         delete payload[excludeFields[i].name];
@@ -1115,6 +1182,10 @@
                 this.$.formAjax.generateRequest();
 
                 this.set('sendingData', true);
+            },
+
+            _updateDateCalculationOnRequest: function(fieldValue) {
+                return moment().add(span,unit).utc().format("YYYY-MM-DD HH:mm:ss");
             },
 
             _asssertToInclude: function (list, field) {

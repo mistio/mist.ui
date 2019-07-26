@@ -244,17 +244,13 @@
                             this.set('newSchedule.schedule_entry', {every: '', period: ''});
                             this.set('newSchedule.schedule_entry.every', this.schedule.schedule_entry.every)
                             this.set('newSchedule.schedule_entry.period', this.schedule.schedule_entry.period)
-                        }
-
-                        else if (newSchedule.schedule_type == "crontab"){
+                        } else if (newSchedule.schedule_type == "crontab"){
                             this.set('crontabEntry', this._stringifyCrontab(this.schedule.schedule_entry))
                             this.set('newSchedule.schedule_entry', this.schedule.schedule_entry);
-                        }
-
-                        else if (newSchedule.schedule_type == "one_off"){
+                        } else if (newSchedule.schedule_type == "one_off"){
                             this.set('newSchedule.schedule_entry', {entry: ''})
                             this.set('newSchedule.schedule_entry.entry', this.schedule.schedule_entry.entry)
-                            this.set('datetime', this.schedule.schedule_entry.entry.replace(" ","T").substring(0,this.schedule.schedule_entry.entry.length-3))
+                            this.set('datetime', moment.utc(this.schedule.schedule_entry.entry).local().format('YYYY-MM-DDTHH:mm'));
                         }
 
                         this.taskType = this._computeAction(this.schedule.task_type) != undefined ? 'action' : 'script';
@@ -358,13 +354,13 @@
                                 delete pl.max_run_count;
                         }
                         if (this.schedule.schedule_entry && this.newSchedule.schedule_entry && this.newSchedule.schedule_type && JSON.stringify(this.schedule.schedule_entry) != JSON.stringify(this._computePayloadEntry(this.newSchedule.schedule_entry)))  {
-                            pl.schedule_entry = this.newSchedule.schedule_type != 'one_off' ? this._computePayloadEntry(this.newSchedule.schedule_entry) : moment(this.datetime).utc().format('YYYY-MM-DD HH:mm:ss').toString();
+                            pl.schedule_entry = this._computePayloadEntry(this.newSchedule.schedule_entry, this.newSchedule.schedule_type, this.datetime);
                         }
                         this.set('payload', pl);
                     }
                     this._updateformReady(this.sendingData);
                 },
-                _computePayloadEntry: function(entry) {
+                _computePayloadEntry: function(entry,type,datetime) {
                     if (this.newSchedule.schedule_type == 'interval') {
                         return {
                             every: this.newSchedule.schedule_entry.every,
@@ -375,7 +371,7 @@
                         return this._processCrontab(this.crontabEntry);
                     }
                     else if (this.newSchedule.schedule_type == 'one_off') {
-                        return this.newSchedule.schedule_entry.entry;
+                        return moment(this.datetime).utc().format('YYYY-MM-DD HH:mm:ss')
                     }
                 },
                 _processCrontab: function(entry) {
@@ -426,7 +422,8 @@
                     } else if (!moment(date).isValid()){
                         return "Invalid date";
                     } else {
-                        return moment.utc(date).local().fromNow();
+                        var a = moment.utc(this.schedule.schedule_entry.entry).local();
+                        return a.fromNow();
                     }
                 },
                 _datetimeChanged: function(datetime) {
@@ -441,6 +438,7 @@
                         invalid = false;
                     }
                     this.set('invalidDatetime', invalid);
+                    this._updatePayload();
                 },
                 _crontabEntryChanged: function(crontab) {
                     if (this.schedule && this._computeIsCrontab(this.newSchedule.schedule_type) && crontab.value){
