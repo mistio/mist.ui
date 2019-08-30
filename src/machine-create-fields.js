@@ -56,6 +56,10 @@ MACHINE_CREATE_FIELDS.push({
         show: false,
         required: true,
         options: [],
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [false],
+        }
     }, {
         name: 'new_resource_group',
         label: 'Resource Group name',
@@ -66,6 +70,10 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         helptext: '',
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [true],
+        }
     }, {
         name: 'create_storage_account',
         h3: 'Storage account',
@@ -94,6 +102,10 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         helptext: '',
+        showIf: {
+            fieldName: 'create_storage_account',
+            fieldValues: [true],
+        }
     }, {
         name: 'ex_storage_account',
         label: 'Storage Account',
@@ -105,6 +117,10 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: true,
         options: [],
+        showIf: {
+            fieldName: 'create_storage_account',
+            fieldValues: [false],
+        },
     }, {
         name: 'create_network',
         h3: 'Network',
@@ -133,6 +149,10 @@ MACHINE_CREATE_FIELDS.push({
         show: false,
         required: false,
         helptext: '',
+        showIf: {
+            fieldName: 'create_network',
+            fieldValues: [true],
+        }
     }, {
         name: 'networks',
         label: 'Networks',
@@ -145,6 +165,10 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: true,
         options: [],
+        showIf: {
+            fieldName: 'create_network',
+            fieldValues: [false],
+        },
     }, {
         name: 'machine_username',
         label: 'Machine Username *',
