@@ -407,6 +407,15 @@
             subfield-group {
                 background-color: #ddd;
             }
+
+            :host paper-spinner {
+                padding: 8px 41%;
+            }
+            .spinner-wrapper {
+                width: 210px;
+                position: relative;
+                height: 40px;
+            }
         </style>
 
         <div class$="grid [[_computeLayoutClass(horizontalLayout)]]">
@@ -539,8 +548,13 @@
                                 <div slot="dropdown-content" class="dropdown-content">
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
                                     <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
-                                        <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
+                                        <template is="dom-if" if="[[_noOptions(field.options, field.options.length, field.loader)]]" restamp>
                                             <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
+                                        </template>
+                                        <template is="dom-if" if="[[field.loader]]" restamp>
+                                            <div class="spinner-wrapper">
+                                                <paper-spinner active="[[field.loader]]"></paper-spinner>
+                                            </div>
                                         </template>
                                         <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
                                             <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
@@ -873,7 +887,7 @@
                     var index = parseInt(fields.path.split('.')[1]);
                     this.set('fieldVisibility.' + index, fields.value);
                 }
-                if (fields && !fields.path.endsWith('.show')) {
+                if (fields && !fields.path.endsWith('.show') && !fields.path.endsWith('.loader')) {
                     var that = this;
                     // this.async(function () {
                         var form = that.form,
@@ -1386,8 +1400,8 @@
             _helpTap: function (e) {
                 this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'open help ' + e.model.field.helpHref }));
             },
-            _noOptions: function (options, length) {
-                return !options || options.length == 0;
+            _noOptions: function (options, length, loader) {
+                return !loader && (!options || options.length == 0);
             },
             _filter: function (options, search) {
                 return options.filter(function (op) {
