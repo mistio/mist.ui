@@ -725,14 +725,6 @@
                     this._updateResourceGroups(this.selectedCloud);
                 }
 
-                // handle networks for azure arm
-                if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
-                    changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
-                        '.value', '')).name == 'create_network') {
-                    this._toggleNetworkFields(this.get(changeRecord.path.replace('.value', ''))
-                        .value);
-                }
-
                 if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path
                     .endsWith('value')) {
                     // if is onapp controll options based on location
@@ -1271,20 +1263,6 @@
         },
         _handleGetResourceGroupsError: function(e) {
             console.error('Got resource groups error', e);
-        },
-        _toggleNetworkFields: function(new_network) {
-            var newInd = this._fieldIndexByName('new_network');
-            var oldInd = this._fieldIndexByName('networks');
-
-            //if one, hide the other
-            if (new_network == true) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', true);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', false);
-
-            } else if (new_network == false) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', false);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', true);
-            }
         },
         _hideElementsforWin: function(value) {
             var scriptInd = this._fieldIndexByName('post_provision_script');
