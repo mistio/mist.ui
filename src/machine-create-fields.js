@@ -38,6 +38,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: 'Create the machine in a new resource group',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -45,6 +46,13 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    },  {
+        name: 'resource_group',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'ex_resource_group',
         label: 'Resource Group',
@@ -55,6 +63,7 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: '',
         search: '',
         show: false,
+        excludeFromPayload: true,
         required: true,
         options: [],
         showIf: {
@@ -69,6 +78,7 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: false,
         helptext: '',
         showIf: {
@@ -86,6 +96,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: 'Create the machine in a new storage account',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -94,6 +105,13 @@ MACHINE_CREATE_FIELDS.push({
             val: false,
         }],
     }, {
+        name: 'storage_account',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
+    }, {
         name: 'new_storage_account',
         label: 'Storage Account name',
         type: 'text',
@@ -101,6 +119,7 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: false,
         helptext: '',
         showIf: {
@@ -117,6 +136,7 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: true,
         options: [],
         showIf: {
@@ -134,6 +154,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: 'Create the machine in a new network',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -141,6 +162,13 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    }, {
+        name: 'networks',
+        value: '',
+        type: 'text',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'new_network',
         label: 'Network name',
@@ -150,19 +178,21 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         show: false,
         required: false,
+        excludeFromPayload: true,
         helptext: '',
         showIf: {
             fieldName: 'create_network',
             fieldValues: [true],
         }
     }, {
-        name: 'networks',
-        label: 'Networks',
+        name: 'ex_networks',
+        label: 'Network',
         type: 'mist_dropdown_searchable',
         noPluralisation: true,
         value: '',
         search: '',
         class: 'margin-bottom',
+        excludeFromPayload: true,
         defaultValue: '',
         show: true,
         required: true,
