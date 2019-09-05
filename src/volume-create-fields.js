@@ -29,23 +29,25 @@ var VOLUME_CREATE_FIELDS = []
 // https://docs.microsoft.com/en-us/rest/api/dtl/disks/createorupdate
 VOLUME_CREATE_FIELDS.push({
     provider: 'azure_arm',
-    fields: [{
-        name: "disk_type",
-        label: "Disk type",
-        type: 'dropdown',
-        value: "premium",
-        defaultValue: "premium",
-        required: true,
-        show: true,
-        errorMessage: "Please enter volume's type",
-        options: [{
-            title: 'Premium SSD',
-            val: 'Premium',
-        }, {
-            title: 'Standard SSD',
-            val: 'Standard',
-        }]
-    },{
+    fields: [
+    //     {
+    //     name: "disk_type",
+    //     label: "Disk type",
+    //     type: 'dropdown',
+    //     value: "premium",
+    //     defaultValue: "premium",
+    //     required: true,
+    //     show: true,
+    //     errorMessage: "Please enter volume's type",
+    //     options: [{
+    //         title: 'Premium SSD',
+    //         val: 'Premium',
+    //     }, {
+    //         title: 'Standard SSD',
+    //         val: 'Standard',
+    //     }]
+    // },
+    {
         name: "host_caching",
         label: "Host caching policy",
         type: 'dropdown',
@@ -64,6 +66,63 @@ VOLUME_CREATE_FIELDS.push({
             title: 'Read Write',
             val: 'ReadQrite',
         }]
+    },{
+        name: 'create_resource_group',
+        h3: 'Resource group',
+        type: 'radio',
+        value: true,
+        defaultValue: true,
+        class: 'bind-both',
+        helptext: 'Create the machine in a new resource group',
+        show: true,
+        required: false,
+        excludeFromPayload: true,
+        options: [{
+            title: 'Create new',
+            val: true,
+        }, {
+            title: 'Use existing',
+            val: false,
+        }],
+    },{
+        name: 'resource_group',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
+    },{
+        name: 'ex_resource_group',
+        label: 'Resource Group',
+        type: 'mist_dropdown_searchable',
+        loader: true,
+        class: 'margin-bottom',
+        value: '',
+        defaultValue: '',
+        search: '',
+        show: false,
+        excludeFromPayload: true,
+        required: true,
+        options: [],
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [false],
+        }
+    },{
+        name: 'new_resource_group',
+        label: 'Resource Group name',
+        type: 'text',
+        value: '',
+        class: 'margin-bottom',
+        defaultValue: '',
+        show: true,
+        excludeFromPayload: true,
+        required: false,
+        helptext: '',
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [true],
+        }
     }]
 });
 

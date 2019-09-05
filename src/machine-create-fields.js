@@ -1063,7 +1063,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
     if (['openstack', 'packet', 'azure_arm'].indexOf(p.provider) > -1) {
-        var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
+        var allowedVolumes = ['gce','azure_arm'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
