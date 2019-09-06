@@ -139,6 +139,7 @@ MACHINE_CREATE_FIELDS.push({
         excludeFromPayload: true,
         required: true,
         options: [],
+        alloptions: [],
         showIf: {
             fieldName: 'create_storage_account',
             fieldValues: [false],

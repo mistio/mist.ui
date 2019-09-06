@@ -707,10 +707,14 @@
 
                 // if it is azure arm update storage accounts & resource groups
                 if (this.model.clouds[this.selectedCloud].provider == 'azure_arm') {
-                    console.log('changeRecord', changeRecord);
+                    // console.log('changeRecord', changeRecord);
                     if (changeRecord.path.endsWith('value')) {
                         var fieldName = this.get(changeRecord.path.replace('.value', '')).name;
 
+                        if (['resource_group','location'].indexOf(fieldName) > -1){
+                            this._filterStorageAccountsOptions();
+                        }
+ 
                         if (['resource_group','storage_account','networks']
                             .indexOf(fieldName) > -1) {
                                 return;
@@ -1273,9 +1277,25 @@
             this.set('machineFields.' + this.storageAccountsFieldIndex + '.loader', true);
         },
         _handleGetStorageAccountsResponse: function(e) {
-            this.set('machineFields.' + this.storageAccountsFieldIndex + '.options', e.detail.response || []);
+            this.set('machineFields.' + this.storageAccountsFieldIndex + '.alloptions', e.detail.response || []);
+            this._filterStorageAccountsOptions();
             this.shadowRoot.querySelector('app-form').fire('fields-changed');
             this.set('machineFields.' + this.storageAccountsFieldIndex + '.loader', false);
+        },
+        _filterStorageAccountsOptions: function() {
+            var resourceGroupFieldIndex = this._fieldIndexByName('resource_group'),
+                locationFieldIndex = this._fieldIndexByName('location'),
+                resourceGroup = this.get('machineFields.'+ resourceGroupFieldIndex +'.value'),
+                location = this.get('machineFields.'+ locationFieldIndex +'.value');
+            var options = [];
+
+            if (resourceGroup && location) {
+                options = this.get('machineFields.' + this.storageAccountsFieldIndex + '.alloptions').filter(function(o){
+                    return o.resource_group == resourceGroup && o.location == location;
+                })
+            }
+            console.log('_filterStorageAccountsOptions', resourceGroup, location, options.length)
+            this.set('machineFields.' + this.storageAccountsFieldIndex + '.options', options);
         },
         _handleGetStorageAccountsError: function(e) {
             console.error('Got storage accounts error', e);
