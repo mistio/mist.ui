@@ -47,26 +47,27 @@ VOLUME_CREATE_FIELDS.push({
     //         val: 'Standard',
     //     }]
     // },
+    // {
+    //     name: "host_caching",
+    //     label: "Host caching policy",
+    //     type: 'dropdown',
+    //     value: "none",
+    //     defaultValue: "none",
+    //     required: true,
+    //     show: true,
+    //     errorMessage: "Please enter host caching policy of the disk",
+    //     options: [{
+    //         title: 'None',
+    //         val: 'None',
+    //     }, {
+    //         title: 'Read Only',
+    //         val: 'ReadOnly',
+    //     }, {
+    //         title: 'Read Write',
+    //         val: 'ReadQrite',
+    //     }]
+    // },
     {
-        name: "host_caching",
-        label: "Host caching policy",
-        type: 'dropdown',
-        value: "none",
-        defaultValue: "none",
-        required: true,
-        show: true,
-        errorMessage: "Please enter host caching policy of the disk",
-        options: [{
-            title: 'None',
-            val: 'None',
-        }, {
-            title: 'Read Only',
-            val: 'ReadOnly',
-        }, {
-            title: 'Read Write',
-            val: 'ReadQrite',
-        }]
-    },{
         name: 'create_resource_group',
         h3: 'Resource group',
         type: 'radio',
