@@ -288,19 +288,19 @@
                         </div>
                         <!-- we can request monitoring button -->
                         <div class="enableMonitoring" hidden$="[[resource.monitoring.hasmonitoring]]">
-                            <paper-button class="blue" on-tap="toggleMonitoring" disabled="{{showLogs}}">Enable Monitoring</paper-button>
+                            <paper-button class="blue" on-tap="enableMonitoring" disabled="{{showLogs}}">Enable Monitoring</paper-button>
                         </div>
                         <!-- the machine is considered monitored -->
                         <div class="monitored" hidden$="[[!resource.monitoring.hasmonitoring]]">
                             <!-- instalation succeeded but is not yet activated ie. we have no data yet-->
-                            <paper-button class="red" on-tap="toggleMonitoring" hidden$="[[isActivated]]">Disable Monitoring</paper-button>
+                            <paper-button class="red" on-tap="disableMonitoring" hidden$="[[isActivated]]">Disable Monitoring</paper-button>
                         </div>
                     </div>
                     <!-- the machine cannot be monitored, it is not running -->
                     <div hidden$="[[isRunning]]">
                         The machine is [[state]]. It must be running to enable monitoring.
                         <br />
-                        <paper-button class="blue" on-tap="toggleMonitoring" disabled>enable Monitoring</paper-button>
+                        <paper-button class="blue" on-tap="enableMonitoring" disabled>enable Monitoring</paper-button>
                     </div>
                 </div>
             </iron-collapse>
@@ -510,14 +510,16 @@
                 return this.monitoring.monitored_machines[resource.id].installation_status.state;
             }
         },
+        enableMonitoring: function(e) {
+            this.toggleMonitoring(e, 'enable');
+        },
+        disableMonitoring: function(e) {
+            this.toggleMonitoring(e, 'disable');
+        },
         toggleMonitoring: function (e, action) {
             var payload = {};
             console.log('toggleMonitoring', action)
-            if (action != 'disable') {
-                payload.action = this.isMonitored ? "disable" : "enable";
-            } else {
-                payload.action = action;
-            }
+            payload.action = action;
 
             payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
             payload.name = this.resource.name ? this.resource.name : this.resource.id;
