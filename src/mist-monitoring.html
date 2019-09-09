@@ -206,7 +206,7 @@
                     <!-- the machine is running -->
                     <div hidden$="[[!isRunning]]">
                         <!-- the machine is considered monitored -->
-                        <div hidden$="[[!isMonitored]]">
+                        <div hidden$="[[!resource.monitoring.hasmonitoring]]">
                             <!-- monitoring is not activated -->
                             <div hidden$="[[isActivated]]">
                                 <div hidden$="[[resourceMonitoringInfo.installation_status.activated_at]]">
@@ -248,7 +248,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="isMonitored" hidden$="[[!isMonitored]]">
+                        <div class="isMonitored" hidden$="[[!resource.monitoring.hasmonitoring]]">
                             <!-- monitoring is not activated -->
                             <div class="isActivated" hidden$="[[isActivated]]">
                                 <!-- machine has NO keys: manual installation -->
@@ -287,11 +287,11 @@
                             </p>
                         </div>
                         <!-- we can request monitoring button -->
-                        <div class="enableMonitoring" hidden$="[[isMonitored]]">
+                        <div class="enableMonitoring" hidden$="[[resource.monitoring.hasmonitoring]]">
                             <paper-button class="blue" on-tap="toggleMonitoring" disabled="{{showLogs}}">Enable Monitoring</paper-button>
                         </div>
                         <!-- the machine is considered monitored -->
-                        <div class="monitored" hidden$="[[!isMonitored]]">
+                        <div class="monitored" hidden$="[[!resource.monitoring.hasmonitoring]]">
                             <!-- instalation succeeded but is not yet activated ie. we have no data yet-->
                             <paper-button class="red" on-tap="toggleMonitoring" hidden$="[[isActivated]]">Disable Monitoring</paper-button>
                         </div>
@@ -346,10 +346,6 @@
             resourceMonitoringInfo: {
                 type: Object,
                 computed: '_computeResourceMonitoringInfo(resource, monitoring.monitored_machines.*)'
-            },
-            isMonitored: {
-                type: Boolean,
-                value: false
             },
             waitingData: {
                 type: Boolean,
@@ -466,10 +462,9 @@
             '_reset(resource.id)',
             '_jobIdChanged(jobId)',
             'stopPolling(logItems)',
-            'getStats(isMonitored, isManual, waitingData, isActivated)',
+            'getStats(resource.monitoring.hasmonitoring, isManual, waitingData, isActivated)',
             'clearJobID(resource.id)',
-            '_computeIsMonitored(resource, resource.id, monitoring.monitored_machines.*)',
-            '_computeIsActivated(resource, monitoring.*, hidden)'
+            '_computeIsActivated(resource, hidden)'
         ],
         listeners: {
             'update-dashboard': '_forwardEvent',
@@ -483,15 +478,6 @@
         _computeDashboardUri: function (resource) {
             if (resource)
                 return '/api/v1/machines/' + resource.id + '/dashboard';
-        },
-        _computeIsMonitored: function (resource, id, monitoring) {
-            // console.log('compute Is Monitored', resource, id, monitoring);
-            if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
-                .monitored_machines[this.resource.id]) {
-                this.set('isMonitored', false);
-            } else {
-                this.set('isMonitored', true);
-            }
         },
         _computeSingleResource: function ()  {
             return this.resource && this.resource.id ? true : false;
@@ -639,14 +625,7 @@
         _computeIsActivated (resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
-            if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines ||
-                !this.monitoring.monitored_machines[resource.id] || (!this.monitoring.monitored_machines[
-                    resource.id].installation_status.activated_at && !this.waitingData)) {
-                this.set('isActivated', false);
-            } else {
-                this.set('isActivated', true);
-            }
-
+            this.set('isActivated', resource.monitoring && resource.monitoring.hasmonitoring && resource.monitoring.installation_status && resource.monitoring.installation_status.state == "succeeded");
         },
         _computeResourceMonitoringInfo: function (resource, monitoring) {
             if (!resource || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring

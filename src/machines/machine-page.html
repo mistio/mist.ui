@@ -913,7 +913,7 @@ Polymer({
         }
     },
     observers: [
-        '_isMonitored(machine, model.monitoring.machines.*)',
+        '_isMonitored(machine.monitoring.hasmonitoring)',
         '_machineChanged(machine.*, model.machines.*)',
         '_getMachineCloud(model.clouds.*, machine.cloud)',
         '_renderMachineKeys(machineKeys.length)'
@@ -1040,19 +1040,8 @@ Polymer({
     _isEqual: function(a, b) {
         return a === b;
     },
-    _isMonitored: function(machine, monitoredMachines) {
-        if (this.machine) {
-            if (this.model.monitoring.machines) {
-                var mach = monitoredMachines.base.find(function(m) {
-                    return m[1] == machine.id && m[0] == machine.cloud;
-                }, this);
-            }
-            if (monitoredMachines && mach) {
-                this.set('isMonitored', true);
-            } else {
-                this.set('isMonitored', false);
-            }
-        }
+    _isMonitored: function(machineIsMonitored) {
+        return machineIsMonitored;
     },
     _computeIsActivated: function(machine, monitoring) {
         if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !
