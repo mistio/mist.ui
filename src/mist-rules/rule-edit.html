@@ -257,7 +257,7 @@
                     <template is="dom-repeat" items="{{rule.queries}}" as="query">
 
                         <!--  rule.data_type: metrics OR logs -->
-                        <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block type" auto-focus on-value-changed="_focusOnTarget" on-value-changed="_focusOnTarget">
+                        <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block type" auto-focus on-value-changed="_focusOnTarget" on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.data_type}}" class="dropdown-content">
                                 <paper-item value="metrics">metrics</paper-item>
                                 <paper-item value="logs">logs</paper-item>
@@ -809,6 +809,8 @@
                 this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.addRuleRequest.generateRequest();
             } else { // Update existing rule
+                // backend does not accept data_type on rule updates
+                delete payload.data_type;
                 this.$.updateRuleRequest.body = payload;
                 this.$.updateRuleRequest.headers["Content-Type"] = 'application/json';
                 this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
