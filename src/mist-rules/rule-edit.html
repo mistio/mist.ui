@@ -195,11 +195,12 @@
             <div id="newrule" class="rule">
                 <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
-                    <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on">
+                    <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on" disabled="[[_isArbitrary(ruleType)]]">
                         <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
-                            <paper-item value="every">every [[resourceType]]</paper-item>
-                            <paper-item value="specific">specific [[resourceType]]</paper-item>
-                            <paper-item value="tagged">[[resourceType]]s with tag </paper-item>
+                            <paper-item value="arbitrary" disabled="[[!_isArbitrary(ruleType)]]">organization</paper-item>
+                            <paper-item value="every" disabled="[[_isArbitrary(ruleType)]]">every [[resourceType]]</paper-item>
+                            <paper-item value="specific" disabled="[[_isArbitrary(ruleType)]]">specific [[resourceType]]</paper-item>
+                            <paper-item value="tagged" disabled="[[_isArbitrary(ruleType)]]">[[resourceType]]s with tag </paper-item>
                         </paper-listbox>
                     </paper-dropdown-menu>
                     <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
@@ -476,6 +477,9 @@
         _computeHideApplyOn: function(resource, isNoData) {
             return resource || isNoData ? true : false;
         },
+        _isArbitrary: function(type) {
+            return type == 'arbitrary';
+        },
         _isSpecific: function(type) {
             return type == 'specific';
         },
@@ -485,7 +489,9 @@
         _initialiseEdit: function(rule, resource) {
             if (!resource) {
                 if (!rule) {
-                    return;
+                    return; 
+                } else if (!rule.resource_type) {
+                    this.set('ruleType', "arbitrary");
                 } else if (!rule.selectors || rule.selectors == []) {
                     this.set('ruleType', "every");
                 } else if (rule.selectors.length) {
@@ -741,13 +747,7 @@
                     payload.selectors = [];
                 } 
             }
-
-            if (this.rule.data_type == "metrics") {
-                payload.data_type = 'metrics';
-            } else if (this.rule.data_type == "logs") {
-                payload.data_type = 'logs';
-            }
-
+            payload.data_type = this.rule.data_type;
             payload.window = {
                 period: this.rule.window.period || 'minutes',
                 start: parseInt(this.rule.window.start) || 1
