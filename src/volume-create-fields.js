@@ -125,6 +125,25 @@ VOLUME_CREATE_FIELDS.push({
             fieldName: 'create_resource_group',
             fieldValues: [true],
         }
+    }, {
+        name: 'storage_account_type',
+        label: 'Storage account type',
+        type: 'dropdown',
+        value: 'StandardSSD_LRS',
+        defaultValue: 'StandardSSD_LRS',
+        helptext: 'Specify the storage account type for the managed disk.',
+        show: true,
+        required: true,
+        options: [{
+            title: 'Standard HDD',
+            val: 'Standard_LRS'
+        }, {
+            title: 'Standard SSD',
+            val: 'StandardSSD_LRS',	
+        }, {
+            title: 'Premium SSD',
+            val: 'Premium_LRS',
+        }],
     }]
 });
 

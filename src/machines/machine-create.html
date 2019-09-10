@@ -713,6 +713,7 @@
 
                         if (['resource_group','location'].indexOf(fieldName) > -1){
                             this._filterStorageAccountsOptions();
+                            this._filterNetworksOptions();
                         }
  
                         if (['resource_group','storage_account','networks']
@@ -1262,7 +1263,7 @@
         },
         _updateStorageAccounts: function(cloudId) {
             var fieldIndex = this._fieldIndexByName('ex_storage_account');
-            if (fieldIndex && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
                 this._getStorageAccounts(cloudId, fieldIndex);
             }
         },
@@ -1279,7 +1280,6 @@
         _handleGetStorageAccountsResponse: function(e) {
             this.set('machineFields.' + this.storageAccountsFieldIndex + '.alloptions', e.detail.response || []);
             this._filterStorageAccountsOptions();
-            this.shadowRoot.querySelector('app-form').fire('fields-changed');
             this.set('machineFields.' + this.storageAccountsFieldIndex + '.loader', false);
         },
         _filterStorageAccountsOptions: function() {
@@ -1288,14 +1288,30 @@
                 resourceGroup = this.get('machineFields.'+ resourceGroupFieldIndex +'.value'),
                 location = this.get('machineFields.'+ locationFieldIndex +'.value');
             var options = [];
-
             if (resourceGroup && location) {
                 options = this.get('machineFields.' + this.storageAccountsFieldIndex + '.alloptions').filter(function(o){
                     return o.resource_group == resourceGroup && o.location == location;
                 })
             }
-            console.log('_filterStorageAccountsOptions', resourceGroup, location, options.length)
+            // console.log('_filterStorageAccountsOptions', resourceGroup, location, options.length)
             this.set('machineFields.' + this.storageAccountsFieldIndex + '.options', options);
+            this.shadowRoot.querySelector('app-form').fire('fields-changed');
+        },
+        _filterNetworksOptions: function() {
+            var resourceGroupFieldIndex = this._fieldIndexByName('resource_group'),
+                locationFieldIndex = this._fieldIndexByName('location'),
+                resourceGroup = this.get('machineFields.'+ resourceGroupFieldIndex +'.value'),
+                location = this.get('machineFields.'+ locationFieldIndex +'.value'),
+                netInd = this._fieldIndexByName('ex_networks');
+            var options = [];
+            if (resourceGroupFieldIndex > -1 && locationFieldIndex > -1 && resourceGroup && location) {
+                options = this._toArray(this.model.clouds[this.selectedCloud].networks).filter(function(n){
+                    return n.location == location && n.resource_group == resourceGroup;
+                })
+            }
+            console.log('_filterNetworksOptions', resourceGroup, location, options.length)
+            this.set('machineFields.' + netInd + '.options', options);
+            this.shadowRoot.querySelector('app-form').fire('fields-changed');
         },
         _handleGetStorageAccountsError: function(e) {
             console.error('Got storage accounts error', e);
@@ -1314,7 +1330,7 @@
         },
         _updateResourceGroups: function(cloudId) {
             var fieldIndex = this._fieldIndexByName('ex_resource_group');
-            if (fieldIndex && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
                 this._getResourceGroups(cloudId, fieldIndex);
             }
         },

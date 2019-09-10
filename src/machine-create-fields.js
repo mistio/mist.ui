@@ -145,6 +145,25 @@ MACHINE_CREATE_FIELDS.push({
             fieldValues: [false],
         },
     }, {
+        name: 'storage_account_type',
+        label: 'Storage account type for OS Disk',
+        type: 'dropdown',
+        value: 'StandardSSD_LRS',
+        defaultValue: 'StandardSSD_LRS',
+        helptext: 'Specify the storage account type for the managed OS Disk.',
+        show: true,
+        required: true,
+        options: [{
+            title: 'Standard HDD',
+            val: 'Standard_LRS'
+        }, {
+            title: 'Standard SSD',
+            val: 'StandardSSD_LRS',	
+        }, {
+            title: 'Premium SSD',
+            val: 'Premium_LRS',
+        }],
+    }, {
         name: 'create_network',
         h3: 'Network',
         label: 'Create new network',
@@ -1120,7 +1139,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     fieldName: 'new-or-existing-volume',
                     fieldValues: ['existing'],
                 },
-            }, {
+            }]
+        })
+        if (['azure_arm'].indexOf(p.provider) == -1) {
+            p.fields.push({
                 name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
                 type: 'checkbox',
@@ -1128,8 +1150,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 defaultValue: '',
                 show: true,
                 required: false,
-            }]
-        })
+            })
+        }
     }
 
     // add common post provision fields
