@@ -29,25 +29,7 @@ var VOLUME_CREATE_FIELDS = []
 // https://docs.microsoft.com/en-us/rest/api/dtl/disks/createorupdate
 VOLUME_CREATE_FIELDS.push({
     provider: 'azure_arm',
-    fields: [
-    //     {
-    //     name: "disk_type",
-    //     label: "Disk type",
-    //     type: 'dropdown',
-    //     value: "premium",
-    //     defaultValue: "premium",
-    //     required: true,
-    //     show: true,
-    //     errorMessage: "Please enter volume's type",
-    //     options: [{
-    //         title: 'Premium SSD',
-    //         val: 'Premium',
-    //     }, {
-    //         title: 'Standard SSD',
-    //         val: 'Standard',
-    //     }]
-    // },
-    {
+    fields: [{
         name: "host_caching",
         label: "Host caching policy",
         type: 'dropdown',
