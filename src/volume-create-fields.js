@@ -65,7 +65,7 @@ VOLUME_CREATE_FIELDS.push({
             val: 'ReadOnly',
         }, {
             title: 'Read Write',
-            val: 'ReadQrite',
+            val: 'ReadWrite',
         }]
     },
     {
