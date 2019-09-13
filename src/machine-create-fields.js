@@ -1047,7 +1047,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     });
 
     // add cloud init field only to providers that accept and we support
-    if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt'].indexOf(p.provider) != -1) {
+    if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer'].indexOf(p.provider) != -1) {
         p.fields.push({
             name: 'cloud_init',
             label: 'Cloud Init',
@@ -1084,7 +1084,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'packet', 'azure_arm'].indexOf(p.provider) > -1) {
+    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2'].indexOf(p.provider) > -1) {
         var allowedVolumes = ['gce','azure_arm'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',
