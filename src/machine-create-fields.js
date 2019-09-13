@@ -1141,7 +1141,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 },
             }]
         })
-        if (['azure_arm'].indexOf(p.provider) == -1) {
+        if (['openstack','aws'].indexOf(p.provider) > -1) {
             p.fields.push({
                 name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
