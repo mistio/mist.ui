@@ -31,10 +31,10 @@ VOLUME_CREATE_FIELDS.push({
     provider: 'azure_arm',
     fields: [{
         name: "host_caching",
-        label: "Host caching policy",
+        label: "Host caching",
         type: 'dropdown',
-        value: "none",
-        defaultValue: "none",
+        value: "None",
+        defaultValue: "None",
         required: true,
         show: true,
         onForm: 'createForm',
