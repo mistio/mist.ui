@@ -724,6 +724,10 @@
                         if (['create_resource_group','ex_resource_group','new_resource_group']
                             .indexOf(fieldName) > -1) {
                             this._updateResourceGroupValue(this.selectedCloud);
+                            if (fieldName == "create_resource_group") {
+                                this._toggleExistingStorageAccounts(changeRecord.value);
+                                this._toggleExistingNetworks(changeRecord.value);
+                            }
                         }
                         if (['create_storage_account','ex_storage_account','new_storage_account']
                             .indexOf(fieldName) > -1) {
@@ -1248,6 +1252,28 @@
             }
 
             // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
+        },
+        _toggleExistingStorageAccounts: function(newResourceGroup) {
+            var createResGroupInd = this._fieldIndexByName('create_resource_group'),
+                createStorAccInd = this._fieldIndexByName('create_storage_account'),
+                existingResGroupInd = this._fieldIndexByName('ex_storage_account');
+            // if user chooses create new resource group, so it must be for storage accounts and networks
+            if (newResourceGroup) {
+                this.set('machineFields.' + createStorAccInd + '.value', newResourceGroup);
+            }
+            this.set('machineFields.' + createStorAccInd + '.hidden', newResourceGroup);
+            this.set('machineFields.' + existingResGroupInd + '.show', !newResourceGroup);
+        },
+        _toggleExistingNetworks: function(newResourceGroup) {
+            var createResGroupInd = this._fieldIndexByName('create_resource_group'),
+                createNetworkInd = this._fieldIndexByName('create_network'),
+                existingNetworkInd = this._fieldIndexByName('ex_networks');
+            // if user chooses create new resource group, so it must be for storage accounts and networks
+            if (newResourceGroup) {
+                this.set('machineFields.' + createNetworkInd + '.value', newResourceGroup);
+            }
+            this.set('machineFields.' + createNetworkInd + '.hidden', newResourceGroup);
+            this.set('machineFields.' + existingNetworkInd + '.show', !newResourceGroup);
         },
         _updateStorageAccountValue: function(cloudId) {
             var createFieldIndex = this._fieldIndexByName('create_storage_account');
