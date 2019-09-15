@@ -134,6 +134,10 @@
                 <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
             </div>
         </paper-dialog>
+        <iron-ajax id="getResourceGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetResourceGroupsRequest"
+            on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getStorageAccounts" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageAccountsRequest"
+            on-response="_handleGetStorageAccountsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
     </template>
     <script>
     SCHEDULEACTIONS = {
@@ -236,6 +240,12 @@
             docs: {
                 type: String,
                 value: ''
+            },
+            storageAccountsFieldIndex: {
+                type: Number
+            },
+            resourceGroupsFieldIndex: {
+                type: Number
             }
         },
         observers: [
@@ -321,6 +331,7 @@
             if (machineFields.fields) {
                 this.set('machineFields', JSON.parse(JSON.stringify(machineFields.fields)));
             }
+            
             // set values by provider
             this._updateFields(selectedCloud);
         },
@@ -423,12 +434,7 @@
                         }
                         // console.log('images', f.options);
                     }
-                    if (f.name.endsWith("ex_resource_group")) {
-                        f.options = this.model.clouds[cloudId].resourceGroupsArray || [];
-                    }
-                    if (f.name.endsWith("ex_storage_account")) {
-                        f.options = this.model.clouds[cloudId].storageAccountsArray || [];
-                    }
+
                     if (f.type.startsWith("mist_") && f.name.endsWith("size")) {
                         f.options = this._toArray(this.model.clouds[cloudId].sizes).sort(function(a, b) {
                             if (a.cpus < b.cpus) {
@@ -442,12 +448,12 @@
                     }
 
                     if (f.name.endsWith("key")) {
-                        f.options = this.model.keysArray || [];
+                        f.options = this._toArray(this.model.keys);
                     }
 
                     if (f.name.startsWith("script") || f.name.startsWith(
                             "schedule_script")) {
-                        f.options = this.model.scriptsArray || [];
+                        f.options = this._toArray(this.model.scripts);
                     }
 
                     if (f.name == "action") {
@@ -500,6 +506,17 @@
                         if (locationIndex > -1) {
                             options.splice(locationIndex,1);
                         }
+                        // remove resource group fields if they exists,
+                        // the resource group of the machine will be used instead
+                        var resourceGroupFields = options.filter(function(f){return f.name.indexOf('resource_group')>-1});
+                        // console.log('resourceGroupFields',resourceGroupFields);
+                        if (resourceGroupFields.length > -1) {
+                            for (var i=0; i<resourceGroupFields.length; i++) {
+                                var resourceGroupFieldName = resourceGroupFields[i].name;
+                                var fieldIndex = options.findIndex(function(f){return f.name == resourceGroupFieldName})
+                                options.splice(fieldIndex,1);
+                            }
+                        }
                         // Remove new volume name field for now since it's not used by OpenStack
                         if (provider == "openstack"){
                             var nameIndex = options.findIndex(function(f){return f.name == 'name'})
@@ -544,6 +561,8 @@
                 // if is azure arm, change required values
                 if (this.model.clouds[this.selectedCloud].provider == "azure_arm") {
                     this._updateFieldsForAzureArm();
+                    this._updateStorageAccounts(this.selectedCloud);
+                    this._updateResourceGroups(this.selectedCloud);
                 }
 
                 // if is kvm, change helptexts
@@ -686,65 +705,61 @@
                     this.set('machineFields.' + subid + '.options', subnets);
                 }
 
-                // if it is azure arm and location is changed
-                if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
-                    changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace(
-                        '.value', '')).name == 'location') {
-                    //update storage accounts
-                    var cloudId = this.selectedCloud;
-                    var storageAccounts = this.model.clouds[cloudId].storageAccountsArray || [];
-                    var location = this.get(changeRecord.path.replace('.value', '')).value
-                    var locationAccounts = storageAccounts.filter(function(el) {
-                        return el.extra.primaryLocation == location
-                    })
-                    var storageInd = this._fieldIndexByName('ex_storage_account');
-                    if (storageInd > -1) {
-                        this.set('machineFields.' + storageInd + '.options', locationAccounts);
-                    }
+                // if it is azure arm update storage accounts & resource groups
+                if (this.model.clouds[this.selectedCloud].provider == 'azure_arm') {
+                    // console.log('changeRecord', changeRecord);
+                    if (changeRecord.path.endsWith('value')) {
+                        var fieldName = this.get(changeRecord.path.replace('.value', '')).name;
 
-                    // update networks
-                    var networks = this.model.clouds[cloudId].networks ? Object.values(this.model.clouds[cloudId].networks).slice() : [];
-                    var locationNetworks = networks.filter(function(el) {
-                        return el.location == location
-                    });
-                    var networkInd = this._fieldIndexByName('networks');
-                    if (networkInd > -1) {
-                        this.set('machineFields.' + networkInd + '.options', locationNetworks);
+                        if (['resource_group','location'].indexOf(fieldName) > -1){
+                            this._filterStorageAccountsOptions();
+                            this._filterNetworksOptions();
+                        }
+ 
+                        if (['resource_group','storage_account','networks']
+                            .indexOf(fieldName) > -1) {
+                                return;
+                        }
+
+                        if (['create_resource_group','ex_resource_group','new_resource_group']
+                            .indexOf(fieldName) > -1) {
+                            this._updateResourceGroupValue(this.selectedCloud);
+                            if (fieldName == "create_resource_group") {
+                                this._toggleExistingStorageAccounts(changeRecord.value);
+                                this._toggleExistingNetworks(changeRecord.value);
+                            }
+                        }
+                        if (['create_storage_account','ex_storage_account','new_storage_account']
+                            .indexOf(fieldName) > -1) {
+                            this._updateStorageAccountValue(this.selectedCloud);
+                        }
+                        if (['create_network','ex_networks','new_network']
+                            .indexOf(fieldName) > -1) {
+                            this._updateNetworkValue(this.selectedCloud);
+                        }
+                        // if it is azure arm and location is changed
+                        if (fieldName == 'location') {
+                            // update networks
+                            var networks = this.model.clouds[this.selectedCloud].networks ? Object.values(this.model.clouds[this.selectedCloud].networks).slice() : [];
+                            var locationNetworks = networks.filter(function(n) {
+                                return n.location == location
+                            });
+                            var networkInd = this._fieldIndexByName('ex_networks');
+                            if (networkInd > -1) {
+                                this.set('machineFields.' + networkInd + '.options', locationNetworks);
+                            }
+                        }
+                        // if it is azure arm and machine name is changed
+                        if (fieldName == 'name') {
+                            //autocomplete resource, storage, network fields
+                            this._updateAzureFields(this.get(changeRecord.path));
+                        }
                     }
-                }
-                // if it is azure arm and machine name is changed
-                if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
-                    changeRecord.path.endsWith('.value') && this.get(changeRecord.path.replace(
-                        '.value', '')).name == 'name') {
-                    //autocomplete resource, storage, network fields
-                    this._updateAzureFields(this.get(changeRecord.path));
                 }
                 // let either script or script_id to pass in the from payload
                 if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
                         '.value', '')).name == 'run_script') {
                     this._toggleScriptFields(this.get(changeRecord.path.replace('.value', '')).value);
-                }
-
-                // handle storage accounts
-                if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
-                        '.value', '')).name == 'create_storage_account') {
-                    this._toggleStorageAccountFields(this.get(changeRecord.path.replace(
-                        '.value', '')).value);
-                }
-
-                // handle resource groups
-                if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
-                        '.value', '')).name == 'create_resource_group') {
-                    this._toggleResourceGroupFields(this.get(changeRecord.path.replace('.value',
-                        '')).value);
-                }
-
-                // handle networks for azure arm
-                if (this.model.clouds[this.selectedCloud].provider == 'azure_arm' &&
-                    changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
-                        '.value', '')).name == 'create_network') {
-                    this._toggleNetworkFields(this.get(changeRecord.path.replace('.value', ''))
-                        .value);
                 }
 
                 if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path
@@ -1178,7 +1193,7 @@
             var resourceInd = this._fieldIndexByName('new_resource_group');
             if (resourceInd > -1) this.set('machineFields.' + resourceInd + '.value', machinename);
             var storageInd = this._fieldIndexByName('new_storage_account');
-            if (storageInd > -1) this.set('machineFields.' + storageInd + '.value', machinename + 'disks');
+            if (storageInd > -1) this.set('machineFields.' + storageInd + '.value', machinename.replace(/[^a-zA-Z0-9]+/g, "") + 'disks');
         },
         _updateEc2Sizes: function(imageid) {
             if (this.model.images[imageid] && this.model.images[imageid].extra && this.model.images[
@@ -1199,7 +1214,6 @@
                     this.set('machineFields.' + sizeInd + '.options', sizesOptions);
                 // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
             }
-
         },
         _updateGceSubnets: function(networkId) {
             var subnetsInd = this._fieldIndexByName('subnetwork'),
@@ -1239,56 +1253,145 @@
 
             // console.log('_toggleScriptFields',this.get('machineFields.'+ inlineInd), this.get('machineFields.'+ selectInd))
         },
-        _toggleStorageAccountFields: function(new_account) {
-            var newInd = this._fieldIndexByName('new_storage_account');
-            var oldInd = this._fieldIndexByName('ex_storage_account');
+        _toggleExistingStorageAccounts: function(newResourceGroup) {
+            var createResGroupInd = this._fieldIndexByName('create_resource_group'),
+                createStorAccInd = this._fieldIndexByName('create_storage_account'),
+                existingResGroupInd = this._fieldIndexByName('ex_storage_account');
+            // if user chooses create new resource group, so it must be for storage accounts and networks
+            if (newResourceGroup) {
+                this.set('machineFields.' + createStorAccInd + '.value', newResourceGroup);
+            }
+            this.set('machineFields.' + createStorAccInd + '.hidden', newResourceGroup);
+            this.set('machineFields.' + existingResGroupInd + '.show', !newResourceGroup);
+        },
+        _toggleExistingNetworks: function(newResourceGroup) {
+            var createResGroupInd = this._fieldIndexByName('create_resource_group'),
+                createNetworkInd = this._fieldIndexByName('create_network'),
+                existingNetworkInd = this._fieldIndexByName('ex_networks');
+            // if user chooses create new resource group, so it must be for storage accounts and networks
+            if (newResourceGroup) {
+                this.set('machineFields.' + createNetworkInd + '.value', newResourceGroup);
+            }
+            this.set('machineFields.' + createNetworkInd + '.hidden', newResourceGroup);
+            this.set('machineFields.' + existingNetworkInd + '.show', !newResourceGroup);
+        },
+        _updateStorageAccountValue: function(cloudId) {
+            var createFieldIndex = this._fieldIndexByName('create_storage_account');
+            var existingFieldIndex = this._fieldIndexByName('ex_storage_account');
+            var newFieldIndex = this._fieldIndexByName('new_storage_account');
+            var storageAccountFieldIndex = this._fieldIndexByName('storage_account');
 
-            //if one, hide the other
-            if (new_account == true) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', true);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', false);
-
-            } else if (new_account == false) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', false);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', true);
+            if (this.get('machineFields.'+ createFieldIndex +'.value') == true ) {
+                this.set('machineFields.'+ storageAccountFieldIndex +'.value', this.get('machineFields.'+ newFieldIndex +'.value'))
+            } else {
+                this.set('machineFields.'+ storageAccountFieldIndex +'.value', this.get('machineFields.'+ existingFieldIndex +'.value'))
             }
         },
-        _toggleNetworkFields: function(new_network) {
-            var newInd = this._fieldIndexByName('new_network');
-            var oldInd = this._fieldIndexByName('networks');
-
-            //if one, hide the other
-            if (new_network == true) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', true);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', false);
-
-            } else if (new_network == false) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', false);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', true);
+        _updateStorageAccounts: function(cloudId) {
+            var fieldIndex = this._fieldIndexByName('ex_storage_account');
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
+                this._getStorageAccounts(cloudId, fieldIndex);
             }
         },
-        _toggleResourceGroupFields: function(new_group) {
-            var newInd = this._fieldIndexByName('new_resource_group');
-            var oldInd = this._fieldIndexByName('ex_resource_group');
-            var toggleAccount = this._fieldIndexByName('create_storage_account');
-
-            //if one, hide the other
-            if (new_group == true) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', true);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', false);
-                //toggle new storage account
-                this.set('machineFields.' + toggleAccount + '.value', true);
-                this._toggleStorageAccountFields(true);
-                // this.set('machineFields.'+ toggleAccount +'.show', false);
-            } else if (new_group == false) {
-                if (newInd > -1) this.set('machineFields.' + newInd + '.show', false);
-                if (oldInd > -1) this.set('machineFields.' + oldInd + '.show', true);
-                //toggle new storage account
-                this.set('machineFields.' + toggleAccount + '.value', false);
-                this._toggleStorageAccountFields(false);
-                // this.set('machineFields.'+ toggleAccount +'.show', true);
+        _getStorageAccounts: function(cloudId, index) {
+            this.set("storageAccountsFieldIndex",index);
+            this.$.getStorageAccounts.headers["Content-Type"] = 'application/json';
+            this.$.getStorageAccounts.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getStorageAccounts.url = '/api/v1/clouds/'+ cloudId +'/storage-accounts';
+            this.$.getStorageAccounts.generateRequest();
+        },
+        _handleGetStorageAccountsRequest: function(e) {
+            this.set('machineFields.' + this.storageAccountsFieldIndex + '.loader', true);
+        },
+        _handleGetStorageAccountsResponse: function(e) {
+            this.set('machineFields.' + this.storageAccountsFieldIndex + '.alloptions', e.detail.response || []);
+            this._filterStorageAccountsOptions();
+            this.set('machineFields.' + this.storageAccountsFieldIndex + '.loader', false);
+        },
+        _filterStorageAccountsOptions: function() {
+            var resourceGroupFieldIndex = this._fieldIndexByName('resource_group'),
+                locationFieldIndex = this._fieldIndexByName('location'),
+                resourceGroup = this.get('machineFields.'+ resourceGroupFieldIndex +'.value'),
+                location = this.get('machineFields.'+ locationFieldIndex +'.value');
+            var options = [];
+            if (resourceGroup && location) {
+                options = this.get('machineFields.' + this.storageAccountsFieldIndex + '.alloptions').filter(function(o){
+                    return o.resource_group == resourceGroup && o.location == location;
+                })
             }
+            // console.log('_filterStorageAccountsOptions', resourceGroup, location, options.length)
+            this.set('machineFields.' + this.storageAccountsFieldIndex + '.value', this.get('machineFields.' + this.storageAccountsFieldIndex + '.defaultValue'));
+            this.set('machineFields.' + this.storageAccountsFieldIndex + '.options', options);
+            this.shadowRoot.querySelector('app-form').fire('fields-changed');
+        },
+        _filterNetworksOptions: function() {
+            var resourceGroupFieldIndex = this._fieldIndexByName('resource_group'),
+                locationFieldIndex = this._fieldIndexByName('location'),
+                resourceGroup = this.get('machineFields.'+ resourceGroupFieldIndex +'.value'),
+                location = this.get('machineFields.'+ locationFieldIndex +'.value'),
+                netInd = this._fieldIndexByName('ex_networks');
+            var options = [];
+            if (resourceGroupFieldIndex > -1 && locationFieldIndex > -1 && resourceGroup && location) {
+                options = this._toArray(this.model.clouds[this.selectedCloud].networks).filter(function(n){
+                    return n.location == location && n.resource_group == resourceGroup;
+                })
+            }
+            // console.log('_filterNetworksOptions', resourceGroup, location, options.length)
+            this.set('machineFields.' + netInd + '.value', this.get('machineFields.' + netInd + '.defaultValue'));
+            this.set('machineFields.' + netInd + '.options', options);
+            this.shadowRoot.querySelector('app-form').fire('fields-changed');
+        },
+        _handleGetStorageAccountsError: function(e) {
+            console.error('Got storage accounts error', e);
+        },
+        _updateResourceGroupValue: function(cloudId) {
+            var createFieldIndex = this._fieldIndexByName('create_resource_group');
+            var existingFieldIndex = this._fieldIndexByName('ex_resource_group');
+            var newFieldIndex = this._fieldIndexByName('new_resource_group');
+            var resourceGroupFieldIndex = this._fieldIndexByName('resource_group');
 
+            if (this.get('machineFields.'+ createFieldIndex +'.value') == true ) {
+                this.set('machineFields.'+ resourceGroupFieldIndex +'.value', this.get('machineFields.'+ newFieldIndex +'.value'))
+            } else {
+                this.set('machineFields.'+ resourceGroupFieldIndex +'.value', this.get('machineFields.'+ existingFieldIndex +'.value'))
+            }
+        },
+        _updateResourceGroups: function(cloudId) {
+            var fieldIndex = this._fieldIndexByName('ex_resource_group');
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
+                this._getResourceGroups(cloudId, fieldIndex);
+            }
+        },
+        _getResourceGroups: function(cloudId, index) {
+            this.set("resourceGroupsFieldIndex",index);
+            this.$.getResourceGroups.headers["Content-Type"] = 'application/json';
+            this.$.getResourceGroups.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getResourceGroups.url = '/api/v1/clouds/'+ cloudId +'/resource-groups';
+            this.$.getResourceGroups.generateRequest();
+        },
+        _handleGetResourceGroupsRequest: function(e) {
+            this.set('machineFields.' + this.resourceGroupsFieldIndex + '.loader', true);
+        },
+        _handleGetResourceGroupsResponse: function(e) {
+            this.set('machineFields.' + this.resourceGroupsFieldIndex + '.options', e.detail.response || []);
+            this.shadowRoot.querySelector('app-form').fire('fields-changed');
+            this.set('machineFields.' + this.resourceGroupsFieldIndex + '.loader', false);
+        },
+        _handleGetResourceGroupsError: function(e) {
+            console.error('Got resource groups error', e);
+        },
+        _updateNetworkValue: function() {
+            var createFieldIndex = this._fieldIndexByName('create_network');
+            var existingFieldIndex = this._fieldIndexByName('ex_networks');
+            var newFieldIndex = this._fieldIndexByName('new_network');
+            var networksFieldIndex = this._fieldIndexByName('networks');
+            var networks = [];
+            if (this.get('machineFields.'+ createFieldIndex +'.value') == true ) {
+                networks.push({name:this.get('machineFields.'+ newFieldIndex +'.value')});
+            } else {
+                networks.push({id:this.get('machineFields.'+ existingFieldIndex +'.value')});
+            }
+            this.set('machineFields.'+ networksFieldIndex +'.value', networks)
         },
         _hideElementsforWin: function(value) {
             var scriptInd = this._fieldIndexByName('post_provision_script');

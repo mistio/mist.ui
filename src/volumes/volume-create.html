@@ -83,6 +83,8 @@
                 </paper-material>
             </template>
         </div>
+        <iron-ajax id="getResourceGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetResourceGroupsRequest"
+            on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
     </template>
     <script>
         Polymer({
@@ -120,12 +122,16 @@
                     type: String,
                     value: false
                 },
+                resourceGroupsFieldIndex: {
+                    type: Number
+                }
             },
             observers: [
                 '_cloudsChanged(model.clouds.*)',
                 '_cloudChanged(selectedCloud)',
                 '_locationChanged(fields.1.value)',
-                '_diskCategoryChanged(fields.3.value)'
+                '_diskCategoryChanged(fields.3.value)',
+                '_fieldValuesChanged(fields.*)'
             ],
             _cloudsChanged: function (clouds) {
                 var volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
@@ -143,7 +149,7 @@
             },
             _cloudChanged: function (selectedCloud) {
                 // clear to reset
-                this.set('machineFields', []);
+                this.set('fields', []);
                 var volumeFields = [];
                 if (this.selectedCloud) {
                     var provider = this.model.clouds[selectedCloud].provider;
@@ -153,7 +159,9 @@
                 }
                 // add cloud fields
                 if (volumeFields.fields)
-                    this.set('fields', JSON.parse(JSON.stringify(volumeFields.fields)));
+                    this.set('fields', JSON.parse(JSON.stringify(volumeFields.fields.filter(function(f){
+                        return !f.onForm || f.onForm == 'volume_add ';
+                    }))));
 
                 // set values by provider
                 this._updateFields(selectedCloud);
@@ -162,6 +170,10 @@
                 if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this
                         .selectedCloud]) {
                     var cloudId = this.selectedCloud;
+                    // if is azure arm, change required values
+                    if (this.model.clouds[cloudId].provider == "azure_arm") {
+                        this._updateResourceGroups(cloudId);
+                    }
                     this.fields.forEach(function (f, index) {
                         if (f.name.endsWith("location")) {
                             var locations = this.model.clouds[cloudId].locationsArray.slice();
@@ -218,7 +230,53 @@
                     this.set('fields.2.helptext', 'A minimum of '+ minSize + ' GB is required.')
                 }
             },
-            fieldIndexByName: function (name) {
+            _fieldValuesChanged: function(changeRecord) {
+                var fieldName = this.get(changeRecord.path.replace('.value', '')).name;
+                if (['resource_group'].indexOf(fieldName) > -1) {
+                        return;
+                }
+                if (['create_resource_group','ex_resource_group','new_resource_group']
+                    .indexOf(fieldName) > -1) {
+                    this._updateResourceGroupValue(this.selectedCloud);
+                }
+            },
+            _updateResourceGroupValue: function(cloudId) {
+                var createFieldIndex = this._fieldIndexByName('create_resource_group');
+                var existingFieldIndex = this._fieldIndexByName('ex_resource_group');
+                var newFieldIndex = this._fieldIndexByName('new_resource_group');
+                var resourceGroupFieldIndex = this._fieldIndexByName('resource_group');
+
+                if (this.get('fields.'+ createFieldIndex +'.value') == true ) {
+                    this.set('fields.'+ resourceGroupFieldIndex +'.value', this.get('fields.'+ newFieldIndex +'.value'))
+                } else {
+                    this.set('fields.'+ resourceGroupFieldIndex +'.value', this.get('fields.'+ existingFieldIndex +'.value'))
+                }
+            },
+            _updateResourceGroups: function(cloudId) {
+                var fieldIndex = this._fieldIndexByName('ex_resource_group');
+                if (fieldIndex && this.get('fields.' + fieldIndex + '.options') && !this.get('fields.' + fieldIndex + '.options').length) {
+                    this._getResourceGroups(cloudId, fieldIndex);
+                }
+            },
+            _getResourceGroups: function(cloudId, index) {
+                this.set("resourceGroupsFieldIndex",index);
+                this.$.getResourceGroups.headers["Content-Type"] = 'application/json';
+                this.$.getResourceGroups.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.getResourceGroups.url = '/api/v1/clouds/'+ cloudId +'/resource-groups';
+                this.$.getResourceGroups.generateRequest();
+            },
+            _handleGetResourceGroupsRequest: function(e) {
+                this.set('fields.' + this.resourceGroupsFieldIndex + '.loader', true);
+            },
+            _handleGetResourceGroupsResponse: function(e) {
+                this.set('fields.' + this.resourceGroupsFieldIndex + '.options', e.detail.response || []);
+                this.shadowRoot.querySelector('app-form').fire('fields-changed');
+                this.set('fields.' + this.resourceGroupsFieldIndex + '.loader', false);
+            },
+            _handleGetResourceGroupsError: function(e) {
+                console.error('Got resource groups error', e);
+            },
+            _fieldIndexByName: function (name) {
                 var field = this.fields.findIndex(function (f) {
                     return f.name == name;
                 });

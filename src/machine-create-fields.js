@@ -38,6 +38,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: 'Create the machine in a new resource group',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -45,17 +46,30 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    },  {
+        name: 'resource_group',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'ex_resource_group',
         label: 'Resource Group',
         type: 'mist_dropdown_searchable',
+        loader: true,
         class: 'margin-bottom',
         value: '',
         defaultValue: '',
         search: '',
         show: false,
+        excludeFromPayload: true,
         required: true,
         options: [],
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [false],
+        }
     }, {
         name: 'new_resource_group',
         label: 'Resource Group name',
@@ -64,8 +78,13 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: false,
         helptext: '',
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [true],
+        }
     }, {
         name: 'create_storage_account',
         h3: 'Storage account',
@@ -73,10 +92,12 @@ MACHINE_CREATE_FIELDS.push({
         type: 'radio',
         value: true,
         defaultValue: true,
+        hidden: true,
         class: 'bind-both',
-        helptext: 'Create the machine in a new storage account',
+        helptext: 'Create the machine in a new or existing storage account. Existing storage account options depend on location and resource group.',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -84,6 +105,13 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    }, {
+        name: 'storage_account',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'new_storage_account',
         label: 'Storage Account name',
@@ -92,30 +120,63 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: false,
         helptext: '',
+        showIf: {
+            fieldName: 'create_storage_account',
+            fieldValues: [true],
+        }
     }, {
         name: 'ex_storage_account',
         label: 'Storage Account',
         type: 'mist_dropdown_searchable',
+        loader: true,
         value: '',
         search: '',
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: true,
         options: [],
+        alloptions: [],
+        showIf: {
+            fieldName: 'create_storage_account',
+            fieldValues: [false],
+        },
+    }, {
+        name: 'storage_account_type',
+        label: 'Storage account type for OS Disk',
+        type: 'dropdown',
+        value: 'StandardSSD_LRS',
+        defaultValue: 'StandardSSD_LRS',
+        helptext: 'Specify the storage account type for the managed OS Disk.',
+        show: true,
+        required: true,
+        options: [{
+            title: 'Standard HDD',
+            val: 'Standard_LRS'
+        }, {
+            title: 'Standard SSD',
+            val: 'StandardSSD_LRS',	
+        }, {
+            title: 'Premium SSD',
+            val: 'Premium_LRS',
+        }],
     }, {
         name: 'create_network',
         h3: 'Network',
         label: 'Create new network',
         type: 'radio',
         value: true,
+        hidden: true,
         defaultValue: true,
         class: 'bind-both',
-        helptext: 'Create the machine in a new network',
+        helptext: 'Create the machine in a new or existing network. Existing network options depend on location and resource group.',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -123,6 +184,13 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    }, {
+        name: 'networks',
+        value: '',
+        type: 'text',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'new_network',
         label: 'Network name',
@@ -132,19 +200,29 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         show: false,
         required: false,
+        excludeFromPayload: true,
         helptext: '',
+        showIf: {
+            fieldName: 'create_network',
+            fieldValues: [true],
+        }
     }, {
-        name: 'networks',
-        label: 'Networks',
+        name: 'ex_networks',
+        label: 'Network',
         type: 'mist_dropdown_searchable',
         noPluralisation: true,
         value: '',
         search: '',
         class: 'margin-bottom',
+        excludeFromPayload: true,
         defaultValue: '',
         show: true,
         required: true,
         options: [],
+        showIf: {
+            fieldName: 'create_network',
+            fieldValues: [false],
+        },
     }, {
         name: 'machine_username',
         label: 'Machine Username *',
@@ -1006,8 +1084,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'packet', 'gce', 'digitalocean', 'aws'].indexOf(p.provider) > -1) {
-        var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
+    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2'].indexOf(p.provider) > -1) {
+        var allowedVolumes = ['gce','azure_arm'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
@@ -1063,7 +1141,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     fieldName: 'new-or-existing-volume',
                     fieldValues: ['existing'],
                 },
-            }, {
+            }]
+        })
+        if (['openstack','aws'].indexOf(p.provider) > -1) {
+            p.fields.push({
                 name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
                 type: 'checkbox',
@@ -1071,8 +1152,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 defaultValue: '',
                 show: true,
                 required: false,
-            }]
-        })
+            })
+        }
     }
 
     // add common post provision fields
