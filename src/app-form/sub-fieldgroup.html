@@ -1,0 +1,125 @@
+<link rel="import" href="app-form.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<dom-module id="sub-fieldgroup">
+    <template>
+        <style include="shared-styles forms">
+            :host {
+                display: inline-block;
+                width: 50%;
+            }
+            :host([enabled]) {
+                background-color: #f6f6f6;
+                border-radius: 5px;
+            }
+            :host([optional]) app-form {
+                margin-top: -24px;
+                padding-bottom: 24px;
+            }
+            :host([optional]) app-form {
+                margin-top: -24px;
+                padding-bottom: 24px;
+            }
+
+            :host([enabled]) span.title {
+                font-weight: 500;
+            }
+            paper-toggle-button {
+                margin-top: 16px;
+                margin-bottom: 16px;
+            }
+        </style>
+        <template is="dom-if" if="[[field.optional]]" restamp>
+            <paper-toggle-button id$="[[id]]-[[field.name]]-toggler" checked="{{enabled}}">
+                <span class="title">[[field.label]]</span>
+            </paper-toggle-button>
+        </template>
+        <template is="dom-if" if="[[_showForm(field.optional,enabled)]]" restamp>
+            <app-form id$="[[id]]" fields="{{field.subfields}}" display-buttons="[[_calcDisplayButtons()]]" single-column inline></app-form>
+        </template>
+    </template>
+    <script>
+        Polymer({
+            is: 'sub-fieldgroup',
+            /**
+             * Fired when a response is received.
+             *
+             * @event response
+             */
+            /**
+             * Fired when a request is made.
+             *
+             * @event request
+             */
+            /**
+             * Fired when the leadValue is changed.
+             *
+             * @event leadchange
+             */
+            properties: {
+                id: {
+                    type: String
+                },
+                field: {
+                    type: Object,
+                    notify: true
+                },
+                optional: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
+                enabled: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true,
+                    observer: '_enabledChanged'
+                }
+            },
+            observers: [
+                '_fieldChanged(field)',
+                '_subfieldsChanged(field.subfields.*)'
+            ],
+            ready: function() {
+            },
+            _enabledChanged: function(enabled) {
+                if (!this.enabled) {
+                    this._resetValue();
+                }
+            },
+            _resetValue: function() {
+                console.log('reset field value');
+                this.set('field.value', {});
+            },
+            _fieldChanged: function(field) {
+                this.set('enabled', this.field.defaultToggleValue);
+                this.set('optional', this.field.optional);
+                this._fieldsChangedNotifyEvent();
+            },
+            _subfieldsChanged: function(subfields) {
+                if (this.field && this.enabled) {
+                    var fieldValue = {};
+                    for (var i=0; i<this.field.subfields.length; i++) {
+                        fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                    }
+                    this.set('field.value', fieldValue);
+                } else if (!this.enabled) {
+                    this.set('field.value', {});
+                    this.notifyPath('field.value');
+                    this._fieldsChangedNotifyEvent();
+                }
+            },
+            _fieldsChangedNotifyEvent: function(){
+                var form = this.shadowRoot.querySelector('app-form#'+this.id);
+                if (form) {
+                    form.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
+                }
+            },
+            _calcDisplayButtons: function(){
+                return false;
+            },
+            _showForm: function(optional, enabled) {
+                return optional ? enabled : true;
+            }
+        });
+    </script>
+</dom-module>

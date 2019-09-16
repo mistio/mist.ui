@@ -1,0 +1,175 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<dom-module id="duration-field">
+    <template>
+        <style include="shared-styles dialogs">
+        :host {
+            padding: 0;
+            margin: 0;
+        }
+        :host([secondary]), :host([secondary]) ::slotted(*), :host([secondary]) ::slotted(*) {
+            /* color: var(--light-theme-secondary-color); */
+        }
+        iron-icon {
+            color: inherit !important;
+        }
+        paper-input, paper-dropdown-menu {
+            width: 50%;
+            float: left;
+        }
+        paper-button.keyboard-focus {
+            font-weight: bold !important;
+        }
+        paper-radio-button {
+            display: inline;
+        }
+        paper-input {
+            text-align: center;
+            width: 40px;
+        }
+        paper-dropdown-menu {
+            text-align: center;
+            width: 130px;
+        }
+        paper-checkbox, .prefix, .suffix {
+            float: left;
+            padding-top: 30px;
+        }
+        paper-checkbox {
+            float: left;
+            padding-top: 30px;
+            padding-left: 16px;
+            margin-right: 0;
+            --paper-checkbox-checked-color: var(--mist-blue) !important;
+            --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+        }
+        .prefix {
+            padding-right: 16px;
+        }
+        </style>
+        
+        <template is="dom-if" if="[[field.optional]]">
+            <paper-checkbox checked="{{!field.disabled}}"></paper-checkbox>
+        </template>
+        <template is="dom-if" if="[[field.prefixText]]">
+            <span class="prefix">[[field.prefixText]]</span>
+        </template>
+        <paper-input id$="app-form-[[id]]-[[field.name]]-duration" placeholder="[[field.placeholder]]" label="[[field.label]]" validator="[[field.validator]]"
+            value="{{field.valueDefaultSpan}}" auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
+            error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"
+            placeholder=[[field.placeholder]] hidden$="[[field.hidden]]" type="number" min="1">
+            <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
+            <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
+        </paper-input>
+        <paper-dropdown-menu id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]"
+            horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]" required="[[field.required]]">
+            <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]-duration-unit" attr-for-selected="value" selected="{{field.valueDefaultUnit}}"
+                class="dropdown-content">
+                <template id="durationRepeater" is="dom-repeat" items="[[field.options]]" as="option">
+                    <paper-item value="[[option.val]]">[[option.title]]</paper-item>
+                </template>
+            </paper-listbox>
+        </paper-dropdown-menu>
+        <template is="dom-if" if="[[field.suffixText]]">
+            <span class="suffix">[[field.suffixText]].</span>
+        </template>
+    </template>
+    <script>
+        Polymer({
+            is: 'duration-field',
+
+            properties: {
+                field: {
+                    type: Object,
+                    notify: true
+                },
+                secondary: {
+                    type: Boolean,
+                    reflectToAttribute: true
+                },
+                showPlural: {
+                    type: Boolean
+                },
+                checked:{
+                    type: Boolean,
+                    value: true,
+                    reflectToAttribute: true
+                }
+            },
+            observers: [
+                '_initialise(field)',
+                '_checkedChanged(field.disabled)',
+                '_durationChanged(field.valueDefaultSpan, field.valueDefaultUnit, field.valueType)'
+            ],
+            listeners: {
+
+            },
+            ready: function() {
+
+            },
+            _checkedChanged: function(disabled){
+                if (this.field.disabled && this.field.optional) {
+                    if (this.field.type == 'secs') {
+                        this.set('field.value', 0);
+                    } else {
+                        this.set('field.value', '');
+                    }
+                }
+            },
+            _initialise: function(field) {
+                this.set('secondary', this.field.secondary);
+            },
+            _durationChanged: function(span,unit,type) {
+                this._computePlurals(span);
+                var newValue;
+                if (type == 'secs') {
+                    newValue = this._durationToSeconds(span,unit);
+                } else if (type == 'date')  {
+                    newValue = moment().add(span,unit).utc().format("YYYY-MM-DD HH:mm:ss");
+                }
+                this.set('field.value', newValue);
+                this.notifyPath('field.value');
+                this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true}));
+            },
+            _durationToSeconds: function(span,unit) {
+                var step = 1;
+                if (unit=='minutes'){
+                    step = 60;
+                } else if (unit=='hours'){
+                    step = 3600;
+                } else  if (unit=='days'){
+                    step = 3600*24;
+                } else  if (unit=='weeks'){
+                    step = 3600*24*7;
+                } else  if (unit=='months'){
+                    var monthDays = moment().daysInMonth();
+                    step = 3600*24*monthDays;
+                }
+                return span*step;
+            },
+            _computePlurals: function(valueSpan) {
+                if ((valueSpan == 1 && this.showPlural) || (valueSpan > 1 && !this.showPlural)) {
+                    this.set('showPlural', valueSpan > 1);
+                    this._updateOptionTitles(this.showPlural);
+                }
+            },
+            _updateOptionTitles: function(plurals) {
+                var newOptions = [], newTitle;
+                for (var i=0;i<this.field.options.length; i++) {
+                    var option = this.field.options[i];
+                    if (plurals) {
+                        newTitle = option.val;
+                    } else {
+                        newTitle = option.val.substring(0, option.val.length-2);
+                    }
+                    newOptions.push({val: option.val, title: newTitle});
+                }
+                this.set('field.options', newOptions);
+                // this.notifyPath('field.options');
+                // this.shadowRoot.querySelector('#durationRepeater').render();
+            }
+        });
+    </script>
+</dom-module>

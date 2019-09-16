@@ -18,12 +18,15 @@
             .logs {
                 max-width: 1450px;
                 margin: 8px auto;
+                padding: 0 8px;
                 line-height: 28px;
                 font-family: monospace;
                 border: 1px solid #ddd;
                 border-radius: 8px;
-                padding: 0 4px;
+                padding: 0 8px;
                 background-color: rgba(255, 255, 255, 0.34);
+                display: flex;
+                align-items: center
             }
 
             paper-spinner {
@@ -31,9 +34,11 @@
             }
 
             .logs > * {
-                vertical-align: middle;
-                display: inline-block;
                 font-size: 14px;
+            }
+
+            .logs p {
+                flex: 1;
             }
 
             .error iron-icon {
@@ -62,10 +67,9 @@
         <div class="logs" hidden$="[[!jobId]]">
             <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner>
             <p> Creating machine: {{removeUnderscore(logItem.action)}}
-                <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]]
-                    <iron-icon icon="close" on-tap="clearLog"></iron-icon>
-                </span>
+                <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]]</span>
             </p>
+            <iron-icon icon="close" on-tap="clearLog"></iron-icon>
         </div>
         <div class="logs" hidden$="[[!performingAction]]">
             <paper-spinner active></paper-spinner>
@@ -78,7 +82,7 @@
                     sorters=[[sorters]] item-map="[[model.machines]]" name="Machines" selected-items={{selectedItems}}
                     filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
                     renderers=[[_getRenderers()]] route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id"
-                    actions=[[actions]] filter-method="[[_ownerFilter()]]">
+                    actions=[[actions]] filter-method="[[_ownerFilter()]]" apiurl="/api/v1/machines">
                     <p slot="no-items-found">No machines found.</p>
                 </mist-list>
             </machine-actions>
@@ -88,7 +92,7 @@
         </template>
         <machine-create model="[[model]]" hidden$=[[!_isAddPageActive(route.path)]] monitoring=[[monitoring]] docs=[[docs]]></machine-create>
         <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-            <machine-page model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]" resource-id="[[data.machine]]" currency="[[currency]]"></machine-page>
+            <machine-page path="[[route.path]]" model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]" resource-id="[[data.machine]]" currency="[[currency]]"></machine-page>
         </template>
         <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
@@ -300,7 +304,7 @@
         },
 
         _getVisibleColumns: function() {
-            var ret = ['state', 'cloud', 'cost', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
+            var ret = ['state', 'cloud', 'cost', 'created', 'expiration', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
             if (this.model.org && this.model.org.ownership_enabled == true)
                 ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
             // console.log('parent sets visible', ret);
@@ -394,7 +398,7 @@
                 'cost': {
                     'body': function(item, row) {
                         var cost = parseFloat(item.monthly);
-                        return item && item.monthly ? _this.currency.sign + _this._ratedCost(cost, _this.currency.rate) : '';
+                        return item && item.monthly && _this.currency? _this.currency.sign + _this._ratedCost(cost, _this.currency.rate) : '';
                     },
                     'cmp': function(item1, item2, row1, row2) {
                         if (item1.monthly < item2.monthly)
@@ -469,6 +473,31 @@
                         if (im1.toLowerCase() < im2.toLowerCase())
                             return -1;
                         if (im1.toLowerCase() > im2.toLowerCase())
+                            return 1;
+                        return 0;
+                    }
+                },
+                'expiration': {
+                    'title': function(item, row) {
+                        return 'expiration';
+                    },
+                    'body': function(item, row) {
+                        return item && item.date ? moment.utc(item.date).fromNow() : '';
+                    },
+                    'cmp': function(item1, item2, row1, row2) {
+                        var exp1 = item1 && item1.date ? moment(item1.date) : moment(''),
+                            exp2 = item2 && item2.date ? moment(item2.date) : moment('');
+
+                        if (!exp1.isValid() && !exp2.isValid())
+                            return 0;
+                        if (!exp1.isValid())
+                            return 1;
+                        if (!exp2.isValid())
+                            return -1;
+
+                        if (exp1.isBefore(exp2))
+                            return -1;
+                        else if (exp1.isAfter(exp2))
                             return 1;
                         return 0;
                     }

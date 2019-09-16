@@ -1,0 +1,214 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
+
+<dom-module id="machine-expiration-edit">
+    <template>
+        <style include="shared-styles dialogs">
+        :host {
+            width: 100%;
+        }
+
+        .paper-dialog-scrollable {
+            padding-bottom: 24px;
+        }
+
+        .collapsible {
+            height: 0;
+            overflow: hidden;
+            transition: height 300ms ease-in-out 100ms;
+        }
+
+        .collapsible[open] {
+            height: auto;
+        }
+
+        @media screen and (max-width: 450px) {
+            :host paper-dropdown-menu ::slotted(.dropdown-content) {
+                top: 0 !important;
+            }
+        }
+        </style>
+        <vaadin-dialog id="dialogModal" theme="mist-dialog" with-backdrop>
+            <template>
+                <h2>Edit expiration date</h2>
+                <div class="paper-dialog-scrollable">
+                    <app-form fields="{{fields}}" single-column inline show-cancel btncontent="Save" url="/api/v1/machines/[[machine.id]]" method="PUT" indialog></app-form>
+                </div>
+            </template>
+        </vaadin-dialog>
+    </template>
+    <script>
+    Polymer({
+        is: 'machine-expiration-edit',
+
+        properties: {
+            model: {
+                type: Object
+            },
+            machine: {
+                type: Object
+            },
+            fields: {
+                type: Array,
+                value: function () {
+                    return [
+                    {
+                        name: 'expiration',
+                        label: 'Expiration Date',
+                        type: 'fieldgroup',
+                        value: {},
+                        defaultValue: {},
+                        defaultToggleValue: true,
+                        show: true,
+                        required: false,
+                        optional: false,
+                        subfields: [
+                            {
+                                name: 'action',
+                                type: 'dropdown',
+                                class: 'bind-both',
+                                value: 'stop',
+                                defaultValue: 'stop',
+                                helptext: '',
+                                show: true,
+                                required: false,
+                                class: 'width-150 inline-block',
+                                options: [
+                                    {val: 'stop', title: 'STOP'},
+                                    {val: 'destroy', title: 'DESTROY'}
+                                ]
+                            }, {
+                                name: 'date',
+                                type: 'duration_field',
+                                class: 'bind-both',
+                                value: '',
+                                defaultValue: '',
+                                valueType: 'date',
+                                valueDefaultSpan: 1,
+                                valueDefaultUnit: 'days',
+                                helptext: '',
+                                show: true,
+                                required: false,
+                                prefixText: 'in ',
+                                options: [
+                                    {val: 'months', title: 'months'},
+                                    {val: 'weeks', title: 'weeks'},
+                                    {val: 'days', title: 'days'},
+                                    {val: 'hours', title: 'hours'},
+                                    {val: 'minutes', title: 'minutes'}
+                                ]
+                            }, {
+                                name: 'notify',
+                                type: 'duration_field',
+                                valueType: 'secs',
+                                value: 3600,
+                                defaultValue: 3600,
+                                valueDefaultSpan: 1,
+                                valueDefaultUnit: 'hours',
+                                class: 'bind-both',
+                                helptext: '',
+                                show: true,
+                                required: false,
+                                prefixText: 'Notify me ',
+                                suffixText: 'before',
+                                secondary: true,
+                                optional: true,
+                                options: [
+                                    {val: 'months', title: 'months'},
+                                    {val: 'weeks', title: 'weeks'},
+                                    {val: 'days', title: 'days'},
+                                    {val: 'hours', title: 'hours'},
+                                    {val: 'minutes', title: 'minutes'}
+                                ]
+                            }
+                        ]
+                    }
+                    ]
+                }
+            }
+        },
+        listeners: {
+            'change': 'updateInputs',
+            // 'open-and-select' : 'openAndSelect'
+        },
+        attached: function() {
+            
+        },
+        _openDialog: function(e) {
+            this._initialiseValues(this.machine);
+        },
+        _closeDialog: function(e) {
+            this.$.dialogModal.opened = false;
+        },
+        _initialiseValues: function(machine) {
+            if (!this.machine) return;
+            var date = (this.machine && this.machine.expiration) ? this.machine.expiration.date : '',
+                fromNow = this._dateToDurationFromNow(date);
+            var notify = (this.machine && this.machine.expiration) ? this.machine.expiration.notify : 0,
+                before = this._secondsToDuration(notify);
+
+            this.set('fields.0.subfields.0.value',  this.machine.expiration ? this.machine.expiration.action : this.fields[0].subfields[0].defaultValue);
+            this.notifyPath('fields.0.subfields.0.value');
+            
+            if (date) {
+                this.set('fields.0.subfields.1.valueDefaultSpan', fromNow.span);
+                this.notifyPath('fields.0.subfields.1.valueDefaultSpan');
+                this.set('fields.0.subfields.1.valueDefaultUnit', fromNow.unit);
+                this.notifyPath('fields.0.subfields.1.valueDefaultUnit');
+                if (!notify) {
+                    this.set('fields.0.subfields.2.disabled', true);
+                } else if (notify) {
+                    this.set('fields.0.subfields.2.valueDefaultSpan', before.span);
+                    this.notifyPath('fields.0.subfields.2.valueDefaultSpan');
+                    this.set('fields.0.subfields.2.valueDefaultUnit', before.unit);
+                    this.notifyPath('fields.0.subfields.2.valueDefaultUnit');
+                    this.set('fields.0.subfields.2.disabled', false);
+                } 
+            }
+            // console.log('DIALOG EXPIRATION', this.machine.expiration);
+            this.$.dialogModal.opened = true;
+        },
+        _dateToDurationFromNow: function(date) {
+            var span, unit;
+            if (moment(date).isValid()){
+                var fromNow = moment.utc(date).fromNow(true);
+                var chunks = fromNow.split(' ');
+                span = chunks[0];
+                unit = chunks[1];
+                if (span == 'a') {
+                    span = '1';
+                    unit = unit+'s';
+                }
+            }
+            return {span: span, unit: unit}
+        },
+        _secondsToDuration: function(seconds) {
+            var step, span;
+            if (seconds) {
+                if (seconds%(3600*24*7) == 0) {
+                    step = 'weeks';
+                    span = seconds/(3600*24*7);
+                } else if (seconds%(3600*24) == 0) {
+                    step = 'days';
+                    span = seconds/(3600*24);
+                } else if (seconds%3600 == 0) {
+                    step = 'hours';
+                    span = seconds/3600;
+                } else if (seconds%60 == 0) {
+                    step = 'minutes';
+                    span = seconds/60;
+                }
+            }
+            return {span: span, unit: step}
+        }
+    });
+    </script>
+</dom-module>

@@ -372,7 +372,7 @@
         },
 
         _forwardEvent: function (e) {
-            console.log('event in mist-app', e.detail);
+            // console.log('event in mist-app', e.detail);
             this.shadowRoot.querySelector('page-machines').shadowRoot.querySelector('machine-page').shadowRoot.querySelector('mist-monitoring').fire('update-dashboard');
         },
 
@@ -402,7 +402,7 @@
         },
 
         _sizeChanged: function(smallscreen) {
-            console.log('updateResize');
+            // console.log('updateResize');
             if (this.$.sidebar) {
                 if (this.smallscreen) {
                     this.$.sidebar.closeSidebar();
@@ -427,7 +427,7 @@
         },
 
         setLocationPath: function(e) {
-            console.log('search: setLocationPath with search query', e.detail);
+            // console.log('search: setLocationPath with search query', e.detail);
             if (e.detail.url && this.$.appLocation) {
                 this.$.appLocation.set('path', e.detail.url);
                 if (e.detail.params) {
@@ -435,7 +435,7 @@
                 }
                 // use in redirects to filtered lists, ex from ec2 cloud page to ec2 filtered machine list
                 if (e.detail.search) {
-                    console.log('setLocationPath', e.detail.search)
+                    // console.log('setLocationPath', e.detail.search)
                     this.async(function() {
                         this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: e.detail.search }));
                     }, 200);
@@ -619,6 +619,7 @@
         ready: function() {
             var model = {
                 machines: {},
+                clouds: {},
                 cloudsArray: [],
                 imagesArray: [],
                 keysArray: [],
@@ -841,6 +842,22 @@
                     rbacLoad, rbacError, true);
             }
 
+            var cloudsCount = this.model.clouds ? Object.keys(this.model.clouds).length : 0,
+                stacksCount = this.model.stacks ? Object.keys(this.model.stacks).length : 0,
+                machinesCount = this.model.machines ? Object.keys(this.model.machines).length : 0,
+                volumesCount = this.model.volumes ? Object.keys(this.model.volumes).length : 0,
+                networksCount = this.model.networks ? Object.keys(this.model.networks).length : 0,
+                zonesCount = this.model.zones ? Object.keys(this.model.zones).length : 0,
+                keysCount = this.model.keys ? Object.keys(this.model.keys).length : 0,
+                imagesCount = this.model.images ? Object.keys(this.model.images).length : 0,
+                scriptsCount = this.model.scripts ? Object.keys(this.model.scripts).length : 0,
+                templatesCount = this.model.templates ? Object.keys(this.model.templates).length : 0,
+                tunnelsCount = this.model.tunnels ? Object.keys(this.model.tunnels).length : 0,
+                schedulesCount = this.model.schedules ? Object.keys(this.model.schedules).length : 0,
+                rulesCount = this.model.rules ? Object.keys(this.model.rules).length : 0,
+                teamsCount = this.model.teams ? Object.keys(this.model.teams).length : 0,
+                membersCount = this.model.members ? Object.keys(this.model.members).length : 0;
+
             let sectionsArray = [{
                 id: 'dashboard',
                 icon: 'icons:dashboard',
@@ -861,7 +878,7 @@
                 add: '/clouds/+add',
                 sidebar: true,
                 tile: false,
-                count: 0,
+                count: cloudsCount,
                 hr: !orchestration
             }, {
                 id: 'stacks',
@@ -869,7 +886,7 @@
                 icon: 'maps:layers',
                 sidebar: orchestration,
                 tile: orchestration,
-                count: 0,
+                count: stacksCount,
                 hr: true,
                 hideZero: true,
                 hideTileIfZero: true
@@ -880,7 +897,7 @@
                 add: '/machines/+create',
                 sidebar: true,
                 tile: true,
-                count: 0
+                count: machinesCount
             }, {
                 id: 'volumes',
                 color: '#795548',
@@ -888,7 +905,7 @@
                 add: '/volumes/+add',
                 sidebar: true,
                 tile: true,
-                count: 0,
+                count: volumesCount,
                 hideTileIfZero: true
             }, {
                 id: 'networks',
@@ -897,7 +914,7 @@
                 add: '/networks/+add',
                 sidebar: true,
                 tile: true,
-                count: 0,
+                count: networksCount,
                 hideTileIfZero: true
             }, {
                 id: 'zones',
@@ -906,7 +923,7 @@
                 add: '/zones/+add',
                 sidebar: true,
                 tile: true,
-                count: 0,
+                count: zonesCount,
                 hideTileIfZero: true
             }, {
                 id: 'keys',
@@ -916,7 +933,7 @@
                 sidebar: true,
                 tile: true,
                 hr: true,
-                count: 0,
+                count: keysCount,
                 hideTileIfZero: true
             }, {
                 id: 'images',
@@ -924,7 +941,7 @@
                 icon: 'image:collections',
                 sidebar: true,
                 tile: false,
-                count: 0,
+                count: imagesCount,
                 q: ''
             }, {
                 id: 'scripts',
@@ -934,7 +951,7 @@
                 sidebar: true,
                 tile: true,
                 hr: !orchestration,
-                count: 0,
+                count: scriptsCount,
                 hideTileIfZero: true
             }, {
                 id: 'templates',
@@ -944,7 +961,7 @@
                 sidebar: orchestration,
                 tile: orchestration,
                 hr: true,
-                count: 0,
+                count: templatesCount,
                 hideTileIfZero: true
             }, {
                 id: 'tunnels',
@@ -953,7 +970,7 @@
                 add: '/tunnels/+add',
                 sidebar: tunnels,
                 tile: false,
-                count: 0,
+                count: tunnelsCount,
                 hideTileIfZero: true
             }, {
                 id: 'schedules',
@@ -962,7 +979,7 @@
                 add: '/schedules/+add',
                 sidebar: true,
                 tile: true,
-                count: 0
+                count: schedulesCount
             }, {
                 id: 'rules',
                 color: '#42424242',
@@ -970,14 +987,14 @@
                 add: '/rules/+add',
                 sidebar: true,
                 tile: true,
-                count: 0
+                count: rulesCount
             }, {
                 id: 'teams',
                 color: '#607D8B',
                 icon: 'social:people',
                 sidebar: true,
                 tile: true,
-                count: 0,
+                count: teamsCount,
                 hr: insights
             }, {
                 id: 'my-account',
@@ -988,7 +1005,7 @@
                 id: 'members',
                 color: '#607D8B',
                 icon: 'social:people',
-                count: 0
+                count: membersCount
             }, {
                 id: 'insights',
                 color: '#2F2F3E',
@@ -1000,6 +1017,7 @@
             this.set('config.features.currency', currency);
 
             this.set('model.sections', _generateMap(sectionsArray));
+            // console.log('config updated', this.model.sections)
             if (!this.config || !this.config.features || !this.config.features.docs) {
                 for (var i = 0; i < PROVIDERS.length; i++) {
                     for (var j = 0; j < PROVIDERS[i].options.length; j++) {

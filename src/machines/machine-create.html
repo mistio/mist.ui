@@ -387,9 +387,14 @@
                     this._updateFieldsForOpenstack();
                 }
 
+                // if is packet construct ip_addresses value
+                if (this.model.clouds[this.selectedCloud].provider == "packet") {
+                    this._updateFieldsForPacket();
+                }
+
                 this.machineFields.forEach(function(f, index) {
                     // clear options
-                    if (['radio','list'].indexOf(f.type) == -1  && f.options) {
+                    if (['duration_field','dropdown','radio','list'].indexOf(f.type) == -1  && f.options) {
                         f.options = [];
                     }
 
@@ -425,7 +430,7 @@
                     if (f.name.endsWith("ex_storage_account")) {
                         f.options = this.model.clouds[cloudId].storageAccountsArray || [];
                     }
-                    if (f.name.endsWith("size")) {
+                    if (f.type.startsWith("mist_") && f.name.endsWith("size")) {
                         f.options = this._toArray(this.model.clouds[cloudId].sizes).sort(function(a, b) {
                             if (a.cpus < b.cpus) {
                                 return -1;
@@ -436,6 +441,7 @@
                             return 0;
                         }) || [];
                     }
+
                     if (f.name.endsWith("key")) {
                         f.options = this.model.keysArray || [];
                     }
@@ -455,6 +461,12 @@
                             cloudId].networks) : [];
                         if (f.options.length < 2)
                             this.set('machineFields.' + index + '.required', false);
+                    }
+
+                    // if is packet construct ip_addresses value
+                    if (f.name.includes("ipv4") || f.name.includes("ipv6")) {
+                        // console.log("_updateFieldsForPacket");
+                        this._updateFieldsForPacket();
                     }
 
                     // for ec2 subnet selection
@@ -516,6 +528,7 @@
                     if (f.options) {
                         this.set('machineFields.' + index + '.options', f.options);
                     }
+                    // console.log('update fields', f.name, f.value)
 
                 }, this);
 
@@ -618,6 +631,13 @@
                     .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                     .name == 'name') {
                     this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                }
+
+                // if its packet and ips changed
+                if (this.model.clouds[this.selectedCloud].provider == 'packet' && changeRecord
+                    .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
+                    .name.includes('_ipv')) {
+                    this._updateFieldsForPacket();
                 }
 
                 // if location changed and volumes are allowed
@@ -1421,6 +1441,47 @@
             };
 
             return interval;
+        },
+        _updateFieldsForPacket: function(e) {
+            var ipAddresses = this._fieldIndexByName("ip_addresses");
+            var ipv4Ind = this._fieldIndexByName("public_ipv4"),
+                ipv6Ind = this._fieldIndexByName("public_ipv6");
+            var ipv4SubSizeInd = this._fieldIndexByName("public_ipv4_subnet_size"),
+                ipv6SubSizeInd = this._fieldIndexByName("public_ipv6_subnet_size"),
+                privateIpv4SubSizeInd = this._fieldIndexByName("private_ipv4_subnet_size");
+            var ipv4 = ipv4Ind > -1 ? this.get('machineFields.' + ipv4Ind + '.value') : false,
+                ipv6 = ipv6Ind > -1 ? this.get('machineFields.' + ipv6Ind + '.value') : false;
+            var ipv4SubSize = ipv4SubSizeInd > -1 ? this.get('machineFields.' + ipv4SubSizeInd + '.value') : '',
+                ipv6SubSize = ipv6SubSizeInd > -1 ? this.get('machineFields.' + ipv6SubSizeInd + '.value') : '',
+                privateIpv4SubSize = privateIpv4SubSizeInd > -1 ? this.get('machineFields.' + privateIpv4SubSizeInd + '.value') : '';
+            var formattedIpAddresses = [];
+            if (ipv4) {
+                var formattedIpv4 = {
+                    address_family: 4, public: ipv4
+                }
+                if (ipv4SubSize.length) {
+                    formattedIpv4.cidr = ipv4SubSize;
+                }
+                formattedIpAddresses.push(formattedIpv4);
+            }
+            if (ipv6) {
+                var formattedIpv6 = {
+                    address_family: 6, public: ipv6
+                }
+                if (ipv6SubSize.length) {
+                    formattedIpv6.cidr = ipv6SubSize;
+                }
+                formattedIpAddresses.push(formattedIpv6);
+            }
+            var formattedPrivateIpv4 = {
+                address_family: 4, public: false
+            }
+            if (privateIpv4SubSize) {
+                formattedPrivateIpv4.cidr = privateIpv4SubSize;
+            }
+            formattedIpAddresses.push(formattedPrivateIpv4);
+
+            this.set('machineFields.'+ ipAddresses + '.value', formattedIpAddresses)
         },
         _processCrotab: function(entry) {
             var construct = {};

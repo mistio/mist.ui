@@ -420,7 +420,146 @@ MACHINE_CREATE_FIELDS.push({
 // PACKET
 MACHINE_CREATE_FIELDS.push({
     provider: 'packet',
-    fields: [],
+    fields: [{
+        name: 'ip_addresses',
+        type: 'array',
+        value: [{address_family: 4, public: true},{address_family: 4, public: false}, { address_family: 6, public: false}],
+        defaultValue: [{address_family: 4, public: false}, { address_family: 6, public: false}],
+        show: false,
+        required: true
+    },{
+        name: 'public_ipv4',
+        label: 'Public IPv4',
+        type: 'toggle',
+        value: false,
+        defaultValue: false,
+        excludeFromPayload: true,
+        show: true,
+        required: true,
+        helptext: "Choose whether to assign Public IPv4 IPs."
+    }, {
+        name: 'public_ipv4_subnet_size',
+        label: 'IPv4 Subnet Size',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: false,
+        required: false,
+        helptext: "Choose the public IPv4 subnet sizes that you would like to allocate when provisioning this device. By default, Packet assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
+        options: [{ title: '/28', val: '28'
+        }, { title: '/29', val: '29'
+        }, { title: '/30', val: '30'
+        }, { title: '/31', val: '31'
+        }],
+        showIf: {
+            fieldName: 'public_ipv4',
+            fieldValues: [true],
+        },
+    },{
+        name: 'public_ipv6',
+        label: 'Public IPv6',
+        type: 'toggle',
+        value: false,
+        defaultValue: false,
+        excludeFromPayload: true,
+        show: true,
+        required: true,
+        helptext: "Choose whether to assign Public IPv6 IPs."
+    }, {
+        name: 'public_ipv6_subnet_size',
+        label: 'IPv6 Subnet Size',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: false,
+        required: false,
+        helptext: "Choose the public IPv6 subnet size that you would like to allocate when provisioning this device. By default, Packet assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
+        options: [{ title: '/64', val: '64'
+        }, { title: '/65', val: '65'
+        }, { title: '/66', val: '66'
+        }, { title: '/67', val: '67'
+        }, { title: '/68', val: '68'
+        }, { title: '/69', val: '69'
+        }, { title: '/70', val: '70'
+        }, { title: '/71', val: '71'
+        }, { title: '/72', val: '72'
+        }, { title: '/73', val: '73'
+        }, { title: '/74', val: '74'
+        }, { title: '/74', val: '74'
+        }, { title: '/74', val: '74'
+        }, { title: '/75', val: '75'
+        }, { title: '/76', val: '76'
+        }, { title: '/77', val: '77'
+        }, { title: '/78', val: '78'
+        }, { title: '/79', val: '79'
+        }, { title: '/80', val: '80'
+        }, { title: '/81', val: '81'
+        }, { title: '/82', val: '82'
+        }, { title: '/83', val: '83'
+        }, { title: '/84', val: '84'
+        }, { title: '/85', val: '85'
+        }, { title: '/86', val: '86'
+        }, { title: '/87', val: '87'
+        }, { title: '/88', val: '88'
+        }, { title: '/89', val: '89'
+        }, { title: '/90', val: '90'
+        }, { title: '/91', val: '91'
+        }, { title: '/92', val: '92'
+        }, { title: '/93', val: '93'
+        }, { title: '/94', val: '94'
+        }, { title: '/95', val: '95'
+        }, { title: '/96', val: '96'
+        }, { title: '/97', val: '97'
+        }, { title: '/98', val: '98'
+        }, { title: '/99', val: '99'
+        }, { title: '/100', val: '100'
+        }, { title: '/101', val: '101'
+        }, { title: '/102', val: '102'
+        }, { title: '/103', val: '103'
+        }, { title: '/104', val: '104'
+        }, { title: '/105', val: '105'
+        }, { title: '/106', val: '106'
+        }, { title: '/107', val: '107'
+        }, { title: '/108', val: '108'
+        }, { title: '/109', val: '109'
+        }, { title: '/110', val: '110'
+        }, { title: '/111', val: '111'
+        }, { title: '/112', val: '112'
+        }, { title: '/113', val: '113'
+        }, { title: '/114', val: '114'
+        }, { title: '/115', val: '115'
+        }, { title: '/116', val: '116'
+        }, { title: '/117', val: '117'
+        }, { title: '/118', val: '118'
+        }, { title: '/119', val: '119'
+        }, { title: '/120', val: '120'
+        }, { title: '/121', val: '121'
+        }, { title: '/122', val: '122'
+        }, { title: '/123', val: '123'
+        }, { title: '/124', val: '124'
+        }, { title: '/125', val: '125'
+        }, { title: '/126', val: '126'
+        }, { title: '/127', val: '127'
+        }],
+        showIf: {
+            fieldName: 'public_ipv6',
+            fieldValues: [true],
+        },
+    }, {
+        name: 'private_ipv4_subnet_size',
+        label: 'Private IPv4 Subnet Size',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        helptext: "Choose the private IPv6 subnet size that you would like to allocate when provisioning this device.",
+        options: [{ title: '/28', val: '28'
+        }, { title: '/29', val: '29'
+        }, { title: '/30', val: '30'
+        }, { title: '/31', val: '31'
+        }]
+    }],
 });
 
 // RACKSPACE
@@ -830,7 +969,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     });
 
     // add cloud init field only to providers that accept and we support
-    if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt'].indexOf(p.provider) != -1) {
+    if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer'].indexOf(p.provider) != -1) {
         p.fields.push({
             name: 'cloud_init',
             label: 'Cloud Init',
@@ -867,7 +1006,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'packet'].indexOf(p.provider) > -1) {
+    if (['openstack', 'packet', 'gce', 'digitalocean', 'aws'].indexOf(p.provider) > -1) {
         var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',
@@ -937,9 +1076,81 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }
 
     // add common post provision fields
-    p.fields.push({
+    p.fields.push(
+    {
+        name: 'expiration',
+        label: 'Set expiration',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: false,
+        helptext: 'Set an expiration date when the machine will stop or be destroyed',
+        show: true,
+        required: false,
+        optional: true,
+        subfields: [
+            {
+                name: 'action',
+                type: 'dropdown',
+                class: 'bind-both',
+                value: 'stop',
+                defaultValue: 'stop',
+                helptext: '',
+                show: true,
+                required: false,
+                class: 'width-150 inline-block',
+                options: [
+                    {val: 'stop', title: 'STOP'},
+                    {val: 'destroy', title: 'DESTROY'}
+                ]
+            }, {
+                name: 'date',
+                type: 'duration_field',
+                class: 'bind-both',
+                value: '',
+                defaultValue: '',
+                valueType: 'date',
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'days',
+                helptext: '',
+                show: true,
+                required: false,
+                prefixText: 'in ',
+                options: [
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'},
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'},
+                    {val: 'minutes', title: 'minutes'}
+                ]
+            }, {
+                name: 'notify',
+                type: 'duration_field',
+                valueType: 'secs',
+                value: 3600,
+                defaultValue: 3600,
+                valueDefaultSpan: 1,
+                valueDefaultUnit: 'hours',
+                class: 'bind-top',
+                helptext: '',
+                show: true,
+                required: false,
+                prefixText: 'Notify me ',
+                suffixText: 'before',
+                secondary: true,
+                optional: true,
+                options: [
+                    {val: 'months', title: 'months'},
+                    {val: 'weeks', title: 'weeks'},
+                    {val: 'days', title: 'days'},
+                    {val: 'hours', title: 'hours'},
+                    {val: 'minutes', title: 'minutes'}
+                ]
+            }
+        ]
+    }, {
         name: 'post_provision_script',
-        label: 'Run Script',
+        label: 'Run post-deploy script',
         type: 'toggle',
         value: false,
         defaultValue: false,
@@ -1222,7 +1433,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     if (['onapp'].indexOf(p.provider) == -1) {
         p.fields.push({
             name: 'create_hostname_machine',
-            label: 'Create Hostname',
+            label: 'Create hostname',
             type: 'toggle',
             value: false,
             defaultValue: false,

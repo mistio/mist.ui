@@ -17,6 +17,7 @@
             },
             model: {
                 type: Object,
+                value: function () { return { sections: {}} },
                 notify: true
             },
             initialized: {
@@ -364,7 +365,7 @@
                             }
                         }
 
-                        if (property_path) {
+                        if (property_path && _this.model.clouds[cloud_id][resource_type][resource_external_id]) {
                             var resource_global_path = 'model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id,
                                 property_global_path =  resource_global_path + property_path,
                                 resource_local_path = 'model.clouds.' + cloud_id + '.' + resource_type + '.' + resource_external_id,
@@ -407,7 +408,7 @@
                     // console.debug('0. length', data.length, this.get('model.' + section + 'Array.length'));
                     changed = true;
                 }
-
+                // debugger;
                 // For each item in the received data array
                 for (var i = 0; i < data.length; i++) {
                     // If we know things have changed no need to keep checking
@@ -431,6 +432,7 @@
                     // check if all fields of the data item exist in the model item
                     var dataKeys = Object.keys(data[i]),
                         modelKeys = Object.keys(item);
+
                     for (var k = 0; k < dataKeys.length; k++) {
                         // Do not update model just for the last_seen property
                         if (dataKeys[k] == 'last_seen') {
@@ -472,6 +474,7 @@
                 if (this.model.sections[section] && this.model.sections[section].count != (data.length || 0)) {
                     // update section count, necessary for propagating changes to sidebar & dashboard counters
                     this.set('model.sections.' + section + '.count', data.length || 0);
+                    console.log('update model', section, this.model.sections[section].count);
                 }
 
                 if (pending) {
@@ -484,7 +487,7 @@
         },
 
         _updateClouds: function (data) {
-            // console.log('_updateClouds');
+            // console.log('_updateClouds', data);
             if (data.length && this.get('model.onboarding.hasCloud') != true)
                 this.set('model.onboarding.hasCloud', true);
             if (!data.length) {
@@ -497,11 +500,13 @@
             this.set('model.onboarding.isLoadingClouds', false);
 
             if (this.model && this.model.clouds && data) {
+                // console.log('_updateClouds - in clean up loop');
                 data.forEach(function (c) {
                     this.cleanUpResources(c.id);
                 }, this)
             }
             if (!data || this.model.cloudsArray.length == 0) {
+                // console.log('_updateClouds - in clean up resources');
                 this.cleanUpResources();
             }
 
@@ -923,8 +928,9 @@
 
         cleanUpCloudResources: function(cloud_id, section, externalId) {
             var _this = this;
+            var sectionItems = Object.keys(this.model[section]);
             if (this.model && this.model[section]) {
-                Object.keys(this.model[section]).forEach(function(resource_id) {
+                sectionItems.forEach(function(resource_id) {
                     var resource = _this.model[section][resource_id];
                     if (!cloud_id || resource.cloud == cloud_id) {
                         if (_this.model.clouds[resource.cloud] && _this.model.clouds[resource.cloud][section] && _this.model.clouds[resource.cloud][section][resource[externalId]])
@@ -933,18 +939,20 @@
                             delete _this.model[section][resource_id];
                     }
                 });
-                this.set('model.sections.' + section + '.count', Object.keys(this.model[section]).length);
+                this.set('model.sections.' + section + '.count', sectionItems.length);
             }
         }
     });
 
     function _generateMap(list, field) {
         var out = {};
-        if (field == undefined)
+        if (field == undefined) {
             field = 'id';
+        }
         for (var i = 0; i < list.length; i++) {
             out[list[i][field]] = list[i];
         }
+        // console.log('generate map', list, field, JSON.stringify(out));
         return out;
     };
 </script>
