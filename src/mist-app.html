@@ -227,7 +227,7 @@
     Polymer.passiveTouchGestures = true;
     Polymer({
         is: 'mist-app',
-        behaviors: getBehaviors(),
+        behaviors: [Polymer.IronResizableBehavior],
 
         properties: {
             page: {
@@ -606,16 +606,6 @@
             }
         },
 
-        beforeRegister: function(){
-            var event = new CustomEvent('add-behavior',{
-                detail:{
-                    func: function(){console.log(this.myProp,"!")}
-                    // rbacBehavior
-                }
-            });
-            document.dispatchEvent(event);
-        },
-
         ready: function() {
             var model = {
                 machines: {},
@@ -804,14 +794,6 @@
             this.shadowRoot.appendChild(pp);
         },
 
-        _rbacBehaviorAppend: function() {
-            console.log('RBAC Behavior Append');
-        },
-
-        _rbacBehaviorAppendError: function() {
-            console.log('Error when appending RBAC Behavior');
-        },
-
         _configUpdated: function(config) {
             if (!Object.keys(config).length) return;
             console.log('Config updated');
@@ -831,15 +813,6 @@
                 Polymer.importHref(
                     this.resolveUrl('account/plan-purchase.html'),
                     cbLoad, function() {console.error("could not load plan-purchase.html", billing)}, true);
-            }
-
-            // Load rbac behavior element
-            if (rbac == true) {
-                let rbacLoad = this._rbacBehaviorAppend(),
-                    rbacError = this._rbacBehaviorAppendError();
-                Polymer.importHref(
-                    this.resolveUrl('/static/ui/mist-rbac-behavior/mist-rbac-behavior.html'),
-                    rbacLoad, rbacError, true);
             }
 
             var cloudsCount = this.model.clouds ? Object.keys(this.model.clouds).length : 0,
@@ -1233,15 +1206,6 @@
             return true;
         }
     });
-
-    function getBehaviors() {
-        return [Polymer.IronResizableBehavior];
-        document.addEventListener('add-behavior',function(e){
-            debugger;
-            myArr.push(e.detail);
-        });
-        return myArr;
-    };
 
     function ratedCost(cost, rate) {
         var c = parseFloat(cost || 0);
