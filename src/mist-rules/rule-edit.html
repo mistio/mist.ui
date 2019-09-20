@@ -195,12 +195,12 @@
             <div id="newrule" class="rule">
                 <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
-                    <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on" disabled="[[_isArbitrary(ruleType)]]">
+                    <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on" disabled="[[_disableRuleTypeChanges(ruleType,editingExistingRule)]]">
                         <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
-                            <paper-item value="arbitrary" disabled="[[!_isArbitrary(ruleType)]]">organization</paper-item>
-                            <paper-item value="every" disabled="[[_isArbitrary(ruleType)]]">every [[resourceType]]</paper-item>
-                            <paper-item value="specific" disabled="[[_isArbitrary(ruleType)]]">specific [[resourceType]]</paper-item>
-                            <paper-item value="tagged" disabled="[[_isArbitrary(ruleType)]]">[[resourceType]]s with tag </paper-item>
+                            <paper-item value="arbitrary" disabled="[[_disableOrg(ruleType,editingExistingRule)]]">organization</paper-item>
+                            <paper-item value="every" disabled="[[_disableResource(ruleType,editingExistingRule)]]">every [[resourceType]]</paper-item>
+                            <paper-item value="specific" disabled="[[_disableResource(ruleType,editingExistingRule)]]">specific [[resourceType]]</paper-item>
+                            <paper-item value="tagged" disabled="[[_disableResource(ruleType,editingExistingRule)]]">[[resourceType]]s with tag </paper-item>
                         </paper-listbox>
                     </paper-dropdown-menu>
                     <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
@@ -457,12 +457,16 @@
             targetValid: {
                 type: Boolean,
                 value: false
-            }
+            },
+            editingExistingRule: {
+                type: Boolean,
+                computed: '_computeEditingExistingRule(rule, rule.*)'
+            },
         },
         observers: [
             "_focusOnMetricName(active)",
             "_currentRuleUpdated(currentRule.*)",
-            "_initialiseEdit(currentRule,resource, rule.id)",
+            "_initialiseEdit(currentRule, resource, rule.id)",
             "_computeMonitoredMachines(machines.*)",
             "_validateCondition(rule.*)"
         ],
@@ -471,11 +475,27 @@
                 this._resetRule();
             }
         },
+        _computeEditingExistingRule: function(rule) {
+            console.log('_computeEditingExistingRule', !!(this.rule && this.rule.id))
+            return !!(this.rule && this.rule.id);
+        },
         _computeIsNoData: function(rule) {
             return rule.title == 'NoData';
         },
         _computeHideApplyOn: function(resource, isNoData) {
             return resource || isNoData ? true : false;
+        },
+        _disableRuleTypeChanges: function(type) {
+            if (!this.editingExistingRule) return false;
+            return this._isArbitrary(type);
+        },
+        _disableOrg: function(type) {
+            if (!this.editingExistingRule) return false;
+            return !this._isArbitrary(type);
+        },
+        _disableResource: function(type) {
+            if (!this.editingExistingRule) return false;
+            return this._isArbitrary(type);
         },
         _isArbitrary: function(type) {
             return type == 'arbitrary';
@@ -487,6 +507,7 @@
             return type == 'tagged';
         },
         _initialiseEdit: function(rule, resource) {
+            console.log("======", rule, this.ruleType);
             if (!resource) {
                 if (!rule) {
                     return; 
@@ -602,6 +623,7 @@
                     period: 'minutes'
                 },
             });
+            this.set('ruleType', false);
             this.set('formError', false);
         },
         _close: function(event) {
