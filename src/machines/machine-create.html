@@ -122,7 +122,7 @@
                         fields to appear.</p>
                 </div>
                 <div hidden$=[[!selectedCloud]]>
-                    <app-form id="createForm" fields="{{machineFields}}" method="POST" url="/api/v1/clouds/[[selectedCloud]]/machines" on-response="_machineCreateResponse" on-error="_machineCreateError" btncontent="Launch"></app-form>
+                    <app-form id="createForm" format-payload fields="{{machineFields}}" method="POST" url="/api/v1/clouds/[[selectedCloud]]/machines" on-response="_machineCreateResponse" on-error="_machineCreateError" btncontent="Launch"></app-form>
                 </div>
             </paper-material>
         </div>
@@ -256,7 +256,8 @@
         ],
         listeners: {
             'keyup': 'hotkeys',
-            'add-input': 'addInput'
+            'add-input': 'addInput',
+            'format-payload': 'formatPayload'
         },
         _prefillOptions: function(location) {
             if (this.shadowRoot.querySelector('app-location') && this.shadowRoot.querySelector('app-location').queryParams)
@@ -329,11 +330,27 @@
             }
             // add cloud fields
             if (machineFields.fields) {
-                this.set('machineFields', JSON.parse(JSON.stringify(machineFields.fields)));
+                // allow hostname iff at least a cloud has dns access enabled
+                var fields = JSON.parse(JSON.stringify(machineFields.fields));
+                if (this.model.clouds) {
+                    var dns = this._enableHostname(this.model.clouds);
+                    if (!dns) {
+                        var ind = this._fieldIndexByName('hostname', fields);
+                        if (ind > -1) {
+                            fields.splice(ind,1);
+                        }
+                    }
+                }
+                this.set('machineFields', fields);
             }
             
             // set values by provider
             this._updateFields(selectedCloud);
+        },
+        _enableHostname: function(clouds) {
+            return Object.values(clouds).reduce(function(a,b){
+                        return a || b.dns_enabled;
+                    },false);
         },
         _locationChanged: function (locationId) {
             if (!locationId) return;
@@ -449,6 +466,22 @@
 
                     if (f.name.endsWith("key")) {
                         f.options = this._toArray(this.model.keys);
+                    }
+
+                    if (f.name.endsWith("zone")) {
+                        f.options = this._toArray(this.model.zones);
+                    }
+
+                    // TODO: Run a recursive _updateFields() for fieldgroup subfields
+                    if (f.type == "fieldgroup") {
+                        for (var k=0; k<f.subfields.length; k++) {
+                            var sf = f.subfields[k];
+                            if (sf.name.endsWith("zone")) {
+                                sf.options = this._toArray(this.model.zones);
+                                if (sf.options.length)
+                                    this.set('machineFields.'+index+'.subfields.'+k+'.value', sf.options[0].id);
+                            }
+                        }
                     }
 
                     if (f.name.startsWith("script") || f.name.startsWith(
@@ -1620,6 +1653,16 @@
                     this.set('machineFields.' + scheduleScriptInd + '.value', e.detail.script);
                 }
             }.bind(this), 1000);
+        },
+        formatPayload: function(e) {
+            var hostnameInd = this._fieldIndexByName("hostname"),
+                composedHostname = '',
+                hostname =  this.get('machineFields.' + hostnameInd + '.value');
+            if (hostname.record_name && hostname.dns_zone) {
+                var domainName = this.model.zones[hostname.dns_zone].zone_id;
+                composedHostname = hostname.record_name+'.'+domainName+'.';
+            }
+            this.set('machineFields.' + hostnameInd + '.value',composedHostname);
         },
         _hasProviders: function(providers) {
             if (providers && providers.length)
