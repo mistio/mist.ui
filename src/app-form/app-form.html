@@ -215,6 +215,19 @@
                 background-color: #eee;
             }
 
+            .pad-0 {
+                padding: 0;
+            }
+            .pad-r-0 {
+                padding-right: 0;
+            }
+            .pad-l-0 {
+                padding-left: 0;
+            }
+            .pad-t {
+                padding-top: 16px;
+            }
+
             paper-radio-group {
                 display: flex;
                 flex-wrap: nowrap;
@@ -407,6 +420,15 @@
             subfield-group {
                 background-color: #ddd;
             }
+
+            :host paper-spinner {
+                padding: 8px 41%;
+            }
+            .spinner-wrapper {
+                width: 210px;
+                position: relative;
+                height: 40px;
+            }
         </style>
 
         <div class$="grid [[_computeLayoutClass(horizontalLayout)]]">
@@ -451,7 +473,7 @@
                             <paper-radio-group id$="app-form-[[id]]-[[field.name]]" selected="{{field.value}}" class$="xs12 m6 [[field.class]]" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]">
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-radio-button id$="app-form-[[id]]-[[field.name]]" name="[[option.val]]">[[option.title]]</paper-radio-button>
+                                    <paper-radio-button id$="app-form-[[id]]-[[field.name]]" name="[[option.val]]" disabled="[[option.disabled]]">[[option.title]]</paper-radio-button>
                                 </template>
                             </paper-radio-group>
                         </template>
@@ -519,14 +541,14 @@
                                         <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                     </template>
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
-                                        <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
+                                        <paper-item value="[[_getPayloadValue(field,option)]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
                                             <template is="dom-if" if="[[option.icon]]">
                                                 <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
                                             </template>
                                             <template is="dom-if" if="[[option.img]]">
                                                 <img src="[[option.img]]" width="24px" />
                                             </template>
-                                            <span class="flex item-desc" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[showOption(option)]]</span> 
+                                            <span class="flex item-desc" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[showOption(option,field)]]</span>
                                         </paper-item>
                                     </template>
                                     <paper-button on-tap="_addInput" class="blue add-input" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
@@ -539,15 +561,20 @@
                                 <div slot="dropdown-content" class="dropdown-content">
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
                                     <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
-                                        <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
+                                        <template is="dom-if" if="[[_noOptions(field.options, field.options.length, field.loader)]]" restamp>
                                             <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                         </template>
+                                        <template is="dom-if" if="[[field.loader]]" restamp>
+                                            <div class="spinner-wrapper">
+                                                <paper-spinner active="[[field.loader]]"></paper-spinner>
+                                            </div>
+                                        </template>
                                         <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
-                                            <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
+                                            <paper-item value="[[_getPayloadValue(field,option)]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
                                                 <template is="dom-if" if="[[option.icon]]">
                                                     <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
                                                 </template>
-                                                <span class="flex">[[showOption(option)]]</span>
+                                                <span class="flex">[[showOption(option,field)]]</span>
                                             </paper-item>
                                         </template>
                                         <paper-button on-tap="_addInput" class="blue add-input" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
@@ -801,7 +828,9 @@
                 this.set('form', uniqueFields);
             },
 
-            showOption: function (option) {
+            showOption: function (option,field) {
+                if (field.display)
+                    return option[field.display];
                 if (option.title)
                     return option.title;
                 if (option.name)
@@ -811,9 +840,9 @@
             },
 
             _compareFieldType: function (fieldType, value, fieldVisibility, index) {
-                if (fieldType == 'fieldgroup') {
-                    console.log('fieldgroup visibility', fieldVisibility[index],fieldType == value)
-                }
+                // if (fieldType == 'fieldgroup') {
+                //     console.log('fieldgroup visibility', fieldVisibility[index],fieldType == value)
+                // }
                 return fieldVisibility[index] && fieldType == value;
             },
 
@@ -854,7 +883,7 @@
             },
 
             _fieldsChanged: function (fields, sendingData) {
-                console.log('_fieldsChanged', fields ? fields.path : 'run by event')
+                // console.log('_fieldsChanged', fields ? fields.path : 'run by event')
                 if (this.formError) {
                     this.set('formError', false);
                 }
@@ -873,9 +902,9 @@
                     var index = parseInt(fields.path.split('.')[1]);
                     this.set('fieldVisibility.' + index, fields.value);
                 }
-                if (fields && !fields.path.endsWith('.show')) {
+                if (fields && !fields.path.endsWith('.show') && !fields.path.endsWith('.loader')) {
                     var that = this;
-                    // this.async(function () {
+                    this.debounce('fieldsChangedDebouncer', function () {
                         var form = that.form,
                             show = true,
                             dependency, reset = true;
@@ -884,7 +913,7 @@
                         that.fields.forEach(function (el, index) {
                             console.log(el.name);
                             if (el.name == "expiration") {
-                                console.log(el.value);
+                                // console.log(el.value);
                             }
                             // if field has a dependency
                             if (el.showIf) {
@@ -973,7 +1002,7 @@
                         });
                         that.set('form', form);
                         that.runValidateFields();
-                    // });
+                    },500);
                 }
             },
 
@@ -1055,7 +1084,7 @@
                     // console.log('validate ',el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true);
                     return el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true;
                 } else {
-                    console.log('validate ',el.show && el.value ? moment(el.value).isValid() : true);
+                    // console.log('validate ',el.show && el.value ? moment(el.value).isValid() : true);
                     return el.show && el.value ? moment(el.value).isValid() : true;
                 }
             },
@@ -1386,8 +1415,15 @@
             _helpTap: function (e) {
                 this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'open help ' + e.model.field.helpHref }));
             },
-            _noOptions: function (options, length) {
-                return !options || options.length == 0;
+            _noOptions: function (options, length, loader) {
+                return !loader && (!options || options.length == 0);
+            },
+            _getPayloadValue: function(field, option) {
+                if (!field.payloadValue){
+                    return option.id;
+                } else {
+                    return option[field.payloadValue];
+                }
             },
             _filter: function (options, search) {
                 return options.filter(function (op) {
@@ -1402,8 +1438,8 @@
                     1];
             },
             _showField: function (field, index, fieldVisibility) {
-                if (fieldVisibility) {
-                    // console.log('_showField', field.name, this.fieldVisibility[index])
+                if (this.fieldVisibility) {
+                    // console.log('_showField', this.fieldVisibility)
                     return this.fieldVisibility[index];
                 }
                 return true;
