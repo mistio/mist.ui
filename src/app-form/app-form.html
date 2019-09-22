@@ -215,6 +215,19 @@
                 background-color: #eee;
             }
 
+            .pad-0 {
+                padding: 0;
+            }
+            .pad-r-0 {
+                padding-right: 0;
+            }
+            .pad-l-0 {
+                padding-left: 0;
+            }
+            .pad-t {
+                padding-top: 16px;
+            }
+
             paper-radio-group {
                 display: flex;
                 flex-wrap: nowrap;
@@ -528,14 +541,14 @@
                                         <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found</paper-item>
                                     </template>
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
-                                        <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
+                                        <paper-item value="[[_getPayloadValue(field,option)]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
                                             <template is="dom-if" if="[[option.icon]]">
                                                 <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
                                             </template>
                                             <template is="dom-if" if="[[option.img]]">
                                                 <img src="[[option.img]]" width="24px" />
                                             </template>
-                                            <span class="flex item-desc" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[showOption(option)]]</span> 
+                                            <span class="flex item-desc" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[showOption(option,field)]]</span>
                                         </paper-item>
                                     </template>
                                     <paper-button on-tap="_addInput" class="blue add-input" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
@@ -557,11 +570,11 @@
                                             </div>
                                         </template>
                                         <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
-                                            <paper-item value="[[option.id]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
+                                            <paper-item value="[[_getPayloadValue(field,option)]]" class$="button-[[option.button]]" disabled$="[[option.disabled]]">
                                                 <template is="dom-if" if="[[option.icon]]">
                                                     <iron-icon class="field-icon" icon="[[option.icon]]"></iron-icon>
                                                 </template>
-                                                <span class="flex">[[showOption(option)]]</span>
+                                                <span class="flex">[[showOption(option,field)]]</span>
                                             </paper-item>
                                         </template>
                                         <paper-button on-tap="_addInput" class="blue add-input" hidden$="[[!field.add]]">Add [[_computeResourceTypeForField(field.name)]]</paper-button>
@@ -815,7 +828,9 @@
                 this.set('form', uniqueFields);
             },
 
-            showOption: function (option) {
+            showOption: function (option,field) {
+                if (field.display)
+                    return option[field.display];
                 if (option.title)
                     return option.title;
                 if (option.name)
@@ -1402,6 +1417,13 @@
             },
             _noOptions: function (options, length, loader) {
                 return !loader && (!options || options.length == 0);
+            },
+            _getPayloadValue: function(field, option) {
+                if (!field.payloadValue){
+                    return option.id;
+                } else {
+                    return option[field.payloadValue];
+                }
             },
             _filter: function (options, search) {
                 return options.filter(function (op) {
