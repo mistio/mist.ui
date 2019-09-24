@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
@@ -17,6 +18,9 @@
             .columns {
                 @apply --layout-horizontal;
                 flex: 1 100%;
+            }
+
+            .pad-bot {
                 margin-bottom: 16px;
             }
 
@@ -138,6 +142,15 @@
             volume-actions {
                 width: 50%;
             }
+
+            mist-list {
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                height: 600px;
+                font-size: 75%;
+                --row-height: 48px;
+            }
         </style>
         <div id="content">
             <paper-material class="single-head layout horizontal">
@@ -152,7 +165,7 @@
                 </div>
                 <volume-actions items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeVolumeMachines(volume.attached_to.*,model.machines)]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
             </paper-material>
-            <div class="columns">
+            <div class="columns pad-bot">
                 <paper-material id="leftcolumn resource-description" class="left">
                     <div class="missing" hidden$="[[!isMissing]]">Volume not found.</div>
                     <div hidden$="[[isMissing]]">
@@ -193,12 +206,21 @@
                     </div>
                 </paper-material>
             </div>
-            <paper-material class="no-pad" hidden$=[[!volume.extra]]>
-                <h2 class="id n-info-head">More Info</h2>
-                <div class="card-content" hidden$="[[isMissing]]">
-                    <element-for-in content="[[volume.extra]]"></element-for-in>
-                </div>
-            </paper-material>
+            <div class="pad-bot">
+                <paper-material class="no-pad" hidden$=[[!volume.extra]]>
+                    <h2 class="id n-info-head">More Info</h2>
+                    <div class="card-content" hidden$="[[isMissing]]">
+                        <element-for-in content="[[volume.extra]]"></element-for-in>
+                    </div>
+                </paper-material>
+            </div>
+            <div class="pad-bot">
+                <paper-material class="no-pad">
+                    <template is="dom-if" if=[[volume]] restamp>
+                        <mist-list id="volumeLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="volume logs" primary-field-name="time" base-filter=" [[volume.external_id]]"></mist-list>
+                    </template>
+                </paper-material>
+            </div>
         </div>
         <iron-ajax id="volumeDeleteAjaxRequest" url="/api/v1/clouds/[[volume.cloud]]/volumes/[[volume.id]]" method="DELETE" on-response="_handleVolumeDeletekAjaxResponse"></iron-ajax>
         <dialog-element></dialog-element>
@@ -248,6 +270,44 @@
         observers: [
             '_change(volume)'
         ],
+        _getVisibleColumns: function() {
+            return ['type', 'action', 'user_id']
+        },
+
+        _getFrozenLogColumn: function() {
+            return ['time']
+        },
+
+        _getRenderers: function() {
+            var _this = this;
+            return {
+                'time': {
+                    'body': function(item, row) {
+                        var ret = '<span title="' + moment(item * 1000).format() + '">' + moment(item *
+                            1000).fromNow() + '</span>';
+                        if (row.error)
+                            ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                        return ret;
+                    }
+                },
+                'user_id': {
+                    'title': function() {
+                        return 'user';
+                    },
+                    'body': function(item) {
+                        if (_this.model && _this.model.members && item in _this.model.members &&
+                            _this.model.members[item] && _this.model.members[item].name &&
+                            _this.model.members[item].name != undefined) {
+                            var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name +
+                                '</a>';
+                            return ret;
+                        } else console.log(item);
+                        return item || '';
+                    }
+                }
+            }
+        },
+
         _displayUser: function(id, members) {
             return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
         },
