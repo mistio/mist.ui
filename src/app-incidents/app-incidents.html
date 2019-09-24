@@ -177,8 +177,8 @@
                                 <div class="flexchild expression">
                                     <iron-icon icon="[[model.sections.machines.icon]]"></iron-icon>
                                     <span class="machine flexchild">
-                                        <span class="machine-name">[[_computeMachineName(item, model.cloudsArray, model.machines.*)]]</span><br/>
-                                        <span class="rule-condition">[[_computeRuleCondition(item)]]</span>
+                                        <span class="machine-name">[[_computeIncidentTitle(item, model.clouds, model.machines.*)]]</span><br/>
+                                        <span class="rule-condition">[[_computeIncidentCondition(item)]]</span>
                                     </span>
                                     <span class="time">
                                         <template is="dom-if" if="[[!item.finished_at]]">
@@ -241,6 +241,7 @@
             }.bind(this), (index + 1) * 50);
         },
         computeHasIncidents: function(incidents) {
+            console.log('incidents',incidents);
             return this.incidents && this.incidents.length ? true : false;
         },
         _computeOpenIncidents: function (incidentsArray, incidentsSplices, incidentsLength, incidentsMap, incidentsMapSplices) {
@@ -256,17 +257,23 @@
             }, this);
             return resolved.length;
         },
-        _computeMachineName: function (item, clouds, machines) {
-            if (this.model && this.model.clouds && item.logs.length && item.cloud_id && item.machine_id) {
-                return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines &&
-                    this.model.clouds[item.cloud_id].machines[item.machine_id] ? item.logs[0].machine_name :
-                    item.logs[0].machine_name + ': Machine is missing';
+        _computeIncidentTitle: function (item, clouds, machines) {
+            if (!item.logs[0].rule_arbitrary) {
+                if (this.model && this.model.clouds && item.logs.length && item.cloud_id && item.machine_id) {
+                    return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines &&
+                        this.model.clouds[item.cloud_id].machines[item.machine_id] ? item.logs[0].machine_name :
+                        item.logs[0].machine_name + ': Machine is missing';
+                }
+                return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id]
+                    .name || 'Machine is missing';
+            } else {
+                if (item.logs[0].rule_data_type == 'logs') return this._getLogQuery(item.logs[0].condition);
+                if (item.logs[0].rule_data_type == 'metrics') return 'Metrics alert';
+                return 'Alert'
             }
-            return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id]
-                .name || 'Machine is missing';
         },
         _computeMachineUri: function (item, clouds, machines) {
-            // give machine url only if machine axists
+            // give machine url only if machine exists
             if (this.model && this.model.clouds && this.model.clouds[item.cloud_id] && this.model.clouds[
                     item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id]) {
                 return '/machines/' + this.model.clouds[item.cloud_id].machines[item.machine_id].id;
@@ -275,8 +282,19 @@
                 return '/machines'
             }
         },
-        _computeRuleCondition: function (item) {
-            return item.logs.length && item.logs[0].condition;
+        _getLogQuery: function(condition) {
+            // return log query
+            return condition.replace(/^.+?\(([^\)]+)\).+$/,'$1');
+        },
+        _computeIncidentCondition: function (item) {
+            var condition = item.logs.length && item.logs[0].condition || '';
+            // transform log condition
+            if (condition.length && item.logs[0].rule_data_type == 'logs') {
+                condition = condition.replace(this._getLogQuery(item.logs[0].condition),'')
+                                    .replace('COUNT(){}','Log appeared ')
+                                    .replace('within','times within');
+            }
+            return condition;
         },
         _computeIncidentDuration: function (item) {
             if (!item.finished_at)
