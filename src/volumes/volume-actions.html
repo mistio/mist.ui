@@ -127,15 +127,18 @@
       itemActions: function (volume) {
         var arr = [];
         if (volume) {
-          arr.push('tag');
+          if (volume.actions.tag) {
+            arr.push('tag');
+          }
           if (this.inSingleView && VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(this.provider) > -1) {
-            if (volume.attached_to.length == 0 ) {
+            if (volume.actions.attach) {
               arr.push('attach');
-            } else if (volume.attached_to.length) {
+            }
+            if (volume.actions.detach) {
               arr.push('detach');
             }
           }
-          if (!volume.attached_to || !volume.attached_to.length) {
+          if (volume.actions.delete) {
             arr.push('delete');
           }
           if (this.org.ownership_enabled && (volume.owned_by == this.user || this.org.is_owner)) {
