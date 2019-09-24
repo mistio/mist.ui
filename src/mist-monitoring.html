@@ -271,7 +271,7 @@
                             <!-- if we have incidents -->
                             <template is="dom-if" if="[[incidents.length]]" restamp>
                                 <template is="dom-repeat" items={{openIncidents}} as="incident">
-                                    <div class="incident" hidden$=[[_isIncidentFinished(incident.finished_at,)]]>[[incident.logs.0.condition]]</div>
+                                    <div class="incident" hidden$=[[!_showOpenIncident(incident)]]>[[incident.logs.0.condition]]</div>
                                 </template>
                             </template>
                             <!-- monitoring is activated. we expect to have data -->
@@ -627,7 +627,11 @@
         _computeIsActivated (resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)
             this.set("failed", false);
-            this.set('isActivated', resource.monitoring && resource.monitoring.hasmonitoring && resource.monitoring.installation_status && resource.monitoring.installation_status.state == "succeeded");
+            if (resource){
+                this.set('isActivated', resource.monitoring && resource.monitoring.hasmonitoring && resource.monitoring.installation_status && resource.monitoring.installation_status.state == "succeeded");
+            } else {
+                this.set('isActivated', false);
+            }
         },
         _computeResourceMonitoringInfo: function (resource, monitoring) {
             if (!resource || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
@@ -737,6 +741,9 @@
             if (hidden || !monitoring.machines || !monitoring.machines.length || !this.homeDashboard)
                 return false;
             return true;
+        },
+        _showOpenIncident: function(incident) {
+            return this._isIncidentFinished(incident.finished_at) && incident.logs[0].condition;
         },
         _isIncidentFinished: function (finished_at) {
             return finished_at > 0;
