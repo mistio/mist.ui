@@ -195,27 +195,38 @@
             <div id="newrule" class="rule">
                 <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
+                    <!-- choose ruleType -->
                     <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on" disabled="[[_disableRuleTypeChanges(ruleType,editingExistingRule)]]">
                         <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
-                            <paper-item value="arbitrary" disabled="[[_disableOrg(ruleType,editingExistingRule)]]">organization</paper-item>
-                            <paper-item value="every" disabled="[[_disableResource(ruleType,editingExistingRule)]]">every [[resourceType]]</paper-item>
-                            <paper-item value="specific" disabled="[[_disableResource(ruleType,editingExistingRule)]]">specific [[resourceType]]</paper-item>
-                            <paper-item value="tagged" disabled="[[_disableResource(ruleType,editingExistingRule)]]">[[resourceType]]s with tag </paper-item>
+                            <paper-item value="arbitrary" disabled="[[_disableOrg(ruleType,editingExistingRule)]]">all organization</paper-item>
+                            <paper-item value="every" disabled="[[_disableResource(ruleType,editingExistingRule)]]">every</paper-item>
+                            <paper-item value="specific" disabled="[[_disableResource(ruleType,editingExistingRule)]]">specific</paper-item>
+                            <paper-item value="tagged" disabled="[[_disableResource(ruleType,editingExistingRule)]]">tagged </paper-item>
                         </paper-listbox>
                     </paper-dropdown-menu>
-                    <div class="inline" hidden$=[[!_isSpecific(ruleType)]]>
-                        <paper-dropdown-menu class="dropdown-block">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{machineId}}" class="dropdown-content">
-                                <template is="dom-if" if="[[!monitoredMachines.length]]">
-                                    <paper-item disabled>no monitored machines found</paper-item>
+                    <!-- resourceType -->
+                    <div class="inline" hidden$=[[_isArbitrary(ruleType,resourceType)]]>
+                        <paper-dropdown-menu id="resources" class="dropdown-block apply-on">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceType}}" class="dropdown-content">
+                                <template is="dom-repeat" items="[[resourceTypes]]" as="rtype">
+                                    <paper-item value="[[rtype]]">[[rtype]]</paper-item>
                                 </template>
-                                <template id="monitoredMachinesRepeat" is="dom-repeat" items="[[monitoredMachines]]">
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+                    <div class="inline" hidden$=[[!showDropDownResources]]>
+                        <paper-dropdown-menu class="dropdown-block">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceId}}" class="dropdown-content">
+                                <template is="dom-if" if="[[!resourceTypes.length]]">
+                                    <paper-item disabled>no [[resourceType]]s found</paper-item>
+                                </template>
+                                <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]">
                                     <paper-item value="[[item.id]]">[[item.name]]</paper-item>
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
                     </div>
-                    <div class="inline" hidden$=[[!_isTagged(ruleType)]]>
+                    <div class="inline" hidden$=[[!_showTags(ruleType,resourceType)]]>
                         <paper-input class="tags" value="{{tags}}"></paper-input>
                     </div>
                 </div>
@@ -243,7 +254,7 @@
                         </paper-dropdown-menu>
                     </div>
                 </div>
-                <div hidden$=[[!ruleType]]>
+                <div hidden$=[[!showCheckEvery]]>
                     <span class="keyword on">check every</span>
                     <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
                     <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
@@ -376,11 +387,18 @@
         behaviors: [validateRuleBehavior],
 
         properties: {
+            model: {
+                type: Object
+            },
             rule: {
                 type: Object
             },
             hidden: {
                 type: Boolean
+            },
+            ruleTypes: {
+                type: Array,
+                value: function () {return ['arbitrary', 'every', 'specific', 'tagged'];}
             },
             ruleType: {
                 type: String,
@@ -394,8 +412,11 @@
             tags: {
                 type: String
             },
-            machineId: {
+            resourceId: {
                 type: String
+            },
+            resources: {
+                type: Array
             },
             machines: {
                 type: Object
@@ -408,10 +429,14 @@
             },
             resource: {
                 type: Object
+            },
+            resourceTypes: {
+                type: Array,
+                value: function () {return ['machine', 'volume'];}
             }, // machine, cloud or other later,
             resourceType: {
                 type: String,
-                value: function () {return 'machine';}
+                value: false
             },
             hideApplyOn: {
                 type: Boolean,
@@ -462,12 +487,22 @@
                 type: Boolean,
                 computed: '_computeEditingExistingRule(rule, rule.*)'
             },
+            showCheckEvery: {
+                type: Boolean,
+                computed: '_computeShowCheckEvery(ruleType,resourceType,resourceId,tags)',
+                value: false
+            },
+            showDropDownResources: {
+                type: Boolean,
+                computed: '_computeShowDropDownResources(ruleType,resourceType)',
+                value: false
+            }
         },
         observers: [
             "_focusOnMetricName(active)",
             "_currentRuleUpdated(currentRule.*)",
             "_initialiseEdit(currentRule, resource, rule.id)",
-            "_computeMonitoredMachines(machines.*)",
+            "_computeResources(model, resourceType)",
             "_validateCondition(rule.*)"
         ],
         ready: function() {
@@ -475,9 +510,29 @@
                 this._resetRule();
             }
         },
+        _computeShowCheckEvery: function(ruleType,resourceType,resourceId,tags) {
+            return this.showCheckEvery || 
+                (!this.isNoData && this._targetIsValid(ruleType,resourceType,resourceId,tags));
+        },
+        _targetIsValid: function(ruleType,resourceType,resourceId,tags){
+            return this.ruleType &&
+                // is Arbitrary 
+                (this._isArbitrary(ruleType) || 
+                // is every 
+                (this.ruleType == "every" && this.resourceType) ||
+                // is tagged
+                (this.ruleType == "tagged" && this.tags) ||
+                // is specific
+                (this.ruleType == "specific" && this.resourceId));
+        },
+        _computeShowDropDownResources: function(ruleType,resourceType) {
+            return this._isSpecific(ruleType) && this.resourceType;
+        },
+        _showTags: function(ruleType,resourceType) {
+            return this._isTagged(ruleType) && this.resourceType;
+        },
         _computeEditingExistingRule: function(rule) {
-            console.log('_computeEditingExistingRule', !!(this.rule && this.rule.id))
-            return !!(this.rule && this.rule.id);
+            return this.rule && this.rule.id;
         },
         _computeIsNoData: function(rule) {
             return rule.title == 'NoData';
@@ -498,7 +553,7 @@
             return this._isArbitrary(type);
         },
         _isArbitrary: function(type) {
-            return type == 'arbitrary';
+            return !type || type == 'arbitrary';
         },
         _isSpecific: function(type) {
             return type == 'specific';
@@ -522,21 +577,19 @@
                         this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
                     } else if (selector.ids && selector.ids.length == 1) {
                         this.set('ruleType', "specific");
-                        this.set('machineId', selector.ids[0]);
+                        this.set('resourceId', selector.ids[0]);
                     }
                 }
             }
         },
-        _computeMonitoredMachines: function(machines) {
-            var monitoredMachines = [],
-                that = this;
-            if (this.machines && Object.values(this.machines).length) {
-                monitoredMachines = Object.values(this.machines).filter(function(m) {
-                    return m && m.monitoring;
-                });
+        _computeResources: function(model,resourceType) {
+            var resources = [], key = resourceType+'s';
+            if (resourceType  && this.model && this.model[key] && Object.values(this.model[key]).length) {
+                resources = Object.values(this.model[key]);
+                console.log('resources',resources);
             }
-            this.set('monitoredMachines', monitoredMachines);
-            this.$.monitoredMachinesRepeat.render();
+            this.set('resources', resources);
+            this.$.resourcesRepeat.render();
         },
         _removeBrackets: function(string) {
             return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
@@ -751,14 +804,14 @@
             };
             if (this.resource) {
                 payload.selectors = [{
-                    type: 'machines',
+                    type: 'resources',
                     ids: [this.resource.id]
                 }];
             } else {
                 if (this.ruleType == 'specific') {
                     payload.selectors = [{
-                        type: 'machines',
-                        ids: [this.machineId]
+                        type: 'resources',
+                        ids: [this.resourceId]
                     }];
                 } else if (this.ruleType == 'tagged') {
                     payload.selectors = [{
