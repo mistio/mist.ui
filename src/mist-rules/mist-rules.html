@@ -7,6 +7,9 @@
 <dom-module id="mist-rules">
     <template>
         <style include="shared-styles tags-and-labels">
+            :host {
+                display: block;
+            }
             paper-button {
                 background-color: transparent !important;
                 color: inherit !important;
@@ -276,33 +279,54 @@
             var selectors = rulesArray.map(function(r) {
                 return r.selectors;
             });
+            var resourcesInOrder = ['clouds','machines','volumes','networks',
+                'zones','keys','images','scripts','templates',
+                'schedules','teams','members', 'arbitrary'];
             rulesArray.forEach(function(r) {
                 var s = r.selectors;
                 // rule applies on all machines or rule is no-data-rule
-                if (!s && r.data_type == "logs") {
-                    if (!categories.find(function(c) { return c.type == "logs" }))
+                if (r.arbitrary || !r.resource_type) {
+                    if (!categories.find(function(c) { return c.type == "arbitrary" }))
                         categories.push({
                             name: 'Organization Rules',
-                            type: 'logs',
+                            type: 'arbitrary',
                             rules: [r],
                             selectors: []
                         })
                     else {
-                        categories.find(function(c) { return c.type == "logs" }).rules.push(r);
+                        categories.find(function(c) { return c.type == "arbitrary" }).rules.push(r);
                     }
-                } 
-                if ((s && !s.length) || r.title == "NoData") {
-                    if (!categories.find(function(c) { return c.type == "all_machines" }))
-                        categories.push({
-                            name: 'Apply on all machines',
-                            type: 'all_machines',
-                            count: this.machines && Object.keys(this.machines) && Object.keys(this.machines).length || 0,
-                            rules: [r],
-                            selectors: []
-                        })
-                    else {
-                        categories.find(function(c) { return c.type == "all_machines" }).rules.push(r);
+                }
+                if (!resource || (r.resource_type && that.model && that.model[r.resource_type+'s'] && Object.values(that.model[r.resource_type+'s']).map(x=>x.id).indexOf(resource.id) > -1 )){
+                    // rule is no-data-rule
+                    if (r.title == "NoData") {
+                        if (!categories.find(function(c) { return c.type == "all_machines" }))
+                            categories.push({
+                                name: 'Apply on all machines',
+                                type: 'all_machines',
+                                count: that.machines && Object.keys(that.machines) && Object.keys(that.machines).length || 0,
+                                rules: [r],
+                                selectors: []
+                            })
+                        else {
+                            categories.find(function(c) { return c.type == "all_machines" }).rules.push(r);
+                        }
                     }
+                    // rule applies on all of a resource_type
+                    if (s && !s.length && r.resource_type) {
+                        if (!categories.find(function(c) { return c.type == "all_"+r.resource_type+"s" }))
+                            categories.push({
+                                name: 'Apply on all '+ r.resource_type +'s',
+                                type: 'all_'+ r.resource_type +'s',
+                                // count: that.machines && Object.keys(that.machines) && Object.keys(that.machines).length || 0,
+                                rules: [r],
+                                selectors: []
+                            })
+                        else {
+                            categories.find(function(c) { return c.type == "all_"+ r.resource_type +"s" }).rules.push(r);
+                        }
+                    }
+
                 }
                 // rule applies on specific or tagged
                 if (s) {
@@ -310,54 +334,64 @@
                         var sl = s[l];
                         if (sl.type == "tags") {
                             var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
-                            if (!categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags })) {
+                            if (!categories.find(function(c) { return c.type == "tagged_"+ r.resource_type +"s" && c.stringifiedTags == stringifiedTags })) {
                                 categories.push({
-                                    id: 'apply-on-tags',
-                                    name: 'Apply on machines with tags ',
-                                    type: 'tagged_machines',
+                                    id: 'apply-on-tags-of-'+ r.resource_type +'s',
+                                    name: 'Apply on '+ r.resource_type +'s with tags ',
+                                    type: 'tagged_'+ r.resource_type +'s',
                                     stringifiedTags: stringifiedTags,
                                     rules: [r],
                                     selectors: [sl.tags]
                                 });
                             } else {
-                                categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags }).rules.push(r);
+                                categories.find(function(c) { return c.type == "tagged_"+ r.resource_type +"s" && c.stringifiedTags == stringifiedTags }).rules.push(r);
                             }
 
                         }
-                        if (sl.type == "machines") {
-                            var thisMachine = resource ? 'this ' : '';
-                            var specificCategory = categories.find(function(c) {
-                                var allSame = true;
-                                for (var n = 0; n < c.selectors.length; n++) {
-                                    if (sl.ids.indexOf(c.selectors[n]) == -1)
-                                        allSame = false;
-                                }
-                                return c.type == "specific_machines" && allSame;
-                            });
-                            if (!specificCategory)
-                                categories.push({
-                                    id: 'apply-on-' + thisMachine.trim(),
-                                    name: 'Apply on ' + thisMachine + 'machine ',
-                                    type: 'specific_machines',
-                                    rules: [r],
-                                    count: 1,
-                                    selectors: sl.ids,
+                        if (resourcesInOrder.indexOf(sl.type) > -1 ) {
+                            if (!resource || sl.ids.indexOf(resource.id) > -1) {
+                                var thisResource = resource ? 'this ' : '';
+                                var specificCategory = categories.find(function(c) {
+                                    var allSame = true;
+                                    for (var n = 0; n < c.selectors.length; n++) {
+                                        if (sl.ids.indexOf(c.selectors[n]) == -1)
+                                            allSame = false;
+                                    }
+                                    return c.type == "specific_"+r.resource_type+"s" && allSame;
                                 });
-                            else {
-                                specificCategory.rules.push(r);
-                                specificCategory.count++;
+                                if (!specificCategory)
+                                    categories.push({
+                                        id: 'apply-on-' + thisResource.trim(),
+                                        name: 'Apply on ' + thisResource + ' ' + r.resource_type,
+                                        type: 'specific_' + r.resource_type +'s',
+                                        rules: [r],
+                                        count: 1,
+                                        selectors: sl.ids,
+                                    });
+                                else {
+                                    specificCategory.rules.push(r);
+                                    specificCategory.count++;
+                                }
                             }
                         }
                     }
                 }
             });
+
             return categories.sort(function(a, b) {
-                if (a.name < b.name)
+                var atype = a.type.split('_')[1] || 'arbitrary', btype = b.type.split('_')[1] || 'arbitrary';
+                if (resourcesInOrder.indexOf(atype) < resourcesInOrder.indexOf(btype)) {
                     return -1;
-                else if (a.name > b.name)
+                } else if (resourcesInOrder.indexOf(atype) > resourcesInOrder.indexOf(btype)) {
                     return 1;
-                else
-                    return 0;
+                } else {
+                    if (a.name > b.name)
+                        return -1;
+                    else if (a.name < b.name)
+                        return 1;
+                    else
+                        return 0;
+                }
             });
         },
         _computeNames: function(ids, machines, resource) {
@@ -398,11 +432,13 @@
             return metrics.reverse();
         },
         _hasOpenIncident: function(rule, incidents) {
-            var find = false;
-            find = this.incidents.find(function(i) {
-                return !i.finished_at && i.rule_id == rule.id;
+            if (!rule || !incidents) {
+                return false;
+            }
+            var find = this.incidents.findIndex(function(inc) {
+                return !inc.finished_at && inc.rule_id == rule.id;
             });
-            return !find ? false : true;
+            return find == -1 ? false : true;
         },
         _computeToggleButtonStyle: function (expanded) {
             return !expanded && "transform: rotate(270deg);" || "";
