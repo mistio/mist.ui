@@ -195,22 +195,24 @@
             <div id="newrule" class="rule">
                 <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
-                    <!-- choose ruleType -->
-                    <paper-dropdown-menu id="apply-on" class="dropdown-block apply-on" disabled="[[_disableRuleTypeChanges(ruleType,editingExistingRule)]]">
-                        <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
-                            <paper-item value="arbitrary" disabled="[[_disableOrg(ruleType,editingExistingRule)]]">all organization</paper-item>
-                            <paper-item value="every" disabled="[[_disableResource(ruleType,editingExistingRule)]]">every</paper-item>
-                            <paper-item value="specific" disabled="[[_disableResource(ruleType,editingExistingRule)]]">specific</paper-item>
-                            <paper-item value="tagged" disabled="[[_disableResource(ruleType,editingExistingRule)]]">tagged </paper-item>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                    <!-- resourceType -->
-                    <div class="inline" hidden$=[[_isArbitrary(ruleType,resourceType)]]>
+                    <!-- choose resourceType -->
+                    <div class="inline" disabled="[[editingExistingRule]]">
                         <paper-dropdown-menu id="resources" class="dropdown-block apply-on">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceType}}" class="dropdown-content">
+                                <paper-item value="organization" disabled="[[_disableOrg(resourceType,editingExistingRule)]]">organization</paper-item>
                                 <template is="dom-repeat" items="[[resourceTypes]]" as="rtype">
-                                    <paper-item value="[[rtype]]">[[rtype]]</paper-item>
+                                    <paper-item value="[[rtype]]" disabled="[[_disableResource(ruleType,editingExistingRule)]]">[[rtype]]</paper-item>
                                 </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+                    <!-- choose ruleType -->
+                    <div class="inline" hidden$=[[_disableRuleTypeChanges(resourceType)]]>
+                        <paper-dropdown-menu class="dropdown-block apply-on">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
+                                <paper-item value="every">every</paper-item>
+                                <paper-item value="specific">specific</paper-item>
+                                <paper-item value="tagged">tagged </paper-item>
                             </paper-listbox>
                         </paper-dropdown-menu>
                     </div>
@@ -401,8 +403,7 @@
                 value: function () {return ['arbitrary', 'every', 'specific', 'tagged'];}
             },
             ruleType: {
-                type: String,
-                value: false
+                type: String
             },
             isNoData: {
                 type: Boolean,
@@ -436,7 +437,7 @@
             }, // machine, cloud or other later,
             resourceType: {
                 type: String,
-                value: false
+                value: ""
             },
             hideApplyOn: {
                 type: Boolean,
@@ -517,7 +518,7 @@
         _targetIsValid: function(ruleType,resourceType,resourceId,tags){
             return this.ruleType &&
                 // is Arbitrary 
-                (this._isArbitrary(ruleType) || 
+                (this._isArbitrary(this.ruleType) || this._isOrg(this.resourceType) ||
                 // is every 
                 (this.ruleType == "every" && this.resourceType) ||
                 // is tagged
@@ -540,20 +541,23 @@
         _computeHideApplyOn: function(resource, isNoData) {
             return resource || isNoData ? true : false;
         },
-        _disableRuleTypeChanges: function(type) {
-            if (!this.editingExistingRule) return false;
-            return this._isArbitrary(type);
+        _disableRuleTypeChanges: function(resourceType) {
+            if (!resourceType) return true;
+            return this._isOrg(resourceType);
         },
         _disableOrg: function(type) {
             if (!this.editingExistingRule) return false;
-            return !this._isArbitrary(type);
+            return !this._isOrg(this.resourceType);
         },
         _disableResource: function(type) {
             if (!this.editingExistingRule) return false;
-            return this._isArbitrary(type);
+            return this._isOrg(this.resourceType);
+        },
+        _isOrg: function(resourceType) {
+            return resourceType == 'organization';
         },
         _isArbitrary: function(type) {
-            return !type || type == 'arbitrary';
+            return type == 'arbitrary';
         },
         _isSpecific: function(type) {
             return type == 'specific';
@@ -564,26 +568,33 @@
         _initialiseEdit: function(rule, resource) {
             console.log("======", rule, this.ruleType);
             if (!resource) {
-                if (!rule) {
+                if (!rule) 
                     return; 
-                } else if (!rule.resource_type) {
+                if (!rule.resource_type || rule.arbitrary) {
                     this.set('ruleType', "arbitrary");
-                } else if (!rule.selectors || rule.selectors == []) {
-                    this.set('ruleType', "every");
-                } else if (rule.selectors.length) {
-                    var selector = rule.selectors[0];
-                    if (selector.type == "tags") {
-                        this.set('ruleType', "tagged");
-                        this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
-                    } else if (selector.ids && selector.ids.length == 1) {
-                        this.set('ruleType', "specific");
-                        this.set('resourceId', selector.ids[0]);
+                }
+                if (rule.resource_type) {
+                    if ( !rule.selectors || !rule.selectors.length) {
+                        this.set('ruleType', "every");
+                    } else if (rule.selectors.length) {
+                        var selector = rule.selectors[0];
+                        if (selector.type == "tags") {
+                            this.set('ruleType', "tagged");
+                            this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
+                        } else if (selector.ids && selector.ids.length == 1) {
+                            this.set('ruleType', "specific");
+                            this.set('resourceId', selector.ids[0]);
+                        }
                     }
                 }
+                this.set('resourceType', rule.resource_type || 'organization');
             }
         },
         _computeResources: function(model,resourceType) {
             var resources = [], key = resourceType+'s';
+            if (resourceType){
+                this.set('rule.resource_type',resourceType);
+            }
             if (resourceType  && this.model && this.model[key] && Object.values(this.model[key]).length) {
                 resources = Object.values(this.model[key]);
                 console.log('resources',resources);
@@ -803,14 +814,24 @@
                 actions: []
             };
             if (this.resource) {
+                var type = this.rule.resource_type || '';
+                if (!type) {
+                    var that = this;
+                    var resources = ['clouds','machines','volumes','networks',
+                        'zones','keys','images','scripts','templates',
+                        'schedules','teams','members'];
+                    type = resources.find(function(res){
+                        return that.model && that.model[res] && that.model[res].map(x=>x.id).indexOf(this.resource.id) > -1;
+                    });
+                }
                 payload.selectors = [{
-                    type: 'resources',
+                    type: type+'s',
                     ids: [this.resource.id]
                 }];
             } else {
                 if (this.ruleType == 'specific') {
                     payload.selectors = [{
-                        type: 'resources',
+                        type: this.resourceType + 's',
                         ids: [this.resourceId]
                     }];
                 } else if (this.ruleType == 'tagged') {
@@ -821,6 +842,9 @@
                 } else if (this.ruleType == 'every') {
                     payload.selectors = [];
                 } 
+            }
+            if (this.resourceType != "organization"){
+                payload.resource_type = this.resourceType;
             }
             payload.data_type = this.rule.data_type;
             payload.window = {
