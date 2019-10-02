@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
-
+<link rel="import" href="../../bower_components/mist-list/mist-list.html">
+<link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../tags/tags-list.html">
@@ -169,6 +170,14 @@
                 fill: #fff;
                 min-width: 50%;
             }
+            mist-list {
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                height: 600px;
+                font-size: 75%;
+                --row-height: 48px;
+            }
         </style>
         <div id="content">
             <paper-material class="single-head layout horizontal">
@@ -245,6 +254,16 @@
                             </li>
                         </template>
                     </ul>
+                </paper-material>
+                <br/>
+                <paper-material class="no-pad">
+                    <mist-rules id="keyRules" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, key.id, key.tags.*)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[key]]" model="[[model]]"></mist-rules>
+                </paper-material>
+                <br/>
+                <paper-material class="no-pad">
+                    <template is="dom-if" if=[[key]] restamp>
+                        <mist-list id="keyLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="key logs" primary-field-name="time" base-filter="[[key.id]]"></mist-list>
+                    </template>
                 </paper-material>
             </div>
         </div>
@@ -331,6 +350,78 @@
                     '_keyUpdated(key)',
                     '_hiddenUpdated(hidden)'
                 ],
+                _getVisibleColumns: function() {
+                    return ['type', 'action', 'user_id']
+                },
+
+                _getFrozenLogColumn: function() {
+                    return ['time']
+                },
+
+                _getRenderers: function() {
+                    var _this = this;
+                    return {
+                        'time': {
+                            'body': function(item, row) {
+                                var ret = '<span title="' + moment(item * 1000).format() + '">' + moment(item *
+                                    1000).fromNow() + '</span>';
+                                if (row.error)
+                                    ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+                                return ret;
+                            }
+                        },
+                        'user_id': {
+                            'title': function() {
+                                return 'user';
+                            },
+                            'body': function(item) {
+                                if (_this.model && _this.model.members && item in _this.model.members &&
+                                    _this.model.members[item] && _this.model.members[item].name &&
+                                    _this.model.members[item].name != undefined) {
+                                    var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name +
+                                        '</a>';
+                                    return ret;
+                                } else console.log(item);
+                                return item || '';
+                            }
+                        }
+                    }
+                },
+                _rulesApplyOnResource: function(rules, id, tags) {
+                    var that = this;
+                    return Object.values(this.model.rules).filter(function(r) {
+                        return r.resource_type == 'key' &&
+                            // applies on all volumes
+                            (!r.selectors || !r.selectors.length ||
+                            // applies on this volume
+                            r.selectors.filter(function(s){return s.type == "keys"}).map(x=>x.ids).join().indexOf(id) >- 1 ||
+                            // applies on tags
+                            that.resourceHasTags(that.key,r.selectors));
+                    });
+                },
+
+                resourceHasTags: function(key,selectors) {
+                    // CAUTION: Selectors' format is as follows
+                    //      selectors = [{type:'tags',tags:{test:null,xtest:true}}, {type:'key',ids:[]}]
+                    // whereas key tags are in the format
+                    //      key.tags = {test:"", xtest:true, ...}
+                    // A selector-tag tupple where value is null, equals to the corresponding key-tag tupple where value is "" empty string.
+                    //      i.e. selectors[0].tags["test"] = null 'EQUALS' volume.tags["test"] = "".
+                    // The following returns true if the volume has at least one of the selectors tags
+                    if (!key || !selectors)
+                        return false;
+                    var bool =  selectors.filter(function(t){return t.type == 'tags'})
+                                    .map(x=>x.tags)
+                                    .findIndex(function(s){
+                                        for (var p in s ) {
+                                            if (key.tags[p] === s[p] || (key.tags[p] === "" && s[p]=== null)) {
+                                                return true;
+                                            }
+                                        }
+                                        return false;
+                                    }) > -1;
+                    return bool;
+                },
                 _hiddenUpdated: function (hidden) {
                     this.$.keyActions.fire('resize');
                 },
