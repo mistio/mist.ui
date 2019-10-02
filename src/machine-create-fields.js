@@ -1093,6 +1093,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             type: 'toggle',
             value: false,
             defaultValue: false,
+            helptext: 'Attach a volume to the machine.',
             show: true,
             required: false
         }, {
@@ -1104,7 +1105,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: false,
             horizontal: false,
             moderateTop: true,
-            helptext: 'Attach a volume to the machine.',
             min: '1',
             max: allowedVolumes,
             showIf: {
@@ -1144,14 +1144,14 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             }]
         })
         if (['openstack','ec2','aliyun_ecs'].indexOf(p.provider) > -1) {
-            p.fields.push({
+            p.fields[p.fields.length-1].options.push({
                 name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
                 type: 'checkbox',
                 value: '',
                 defaultValue: '',
                 show: true,
-                required: false,
+                required: false
             })
         }
     }
