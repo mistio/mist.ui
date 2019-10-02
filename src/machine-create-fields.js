@@ -1143,7 +1143,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 },
             }]
         })
-        if (['openstack','ec2'].indexOf(p.provider) > -1) {
+        if (['openstack','ec2','aliyun_ecs'].indexOf(p.provider) > -1) {
             p.fields.push({
                 name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
