@@ -73,7 +73,8 @@
                     }
                 },
                 listeners: {
-                    'iron-overlay-closed': '_modalClosed'
+                    'iron-overlay-closed': '_modalClosed',
+                    'change': '_editing'
                 },
                 _computeNewTunnel: function(tunnel) {
                     if (tunnel) {
@@ -125,11 +126,15 @@
                         cidrs: this.newTunnel.cidrs
                     };
                     
-                    console.log('CIDRS',cidrs);
+                    // console.log('CIDRS',cidrs);
 
                     this.$.tunnelEditAjaxRequest.generateRequest();
 
                     this.set('sendingData', true);
+                },
+                _editing: function(){
+                    this.set("fail", false);
+                    this.set('sendingData', false);
                 },
                 _formReset: function() {
                     this.set('tunnel', {
