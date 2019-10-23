@@ -351,7 +351,7 @@
                             <span class="and" hidden$="[[!index]]"> AND </span>
                             <paper-dropdown-menu class="dropdown-block action" on-value-changed="_validateRule" disabled$="[[isNoData]]">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" class="dropdown-content">
-                                    <template is="dom-repeat" items=[[actions]] as="action">
+                                    <template id="actionsRepeat" is="dom-repeat" items=[[actions]] as="action">
                                         <paper-item value=[[action]] hidden$="[[_hideAction(action,isNoData)]]">[[_actionName(action)]]</paper-item>
                                     </template>
                                 </paper-listbox>
@@ -371,17 +371,17 @@
                 </div>
             </div>
             <div slot="rule-actions" class="rule-actions layout horizontal">
-            <p class="errormsg-container" hidden$="[[!formError]]">
-                <iron-icon icon="icons:error-outline"></iron-icon>
-                <span id="errormsg">[[formMessage]]</span>
-            </p>
-            <paper-spinner active$="{{sendingData}}"></paper-spinner>
-            <paper-button class="link" on-tap="_close">cancel</paper-button>
-            <paper-button on-tap="saveRule" class="blue" disabled$="[[!isValidRule]]">save rule</paper-button>
+                <p class="errormsg-container" hidden$="[[!formError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon>
+                    <span id="errormsg">[[formMessage]]</span>
+                </p>
+                <paper-spinner active$="{{sendingData}}"></paper-spinner>
+                <paper-button class="link" on-tap="_close">cancel</paper-button>
+                <paper-button on-tap="saveRule" class="blue" disabled$="[[!isValidRule]]">save rule</paper-button>
+            </div>
         </div>
-    </div>
-    <iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" method="POST" on-request="_handleUpdateRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
-    <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+        <iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" method="POST" on-request="_handleUpdateRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+        <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
     </template>
     <script>
     Polymer({
@@ -466,6 +466,17 @@
             users: {
                 type: Array
             },
+            resourcesActions: {
+                type: Array,
+                value: function() {
+                    return {
+                        machine: ['alert', 'reboot', 'destroy', 'run', 'no_data'],
+                        volume: ['alert'],
+                        key: ['alert'],
+                        org: ['alert'],
+                    };
+                }
+            },
             actions: {
                 type: Array,
                 value: function() {
@@ -503,7 +514,7 @@
             "_focusOnMetricName(active)",
             "_currentRuleUpdated(currentRule.*)",
             "_initialiseEdit(currentRule, resource, rule.id)",
-            "_computeResources(model, resourceType)",
+            "_computeResourcesAndActions(model, resourceType)",
             "_validateCondition(rule.*)"
         ],
         ready: function() {
@@ -597,7 +608,7 @@
                 this.set('resourceType', rule.resource_type || 'organization');
             }
         },
-        _computeResources: function(model,resourceType) {
+        _computeResourcesAndActions: function(model,resourceType) {
             var resources = [], key = resourceType+'s';
             if (resourceType){
                 this.set('rule.resource_type',resourceType);
@@ -608,6 +619,10 @@
             }
             this.set('resources', resources);
             this.$.resourcesRepeat.render();
+
+            this.set('actions', this.resourcesActions[resourceType]);
+            if (this.$.actionsRepeat)
+                this.$.actionsRepeat.render();
         },
         _removeBrackets: function(string) {
             return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
