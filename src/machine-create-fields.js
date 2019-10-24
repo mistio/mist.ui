@@ -1093,6 +1093,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             type: 'toggle',
             value: false,
             defaultValue: false,
+            helptext: 'Attach a volume to the machine.',
             show: true,
             required: false
         }, {
@@ -1104,7 +1105,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: false,
             horizontal: false,
             moderateTop: true,
-            helptext: 'Attach a volume to the machine.',
             min: '1',
             max: allowedVolumes,
             showIf: {
@@ -1131,27 +1131,45 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 name: 'volume_id',
                 label: 'Existing Volume',
                 type: 'mist_dropdown',
-                helptext: "The machine's location must be first selected, to add existing volumes. Only volumes of the same location can be attached to a machine.",
+                helptext: "The machine's location must first be selected, to add existing volumes. Only volumes of the same location can be attached to a machine.",
                 value: '',
                 defaultValue: '',
                 show: true,
                 required: false,
                 options: [],
+                noOptionsMessage: 'You must first select a location for your machine.',
                 showIf: {
                     fieldName: 'new-or-existing-volume',
                     fieldValues: ['existing'],
-                },
+                }
             }]
         })
-        if (['openstack','aws'].indexOf(p.provider) > -1) {
-            p.fields.push({
+        if (['ec2'].indexOf(p.provider) > -1) {
+            p.fields[p.fields.length-1].options.push({
+                name: 'device',
+                label: 'Device name',
+                type: 'text',
+                helptext: 'Choose a device name. Recommended names /dev/sd[f-p] and /dev/sd[f-p][1-6]',
+                pattern: '/dev/sd[f-p][1-6]?',
+                value: '/dev/sdf',
+                defaultValue: '/dev/sdf',
+                show: true,
+                required: true,
+                showIf: {
+                    fieldName: 'new-or-existing-volume',
+                    fieldValues: ['existing'],
+                }
+            })
+        }
+        if (['openstack','ec2','aliyun_ecs'].indexOf(p.provider) > -1) {
+            p.fields[p.fields.length-1].options.push({
                 name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
                 type: 'checkbox',
                 value: '',
                 defaultValue: '',
                 show: true,
-                required: false,
+                required: false
             })
         }
     }

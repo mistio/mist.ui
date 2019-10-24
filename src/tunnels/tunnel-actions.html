@@ -104,7 +104,7 @@ TUNNEL_ACTIONS = {
           if(this.inSingleView)
             arr.push('edit');
           arr.push('tag');
-          if (this.org.ownership_enabled && (tunnel.owned_by == this.user || this.org.is_owner)) {
+          if (this.org && this.org.ownership_enabled && (tunnel.owned_by == this.user || this.org.is_owner)) {
             arr.push('transfer-ownership');
           }
           arr.push('delete');
@@ -200,7 +200,7 @@ TUNNEL_ACTIONS = {
           this._delete();
         }
         else if (action.name == 'edit') {
-          this.dispatchEvent(new CustomEvent('edit'));
+          this.dispatchEvent(new CustomEvent('edit', { bubbles: true, composed: true}));
         }
       },
       handleResponse: function(e) {
@@ -208,7 +208,7 @@ TUNNEL_ACTIONS = {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }))
         if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
           this.$.ownershipdialog._closeDialog();
-          this.dispatchEvent(new CustomEvent('action-finished'));
+          this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true}));
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: 'Successfull ownership transfer',
             duration: 3000
