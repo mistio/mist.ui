@@ -6,7 +6,8 @@
 <link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/av-icons.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
-
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 <link rel="import" href="../helpers/owner-filter-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../machines/machine-actions.html">
@@ -348,7 +349,19 @@
               </template>
 
             </paper-material>
+
+            <br/>
+            <paper-material class="no-pad">
+                <mist-rules id="scheduleRules" resource-type="schedule" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, schedule.id, schedule.tags.*)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[schedule]]" model="[[model]]"></mist-rules>
+            </paper-material>
+            <br/>
+            <paper-material class="no-pad">
+                <template is="dom-if" if=[[schedule]] restamp>
+                    <mist-list id="scheduleLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="schedule logs" primary-field-name="time" base-filter="[[schedule.id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
+        
         <dialog-element id="scheduleModal"></dialog-element>
 
         <iron-ajax  id="deleteSchedule"
@@ -380,7 +393,8 @@
             behaviors: [
                 machinesListBehavior,
                 mistLoadingBehavior,
-                ownerFilterBehavior
+                ownerFilterBehavior,
+                mistLogsBehavior
             ],
             properties: {
                 model: {

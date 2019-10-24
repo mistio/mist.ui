@@ -4,6 +4,8 @@
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../app-togglable/app-togglable-list.html">
@@ -372,6 +374,16 @@
                     </paper-material>
                 </div>
             </template>
+            <br/>
+            <paper-material class="no-pad">
+                <mist-rules id="templateRules" resource-type="template" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, template.id, template.tags.*)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[template]]" model="[[model]]"></mist-rules>
+            </paper-material>
+            <br/>
+            <paper-material class="no-pad">
+                <template is="dom-if" if=[[template]] restamp>
+                    <mist-list id="templateLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="template logs" primary-field-name="time" base-filter="[[template.id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
         <div class="absolute-bottom-right">
             <paper-fab icon="av:play-arrow" on-tap="_createStack"></paper-fab>
@@ -386,7 +398,8 @@
             Polymer({
                 is: 'template-page',
                 behaviors: [
-                    mistLoadingBehavior
+                    mistLoadingBehavior,
+                    mistLogsBehavior
                 ],
 
                 properties: {
