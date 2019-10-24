@@ -7,6 +7,8 @@
 <link rel="import" href="../tags/tags-list.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 
 <link rel="import" href="cloud-dns.html">
 <link rel="import" href="cloud-edit.html">
@@ -383,6 +385,16 @@
                     <other-cloud-machines cloud="[[cloud]]" model=[[model]]></other-cloud-machines>
                 </paper-material>
             </template>
+            <!-- <br/>
+            <paper-material class="no-pad">
+                <mist-rules id="cloudRules" resource-type="cloud" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, cloud.id, cloud.tags.*)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[cloud]]" model="[[model]]"></mist-rules>
+            </paper-material> -->
+            <br/>
+            <paper-material class="no-pad">
+                <template is="dom-if" if=[[cloud]] restamp>
+                    <mist-list id="cloudLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="cloud logs" primary-field-name="time" base-filter="[[cloud.id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
         <iron-ajax id="cloudStateAjaxRequest" loading="{{loading}}" handle-as="xml" url="/api/v1/clouds/[[cloud.id]]" method="POST"
             on-response="_handleCloudStateAjaxResponse" on-error="_handleCloudStateAjaxError"></iron-ajax>
@@ -393,7 +405,8 @@
         Polymer({
             is: 'cloud-page',
             behaviors: [
-                mistLoadingBehavior
+                mistLoadingBehavior,
+                mistLogsBehavior
             ],
             properties: {
                 section: {
