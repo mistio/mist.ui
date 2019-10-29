@@ -663,47 +663,6 @@ PROVIDERS.push({
     }]
 });
 
-// NEPHOSCALE
-PROVIDERS.push({
-    title: 'NephoScale',
-    val: 'nephoscale',
-    className: 'provider-nephoscale',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "NephoScale",
-        defaultValue: "NephoScale",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title",
-        helptext: "If you need help, read the docs on adding a NephoScale cloud",
-        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
-    }, {
-        name: "username",
-        label: "Username *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter username",
-        helptext: 'The username you use to connect to the NephoScale portal',
-        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
-    }, {
-        name: "password",
-        label: "Password *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter password",
-        helptext: 'The password you use to connect to the NephoScale portal',
-        helpHref: "http://docs.mist.io/article/26-adding-nephoscale"
-    }]
-});
-
 // OPENSTACK
 PROVIDERS.push({
     title: 'Openstack',

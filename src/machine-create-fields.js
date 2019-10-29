@@ -462,12 +462,6 @@ MACHINE_CREATE_FIELDS.push({
     }],
 });
 
-// NEPHOSCALE
-MACHINE_CREATE_FIELDS.push({
-    provider: 'nephoscale',
-    fields: [],
-});
-
 // OPENSTACK
 MACHINE_CREATE_FIELDS.push({
     provider: 'openstack',
