@@ -162,6 +162,12 @@
                 height: 32px;
             }
 
+            .monitored-icon {
+                opacity: .54;
+                padding: 8px 8px 8px 0;
+                transform: scale(.9);
+            }
+
             paper-dropdown-menu,
             paper-input {
                 vertical-align: bottom;
@@ -218,11 +224,13 @@
                     <div class="inline" hidden$=[[!showDropDownResources]]>
                         <paper-dropdown-menu id="resources-rule-type-id" class="dropdown-block">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" auto-focus selected="{{resourceId}}" class="dropdown-content">
-                                <template is="dom-if" if="[[!resourceTypes.length]]">
+                                <template is="dom-if" if="[[!resources.length]]">
                                     <paper-item disabled>no [[resourceType]]s found</paper-item>
                                 </template>
                                 <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]">
-                                    <paper-item value="[[item.id]]">[[_displayItemName(item)]]</paper-item>
+                                    <paper-item value="[[item.id]]">
+                                        <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="monitored machine"></iron-icon>
+                                        [[_displayItemName(item)]]</paper-item>
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
@@ -635,13 +643,23 @@
                 key = resourceType+'s';
             if (resourceType){
                 this.set('rule.resource_type',resourceType);
-                this._focusOnType();
+                if (!this.ruleType)
+                    this._focusOnType();
             }
-            if (resourceType  && this.model && this.model[key] && Object.values(this.model[key]).length) {
+            if (resourceType && this.model && this.model[key]) {
                 resources = Object.values(this.model[key]);
+                // order machines, show monitored first
+                if (this.resourceType == "machine")
+                    resources.sort(function(a,b){
+                        if ((a.monitoring && !b.monitoring) || (a.monitoring.hasmonitoring && !b.monitoring.hasmonitoring))
+                            return -1;
+                        if ((!a.monitoring && b.monitoring) || (!a.monitoring.hasmonitoring && b.monitoring.hasmonitoring))
+                            return 1;
+                        return 0;
+                    });
                 console.log('resources',resources);
             }
-            this.set('resources', resources);
+            this.set('resources', resources || []);
             this.$.resourcesRepeat.render();
 
             this.set('actions', this.resourcesActions[resourceType] || ["alert"]);
