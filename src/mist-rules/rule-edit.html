@@ -207,7 +207,7 @@
                     </div>
                     <!-- choose ruleType -->
                     <div class="inline" hidden$=[[_disableRuleTypeChanges(resourceType)]]>
-                        <paper-dropdown-menu class="dropdown-block apply-on">
+                        <paper-dropdown-menu id$="resources-rule-type-[[index]]" class="dropdown-block type">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
                                 <paper-item value="every">all</paper-item>
                                 <paper-item value="specific">select</paper-item>
@@ -216,8 +216,8 @@
                         </paper-dropdown-menu>
                     </div>
                     <div class="inline" hidden$=[[!showDropDownResources]]>
-                        <paper-dropdown-menu class="dropdown-block">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceId}}" class="dropdown-content">
+                        <paper-dropdown-menu id="resources-rule-type-id" class="dropdown-block">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="value" auto-focus selected="{{resourceId}}" class="dropdown-content">
                                 <template is="dom-if" if="[[!resourceTypes.length]]">
                                     <paper-item disabled>no [[resourceType]]s found</paper-item>
                                 </template>
@@ -228,7 +228,7 @@
                         </paper-dropdown-menu>
                     </div>
                     <div class="inline" hidden$=[[!_showTags(ruleType,resourceType)]]>
-                        <paper-input class="tags" value="{{tags}}" placeholder="enter tags"></paper-input>
+                        <paper-input id="resources-rule-type-tags" class="tags" auto-focus value="{{tags}}" placeholder="enter tags"></paper-input>
                     </div>
                 </div>
                 <div hidden$="[[!isNoData]]">
@@ -270,7 +270,7 @@
                     <template is="dom-repeat" items="{{rule.queries}}" as="query">
 
                         <!--  rule.data_type: metrics OR logs -->
-                        <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block type" auto-focus on-value-changed="_focusOnTarget" on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
+                        <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block type" auto-focus on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.data_type}}" class="dropdown-content">
                                 <paper-item value="metrics" disabled$="[[!_canUseMetrics(resourceType,ruleType)]]">metrics</paper-item>
                                 <paper-item value="logs">logs</paper-item>
@@ -531,6 +531,7 @@
         },
         observers: [
             "_focusOnMetricName(active)",
+            "_focusOnIdOrTags(ruleType)",
             "_currentRuleUpdated(currentRule.*)",
             "_initialiseEdit(currentRule, resource, rule.id)",
             "_computeResourcesAndActions(model, resourceType)",
@@ -635,6 +636,7 @@
                 key = resourceType+'s';
             if (resourceType){
                 this.set('rule.resource_type',resourceType);
+                this._focusOnType();
             }
             if (resourceType  && this.model && this.model[key] && Object.values(this.model[key]).length) {
                 resources = Object.values(this.model[key]);
@@ -793,9 +795,9 @@
             }
             this._validateRule();
         },
-        _focusOnType: function(active) {
-            if (this.rule && this.resource)
-                if (active && !this.rule.id && this.shadowRoot.querySelector('paper-dropdown-menu.type')) {
+        _focusOnType: function(e) {
+            if (this.rule && this.resourceType)
+                if (this.active && !this.rule.id && this.shadowRoot.querySelector('paper-dropdown-menu.type')) {
                     this.shadowRoot.querySelector('paper-dropdown-menu.type').open();
                     if (this.shadowRoot.querySelector('paper-dropdown-menu.type').$.menuButton)
                         this.shadowRoot.querySelector('paper-dropdown-menu.type').$.menuButton.focus();
@@ -808,6 +810,24 @@
                     if (this.shadowRoot.querySelector('paper-dropdown-menu.target').$.menuButton)
                         this.shadowRoot.querySelector('paper-dropdown-menu.target').$.menuButton.focus();
                 }
+        },
+        _focusOnIdOrTags: function(ruleType) {
+            if (!this.hidden) {
+                if (ruleType == 'specific') {
+                    var selector = '#resources-rule-type-id';
+                }
+                if (ruleType == 'tagged') {
+                    var selector = '#resources-rule-type-tags';
+                }
+                if (this.shadowRoot.querySelector(selector)) {
+                    this.shadowRoot.querySelector(selector).focus();
+                    if (this.shadowRoot.querySelector(selector).open) {
+                        this.shadowRoot.querySelector(selector).open();
+                    }
+                    if (this.shadowRoot.querySelector(selector).$.menuButton)
+                        this.shadowRoot.querySelector(selector).$.menuButton.focus();
+                }
+            }
         },
         _focusOnTarget: function(e) {
             if (!this.hidden) {
