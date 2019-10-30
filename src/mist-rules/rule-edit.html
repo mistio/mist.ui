@@ -431,20 +431,17 @@
             },
             resourceTypes: {
                 type: Array,
-                value: function () {return [ 'cloud', 'machine', 'volume', 
-                        'network', 
-                        'subnet', 
-                        'zone', 
-                        'record', 
-                        'key', 
-                        'script', 
-                        'template', 
-                        'stack', 
-                        'schedule', 
-                        'tunnel', 
-                        'team', 
+                value: function () {return [ 'cloud', 'machine', 'volume',
+                        'network',
+                        'subnet',
+                        'zone',
+                        'record',
+                        'key',
+                        'script',
+                        'schedule',
+                        'team',
                         'member'];}
-            }, // machine, cloud or other later,
+            },
             resourceType: {
                 type: String,
                 value: ""
@@ -480,20 +477,7 @@
                 type: Array,
                 value: function() {
                     return {
-                        cloud: ['alert'],
                         machine: ['alert', 'reboot', 'destroy', 'run', 'no_data'],
-                        volume: ['alert'],
-                        key: ['alert'],
-                        network: ['alert'],
-                        subnet: ['alert'],
-                        tunnel: ['alert'],
-                        zone: ['alert'],
-                        stack: ['alert'],
-                        script: ['alert'],
-                        template: ['alert'],
-                        schedule: ['alert'],
-                        team: ['alert'],
-                        member: ['alert'],
                         organization: ['alert'],
                     };
                 }
@@ -529,9 +513,13 @@
                 type: Boolean,
                 computed: '_computeShowDropDownResources(ruleType,resourceType)',
                 value: false
+            },
+            features: {
+                type: Object
             }
         },
         observers: [
+            "_configUpdates(features)",
             "_focusOnMetricName(active)",
             "_focusOnIdOrTags(ruleType)",
             "_currentRuleUpdated(currentRule.*)",
@@ -542,6 +530,15 @@
         ready: function() {
             if (!this.rule) {
                 this._resetRule();
+            }
+        },
+        _configUpdates: function(features) {
+            if (this.features.orchestration) {
+                this.splice("resourceTypes", 9, 0, 'template');
+                this.splice("resourceTypes", 10, 0, 'stack');
+            }
+            if (this.features.tunnels) {
+                this.splice("resourceTypes", this.resourceTypes.indexOf('schedule'), 0, 'tunnel');
             }
         },
         _displayItemName: function(item) {
@@ -647,7 +644,7 @@
             this.set('resources', resources);
             this.$.resourcesRepeat.render();
 
-            this.set('actions', this.resourcesActions[resourceType]);
+            this.set('actions', this.resourcesActions[resourceType] || ["alert"]);
             if (this.$.actionsRepeat)
                 this.$.actionsRepeat.render();
         },
