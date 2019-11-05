@@ -480,6 +480,12 @@
 
                     if (f.name.endsWith("zone")) {
                         f.options = this._toArray(this.model.zones);
+                        // If zones share same domain but have differnt zone_id then display zone_id as suffix
+                        f.options.forEach(function(zone) {
+                            if (zone.domain != zone.zone_id+'.') {
+                                zone.suffix = zone.zone_id;
+                            }
+                        })
                     }
 
                     // TODO: Run a recursive _updateFields() for fieldgroup subfields
@@ -488,6 +494,11 @@
                             var sf = f.subfields[k];
                             if (sf.name.endsWith("zone")) {
                                 sf.options = this._toArray(this.model.zones);
+                                sf.options.forEach(function(zone) {
+                                    if (zone.zone_id+'.' != zone.domain) {
+                                        zone.suffix = zone.zone_id;
+                                    }
+                                })
                                 if (sf.options.length)
                                     this.set('machineFields.'+index+'.subfields.'+k+'.value', sf.options[0].id);
                             }
