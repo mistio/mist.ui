@@ -184,7 +184,7 @@
                                 </template>
                             </template>
                             <template is="dom-if" if="[[isStr(selector)]]">
-                                <a class="regural blue-link machine-link" href$="/machines/[[selector]]"> [[printMachine(selector, machines)]]</a>
+                                <a class="regural blue-link machine-link" href$="/[[printResourceType(cat.type)]]/[[selector]]"> [[printResource(selector, model, cat.type)]]</a>
                             </template>
                         </template>
                     </h2>
@@ -290,8 +290,13 @@
             }
             return arr;
         },
-        printMachine: function(id, machines) {
-            return this.machines && this.machines[id] ? this.machines[id].name : '';
+        printResourceType: function(type) {
+            return type.replace('specific_','');
+        },
+        printResource: function(id, model, type) {
+            var resourceType = type.replace('specific_','');
+            return this.model[resourceType] && this.model[resourceType][id] ? 
+                    this.model[resourceType][id].title || this.model[resourceType][id].name || this.model[resourceType][id].id : '';
         },
         _computeResourceRulesArray: function(rules, resource, category) {
             var rulesArray = [];
