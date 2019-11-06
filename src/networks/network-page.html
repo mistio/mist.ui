@@ -137,6 +137,12 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
+                    <div hidden$="[[!machines.length]]">
+                        <h3 class="n-info-head">MACHINES:</h3>
+                        <template is="dom-repeat" items="[[machines]]">
+                            <a class="regular blue-link" href$="/machines/[[item.id]]">[[item.name]]</a>
+                        </template>
+                    </div>
                     <div hidden$="[[!networkTags.length]]">
                         <h3 class="n-info-head">TAGS:</h3>
                         <template is="dom-repeat" items="[[networkTags]]">
@@ -206,6 +212,10 @@
                 network: {
                     type: Object
                 },
+                machines: {
+                    type: Array,
+                    computed: '_computeMachines(network, model.machines)'
+                },
                 subnets: {
                     type: Array,
                     value: function () { return []; },
@@ -247,6 +257,11 @@
             _change: function (item) {
                 if (item)
                     this.set('itemArray', [this.network]);
+            },
+            _computeMachines: function(network, machines) {
+                if (!network || !machines)
+                    return [];
+                return Object.values(this.model.machines).filter(function(m){ return m.network == network.id });
             },
             _computeHasSubnets: function (subnets) {
                 return subnets && subnets.length;
