@@ -96,7 +96,7 @@
         },
 
         _getVisibleColumns: function() {
-            var ret = ['provider', 'created_by', 'subnets', 'state', 'tags'];
+            var ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
             if (this.model.org && this.model.org.ownership_enabled == true)
                 ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
             return ret;
@@ -115,6 +115,20 @@
                     'body': function(item, row) {
                         return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
                             _this.model.clouds[row.cloud].title : item;
+                    }
+                },
+                'machines': {
+                    'title': 'machines',
+                    'body': function(item, row) {
+                        var machines = Object.values(_this.model.machines).filter(function(m){ return m.network == row.id });
+                        var str = "";
+                        for (var i = 0; i < machines.length; i++) {
+                            str += '<a href="/machines/' + machines[i].id + '" class="link regular">' + machines[i].name + '</a>';
+                            if (i < machines.length-1 ) {
+                                str += ", ";
+                            }
+                        }
+                        return str;
                     }
                 },
                 'owned_by': {
