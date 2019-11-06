@@ -163,20 +163,15 @@
                             <div class="flexchild">ID</div>
                             <div class="flexchild">[[network.id]]</div>
                         </div>
-                        <div hidden$=[[!network.status]] class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">Status</div>
-                            <div class="flexchild">[[network.status]]</div>
-                        </div>
                         <div class="info-item flex-horizontal-with-ratios">
                             <div class="flexchild">Subnets</div>
                             <div class="flexchild">
-                                <template is="dom-if" if="[[!hasSubnets]]" restamp>
-                                    0
-                                </template>
-                                <template is="dom-if" if="[[hasSubnets]]" restamp>
-                                    [[network.subnets.length]]
-                                </template>
+                                [[subnets.length]]
                             </div>
+                        </div>
+                        <div hidden$=[[!network.status]] class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Status</div>
+                            <div class="flexchild">[[network.status]]</div>
                         </div>
                     </div>
                 </div>
@@ -223,7 +218,7 @@
                 },
                 hasSubnets: {
                     type: Boolean,
-                    computed: '_computeHasSubnets(network.subnets)'
+                    computed: '_computeHasSubnets(network)'
                 },
                 isLoading: {
                     type: Boolean,
@@ -263,8 +258,8 @@
                     return [];
                 return Object.values(this.model.machines).filter(function(m){ return m.network == network.id });
             },
-            _computeHasSubnets: function (subnets) {
-                return subnets && subnets.length;
+            _computeHasSubnets: function (network) {
+                return network.subnets && network.subnets.length;
             },
             _computeNetworkCloud: function (network, clouds) {
                 if (network)
@@ -304,7 +299,7 @@
                 return !this.network ? true : false;
             },
             _computeSubnets: function(network, subnets) {
-                return Object.values(this.network && this.network.subnets || {});
+                return Object.values(this.network && this.network.subnets || []);
             },
             _networkDeleted: function(e) {
                 console.log(e);
