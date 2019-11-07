@@ -280,7 +280,7 @@
                         <!--  rule.data_type: metrics OR logs -->
                         <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block type" auto-focus on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.data_type}}" class="dropdown-content">
-                                <paper-item value="metrics" disabled$="[[!_canUseMetrics(resourceType,ruleType)]]">metrics</paper-item>
+                                <paper-item value="metrics" disabled$="[[!_canUseMetrics(resourceType,ruleType,resource)]]">metrics</paper-item>
                                 <paper-item value="logs">logs</paper-item>
                             </paper-listbox>
                         </paper-dropdown-menu>
@@ -582,13 +582,13 @@
         _computeHideApplyOn: function(resource, isNoData) {
             return resource || isNoData ? true : false;
         },
-        _canUseMetrics: function(resourceType,ruleType) {
+        _canUseMetrics: function(resourceType,ruleType, resource) {
             // only machines provide metrics for the time being.
             // TODO: update when other resource metrics are available
             if (this.resourceType && this.resourceType != "machine"){
                 this.set('rule.data_type','logs');
             }
-            return this.resourceType == "machine";
+            return this.resourceType == "machine" && this.resource && this.resource.monitoring;
         },
         _disableRuleTypeChanges: function(resourceType) {
             if (!resourceType) return true;
