@@ -193,7 +193,7 @@
 
     Polymer({
         is: 'machine-create',
-
+        behaviors: [rbacBehavior],
         properties: {
             model: {
                 type: Object
@@ -228,7 +228,7 @@
                 value: function() {
                     return []
                 },
-                computed: "_computeProviders(model, model.cloudsArray)"
+                computed: "_computeProviders(model, model.clouds, model.teams.*)"
             },
             newImage: {
                 type: String
@@ -249,9 +249,14 @@
             },
             resourceGroupsFieldIndex: {
                 type: Number
+            },
+            constraints: {
+                type: Object
             }
         },
         observers: [
+            '_applyConstraints(machinesFields, constraints)',
+            '_teamsChanged(model.teams.*)',
             '_cloudChanged(selectedCloud)',
             '_updateCloudOptions(cloud.*)',
             '_machineFieldsChanged(machineFields.*)',
@@ -261,11 +266,90 @@
         listeners: {
             'keyup': 'hotkeys',
             'add-input': 'addInput',
-            'format-payload': 'formatPayload'
+            'format-payload': 'formatPayload',
+            'fields-changed': 'fieldsChanged'
+        },
+        _teamsChanged: function() {
+            console.log('_teamsChanged CALL checkPermissions');
+            this.checkPermissions();
+        },
+        checkPermissions: function() {
+            var perm = this.check_perm('create','machine');
+            if (perm == true) {
+                return;
+            } else if (perm == false) {
+                return;
+            } else if (typeof perm == 'object') {
+                this.set('constraints', perm);
+            }
+            // console.log('checkPermissions', perm);
+        },
+        _applyConstraints: function(machinesFields, constraints) {
+            if (this.constraints && this.machinesFields) {
+                if (this.constraints.expiration){
+                    this._applyExpirationConstraints();
+                }
+            }
+        },
+        _applyExpirationConstraints: function() {
+            for (var i=0; i < this.machinesFields.length; i++) {
+                var ind = this._fieldIndexByName('expiration', this.machinesFields[i].fields),
+                    path = 'machinesFields.'+ i +'.fields.'+ ind +'.subfields';
+
+                if (ind > -1) {
+                    if (this.constraints.expiration.max) {
+                        this.set(path + '.1.max', this.constraints.expiration.max);
+
+                        // force expiration and disallow to close option
+                        this.set('machinesFields.'+ i +'.fields.'+ ind + '.defaultToggleValue', true);
+                        this.set('machinesFields.'+ i +'.fields.'+ ind + '.toggleDisabled', true);
+                    }
+                    if (this.constraints.expiration.default) {
+                        this.set(path + '.1.defaultValue', this.constraints.expiration.default);
+                    }
+                    if (this.constraints.expiration.notify) {
+                        if (this.constraints.expiration.notify.default) {
+                            // notify default
+                            this.set(path + '.2.defaultValue', this.constraints.expiration.notify.default);
+                            // notify require
+                            this.set(path + '.2.defaultCheck', this.constraints.expiration.notify.require);
+                            if (this.constraints.expiration.notify.require)
+                                this.set(path + '.2.disabledCheck', this.constraints.expiration.notify.require);
+                            // notify max
+                            if (this.constraints.expiration.default) {
+                                this.set(path + '.2.max', this.constraints.expiration.default);
+                            }
+                        }
+                        if (this.constraints.expiration.notify.require != null
+                            && this.constraints.expiration.notify.require != undefined) {
+                            // notify require (checkbox value)
+                            this.set(path + '.2.disabled', !this.constraints.expiration.notify.require);
+                        }
+                    }
+                    if (this.constraints.expiration.actions) {
+                        if (this.constraints.expiration.actions.available) {
+                            // available actions
+                            var actions = this.constraints.expiration.actions.available.map(function(x){
+                                return {'val':x,'title':x.toUpperCase()};
+                            })
+                            this.set(path + '.0.options', actions);
+                        }
+                        if (this.constraints.expiration.actions.default) {
+                            // default action
+                            this.set(path + '.0.value', this.constraints.expiration.actions.default);
+                            this.set(path + '.0.defaultValue', this.constraints.expiration.actions.default);
+                        }
+                    }
+                }
+            }
+            // update selected cloud's provider-fields after constraints applied
+            if (this.selectedCloud) {
+                this._cloudChanged(this.selectedCloud);
+            }
         },
         _updateCloudOptions: function(cloud) {
-            console.log('_updateCloudOptions === ', cloud);
-            this._updateFields(this.selectedCloud)
+            // console.log('_updateCloudOptions === ', cloud);
+            this._updateFields(this.selectedCloud);
         },
         _prefillOptions: function(location) {
             if (this.shadowRoot.querySelector('app-location') && this.shadowRoot.querySelector('app-location').queryParams)
@@ -339,6 +423,7 @@
                     return c.provider == provider;
                 });
             }
+
             // add cloud fields
             if (machineFields.fields) {
                 // allow hostname iff at least a cloud has dns access enabled
@@ -430,6 +515,7 @@
                     this._updateFieldsForPacket();
                 }
 
+                var that = this;
                 this.machineFields.forEach(function(f, index) {
                     // clear options
                     if (['duration_field','dropdown','radio','list'].indexOf(f.type) == -1  && f.options) {
@@ -437,13 +523,19 @@
                     }
 
                     if (f.name.endsWith("location")) {
-                        // debugger;
-                        var locations = this._toArray(this.model.clouds[cloudId].locations);
+                        var allLocations = this._toArray(this.model.clouds[cloudId].locations);
+                        var locations = allLocations.filter(function(l){
+                                var check_perm = that.check_perm('create_resources', 'location', l.id);
+                                //console.log('LOOP', l.name, check_perm);
+                                return check_perm == true;
+                            });
+                        // console.log('LOCATIONS', locations.length);
                         if (locations.length == 1 && locations[0].name == "") {
                             // If there's a single location preselect it and hide the field
                             this._selectSingleLocation(index,locations[0].id);
                         }
                         f.options = locations;
+                        // console.log(f.options);
                     }
                     if (f.name.endsWith("image")) {
                         f.options = this._toArray(this.model.clouds[cloudId].images).sort(function(ima, imb) {
@@ -600,8 +692,9 @@
                     if (f.options) {
                         this.set('machineFields.' + index + '.options', f.options);
                     }
-                    // console.log('update fields', f.name, f.value)
 
+                    // console.log(this.get('machineFields.' + index + '.options'));
+                    // console.log('update fields', f.name, f.value)
                 }, this);
 
                 // if cloud is Aliyun ECS update locations
@@ -644,6 +737,17 @@
                         }
                     }.bind(this));
                 }
+            }
+        },
+
+        fieldsChanged: function(e) {
+            // change notify values if expiration date changes
+            if (e.detail && e.detail.fieldname == "date" && e.detail.parentfield == "expiration") {
+                var expIndex = this._fieldIndexByName('expiration'),
+                    parentPath = 'machineFields.'+ expIndex +'.subfields', dateIndex = 1, notifyIndex = 2,
+                    date = this.get(parentPath +'.'+ dateIndex +'.value'),
+                    notify = this.get(parentPath +'.'+ notifyIndex +'.value');
+                this.set(parentPath +'.'+ notifyIndex +'.max', date);
             }
         },
 
@@ -1528,9 +1632,10 @@
             // console.log('creation failed', e)
         },
         _computeProviders: function(model, clouds) {
-            // // exclude bare metals and other from provider dropdown list
-            return this.model.cloudsArray.filter(function(c) {
-                return ["bare_metal", "clearcenter"].indexOf(c.provider) == -1;
+            // exclude bare metals and not allowed clouds from provider dropdown list
+            var that = this;
+            return this._toArray(this.model.clouds).filter(function(c) {
+                return ["bare_metal", "clearcenter"].indexOf(c.provider) == -1 && that.check_perm("create_resources","cloud",c.id);
             });
         },
         addInput: function(e) {
@@ -1686,7 +1791,7 @@
             var hostnameInd = this._fieldIndexByName("hostname"),
                 composedHostname = '',
                 hostname =  this.get('machineFields.' + hostnameInd + '.value');
-            if (hostname.record_name && hostname.dns_zone) {
+            if (hostname && hostname.record_name && hostname.dns_zone) {
                 var domainName = this.model.zones[hostname.dns_zone].zone_id;
                 composedHostname = hostname.record_name+'.'+domainName+'.';
             }
@@ -1701,7 +1806,7 @@
                 return Object.keys(x).map(y => x[y])
             }
             return [];
-        },
+        }
     });
     </script>
 </dom-module>

@@ -10,19 +10,20 @@
 <link rel="import" href="teams/team-add.html">
 <link rel="import" href="helpers/mist-lists-behavior.html">
 
+
 <dom-module id="page-teams">
     <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
             }
-      mist-list {
-          font-size: 14px;
-      }
-      mist-list[selectable] ::slotted(vaadin-grid-table-row) {
-          cursor: pointer;
-      }
-    </style>
+            mist-list {
+                font-size: 14px;
+            }
+            mist-list[selectable] ::slotted(vaadin-grid-table-row) {
+                cursor: pointer;
+            }
+        </style>
         <app-route route="{{route}}" pattern="/:team" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <team-actions id="actions" items="[[selectedItems]]" org="[[model.org.id]]" actions="{{actions}}">
@@ -48,7 +49,7 @@
         <members-add model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMembersPageActive(route.path)]]></members-add>
         <member-add-in-teams model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" hidden$=[[!_isAddMemberPageActive(route.path)]]></member-add-in-teams>
         <team-add id="isTeamsPage" organization="[[model.org]]" rbac=[[rbac]]></team-add>
-        <div class="absolute-bottom-right" hidden$=[[!_isListActive(route.path)]]>
+        <div class="absolute-bottom-right" hidden$=[[!_showAddTeam(route.path,model.user)]]>
             <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
         </div>
     </template>
@@ -57,7 +58,8 @@
 
         is: 'page-teams',
         behaviors: [
-            mistListsBehavior
+            mistListsBehavior,
+            rbacBehavior
         ],
 
         properties: {
@@ -189,6 +191,10 @@
             if (this.shadowRoot.querySelector('#teamsList')) {
                 this.shadowRoot.querySelector('#teamsList').shadowRoot.querySelector('#actions').selectAction(e);
             }
+        },
+
+        _showAddTeam: function(path, user) {
+            return this._isListActive(path) && this._showAddResource(('team',user));
         }
 
     });
