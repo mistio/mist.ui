@@ -9,6 +9,7 @@
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
 
+
 <dom-module id="page-volumes">
     <template>
         <style include="shared-styles">
@@ -37,7 +38,7 @@
                         <p slot="no-items-found">No volumes found.</p>
                 </mist-list>
             </volume-actions>
-            <div class="absolute-bottom-right">
+            <div class="absolute-bottom-right" hidden$="[[!_showAddResource('volume',model.user)]]">
                 <paper-fab id="volumeAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
@@ -48,7 +49,8 @@
     Polymer({
         is: 'page-volumes',
         behaviors: [
-            ownerFilterBehavior
+            ownerFilterBehavior,
+            rbacBehavior
         ],
 
         properties: {
@@ -137,7 +139,7 @@
                 'attached_to': {
                     'title': 'attached to',
                     'body': function(item, row) {
-                        return item.map(x => _this.model.machines[x].name).join(' ');
+                        return item.map(x => _this.model.machines[x] && _this.model.machines[x].name || '').join(' ');
                     }
                 },
                 'volume_type': {

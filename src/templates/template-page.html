@@ -212,7 +212,7 @@
                         </span>
                     </div>
                 </div>
-                <template-actions org="[[model.org]]" items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" in-single-view></template-actions>
+                <template-actions id="templateActions" org="[[model.org]]" items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" in-single-view></template-actions>
             </paper-material>
             <paper-material class="parsing-loader" hidden$="[[hideprogress]]">
                 <h3>Parsing template [[template.name]]</h3>
@@ -424,6 +424,10 @@
                         type: String,
                         computed: '_class(isInline)'
                     },
+                    hidden: {
+                        type: Boolean,
+                        value: true
+                    },
                     hideprogress: {
                         type: Boolean,
                         value: true
@@ -437,11 +441,15 @@
                     itemArray: Array
                 },
                 observers: [
-                    '_changed(template)'
+                    '_changed(template)',
+                    '_activated(hidden)'
                 ],
                 ready: function() {
                     var wh = window.innerHeight;
                     this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
+                },
+                _activated: function(active) {
+                    this.$.templateActions.fire('update');
                 },
                 _computeTemplate: function(id, templates) {
                     if (this.model.templates)

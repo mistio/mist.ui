@@ -38,6 +38,7 @@
 <link rel="import" href="account/plan-purchase.html">
 <script type="text/javascript" src="providers.js" inline></script>
 <script type="text/javascript" src="../bower_components/numeral/min/numeral.min.js" inline></script>
+
 <dom-module id="mist-app">
     <!-- styles/app-theme  -->
     <!-- <slot name="theme">
@@ -227,7 +228,7 @@
     Polymer({
         is: 'mist-app',
         behaviors: [
-            Polymer.IronResizableBehavior
+            Polymer.IronResizableBehavior, rbacBehavior
         ],
 
         properties: {
@@ -352,19 +353,21 @@
         ],
 
         _listAttached: function(e) {
-            var key = e.detail.id.replace("List", "");
-            if (this.model.sections[key]) {
-                var local = localStorage.getItem('mist-filter#topFilter/all-'+key+'/userFilter');
-                if (!local) {
-                    local = localStorage.getItem('mist-filter#topFilter/all-resources/userFilter');
+            if (e.detail && e.detail.id) {
+                var key = e.detail.id.replace("List", "");
+                if (this.model.sections[key]) {
+                    var local = localStorage.getItem('mist-filter#topFilter/all-'+key+'/userFilter');
+                    if (!local) {
+                        local = localStorage.getItem('mist-filter#topFilter/all-resources/userFilter');
+                    }
+                    if (!local) {
+                        local = this.model.sections[key].q
+                    }
+                    if (!local) {
+                        local = '';
+                    }
+                    this.set('model.sections.'+key+'.q', local+' ');
                 }
-                if (!local) {
-                    local = this.model.sections[key].q
-                }
-                if (!local) {
-                    local = '';
-                }
-                this.set('model.sections.'+key+'.q', local+' ');
             }
         },
 

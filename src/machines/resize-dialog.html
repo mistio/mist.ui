@@ -75,6 +75,10 @@
             padding: 4px;
             margin-top: 0;
         }
+
+        paper-radio-button {
+            display: block;
+        }
         </style>
         <paper-dialog id="dialogModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
             <h2>Resize Machine <span class="sup">[[size]]</span></h2>
@@ -99,8 +103,8 @@
                 <div hidden$="[[showCustomSizeForm]]">
                     <paper-radio-group attr-for-selected="name" selected="{{selectedSize}}">
                         <template is="dom-repeat" items="[[sizes]]" as="size">
-                            <paper-radio-button name="[[size.id]]" disabled$="[[isCurrent(size.id)]]">
-                                [[size.name]] <span class='sup' hidden$="[[!isCurrent(size.id)]]">Current machine size</span>
+                            <paper-radio-button name="[[size.id]]" disabled$="[[isCurrent(size,machine.size)]]">
+                                [[size.name]] <span class='sup' hidden$="[[!isCurrent(size,machine.size)]]">Current machine size</span>
                                 <br />
                                 <div class='sup'>RAM [[size.ram]]<span hidden$="[[!size.disk]]">, Disk [[size.disk]]</span><span hidden$="[[!displayPrice(size)]]">, Price $[[displayPrice(size)]]/hour</span></div>
                             </paper-radio-button>
@@ -250,17 +254,25 @@
         _updateSizes: function(machine, clouds) {
             if (this.machine && this.clouds && (clouds.path == 'clouds' || clouds.path.startsWith('clouds.' + this.machine.cloud + '.sizes'))) {
                 // console.log('update sizes', clouds.path);
+                var sizes = [];
                 if (this.clouds[this.machine.cloud].provider.startsWith("aliyun")) {
                     var machineLocationID = this.machine.location;
                     var machineLocation = this.clouds[this.machine.cloud].locations[machineLocationID];
                     var availableLocationSizes = this.clouds[this.machine.cloud].sizesArray.filter(function(size){
                         return machineLocation.extra.available_instance_types.indexOf(size.external_id) > -1;
                     })
-                    this.set('sizes', availableLocationSizes);
+                    sizes = availableLocationSizes || [];
                     // console.log("sizes", this.clouds[this.machine.cloud].locations[machineLocationID].extra.available_instance_types.length == this.sizes.length);
                 } else {
-                    this.set('sizes', this.clouds[this.machine.cloud].sizesArray);
+                    sizes = this.clouds[this.machine.cloud].sizesArray || [];
                 }
+                this.set('sizes', sizes.sort(function(a,b){
+                        if (this.isCurrent(a,machine.size))
+                            return -1;
+                        if (this.isCurrent(b,machine.size))
+                            return 1;
+                        return 0;
+                    }.bind(this)));
                 this.$.dialogModal.refit();
             }
         },
@@ -301,8 +313,8 @@
             this.$.dialogModal.refit();
         },
         _resizeMachineRequest: function(e) {},
-        isCurrent: function(size) {
-            return size.id == this.machine.size || size.name == this.machine.size;
+        isCurrent: function(size, machineSize) {
+            return size.id == machineSize || size.name == machineSize;
         },
         clearSelection: function() {
             this.set('selectedSize', undefined);
