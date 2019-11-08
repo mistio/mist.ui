@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../helpers/mist-logs-behavior.html">
+<link rel="import" href="../helpers/mist-rules-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
@@ -218,7 +219,7 @@
             </div>
             <div class="pad-bot">
                 <paper-material class="no-pad">
-                    <mist-rules id="volumeRules" cloud="[[volume.cloud]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnVolume(model.rules, volume.id, volumeTags.length)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[volume]]" resource-type="volume" model="[[model]]" collapsible></mist-rules>
+                    <mist-rules id="volumeRules" cloud="[[volume.cloud]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, volume, volumeTags.length, 'volume')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[volume]]" resource-type="volume" model="[[model]]" collapsible></mist-rules>
                 </paper-material>
             </div>
             <div class="pad-bot">
@@ -237,7 +238,8 @@
         is: 'volume-page',
         behaviors: [
             mistLoadingBehavior,
-            mistLogsBehavior
+            mistLogsBehavior,
+            mistRulesBehavior
         ],
 
         properties: {
@@ -278,42 +280,6 @@
         observers: [
             '_change(volume)'
         ],
-
-        _rulesApplyOnVolume: function(rules, volumeId, volumeTags) {
-            var that = this;
-            return Object.values(this.model.rules).filter(function(r) {
-                return r.resource_type == 'volume' &&
-                    // applies on all volumes
-                    (!r.selectors || !r.selectors.length ||
-                    // applies on this volume
-                    r.selectors.filter(function(s){return s.type == "volumes"}).map(x=>x.ids).join().indexOf(volumeId) >- 1 ||
-                    // applies on tags
-                    that.volumeHasTags(that.volume,r.selectors));
-            });
-        },
-
-        volumeHasTags: function(volume,selectors) {
-            // CAUTION: Selectors' format is as follows
-            //      selectors = [{type:'tags',tags:{test:null,xtest:true}}, {type:'volumes',ids:[]}]
-            // whereas volume tags are in the format
-            //      volume.tags = {test:"", xtest:true, ...}
-            // A selector-tag tupple where value is null, equals to the corresponding volume-tag tupple where value is "" empty string.
-            //      i.e. selectors[0].tags["test"] = null 'EQUALS' volume.tags["test"] = "".
-            // The following returns true if the volume has at least one of the selectors tags
-            if (!volume || !selectors)
-                return false;
-            var bool =  selectors.filter(function(t){return t.type == 'tags'})
-                            .map(x=>x.tags)
-                            .findIndex(function(s){
-                                for (var p in s ) {
-                                    if (volume.tags[p] === s[p] || (volume.tags[p] === "" && s[p]=== null)) {
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            }) > -1;
-            return bool;
-        },
         _displayUser: function(id, members) {
             return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
         },

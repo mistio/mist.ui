@@ -9,6 +9,7 @@
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../mist-rules/mist-rules.html">
 <link rel="import" href="../helpers/mist-logs-behavior.html">
+<link rel="import" href="../helpers/mist-rules-behavior.html">
 
 <link rel="import" href="cloud-dns.html">
 <link rel="import" href="cloud-edit.html">
@@ -385,10 +386,12 @@
                     <other-cloud-machines cloud="[[cloud]]" model=[[model]]></other-cloud-machines>
                 </paper-material>
             </template>
-            <!-- <br/>
+            <br/>
             <paper-material class="no-pad">
-                <mist-rules id="cloudRules" resource-type="cloud" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, cloud.id, cloud.tags.*)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[cloud]]" model="[[model]]" collapsiblecollapsible></mist-rules>
-            </paper-material> -->
+                    <template is="dom-if" if=[[cloud]] restamp>
+                        <mist-rules id="cloudRules" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, cloud, cloudTags.length, 'cloud')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[cloud]]" resource-type="cloud" model="[[model]]" collapsible></mist-rules>
+                    </template>
+                </paper-material>
             <br/>
             <paper-material class="no-pad">
                 <template is="dom-if" if=[[cloud]] restamp>
@@ -406,7 +409,8 @@
             is: 'cloud-page',
             behaviors: [
                 mistLoadingBehavior,
-                mistLogsBehavior
+                mistLogsBehavior,
+                mistRulesBehavior
             ],
             properties: {
                 section: {
