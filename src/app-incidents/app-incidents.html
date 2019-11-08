@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../machines/machine-page.html">
 <link rel="import" href="../section-tile/section-tile.html">
+<link rel="import" href="../helpers/get-resource-from-incident-behavior.html">
 
 <dom-module id="app-incidents">
     <template>
@@ -173,11 +174,11 @@
                 <div class="block">
                     <template is="dom-repeat" items="{{incidents}}">
                         <div class="list layout horizontal wrap">
-                            <a class="list-item red flexchild layout horizontal" href$="[[_computeMachineUri(item, model.cloudsArray, model.machines)]]">
+                            <a class="list-item red flexchild layout horizontal" href$="[[_computeResourceUri(item, model)]]">
                                 <div class="flexchild expression">
-                                    <iron-icon icon="[[model.sections.machines.icon]]"></iron-icon>
+                                    <iron-icon icon="[[_computeIncidentIcon(item, model)]]"></iron-icon>
                                     <span class="machine flexchild">
-                                        <span class="machine-name">[[_computeIncidentTitle(item, model.clouds, model.machines.*)]]</span><br/>
+                                        <span class="machine-name">[[_computeIncidentTitle(item, model)]]</span><br/>
                                         <span class="rule-condition">[[_computeIncidentCondition(item)]]</span>
                                     </span>
                                     <span class="time">
@@ -211,6 +212,7 @@
 <script>
     Polymer({
         is: 'app-incidents',
+        behaviors: [ getResourceFromIncidentBehavior ],
         properties: {
             model: {
                 type: Object
@@ -257,30 +259,35 @@
             }, this);
             return resolved.length;
         },
-        _computeIncidentTitle: function (item, clouds, machines) {
+        _computeIncidentIcon: function(item, model) {
+            var resource = this._getResource(item, model);
+            if (resource)
+                return this.model.sections[resource.type + 's'].icon;
+            else
+                return this.model.sections.machines.icon;
+        },
+        _computeIncidentTitle: function (item, model) {
             if (!item.logs[0].rule_arbitrary) {
-                if (this.model && this.model.clouds && item.logs.length && item.cloud_id && item.machine_id) {
-                    return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines &&
-                        this.model.clouds[item.cloud_id].machines[item.machine_id] ? item.logs[0].machine_name :
-                        item.logs[0].machine_name + ': Machine is missing';
-                }
-                return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id]
-                    .name || 'Machine is missing';
+                var resource = this._getResource(item, model);
+                if (resource.id)
+                    return resource.type + ' ' + resource.name;
+                if (!resource.id)
+                    return item.logs[0].machine_name || resource.type + ' is missing';
             } else {
                 if (item.logs[0].rule_data_type == 'logs') return this._getLogQuery(item.logs[0].condition);
                 if (item.logs[0].rule_data_type == 'metrics') return 'Metrics alert';
                 return 'Alert'
             }
         },
-        _computeMachineUri: function (item, clouds, machines) {
-            // give machine url only if machine exists
-            if (this.model && this.model.clouds && this.model.clouds[item.cloud_id] && this.model.clouds[
-                    item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id]) {
-                return '/machines/' + this.model.clouds[item.cloud_id].machines[item.machine_id].id;
-            } else {
-                console.log('incident for missing machine ' + [item.machine_id] + ' in cloud ' + [item.cloud_id]);
-                return '/machines'
-            }
+        _computeResourceUri: function (item, model) {
+            // give resource url only if resource exists
+            var resource = this._getResource(item, model);
+            if (resource.id)
+                return '/' + resource.type + 's/' + resource.id;
+            if (!resource.id)
+                return '/' + resource.type;
+            if (!resource) 
+                return '/';
         },
         _getLogQuery: function(condition) {
             // return log query

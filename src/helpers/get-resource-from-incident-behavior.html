@@ -1,0 +1,68 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<script>
+/**
+ * Behavior that empties the list selection.
+ *
+ * @polymerBehavior
+ */
+getResourceFromIncidentBehavior = {
+    properties: {},
+    _getResource: function(incident, model) {
+        console.log(incident);
+        if (this.model) {
+            // debugger;
+            // Get incident type
+            var resourceTypes = [ 'machine', 'volume',
+                'network',
+                'subnet',
+                'zone',
+                'record',
+                'key',
+                'script',
+                'schedule',
+                'team',
+                'member', 'cloud'],
+                type;
+            // Loop through types, check if incident refers to some type of resource
+            for (var i = 0; i < resourceTypes.length; i++) {
+                type = resourceTypes[i];
+                if (incident[type + '_id'])
+                    break;
+                if (i == resourceTypes.length - 1)
+                    type = null;
+            }
+            // Get resource
+            if (type) {
+                var resource = {};
+                // Subnets and records cannot be found under model.
+                if (['subnet','record','machines'].indexOf(type) == -1) {
+                    resource = this.model[type+'s'][incident[type + '_id']];
+                }
+                // Machine incidents provide us with cloud_id and machine_id (external id)
+                if (type == 'machine') {
+                    if (this.model.clouds[incident['cloud_id']])
+                        resource = this.model.clouds[incident['cloud_id']][incident[type + '_id']];
+                }
+                // TODO: trace resource if it's of type subnet or record
+                if (type == 'subnet') {}
+                if (type == 'record') {}
+                // Add type information in object. Used to construct the link.
+                if (resource) {
+                    resource.type = type;
+                }
+                // If we could not find the resource, return a missing object
+                if (!resource) {
+                    resource = {
+                        name: "missing " + type,
+                        type: type
+                    }
+                }
+                return resource;
+            }
+            return false;
+        }
+        return false;
+    },
+};
+</script>
