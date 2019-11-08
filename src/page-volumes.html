@@ -10,6 +10,7 @@
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <!-- <link rel="import" href="mist-rbac-behavior/mist-rbac-behavior.html"> -->
 
+
 <dom-module id="page-volumes">
     <template>
         <style include="shared-styles">
@@ -38,7 +39,7 @@
                         <p slot="no-items-found">No volumes found.</p>
                 </mist-list>
             </volume-actions>
-            <div class="absolute-bottom-right">
+            <div class="absolute-bottom-right" hidden$="[[!check_perm('add','volume', null, model.org, model.user)]]">
                 <paper-fab id="volumeAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
@@ -49,7 +50,8 @@
     Polymer({
         is: 'page-volumes',
         behaviors: [
-            ownerFilterBehavior
+            ownerFilterBehavior,
+            rbacBehavior
         ],
 
         properties: {
@@ -97,7 +99,7 @@
         },
 
         _getVisibleColumns: function() {
-            var ret = ['provider', 'owned_by', 'created_by', 'size', 'volume_type', 'state', 'attached_to', 'tags'];
+            var ret = ['provider', 'size', 'attached_to', 'owned_by', 'created_by', 'tags'];
             if (this.model.org && this.model.org.ownership_enabled != true)
                 ret.splice(ret.indexOf('owned_by'), 1);
             return ret;
@@ -132,13 +134,13 @@
                 },
                 'size': {
                     'body': function(item, row) {
-                        return '<span style="display:block;text-align:right;">' + item + ' GΒ</span>';
+                        return '<span style="display:block;text-align:right; padding-right:50px;">' + item + ' GΒ</span>';
                     }
                 },
                 'attached_to': {
                     'title': 'attached to',
                     'body': function(item, row) {
-                        return item.map(x => _this.model.machines[x].name).join(' ');
+                        return item.map(x => _this.model.machines[x] && _this.model.machines[x].name || '').join(' ');
                     }
                 },
                 'volume_type': {

@@ -482,10 +482,10 @@
             }
         </style>
         <div id="content">
-            <machine-expiration-edit id="expirationdialog" machine="[[machine]]"></machine-expiration-edit>
+            <machine-expiration-edit id="expirationdialog" machine="[[machine]]" model="[[model]]"></machine-expiration-edit>
             <paper-material class="single-head layout horizontal machine-page-head">
                 <span class="icon">
-                    <iron-icon class$=" machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
+                    <iron-icon class$="machine-state-icon [[machineState]]" icon="[[section.icon]]"></iron-icon>
                 </span>
                 <div class="title flex">
                     <h2>
@@ -545,6 +545,15 @@
                                 </div>
                                 <div class="cell">
                                     <span>[[_getLocationName(machine,cloud)]]</span>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row" hidden$="[[!_getNetworkName(machine,cloud)]]">
+                                <div class="cell">
+                                    <h4>Network:</h4>
+                                </div>
+                                <div class="cell">
+                                    <span>[[_getNetworkName(machine,cloud)]]</span>
                                 </div>
                             </div>
                             <br />
@@ -641,9 +650,13 @@
                         <div class="cell expiration" hidden$="[[!machine]]">
                             [[_fromNow(machine.expiration.date, machine.*, model.machines.*)]]
                             <span hidden$="[[!machine.expiration.date]]">
-                                <iron-icon icon="icons:cancel" on-tap="deleteExpiration" class="delete"></iron-icon>
+                                <template is="dom-if" if="[[canDeleteExpiration]]" restamp>
+                                    <iron-icon icon="icons:cancel" on-tap="deleteExpiration" class="delete"></iron-icon>
+                                </template>
                             </span>
-                            <iron-icon icon="editor:mode-edit" on-tap="editExpiration" class="edit"></iron-icon>
+                            <template is="dom-if" if="[[canEditMachine]]" restamp>
+                                <iron-icon icon="editor:mode-edit" on-tap="editExpiration" class="edit"></iron-icon>
+                            </template>
                         </div>
                         <br />
                     </div>
@@ -772,7 +785,8 @@
 Polymer({
     is: 'machine-page',
     behaviors: [
-        mistLoadingBehavior
+        mistLoadingBehavior,
+        rbacBehavior
     ],
     properties: {
         model: {
@@ -910,7 +924,17 @@ Polymer({
         currency: {
             type: Object,
             value: function () { return {'sign': '$', 'rate': 1};}
-        }
+        },
+        canEditMachine: {
+            type: Boolean,
+            value: true,
+            computed: '_computeCanEditMachine(machine.id,model)'
+        },
+        canDeleteExpiration: {
+            type: Boolean,
+            value: true,
+            computed: '_computeCanDeleteExpiration(machine.id,model)'
+        },
     },
     observers: [
         '_isMonitored(machine, model.monitoring.machines.*)',
@@ -930,6 +954,14 @@ Polymer({
             this.editExpiration();
         }
     },
+    _computeCanEditMachine: function (machineId, model) {
+        var perm = this.check_perm('edit', 'machine', machineId);
+        return perm != false;
+    },
+    _computeCanDeleteExpiration: function (machineId, model) {
+        var perm = this.check_perm('edit', 'machine', machineId);
+        return perm == true || !perm.expiration || (perm.expiration && !perm.expiration.max);
+    },
     _renderMachineKeys: function () {
         this.$.machineKeysDomRepeat.render();
     },
@@ -940,7 +972,7 @@ Polymer({
             for (var p in rules) {
                 var noData = rules[p].actions.find(function(a) { return a.type == 'no_data' }) != undefined;
                 // applies on all machines
-                if (!rules[p].selectors.length || noData) {
+                if (!rules[p].selectors || !rules[p].selectors.length || noData) {
                     check = true;
                 } else {
                     for (var i = 0; i < rules[p].selectors.length; i++) {
@@ -1351,7 +1383,7 @@ Polymer({
         return '';
     },
     _getSizeName: function(machine, ret) {
-        return this.model.clouds[machine.cloud].sizes && this.model.clouds[machine.cloud].sizes[
+        return this.model.clouds[machine.cloud] && this.model.clouds[machine.cloud].sizes && this.model.clouds[machine.cloud].sizes[
             ret] && this.model.clouds[machine.cloud].sizes[ret].name ? this.model.clouds[machine
             .cloud].sizes[ret].name : ret;
     },
@@ -1360,6 +1392,13 @@ Polymer({
             return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
                 machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name != undefined ?
             this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
+        }
+    },
+    _getNetworkName: function(machine, cloud) {
+        if (this.machine) {
+            return this.model.clouds[machine.cloud].networks && this.model.clouds[machine.cloud].networks[
+                machine.networks] && this.model.clouds[machine.cloud].networks[machine.network].name != undefined ?
+            this.model.clouds[machine.cloud].networks[machine.network].name : machine.network;
         }
     },
     _probeMachine: function(e) {

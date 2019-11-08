@@ -9,6 +9,7 @@
 <link rel="import" href="helpers/owner-filter-behavior.html">
 <!-- <link rel="import" href="mist-rbac-behavior/mist-rbac-behavior.html"> -->
 
+
 <dom-module id="page-tunnels">
     <template>
         <style include="shared-styles">
@@ -37,7 +38,7 @@
                     <p slot="no-items-found">No tunnels found.</p>
                 </mist-list>
             </tunnel-actions>
-            <div class="absolute-bottom-right">
+            <div class="absolute-bottom-right" hidden$="[[!check_perm('add','tunnel', null, model.org, model.user)]]">
                 <paper-fab id="tunnelAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
@@ -50,7 +51,8 @@
         is: 'page-tunnels',
         behaviors: [
             mistListsBehavior,
-            ownerFilterBehavior
+            ownerFilterBehavior,
+            rbacBehavior
         ],
 
         properties: {
@@ -77,7 +79,7 @@
             return path == '/+add';
         },
         _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot.querySelector('tunnel-page'))
+            if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('tunnel-page'))
                 this.shadowRoot.querySelector('tunnel-page').updateState();
             return path && path != '/+add';
         },

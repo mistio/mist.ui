@@ -204,6 +204,7 @@
                             <br/> Tags must be comma separated. </paper-tooltip>
                     </span>
                     <span></span>
+                    <span></span>
                 </div>
                 <template is="dom-repeat" items="{{rules}}" id="rulesrepeat">
                     <rbac-rule-item class="rule-item" rule="[[item]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rbac-rule-item>
@@ -318,7 +319,8 @@ Polymer({
         'delete-rule': '_deleteRule',
         'update-rtype': '_updateRtype',
         'update-raction': '_updateRaction',
-        'update-operator': '_updateOperator'
+        'update-operator': '_updateOperator',
+        'update-constraints': '_updateConstraints'
     },
     attached: function() {},
     _computeCommonPermissions: function(model) {
@@ -371,29 +373,10 @@ Polymer({
             this.team.policy.rules.forEach(function(rule, i) {
                 var cleanCopy = {};
                 for (var p in rule) {
-                    if (typeof rule[p] == 'string') {
-                        var initial = rule[p];
-                        var str = initial.slice(0);
-                        cleanCopy[p] = str;
-                    }
-                    //case of rule tags
-                    else if (typeof rule[p] == 'object') {
-                        var obj = {};
-                        for (var q in rule[p]) {
-                            var initialq = q;
-                            // var key = initial.slice(0);
-                            var val = null;
-                            if (rule[p][q] != null) {
-                                var initialv = rule[p][q];
-                                val = initialv.slice(0);
-                            }
-                            obj[initialq] = val;
-                        }
-                        cleanCopy[p] = obj;
-                    }
+                    cleanCopy[p] = this._cleanCopy(rule[p], p);
                 }
                 newArr[i] = cleanCopy;
-            });
+            }.bind(this));
             var cleanCopyRules = newArr.slice(0);
             this.set("rules", cleanCopyRules);
 
@@ -405,6 +388,30 @@ Polymer({
                 this.set('sendingData', false);
             }.bind(this), 10);
         }
+    },
+    _cleanCopy: function(value, property) {
+        var newValue;
+        if (value == null)
+            return null;
+        if (typeof value == "string") {
+            newValue = "";
+            newValue = value.slice(0);
+        } else if (typeof value == "object") {
+            if (Array.isArray(value)) {
+                newValue = [];
+                for (var i = 0; i < value.length; i++) {
+                    newValue[i] = this._cleanCopy(value[i], property);
+                }
+            } else {
+                newValue = {};
+                for (var q in value) {
+                    newValue[q] = this._cleanCopy(value[q], q);
+                }
+            }
+        } else {
+            newValue = value;
+        }
+        return newValue;
     },
     _rulesChanged(rules, defaultOperator) {
         if (this.team) {
@@ -461,7 +468,8 @@ Polymer({
             operator: 'DENY',
             rid: '',
             rtags: {},
-            rtype: ''
+            rtype: '',
+            constraints: null
         };
         this.push('rules', emptyRuleObj);
         this.ruleHasChanges();
@@ -482,28 +490,10 @@ Polymer({
         this.team.policy.rules.forEach(function(rule, i) {
             var cleanCopy = {};
             for (var p in rule) {
-                if (typeof rule[p] == 'string') {
-                    var initial = rule[p];
-                    var str = initial.slice(0);
-                    cleanCopy[p] = str;
-                }
-                //case of rule tags
-                else if (typeof rule[p] == 'object') {
-                    var obj = {};
-                    for (var q in rule[p]) {
-                        var initialq = q;
-                        var val = null;
-                        if (rule[p][q] != null) {
-                            var initialv = rule[p][q];
-                            val = initialv.slice(0);
-                        }
-                        obj[initialq] = val;
-                    }
-                    cleanCopy[p] = obj;
-                }
+                cleanCopy[p] = this._cleanCopy(rule[p]);
             }
             newArr[i] = cleanCopy;
-        });
+        }.bind(this));
         var cleanCopyRules = newArr.slice(0);
         this.set("rules", cleanCopyRules);
 
@@ -570,6 +560,11 @@ Polymer({
     },
     _updateOperator: function(e) {
         this.set('rules.' + e.detail.index + '.operator', e.detail.operator);
+    },
+    _updateConstraints: function(e) {
+        this.set('rules.' + e.detail.index + '.constraints', e.detail.constraints);
+        this.ruleHasChanges();
+        this._rulesChanged();
     },
     _sendingDataChanged: function(sendingData) {
         // keep element height fixed while repeater updates

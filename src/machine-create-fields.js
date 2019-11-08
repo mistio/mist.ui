@@ -38,6 +38,7 @@ MACHINE_CREATE_FIELDS.push({
         helptext: 'Create the machine in a new resource group',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -45,17 +46,30 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    },  {
+        name: 'resource_group',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'ex_resource_group',
         label: 'Resource Group',
         type: 'mist_dropdown_searchable',
+        loader: true,
         class: 'margin-bottom',
         value: '',
         defaultValue: '',
         search: '',
         show: false,
+        excludeFromPayload: true,
         required: true,
         options: [],
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [false],
+        }
     }, {
         name: 'new_resource_group',
         label: 'Resource Group name',
@@ -64,8 +78,13 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: false,
         helptext: '',
+        showIf: {
+            fieldName: 'create_resource_group',
+            fieldValues: [true],
+        }
     }, {
         name: 'create_storage_account',
         h3: 'Storage account',
@@ -73,10 +92,12 @@ MACHINE_CREATE_FIELDS.push({
         type: 'radio',
         value: true,
         defaultValue: true,
+        hidden: true,
         class: 'bind-both',
-        helptext: 'Create the machine in a new storage account',
+        helptext: 'Create the machine in a new or existing storage account. Existing storage account options depend on location and resource group.',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -84,6 +105,13 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    }, {
+        name: 'storage_account',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'new_storage_account',
         label: 'Storage Account name',
@@ -92,30 +120,63 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: false,
         helptext: '',
+        showIf: {
+            fieldName: 'create_storage_account',
+            fieldValues: [true],
+        }
     }, {
         name: 'ex_storage_account',
         label: 'Storage Account',
         type: 'mist_dropdown_searchable',
+        loader: true,
         value: '',
         search: '',
         class: 'margin-bottom',
         defaultValue: '',
         show: true,
+        excludeFromPayload: true,
         required: true,
         options: [],
+        alloptions: [],
+        showIf: {
+            fieldName: 'create_storage_account',
+            fieldValues: [false],
+        },
+    }, {
+        name: 'storage_account_type',
+        label: 'Storage account type for OS Disk',
+        type: 'dropdown',
+        value: 'StandardSSD_LRS',
+        defaultValue: 'StandardSSD_LRS',
+        helptext: 'Specify the storage account type for the managed OS Disk.',
+        show: true,
+        required: true,
+        options: [{
+            title: 'Standard HDD',
+            val: 'Standard_LRS'
+        }, {
+            title: 'Standard SSD',
+            val: 'StandardSSD_LRS',	
+        }, {
+            title: 'Premium SSD',
+            val: 'Premium_LRS',
+        }],
     }, {
         name: 'create_network',
         h3: 'Network',
         label: 'Create new network',
         type: 'radio',
         value: true,
+        hidden: true,
         defaultValue: true,
         class: 'bind-both',
-        helptext: 'Create the machine in a new network',
+        helptext: 'Create the machine in a new or existing network. Existing network options depend on location and resource group.',
         show: true,
         required: false,
+        excludeFromPayload: true,
         options: [{
             title: 'Create new',
             val: true,
@@ -123,6 +184,13 @@ MACHINE_CREATE_FIELDS.push({
             title: 'Use existing',
             val: false,
         }],
+    }, {
+        name: 'networks',
+        value: '',
+        type: 'text',
+        defaultValue: '',
+        show: false,
+        excludeFromPayload: false
     }, {
         name: 'new_network',
         label: 'Network name',
@@ -132,19 +200,29 @@ MACHINE_CREATE_FIELDS.push({
         class: 'margin-bottom',
         show: false,
         required: false,
+        excludeFromPayload: true,
         helptext: '',
+        showIf: {
+            fieldName: 'create_network',
+            fieldValues: [true],
+        }
     }, {
-        name: 'networks',
-        label: 'Networks',
+        name: 'ex_networks',
+        label: 'Network',
         type: 'mist_dropdown_searchable',
         noPluralisation: true,
         value: '',
         search: '',
         class: 'margin-bottom',
+        excludeFromPayload: true,
         defaultValue: '',
         show: true,
         required: true,
         options: [],
+        showIf: {
+            fieldName: 'create_network',
+            fieldValues: [false],
+        },
     }, {
         name: 'machine_username',
         label: 'Machine Username *',
@@ -382,12 +460,6 @@ MACHINE_CREATE_FIELDS.push({
         show: false,
         required: false,
     }],
-});
-
-// NEPHOSCALE
-MACHINE_CREATE_FIELDS.push({
-    provider: 'nephoscale',
-    fields: [],
 });
 
 // OPENSTACK
@@ -969,7 +1041,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     });
 
     // add cloud init field only to providers that accept and we support
-    if (['azure', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer'].indexOf(p.provider) != -1) {
+    if (['azure', 'azure_arm', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer'].indexOf(p.provider) != -1) {
         p.fields.push({
             name: 'cloud_init',
             label: 'Cloud Init',
@@ -1006,8 +1078,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'packet', 'gce', 'digitalocean', 'aws'].indexOf(p.provider) > -1) {
-        var allowedVolumes = ['gce'].indexOf(p.provider) > -1 ? 3 : 1; 
+    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs'].indexOf(p.provider) > -1) {
+        var allowedVolumes = ['gce','azure_arm'].indexOf(p.provider) > -1 ? 3 : 1; 
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
@@ -1015,6 +1087,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             type: 'toggle',
             value: false,
             defaultValue: false,
+            helptext: 'Attach a volume to the machine.',
             show: true,
             required: false
         }, {
@@ -1026,7 +1099,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: false,
             horizontal: false,
             moderateTop: true,
-            helptext: 'Attach a volume to the machine.',
             min: '1',
             max: allowedVolumes,
             showIf: {
@@ -1053,26 +1125,47 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 name: 'volume_id',
                 label: 'Existing Volume',
                 type: 'mist_dropdown',
-                helptext: "The machine's location must be first selected, to add existing volumes. Only volumes of the same location can be attached to a machine.",
+                helptext: "The machine's location must first be selected, to add existing volumes. Only volumes of the same location can be attached to a machine.",
                 value: '',
                 defaultValue: '',
                 show: true,
                 required: false,
                 options: [],
+                noOptionsMessage: 'You must first select a location for your machine.',
                 showIf: {
                     fieldName: 'new-or-existing-volume',
                     fieldValues: ['existing'],
-                },
-            }, {
+                }
+            }]
+        })
+        if (['ec2'].indexOf(p.provider) > -1) {
+            p.fields[p.fields.length-1].options.push({
+                name: 'device',
+                label: 'Device name',
+                type: 'text',
+                helptext: 'Choose a device name. Recommended names /dev/sd[f-p] and /dev/sd[f-p][1-6]',
+                pattern: '/dev/sd[f-p][1-6]?',
+                value: '/dev/sdf',
+                defaultValue: '/dev/sdf',
+                show: true,
+                required: true,
+                showIf: {
+                    fieldName: 'new-or-existing-volume',
+                    fieldValues: ['existing'],
+                }
+            })
+        }
+        if (['openstack','ec2','aliyun_ecs'].indexOf(p.provider) > -1) {
+            p.fields[p.fields.length-1].options.push({
                 name: 'delete_on_termination',
                 label: 'Delete volume when machine is deleted',
                 type: 'checkbox',
                 value: '',
                 defaultValue: '',
                 show: true,
-                required: false,
-            }]
-        })
+                required: false
+            })
+        }
     }
 
     // add common post provision fields
@@ -1088,8 +1181,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: false,
         optional: true,
-        subfields: [
-            {
+        singleColumnForm: true,
+        inline: true,
+        subfields: [{
                 name: 'action',
                 type: 'dropdown',
                 class: 'bind-both',
@@ -1097,6 +1191,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 defaultValue: 'stop',
                 helptext: '',
                 show: true,
+                parentfield: 'expiration',
                 required: false,
                 class: 'width-150 inline-block',
                 options: [
@@ -1108,10 +1203,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 type: 'duration_field',
                 class: 'bind-both',
                 value: '',
-                defaultValue: '',
+                defaultValue: '1d',
                 valueType: 'date',
-                valueDefaultSpan: 1,
-                valueDefaultUnit: 'days',
+                parentfield: 'expiration',
                 helptext: '',
                 show: true,
                 required: false,
@@ -1129,16 +1223,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 valueType: 'secs',
                 value: 3600,
                 defaultValue: 3600,
-                valueDefaultSpan: 1,
-                valueDefaultUnit: 'hours',
-                class: 'bind-top',
                 helptext: '',
+                parentfield: 'expiration',
                 show: true,
                 required: false,
                 prefixText: 'Notify me ',
                 suffixText: 'before',
-                secondary: true,
                 optional: true,
+                defaultCheck: true,
+                disabled: false,
                 options: [
                     {val: 'months', title: 'months'},
                     {val: 'weeks', title: 'weeks'},
@@ -1432,29 +1525,46 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
 
     if (['onapp'].indexOf(p.provider) == -1) {
         p.fields.push({
-            name: 'create_hostname_machine',
-            label: 'Create hostname',
-            type: 'toggle',
-            value: false,
-            defaultValue: false,
-            excludeFromPayload: true,
-            helptext: 'Open options to create an A record for this machine.',
-            show: true,
-            required: false,
-        }, {
-            name: 'hostname',
-            label: 'Hostname',
-            type: 'textarea',
-            value: '',
-            defaultValue: '',
-            helptext: 'Provide the desired hostname you want to assign to the machine. Example: machine1.mist.io. There needs to be a DNS zone for this domain already created. Currently under heavy development, might not be fully functional.',
-            show: true,
-            required: false,
-            showIf: {
-                fieldName: 'create_hostname_machine',
-                fieldValues: ['true', true],
-            },
-        });
+                name: 'hostname',
+                label: 'Create DNS record',
+                type: 'fieldgroup',
+                value: {},
+                defaultValue: {},
+                defaultToggleValue: false,
+                helptext: 'Create an A record for this machine on an existing DNS zone.',
+                show: true,
+                required: false,
+                optional: true,
+                singleColumnForm: true,
+                inline: true,
+                subfields: [
+                    {
+                        name: 'record_name',
+                        type: 'text',
+                        value: '',
+                        label: 'Record name',
+                        defaultValue: '',
+                        helptext: '',
+                        show: true,
+                        class: 'width-150 inline-block pad-r-0 pad-t',
+                        required: true,
+                        suffix: '.',
+                    }, {
+                        name: 'dns_zone',
+                        type: 'mist_dropdown',
+                        label: 'DNS zone',
+                        value: '',
+                        defaultValue: '',
+                        helptext: '',
+                        display: 'domain',
+                        show: true,
+                        class: 'inline-block pad-l-0 pad-t',
+                        required: true,
+                        options: []
+                    }
+                ]
+            }
+        );
     }
 
     p.fields.push({
