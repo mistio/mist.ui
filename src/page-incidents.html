@@ -53,9 +53,9 @@
             },
 
             _getVisibleColumns: function () {
-                return ['machine_id', 'cloud_id', 'id', 'error'];
+                return ['resource_id', 'cloud_id', 'id', 'error'];
             },
-
+            // TODO compute columns for all resources' incidents
             _getRenderers: function () {
                 var _this = this;
                 return {
@@ -72,20 +72,18 @@
                                 1000).fromNow() + '</span>' + active;
                         }
                     },
-                    'machine_id': {
+                    'resource_id': {
                         'title': function (item) {
-                            return item ? item.replace(/_/g, " ") : 'machine';
+                            return 'resource';
                         },
                         'body': function (item, row) {
-                            var m = _this.model.clouds && _this.model.clouds[row['cloud_id']] && _this.model
-                                .clouds[row['cloud_id']].machines && _this.model.clouds[row['cloud_id']]
-                                .machines[row['machine_id']] ? _this.model.clouds[row['cloud_id']].machines[
-                                    row['machine_id']] : false;
-                            if (m)
-                                return '<a href="/machines/' + m.id +
-                                    '" class="regular" style="color: #2196F3;">' + m.name + '</a>'
-                            else
-                                return item;
+                            var resource = _this._getResource(row, _this.model);
+                            // Resource may be missing. If not display link
+                            if (resource.id)
+                                return '<a href="/'+ resource.type +'/' + resource.id +
+                                    '" class="regular" style="color: #2196F3;">' + resource.name + '</a>'
+                            if (!resource.id)
+                                return row[resource.type+'_id']
                         }
                     },
                     'cloud_id': {
@@ -108,6 +106,61 @@
             resizeList: function (e) {
                 if (e.path.indexOf(this.shadowRoot.querySelector('mist-list')))
                     this.shadowRoot.querySelector('mist-list').fire('resize');
+            },
+            _getResource: function(incident, model) {
+                console.log(incident);
+                if (this.model) {
+                    // debugger;
+                    // Get incident type
+                    var resourceTypes = [ 'machine', 'volume',
+                        'network',
+                        'subnet',
+                        'zone',
+                        'record',
+                        'key',
+                        'script',
+                        'schedule',
+                        'team',
+                        'member', 'cloud'],
+                        type;
+                    // Loop through types, check if incident refers to some type of resource
+                    for (var i = 0; i < resourceTypes.length; i++) {
+                        type = resourceTypes[i];
+                        if (incident[type + '_id'])
+                            break;
+                        if (i == resourceTypes.length - 1)
+                            type = null;
+                    }
+                    // Get resource
+                    if (type) {
+                        var resource = {};
+                        // Subnets and records cannot be found under model.
+                        if (['subnet','record','machines'].indexOf(type) == -1) {
+                            resource = this.model[type+'s'][incident[type + '_id']];
+                        }
+                        // Machine incidents provide us with cloud_id and machine_id (external id)
+                        if (type == 'machine') {
+                            if (this.model.clouds[incident['cloud_id']])
+                                resource = this.model.clouds[incident['cloud_id']][incident[type + '_id']];
+                        }
+                        if (type == 'subnet') {}
+                        if (type == 'record') {}
+                        // Add type information in object. Used to construct the link.
+                        if (resource) {
+                            resource.type = type;
+                        }
+                        // If we could not find the resource, return a missing object
+                        if (!resource || !resource.id) {
+                            resource = {
+                                name: "missing " + type,
+                                type: type
+                            }
+                        }
+                        return resource;
+                    }
+                    return false;
+                }
+                return false;
             }
         });
     </script>
