@@ -49,7 +49,7 @@
                         </p>
                     </div>
                     <template is="dom-if" if="[[fields]]" restamp>
-                        <app-form fields="{{fields}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
+                        <app-form id="{{formId}}" form="{{form}}" fields="{{fields}}" display-buttons="[[_calcDisplayButtons()]]" single-column="[[singleColumnForm]]" inline="[[inline]]"></app-form>
                     </template>
                 </div>
                 <div hidden$="[[!_computeType(type, 'isYesNo')]]" class="clearfix btn-group">
@@ -121,9 +121,29 @@
                     list: {
                         type: Array
                     },
+                    fields: {
+                        type: Array
+                    },
                     hideText: {
                         type: Boolean,
                         value: false
+                    },
+                    modal: {
+                        type: Boolean
+                    },
+                    singleColumnForm: {
+                        type: Boolean,
+                        value: true,
+                        reflectToAttribute: true
+                    },
+                    inline: {
+                        type: Boolean,
+                        reflectToAttribute: true
+                    },
+                    formId : {
+                        type: String,
+                        value: '',
+                        reflectToAttribute: true
                     }
                 },
                 _computeType: function(type, value) {
@@ -137,10 +157,9 @@
                     this._modalClosed(e);
                 },
                 _modalClosed: function(e) {
-                    console.log('closed');
-                    var normalizedEvent = Polymer.dom(e);
+                    // var normalizedEvent = Polymer.dom(e);
                     // if (e.target.id == 'dialogModal') {
-                        console.log(this.$.dialogModal.closingReason);
+                        // console.log(this.$.dialogModal.closingReason);
                         this.dispatchEvent(new CustomEvent('confirmation', { bubbles: true, composed: true, detail: {
                             response: 'confirm',
                             confirmed: true,

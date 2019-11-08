@@ -40,7 +40,7 @@
             <template>
                 <h2>Edit expiration date</h2>
                 <div class="paper-dialog-scrollable">
-                    <app-form fields="{{fields}}" single-column inline show-cancel btncontent="Save" url="/api/v1/machines/[[machine.id]]" method="PUT" indialog></app-form>
+                    <app-form id="machine-expiration-edit" fields="{{fields}}" single-column indialog show-cancel btncontent="Save" url="/api/v1/machines/[[machine.id]]" method="PUT"></app-form>
                 </div>
             </template>
         </vaadin-dialog>
@@ -48,12 +48,15 @@
     <script>
     Polymer({
         is: 'machine-expiration-edit',
-
+        behaviors: [rbacBehavior],
         properties: {
             model: {
                 type: Object
             },
             machine: {
+                type: Object
+            },
+            permissions: {
                 type: Object
             },
             fields: {
@@ -70,6 +73,8 @@
                         show: true,
                         required: false,
                         optional: false,
+                        singleColumnForm: true,
+                        inline: true,
                         subfields: [
                             {
                                 name: 'action',
@@ -92,8 +97,6 @@
                                 value: '',
                                 defaultValue: '',
                                 valueType: 'date',
-                                valueDefaultSpan: 1,
-                                valueDefaultUnit: 'days',
                                 helptext: '',
                                 show: true,
                                 required: false,
@@ -111,15 +114,13 @@
                                 valueType: 'secs',
                                 value: 3600,
                                 defaultValue: 3600,
-                                valueDefaultSpan: 1,
-                                valueDefaultUnit: 'hours',
+                                defaultCheck: true,
                                 class: 'bind-both',
                                 helptext: '',
                                 show: true,
                                 required: false,
                                 prefixText: 'Notify me ',
                                 suffixText: 'before',
-                                secondary: true,
                                 optional: true,
                                 options: [
                                     {val: 'months', title: 'months'},
@@ -139,75 +140,216 @@
             'change': 'updateInputs',
             // 'open-and-select' : 'openAndSelect'
         },
+        observers: [
+            '_checkPermissions(model.org, machine.id)',
+            '_expirationDateChanged(fields.0.subfields.1.value)'
+        ],
         attached: function() {
-            
+        },
+        ready: function() {
+        },
+        _checkPermissions: function(org, machine) {
+            if (!org || !machine)
+                return;
+            var perm = this.check_perm('edit','machine', machine, org, this.model.user);
+            this.set('permissions', perm);
+            console.log('permissions', 'edit','machine', machine, perm);
         },
         _openDialog: function(e) {
-            this._initialiseValues(this.machine);
+            if (this.permissions == false) {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"You are not authorized to edit the expiration date.",duration:3000} }));
+            } else {
+                if (this.permissions == true) {
+                    this._initialiseValues(this.machine)
+                } else { 
+                    this._applyPermissions(this.machine, this.permissions);
+                }
+                this.$.dialogModal.opened = true;
+            }
         },
         _closeDialog: function(e) {
             this.$.dialogModal.opened = false;
+        },
+        _applyPermissions: function(machine,permissions) {
+            if (!this.machine || !permissions) 
+                return;
+            // Get current machine expiration values
+            this._initialiseValues(this.machine);
+
+            var currentExpiration = this.machine.expiration,
+                permissionsExpiration = this.permissions.expiration;
+
+            var expirationPath = 'fields.0.subfields.1.', //expiration date
+                actionPath = 'fields.0.subfields.0.',
+                notifyPath = 'fields.0.subfields.2.';
+
+            if (currentExpiration) {
+                var date = currentExpiration.date,
+                    fromNow = this._dateToDurationFromNow(date);
+                var notify = currentExpiration.notify || 0,
+                    before = this._secondsToDuration(notify);
+            }
+            // Apply either current values or permission forced values
+            // Current values overweigh permission defaults but not max, and permission defaults overweight field defaults 
+            if (currentExpiration || permissionsExpiration) {
+                // EXPIRATION
+                this.set(expirationPath + 'defaultValue', currentExpiration ? fromNow : permissionsExpiration.default);
+                this.set(expirationPath + 'max', permissionsExpiration.max);
+                this.notifyPath(expirationPath + 'defaultValue');
+                this.notifyPath(expirationPath + 'max');
+                
+                // ACTIONS
+                var action = this.get(actionPath + 'defaultValue'),
+                    options = this.get(actionPath + 'options') || [],
+                    available;
+                // override if permissions dictate
+                if (permissionsExpiration.actions) {
+                    action = permissionsExpiration.actions.default ? permissionsExpiration.actions.default : action;
+                    if (permissionsExpiration.actions.available) {
+                        // construct dropdown of actions, allow the selection of only available by permissions
+                        var permAvailable = this._toOptionsFormat(permissionsExpiration.actions.available);
+                        available = options.filter(function(a) {
+                                return permissionsExpiration.actions.available.indexOf(a.val) == -1;
+                            });
+                        available.forEach(function(a) {
+                                a.disabled = true;
+                            });
+                        available = available.concat(permAvailable);
+                    }
+                }
+                // override if current value exist
+                this.set(actionPath + 'value', currentExpiration && currentExpiration.action ? currentExpiration.action : action);
+                this.set(actionPath + 'options', available || options);
+
+                // NOTIFY
+                var defCheck = this.get(notifyPath + 'defaultCheck'),
+                    notValue = this.get(notifyPath + 'defaultValue');
+
+                // override if permissions dictate
+                if (permissionsExpiration.notify) {
+                    if (permissionsExpiration.notify.require != undefined)
+                        defCheck = permissionsExpiration.notify.require;
+                    if (permissionsExpiration.notify.default)
+                        notValue = permissionsExpiration.notify.default;
+                }
+                // override if current value exist
+                this.set(notifyPath + 'defaultCheck', currentExpiration ? notify : defCheck);
+                this.set(notifyPath + 'defaultValue', currentExpiration ? notify : notValue);
+
+                if (permissionsExpiration.notify.require) {
+                    this.set(notifyPath + 'optional', false);
+                }
+
+                if (!notify) {
+                    this.set(notifyPath + 'disabled', true);
+                } else if (notify) {
+                    this.set(notifyPath + 'defaultValue', notify);
+                }
+
+                // set max
+                // this.set(notifyPath + 'max', this.set(expirationPath + 'value'));
+                this._expirationDateChanged();
+            }
+        },
+        _toOptionsFormat: function(arr) {
+            if (!arr)
+                return [];
+            return arr.map(function(x){
+                return {"val": x, "title": x.toUpperCase()}
+            })
         },
         _initialiseValues: function(machine) {
             if (!this.machine) return;
             var date = (this.machine && this.machine.expiration) ? this.machine.expiration.date : '',
                 fromNow = this._dateToDurationFromNow(date);
-            var notify = (this.machine && this.machine.expiration) ? this.machine.expiration.notify : 0,
-                before = this._secondsToDuration(notify);
+            var notify = (this.machine && this.machine.expiration) ? this.machine.expiration.notify : 0;
 
             this.set('fields.0.subfields.0.value',  this.machine.expiration ? this.machine.expiration.action : this.fields[0].subfields[0].defaultValue);
             this.notifyPath('fields.0.subfields.0.value');
             
-            if (date) {
-                this.set('fields.0.subfields.1.valueDefaultSpan', fromNow.span);
-                this.notifyPath('fields.0.subfields.1.valueDefaultSpan');
-                this.set('fields.0.subfields.1.valueDefaultUnit', fromNow.unit);
-                this.notifyPath('fields.0.subfields.1.valueDefaultUnit');
-                if (!notify) {
-                    this.set('fields.0.subfields.2.disabled', true);
-                } else if (notify) {
-                    this.set('fields.0.subfields.2.valueDefaultSpan', before.span);
-                    this.notifyPath('fields.0.subfields.2.valueDefaultSpan');
-                    this.set('fields.0.subfields.2.valueDefaultUnit', before.unit);
-                    this.notifyPath('fields.0.subfields.2.valueDefaultUnit');
-                    this.set('fields.0.subfields.2.disabled', false);
-                } 
+            if (date && fromNow) {
+                this.set('fields.0.subfields.1.defaultValue', fromNow);
+                this.notifyPath('fields.0.subfields.1.defaultValue');
             }
-            // console.log('DIALOG EXPIRATION', this.machine.expiration);
-            this.$.dialogModal.opened = true;
+            this.set('fields.0.subfields.2.defaultCheck', notify ? true : false);
+            if (notify) {
+                this.set('fields.0.subfields.2.defaultValue', notify);
+                this.notifyPath('fields.0.subfields.2.defaultValue');
+            }
+        },
+
+        _expirationDateChanged: function(date) {
+            // update notify max
+            var notifyPath = 'fields.0.subfields.2.',
+                expirationPath = 'fields.0.subfields.1.';
+            this.set(notifyPath + 'max', this.get(expirationPath + 'value'));
+            console.log("_expirationDateChanged", this.get(expirationPath + 'value'));
+            this.notifyPath(notifyPath + 'max');
         },
         _dateToDurationFromNow: function(date) {
-            var span, unit;
             if (moment(date).isValid()){
+                var span, unit;
                 var fromNow = moment.utc(date).fromNow(true);
                 var chunks = fromNow.split(' ');
                 span = chunks[0];
                 unit = chunks[1];
-                if (span == 'a') {
+                if (['a','an'].indexOf(span)>-1) {
                     span = '1';
-                    unit = unit+'s';
                 }
+                if (['month','months'].indexOf(unit)>-1) {
+                    unit = 'mo';
+                } else {
+                    unit = unit[0]
+                }
+                return span+unit;
             }
-            return {span: span, unit: unit}
+            return  false;
         },
         _secondsToDuration: function(seconds) {
-            var step, span;
             if (seconds) {
-                if (seconds%(3600*24*7) == 0) {
-                    step = 'weeks';
-                    span = seconds/(3600*24*7);
-                } else if (seconds%(3600*24) == 0) {
-                    step = 'days';
-                    span = seconds/(3600*24);
-                } else if (seconds%3600 == 0) {
-                    step = 'hours';
-                    span = seconds/3600;
-                } else if (seconds%60 == 0) {
-                    step = 'minutes';
-                    span = seconds/60;
+                var span, unit;
+                if (seconds % (3600*24*28) == 0 || seconds % (3600*24*29) == 0 || seconds % (3600*24*30) == 0 || seconds % (3600*24*31) == 0) {
+                    if (seconds % (3600*24*28) == 0) span = seconds / (3600*24*28);
+                    if (seconds % (3600*24*29) == 0) span = seconds / (3600*24*29);
+                    if (seconds % (3600*24*30) == 0) span = seconds / (3600*24*30);
+                    if (seconds % (3600*24*31) == 0) span = seconds / (3600*24*31);
+                    unit = 'mo';
+                } else if (seconds % (3600*24*7) == 0) {
+                    span = seconds / (3600*24*7);
+                    unit = 'w';
+                } else if (seconds % (3600*24) == 0) {
+                    span = seconds / (3600*24);
+                    unit = 'd';
+                } else if (seconds % 3600 == 0) {
+                    span = seconds / 3600;
+                    unit = 'h';
+                } else if (seconds % 60 == 0) {
+                    span = seconds / 60;
+                    unit = 'm';
+                } else { 
+                    if (seconds > 3600*24*28) {
+                        span =  Math.floor(seconds / 3600*24*28);
+                        unit = 'mo';
+                    } else if (seconds > 3600*24*7) {
+                        span =  Math.floor(seconds / 3600*24*7);
+                        unit = 'w';
+                    } else if (seconds > 3600*24) {
+                        span =  Math.floor(seconds / 3600*24);
+                        unit = 'd';
+                    } else if (seconds > 3600) {
+                        span = Math.floor(seconds / 3600);
+                        unit = 'h';
+                    } else if (seconds > 60) {
+                        span =  Math.floor(seconds / 60);
+                        unit = 'm';
+                    } else {
+                        span = seconds;
+                        unit = 's';
+                    }
+                    return span+unit;
                 }
             }
-            return {span: span, unit: step}
+            return false;
         }
     });
     </script>

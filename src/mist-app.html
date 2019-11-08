@@ -38,6 +38,7 @@
 <link rel="import" href="account/plan-purchase.html">
 <script type="text/javascript" src="providers.js" inline></script>
 <script type="text/javascript" src="../bower_components/numeral/min/numeral.min.js" inline></script>
+
 <dom-module id="mist-app">
     <!-- styles/app-theme  -->
     <!-- <slot name="theme">
@@ -227,7 +228,7 @@
     Polymer({
         is: 'mist-app',
         behaviors: [
-            Polymer.IronResizableBehavior
+            Polymer.IronResizableBehavior, rbacBehavior
         ],
 
         properties: {
@@ -342,6 +343,8 @@
         },
 
         observers: [
+            '_observeKeys(model.keys.splices)',
+            '_observeScripts(model.scripts.splices)',
             '_routePageChanged(routeData.page, subroute.path)',
             '_sizeChanged(smallscreen)',
             '_configUpdated(config)',
@@ -350,20 +353,21 @@
         ],
 
         _listAttached: function(e) {
-            var key = e.detail.id.replace("List", "");
-            if (this.model.sections[key]) {
-                // give priority to section.q
-                var local = this.model.sections[key].q;
-                if (!local) {
-                    local = localStorage.getItem('mist-filter#topFilter/all-'+key+'/userFilter');
+            if (e.detail && e.detail.id) {
+                var key = e.detail.id.replace("List", "");
+                if (this.model.sections[key]) {
+                    var local = localStorage.getItem('mist-filter#topFilter/all-'+key+'/userFilter');
+                    if (!local) {
+                        local = localStorage.getItem('mist-filter#topFilter/all-resources/userFilter');
+                    }
+                    if (!local) {
+                        local = this.model.sections[key].q
+                    }
+                    if (!local) {
+                        local = '';
+                    }
+                    this.set('model.sections.'+key+'.q', local+' ');
                 }
-                if (!local) {
-                    local = localStorage.getItem('mist-filter#topFilter/all-resources/userFilter');
-                }
-                if (!local) {
-                    local = '';
-                }
-                this.set('model.sections.'+key+'.q', local+' ');
             }
         },
 
@@ -371,6 +375,14 @@
             if (this.ccRequired) {
                 this._ccDismissed();
             }
+        },
+
+        _observeKeys: function(keysSplices) {
+            this.fire('update-keys');
+        },
+
+        _observeScripts: function(scriptsSplices) {
+            this.fire('update-scripts');
         },
 
         _forwardEvent: function (e) {
@@ -505,19 +517,19 @@
                 pagesElement.querySelector('page-stacks').shadowRoot.querySelector('stack-create')) {
                 pagesElement.querySelector('page-stacks').shadowRoot.querySelector('stack-create').updateKeys(e);
             }
-            if (pagesElement.querySelector('page-machines').shadowRoot &&
+            if (pagesElement.querySelector('page-machines') && pagesElement.querySelector('page-machines').shadowRoot &&
                 pagesElement.querySelector('page-machines').shadowRoot.querySelector('machine-create')) {
                 pagesElement.querySelector('page-machines').shadowRoot.querySelector('machine-create').updateKeys(e);
             }
-            if (pagesElement.querySelector('page-clouds').shadowRoot &&
+            if (pagesElement.querySelector('page-clouds') && pagesElement.querySelector('page-clouds').shadowRoot &&
                 pagesElement.querySelector('page-clouds').shadowRoot.querySelector('cloud-add')) {
                 pagesElement.querySelector('page-clouds').shadowRoot.querySelector('cloud-add').updateKeys(e);
             }
-            if (pagesElement.querySelector('page-clouds').shadowRoot &&
+            if (pagesElement.querySelector('page-clouds') && pagesElement.querySelector('page-clouds').shadowRoot &&
                 pagesElement.querySelector('page-clouds').shadowRoot.querySelector('cloud-edit')) {
                 pagesElement.querySelector('page-clouds').shadowRoot.querySelector('cloud-edit').updateKeys(e);
             }
-            if (pagesElement.querySelector('page-clouds').shadowRoot &&
+            if (pagesElement.querySelector('page-clouds') && pagesElement.querySelector('page-clouds').shadowRoot &&
                 pagesElement.querySelector('page-clouds').shadowRoot.querySelector('other-cloud-add-machine')){
                 pagesElement.querySelector('page-clouds').shadowRoot.querySelector('other-cloud-add-machine').updateKeys(e);
             }
@@ -525,11 +537,11 @@
 
         updateScripts: function(e) {
             var pagesElement = this.shadowRoot.querySelector('app-header-layout').querySelector('iron-pages');
-            if (pagesElement.querySelector('page-machines').shadowRoot &&
+            if (pagesElement.querySelector('page-machines') && pagesElement.querySelector('page-machines').shadowRoot &&
                 pagesElement.querySelector('page-machines').shadowRoot.querySelector('machine-create')) {
                 pagesElement.querySelector('page-machines').shadowRoot.querySelector('machine-create').updateScripts(e);
             }
-            if (pagesElement.querySelector('page-schedules').shadowRoot &&
+            if (pagesElement.querySelector('page-schedules') && pagesElement.querySelector('page-schedules').shadowRoot &&
                 pagesElement.querySelector('page-schedules').shadowRoot.querySelector('schedule-add')) {
                 pagesElement.querySelector('page-schedules').shadowRoot.querySelector('schedule-add').updateScripts(e);
             }
