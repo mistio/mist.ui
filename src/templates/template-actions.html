@@ -22,7 +22,7 @@
         <template-edit id="editdialog" template="[[items.0]]"></template-edit>
         <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
         <slot>
-            <mist-list-actions actions=[[actions]]></mist-list-actions>
+            <mist-list-actions id="actions" actions=[[actions]]></mist-list-actions>
         </slot>
     </template>
     <script>
@@ -93,6 +93,7 @@
             '_mapPolicyToActions(items.*)'
         ],
         listeners: {
+            'update': '_updateVisibleActions',
             'confirmation': 'confirmAction',
             'transfer-ownership': 'transferOwnership',
             'select-action': 'selectAction'
@@ -101,6 +102,9 @@
             this.$.request.headers["Content-Type"] = 'application/json';
             this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.request.method = "POST";
+        },
+        _updateVisibleActions: function() {
+            this.$.actions._updateVisibleActions();
         },
         itemActions: function(template) {
             // single template actions

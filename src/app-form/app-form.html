@@ -20,6 +20,9 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/juicy-jsoneditor/juicy-jsoneditor.html">
+<!-- josdejong/jsoneditor#104 workaround-->
+<!-- <link rel="stylesheet" type="text/css" href="../../bower_components/jsoneditor/dist/jsoneditor.min.css"> -->
 
 <link rel="import" href="sub-fieldgroup.html">
 <link rel="import" href="sub-form.html">
@@ -126,7 +129,7 @@
             }
 
             paper-button.add-input {
-                margin: 0 12px !important;
+                margin: 0 12px 4px 12px !important;
                 flex: 1 100%;
                 display: flex;
             }
@@ -223,6 +226,9 @@
             }
             .pad-l-0 {
                 padding-left: 0;
+            }
+            .pad-l-32 {
+                padding-left: 32px;
             }
             .pad-t {
                 padding-top: 16px;
@@ -469,6 +475,9 @@
                                 value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"></paper-textarea>
                         </template>
+                        <template is="dom-if" if="[[_compareFieldType(field.type, 'jsoneditor', fieldVisibility, index)]]" restamp>
+                            <juicy-jsoneditor class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" name="[[field.name]]" json="{{field.value}}" mode="code"></juicy-jsoneditor>
+                        </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'radio', fieldVisibility, index)]]" restamp>
                             <paper-radio-group id$="app-form-[[id]]-[[field.name]]" selected="{{field.value}}" class$="xs12 m6 [[field.class]]" disabled="[[field.disabled]]"
                                 hidden="[[field.hidden]]">
@@ -512,7 +521,7 @@
                                         <paper-item disabled>No [[_computeResourceTypeForField(field.name, field.options.length)]] found. [[field.noOptionsMessage]]</paper-item>
                                     </template>
                                     <template is="dom-repeat" items="[[field.options]]" as="option">
-                                        <paper-item value="[[option.val]]">[[option.title]]</paper-item>
+                                        <paper-item value="[[option.val]]" disabled=[[option.disabled]]>[[option.title]]</paper-item>
                                     </template>
                                 </paper-listbox>
                             </paper-dropdown-menu>
@@ -791,6 +800,11 @@
                     value: false,
                     reflectToAttribute: true
                 },
+                inline: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
                 fieldVisibility: {
                     type: Object
                 }
@@ -870,6 +884,7 @@
             },
 
             runFieldsChanged: function (e) {
+                // console.log('rule form - fields changed by event');
                 this._fieldsChanged();
             },
 
@@ -877,6 +892,9 @@
                 var valid = this._validateFields();
                 var prevFormReady = this.formReady;
                 this.set('formReady', valid && !this.sendingData);
+
+                console.log("form validate =====", this.id, this.formReady);
+
                 if (!prevFormReady && this.formReady) {
                     this.fire('app-form-ready');
                 }
@@ -911,9 +929,12 @@
 
                         // Update show field flag after calculating dependencies
                         that.fields.forEach(function (el, index) {
-                            console.log(el.name);
+                            // console.log(el.name);
                             if (el.name == "expiration") {
                                 // console.log(el.value);
+                            }
+                            if (el.type == "fieldgroup") {
+                                console.log('fieldgroup', that.id, 'el', el.name, el.value);
                             }
                             // if field has a dependency
                             if (el.showIf) {
@@ -1013,7 +1034,9 @@
                         'machines_tags': this._validateTags,
                         'date': this._validateDatetime,
                         'mist_size': this._validateMistSize,
-                        'list': this._validateList
+                        'list': this._validateList,
+                        'duration_field': this._validateDurationField,
+                        'fieldgroup': this._validateGroup
                     },
                     customValidators = {
                         'cidr-validator': this._validateCidr,
@@ -1060,12 +1083,27 @@
                 }.bind(this));
             },
 
+            _validateDurationField: function(field) {
+                return field.valid;
+            },
+
             _validateList: function(field) {
                 if (field.min && field.min > field.items.length) return false;
 
                 var valid = true;
                 for (var i = 0; i < field.items.length; i++) {
                     valid = valid && this._validateFields(field.items[i]);
+                    if (!valid) {
+                        break;
+                    }
+                }
+                return valid;
+            },
+
+            _validateGroup: function(field) {
+                var valid = true;
+                for (var i = 0; i < field.subfields.length; i++) {
+                    valid = valid && this._validateFields(field.subfields[i]);
                     if (!valid) {
                         break;
                     }

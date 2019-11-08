@@ -462,12 +462,6 @@ MACHINE_CREATE_FIELDS.push({
     }],
 });
 
-// NEPHOSCALE
-MACHINE_CREATE_FIELDS.push({
-    provider: 'nephoscale',
-    fields: [],
-});
-
 // OPENSTACK
 MACHINE_CREATE_FIELDS.push({
     provider: 'openstack',
@@ -1187,8 +1181,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: false,
         optional: true,
-        subfields: [
-            {
+        singleColumnForm: true,
+        inline: true,
+        subfields: [{
                 name: 'action',
                 type: 'dropdown',
                 class: 'bind-both',
@@ -1196,6 +1191,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 defaultValue: 'stop',
                 helptext: '',
                 show: true,
+                parentfield: 'expiration',
                 required: false,
                 class: 'width-150 inline-block',
                 options: [
@@ -1207,10 +1203,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 type: 'duration_field',
                 class: 'bind-both',
                 value: '',
-                defaultValue: '',
+                defaultValue: '1d',
                 valueType: 'date',
-                valueDefaultSpan: 1,
-                valueDefaultUnit: 'days',
+                parentfield: 'expiration',
                 helptext: '',
                 show: true,
                 required: false,
@@ -1228,16 +1223,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 valueType: 'secs',
                 value: 3600,
                 defaultValue: 3600,
-                valueDefaultSpan: 1,
-                valueDefaultUnit: 'hours',
-                class: 'bind-top',
                 helptext: '',
+                parentfield: 'expiration',
                 show: true,
                 required: false,
                 prefixText: 'Notify me ',
                 suffixText: 'before',
-                secondary: true,
                 optional: true,
+                defaultCheck: true,
+                disabled: false,
                 options: [
                     {val: 'months', title: 'months'},
                     {val: 'weeks', title: 'weeks'},
@@ -1541,6 +1535,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 optional: true,
+                singleColumnForm: true,
+                inline: true,
                 subfields: [
                     {
                         name: 'record_name',
@@ -1560,7 +1556,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                         value: '',
                         defaultValue: '',
                         helptext: '',
-                        display: 'zone_id',
+                        display: 'domain',
                         show: true,
                         class: 'inline-block pad-l-0 pad-t',
                         required: true,

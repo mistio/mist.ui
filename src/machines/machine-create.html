@@ -193,9 +193,12 @@
 
     Polymer({
         is: 'machine-create',
-
+        behaviors: [rbacBehavior],
         properties: {
             model: {
+                type: Object
+            },
+            cloud: {
                 type: Object
             },
             selectedCloud: {
@@ -225,7 +228,7 @@
                 value: function() {
                     return []
                 },
-                computed: "_computeProviders(model, model.cloudsArray)"
+                computed: "_computeProviders(model, model.clouds, model.teams.*)"
             },
             newImage: {
                 type: String
@@ -246,10 +249,16 @@
             },
             resourceGroupsFieldIndex: {
                 type: Number
+            },
+            constraints: {
+                type: Object
             }
         },
         observers: [
+            '_applyConstraints(machinesFields, constraints)',
+            '_teamsChanged(model.teams.*)',
             '_cloudChanged(selectedCloud)',
+            '_updateCloudOptions(cloud.*)',
             '_machineFieldsChanged(machineFields.*)',
             '_prefillOptions(route.*)',
             '_locationChanged(machineFields.3.value)'
@@ -257,7 +266,90 @@
         listeners: {
             'keyup': 'hotkeys',
             'add-input': 'addInput',
-            'format-payload': 'formatPayload'
+            'format-payload': 'formatPayload',
+            'fields-changed': 'fieldsChanged'
+        },
+        _teamsChanged: function() {
+            console.log('_teamsChanged CALL checkPermissions');
+            this.checkPermissions();
+        },
+        checkPermissions: function() {
+            var perm = this.check_perm('create','machine');
+            if (perm == true) {
+                return;
+            } else if (perm == false) {
+                return;
+            } else if (typeof perm == 'object') {
+                this.set('constraints', perm);
+            }
+            // console.log('checkPermissions', perm);
+        },
+        _applyConstraints: function(machinesFields, constraints) {
+            if (this.constraints && this.machinesFields) {
+                if (this.constraints.expiration){
+                    this._applyExpirationConstraints();
+                }
+            }
+        },
+        _applyExpirationConstraints: function() {
+            for (var i=0; i < this.machinesFields.length; i++) {
+                var ind = this._fieldIndexByName('expiration', this.machinesFields[i].fields),
+                    path = 'machinesFields.'+ i +'.fields.'+ ind +'.subfields';
+
+                if (ind > -1) {
+                    if (this.constraints.expiration.max) {
+                        this.set(path + '.1.max', this.constraints.expiration.max);
+
+                        // force expiration and disallow to close option
+                        this.set('machinesFields.'+ i +'.fields.'+ ind + '.defaultToggleValue', true);
+                        this.set('machinesFields.'+ i +'.fields.'+ ind + '.toggleDisabled', true);
+                    }
+                    if (this.constraints.expiration.default) {
+                        this.set(path + '.1.defaultValue', this.constraints.expiration.default);
+                    }
+                    if (this.constraints.expiration.notify) {
+                        if (this.constraints.expiration.notify.default) {
+                            // notify default
+                            this.set(path + '.2.defaultValue', this.constraints.expiration.notify.default);
+                            // notify require
+                            this.set(path + '.2.defaultCheck', this.constraints.expiration.notify.require);
+                            if (this.constraints.expiration.notify.require)
+                                this.set(path + '.2.disabledCheck', this.constraints.expiration.notify.require);
+                            // notify max
+                            if (this.constraints.expiration.default) {
+                                this.set(path + '.2.max', this.constraints.expiration.default);
+                            }
+                        }
+                        if (this.constraints.expiration.notify.require != null
+                            && this.constraints.expiration.notify.require != undefined) {
+                            // notify require (checkbox value)
+                            this.set(path + '.2.disabled', !this.constraints.expiration.notify.require);
+                        }
+                    }
+                    if (this.constraints.expiration.actions) {
+                        if (this.constraints.expiration.actions.available) {
+                            // available actions
+                            var actions = this.constraints.expiration.actions.available.map(function(x){
+                                return {'val':x,'title':x.toUpperCase()};
+                            })
+                            this.set(path + '.0.options', actions);
+                        }
+                        if (this.constraints.expiration.actions.default) {
+                            // default action
+                            this.set(path + '.0.value', this.constraints.expiration.actions.default);
+                            this.set(path + '.0.defaultValue', this.constraints.expiration.actions.default);
+                        }
+                    }
+                }
+            }
+            // update selected cloud's provider-fields after constraints applied
+            if (this.selectedCloud) {
+                this._cloudChanged(this.selectedCloud);
+            }
+        },
+        _updateCloudOptions: function(cloud) {
+            // console.log('_updateCloudOptions === ', cloud);
+            this._updateFields(this.selectedCloud);
         },
         _prefillOptions: function(location) {
             if (this.shadowRoot.querySelector('app-location') && this.shadowRoot.querySelector('app-location').queryParams)
@@ -310,6 +402,9 @@
             }
         },
         _cloudChanged: function(selectedCloud) {
+            if (selectedCloud && this.model) {
+                this.set('cloud', this.model.clouds[selectedCloud]);
+            }
             if (!this.docs && this.machinesFields) {
                 for (var i = 0; i < this.machinesFields.length; i++) {
                     if (this.machinesFields[i].fields) {
@@ -328,6 +423,7 @@
                     return c.provider == provider;
                 });
             }
+
             // add cloud fields
             if (machineFields.fields) {
                 // allow hostname iff at least a cloud has dns access enabled
@@ -419,6 +515,7 @@
                     this._updateFieldsForPacket();
                 }
 
+                var that = this;
                 this.machineFields.forEach(function(f, index) {
                     // clear options
                     if (['duration_field','dropdown','radio','list'].indexOf(f.type) == -1  && f.options) {
@@ -426,13 +523,19 @@
                     }
 
                     if (f.name.endsWith("location")) {
-                        // debugger;
-                        var locations = this._toArray(this.model.clouds[cloudId].locations);
+                        var allLocations = this._toArray(this.model.clouds[cloudId].locations);
+                        var locations = allLocations.filter(function(l){
+                                var check_perm = that.check_perm('create_resources', 'location', l.id);
+                                //console.log('LOOP', l.name, check_perm);
+                                return check_perm == true;
+                            });
+                        // console.log('LOCATIONS', locations.length);
                         if (locations.length == 1 && locations[0].name == "") {
                             // If there's a single location preselect it and hide the field
                             this._selectSingleLocation(index,locations[0].id);
                         }
                         f.options = locations;
+                        // console.log(f.options);
                     }
                     if (f.name.endsWith("image")) {
                         f.options = this._toArray(this.model.clouds[cloudId].images).sort(function(ima, imb) {
@@ -469,6 +572,12 @@
 
                     if (f.name.endsWith("zone")) {
                         f.options = this._toArray(this.model.zones);
+                        // If zones share same domain but have differnt zone_id then display zone_id as suffix
+                        f.options.forEach(function(zone) {
+                            if (zone.domain != zone.zone_id+'.') {
+                                zone.suffix = zone.zone_id;
+                            }
+                        })
                     }
 
                     // TODO: Run a recursive _updateFields() for fieldgroup subfields
@@ -477,6 +586,11 @@
                             var sf = f.subfields[k];
                             if (sf.name.endsWith("zone")) {
                                 sf.options = this._toArray(this.model.zones);
+                                sf.options.forEach(function(zone) {
+                                    if (zone.zone_id+'.' != zone.domain) {
+                                        zone.suffix = zone.zone_id;
+                                    }
+                                })
                                 if (sf.options.length)
                                     this.set('machineFields.'+index+'.subfields.'+k+'.value', sf.options[0].id);
                             }
@@ -532,42 +646,44 @@
                         });
                         // remove location field if it exists,
                         // the location of the machine will be used instead
-                        var options = fieldset.fields;
-                        var locationIndex = options.findIndex(function(f){return f.name == 'location'})
+                        if (fieldset) {
+                            var options = fieldset.fields;
+                            var locationIndex = options.findIndex(function(f){return f.name == 'location'})
 
-                        if (locationIndex > -1) {
-                            options.splice(locationIndex,1);
-                        }
-                        // remove resource group fields if they exists,
-                        // the resource group of the machine will be used instead
-                        var resourceGroupFields = options.filter(function(f){return f.name.indexOf('resource_group')>-1});
-                        // console.log('resourceGroupFields',resourceGroupFields);
-                        if (resourceGroupFields.length > -1) {
-                            for (var i=0; i<resourceGroupFields.length; i++) {
-                                var resourceGroupFieldName = resourceGroupFields[i].name;
-                                var fieldIndex = options.findIndex(function(f){return f.name == resourceGroupFieldName})
-                                options.splice(fieldIndex,1);
+                            if (locationIndex > -1) {
+                                options.splice(locationIndex,1);
                             }
-                        }
-                        // Remove new volume name field for now since it's not used by OpenStack
-                        if (provider == "openstack"){
-                            var nameIndex = options.findIndex(function(f){return f.name == 'name'})
-                            if (nameIndex > -1) {
-                                options.splice(nameIndex,1);
+                            // remove resource group fields if they exists,
+                            // the resource group of the machine will be used instead
+                            var resourceGroupFields = options.filter(function(f){return f.name.indexOf('resource_group')>-1});
+                            // console.log('resourceGroupFields',resourceGroupFields);
+                            if (resourceGroupFields.length > -1) {
+                                for (var i=0; i<resourceGroupFields.length; i++) {
+                                    var resourceGroupFieldName = resourceGroupFields[i].name;
+                                    var fieldIndex = options.findIndex(function(f){return f.name == resourceGroupFieldName})
+                                    options.splice(fieldIndex,1);
+                                }
                             }
-                        }
-                        options.forEach(function(f){
-                            f.showIf = {
-                                fieldName: 'new-or-existing-volume',
-                                fieldValues: ['new'],
+                            // Remove new volume name field for now since it's not used by OpenStack
+                            if (provider == "openstack"){
+                                var nameIndex = options.findIndex(function(f){return f.name == 'name'})
+                                if (nameIndex > -1) {
+                                    options.splice(nameIndex,1);
+                                }
                             }
-                        })
-                        var existingIndex = f.options.findIndex(function(f){return f.name == 'volume_id'});
-                        // add provider dependent fields if they do yet not exist
-                        var names = f.options.map(f => f.name);
-                        for (var i = options.length-1; i>=0;i--){
-                            if (names.indexOf(options[i].name) == -1) {
-                                f.options.splice(existingIndex, 0, options[i]);
+                            options.forEach(function(f){
+                                f.showIf = {
+                                    fieldName: 'new-or-existing-volume',
+                                    fieldValues: ['new'],
+                                }
+                            })
+                            var existingIndex = f.options.findIndex(function(f){return f.name == 'volume_id'});
+                            // add provider dependent fields if they do yet not exist
+                            var names = f.options.map(f => f.name);
+                            for (var i = options.length-1; i>=0;i--){
+                                if (names.indexOf(options[i].name) == -1) {
+                                    f.options.splice(existingIndex, 0, options[i]);
+                                }
                             }
                         }
                     }
@@ -576,8 +692,9 @@
                     if (f.options) {
                         this.set('machineFields.' + index + '.options', f.options);
                     }
-                    // console.log('update fields', f.name, f.value)
 
+                    // console.log(this.get('machineFields.' + index + '.options'));
+                    // console.log('update fields', f.name, f.value)
                 }, this);
 
                 // if cloud is Aliyun ECS update locations
@@ -620,6 +737,17 @@
                         }
                     }.bind(this));
                 }
+            }
+        },
+
+        fieldsChanged: function(e) {
+            // change notify values if expiration date changes
+            if (e.detail && e.detail.fieldname == "date" && e.detail.parentfield == "expiration") {
+                var expIndex = this._fieldIndexByName('expiration'),
+                    parentPath = 'machineFields.'+ expIndex +'.subfields', dateIndex = 1, notifyIndex = 2,
+                    date = this.get(parentPath +'.'+ dateIndex +'.value'),
+                    notify = this.get(parentPath +'.'+ notifyIndex +'.value');
+                this.set(parentPath +'.'+ notifyIndex +'.max', date);
             }
         },
 
@@ -1504,9 +1632,10 @@
             // console.log('creation failed', e)
         },
         _computeProviders: function(model, clouds) {
-            // // exclude bare metals and other from provider dropdown list
-            return this.model.cloudsArray.filter(function(c) {
-                return ["bare_metal", "clearcenter"].indexOf(c.provider) == -1;
+            // exclude bare metals and not allowed clouds from provider dropdown list
+            var that = this;
+            return this._toArray(this.model.clouds).filter(function(c) {
+                return ["bare_metal", "clearcenter"].indexOf(c.provider) == -1 && that.check_perm("create_resources","cloud",c.id);
             });
         },
         addInput: function(e) {
@@ -1679,7 +1808,7 @@
                 return Object.keys(x).map(y => x[y])
             }
             return [];
-        },
+        }
     });
     </script>
 </dom-module>

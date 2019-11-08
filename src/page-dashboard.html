@@ -19,6 +19,7 @@
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="onb-element/onb-element.html">
 <link rel="import" href="clouds/cloud-chip.html">
+
 <dom-module id="page-dashboard">
     <template>
         <style include="headings shared-styles">
@@ -378,7 +379,7 @@
             <template is="dom-if" if="[[!showDashboard]]">
                 <onb-element model="[[model]]"></onb-element>
             </template>
-            <div class="absolute-bottom-right">
+            <div class="absolute-bottom-right" hidden$="[[!check_perm('add','cloud')]]">
                 <a href="/clouds/+add" on-tap="_fabTap">
                     <paper-fab id="addBtn" icon="cloud"></paper-fab>
                 </a>
@@ -394,6 +395,9 @@
 Polymer({
     is: 'page-dashboard',
     enableCustomStyleProperties: true,
+    behaviors: [
+        rbacBehavior
+    ],
     properties: {
         model: {
             type: Object
