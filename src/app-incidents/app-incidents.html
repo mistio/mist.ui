@@ -66,7 +66,11 @@
                 background: inherit !important;
             }
 
-            .list-item.red .machine {
+            .list-item.grey .resource {
+                color: var(--grey-color);
+            }
+
+            .list-item.red .resource {
                 color: var(--red-color);
             }
 
@@ -157,9 +161,17 @@
                 opacity: 0.32;
                 cursor: pointer;
             }
-            .machine-name {
+            .resource-name {
                 display: inline-block;
                 width: 100%;
+            }
+            .logo-link {
+                background-image: var(--logo-purchase);
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: contain;
+                width: 28px;
+                height: 28px;
             }
         </style>
 
@@ -174,11 +186,11 @@
                 <div class="block">
                     <template is="dom-repeat" items="{{incidents}}">
                         <div class="list layout horizontal wrap">
-                            <a class="list-item red flexchild layout horizontal" href$="[[_computeResourceUri(item, model)]]">
+                            <a class$="list-item flexchild layout horizontal [[_incidentColor(item,model)]]" href$="[[_computeResourceUri(item, model)]]">
                                 <div class="flexchild expression">
-                                    <iron-icon icon="[[_computeIncidentIcon(item, model)]]"></iron-icon>
-                                    <span class="machine flexchild">
-                                        <span class="machine-name">[[_computeIncidentTitle(item, model)]]</span><br/>
+                                    <iron-icon icon="[[_computeIncidentIcon(item, model)]]" hidden$="[[!_computeIncidentIcon(item,model)]]"></iron-icon>
+                                    <span class="resource flexchild">
+                                        <span class="resource-name">[[_computeIncidentTitle(item, model)]]</span><br/>
                                         <span class="rule-condition">[[_computeIncidentCondition(item)]]</span>
                                     </span>
                                     <span class="time">
@@ -259,24 +271,25 @@
             }, this);
             return resolved.length;
         },
+        _incidentColor: function(item, model) {
+            return this._getResource(item, model).id || !this._getResource(item, model).type ? 'red' : 'grey';
+        },
         _computeIncidentIcon: function(item, model) {
             var resource = this._getResource(item, model);
             if (resource)
                 return this.model.sections[resource.type + 's'].icon;
             else
-                return this.model.sections.machines.icon;
+                return false;
         },
         _computeIncidentTitle: function (item, model) {
             if (!item.logs[0].rule_arbitrary) {
                 var resource = this._getResource(item, model);
                 if (resource.id)
-                    return resource.type + ' ' + resource.name;
+                    return resource.type + ' ' + (resource.name || resource.title);
                 if (!resource.id)
                     return item.logs[0].machine_name || resource.type + ' is missing';
             } else {
-                if (item.logs[0].rule_data_type == 'logs') return this._getLogQuery(item.logs[0].condition);
-                if (item.logs[0].rule_data_type == 'metrics') return 'Metrics alert';
-                return 'Alert'
+                return 'Organization';
             }
         },
         _computeResourceUri: function (item, model) {
@@ -297,8 +310,8 @@
             var condition = item.logs.length && item.logs[0].condition || '';
             // transform log condition
             if (condition.length && item.logs[0].rule_data_type == 'logs') {
-                condition = condition.replace(this._getLogQuery(item.logs[0].condition),'')
-                                    .replace('COUNT(){}','Log appeared ')
+                condition = condition.replace('COUNT(','')
+                                    .replace('){}','. Log appeared ')
                                     .replace('within','times within');
             }
             return condition;
