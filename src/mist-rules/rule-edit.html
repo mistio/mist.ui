@@ -157,6 +157,14 @@
                 top: 3px;
             }
 
+            paper-textarea#alert-description, paper-textarea#http-params, paper-textarea#http-body, paper-textarea#json-body, paper-textarea#http-headers {
+                width: 40%;
+                display: inline-block;
+            }
+
+            paper-input#webhook-url {
+                width: 30%;
+            }
             paper-spinner {
                 width: 32px;
                 height: 32px;
@@ -205,8 +213,14 @@
                         <paper-dropdown-menu id="resources" class="dropdown-block apply-on">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceType}}" class="dropdown-content">
                                 <paper-item value="organization" disabled="[[_disableOrg(resourceType,editingExistingRule)]]">organization</paper-item>
+                                <hr>
                                 <template is="dom-repeat" items="[[resourceTypes]]" as="rtype">
-                                    <paper-item value="[[rtype]]" disabled="[[_disableResource(ruleType,editingExistingRule)]]">[[rtype]]</paper-item>
+                                    <template is="dom-if" if="[[rtype]]">
+                                        <paper-item value="[[rtype]]" disabled="[[_disableResource(ruleType,editingExistingRule)]]">[[rtype]]</paper-item>
+                                    </template>
+                                    <template is="dom-if" if="[[!rtype]]">
+                                        <hr>
+                                    </template>
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
@@ -356,19 +370,42 @@
                         <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
                             <span class="and" hidden$="[[!index]]"> AND </span>
                             <paper-dropdown-menu class="dropdown-block action" on-value-changed="_validateRule" disabled$="[[isNoData]]">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" class="dropdown-content">
+                                <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" on-selected-changed="_setActionDefaults" class="dropdown-content">
                                     <template id="actionsRepeat" is="dom-repeat" items=[[actions]] as="action">
                                         <paper-item value=[[action]] hidden$="[[_hideAction(action,isNoData)]]">[[_actionName(action)]]</paper-item>
                                     </template>
                                 </paper-listbox>
                             </paper-dropdown-menu>
+                            <template is="dom-if" if="[[_isWebhookSelected(ruleAction.type)]]">
+                                <paper-input id ="webhook-url" class="inline" placeholder="URL to be invoked" value="{{ruleAction.url}}" on-value-changed="_validateRule" value="{{ruleAction.params}}" on-value-changed="_validateRule" pattern="^https://*"></paper-input>
+                                <paper-dropdown-menu label="method" class="inline">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.method}}" class="dropdown-content">
+                                        <paper-item value="post">POST</paper-item>
+                                        <paper-item value="delete">DELETE</paper-item>
+                                        <paper-item value="put">PUT</paper-item>
+                                        <paper-item value="patch">PATCH</paper-item>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-textarea id="http-params" placeholder="Query string params (optional)" value="{{ruleAction.params}}" on-value-changed="_validateRule"></paper-textarea>
+                                <paper-textarea id="http-body" placeholder="Request body (optional)" value="{{ruleAction.data}}" on-value-changed="_validateRule"></paper-textarea>
+                                <paper-textarea id="json-body" placeholder="JSON body (optional)" value="{{ruleAction.json}}" on-value-changed="_validateRule"></paper-textarea>
+                                <paper-textarea id="http-headers" placeholder="HTTP headers (optional)" value="{{ruleAction.headers}}" on-value-changed="_validateRule"></paper-textarea>
+                            </template>
                             <template is="dom-if" if="[[_isCommandSelected(ruleAction.type)]]">
                                 <paper-textarea id="command" placeholder="command input" value="{{ruleAction.command}}" on-value-changed="_validateRule"></paper-textarea>
                             </template>
                             <template is="dom-if" if="[[_isAlertSelected(ruleAction.type)]]">
+                                <paper-dropdown-menu label="level">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.level}}" class="dropdown-content">
+                                        <paper-item value="info">info</paper-item>
+                                        <paper-item value="warning">warning</paper-item>
+                                        <paper-item value="critical">critical</paper-item>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
                                 <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{ruleAction.teams}}" on-value-changed="_validateRule"></mist-dropdown-multi>
                                 <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{ruleAction.users}}" on-value-changed="_validateRule"></mist-dropdown-multi>
                                 <paper-input id="emails" label="other email" value="{{ruleAction.emails}}" type="email" auto-validate on-invalid-changed="_validateRule" invalid={{ruleAction.emailsInvalid}}></paper-input>
+                                <paper-textarea id="alert-description" placeholder="description" value="{{ruleAction.description}}" cols on-value-changed="_validateRule"></paper-textarea>
                             </template>
                             <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
                         </template>
@@ -439,16 +476,24 @@
             },
             resourceTypes: {
                 type: Array,
-                value: function () {return [ 'cloud', 'machine', 'volume',
+                value: function () {
+                    return [
+                        'cloud',
+                        '',
+                        'machine',
+                        'volume',
                         'network',
                         'subnet',
                         'zone',
                         'record',
+                        '',
                         'key',
                         'script',
                         'schedule',
-                        'team',
-                        'member'];}
+                        //'team',
+                        //'member'
+                    ];
+                }
             },
             resourceType: {
                 type: String,
@@ -485,15 +530,14 @@
                 type: Array,
                 value: function() {
                     return {
-                        machine: ['alert', 'reboot', 'destroy', 'run', 'no_data'],
-                        organization: ['alert'],
+                        machine: ['alert', 'webhook', 'reboot', 'destroy', 'run', 'no_data']
                     };
                 }
             },
             actions: {
                 type: Array,
                 value: function() {
-                    return ['alert', 'reboot', 'destroy', 'run', 'no_data'];
+                    return ['alert', 'webhook', 'reboot', 'destroy', 'run', 'no_data'];
                 }
             },
             isValidRule: {
@@ -669,7 +713,7 @@
             this.set('resources', resources || []);
             this.$.resourcesRepeat.render();
 
-            this.set('actions', this.resourcesActions[resourceType] || ["alert"]);
+            this.set('actions', this.resourcesActions[resourceType] || ["alert", "webhook"]);
             if (this.$.actionsRepeat)
                 this.$.actionsRepeat.render();
         },
@@ -708,9 +752,11 @@
                 if (actions[i].type == 'notification') {
                     result.push({
                         type: 'alert',
+                        level: actions[i].level,
                         users: actions[i].users.slice(),
                         teams: actions[i].teams.slice(),
-                        emails: actions[i].emails.slice()
+                        emails: actions[i].emails.slice(),
+                        description: actions[i].description
                     });
                 } else if (actions[i].type == 'machine_action') {
                     result.push({
@@ -727,6 +773,16 @@
                         users: actions[i].users.slice(),
                         teams: actions[i].teams.slice(),
                         emails: actions[i].emails.slice()
+                    });
+                } else if (actions[i].type == 'webhook') {
+                    result.push({
+                        type: 'webhook',
+                        method: actions[i].method,
+                        url: actions[i].url,
+                        params: actions[i].params,
+                        data: actions[i].data,
+                        json: actions[i].json,
+                        headers: actions[i].headers
                     });
                 }
             }
@@ -780,6 +836,9 @@
         _isAlertSelected: function(selectedAction) {
             return selectedAction == 'alert';
         },
+        _isWebhookSelected: function(selectedAction) {
+            return selectedAction == 'webhook';
+        },
         _validateConditionDebounce: function() {
             this.debounce('_validateCondition', function () {
                 this._validateCondition();
@@ -828,7 +887,7 @@
                 }
         },
         _focusOnMetricName: function(active) {
-            if (this.rule && this.resource)
+            if (this.rule && this.resource && this.rule.data_type != 'logs')
                 if (active && !this.rule.id && this.shadowRoot.querySelector('paper-dropdown-menu.target')) {
                     this.shadowRoot.querySelector('paper-dropdown-menu.target').open();
                     if (this.shadowRoot.querySelector('paper-dropdown-menu.target').$.menuButton)
@@ -883,7 +942,7 @@
             }
         },
         _focusOnOperator: function(e) {
-            if (!this.hidden) {
+            if (!this.hidden && e.value) {
                 var selector = '#' + e.currentTarget.id.replace("aggregation-", "operator-");
                 if (this.shadowRoot.querySelector(selector)) {
                     this.shadowRoot.querySelector(selector).open();
@@ -933,7 +992,7 @@
                     payload.selectors = [];
                 } 
             }
-            if (this.resourceType != "organization"){
+            if (this.resourceType != "organization" && !this.rule.id){
                 payload.resource_type = this.resourceType;
             }
             payload.data_type = this.rule.data_type;
@@ -966,6 +1025,8 @@
                     // console.log('emails',emails);
                     payload.actions[i] = {
                         type: 'notification',
+                        level: this.rule.actions[i].level,
+                        description: this.rule.actions[i].description
                     };
                     if (this.rule.actions[i].users && this.rule.actions[i].users.length) {
                         payload.actions[i].users = this.rule.actions[i].users;
@@ -990,6 +1051,16 @@
                 } else if (this.rule.actions[i].type == 'no_data') {
                     delete payload.actions;
                     delete payload.queries;
+                } else if (this.rule.actions[i].type == 'webhook') {
+                    payload.actions[i] = {
+                        type: 'webhook',
+                        method: this.rule.actions[i].method,
+                        url: this.rule.actions[i].url,
+                        params: this.rule.actions[i].params,
+                        data: this.rule.actions[i].data,
+                        json: this.rule.actions[i].json,
+                        headers: this.rule.actions[i].headers
+                    }
                 }
             }
             if (!this.rule.id) { // Add new rule
@@ -1042,6 +1113,13 @@
                 return false;
             return t == 'count';
         },
+        _setActionDefaults: function(e) {
+            if (e.detail.value == 'alert') {
+                e.model.__data.ruleAction.level = 'warning';
+            } else if (e.detail.value == 'webhook'){
+                e.model.__data.ruleAction.method = 'post';
+            }
+        }
     })
     </script>
 </dom-module>
