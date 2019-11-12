@@ -550,7 +550,7 @@
             }
         },
         _displayItemName: function(item) {
-            return item.title || item.name || item.external_id || item.id;
+            return item.title || item.name || (item.zone_id+"." == item.domain ? item.zone_id : item.domain +" "+ item.zone_id) || item.external_id || item.id;
         },
         _computeShowCheckEvery: function(ruleType,resourceType,resourceId,tags) {
             return this.showCheckEvery || 
@@ -589,6 +589,8 @@
                 this.set('rule.data_type','logs');
             }
             return (this.resourceType == "machine" && this.ruleType == "specific" && this.resourceId 
+                    && this.model.machines
+                    && this.model.machines[this.resourceId]
                     && this.model.machines[this.resourceId].monitoring
                     && this.model.machines[this.resourceId].monitoring.hasmonitoring)
                     || (this.resource && this.resource.monitoring && this.resource.monitoring.hasmonitoring);
