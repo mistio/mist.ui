@@ -38,17 +38,29 @@ getResourceFromIncidentBehavior = {
                 // Subnets and records cannot be found under model.
                 if (['subnet','record','machines'].indexOf(type) == -1) {
                     resource = this.model[type+'s'][incident[type + '_id']];
-                    resource.uri = '/' + type + 's/' + incident[type + '_id'];
+                    if (resource)
+                        resource.uri = '/' + type + 's/' + incident[type + '_id'];
                 }
                 // Machine incidents provide us with cloud_id and machine_id (external id)
                 if (type == 'machine') {
                     if (this.model.clouds[incident['cloud_id']])
                         resource = this.model.clouds[incident['cloud_id']][incident[type + '_id']];
+                    if (resource)
                         resource.uri = '/' + type + 's/' + incident[type + '_id'];
                 }
                 // Special cases of incidents. Trace resource if it's of type subnet or record
-                if (type == 'subnet') {}
-                if (type == 'record') {}
+                if (type == 'subnet') {
+                    if (this.model.clouds[incident['network_id']])
+                        resource = this.model.networks[incident['network_id']][incident[type + '_id']];
+                    if (resource)
+                        resource.uri = '/networks/' + incident['network_id'];
+                }
+                if (type == 'record') {
+                    if (this.model.clouds[incident['zone_id']])
+                        resource = this.model.networks[incident['zone_id']][incident[type + '_id']];
+                    if (resource)
+                        resource.uri = '/zones/' + incident['zone_id'];
+                }
                 if (type == 'organization') {
                     resource = {
                         name: "Organization",
