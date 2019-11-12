@@ -184,7 +184,7 @@
             <paper-material class="flex3child">
                 <h3>Happening Now</h3>
                 <div class="block">
-                    <template is="dom-repeat" items="{{incidents}}">
+                    <template is="dom-repeat" items="[[_getResources(incidents,model)]]">
                         <div class="list layout horizontal wrap">
                             <a class$="list-item flexchild layout horizontal [[_incidentColor(item,model)]]" href$="[[_computeResourceUri(item, model)]]" hidden$="[[!_computeResourceUri(item, model)]]">
                                 <div class="flexchild expression">
@@ -219,10 +219,10 @@
                             </div>
                         </div>
                     </template>
-                    <a class="list-item layout horizontal wrap" href="/incidents" hidden$="{{!resolvedCount}}">
+                    <a class="list-item layout horizontal wrap red" href="/incidents" hidden$="{{!resolvedCount}}">
                         <div class="flexchild expression">
                             <iron-icon icon="icons:report-problem"></iron-icon>
-                            <span class="flexchild">and {{resolvedCount}} more incidents in the last day</span>
+                            <span class="flexchild resource">and {{resolvedCount}} more incidents in the last day</span>
                         </div>
                         <span class="time">view all</span>
                         <div>
@@ -278,6 +278,12 @@
                 return !incident.finished_at && incident.logs.length && incident.logs[0].condition;
             }, this);
         },
+        _getResources: function(incidents) {
+            if (incidents)
+                return incidents.map(function(inc) { inc.resource = this._getResource(inc); return inc; }.bind(this));
+            else
+                return [];
+        },
         _computeResolvedIncidentCount: function (incidents) {
             var all = Object.values(this.model.incidents);
             var resolved = all.filter(function (incident) {
@@ -286,30 +292,27 @@
             return resolved.length;
         },
         _incidentColor: function(item, model) {
-            return this._getResource(item, model).id ? 'red' : 'grey';
+            return item && item.resource && item.resource.id ? 'red' : 'grey';
         },
         _computeIncidentIcon: function(item, model) {
-            var resource = this._getResource(item, model);
-            if (resource)
-                return this.model.sections[resource.type + 's'].icon;
+            if (item.resource)
+                return this.model.sections[item.resource.type + 's'].icon;
             else
                 return false;
         },
         _computeIncidentTitle: function (item, model) {
             if (!item.logs[0].rule_arbitrary) {
-                var resource = this._getResource(item, model);
-                if (resource.id)
-                    return resource.type + ' ' + (resource.name || resource.title);
-                if (!resource.id)
-                    return item.logs[0].machine_name || resource.type + ' is missing';
+                if (item.resource && item.resource.id)
+                    return item.resource.type + ' ' + (item.resource.name || item.resource.title || item.resource.domain);
+                if (!item.resource || !item.resource.id)
+                    return item.logs[0].machine_name || item.resource.type +' is missing';
             } else {
                 return 'Organization';
             }
         },
         _computeResourceUri: function (item, model) {
             // give resource url only if resource exists
-            var resource = this._getResource(item, model);
-            return resource && resource.uri ? resource.uri : false;
+            return item.resource && item.resource.uri ? item.resource.uri : false;
         },
         _getLogQuery: function(condition) {
             // return log query
