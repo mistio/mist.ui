@@ -56,7 +56,7 @@
             },
 
             _getVisibleColumns: function () {
-                return ['resource_id', 'cloud_id', 'id', 'error'];
+                return ['resource_id', 'cloud_id', 'incident_id', 'error'];
             },
             // TODO compute columns for all resources' incidents
             _getRenderers: function () {
@@ -89,12 +89,18 @@
                         },
                         'body': function (item, row) {
                             var resource = _this._getResource(row, _this.model);
+                            console.log('RESOURCE ===', resource)
                             // Resource may be missing. If not display link
-                            if (resource.id)
-                                return '<a href="/'+ resource.type +'s/' + resource.id +
-                                    '" class="regular" style="color: #2196F3;">' + resource.name + '</a>'
-                            if (!resource || !resource.id)
-                                return row[resource.type+'_id']
+                            if (resource) {
+                                if (resource.id)
+                                    return '<a href="/'+ resource.type +'s/' + resource.id +
+                                        '" class="regular" style="color: #2196F3;">' + resource.name + '</a>';
+                                if (resource.type == "organization")
+                                    return 'Organisation';
+                                if (!resource.id && resource.type != "organization")
+                                    return resource.name;
+                            }
+                            return row[resource.type+'_id']
                         }
                     },
                     'cloud_id': {
@@ -103,7 +109,7 @@
                         },
                         'body': function (item, row) {
                             return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[
-                                item].title : item;
+                                item].title : (item || '');
                         }
                     },
                     'error': {

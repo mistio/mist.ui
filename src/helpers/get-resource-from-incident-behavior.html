@@ -37,8 +37,10 @@ getResourceFromIncidentBehavior = {
                 // Subnets and records cannot be found under model.
                 if (['subnet','record','machines'].indexOf(type) == -1) {
                     resource = this.model[type+'s'][incident[type + '_id']];
-                    if (resource)
+                    if (resource) {
                         resource.uri = '/' + type + 's/' + incident[type + '_id'];
+                        resource.name = resource.name || resource.title || resource.domain;
+                    }
                 }
                 // Machine incidents provide us with cloud_id and machine_id (external id)
                 if (type == 'machine') {
@@ -57,8 +59,17 @@ getResourceFromIncidentBehavior = {
                 if (type == 'record') {
                     if (this.model.clouds[incident['zone_id']])
                         resource = this.model.networks[incident['zone_id']][incident[type + '_id']];
-                    if (resource)
+                    if (resource) {
                         resource.uri = '/zones/' + incident['zone_id'];
+                    }
+                }
+                if (type == 'cloud') {
+                    if (this.model.clouds)
+                        resource = this.model.clouds[incident['cloud_id']];
+                    if (resource) {
+                        resource.uri = '/clouds/' + incident['cloud_id'];
+                        resource.name = resource.title;
+                    }
                 }
                 if (type == 'organization') {
                     resource = {
@@ -78,6 +89,12 @@ getResourceFromIncidentBehavior = {
                     }
                 }
                 return resource;
+            }
+            if (incident.rule_arbitrary == true) {
+                return {
+                    name: "Organization",
+                    type: 'organization'
+                }
             }
             // Try to get related resource from first log item
             return incident.logs ? this._getResource(incident.logs[0]) : false;
