@@ -175,16 +175,16 @@
             }
         </style>
 
-        <template is="dom-if" if="[[incidents.length]]" restamp>
+        <template is="dom-if" if="[[openIncidents.length]]" restamp>
             <div class="flexchild-col">
                 <a href="/incidents" class="main-section">
-                    <section-tile name="incidents" color="#d96557" icon="icons:error-outline" count="[[incidents.length]]" incidents></section-tile>
+                    <section-tile name="incidents" color="#d96557" icon="icons:error-outline" count="[[openIncidents.length]]" incidents></section-tile>
                 </a>
             </div>
             <paper-material class="flex3child">
                 <h3>Happening Now</h3>
                 <div class="block">
-                    <template is="dom-repeat" items="[[_getResources(incidents.length,model)]]">
+                    <template is="dom-repeat" items="[[enhancedIncidents]]">
                         <div class="list layout horizontal wrap">
                             <a class$="list-item flexchild layout horizontal [[_incidentColor(item,model)]]" href$="[[_computeResourceUri(item, model)]]" hidden$="[[!_computeResourceUri(item, model)]]">
                                 <div class="flexchild expression">
@@ -243,9 +243,12 @@
             model: {
                 type: Object
             },
-            incidents: {
+            openIncidents: {
                 type: Array,
                 computed: '_computeOpenIncidents(model.incidents.*)'
+            },
+            enhancedIncidents: {
+                type: Array
             },
             hasIncidents: {
                 type: Boolean,
@@ -261,6 +264,9 @@
                 type: Boolean
             }
         },
+        observers: [
+            '_openIncidentsChanged(openIncidents.*)'
+        ],
         attached: function () {
             var rows = this.parentNode.querySelectorAll('block');
             var index = Array.prototype.indexOf.call(rows, this);
@@ -270,17 +276,20 @@
         },
         computeHasIncidents: function(incidents) {
             console.log('incidents',incidents);
-            return this.incidents && this.incidents.length ? true : false;
+            return this.openIncidents && this.openIncidents.length ? true : false;
         },
-        _computeOpenIncidents: function (incidentsArray, incidentsSplices, incidentsLength, incidentsMap, incidentsMapSplices) {
+        _computeOpenIncidents: function (incidents) {
             var all = Object.values(this.model.incidents);
             return all.filter(function (incident) {
                 return !incident.finished_at && incident.logs.length && incident.logs[0].condition;
             }, this);
         },
+        _openIncidentsChanged: function(incidents) {
+            this.set('enhancedIncidents', this._getResources(this.openIncidents));
+        },
         _getResources: function(incidents) {
             if (incidents)
-                return this.incidents.map(function(inc) { inc.resource = this._getResource(inc); return inc; }.bind(this));
+                return this.openIncidents.map(function(inc) { inc.resource = this._getResource(inc); return inc; }.bind(this));
             else
                 return [];
         },
@@ -335,6 +344,7 @@
             //return Date.now()-(item.finished_at-item.started_at)*1000;
         },
         deleteIncident: function (e) {
+            console.log('delete', e.model.item.incident_id);
             this.$.deleteIncidentAjax.headers["Content-Type"] = 'application/json';
             this.$.deleteIncidentAjax.url = "/api/v1/stories/" + e.model.item.incident_id;
             this.$.deleteIncidentAjax.headers["Csrf-Token"] = CSRF_TOKEN;
