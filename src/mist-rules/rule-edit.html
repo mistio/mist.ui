@@ -558,7 +558,7 @@
             },
             showCheckEvery: {
                 type: Boolean,
-                computed: '_computeShowCheckEvery(ruleType,resourceType,resourceId,tags)',
+                computed: "_computeShowCheckEvery(ruleType,resourceType,resourceId,tags,resource)",
                 value: false
             },
             showDropDownResources: {
@@ -596,12 +596,11 @@
         _displayItemName: function(item) {
             return item.title || item.name || (item.zone_id+"." == item.domain ? item.zone_id : item.domain +" "+ item.zone_id) || item.external_id || item.id;
         },
-        _computeShowCheckEvery: function(ruleType,resourceType,resourceId,tags) {
-            return this.showCheckEvery || 
-                (!this.isNoData && this._targetIsValid(ruleType,resourceType,resourceId,tags));
+        _computeShowCheckEvery: function(ruleType,resourceType,resourceId,tags,resource) {
+            return this.showCheckEvery || this.resource || (!this.isNoData && this._targetIsValid(ruleType,resourceType,resourceId,tags));
         },
         _targetIsValid: function(ruleType,resourceType,resourceId,tags){
-            return this.ruleType &&
+            return (this.ruleType || this.resourceType) &&
                 // is Arbitrary 
                 (this._isArbitrary(this.ruleType) || this._isOrg(this.resourceType) ||
                 // is every 
