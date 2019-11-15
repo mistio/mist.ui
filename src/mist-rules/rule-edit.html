@@ -244,7 +244,7 @@
                                 <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]">
                                     <paper-item value="[[item.id]]">
                                         <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="monitored machine"></iron-icon>
-                                        [[_displayItemName(item)]]</paper-item>
+                                        [[_displayItemName(item, resourceType)]]</paper-item>
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
@@ -593,8 +593,21 @@
                 this.splice("resourceTypes", this.resourceTypes.indexOf('schedule'), 0, 'tunnel');
             }
         },
-        _displayItemName: function(item) {
-            return item.title || item.name || (item.zone_id+"." == item.domain ? item.zone_id : item.domain +" "+ item.zone_id) || item.external_id || item.id;
+        _displayItemName: function(item, type) {
+            return item.title || item.name || this._displayItemNameByType(item, type) || item.external_id || item.id;
+        },
+        _displayItemNameByType: function(item, type) {
+            if (type == 'zone') {
+                return item.zone_id+"." == item.domain ? item.zone_id : item.domain +" "+ item.zone_id;
+            } else if (type == 'record') {
+                // TODO find a comprehensive way to display records across providers
+                console.log('_displayItemNameByType', type, item);
+            } else if (type == 'subnet') {
+                // TODO find a comprehensive way to display subnets across providers
+                console.log('_displayItemNameByType', type, item);
+            } else {
+                return false;
+            }
         },
         _computeShowCheckEvery: function(ruleType,resourceType,resourceId,tags,resource) {
             return this.showCheckEvery || this.resource || (!this.isNoData && this._targetIsValid(ruleType,resourceType,resourceId,tags));
@@ -698,18 +711,32 @@
                     this._focusOnIdOrTags(this.ruleType);
                 }
             }
-            if (resourceType && this.model && this.model[key]) {
-                resources = Object.values(this.model[key]);
-                // order machines, show monitored first
-                if (this.resourceType == "machine")
-                    resources.sort(function(a,b){
-                        if ((a.monitoring && !b.monitoring) || (a.monitoring.hasmonitoring && !b.monitoring.hasmonitoring))
-                            return -1;
-                        if ((!a.monitoring && b.monitoring) || (!a.monitoring.hasmonitoring && b.monitoring.hasmonitoring))
-                            return 1;
-                        return 0;
-                    });
-                // console.log('resources',resources);
+            if (resourceType && this.model) {
+                if (this.model[key]) {
+                    resources = Object.values(this.model[key]);
+                    // order machines, show monitored first
+                    if (this.resourceType == "machine")
+                        resources.sort(function(a,b){
+                            if ((a.monitoring && !b.monitoring) || (a.monitoring.hasmonitoring && !b.monitoring.hasmonitoring))
+                                return -1;
+                            if ((!a.monitoring && b.monitoring) || (!a.monitoring.hasmonitoring && b.monitoring.hasmonitoring))
+                                return 1;
+                            return 0;
+                        });
+                    // console.log('resources', this.resourceType, resources);
+                } else {
+                    // Subnets and records can NOT be found under model.subnets model.records
+                    // We must track them in each model.network and model.zone and join
+                    var parentKey = (key == 'subnets' ? 'networks' : 'zones'),
+                        parentResources = [], resources = [];
+                    if (this.model[parentKey]) {
+                        parentResources = Object.values(this.model[parentKey]);
+                        for (var i = 0; i < parentResources.length; i++) {
+                            resources = resources.concat(Object.values(parentResources[i][key]))
+                        }
+                        // console.log('resources', resources);
+                    }
+                }
             }
             this.set('resources', resources || []);
             this.$.resourcesRepeat.render();
