@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="mist-dropdown-multi.html">
 <link rel="import" href="validate-rule-behavior.html">
 <dom-module id="rule-edit">
@@ -202,7 +203,23 @@
                 max-width: 200px !important;
                 vertical-align: bottom;
             }
+            iron-icon.help {
+                opacity: 0.32;
+                padding: 4px;
+                width: 20px;
+                height: 20px;
+            }
         </style>
+        <custom-style>
+            <style is="custom-style">
+            paper-tooltip {
+              --paper-tooltip: {
+                font-size: 1em;
+                line-height: 1.65em;
+              }
+            }
+          </style>
+        </custom-style>
         <div class="rule-edit">
             <span class="rule-id">[[_computeId(rule.title)]]</span>
             <div id="newrule" class="rule">
@@ -275,6 +292,9 @@
                                 <paper-item value="hours">hours</paper-item>
                             </paper-listbox>
                         </paper-dropdown-menu>
+                        <iron-icon id="data" icon="icons:help" class="help"></iron-icon>
+                        <paper-tooltip for="data" position="top">
+                            How often should data be checked </paper-tooltip>
                     </div>
                 </div>
                 <div hidden$=[[!showCheckEvery]]>
@@ -286,6 +306,9 @@
                             <paper-item value="hours">hours</paper-item>
                         </paper-listbox>
                     </paper-dropdown-menu>
+                    <iron-icon id="check" icon="icons:help" class="help"></iron-icon>
+                    <paper-tooltip for="check" position="top">
+                        How often should the following condition be checked </paper-tooltip>
                 </div>
                 <span hidden$="[[isNoData]]">
                     <span class="keyword if">if</span>
@@ -304,6 +327,11 @@
                             <span hidden$=[[!isDataTypeLogs(rule.data_type)]]>
                                 <paper-input id$="target-logs-[[index]]" class="target" value="{{query.target}}" auto-focus auto-validate
                                         type="text" on-value-changed="_validateTarget" placeholder="enter log query" tabindex="0"></paper-input>
+                                <iron-icon id="logs" icon="icons:help" class="help"></iron-icon>
+                                <paper-tooltip for="logs" position="top">
+                                    You can filter logs by using a <code>key:value</code> pair,
+                                    <br/> or any other suitable elasticsearch query.
+                                    <br/> ex. <code>type:request AND action:restart</code> </paper-tooltip>
                             </span>
 
                             <!--  metric option -->
@@ -315,6 +343,9 @@
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
+                                <iron-icon id="metrics" icon="icons:help" class="help"></iron-icon>
+                                <paper-tooltip for="metrics" position="top">
+                                    Set alerts on provided resource metrics. </paper-tooltip>
                             </span>
 
                             <!--  aggregation: aggr value / count -->
@@ -359,6 +390,9 @@
                                         <paper-item value="hours">hours</paper-item>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
+                                <iron-icon id="window" icon="icons:help" class="help"></iron-icon>
+                                <paper-tooltip for="window" position="top">
+                                    The time windown in which the condition should apply. </paper-tooltip>
                             </span>
 
                         </span>
@@ -402,9 +436,15 @@
                                         <paper-item value="critical">critical</paper-item>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
+                                <iron-icon id="level" icon="icons:help" class="help"></iron-icon>
+                                <paper-tooltip for="level" position="top">
+                                    How critical should the alert notification be. </paper-tooltip>
                                 <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{ruleAction.teams}}" on-value-changed="_validateRule"></mist-dropdown-multi>
                                 <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{ruleAction.users}}" on-value-changed="_validateRule"></mist-dropdown-multi>
                                 <paper-input id="emails" label="other email" value="{{ruleAction.emails}}" type="email" auto-validate on-invalid-changed="_validateRule" invalid={{ruleAction.emailsInvalid}}></paper-input>
+                                <iron-icon id="people" icon="icons:help" class="help"></iron-icon>
+                                <paper-tooltip for="people" position="top">
+                                    Define who should be notified. </paper-tooltip>
                                 <paper-textarea id="alert-description" placeholder="description" value="{{ruleAction.description}}" cols on-value-changed="_validateRule"></paper-textarea>
                             </template>
                             <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
