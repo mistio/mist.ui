@@ -294,7 +294,7 @@
                         <!--  rule.data_type: metrics OR logs -->
                         <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block type" auto-focus on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.data_type}}" class="dropdown-content">
-                                <paper-item value="metrics" disabled$="[[!_canUseMetrics(resourceType,ruleType,resourceId,resource)]]">metric</paper-item>
+                                <paper-item value="metrics" disabled$="[[!_canUseMetrics(resourceType,ruleType,resourceId,resource,model.monitoring.*)]]">metric</paper-item>
                                 <paper-item value="logs">log</paper-item>
                             </paper-listbox>
                         </paper-dropdown-menu>
@@ -636,7 +636,7 @@
         _computeHideApplyOn: function(resource, isNoData) {
             return resource || isNoData ? true : false;
         },
-        _canUseMetrics: function(resourceType, ruleType, resourceId, resource) {
+        _canUseMetrics: function(resourceType, ruleType, resourceId, resource, modelMonitoring) {
             // only machines provide metrics for the time being.
             // TODO: update when other resource metrics are available
             if (this.resourceType && this.resourceType != "machine"){
@@ -647,7 +647,10 @@
                     && this.model.machines[this.resourceId]
                     && this.model.machines[this.resourceId].monitoring
                     && this.model.machines[this.resourceId].monitoring.hasmonitoring)
-                    || (this.resource && this.resource.monitoring && this.resource.monitoring.hasmonitoring);
+                    || (this.resource && this._resourceIsMonitored(this.resource, this.model.monitoring));
+        },
+        _resourceIsMonitored: function(resource, modelMonitoring) {
+            return this.model.monitoring.monitored_machines[resource.id];
         },
         _disableRuleTypeChanges: function(resourceType) {
             if (!resourceType) return true;
