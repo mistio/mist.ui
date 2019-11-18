@@ -710,7 +710,7 @@
                 </paper-material>
             </template>
             <paper-material id="rulesBlock" class="info-card">
-                <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.rules, machine.id, machineTags)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" resource-type="machine" model="[[model]]" collapsible></mist-rules>
+                <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.rules, machine.id, machineTags.*)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" resource-type="machine" model="[[model]]" collapsible></mist-rules>
             </paper-material>
             <paper-material class="info-card">
                 <h2 class="machine-page-head">Basic Info</h2>
@@ -846,7 +846,7 @@ Polymer({
         },
         machineTags: {
             type: Array,
-            computed: "_computeMachineTags(machine.id, machine.tags.*)"
+            value: function(){ return []}
         },
         dashboard: {
             type: Object
@@ -941,7 +941,8 @@ Polymer({
         '_isMonitored(machine.monitoring.hasmonitoring)',
         '_machineChanged(machine.*, model.machines.*)',
         '_getMachineCloud(model.clouds.*, machine.cloud)',
-        '_renderMachineKeys(machineKeys.length)'
+        '_renderMachineKeys(machineKeys.length)',
+        // '_machineTagsChanged(machine, machine.tags.*)'
     ],
     listeners: {
         'confirmation': '_machineActionConfirmation',
@@ -1039,8 +1040,12 @@ Polymer({
     },
     _machineChanged: function(machine) {
         // console.log('perform action machine changed', machine);
-        if (this.machine)
+        if (this.machine) {
             this.set('itemArray', [this.machine]);
+            // Check if tags changed, update if they did
+            if (this._transformTagsToArray(this.machine.tags).join(',') != this.machineTags.join(','))
+                this._machineTagsChanged(this.machine, this.machine.tags);
+        }
     },
     _visibleKey: function(model, association) {
         return this.model && this.model.keys && this.model.keys[association.key];
@@ -1095,10 +1100,13 @@ Polymer({
     _computeMachineState: function(machine) {
         return this.machine && this.machine.state || '';
     },
-    _computeMachineTags: function(machineId, machineTags) {
+    _machineTagsChanged: function(machine, tags) {
         if (this.machine) {
-            return Object.entries(this.machine.tags).map(([key, value]) => ({ key, value }));
+            this.set('machineTags', this._transformTagsToArray(this.machine.tags));
         }
+    },
+    _transformTagsToArray: function(obj) {
+        return Object.entries(obj).map(([key, value]) => ({ key, value }));
     },
     confirmAction: function(action) {
         this._showDialog({
