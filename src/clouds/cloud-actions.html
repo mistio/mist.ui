@@ -9,7 +9,6 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list-actions-behavior.html">
 <link rel="import" href="cloud-edit.html">
-<link rel="import" href="cloud-dns.html">
 <link rel="import" href="other-cloud-add-machine.html">
 <link rel="import" href="../tags/tags-form.html">
 <link rel="import" href="../helpers/xterm-dialog.html">
@@ -37,10 +36,6 @@
         display: flex;
         justify-content: flex-end;
       }
-
-      cloud-dns {
-        margin-bottom: 36px;
-      }
     </style>
 
     <iron-ajax id="cloudEditAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" method="PUT" on-response="_handleCloudEditAjaxResponse" on-error="_handleCloudEditAjaxError"></iron-ajax>
@@ -64,13 +59,6 @@
         <div style="margin-bottom: 16px;">
           <cloud-edit cloud="[[cloud]]" clouds="[[model.clouds]]" keys="[[model.keysArray]]"></cloud-edit>
         </div>
-      </template>
-    </vaadin-dialog>
-
-    <vaadin-dialog id="dnsDialog" theme="mist-dialog" with-backdrop>
-      <template>
-        <h3>DNS option</h3>
-        <cloud-dns cloud="[[cloud]]" opened></cloud-dns>
       </template>
     </vaadin-dialog>
 
@@ -116,12 +104,6 @@
       },
       'add_hosts': {
         'name': 'add host',
-        'icon': 'hardware:computer',
-        'confirm': false,
-        'multi': false
-      },
-      'dns': {
-        'name': 'dns',
         'icon': 'hardware:computer',
         'confirm': false,
         'multi': false
@@ -200,9 +182,6 @@
       computeItemActions: function (cloud) {
         var arr = [];
         if (cloud) {
-          if (['ec2', 'gce', 'digitalocean', 'linode', 'rackspace', 'softlayer', 'vultr'].indexOf(cloud.provider) >
-            -1)
-            arr.push('dns');
           arr.push('tag');
           arr.push('rename');
           if (this._isBareMetal(cloud.provider))
@@ -263,8 +242,6 @@
             this.$.credentialsDialog.opened = true;
           } else if (action.name == 'add host') {
             this.$.addhostsDialog.opened = true;
-          } else if (action.name == 'dns') {
-            this.$.dnsDialog.opened = true;
           } else {
             this.performAction(this.action, this.items);
           }
@@ -283,7 +260,6 @@
       closeDialogs: function () {
         this.$.renameDialog.opened = false;
         this.$.credentialsDialog.opened = false;
-        this.$.dnsDialog.opened = false;
         this.$.addhostsDialog.opened = false;
         this.$.cloudDeleteAjaxRequest.opened = false;
       },
