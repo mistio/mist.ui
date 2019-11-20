@@ -860,15 +860,15 @@ PROVIDERS.push({
 
 // SOFTLAYER
 PROVIDERS.push({
-    title: 'SoftLayer',
+    title: 'IBM Cloud',
     val: 'softlayer',
     className: 'provider-softlayer',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "SoftLayer",
-        defaultValue: "SoftLayer",
+        value: "IBM Cloud",
+        defaultValue: "IBM Cloud",
         show: true,
         required: true,
         errorMessage: "Please enter title"
