@@ -33,7 +33,7 @@ getResourceFromIncidentBehavior = {
             if (type) {
                 var resource = {};
                 // Subnets and records cannot be found under model.
-                if (['subnet','record','machines'].indexOf(type) == -1) {
+                if (['subnet','record','machine'].indexOf(type) == -1) {
                     resource = this.model[type+'s'][incident[type + '_id']];
                     if (resource) {
                         resource.uri = '/' + type + 's/' + incident[type + '_id'];
@@ -42,10 +42,14 @@ getResourceFromIncidentBehavior = {
                 }
                 // Machine incidents provide us with cloud_id and machine_id (external id)
                 if (type == 'machine') {
-                    if (this.model.clouds[incident['cloud_id']])
-                        resource = this.model.clouds[incident['cloud_id']][incident[type + '_id']];
+                    if (this.model.clouds && this.model.clouds[incident['cloud_id']])
+                        resource = this.model.clouds[incident['cloud_id']].machines[incident['machine_id']];
+                    // Try to find the machine under model.machines. 
+                    // Occasionally logs return machine.id instead of its external_id
+                    if (!resource && this.model.machines)
+                        resource = this.model.machines[incident['machine_id']];
                     if (resource)
-                        resource.uri = '/' + type + 's/' + incident[type + '_id'];
+                        resource.uri = '/' + type + 's/' + resource.id; console.log('resource', resource);
                 }
                 // Special cases of incidents. Trace resource if it's of type subnet or record
                 if (type == 'subnet') {
