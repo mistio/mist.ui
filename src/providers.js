@@ -665,7 +665,7 @@ PROVIDERS.push({
 
 // OPENSTACK
 PROVIDERS.push({
-    title: 'Openstack',
+    title: 'OpenStack',
     val: 'openstack',
     className: 'provider-openstack',
     options: [{
@@ -715,6 +715,16 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter tenant name"
+    }, {
+        name: "domain_name",
+        label: "Domain Name",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: 'In most cases you can leave this blank',
+        helpHref: 'http://docs.mist.io/article/27-adding-openstack'
     }, {
         name: "region",
         label: "Region",
@@ -860,15 +870,15 @@ PROVIDERS.push({
 
 // SOFTLAYER
 PROVIDERS.push({
-    title: 'SoftLayer',
+    title: 'IBM Cloud',
     val: 'softlayer',
     className: 'provider-softlayer',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "SoftLayer",
-        defaultValue: "SoftLayer",
+        value: "IBM Cloud",
+        defaultValue: "IBM Cloud",
         show: true,
         required: true,
         errorMessage: "Please enter title"

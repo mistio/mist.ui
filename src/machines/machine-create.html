@@ -414,20 +414,18 @@
                     }
                 }
             }
-            // clear to reset
-            this.set('machineFields', []);
-            var machineFields = [];
+            var allMachinesFields;
             if (this.selectedCloud) {
                 var provider = this.model.clouds[selectedCloud].provider;
-                machineFields = this.machinesFields.find(function(c) {
+                allMachinesFields = this.machinesFields.find(function(c) {
                     return c.provider == provider;
                 });
             }
 
             // add cloud fields
-            if (machineFields.fields) {
+            if (allMachinesFields && allMachinesFields.fields) {
                 // allow hostname iff at least a cloud has dns access enabled
-                var fields = JSON.parse(JSON.stringify(machineFields.fields));
+                var fields = JSON.parse(JSON.stringify(allMachinesFields.fields));
                 if (this.model.clouds) {
                     var dns = this._enableHostname(this.model.clouds);
                     if (!dns) {
@@ -437,6 +435,7 @@
                         }
                     }
                 }
+                // clear to reset
                 this.set('machineFields', fields);
             }
             
@@ -1174,10 +1173,12 @@
         _updateFieldsForAliyun: function () {
             var locationIndex = this._fieldIndexByName('location'),
                 cloudLocations = this.model.clouds[this.selectedCloud].locations;
-            var filteredLocations = this.machineFields[locationIndex].options.filter(function (option) {
-                return option.extra.available_instance_types.length;
-            });
-            this.set('machineFields.' + locationIndex + '.options', filteredLocations);
+            if (locationIndex > -1) {
+                var filteredLocations = this.machineFields[locationIndex].options.filter(function (option) {
+                    return option.extra.available_instance_types.length;
+                });
+                this.set('machineFields.' + locationIndex + '.options', filteredLocations);
+            }
         },
 
         _updateFieldsForVsphere: function() {
