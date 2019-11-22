@@ -147,7 +147,7 @@
                 <div class="title flex">
                     <h2>[[_getVolumeNameOrExternalId(volume)]]</h2>
                     <div class="subtitle">
-                        [[volumeCloud.title]], [[_computeLocationsName(model,volumeCloud,volume.location)]]
+                        [[volumeCloud.title]], [[_computeLocationsName(model,volumeCloud,volume,volume.location)]]
                     </div>
                 </div>
                 <volume-actions items="[[itemArray]]" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeVolumeMachines(volume.attached_to.*,model.machines)]]" machines-to-attach-to="[[machinesVolumeCanAttachTo]]" provider="[[_computeVolumeProvider(volume,model.clouds)]]" in-single-view></volume-actions>
@@ -255,8 +255,8 @@
             if (item)
                 this.set('itemArray', [this.volume]);
         },
-        _computeLocationsName: function(model, cloud, loc) {
-            if (model && cloud && loc) {
+        _computeLocationsName: function(model, cloud, vol, loc) {
+            if (model && cloud && loc && this.volume && this.volume.location) {
                 return this.volume
                         && this.model.clouds
                         && this.model.clouds[this.volume.cloud]
@@ -264,7 +264,7 @@
                         && this.model.clouds[this.volume.cloud].locations[this.volume.location]
                         && this.model.clouds[this.volume.cloud].locations[this.volume.location].name;
             }
-            return this.volume.location;
+            return '';
         },
         _computeShowVolumeMachines: function(machines) {
             if (this.volume) {
