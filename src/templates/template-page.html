@@ -263,7 +263,7 @@
             <div class="section">
                 <div class="flex-horizontal-with-ratios">
                     <div class="width100">
-                        <template is="dom-if" if="[[stacks]]">
+                        <template is="dom-if" if="[[stacks.length]]">
                             <paper-material class="no-pad">
                                 <h3 class="smallcaps resource-head">stacks created from this template</h3>
                                 <template is="dom-repeat" items="[[stacks]]">
@@ -287,6 +287,42 @@
                 </div>
             </template>
             <div class="page section">
+                <template is="dom-if" if="[[template.workflows.length]]">
+                    <div class="page section">
+                        <h3 class="smallcaps">Available Workflows </h3>
+                        <p> This template offers the following workflows.</p>
+                        <paper-material class="no-pad">
+                            <table class="info-table">
+                                <template is="dom-repeat" items="[[template.workflows]]" as="[[item]]">
+                                    <tr>
+                                        <td>[[item.name]]</td>
+                                        <td>[[item.description]]</td>
+                                    </tr>
+                                </template>
+                            </table>
+                        </paper-material>
+                    </div>
+                </template>
+                <template is="dom-if" if="[[template.inputs.length]]">
+                    <div class="page">
+                        <div class="section">
+                            <h3 class="smallcaps">Template Inputs </h3>
+                            <p> The template will require you to insert the following inputs to create a stack.</p>
+                            <p class="required"><span class="red">*</span> required fields</p>
+                            <paper-material class="no-pad">
+                                <table class="info-table">
+                                    <template is="dom-repeat" items="[[template.inputs]]">
+                                        <tr>
+                                            <td>[[item.name]] <span id="required" class="red" hidden$="[[!item.required]]">*</span></td>
+                                            <td>
+                                                [[item.description]]</td>
+                                        </tr>
+                                    </template>
+                                </table>
+                            </paper-material>
+                        </div>
+                    </div>
+                </template>
                 <h3 class="smallcaps">Metadata</h3>
                 <paper-material>
                     <div class="info-table">
@@ -339,52 +375,6 @@
                     </div>
                 </paper-material>
             </div>
-            <template is="dom-if" if="[[template.inputs.length]]">
-                <div class="page">
-                    <div class="section">
-                        <h3 class="smallcaps">Template Inputs </h3>
-                        <p> The template will require you to insert the following inputs to create a stack.</p>
-                        <p class="required"><span class="red">*</span> required fields</p>
-                        <paper-material class="no-pad">
-                            <table class="info-table">
-                                <template is="dom-repeat" items="[[template.inputs]]">
-                                    <tr>
-                                        <td>[[item.name]] <span id="required" class="red" hidden$="[[!item.required]]">*</span></td>
-                                        <td>
-                                            [[item.description]]</td>
-                                    </tr>
-                                </template>
-                            </table>
-                        </paper-material>
-                    </div>
-                </div>
-            </template>
-            <template is="dom-if" if="[[template.workflows.length]]">
-                <div class="page section">
-                    <h3 class="smallcaps">Available Workflows </h3>
-                    <p> This template offers the following workflows.</p>
-                    <paper-material class="no-pad">
-                        <table class="info-table">
-                            <template is="dom-repeat" items="[[template.workflows]]" as="[[item]]">
-                                <tr>
-                                    <td>[[item.name]]</td>
-                                    <td>[[item.description]]</td>
-                                </tr>
-                            </template>
-                        </table>
-                    </paper-material>
-                </div>
-            </template>
-            <br/>
-            <paper-material class="no-pad">
-                <mist-rules id="templateRules" resource-type="template" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, template, template.tags.*, 'template')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[template]]" model="[[model]]" collapsible></mist-rules>
-            </paper-material>
-            <br/>
-            <paper-material class="no-pad">
-                <template is="dom-if" if=[[template]] restamp>
-                    <mist-list id="templateLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="template logs" primary-field-name="time" base-filter="[[template.id]]"></mist-list>
-                </template>
-            </paper-material>
         </div>
         <div class="absolute-bottom-right">
             <paper-fab icon="av:play-arrow" on-tap="_createStack"></paper-fab>
@@ -430,6 +420,7 @@
                     },
                     stacks: {
                         type: Array,
+                        value: function() {return [];}
                     },
                     isInline: {
                         type: Boolean,
