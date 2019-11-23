@@ -1,4 +1,85 @@
 var PROVIDERS = []
+// 1. amazon 2. azure 3. google 4. alibaba 5. IBM 6. DigitalOcean 7. Packet 8. Linode 9. Rackspace 10. vultr 
+
+// AWS
+PROVIDERS.push({
+    title: 'Amazon Web Services',
+    val: 'ec2',
+    className: 'provider-ec2',
+    options: [{
+        name: "region",
+        label: "Region *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        // SUPPORTED_PROVIDERS[3].regions.map(function(i){return {val:i.id, title: i.location}})
+        //ec2_ap_northeast should be ap-northeast
+        options: [
+            {'val': 'ap-northeast-1', 'title': 'Tokyo'},
+            {'val': 'ap-northeast-2', 'title': 'Seoul'},
+            {'val': 'ap-northeast-3', 'title': 'Osaka'},
+            {'val': 'ap-southeast-1', 'title': 'Singapore'},
+            {'val': 'ap-southeast-2', 'title': 'Sydney'},
+            {'val': 'eu-central-1', 'title': 'Frankfurt'},
+            {'val': 'eu-west-1', 'title': 'Ireland'},
+            {'val': 'eu-west-2', 'title': 'London'},
+            {'val': 'eu-west-3', 'title': 'Paris'},
+            {'val': 'eu-north-1', 'title': 'Stockholm'},
+            {'val': 'ca-central-1', 'title': 'Canada Central'},
+            {'val': 'sa-east-1', 'title': 'Sao Paulo'},
+            {'val': 'us-east-1', 'title': 'N. Virginia'},
+            {'val': 'us-west-1', 'title': 'N. California'},
+            {'val': 'us-west-2', 'title': 'Oregon'},
+            {'val': 'us-east-2', 'title': 'Ohio'},
+            {'val': 'ap-south-1', 'title': 'Mumbai'},
+            {'val': 'ap-east-1', 'title': 'Hong Kong'},
+            {'val': 'cn-north-1', 'title': 'Beijing'},
+            {'val': 'cn-northwest-1', 'title': 'Ningxia'},
+            {'val': 'us-gov-west-1', 'title': 'GovCloud (US)'},
+            {'val': 'us-gov-east-1', 'title': 'GovCloud (US-East)'}
+        ]
+    }, {
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "EC2",
+        defaultValue: "EC2",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: 'You can find your API key on your Amazon console',
+        helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
+    }, {
+        name: "apisecret",
+        label: "API Secret *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: 'You can find your API secret on your Amazon console',
+        helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
+    }]
+});
 
 // AZURE
 PROVIDERS.push({
@@ -42,7 +123,7 @@ PROVIDERS.push({
 
 // AZURE ARM
 PROVIDERS.push({
-    title: 'Azure ARM',
+    title: 'Microsoft Azure',
     val: 'azure_arm',
     className: 'provider-azure',
     options: [{
@@ -100,6 +181,396 @@ PROVIDERS.push({
         helpHref: "http://docs.mist.io/article/110-adding-azure-arm"
     }]
 });
+
+// GCE
+PROVIDERS.push({
+    title: 'Google Cloud',
+    val: 'gce',
+    className: 'provider-gce',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "GCE",
+        defaultValue: "GCE",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "project_id",
+        label: "Project ID *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter project's ID",
+        helptext: 'You can find your project ID on your GCE portal',
+        helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
+    }, {
+        name: "private_key",
+        label: "Private Key *",
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter private key",
+        helptext: 'You can create a new key on your GCE portal',
+        helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
+    }]
+});
+
+// ALIBABA
+PROVIDERS.push({
+    title: 'Alibaba Cloud',
+    val: 'aliyun_ecs',
+    className: 'provider-aliyunecs',
+    options: [{
+        name: "region",
+        label: "Region *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        options: [
+            {'val': 'cn-qingdao', 'title': 'China North 1 (Qingdao)'},
+            {'val': 'cn-beijing', 'title': 'China North 2 (Beijing)'},
+            {'val': 'cn-zhangjiakou', 'title': 'China North 3 (Zhangjiakou)'},
+            {'val': 'cn-huhehaote', 'title': 'China North 5 (Huhehaote)'},
+            {'val': 'cn-hangzhou', 'title': 'China East 1 (Hangzhou)'},
+            {'val': 'cn-shanghai', 'title': 'China East 2 (Shanghai)'},
+            {'val': 'cn-shenzhen', 'title': 'China South 1 (Shenzhen)'},
+            {'val': 'cn-hongkong', 'title': 'Hong Kong'},
+            {'val': 'eu-central-1', 'title': 'EU Central 1 (Frankfurt)'},
+            {'val': 'me-east-1', 'title': 'Middle East 1 (Dubai)'},
+            {'val': 'eu-west-1', 'title': 'England (London)'},
+            {'val': 'us-west-1', 'title': 'US West 1 (Silicon Valley)'},
+            {'val': 'us-east-1', 'title': 'US East 1 (Virginia)'},
+            {'val': 'ap-south-1', 'title': 'South Asia 1 (Mumbai)'},
+            {'val': 'ap-southeast-5', 'title': 'Southeast Asia 5 (Jakarta)'},
+            {'val': 'ap-southeast-3', 'title': 'Southeast Asia 3 (Kuala Lumpur)'},
+            {'val': 'ap-southeast-2', 'title': 'Southeast Asia 2 (Sydney)'},
+            {'val': 'ap-southeast-1', 'title': 'Southeast Asia 1 (Singapore)'},
+            {'val': 'ap-northeast-1', 'title': 'Northeast Asia Pacific 1 (Tokyo)'}
+        ]
+    }, {
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Aliyun ECS",
+        defaultValue: "Aliyun ECS",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: 'You can find your API key on your Alibaba Cloud console'
+    }, {
+        name: "apisecret",
+        label: "API Secret *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: 'You can find your API secret on your Alibaba Cloud console'
+    }]
+});
+
+// SOFTLAYER - IBM
+PROVIDERS.push({
+    title: 'IBM Cloud',
+    val: 'softlayer',
+    className: 'provider-softlayer',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "IBM Cloud",
+        defaultValue: "IBM Cloud",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "username",
+        label: "Username *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter username",
+        helptext: 'The username you use to connect to the SoftLayer portal'
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter API Key",
+        helptext: 'You can find your API key on your SoftLayer portal',
+        helpHref: 'http://docs.mist.io/article/30-adding-softlayer'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
+    }]
+});
+
+// DIGITALOCEAN
+PROVIDERS.push({
+    title: 'Digital Ocean',
+    val: 'digitalocean',
+    className: 'provider-digitalocean',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Digital Ocean",
+        defaultValue: "Digital Ocean",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "token",
+        label: "Token *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter token",
+        helptext: 'You can find your API Token on the Digital Ocean portal',
+        helpHref: 'http://docs.mist.io/article/19-adding-digital-ocean'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
+    }]
+});
+
+// PACKET
+PROVIDERS.push({
+    title: 'Packet',
+    val: 'packet',
+    className: 'provider-packet',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Packet",
+        defaultValue: "Packet",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter API Key",
+        helptext: 'You can find your API Token on the Packet portal',
+        helpHref: 'http://docs.mist.io/article/100-adding-packet'
+    }, {
+        name: "project_id",
+        label: "Project",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        errorMessage: "Please enter title",
+        helptext: 'Optionally specify the project name'
+    }]
+});
+
+// LINODE
+PROVIDERS.push({
+    title: 'Linode',
+    val: 'linode',
+    className: 'provider-linode',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Linode",
+        defaultValue: "Linode",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter API Key",
+        helptext: 'You can create an API key on your Linode portal',
+        helpHref: 'http://docs.mist.io/article/25-adding-linode'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
+    }]
+});
+
+// RACKSPACE
+PROVIDERS.push({
+    title: 'Rackspace',
+    val: 'rackspace',
+    className: 'provider-rackspace',
+    options: [{
+        name: "region",
+        label: "Region *",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        // SUPPORTED_PROVIDERS[9].regions.map(function(i){return {val:i.id, title: i.location}})
+        options: [{
+            "val": "dfw",
+            "title": "Dallas"
+        }, {
+            "val": "ord",
+            "title": "Chicago"
+        }, {
+            "val": "iad",
+            "title": "N. Virginia"
+        }, {
+            "val": "lon",
+            "title": "London"
+        }, {
+            "val": "syd",
+            "title": "Sydney"
+        }, {
+            "val": "hkg",
+            "title": "Hong Kong"
+        }, {
+            "val": "rackspace_first_gen:us",
+            "title": "US-First Gen"
+        }, {
+            "val": "rackspace_first_gen:uk",
+            "title": "UK-First Gen"
+        }]
+    }, {
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Rackspace",
+        defaultValue: "Rackspace",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "username",
+        label: "Username *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title",
+        helptext: 'The username you use to connect to the RackSpace portal'
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter API Key",
+        helptext: 'You can find your API key on your RackSpace portal',
+        helpHref: 'http://docs.mist.io/article/29-adding-rackspace'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
+    }]
+});
+
+// VULTR
+PROVIDERS.push({
+    title: 'Vultr',
+    val: 'vultr',
+    className: 'provider-vultr',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Vultr",
+        defaultValue: "Vultr",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "apikey",
+        label: "API Key *",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter API Key",
+        helptext: 'You can find your API Token on the Vultr portal',
+        helpHref: 'http://docs.mist.io/article/72-adding-vultr'
+    }, {
+        name: "dns_enabled",
+        label: "Enable DNS support",
+        type: "toggle",
+        value: false,
+        defaultValue: false,
+        show: true,
+        required: false,
+        helptext: 'Check this to enable DNS support on this cloud.'
+    }]
+});
+
 
 /*
 // CLEARCENTER
@@ -164,43 +635,6 @@ PROVIDERS.push({
         helptext: ""
     }]
 });*/
-
-// DIGITALOCEAN
-PROVIDERS.push({
-    title: 'Digital Ocean',
-    val: 'digitalocean',
-    className: 'provider-digitalocean',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "Digital Ocean",
-        defaultValue: "Digital Ocean",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "token",
-        label: "Token *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter token",
-        helptext: 'You can find your API Token on the Digital Ocean portal',
-        helpHref: 'http://docs.mist.io/article/19-adding-digital-ocean'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
-    }]
-});
 
 // DOCKER
 PROVIDERS.push({
@@ -328,237 +762,42 @@ PROVIDERS.push({
     }]
 });
 
-// AWS
-PROVIDERS.push({
-    title: 'AWS',
-    val: 'ec2',
-    className: 'provider-ec2',
-    options: [{
-        name: "region",
-        label: "Region *",
-        type: "dropdown",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        // SUPPORTED_PROVIDERS[3].regions.map(function(i){return {val:i.id, title: i.location}})
-        //ec2_ap_northeast should be ap-northeast
-        options: [
-            {'val': 'ap-northeast-1', 'title': 'Tokyo'},
-            {'val': 'ap-northeast-2', 'title': 'Seoul'},
-            {'val': 'ap-northeast-3', 'title': 'Osaka'},
-            {'val': 'ap-southeast-1', 'title': 'Singapore'},
-            {'val': 'ap-southeast-2', 'title': 'Sydney'},
-            {'val': 'eu-central-1', 'title': 'Frankfurt'},
-            {'val': 'eu-west-1', 'title': 'Ireland'},
-            {'val': 'eu-west-2', 'title': 'London'},
-            {'val': 'eu-west-3', 'title': 'Paris'},
-            {'val': 'eu-north-1', 'title': 'Stockholm'},
-            {'val': 'ca-central-1', 'title': 'Canada Central'},
-            {'val': 'sa-east-1', 'title': 'Sao Paulo'},
-            {'val': 'us-east-1', 'title': 'N. Virginia'},
-            {'val': 'us-west-1', 'title': 'N. California'},
-            {'val': 'us-west-2', 'title': 'Oregon'},
-            {'val': 'us-east-2', 'title': 'Ohio'},
-            {'val': 'ap-south-1', 'title': 'Mumbai'},
-            {'val': 'ap-east-1', 'title': 'Hong Kong'},
-            {'val': 'cn-north-1', 'title': 'Beijing'},
-            {'val': 'cn-northwest-1', 'title': 'Ningxia'},
-            {'val': 'us-gov-west-1', 'title': 'GovCloud (US)'},
-            {'val': 'us-gov-east-1', 'title': 'GovCloud (US-East)'}
-        ]
-    }, {
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "EC2",
-        defaultValue: "EC2",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        helptext: 'You can find your API key on your Amazon console',
-        helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
-    }, {
-        name: "apisecret",
-        label: "API Secret *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        helptext: 'You can find your API secret on your Amazon console',
-        helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
-    }]
-});
-
-
-
-// AWS
-PROVIDERS.push({
-    title: 'Alibaba Cloud',
-    val: 'aliyun_ecs',
-    className: 'provider-aliyunecs',
-    options: [{
-        name: "region",
-        label: "Region *",
-        type: "dropdown",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        options: [
-            {'val': 'cn-qingdao', 'title': 'China North 1 (Qingdao)'},
-            {'val': 'cn-beijing', 'title': 'China North 2 (Beijing)'},
-            {'val': 'cn-zhangjiakou', 'title': 'China North 3 (Zhangjiakou)'},
-            {'val': 'cn-huhehaote', 'title': 'China North 5 (Huhehaote)'},
-            {'val': 'cn-hangzhou', 'title': 'China East 1 (Hangzhou)'},
-            {'val': 'cn-shanghai', 'title': 'China East 2 (Shanghai)'},
-            {'val': 'cn-shenzhen', 'title': 'China South 1 (Shenzhen)'},
-            {'val': 'cn-hongkong', 'title': 'Hong Kong'},
-            {'val': 'eu-central-1', 'title': 'EU Central 1 (Frankfurt)'},
-            {'val': 'me-east-1', 'title': 'Middle East 1 (Dubai)'},
-            {'val': 'eu-west-1', 'title': 'England (London)'},
-            {'val': 'us-west-1', 'title': 'US West 1 (Silicon Valley)'},
-            {'val': 'us-east-1', 'title': 'US East 1 (Virginia)'},
-            {'val': 'ap-south-1', 'title': 'South Asia 1 (Mumbai)'},
-            {'val': 'ap-southeast-5', 'title': 'Southeast Asia 5 (Jakarta)'},
-            {'val': 'ap-southeast-3', 'title': 'Southeast Asia 3 (Kuala Lumpur)'},
-            {'val': 'ap-southeast-2', 'title': 'Southeast Asia 2 (Sydney)'},
-            {'val': 'ap-southeast-1', 'title': 'Southeast Asia 1 (Singapore)'},
-            {'val': 'ap-northeast-1', 'title': 'Northeast Asia Pacific 1 (Tokyo)'}
-        ]
-    }, {
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "Aliyun ECS",
-        defaultValue: "Aliyun ECS",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        helptext: 'You can find your API key on your Alibaba Cloud console'
-    }, {
-        name: "apisecret",
-        label: "API Secret *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        helptext: 'You can find your API secret on your Alibaba Cloud console'
-    }]
-});
-
-
-// GCE
-PROVIDERS.push({
-    title: 'GCE',
-    val: 'gce',
-    className: 'provider-gce',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "GCE",
-        defaultValue: "GCE",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "project_id",
-        label: "Project ID *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter project's ID",
-        helptext: 'You can find your project ID on your GCE portal',
-        helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
-    }, {
-        name: "private_key",
-        label: "Private Key *",
-        type: "textarea",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter private key",
-        helptext: 'You can create a new key on your GCE portal',
-        helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
-    }]
-});
-
 // HOSTVIRTUAL
-PROVIDERS.push({
-    title: 'HostVirtual',
-    val: 'hostvirtual',
-    className: 'provider-hostvirtual',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "HostVirtual",
-        defaultValue: "HostVirtual",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter API Key",
-        helptext: 'You can find your API Token on the HostVirtual portal',
-        helpHref: 'http://docs.mist.io/article/22-adding-hostvirtual'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
-    }]
-});
+// PROVIDERS.push({
+//     title: 'HostVirtual',
+//     val: 'hostvirtual',
+//     className: 'provider-hostvirtual',
+//     options: [{
+//         name: "title",
+//         label: "Title *",
+//         type: "text",
+//         value: "HostVirtual",
+//         defaultValue: "HostVirtual",
+//         show: true,
+//         required: true,
+//         errorMessage: "Please enter title"
+//     }, {
+//         name: "apikey",
+//         label: "API Key *",
+//         type: "password",
+//         value: "",
+//         defaultValue: "",
+//         show: true,
+//         required: true,
+//         errorMessage: "Please enter API Key",
+//         helptext: 'You can find your API Token on the HostVirtual portal',
+//         helpHref: 'http://docs.mist.io/article/22-adding-hostvirtual'
+//     }, {
+//         name: "dns_enabled",
+//         label: "Enable DNS support",
+//         type: "toggle",
+//         value: false,
+//         defaultValue: false,
+//         show: true,
+//         required: false,
+//         helptext: 'Check this to enable DNS support on this cloud.'
+//     }]
+// });
 
 // KVM
 PROVIDERS.push({
@@ -623,43 +862,6 @@ PROVIDERS.push({
         show: true,
         required: false,
         helptext: 'The path that your disk or iso images are located, example /var/lib/libvirt/images'
-    }]
-});
-
-// LINODE
-PROVIDERS.push({
-    title: 'Linode',
-    val: 'linode',
-    className: 'provider-linode',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "Linode",
-        defaultValue: "Linode",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter API Key",
-        helptext: 'You can create an API key on your Linode portal',
-        helpHref: 'http://docs.mist.io/article/25-adding-linode'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -746,172 +948,6 @@ PROVIDERS.push({
         required: false,
         helptext: 'In most cases you will not have to specify this',
         helpHref: 'http://docs.mist.io/article/27-adding-openstack'
-    }]
-});
-
-// PACKET
-PROVIDERS.push({
-    title: 'Packet',
-    val: 'packet',
-    className: 'provider-packet',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "Packet",
-        defaultValue: "Packet",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter API Key",
-        helptext: 'You can find your API Token on the Packet portal',
-        helpHref: 'http://docs.mist.io/article/100-adding-packet'
-    }, {
-        name: "project_id",
-        label: "Project",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: false,
-        errorMessage: "Please enter title",
-        helptext: 'Optionally specify the project name'
-    }]
-});
-
-// RACKSPACE
-PROVIDERS.push({
-    title: 'Rackspace',
-    val: 'rackspace',
-    className: 'provider-rackspace',
-    options: [{
-        name: "region",
-        label: "Region *",
-        type: "dropdown",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        // SUPPORTED_PROVIDERS[9].regions.map(function(i){return {val:i.id, title: i.location}})
-        options: [{
-            "val": "dfw",
-            "title": "Dallas"
-        }, {
-            "val": "ord",
-            "title": "Chicago"
-        }, {
-            "val": "iad",
-            "title": "N. Virginia"
-        }, {
-            "val": "lon",
-            "title": "London"
-        }, {
-            "val": "syd",
-            "title": "Sydney"
-        }, {
-            "val": "hkg",
-            "title": "Hong Kong"
-        }, {
-            "val": "rackspace_first_gen:us",
-            "title": "US-First Gen"
-        }, {
-            "val": "rackspace_first_gen:uk",
-            "title": "UK-First Gen"
-        }]
-    }, {
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "Rackspace",
-        defaultValue: "Rackspace",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "username",
-        label: "Username *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title",
-        helptext: 'The username you use to connect to the RackSpace portal'
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter API Key",
-        helptext: 'You can find your API key on your RackSpace portal',
-        helpHref: 'http://docs.mist.io/article/29-adding-rackspace'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
-    }]
-});
-
-// SOFTLAYER
-PROVIDERS.push({
-    title: 'IBM Cloud',
-    val: 'softlayer',
-    className: 'provider-softlayer',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "IBM Cloud",
-        defaultValue: "IBM Cloud",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "username",
-        label: "Username *",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter username",
-        helptext: 'The username you use to connect to the SoftLayer portal'
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter API Key",
-        helptext: 'You can find your API key on your SoftLayer portal',
-        helpHref: 'http://docs.mist.io/article/30-adding-softlayer'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
@@ -1080,43 +1116,6 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password"
-    }]
-});
-
-// VULTR
-PROVIDERS.push({
-    title: 'Vultr',
-    val: 'vultr',
-    className: 'provider-vultr',
-    options: [{
-        name: "title",
-        label: "Title *",
-        type: "text",
-        value: "Vultr",
-        defaultValue: "Vultr",
-        show: true,
-        required: true,
-        errorMessage: "Please enter title"
-    }, {
-        name: "apikey",
-        label: "API Key *",
-        type: "password",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: true,
-        errorMessage: "Please enter API Key",
-        helptext: 'You can find your API Token on the Vultr portal',
-        helpHref: 'http://docs.mist.io/article/72-adding-vultr'
-    }, {
-        name: "dns_enabled",
-        label: "Enable DNS support",
-        type: "toggle",
-        value: false,
-        defaultValue: false,
-        show: true,
-        required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
     }]
 });
 
