@@ -16,7 +16,7 @@
 
             paper-material {
                 display: block;
-                padding: 24px;
+                padding: 1em;
                 transition: all 0.2 ease-in;
             }
 
@@ -64,15 +64,29 @@
                 max-height: 400px !important;
             }
 
-            :host paper-listbox.providers paper-item {
-                display: inline-block;
+            :host div.l12 paper-listbox.providers {
+                display: flex;
+                flex-wrap: wrap;
+                margin: 0 -20px 0 0;
+                background-color: transparent;
+            }
+
+            :host div.l12 paper-listbox.providers  paper-item {
                 width: 20%;
-                min-width: 160px;
-                line-height: 48px;
+                min-width: 188px;
+            }
+
+            :host paper-listbox.providers paper-item {
+                display: flex;
+                min-width: max-content;
+                line-height: 1.2em;
+                align-self: center;
+                flex-wrap: wrap;
+                font-size: .9em;
             }
 
             :host paper-listbox.providers img {
-                margin-right: 8px;
+                margin-right: 6px;
                 vertical-align: middle;
             }
 
@@ -82,18 +96,20 @@
 
             @media screen and (max-width: 870px) {
                  :host paper-listbox.providers paper-item {
-                    width: 40%;
+                    /* width: 40%; */
                 }
             }
 
             @media screen and (max-width: 1125px) and (min-width: 1024px) {
                  :host paper-listbox.providers paper-item {
-                    width: 28%;
+                    /* width: 28%; */
                 }
             }
-
             .cloud-page-head {
                 @apply --cloud-page-head-mixin
+            }
+            .category {
+                border-bottom: 1px solid #ddd;
             }
         </style>
 
@@ -115,14 +131,26 @@
             <paper-material>
                 <div class="grid-row">
                     <h3 class="xs12 smallcaps">Choose a Provider</h3>
-                    <paper-listbox class="providers" attr-for-selected="value" selected="{{selectedProvider}}" class="dropdown-content">
-                        <template is="dom-repeat" items="[[providers]]" as="provider">
-                            <paper-item value="[[provider.val]]">
-                                <img src="[[_computeProviderLogo(provider.className)]]" width="24px" />
-                                <span>[[provider.title]]</span>
-                            </paper-item>
+                </div>
+                <div class="grid">
+                    <div class="grid-row">
+                        <template is="dom-repeat" items="[[cols]]" as="item">
+                            <div class$="[[item.class]]">
+                                <template is="dom-repeat" items="[[item.categories]]" as="category">
+                                    <!-- <div class$="[[category.class]]">-->
+                                        <h3 class="xs12 smallcaps category"> [[category.name]]</h3>
+                                        <paper-listbox class="providers" attr-for-selected="value" selected="{{selectedProvider}}" class="dropdown-content">
+                                            <template is="dom-repeat" items="[[category.providers]]" as="provider">
+                                                <paper-item value="[[provider.val]]">
+                                                    <img src="[[_computeProviderLogo(provider.className)]]" width="24px" />
+                                                    <span>[[provider.title]]</span>
+                                                </paper-item>
+                                            </template>
+                                        </paper-listbox>
+                                </template>
+                            </div>
                         </template>
-                    </paper-listbox>
+                    </div>
                 </div>
             </paper-material>
             <paper-material class$="selected-[[!selectedProvider]]">
@@ -133,7 +161,7 @@
                         <a href="http://docs.mist.io/category/75-adding-clouds-bare-metal-and-containers" target="new" class="regular blue-link">Need help with the process?</a>
                     </p>
                 </div>
-                <div hidden$=[[!selectedProvider]]>
+                <div id="cloudFields" hidden$=[[!selectedProvider]]>
                     <h3 class="smallcaps">Adding [[_computeTitle(selectedProvider)]] cloud</h3>
                     <app-form fields="[[providerFields]]" method="POST" url="/api/v1/clouds" on-response="_cloudAddAjaxResponse" on-error="_cloudAddAjaxError"
                         btncontent="Add Cloud"></app-form>
@@ -162,6 +190,10 @@
                 providerFields: {
                     type: Array,
                     value: []
+                },
+                cols: {
+                    type: Array,
+                    computed: '_computeCategories(providers)'
                 },
                 providers: {
                     type: Array
@@ -212,7 +244,8 @@
             observers: [
                 '_providerChanged(selectedProvider, providers)',
                 '_keysChanged(keys.*, providerFields)',
-                '_hiddenChanged(hidden)'
+                '_hiddenChanged(hidden)',
+                '_providerFieldsChanged(providerFields)'
             ],
             listeners: {
                 'iron-select': '_updateCloudTitle',
@@ -235,6 +268,48 @@
                     else if (hidden)
                         this.$.ccRequired.close();
                 }
+            },
+            _computeCategories: function(providers){
+                var categories = [
+                    {name: 'Public clouds', type: 'public', class:"xs12 s12 m6 l6", providers: []},
+                    {name: 'Private clouds', type: 'private', class:"", providers: []},
+                    {name: 'Hypervisors', type: 'hypervisor', class:"", providers: []},
+                    {name: 'Containers', type: 'containers', class:"", providers: []},
+                    {name: 'Other', type: 'baremetal', class:"", providers: []}
+                ]
+                for (var i = 0; i < providers.length; i++) {
+                    var provider = providers[i];
+                    if (['aws','azure_arm','digitalocean','ec2','gce','linode','packet','rackspace','softlayer','aliyun_ecs','vultr'].indexOf(provider.val) > -1){
+                        categories[0].providers.push(provider);
+                    }
+                    if (['openstack','onapp','vsphere'].indexOf(provider.val) > -1){
+                        categories[1].providers.push(provider);
+                    }
+                    if (['libvirt'].indexOf(provider.val) > -1){
+                        categories[2].providers.push(provider);
+                    }
+                    if (['docker'].indexOf(provider.val) > -1){
+                        categories[3].providers.push(provider);
+                    }
+                    if (['bare_metal'].indexOf(provider.val) > -1){
+                        categories[4].providers.push(provider);
+                    }
+                }
+                var cols = [
+                    {categories:[],class:'xs12 s12 m12 l12'},
+                    {categories:[],class:'xs12 s12 m12 l3'},
+                    {categories:[],class:'xs12 s12 m12 l3'},
+                    {categories:[],class:'xs12 s12 m12 l3'},
+                    {categories:[],class:'xs12 s12 m12 l3'}
+                ];
+                // Arrange categories in columns
+                cols[0].categories.push(categories[0]);
+                cols[1].categories.push(categories[1]);
+                cols[2].categories.push(categories[2]);
+                cols[3].categories.push(categories[3]);
+                cols[4].categories.push(categories[4]);
+
+                return cols;
             },
             _computeDisableAddCloud: function (enableBilling, org) {
                 return enableBilling && this.org && !this.org.card && !this.org.current_plan;
@@ -305,6 +380,15 @@
                 }
 
                 this.fillInKnownData(selectedProvider, this.clouds);
+            },
+            _providerFieldsChanged: function (fields) {
+                var that = this;
+                // Scroll down to #cloudFields
+                if (this.selectedProvider && fields) {
+                    this.async(function(){
+                        that.$.content.scrollIntoView({block: "end", behavior: "smooth"});
+                    },100);
+                }
             },
             _keysChanged: function (keys, providerFields) {
                 // Set list of keys in providerFields when model keys change
