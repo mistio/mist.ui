@@ -112,6 +112,14 @@
                         return '<strong class="name">' + (item || row.external_id) + '</strong>';
                     }
                 },
+                'icon': {
+                    'body': function(item, row) {
+                        if (!_this.model.clouds[row.cloud])
+                            return '';
+                        return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
+                            .replace(" ", "") + '.png';
+                    }
+                },
                 'provider': {
                     'title': 'cloud',
                     'body': function(item, row) {
@@ -139,7 +147,9 @@
                 'attached_to': {
                     'title': 'attached to',
                     'body': function(item, row) {
-                        return item.map(x => _this.model.machines[x] && _this.model.machines[x].name || '').join(' ');
+                        if (item)
+                            return item.map(x => _this.model.machines[x] && _this.model.machines[x].name || '').join(' ');
+                        return '';
                     }
                 },
                 'volume_type': {
