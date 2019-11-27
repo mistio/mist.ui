@@ -325,7 +325,7 @@
                         <span hidden$=[[!rule.data_type]]>
                             <!-- log filter -->
                             <span hidden$=[[!isDataTypeLogs(rule.data_type)]]>
-                                <paper-input id$="target-logs-[[index]]" class="target" value="{{query.target}}" auto-focus auto-validate
+                                <paper-input id$="target-logs-[[index]]" class="target" value="{{query.target}}" auto-validate auto-focus
                                         type="text" on-value-changed="_validateTarget" placeholder="enter log query" tabindex="0"></paper-input>
                                 <iron-icon id="logs" icon="icons:help" class="help"></iron-icon>
                                 <paper-tooltip for="logs" position="top">
@@ -336,7 +336,7 @@
 
                             <!--  metric option -->
                             <span hidden$=[[isDataTypeLogs(rule.data_type)]]>
-                                <paper-dropdown-menu id$="target-metrics-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnAggregation" on-selected-item-changed="_validateRule">
+                                <paper-dropdown-menu id$="target-metrics-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
                                     <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
                                         <template is="dom-repeat" items="{{availableMetrics}}" as="option">
                                             <paper-item value="[[option.id]]">[[option.name]]</paper-item>
@@ -348,23 +348,11 @@
                                     Set alerts on provided resource metrics. </paper-tooltip>
                             </span>
 
-                            <!--  aggregation: aggr value / count -->
                             <span hidden$=[[!query.target]]>
-                                <paper-dropdown-menu id$="aggregation-[[index]]" class="dropdown-block aggregation" on-selected-item-changed="_validateRule" on-value-changed="_focusOnOperator" >
-                                    <paper-listbox slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}" class="dropdown-content">
-                                        <template is="dom-if" if="[[!isDataTypeLogs(rule.data_type)]]" restamp>
-                                            <paper-item value=""> any </paper-item>
-                                            <paper-item value="all"> every </paper-item>
-                                            <paper-item value="avg"> average </paper-item>
-                                        </template>
-                                        <template is="dom-if" if="[[isDataTypeLogs(rule.data_type)]]" restamp>
-                                            <paper-item value="count"> count </paper-item>
-                                        </template>
-                                    </paper-listbox>
-                                </paper-dropdown-menu>
-                                <template is="dom-if" if="[[!isCountAggregation(rule.aggregation)]]" restamp>
-                                    <span class="keyword">value</span>
-                                </template>
+                                 <!--  aggregation: aggr value / count for logs -->
+                                <span hidden$=[[!isDataTypeLogs(rule.data_type)]]>
+                                    <span class="keyword">appears</span>
+                                </span>
 
                                 <!--  operator value -->
                                 <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold" on-selected-item-changed="_validateRule">
@@ -376,10 +364,28 @@
                                     </paper-listbox>
                                 </paper-dropdown-menu>
                                 <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-focus
-                                    type="number" on-value-changed="_validateCondition"></paper-input>
+                                    type="number" on-value-changed="_focusOnAggregation" tabindex="0"></paper-input>
                                 <template is="dom-if" if="[[!isDataTypeLogs(rule.data_type)]]" restamp>
                                     [[_computeUnits(newMetric, availableMetrics)]]
                                 </template>
+
+                                 <!--  aggregation: aggr value / count for metrics -->
+                                 <span hidden$=[[isDataTypeLogs(rule.data_type)]]>
+                                    <span class="keyword">for</span>
+                                    <paper-dropdown-menu id$="aggregation-[[index]]" class="dropdown-block aggregation" on-selected-item-changed="_validateRule" on-value-changed="_validateCondition">
+                                        <paper-listbox slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}" class="dropdown-content">
+                                            <template is="dom-if" if="[[!isDataTypeLogs(rule.data_type)]]" restamp>
+                                                <paper-item value=""> any </paper-item>
+                                                <paper-item value="all"> every </paper-item>
+                                                <paper-item value="avg"> average </paper-item>
+                                            </template>
+                                            <template is="dom-if" if="[[isDataTypeLogs(rule.data_type)]]" restamp>
+                                                <paper-item value="count"> count </paper-item>
+                                            </template>
+                                        </paper-listbox>
+                                    </paper-dropdown-menu>
+                                    <span class="keyword">value</span>
+                                </span>
                             </span>
 
                             <!--  window -->
@@ -932,9 +938,8 @@
             }
             // Currently only count is supported for logs
             if (e.model.index != undefined) {
-                this.set('rule.aggregation','count')
+                this.set('rule.aggregation','count');
             }
-            this._validateCondition();
         },
         _validateCondition: function (e) {
             // console.log('validateCondition', this.rule.queries && this.rule.queries[0].threshold, this.rule.queries);
@@ -987,10 +992,11 @@
             }
         },
         _focusOnTarget: function(e) {
-            if (!this.hidden) {
-                var selector = '#' + e.currentTarget.id.replace("data-type-", "target-"+e.detail.value+"-");
-                // console.log('_focusOnTarget',e, e.currentTarget.id, e.currentTarget.value, this.shadowRoot.querySelector(selector));
+            if (!this.hidden && e.detail.value) {
+                var selector = '#' + e.currentTarget.id.replace("data-type-", "target-" + e.detail.value + "s-");
+                // TODO: paper-input#target-logs-0 does not focus
                 if (this.shadowRoot.querySelector(selector)) {
+                    console.log('_focusOnTarget', selector, this.shadowRoot.querySelector(selector));
                     this.shadowRoot.querySelector(selector).focus();
                     if (this.shadowRoot.querySelector(selector).open) {
                         this.shadowRoot.querySelector(selector).open();
@@ -1002,8 +1008,8 @@
         },
         _focusOnAggregation: function(e) {
             if (!this.hidden) {
-                var selector = '#' + e.currentTarget.id.replace('metrics-','').replace('logs-','').replace("target", "aggregation");
-                // console.log('_focusOnTarget',e, e.currentTarget.id, e.currentTarget.value, this.shadowRoot.querySelector(selector));
+                var selector = '#' + e.currentTarget.id.replace('target','aggregation').replace('threshold','aggregation');
+                console.log('_focusOnAggregation',selector, this.shadowRoot.querySelector(selector));
                 if (this.shadowRoot.querySelector(selector)) {
                     this.shadowRoot.querySelector(selector).focus();
                     if (this.shadowRoot.querySelector(selector).open) {
@@ -1013,20 +1019,29 @@
                         this.shadowRoot.querySelector(selector).$.menuButton.focus();
                 }
             }
+            // this._validateCondition();
         },
         _focusOnOperator: function(e) {
-            if (!this.hidden && e.value) {
-                var selector = '#' + e.currentTarget.id.replace("aggregation-", "operator-");
+            if (!this.hidden && e.detail.value && e.currentTarget.id && e.currentTarget.id.split('target-metrics-').length > 0) {
+                var selector = '#' + e.currentTarget.id.replace("target-metrics-", "operator-");
                 if (this.shadowRoot.querySelector(selector)) {
-                    this.shadowRoot.querySelector(selector).open();
+                    console.log('_focusOnOperator', selector, this.shadowRoot.querySelector(selector));
                     this.shadowRoot.querySelector(selector).focus();
+                    if (this.shadowRoot.querySelector(selector).open) {
+                        this.shadowRoot.querySelector(selector).open();
+                    }
+                    if (this.shadowRoot.querySelector(selector).$.menuButton)
+                        this.shadowRoot.querySelector(selector).$.menuButton.focus();
                 }
             }
         },
         _focusOnThreshold: function(e) {
-            var selector = '#' + e.currentTarget.id.replace("operator-", "threshold-");
-            if (selector && this.shadowRoot.querySelector(selector)) {
-                this.shadowRoot.querySelector(selector).focus();
+            if (!this.hidden && e.detail.value) {
+                console.log('_focusOnOperator', selector, this.shadowRoot.querySelector(selector));
+                var selector = '#' + e.currentTarget.id.replace("operator-", "threshold-");
+                if (selector && this.shadowRoot.querySelector(selector)) {
+                    this.shadowRoot.querySelector(selector).focus();
+                }
             }
         },
         saveRule: function() {
