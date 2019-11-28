@@ -762,42 +762,33 @@ PROVIDERS.push({
     }]
 });
 
-// HOSTVIRTUAL
-// PROVIDERS.push({
-//     title: 'HostVirtual',
-//     val: 'hostvirtual',
-//     className: 'provider-hostvirtual',
-//     options: [{
-//         name: "title",
-//         label: "Title *",
-//         type: "text",
-//         value: "HostVirtual",
-//         defaultValue: "HostVirtual",
-//         show: true,
-//         required: true,
-//         errorMessage: "Please enter title"
-//     }, {
-//         name: "apikey",
-//         label: "API Key *",
-//         type: "password",
-//         value: "",
-//         defaultValue: "",
-//         show: true,
-//         required: true,
-//         errorMessage: "Please enter API Key",
-//         helptext: 'You can find your API Token on the HostVirtual portal',
-//         helpHref: 'http://docs.mist.io/article/22-adding-hostvirtual'
-//     }, {
-//         name: "dns_enabled",
-//         label: "Enable DNS support",
-//         type: "toggle",
-//         value: false,
-//         defaultValue: false,
-//         show: true,
-//         required: false,
-//         helptext: 'Check this to enable DNS support on this cloud.'
-//     }]
-// });
+// MAXIHOST
+PROVIDERS.push({
+    title: 'Maxihost',
+    val: 'maxihost',
+    className: 'provider-maxihost',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "Maxihost",
+        defaultValue: "Maxihost",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "token",
+        label: "API token *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API key",
+        helptext: ""
+    }]
+});
+
 
 // KVM
 PROVIDERS.push({
