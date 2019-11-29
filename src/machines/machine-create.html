@@ -533,6 +533,13 @@
                             // If there's a single location preselect it and hide the field
                             this._selectSingleLocation(index,locations[0].id);
                         }
+                        // disable maxihost locations that support no sizes
+                        if (this.model.clouds[this.selectedCloud].provider == "maxihost") {
+                            var sizeLocations = this._toArray(this.model.clouds[this.selectedCloud].sizes).map(x=>x.extra.regions).join();
+                            locations.forEach(function(l) {
+                                if (sizeLocations.indexOf(l.external_id) == -1) {l.disabled = true;}
+                            })
+                        }
                         f.options = locations;
                         // console.log(f.options);
                     }
@@ -862,6 +869,13 @@
                         }
                     }
                     this.set('machineFields.' + subid + '.options', subnets);
+                }
+
+                // if it is maxihost and location changed
+                if (this.model.clouds[this.selectedCloud].provider == 'maxihost') {
+                    if (this.get(changeRecord.path.replace('.value', '')).name == 'location' && changeRecord.value.length) {
+                        this._updateMaxihostSizes(changeRecord.value);
+                    }
                 }
 
                 // if it is azure arm update storage accounts & resource groups
@@ -1380,6 +1394,22 @@
                     this.set('machineFields.' + sizeInd + '.options', sizesOptions);
                 // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
             }
+        },
+        _updateMaxihostSizes: function(locationId){
+            // var locationInd = this._fieldIndexByName('location');
+            var sizeInd = this._fieldIndexByName('size');
+            var locationExternalId = this.model.clouds[this.selectedCloud].locations[locationId].external_id;
+
+            var allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes) || [];
+            var filteredSizes = allSizes.filter(function(s) {
+                return s.extra.regions.indexOf(locationExternalId) > -1
+            });
+            this.set('machineFields.' + sizeInd + '.options', filteredSizes);
+            // clear previous value if not in filtered sizes
+            if (this.machineFields[sizeInd].value != '' && filteredSizes.map(x=>x.id).indexOf(this.machineFields[sizeInd].value) == -1) {
+                this.set('machineFields.' + sizeInd + '.value', '');
+            }
+            // console.log('maxihost ', locationExternalId, filteredSizes.map(x=>x.extra.regions));
         },
         _updateGceSubnets: function(networkId) {
             var subnetsInd = this._fieldIndexByName('subnetwork'),
