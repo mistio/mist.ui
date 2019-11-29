@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../machines/machine-page.html">
 <link rel="import" href="../section-tile/section-tile.html">
+<link rel="import" href="../helpers/get-resource-from-incident-behavior.html">
 
 <dom-module id="app-incidents">
     <template>
@@ -65,7 +66,11 @@
                 background: inherit !important;
             }
 
-            .list-item.red .machine {
+            .list-item.grey .resource {
+                color: var(--grey-color);
+            }
+
+            .list-item.red .resource {
                 color: var(--red-color);
             }
 
@@ -108,6 +113,8 @@
                 display: flex;
                 flex-flow: row;
                 flex: 1;
+                line-height: 1.6em;
+                flex-wrap: wrap;
             }
 
             .flex3child {
@@ -141,6 +148,8 @@
 
             span.time {
                 color: rgba(0, 0, 0, 0.54);
+                line-height: 1.6em;
+                font-size: .9em;
             }
 
             a.main-section {
@@ -152,24 +161,38 @@
                 opacity: 0.32;
                 cursor: pointer;
             }
+            .resource-name {
+                display: inline-block;
+                width: 100%;
+            }
+            .logo-link {
+                background-image: var(--logo-purchase);
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: contain;
+                width: 28px;
+                height: 28px;
+            }
         </style>
 
-        <template is="dom-if" if="[[incidents.length]]" restamp>
+        <template is="dom-if" if="[[openIncidents.length]]" restamp>
             <div class="flexchild-col">
                 <a href="/incidents" class="main-section">
-                    <section-tile name="incidents" color="#d96557" icon="icons:error-outline" count="[[incidents.length]]" incidents></section-tile>
+                    <section-tile name="incidents" color="#d96557" icon="icons:error-outline" count="[[openIncidents.length]]" incidents></section-tile>
                 </a>
             </div>
             <paper-material class="flex3child">
                 <h3>Happening Now</h3>
                 <div class="block">
-                    <template is="dom-repeat" items="{{incidents}}">
+                    <template is="dom-repeat" items="[[enhancedIncidents]]">
                         <div class="list layout horizontal wrap">
-                            <a class="list-item red flexchild layout horizontal" href$="[[_computeMachineUri(item, model.cloudsArray, model.machines)]]">
+                            <a class$="list-item flexchild layout horizontal [[_incidentColor(item,model)]]" href$="[[_computeResourceUri(item, model)]]" hidden$="[[!_computeResourceUri(item, model)]]">
                                 <div class="flexchild expression">
-                                    <iron-icon icon="[[model.sections.machines.icon]]"></iron-icon>
-                                    <span class="machine flexchild">[[_computeMachineName(item, model.cloudsArray, model.machines.*)]]</span>
-                                    <span class="rule-condition">[[_computeRuleCondition(item)]]</span>
+                                    <iron-icon icon="[[_computeIncidentIcon(item, model)]]" hidden$="[[!_computeIncidentIcon(item,model)]]"></iron-icon>
+                                    <span class="resource flexchild">
+                                        <span class="resource-name">[[_computeIncidentTitle(item, model)]]</span><br/>
+                                        <span class="rule-condition">[[_computeIncidentCondition(item)]]</span>
+                                    </span>
                                     <span class="time">
                                         <template is="dom-if" if="[[!item.finished_at]]">
                                             <iron-timeago datetime="[[_computeIncidentDuration(item)]]"></iron-timeago>
@@ -177,15 +200,29 @@
                                     </span>
                                 </div>
                             </a>
+                            <span class$="list-item flexchild layout horizontal [[_incidentColor(item,model)]]" hidden$="[[_computeResourceUri(item, model)]]">
+                                <div class="flexchild expression">
+                                    <iron-icon icon="[[_computeIncidentIcon(item, model)]]" hidden$="[[!_computeIncidentIcon(item,model)]]"></iron-icon>
+                                    <span class="resource flexchild">
+                                        <span class="resource-name">[[_computeIncidentTitle(item, model)]]</span><br/>
+                                        <span class="rule-condition">[[_computeIncidentCondition(item)]]</span>
+                                    </span>
+                                    <span class="time">
+                                        <template is="dom-if" if="[[!item.finished_at]]">
+                                            <iron-timeago datetime="[[_computeIncidentDuration(item)]]"></iron-timeago>
+                                        </template>
+                                    </span>
+                                </div>
+                            </span>
                             <div class="delBtn">
                                 <iron-icon icon="close" on-tap="deleteIncident"></iron-icon>
                             </div>
                         </div>
                     </template>
-                    <a class="list-item layout horizontal wrap" href="/incidents" hidden$="{{!resolvedCount}}">
+                    <a class="list-item layout horizontal wrap red" href="/incidents" hidden$="{{!resolvedCount}}">
                         <div class="flexchild expression">
                             <iron-icon icon="icons:report-problem"></iron-icon>
-                            <span class="flexchild">and {{resolvedCount}} more incidents in the last day</span>
+                            <span class="flexchild resource">and {{resolvedCount}} more incidents in the last day</span>
                         </div>
                         <span class="time">view all</span>
                         <div>
@@ -201,17 +238,21 @@
 <script>
     Polymer({
         is: 'app-incidents',
+        behaviors: [ getResourceFromIncidentBehavior ],
         properties: {
             model: {
                 type: Object
             },
-            incidents: {
+            openIncidents: {
                 type: Array,
-                computed: '_computeOpenIncidents(model.incidentsArray, model.incidentsArray.*, model.incidentsArray.length,  model.incidents,  model.incidents.*)'
+                computed: '_computeOpenIncidents(model.incidentsArray.*)'
+            },
+            enhancedIncidents: {
+                type: Array
             },
             hasIncidents: {
                 type: Boolean,
-                computed: 'computeHasIncidents(incidents)',
+                computed: 'computeHasIncidents(openIncidents.*)',
                 value: false,
                 reflectToAttribute: true
             },
@@ -223,6 +264,9 @@
                 type: Boolean
             }
         },
+        observers: [
+            '_openIncidentsChanged(openIncidents.*)'
+        ],
         attached: function () {
             var rows = this.parentNode.querySelectorAll('block');
             var index = Array.prototype.indexOf.call(rows, this);
@@ -231,13 +275,23 @@
             }.bind(this), (index + 1) * 50);
         },
         computeHasIncidents: function(incidents) {
-            return this.incidents && this.incidents.length ? true : false;
+            console.log('incidents',incidents);
+            return this.openIncidents && this.openIncidents.length ? true : false;
         },
-        _computeOpenIncidents: function (incidentsArray, incidentsSplices, incidentsLength, incidentsMap, incidentsMapSplices) {
+        _computeOpenIncidents: function (incidents) {
             var all = Object.values(this.model.incidents);
             return all.filter(function (incident) {
                 return !incident.finished_at && incident.logs.length && incident.logs[0].condition;
             }, this);
+        },
+        _openIncidentsChanged: function(incidents) {
+            this.set('enhancedIncidents', this._getResources(this.openIncidents));
+        },
+        _getResources: function(incidents) {
+            if (incidents)
+                return this.openIncidents.map(function(inc) { inc.resource = this._getResource(inc); return inc; }.bind(this));
+            else
+                return [];
         },
         _computeResolvedIncidentCount: function (incidents) {
             var all = Object.values(this.model.incidents);
@@ -246,27 +300,42 @@
             }, this);
             return resolved.length;
         },
-        _computeMachineName: function (item, clouds, machines) {
-            if (this.model && this.model.clouds && item.logs.length && item.cloud_id && item.machine_id) {
-                return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines &&
-                    this.model.clouds[item.cloud_id].machines[item.machine_id] ? item.logs[0].machine_name :
-                    item.logs[0].machine_name + ': Machine is missing';
-            }
-            return this.model.clouds[item.cloud_id] && this.model.clouds[item.cloud_id].machines[item.machine_id]
-                .name || 'Machine is missing';
+        _incidentColor: function(item, model) {
+            return item && item.resource && item.resource.id ? 'red' : 'grey';
         },
-        _computeMachineUri: function (item, clouds, machines) {
-            // give machine url only if machine axists
-            if (this.model && this.model.clouds && this.model.clouds[item.cloud_id] && this.model.clouds[
-                    item.cloud_id].machines && this.model.clouds[item.cloud_id].machines[item.machine_id]) {
-                return '/machines/' + this.model.clouds[item.cloud_id].machines[item.machine_id].id;
+        _computeIncidentIcon: function(item, model) {
+            if (item.resource.type != 'organization')
+                return this.model.sections[item.resource.type + 's'].icon;
+            else
+                return 'social:domain';
+        },
+        _computeIncidentTitle: function (item, model) {
+            if (!item.logs[0].rule_arbitrary) {
+                if (item.resource && item.resource.id)
+                    return item.resource.type + ' ' + (item.resource.name || item.resource.title || item.resource.domain);
+                if (!item.resource || !item.resource.id)
+                    return item.logs[0].machine_name || item.resource.type +' is missing';
             } else {
-                console.log('incident for missing machine ' + [item.machine_id] + ' in cloud ' + [item.cloud_id]);
-                return '/machines'
+                return 'Organization';
             }
         },
-        _computeRuleCondition: function (item) {
-            return item.logs.length && item.logs[0].condition;
+        _computeResourceUri: function (item, model) {
+            // give resource url only if resource exists
+            return item.resource && item.resource.uri ? item.resource.uri : false;
+        },
+        _getLogQuery: function(condition) {
+            // return log query
+            return condition.replace(/^.+?\(([^\)]+)\).+$/,'$1');
+        },
+        _computeIncidentCondition: function (item) {
+            var condition = item.logs.length && item.logs[0].condition || '';
+            // transform log condition
+            if (condition.length && item.logs[0].rule_data_type == 'logs') {
+                condition = condition.replace('COUNT(','')
+                                    .replace('){}','. Log appeared ')
+                                    .replace('within','times within');
+            }
+            return condition;
         },
         _computeIncidentDuration: function (item) {
             if (!item.finished_at)
@@ -275,6 +344,7 @@
             //return Date.now()-(item.finished_at-item.started_at)*1000;
         },
         deleteIncident: function (e) {
+            console.log('delete', e.model.item.incident_id);
             this.$.deleteIncidentAjax.headers["Content-Type"] = 'application/json';
             this.$.deleteIncidentAjax.url = "/api/v1/stories/" + e.model.item.incident_id;
             this.$.deleteIncidentAjax.headers["Csrf-Token"] = CSRF_TOKEN;

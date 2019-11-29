@@ -7,6 +7,9 @@
 <dom-module id="mist-rules">
     <template>
         <style include="shared-styles tags-and-labels">
+            :host {
+                display: block;
+            }
             paper-button {
                 background-color: transparent !important;
                 color: inherit !important;
@@ -64,16 +67,90 @@
             .tag {
                 vertical-align: middle;
                 line-height: 1.5;
+                font-size: 1em;
             }
 
             .machine-link {
-                color: #81D4FA;
                 font-size: inherit;
                 font-weight: bold;
             }
 
             .machine-link:hover {
                 text-decoration: underline;
+            }
+
+            :host .rules-head {
+                color: var(--mist-rules-head-text-color, var(--primary-text-color));
+            }
+
+            :host([resource-type="cloud"]) .rules-head {
+                /* @apply --clouds-page-head-mixin; */
+                background-color: var(--clouds-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="machine"]) .rules-head {
+                /* @apply --machines-page-head-mixin; */
+                background-color: var(--machines-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="script"]) .rules-head {
+                /* @apply --scripts-page-head-mixin; */
+                background-color: var(--scripts-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="key"]) .rules-head {
+                /* @apply --keys-page-head-mixin; */
+                background-color: var(--keys-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="stack"]) .rules-head {
+                /* @apply --stacks-page-head-mixin; */
+                background-color: var(--stacks-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="network"]) .rules-head {
+                /* @apply --networks-page-head-mixin; */
+                background-color: var(--networks-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="volume"]) .rules-head {
+                /* @apply --volumes-page-head-mixin; */
+                background-color: var(--volumes-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="tunnel"]) .rules-head {
+                /* @apply --tunnels-page-head-mixin; */
+                background-color: var(--tunnels-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="zone"]) .rules-head {
+                /* @apply --zones-page-head-mixin; */
+                background-color: var(--zones-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="image"]) .rules-head {
+                /* @apply --images-page-head-mixin; */
+                background-color: var(--images-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="template"]) .rules-head {
+                /* @apply --templates-page-head-mixin; */
+                background-color: var(--templates-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="schedule"]) .rules-head {
+                /* @apply --schedules-page-head-mixin; */
+                background-color: var(--schedules-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="team"]) .rules-head {
+                /* @apply --teams-page-head-mixin; */
+                background-color: var(--teams-section-color, var(--base-section-color));
+            }
+
+            :host([resource-type="member"]) .rules-head {
+                /* @apply --members-page-head-mixin; */
+                background-color: var(--members-section-color, var(--base-section-color));
             }
 
             .rules-head {
@@ -108,13 +185,13 @@
                                 </template>
                             </template>
                             <template is="dom-if" if="[[isStr(selector)]]">
-                                <a class="regural blue-link machine-link" href$="/machines/[[selector]]"> [[printMachine(selector, machines)]]</a>
+                                <a class="regural blue-link machine-link" href$="/[[printResourceType(cat.type)]]/[[selector]]"> [[printResource(selector, model, cat.type)]]</a>
                             </template>
                         </template>
                     </h2>
                     <template is="dom-repeat" items="[[cat.rules]]">
-                        <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]] users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]] resource="[[resource]]"></rule-item>
-                        <rule-edit hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] available-metrics=[[availableMetrics]] machines="[[machines]]" users=[[users]] teams=[[teams]]></rule-edit>
+                        <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]] model="[[model]]" users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]] resource="[[resource]]"></rule-item>
+                        <rule-edit features="[[features]]" hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] resource-type=[[resourceType]] model="[[model]]" available-metrics=[[availableMetrics]] machines="[[machines]]" users=[[users]] teams=[[teams]]></rule-edit>
                     </template>
                 </paper-material>
             </template>
@@ -122,7 +199,7 @@
                 <paper-button toggles active="{{addingRule}}" hidden$="[[addingRule]]" class="add-rule">
                     <iron-icon icon="icons:add-circle"></iron-icon> add new rule
                 </paper-button>
-                <rule-edit active={{addingRule}} available-metrics=[[availableMetrics]] resource=[[resource]] users=[[users]] teams=[[teams]] machines="[[machines]]" hidden$=[[!addingRule]]>
+                <rule-edit features="[[features]]" active={{addingRule}} available-metrics=[[availableMetrics]] resource=[[resource]] resource-type=[[resourceType]] users=[[users]] teams=[[teams]] model="[[model]]" hidden$=[[!addingRule]]>
                 </rule-edit>
             </paper-material>
         </iron-collapse>
@@ -132,12 +209,23 @@
         is: 'mist-rules',
 
         properties: {
+            model: {
+                type: Object
+            },
+            features: {
+                type: Object
+            },
             incidents: {
                 type: Array
             },
             resource: {
                 type: Object, // machine, cloud or other later
                 value: false
+            },
+            resourceType: {
+                type: String,
+                value: '',
+                reflectToAttribute: true
             },
             machines: {
                 type: Object,
@@ -203,8 +291,14 @@
             }
             return arr;
         },
-        printMachine: function(id, machines) {
-            return this.machines && this.machines[id] ? this.machines[id].name : '';
+        printResourceType: function(type) {
+            return type.replace('specific_','');
+        },
+        printResource: function(id, model, type) {
+            var resourceType = type.replace('specific_','');
+            return this.model && this.model[resourceType] && this.model[resourceType][id] ?
+                    this.model[resourceType][id].title || this.model[resourceType][id].name ||
+                    this.model[resourceType][id].domain || this.model[resourceType][id].id : '';
         },
         _computeResourceRulesArray: function(rules, resource, category) {
             var rulesArray = [];
@@ -274,74 +368,119 @@
             var selectors = rulesArray.map(function(r) {
                 return r.selectors;
             });
+            var resourcesInOrder = ['clouds','machines','volumes','networks', 'subnets',
+                'zones', 'records', 'keys','images','scripts','templates',
+                'schedules','members', 'arbitrary'];
             rulesArray.forEach(function(r) {
                 var s = r.selectors || [];
                 // rule applies on all machines or rule is no-data-rule
-                if (!s.length || r.title == "NoData") {
-                    if (!categories.find(function(c) { return c.type == "all_machines" }))
+                if (r.arbitrary || !r.resource_type) {
+                    if (!categories.find(function(c) { return c.type == "arbitrary" }))
                         categories.push({
-                            name: 'Apply on all machines',
-                            type: 'all_machines',
-                            count: this.machines && Object.keys(this.machines) && Object.keys(this.machines).length || 0,
+                            name: 'Organization Rules',
+                            type: 'arbitrary',
                             rules: [r],
                             selectors: []
                         })
                     else {
-                        categories.find(function(c) { return c.type == "all_machines" }).rules.push(r);
+                        categories.find(function(c) { return c.type == "arbitrary" }).rules.push(r);
                     }
                 }
-                // rule applies on specific or tagged
-                for (var l = 0; l < s.length; l++) {
-                    var sl = s[l];
-                    if (sl.type == "tags") {
-                        var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
-                        if (!categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags })) {
+                if (!resource || (r.resource_type && that.model && that.model[r.resource_type+'s'] && Object.values(that.model[r.resource_type+'s']).map(x=>x.id).indexOf(resource.id) > -1 )){
+                    // rule is no-data-rule
+                    if (r.title == "NoData") {
+                        if (!categories.find(function(c) { return c.type == "all_machines" }))
                             categories.push({
-                                id: 'apply-on-tags',
-                                name: 'Apply on machines with tags ',
-                                type: 'tagged_machines',
-                                stringifiedTags: stringifiedTags,
+                                name: 'Apply on all machines',
+                                type: 'all_machines',
+                                count: that.machines && Object.keys(that.machines) && Object.keys(that.machines).length || 0,
                                 rules: [r],
-                                selectors: [sl.tags]
-                            });
-                        } else {
-                            categories.find(function(c) { return c.type == "tagged_machines" && c.stringifiedTags == stringifiedTags }).rules.push(r);
-                        }
-
-                    }
-                    if (sl.type == "machines") {
-                        var thisMachine = resource ? 'this ' : '';
-                        var specificCategory = categories.find(function(c) {
-                            var allSame = true;
-                            for (var n = 0; n < c.selectors.length; n++) {
-                                if (sl.ids.indexOf(c.selectors[n]) == -1)
-                                    allSame = false;
-                            }
-                            return c.type == "specific_machines" && allSame;
-                        });
-                        if (!specificCategory)
-                            categories.push({
-                                id: 'apply-on-' + thisMachine.trim(),
-                                name: 'Apply on ' + thisMachine + 'machine ',
-                                type: 'specific_machines',
-                                rules: [r],
-                                count: 1,
-                                selectors: sl.ids,
-                            });
+                                selectors: []
+                            })
                         else {
-                            specificCategory.rules.push(r);
-                            specificCategory.count++;
+                            categories.find(function(c) { return c.type == "all_machines" }).rules.push(r);
+                        }
+                    }
+                    // rule applies on all of a resource_type
+                    if (s && !s.length && r.resource_type) {
+                        if (!categories.find(function(c) { return c.type == "all_"+r.resource_type+"s" }))
+                            categories.push({
+                                name: 'Apply on all '+ r.resource_type +'s',
+                                type: 'all_'+ r.resource_type +'s',
+                                // count: that.machines && Object.keys(that.machines) && Object.keys(that.machines).length || 0,
+                                rules: [r],
+                                selectors: []
+                            })
+                        else {
+                            categories.find(function(c) { return c.type == "all_"+ r.resource_type +"s" }).rules.push(r);
+                        }
+                    }
+
+                }
+                // rule applies on specific or tagged
+                if (s) {
+                    for (var l = 0; l < s.length; l++) {
+                        var sl = s[l];
+                        if (sl.type == "tags") {
+                            var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
+                            if (!categories.find(function(c) { return c.type == "tagged_"+ r.resource_type +"s" && c.stringifiedTags == stringifiedTags })) {
+                                categories.push({
+                                    id: 'apply-on-tags-of-'+ r.resource_type +'s',
+                                    name: 'Apply on '+ r.resource_type +'s with tags ',
+                                    type: 'tagged_'+ r.resource_type +'s',
+                                    stringifiedTags: stringifiedTags,
+                                    rules: [r],
+                                    selectors: [sl.tags]
+                                });
+                            } else {
+                                categories.find(function(c) { return c.type == "tagged_"+ r.resource_type +"s" && c.stringifiedTags == stringifiedTags }).rules.push(r);
+                            }
+
+                        }
+                        if (resourcesInOrder.indexOf(sl.type) > -1 ) {
+                            if (!resource || sl.ids.indexOf(resource.id) > -1) {
+                                var thisResource = resource ? 'this ' : '';
+                                var specificCategory = categories.find(function(c) {
+                                    var allSame = true;
+                                    for (var n = 0; n < c.selectors.length; n++) {
+                                        if (sl.ids.indexOf(c.selectors[n]) == -1)
+                                            allSame = false;
+                                    }
+                                    return c.type == "specific_"+r.resource_type+"s" && allSame;
+                                });
+                                if (!specificCategory)
+                                    categories.push({
+                                        id: 'apply-on-' + thisResource.trim(),
+                                        name: 'Apply on ' + thisResource + ' ' + r.resource_type + ' ',
+                                        type: 'specific_' + r.resource_type +'s',
+                                        rules: [r],
+                                        count: 1,
+                                        selectors: sl.ids,
+                                    });
+                                else {
+                                    specificCategory.rules.push(r);
+                                    specificCategory.count++;
+                                }
+                            }
                         }
                     }
                 }
             });
+
             return categories.sort(function(a, b) {
-                if (a.name < b.name)
+                var atype = a.type.split('_')[1] || 'arbitrary', btype = b.type.split('_')[1] || 'arbitrary';
+                if (resourcesInOrder.indexOf(atype) < resourcesInOrder.indexOf(btype)) {
                     return -1;
-                else if (a.name > b.name)
+                } else if (resourcesInOrder.indexOf(atype) > resourcesInOrder.indexOf(btype)) {
                     return 1;
-                else
-                    return 0;
+                } else {
+                    if (a.name > b.name)
+                        return -1;
+                    else if (a.name < b.name)
+                        return 1;
+                    else
+                        return 0;
+                }
             });
         },
         _computeNames: function(ids, machines, resource) {
@@ -379,14 +518,16 @@
                     }
                 }
             }
-            return metrics.reverse();
+            return metrics;
         },
         _hasOpenIncident: function(rule, incidents) {
-            var find = false;
-            find = this.incidents.find(function(i) {
-                return !i.finished_at && i.rule_id == rule.id;
+            if (!rule || !incidents) {
+                return false;
+            }
+            var find = this.incidents.findIndex(function(inc) {
+                return !inc.finished_at && inc.rule_id == rule.id;
             });
-            return !find ? false : true;
+            return find == -1 ? false : true;
         },
         _computeToggleButtonStyle: function (expanded) {
             return !expanded && "transform: rotate(270deg);" || "";

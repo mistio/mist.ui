@@ -61,6 +61,10 @@
                 width: 100px;
             }
 
+            paper-spinner {
+                width: 40px;
+            }
+
             paper-input#threshold,
             paper-input#offset {
                 width: 40px;
@@ -87,7 +91,6 @@
                 color: rgba(0, 0, 0, 0.32);
                 font-size: 0.8em;
                 display: inline-block;
-                width: 40px;
                 margin-right: 16px;
                 padding: 16px;
             }
@@ -133,6 +136,8 @@
 
             span.actions>paper-icon-button {
                 padding: 8px;
+                transform: scale(.8);
+                opacity: 0.54;
             }
             .tag.white {
                 background-color: #fff;
@@ -151,10 +156,15 @@
                             <span class="and" hidden$="[[!index]]"> AND </span>
                             <span class="keyword if">if</span>
                             <span class="strong">
-                                [[_computeTargetName(query.target, availableMetrics)]] [[_computeOperator(query.operator)]] [[query.threshold]][[_computeUnit(query.target,
-                                availableMetrics)]]
+                                <span class="keyword log" hidden$="[[!isLogData]]"> log </span>
+                                [[_computeTargetName(query.target, availableMetrics)]] 
+                                <span class="keyword log" hidden$="[[!isLogData]]"> count </span>
+                                [[_computeOperator(query.operator)]] 
+                                [[query.threshold]]
+                                <span hidden$="[[isLogData]]">[[_computeUnit(query.target, availableMetrics)]]</span>
                             </span>
-                            <span class="keyword">for</span> [[_computeAggregation(query.aggregation)]] value
+                            <span class="keyword" hidden$="[[isLogData]]">for</span> 
+                            <span hidden$="[[isLogData]]">[[_computeAggregation(query.aggregation)]] value</span>
                             <span hidden$="[[!_hasWindow(query.aggregation)]]">
                                 <span class="keyword">within</span> [[rule.window.start]] [[rule.window.period]]
                             </span>
@@ -233,6 +243,10 @@
                     computed: '_computeIsNoData(rule)',
                     value: false
                 },
+                isLogData: {
+                    type: Boolean,
+                    computed: '_computeIsLogData(rule)'
+                },
                 availableMetrics: {
                     type: Array
                 },
@@ -271,19 +285,23 @@
             _computeIsNoData: function (rule) {
                 return rule.title == 'NoData';
             },
+            _computeIsLogData: function (rule) {
+                return rule.data_type == 'logs';
+            },
             _computeCanEdit: function (rule, resource) {
                 var that = this;
                 if (resource) {
                     var ruleExist = this.rule ? true : false,
                         ruleIsNoData = this.rule.title == "NoData",
                         ruleSelectors = this.rule.selectors && this.rule.selectors.length ? true : false,
-                        ruleAppliesOnAllMachines = !this.rule.selectors || !this.rule.selectors.length,
+                        ruleAppliesOnAllResources = !this.rule.selectors || !this.rule.selectors.length,
+                        ruleAppliesOnLogs = this.rule.data_type == 'logs',
                         ruleAppliesOnTags = this.rule.selectors && this.rule.selectors.filter(function (c) {
                                                 return c.type == "tags"
                                             }).length > 0;
-                    // console.log('_computeCanEdit', rule.id, ruleExist, ruleSelectors, !ruleAppliesOnAllMachines, !ruleAppliesOnTags);
-                    this.set('ruleAppliesOnAllMachines', ruleAppliesOnAllMachines);
-                    return !ruleIsNoData && ruleExist && ruleSelectors && !ruleAppliesOnAllMachines && !ruleAppliesOnTags;
+                    // console.log('_computeCanEdit', rule.id, ruleExist, ruleSelectors, !ruleAppliesOnAllResources, !ruleAppliesOnTags);
+                    this.set('ruleAppliesOnAllMachines', ruleAppliesOnAllResources);
+                    return !ruleIsNoData && ruleExist && !ruleAppliesOnAllResources && !ruleAppliesOnTags;
                 }
                 else 
                     return true;
@@ -307,6 +325,10 @@
                     return ">";
                 if (op == "lt")
                     return "<";
+                if (op == "eq")
+                    return "=";
+                if (op == "ne")
+                    return "≠";
             },
             _computeAggregation: function (aggr) {
                 if (aggr == "all")
@@ -327,18 +349,18 @@
             },
             _computeTagSelectors: function () {
                 var ret = [];
-                if (!this.rule || !this.rule.selectors)
-                    return ret;
-                for (var i = 0; i < this.rule.selectors.length; i++) {
-                    if (this.rule.selectors[i].type == 'tags') {
-                        var keys = Object.keys(this.rule.selectors[i].tags);
-                        for (var j = 0; j < keys.length; j++) {
-                            var key = keys[j],
-                                value = this.rule.selectors[i].tags[key];
-                            if (value)
-                                ret.push(key + ': ' + value);
-                            else
-                                ret.push(key);
+                if (this.rule && this.rule.selectors) {
+                    for (var i = 0; i < this.rule.selectors.length; i++) {
+                        if (this.rule.selectors[i].type == 'tags') {
+                            var keys = Object.keys(this.rule.selectors[i].tags);
+                            for (var j = 0; j < keys.length; j++) {
+                                var key = keys[j],
+                                    value = this.rule.selectors[i].tags[key];
+                                if (value)
+                                    ret.push(key + ': ' + value);
+                                else
+                                    ret.push(key);
+                            }
                         }
                     }
                 }
@@ -359,6 +381,8 @@
                     verb = 'run command';
                 else if (action == 'no_data')
                     verb = 'alert';
+                else if (action == 'webhook')
+                    verb = 'webhook';
                 return verb;
             },
             deleteRule: function (e) {

@@ -3,7 +3,10 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-rules-behavior.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 
 <link rel="import" href="network-actions.html">
@@ -185,6 +188,16 @@
                     </div>
                 </div>
             </paper-material>
+            <br/>
+            <paper-material class="no-pad">
+                <mist-rules id="networkRules" resource-type="network" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, network, network.tags.*, 'network')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[network]]" model="[[model]]" collapsible></mist-rules>
+            </paper-material>
+            <br/>
+            <paper-material class="no-pad">
+                <template is="dom-if" if=[[network]] restamp>
+                    <mist-list id="networkLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="network logs" primary-field-name="time" base-filter="[[network.id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
         <iron-ajax id="networkDeleteAjaxRequest" url="/api/v1/clouds/[[network.cloud]]/networks/[[network.id]]" method="DELETE"
             on-response="_handleNetworDeletekAjaxResponse"></iron-ajax>
@@ -194,7 +207,9 @@
         Polymer({
             is: 'network-page',
             behaviors: [
-                mistLoadingBehavior
+                mistLoadingBehavior,
+                mistLogsBehavior,
+                mistRulesBehavior
             ],
             properties: {
                 model: {

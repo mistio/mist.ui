@@ -4,7 +4,9 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
-
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-rules-behavior.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 
@@ -321,6 +323,12 @@
                     </paper-material>
                 </div>
             </div>
+            <br/>
+            <paper-material class="no-pad">
+                <template is="dom-if" if=[[team]] restamp>
+                    <mist-list id="teamLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="team logs" primary-field-name="time" base-filter="[[team.id]]"></mist-list>
+                </template>
+            </paper-material>
         </div>
         <div class="absolute-bottom-right">
             <paper-fab icon="social:person-add" on-tap="_addMember"></paper-fab>
@@ -334,7 +342,9 @@
     Polymer({
         is: 'team-page',
         behaviors: [
-            mistLoadingBehavior
+            mistLoadingBehavior,
+            mistLogsBehavior,
+            mistRulesBehavior
         ],
         properties: {
             section: {

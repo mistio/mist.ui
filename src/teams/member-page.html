@@ -9,6 +9,9 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-rules-behavior.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 
 <dom-module id="member-page">
     <template>
@@ -230,6 +233,10 @@
                     </div>
                 </div>
             </paper-material>
+            <br/>
+            <paper-material class="no-pad">
+                <mist-rules id="memberRules" resource-type="member" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, member, member.tags.*, 'member')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[member]]" model="[[model]]" collapsible></mist-rules>
+            </paper-material>
             <div class="page section">
                 <div class="flex-horizontal-with-ratios section">
                     <div class="width100">
@@ -259,7 +266,10 @@
 
         Polymer({
             is: 'member-page',
-
+            behaviors: [
+                mistLogsBehavior,
+                mistRulesBehavior
+            ],
             properties: {
                 section: {
                     type: Object
@@ -347,7 +357,7 @@
                 }
             },
             deleteMemberRequest: function(team) {
-                console.log("TEAMSS", team)
+                console.log("TEAMS", team)
                 this.$.deleteMember.body = {};
                 this.$.deleteMember.headers["Content-Type"] = 'application/json';
                 this.$.deleteMember.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -374,28 +384,6 @@
             _addMemberInTeams: function() {
                 this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/members/' + this.member.id + '/add-in-teams' } }));
 
-            },
-
-            _getVisibleColumns: function() {
-                return ['type', 'action']
-            },
-
-            _getFrozenLogColumn: function() {
-                return ['time']
-            },
-
-            _getRenderers: function() {
-                var _this = this;
-                return {
-                    'time': {
-                        'body': function(item, row) {
-                            var ret = '<span title="' + moment(item * 1000).format() + '">' + moment(item * 1000).fromNow() + '</span>';
-                            if (row.error)
-                                ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
-                            return ret;
-                        }
-                    }
-                };
             }
         });
     })();

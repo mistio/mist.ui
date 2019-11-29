@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/mist-list/mist-list.html">
 <link rel="import" href="helpers/mist-lists-behavior.html">
+<link rel="import" href="helpers/get-resource-from-incident-behavior.html">
+
 <dom-module id="page-incidents">
     <template>
         <style include="shared-styles">
@@ -27,7 +29,8 @@
         Polymer({
             is: 'page-incidents',
             behaviors: [
-                mistListsBehavior
+                mistListsBehavior,
+                getResourceFromIncidentBehavior
             ],
             properties: {
                 model: {
@@ -53,9 +56,9 @@
             },
 
             _getVisibleColumns: function () {
-                return ['machine_id', 'cloud_id', 'id', 'error'];
+                return ['resource_id', 'cloud_id', 'incident_id', 'error'];
             },
-
+            // TODO compute columns for all resources' incidents
             _getRenderers: function () {
                 var _this = this;
                 return {
@@ -70,22 +73,34 @@
                             }
                             return '<span title="' + moment(item * 1000).format() + '">' + moment(item *
                                 1000).fromNow() + '</span>' + active;
+                        },
+                        'cmp': function (item1, item2, row1, row2) {
+                            if (item1 > item2) {
+                                return 1;
+                            } else if (item1 < item2) {
+                                return -1;
+                            }
+                            return 0;
                         }
                     },
-                    'machine_id': {
+                    'resource_id': {
                         'title': function (item) {
-                            return item ? item.replace(/_/g, " ") : 'machine';
+                            return 'resource';
                         },
                         'body': function (item, row) {
-                            var m = _this.model.clouds && _this.model.clouds[row['cloud_id']] && _this.model
-                                .clouds[row['cloud_id']].machines && _this.model.clouds[row['cloud_id']]
-                                .machines[row['machine_id']] ? _this.model.clouds[row['cloud_id']].machines[
-                                    row['machine_id']] : false;
-                            if (m)
-                                return '<a href="/machines/' + m.id +
-                                    '" class="regular" style="color: #2196F3;">' + m.name + '</a>'
-                            else
-                                return item;
+                            var resource = _this._getResource(row, _this.model);
+                            console.log('RESOURCE ===', resource)
+                            // Resource may be missing. If not display link
+                            if (resource) {
+                                if (resource.id)
+                                    return '<a href="/'+ resource.type +'s/' + resource.id +
+                                        '" class="regular" style="color: #2196F3;">' + resource.name + '</a>';
+                                if (resource.type == "organization")
+                                    return 'Organization';
+                                if (!resource.id && resource.type != "organization")
+                                    return resource.name;
+                            }
+                            return row[resource.type+'_id']
                         }
                     },
                     'cloud_id': {
@@ -94,7 +109,7 @@
                         },
                         'body': function (item, row) {
                             return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[
-                                item].title : item;
+                                item].title : (item || '');
                         }
                     },
                     'error': {

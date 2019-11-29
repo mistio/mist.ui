@@ -154,9 +154,9 @@
             }
 
              :host .tag {
-                display: inline !important;
-                padding: 4px;
-                margin-right: 4px;
+                display: inline-block !important;
+                padding: 2px 4px;
+                margin-right: 1px;
             }
 
             polyana-dashboard ::slotted(h3) {
@@ -422,7 +422,8 @@
             }
 
             iron-icon.icon {
-                margin-right: 4px;
+                padding: 3px;
+                box-sizing: border-box;
             }
 
             paper-material.machine-logs {
@@ -694,7 +695,7 @@
                     </div>
                     <div hidden$="[[!machineTags.length]]">
                         <div class="m-info-head tags">TAGS:</div>
-                        <template is="dom-repeat" items=[[machineTags]]>
+                        <template id="tagRepeater" is="dom-repeat" items=[[machineTags]]>
                             <span class="tag">[[item.key]]<span hidden$="[[!item.value]]">=</span>[[item.value]]</span>
                         </template>
                     </div>
@@ -707,10 +708,10 @@
                 <paper-material id="monitoringBlock" class="info-card">
                     <mist-monitoring id="mistMonitoring" resource="[[machine]]" state="[[machineState]]" monitoring="[[model.monitoring]]" section="[[section]]" datasources="[[datasources]]" hidden$="[[hidden]]" machine-keys="[[machineKeys]]" incidents="[[_filterMachinesIncidents(model.incidentsArray, model.incidentsArray.length, model.incidents.*)]]" portal-name="[[portalName]]"></mist-monitoring>
                 </paper-material>
-                <paper-material id="rulesBlock" class="info-card">
-                    <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.monitoring.rules, machine, machineTags)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" hidden$="[[!isActivated]]" collapsible></mist-rules>
-                </paper-material>
             </template>
+            <paper-material id="rulesBlock" class="info-card">
+                <mist-rules id="monitoringRules" cloud="[[machine.cloud]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnMachine(model.rules, machine.id, machineTags.*)]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[machine]]" resource-type="machine" model="[[model]]" collapsible></mist-rules>
+            </paper-material>
             <paper-material class="info-card">
                 <h2 class="machine-page-head">Basic Info</h2>
                 <div class="card-content">
@@ -767,8 +768,8 @@
                 </div>
             </paper-material>
             <paper-material class="machine-logs" hidden$=[[!count]]>
-                <template is="dom-if" if=[[machine.machine_id]] restamp>
-                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1/logs" name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] primary-field-name="time" base-filter="machine_id:[[machine.machine_id]]"></mist-list>
+                <template is="dom-if" if=[[machine.id]] restamp>
+                    <mist-list id="machineLogs" timeseries expands column-menu searchable streaming infinite toolbar auto-hide rest apiurl="/api/v1/logs" name="machine logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] primary-field-name="time" base-filter="machine_id:[[machine.id]]"></mist-list>
                 </template>
             </paper-material>
         </div>
@@ -845,7 +846,7 @@ Polymer({
         },
         machineTags: {
             type: Array,
-            computed: "_computeMachineTags(machine, machine.tags, machine.tags.*, model.machines.*)"
+            value: function(){ return []}
         },
         dashboard: {
             type: Object
@@ -937,7 +938,7 @@ Polymer({
         },
     },
     observers: [
-        '_isMonitored(machine, model.monitoring.machines.*)',
+        '_isMonitored(machine.monitoring.hasmonitoring)',
         '_machineChanged(machine.*, model.machines.*)',
         '_getMachineCloud(model.clouds.*, machine.cloud)',
         '_renderMachineKeys(machineKeys.length)'
@@ -965,21 +966,23 @@ Polymer({
     _renderMachineKeys: function () {
         this.$.machineKeysDomRepeat.render();
     },
-    _rulesApplyOnMachine: function(rules, machine, machineTags) {
+    _rulesApplyOnMachine: function(rules, machineId, machineTags) {
         var machineRules = {},
             check;
-        if (rules && machine) {
+        if (rules && machineId) {
             for (var p in rules) {
                 var noData = rules[p].actions.find(function(a) { return a.type == 'no_data' }) != undefined;
                 // applies on all machines
                 if (!rules[p].selectors || !rules[p].selectors.length || noData) {
                     check = true;
-                } else {
+                } else if (rules[p].data_type == "logs" && rules[p].queries.find(function(q) { return q.target.indexOf("machine_id:"+machineId) > -1 }) != undefined) {
+                    check = true;
+                } else if (rules[p].selectors && rules[p].selectors.length > 0) {
                     for (var i = 0; i < rules[p].selectors.length; i++) {
                         var selector = rules[p].selectors[i];
                         // applies on specific machines
                         if (selector.type == 'machines') {
-                            if (selector.ids.indexOf(machine.id) > -1)
+                            if (selector.ids.indexOf(machineId) > -1)
                                 check = true;
                             else
                                 check = false;
@@ -1008,6 +1011,7 @@ Polymer({
                 }
             }
         }
+        // console.log('machine rules', machineRules);
         return machineRules;
     },
     _getMachineCloud: function(clouds, id) {
@@ -1035,8 +1039,12 @@ Polymer({
     },
     _machineChanged: function(machine) {
         // console.log('perform action machine changed', machine);
-        if (this.machine)
+        if (this.machine) {
             this.set('itemArray', [this.machine]);
+            // Check if tags changed, update if they did
+            if (this._transformTagsToArray(this.machine.tags).join(',') != this.machineTags.join(','))
+                this._machineTagsChanged(this.machine, this.machine.tags);
+        }
     },
     _visibleKey: function(model, association) {
         return this.model && this.model.keys && this.model.keys[association.key];
@@ -1069,29 +1077,19 @@ Polymer({
     _isEqual: function(a, b) {
         return a === b;
     },
-    _isMonitored: function(machine, monitoredMachines) {
-        if (this.machine) {
-            if (this.model.monitoring.machines) {
-                var mach = monitoredMachines.base.find(function(m) {
-                    return m[1] == machine.id && m[0] == machine.cloud;
-                }, this);
-            }
-            if (monitoredMachines && mach) {
-                this.set('isMonitored', true);
-            } else {
-                this.set('isMonitored', false);
-            }
-        }
+    _isMonitored: function(machineIsMonitored) {
+        return machineIsMonitored;
     },
     _computeIsActivated: function(machine, monitoring) {
-        // console.log('_computeIsActivated', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
         if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !
             this.model.monitoring.monitored_machines[machine.id] || !this.model.monitoring.monitored_machines[
                 machine.id].installation_status.activated_at) {
+            console.warn('machine monitoring is not activated');
             return false;
         } else if (this.model && this.model.monitoring && this.model.monitoring.monitored_machines &&
             this.model.monitoring.monitored_machines[machine.id] && this.model.monitoring.monitored_machines[
                 machine.id].installation_status) {
+            console.warn('machine monitoring is activated at: ', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
             return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
         }
     },
@@ -1101,10 +1099,13 @@ Polymer({
     _computeMachineState: function(machine) {
         return this.machine && this.machine.state || '';
     },
-    _computeMachineTags: function(machine, machineTags) {
+    _machineTagsChanged: function(machine, tags) {
         if (this.machine) {
-            return Object.entries(this.machine.tags).map(([key, value]) => ({ key, value }));
+            this.set('machineTags', this._transformTagsToArray(this.machine.tags));
         }
+    },
+    _transformTagsToArray: function(obj) {
+        return Object.entries(obj).map(([key, value]) => ({ key, value }));
     },
     confirmAction: function(action) {
         this._showDialog({
@@ -1388,6 +1389,8 @@ Polymer({
             .cloud].sizes[ret].name : ret;
     },
     _getLocationName: function(machine, cloud) {
+        if (!machine || !cloud || !this.model.clouds[machine.cloud])
+            return '';
         if (this.machine) {
             return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
                 machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name != undefined ?
@@ -1395,8 +1398,10 @@ Polymer({
         }
     },
     _getNetworkName: function(machine, cloud) {
+        if (!machine || !cloud)
+            return;
         if (this.machine) {
-            return this.model.clouds[machine.cloud].networks && this.model.clouds[machine.cloud].networks[
+            return this.model.clouds && this.model.clouds[machine.cloud] && this.model.clouds[machine.cloud].networks && this.model.clouds[machine.cloud].networks[
                 machine.networks] && this.model.clouds[machine.cloud].networks[machine.network].name != undefined ?
             this.model.clouds[machine.cloud].networks[machine.network].name : machine.network;
         }
@@ -1435,7 +1440,7 @@ Polymer({
         if (!cloud) {
             return '';
         } else {
-            console.log('cloud', cloud);
+            // console.log('cloud', cloud);
             return './assets/providers/provider-' + cloud.replace(/_/g, "") + '.png';
         }
     },

@@ -7,6 +7,9 @@
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 
 <link rel="import" href="../tags/tags-list.html">
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-rules-behavior.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../helpers/mist-lists-behavior.html">
@@ -164,6 +167,16 @@
                         </record-actions>
                   </template>
                 </paper-material>
+                <br/>
+                <paper-material class="no-pad">
+                    <mist-rules id="zoneRules" resource-type="zone" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, zone, zone.tags.*, 'zone')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[zone]]" model="[[model]]" collapsible></mist-rules>
+                </paper-material>
+                <br/>
+                <paper-material class="no-pad">
+                    <template is="dom-if" if=[[zone]] restamp>
+                        <mist-list id="zoneLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="zone logs" primary-field-name="time" base-filter="[[zone.id]]"></mist-list>
+                    </template>
+                </paper-material>
                 <div class="absolute-bottom-right">
                     <paper-fab id="addRecord" icon="add" on-tap="_fabAction" hidden$="[[!section.add]]"></paper-fab>
                 </div>
@@ -182,7 +195,9 @@
                 is: 'zone-page',
                 behaviors: [
                     mistListsBehavior,
-                    mistLoadingBehavior
+                    mistLoadingBehavior,
+                    mistLogsBehavior,
+                    mistRulesBehavior
                 ],
 
                 properties: {
@@ -392,7 +407,7 @@
                       },
                       'rdata': {
                           'body': function(item, row){
-                            return item.join(', ');
+                            return item && Array.isArray(item) ? item.join(', ') : item;
                           }
                       },
                       'type': {

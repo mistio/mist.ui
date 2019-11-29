@@ -19,7 +19,9 @@ validateRuleBehavior = {
             valid = false;
         } else {
             for (var p in this.rule) {
-                if (this.rule[p] == undefined) {
+                // console.log('this.rule[p]', p, this.rule[p])
+                // don't break on resource_type or selectors, 
+                if (['resource_type','selectors'].indexOf(p) == -1 && this.rule[p] == undefined) {
                     valid = false;
                     break;
                 }
@@ -56,6 +58,10 @@ validateRuleBehavior = {
             }
         } else if (action.type == 'no_data') {
             valid = true;
+        } else if (action.type == 'webhook') {
+            if (action.url && action.method) {
+                valid = true;
+            }
         }
         return valid;
     },

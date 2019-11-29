@@ -5,7 +5,8 @@
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../element-for-in/element-for-in.html">
 <link rel="import" href="../tags/tags-list.html">
-
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 <link rel="import" href="image-actions.html">
 
 <dom-module id="image-page">
@@ -169,6 +170,12 @@
                     </div>
                 </div>
             </paper-material>
+            <br/>
+            <paper-material class="no-pad">
+                <template is="dom-if" if=[[image]] restamp>
+                    <mist-list id="imageLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="image logs" primary-field-name="time" base-filter="[[image.id]]"></mist-list>
+                </template>
+            </paper-material>
             <div class="absolute-bottom-right" hidden$="[[isMissing]]">
                 <paper-fab icon="star-border" on-tap="_starImage" id="starImageFab" hidden$=[[!image.star]]></paper-fab>
                 <paper-fab icon="star" on-tap="_starImage" id="starImageFab" hidden$=[[image.star]]></paper-fab>
@@ -184,7 +191,8 @@
             Polymer({
                 is: 'image-page',
                 behaviors: [
-                    mistLoadingBehavior
+                    mistLoadingBehavior,
+                    mistLogsBehavior
                 ],
 
                 properties: {

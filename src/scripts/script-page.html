@@ -4,8 +4,10 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/mist-list/mist-list.html">
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
-
+<link rel="import" href="../mist-rules/mist-rules.html">
+<link rel="import" href="../helpers/mist-logs-behavior.html">
 <link rel="import" href="../helpers/dialog-element.html">
+<link rel="import" href="../helpers/mist-rules-behavior.html">
 <link rel="import" href="../helpers/mist-loading-behavior.html">
 <link rel="import" href="../tags/tags-list.html">
 
@@ -194,12 +196,16 @@
                     </div>
                 </paper-material>
             </div>
-            <template is="dom-if" if=[[script.id]] restamp>
+            <br/>
+            <paper-material class="no-pad">
+                <mist-rules id="scriptRules" resource-type="script" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules.*, script, script.tags.*, 'script')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[script]]" model="[[model]]" collapsible></mist-rules>
+            </paper-material>
+            <template is="dom-if" if="[[script.id]]" restamp>
                 <paper-material class="script-logs">
                     <mist-list id="scriptLogs"
                         timeseries expands column-menu resizable searchable streaming infinite toolbar rest
-                        apiurl="/api/v1/logs" name="script logs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
-                        renderers=[[_getRenderers()]] primary-field-name="time" base-filter="script_id:[[script.id]]">
+                        apiurl="/api/v1/logs" name="script logs" frozen="[[_getFrozenLogColumn()]]" visible="[[_getVisibleColumns()]]"
+                        renderers="[[_getRenderers()]]" primary-field-name="time" base-filter="script_id:[[script.id]]">
                     </mist-list>
                 </paper-material>
             </template>
@@ -216,7 +222,8 @@
     Polymer({
         is: 'script-page',
         behaviors: [
-            mistLoadingBehavior
+            mistLoadingBehavior,
+            mistRulesBehavior
         ],
 
         properties: {
