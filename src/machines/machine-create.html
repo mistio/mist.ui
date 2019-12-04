@@ -653,7 +653,7 @@
                         // remove location field if it exists,
                         // the location of the machine will be used instead
                         if (fieldset) {
-                            var options = fieldset.fields;
+                            var options = this._cleanCopy(fieldset.fields);
                             var locationIndex = options.findIndex(function(f){return f.name == 'location'})
 
                             if (locationIndex > -1) {
@@ -1518,7 +1518,7 @@
             // console.log('_filterStorageAccountsOptions', resourceGroup, location, options.length)
             this.set('machineFields.' + this.storageAccountsFieldIndex + '.value', this.get('machineFields.' + this.storageAccountsFieldIndex + '.defaultValue'));
             this.set('machineFields.' + this.storageAccountsFieldIndex + '.options', options);
-            this.shadowRoot.querySelector('app-form').fire('fields-changed');
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _filterStorageAccountsOptions()'}}));
         },
         _filterNetworksOptions: function() {
             var resourceGroupFieldIndex = this._fieldIndexByName('resource_group'),
@@ -1535,7 +1535,7 @@
             // console.log('_filterNetworksOptions', resourceGroup, location, options.length)
             this.set('machineFields.' + netInd + '.value', this.get('machineFields.' + netInd + '.defaultValue'));
             this.set('machineFields.' + netInd + '.options', options);
-            this.shadowRoot.querySelector('app-form').fire('fields-changed');
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _filterNetworksOptions()'}}));
         },
         _handleGetStorageAccountsError: function(e) {
             console.error('Got storage accounts error', e);
@@ -1570,7 +1570,7 @@
         },
         _handleGetResourceGroupsResponse: function(e) {
             this.set('machineFields.' + this.resourceGroupsFieldIndex + '.options', e.detail.response || []);
-            this.shadowRoot.querySelector('app-form').fire('fields-changed');
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetResourceGroupsResponse()'}}));
             this.set('machineFields.' + this.resourceGroupsFieldIndex + '.loader', false);
         },
         _handleGetResourceGroupsError: function(e) {
@@ -1839,6 +1839,30 @@
                 return Object.keys(x).map(y => x[y])
             }
             return [];
+        },
+        _cleanCopy: function(value, property) {
+            var newValue;
+            if (value == null)
+                return null;
+            if (typeof value == "string") {
+                newValue = "";
+                newValue = value.slice(0);
+            } else if (typeof value == "object") {
+                if (Array.isArray(value)) {
+                    newValue = [];
+                    for (var i = 0; i < value.length; i++) {
+                        newValue[i] = this._cleanCopy(value[i], property);
+                    }
+                } else {
+                    newValue = {};
+                    for (var q in value) {
+                        newValue[q] = this._cleanCopy(value[q], q);
+                    }
+                }
+            } else {
+                newValue = value;
+            }
+            return newValue;
         }
     });
     </script>
