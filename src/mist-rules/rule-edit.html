@@ -611,7 +611,8 @@
             "_currentRuleUpdated(currentRule.*)",
             "_initialiseEdit(currentRule, resource, rule.id)",
             "_computeResourcesAndActions(model, resourceType, ruleType)",
-            "_validateCondition(rule.*)"
+            "_validateCondition(rule.*)",
+            "_resourceTypeChanged(resourceType)"
         ],
         ready: function() {
             if (!this.rule) {
@@ -672,21 +673,30 @@
         _computeHideApplyOn: function(resource, isNoData) {
             return resource || isNoData ? true : false;
         },
-        _canUseMetrics: function(resourceType, ruleType, resourceId, resource, modelMonitoring) {
+        _resourceTypeChanged: function(resourceType) {
             // only machines provide metrics for the time being.
             // TODO: update when other resource metrics are available
             if (this.resourceType && this.resourceType != "machine"){
                 this.set('rule.data_type','logs');
             }
-            return (this.resourceType == "machine" && this.ruleType == "specific" && this.resourceId 
-                    && this.model.machines
-                    && this.model.machines[this.resourceId]
-                    && this.model.machines[this.resourceId].monitoring
-                    && this.model.machines[this.resourceId].monitoring.hasmonitoring)
-                    || (this.resource && this._resourceIsMonitored(this.resource, this.model.monitoring));
         },
-        _resourceIsMonitored: function(resource, modelMonitoring) {
-            return this.model.monitoring.monitored_machines[resource.id];
+        _canUseMetrics: function(resourceType, ruleType, resourceId, resource, modelMonitoring) {
+            // Must be a machine
+            if (this.resourceType != "machine") {
+                return false;
+            }
+            // Must either be a machine group, or a single monitored machine
+            if (this.ruleType != "specific") {
+                return true;
+            } else {
+                return (this.resourceId && this._resourceIsMonitored(this.resourceId, this.model.monitoring))
+                    || (this.resource && this._resourceIsMonitored(this.resource.id, this.model.monitoring))
+            }
+        },
+        _resourceIsMonitored: function(resourceId, modelMonitoring) {
+            // Compute based on model.monitoring.monitored_machines
+            return this.model && this.model.monitoring && 
+                this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[resourceId];
         },
         _disableRuleTypeChanges: function(resourceType) {
             if (!resourceType) return true;
