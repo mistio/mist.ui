@@ -232,9 +232,6 @@
             },
             _fieldValuesChanged: function(changeRecord) {
                 var fieldName = this.get(changeRecord.path.replace('.value', '')).name;
-                if (['resource_group'].indexOf(fieldName) > -1) {
-                        return;
-                }
                 if (['create_resource_group','ex_resource_group','new_resource_group']
                     .indexOf(fieldName) > -1) {
                     this._updateResourceGroupValue(this.selectedCloud);
@@ -270,7 +267,7 @@
             },
             _handleGetResourceGroupsResponse: function(e) {
                 this.set('fields.' + this.resourceGroupsFieldIndex + '.options', e.detail.response || []);
-                this.shadowRoot.querySelector('app-form').fire('fields-changed');
+                this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'volume-create.html'}}));
                 this.set('fields.' + this.resourceGroupsFieldIndex + '.loader', false);
             },
             _handleGetResourceGroupsError: function(e) {

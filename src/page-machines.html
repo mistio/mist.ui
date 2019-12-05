@@ -64,7 +64,7 @@
             }
         </style>
         <app-route route="{{route}}" pattern="/:machine" data="{{data}}"></app-route>
-        <div class="logs" hidden$="[[!jobId]]">
+        <div class="logs" hidden$="[[!showLogs]]">
             <paper-spinner active$="[[!logItem.error]]" hidden$="[[logItem.error]]"></paper-spinner>
             <p> Creating machine: {{removeUnderscore(logItem.action)}}
                 <span class="error" hidden$="[[!logItem.error]]">[[logItem.error]]</span>
@@ -74,7 +74,7 @@
         <div class="logs" hidden$="[[!performingAction]]">
             <paper-spinner active></paper-spinner>
             <p id="actionLogs"></p>
-            <iron-icon class="close" icon="close" on-tap="hideLogs"></iron-icon>
+            <iron-icon class="close" icon="close" on-tap="hidePerformingLogs"></iron-icon>
         </div>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <machine-actions actions={{actions}} items=[[selectedItems]] model=[[model]]>
@@ -121,8 +121,7 @@
                 type: Array
             },
             jobId: {
-                type: String,
-                value: false
+                type: String
             },
             logItem: {
                 type: Object,
@@ -158,6 +157,10 @@
             },
             currency: {
                 type: Object
+            },
+            showLogs: {
+                type: Boolean,
+                value: false
             }
         },
 
@@ -171,8 +174,7 @@
 
         observers: [
             '_jobIdChanged(jobId)',
-            '_pathChanged(path)',
-            'stopPolling(logItem)'
+            '_logItemChanged(logItem.*)'
         ],
 
         _getMachine: function(id, machines) {
@@ -181,10 +183,12 @@
         },
 
         setJobId: function(e) {
-            if (e.detail.jobId)
+            // console.log('setJobId',e.detail)
+            if (e.detail.jobId) {
                 this.set('jobId', e.detail.jobId);
-            if (e.detail.job_id)
+            } else if (e.detail.job_id) {
                 this.set('jobId', e.detail.job_id);
+            }
         },
 
         _isAddPageActive: function(path) {
@@ -204,8 +208,6 @@
         },
 
         _isListActive: function(path) {
-            if (path)
-                this.stopPolling();
             return !path;
         },
 
@@ -225,42 +227,60 @@
         },
 
         _jobIdChanged: function(jobid) {
-            if (!jobid) {
-                this.resetPolling();
-            } else {
+            // console.log('_jobIdChanged', jobid);
+            if (jobid == false) {
+                this.stopPolling();
+            } else if (jobid && jobid.length) {
                 this.startPolling(jobid);
             }
         },
 
-        startPolling: function(jobid) {
-            this.intervalID = setInterval(function() {
-                this.$.getJobLog.generateRequest();
-            }.bind(this), 1000);
+        _showLogs: function(val) {
+            this.set('showLogs', val);
         },
 
-        stopPolling: function(logItems) {
-            if (this.logItem && this.logItem.action.endsWith('finished')) {
-                //let log finished show
+        startPolling: function(jobid) {
+            if (jobid) {
+                this._showLogs(true);
+                this.intervalID = setInterval(function() {
+                    this.$.getJobLog.generateRequest();
+                }.bind(this), 1000);
+            }
+            // console.log('startPolling');
+        },
+
+        stopPolling: function() {
+            // console.log('stopPolling');
+            this.set('jobId', false);
+            if (this.intervalID != false) {
+                window.clearInterval(this.intervalID);
+                this.set('intervalID', false);
+            }
+        },
+
+        _logItemChanged: function (logItem) {
+            // If a log's action mentions `finished`, then stop polling.
+            // console.log('_logItemChanged');
+            if (this.logItem && this.logItem.action && this.logItem.action.endsWith('finished')) {
+                this.stopPolling();
+                // Hide logs if no errors occure.
                 if (!this.logItem.error) {
-                    this.async(function() {
-                        this.resetPolling(this.logItem.error);
-                    }.bind(this), 1000);
+                    this._showLogs(false);
                 }
             }
         },
 
-        resetPolling: function(error) {
-            if (!error) {
-                this.set('logItem', '');
-            }
-            this.set('jobId', false);
-            window.clearInterval(this.intervalID);
-            this.set('intervalID', false);
+        handleGetJobLog: function(e) {
+            // console.log('handleGetJobLog');
+            // Save last log in logItem
+            this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
         },
 
-        handleGetJobLog: function(e) {
-            // save last log in logItem
-            this.set('logItem', e.detail.response.logs[e.detail.response.logs.length - 1]);
+        handleGetJobLogError: function(e) {
+            // console.log('handleGetJobLogError', e.detail);
+            // Save last log in logItem - if it exists - and stop polling
+            this.set('logItem', {error: e.detail.error.message + ' (request: /api/v1/jobs/' + this.jobId + ')'});
+            this.stopPolling();
         },
 
         removeUnderscore: function(action) {
@@ -269,8 +289,9 @@
         },
 
         clearLog: function(e) {
-            this.resetPolling();
-            this.set('logItem', '');
+            this.stopPolling();
+            this._showLogs(false);
+            this.set('logItem', {});
         },
 
         updateActionLogs: function(e) {
@@ -285,7 +306,7 @@
                 this.clearListSelection();
         },
 
-        hideLogs: function(e) {
+        hidePerformingLogs: function(e) {
             this.set('performingAction', false);
         },
 
@@ -297,7 +318,6 @@
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                 url: this.model.sections.machines.add
             } }));
-
         },
 
         _getFrozenLogColumn: function() {
