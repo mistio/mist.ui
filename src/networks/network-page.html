@@ -104,6 +104,11 @@
             network-actions {
                 width: 50%;
             }
+
+            iron-icon.icon {
+                margin-right: 4px;
+                opacity: .54;
+            }
         </style>
 
         <div id="content">
@@ -140,6 +145,13 @@
                     </div>
                 </paper-material>
                 <paper-material id="rightcolumn" class="right">
+                    <div hidden$="[[!machines.length]]">
+                        <h3 class="n-info-head">MACHINES:</h3>
+                        <template is="dom-repeat" items="[[machines]]">
+                            <a class="regular blue-link" href$="/machines/[[item.id]]">
+                                <iron-icon icon="hardware:computer" class="icon"></iron-icon> [[item.name]]</a><br/>
+                        </template>
+                    </div>
                     <div hidden$="[[!networkTags.length]]">
                         <h3 class="n-info-head">TAGS:</h3>
                         <template is="dom-repeat" items="[[networkTags]]">
@@ -160,20 +172,15 @@
                             <div class="flexchild">ID</div>
                             <div class="flexchild">[[network.id]]</div>
                         </div>
-                        <div hidden$=[[!network.status]] class="info-item flex-horizontal-with-ratios">
-                            <div class="flexchild">Status</div>
-                            <div class="flexchild">[[network.status]]</div>
-                        </div>
                         <div class="info-item flex-horizontal-with-ratios">
                             <div class="flexchild">Subnets</div>
                             <div class="flexchild">
-                                <template is="dom-if" if="[[!hasSubnets]]" restamp>
-                                    0
-                                </template>
-                                <template is="dom-if" if="[[hasSubnets]]" restamp>
-                                    [[network.subnets.length]]
-                                </template>
+                                [[subnets.length]]
                             </div>
+                        </div>
+                        <div hidden$=[[!network.status]] class="info-item flex-horizontal-with-ratios">
+                            <div class="flexchild">Status</div>
+                            <div class="flexchild">[[network.status]]</div>
                         </div>
                     </div>
                 </div>
@@ -221,6 +228,10 @@
                 network: {
                     type: Object
                 },
+                machines: {
+                    type: Array,
+                    computed: '_computeMachines(network, model.machines)'
+                },
                 subnets: {
                     type: Array,
                     value: function () { return []; },
@@ -228,7 +239,7 @@
                 },
                 hasSubnets: {
                     type: Boolean,
-                    computed: '_computeHasSubnets(network.subnets)'
+                    computed: '_computeHasSubnets(network)'
                 },
                 isLoading: {
                     type: Boolean,
@@ -263,8 +274,13 @@
                 if (item)
                     this.set('itemArray', [this.network]);
             },
-            _computeHasSubnets: function (subnets) {
-                return subnets && subnets.length;
+            _computeMachines: function(network, machines) {
+                if (!network || !machines)
+                    return [];
+                return Object.values(this.model.machines).filter(function(m){ return m.network == network.id });
+            },
+            _computeHasSubnets: function (network) {
+                return network && network.subnets && network.subnets.length;
             },
             _computeNetworkCloud: function (network, clouds) {
                 if (network)
@@ -304,7 +320,7 @@
                 return !this.network ? true : false;
             },
             _computeSubnets: function(network, subnets) {
-                return Object.values(this.network && this.network.subnets || {});
+                return Object.values(this.network && this.network.subnets || []);
             },
             _networkDeleted: function(e) {
                 console.log(e);
