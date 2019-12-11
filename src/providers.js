@@ -1234,3 +1234,67 @@ PROVIDERS.push({
         },
     ]
 });
+
+
+// LXD
+PROVIDERS.push({
+    title: 'LXD',
+    val: 'lxd',
+    className: 'provider-lxd',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "LXD",
+        defaultValue: "LXD",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title",
+        helptext: "If you need help, read the docs on adding an LXD cloud",
+        helpHref: ""
+    }, {
+        name: "host",
+        label: "Host",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter LXD host IP or DNS name",
+    }, {
+        name: "port",
+        label: "port",
+        type: "text",
+        value: 8443,
+        defaultValue: 8443,
+        show: true,
+        required: false
+    }, {
+        name: "key_file",
+        label: "Key",
+        type: "textarea",
+        helptext: 'Client private key file',
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true
+    }, {
+        name: "cert_file",
+        label: "Certificate",
+        helptext: 'Client certificate file',
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true
+    }, {
+        name: "ca_cert_file",
+        label: "CA Certificate",
+        helptext: 'CA certificate file',
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false
+    }]
+});
