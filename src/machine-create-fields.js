@@ -744,7 +744,26 @@ MACHINE_CREATE_FIELDS.push({
 // LXD
 MACHINE_CREATE_FIELDS.push({
     provider: 'lxd',
-    fields: [],
+    fields: [{
+        name: 'architecture',
+        label: 'Architecture *',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [{ title: 'x86_64', val: 'x86_64'},
+                  {title: 'amd64', val: 'amd64'}]
+    }, {
+        name: 'ephemeral',
+        label: 'Ephemeral *',
+        type: 'toggle',
+        value: '',
+        defaultValue: false,
+        show: true,
+        required: true,
+        helptext: 'An ephemeral container will be deleted when is stopped.'
+    }],
 });
 
 // add common fields
@@ -899,7 +918,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 },
             }],
         });
-    } else if (['vsphere'].indexOf(p.provider) != -1) {
+    } else if (['vsphere', 'lxd'].indexOf(p.provider) != -1) {
         p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
@@ -952,47 +971,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 fieldExists: true
             }
         });
-    } else if(['lxd'].indexOf(p.provider) != -1){
-
-        p.fields.splice(2, 0, {
-            name: 'size',
-            label: 'Size *',
-            type: 'mist_size',
-            value: '',
-            defaultValue: '512mb',
-            show: true,
-            required: false,
-            options: ['512mb'],
-            custom: false,
-        });
-
-        p.fields.splice(3, 0, {
-            name: 'architecture',
-            label: 'Architecture *',
-            type: 'dropdown',
-            value: '',
-            defaultValue: '',
-            show: true,
-            required: true,
-            options: [{ title: 'x86_64', val: 'x86_64'},
-                      {title: 'amd64', val: 'amd64'}],
-            custom: false,
-        });
-
-        p.fields.splice(4, 0, {
-            name: 'ephemeral',
-            label: 'Ephemeral *',
-            type: 'dropdown',
-            value: '',
-            defaultValue: 'No',
-            show: true,
-            required: true,
-            options: [{ title: 'Yes', val: 'Yes'},
-                      {title: 'No', val: 'No'}],
-            helptext: 'An ephemeral container will be deleted when is stopped.',
-            custom: false,
-        });
-    }else { // mist_dropdown for all others
+    } else { // mist_dropdown for all others
         p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
