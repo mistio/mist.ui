@@ -210,6 +210,7 @@
                 vertical-align: bottom;
             }
             iron-icon.help {
+                color: #000;
                 opacity: 0.32;
                 padding: 4px;
                 width: 20px;
@@ -224,6 +225,12 @@
                 line-height: 1.65em;
               }
             }
+            paper-tooltip code {
+              background-color: #484848;
+              padding: 2px 4px;
+              border-radius: 3px;
+              font-size: .9em;
+            }
           </style>
         </custom-style>
         <div class="rule-edit">
@@ -232,8 +239,8 @@
                 <div hidden$=[[hideApplyOn]]>
                     <span class="keyword on">apply on</span>
                     <!-- choose resourceType -->
-                    <div class="inline" disabled="[[editingExistingRule]]">
-                        <paper-dropdown-menu id="resources" class="dropdown-block apply-on">
+                    <div class="inline">
+                        <paper-dropdown-menu id="resources" class="dropdown-block apply-on" disabled="[[editingExistingRule]]">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceType}}" class="dropdown-content">
                                 <paper-item value="organization" disabled="[[_disableOrg(resourceType,editingExistingRule)]]">organization</paper-item>
                                 <hr>
@@ -250,7 +257,7 @@
                     </div>
                     <!-- choose ruleType -->
                     <div class="inline" hidden$=[[_disableRuleTypeChanges(resourceType)]]>
-                        <paper-dropdown-menu id$="resources-rule-type-[[index]]" class="dropdown-block type resource-type">
+                        <paper-dropdown-menu id$="resources-rule-type-[[index]]" class="dropdown-block resource-type">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
                                 <paper-item value="every">all</paper-item>
                                 <paper-item value="specific">select</paper-item>
@@ -315,7 +322,7 @@
                     <template is="dom-repeat" items="{{rule.queries}}" as="query">
 
                         <!--  rule.data_type: metrics OR logs -->
-                        <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block type" auto-focus on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
+                        <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block target-type" auto-focus on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
                             <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.data_type}}" class="dropdown-content">
                                 <paper-item value="metrics" disabled$="[[!_canUseMetrics(resourceType,ruleType,resourceId,resource,model.monitoring.*)]]">metric</paper-item>
                                 <paper-item value="logs">log</paper-item>
@@ -413,7 +420,7 @@
                                 </paper-listbox>
                             </paper-dropdown-menu>
                             <template is="dom-if" if="[[_isWebhookSelected(ruleAction.type)]]">
-                                <paper-input id ="webhook-url" class="inline" placeholder="URL to be invoked" value="{{ruleAction.url}}" on-value-changed="_validateRule" value="{{ruleAction.params}}" on-value-changed="_validateRule" pattern="^https://*"></paper-input>
+                                <paper-input id ="webhook-url" class="inline webhook-url" placeholder="URL to be invoked" value="{{ruleAction.url}}" on-value-changed="_validateRule" value="{{ruleAction.params}}" on-value-changed="_validateRule" pattern="^https://*"></paper-input>
                                 <paper-dropdown-menu label="method" class="inline">
                                     <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.method}}" class="dropdown-content">
                                         <paper-item value="post">POST</paper-item>
@@ -422,16 +429,16 @@
                                         <paper-item value="patch">PATCH</paper-item>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
-                                <paper-textarea id="http-params" placeholder="Query string params (optional)" value="{{ruleAction.params}}" on-value-changed="_validateRule"></paper-textarea>
-                                <paper-textarea id="http-body" placeholder="Request body (optional)" value="{{ruleAction.data}}" on-value-changed="_validateRule"></paper-textarea>
-                                <paper-textarea id="json-body" placeholder="JSON body (optional)" value="{{ruleAction.json}}" on-value-changed="_validateRule"></paper-textarea>
-                                <paper-textarea id="http-headers" placeholder="HTTP headers (optional)" value="{{ruleAction.headers}}" on-value-changed="_validateRule"></paper-textarea>
+                                <paper-textarea id="http-params" class="inline http-params" placeholder="Query string params (optional)" value="{{ruleAction.params}}" on-value-changed="_validateRule"></paper-textarea>
+                                <paper-textarea id="http-body" class="inline http-body" placeholder="Request body (optional)" value="{{ruleAction.data}}" on-value-changed="_validateRule"></paper-textarea>
+                                <paper-textarea id="json-body" class="inline json-body" placeholder="JSON body (optional)" value="{{ruleAction.json}}" on-value-changed="_validateRule"></paper-textarea>
+                                <paper-textarea id="http-headers" class="inline http-headers placeholder="HTTP headers (optional)" value="{{ruleAction.headers}}" on-value-changed="_validateRule"></paper-textarea>
                             </template>
                             <template is="dom-if" if="[[_isCommandSelected(ruleAction.type)]]">
                                 <paper-textarea id="command" placeholder="command input" value="{{ruleAction.command}}" on-value-changed="_validateRule"></paper-textarea>
                             </template>
                             <template is="dom-if" if="[[_isAlertSelected(ruleAction.type)]]">
-                                <paper-dropdown-menu label="level">
+                                <paper-dropdown-menu label="level" class="alert-level">
                                     <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.level}}" class="dropdown-content">
                                         <paper-item value="info">info</paper-item>
                                         <paper-item value="warning">warning</paper-item>

@@ -271,7 +271,7 @@
                             <!-- if we have incidents -->
                             <template is="dom-if" if="[[incidents.length]]" restamp>
                                 <template is="dom-repeat" items={{openIncidents}} as="incident">
-                                    <div class="incident" hidden$=[[_isIncidentFinished(incident.finished_at,)]]>[[incident.logs.0.condition]]</div>
+                                    <div class="incident" hidden$=[[_isIncidentFinished(incident.finished_at)]]>[[_computeIncidentCondition(incident)]]</div>
                                 </template>
                             </template>
                             <!-- monitoring is activated. we expect to have data -->
@@ -635,6 +635,16 @@
             } else {
                 return "";
             }
+        },
+        _computeIncidentCondition: function (item) {
+            var condition = item.logs.length && item.logs[0].condition || '';
+            // transform log condition
+            if (condition.length && item.logs[0].rule_data_type == 'logs') {
+                condition = condition.replace('COUNT(','Log ')
+                                    .replace('){}',' appeared ')
+                                    .replace('within','times within');
+            }
+            return condition;
         },
         _computeIsActivated (resource, monitoring, hidden) {
             // console.log('_computeIsActivated', resource, monitoring, hidden)

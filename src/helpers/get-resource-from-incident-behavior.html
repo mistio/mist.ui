@@ -12,71 +12,56 @@ getResourceFromIncidentBehavior = {
         if (this.model) {
             // debugger;
             // Get incident type
-            var resourceTypes = [ 'machine', 'volume',
+            var resourceTypes = [
+                'machine',
+                'volume',
                 'network',
                 'zone',
                 'key',
                 'script',
                 'schedule',
                 'template',
-                'member', 'cloud', 'organization'],
+                'member',
+                'cloud',
+                'organization'],
                 type;
             // Loop through types, check if incident refers to some type of resource
             for (var i = 0; i < resourceTypes.length; i++) {
                 type = resourceTypes[i];
                 if (incident[type + '_id'])
                     break;
-                if (i == resourceTypes.length - 1)
-                    type = null;
             }
             // Get resource
             if (type) {
                 var resource = {};
-                // Subnets and records cannot be found under model.
-                if (['subnet','record','machine'].indexOf(type) == -1) {
-                    resource = this.model[type+'s'][incident[type + '_id']];
-                    if (resource) {
-                        resource.uri = '/' + type + 's/' + incident[type + '_id'];
-                        resource.name = resource.name || resource.title || resource.domain;
-                    }
-                }
-                // Machine incidents provide us with cloud_id and machine_id (external id)
-                if (type == 'machine') {
-                    if (this.model.clouds && this.model.clouds[incident['cloud_id']])
-                        resource = this.model.clouds[incident['cloud_id']].machines[incident['machine_id']];
-                    // Try to find the machine under model.machines. 
-                    // Occasionally logs return machine.id instead of its external_id
-                    if (!resource && this.model.machines)
-                        resource = this.model.machines[incident['machine_id']];
-                    if (resource)
-                        resource.uri = '/' + type + 's/' + resource.id; console.log('resource', resource);
-                }
-                // Special cases of incidents. Trace resource if it's of type subnet or record
                 if (type == 'subnet') {
                     if (this.model.clouds[incident['network_id']])
                         resource = this.model.networks[incident['network_id']][incident[type + '_id']];
                     if (resource)
                         resource.uri = '/networks/' + incident['network_id'];
-                }
-                if (type == 'record') {
+                } else if (type == 'record') {
                     if (this.model.clouds[incident['zone_id']])
                         resource = this.model.networks[incident['zone_id']][incident[type + '_id']];
                     if (resource) {
                         resource.uri = '/zones/' + incident['zone_id'];
                     }
-                }
-                if (type == 'cloud') {
+                } else if (type == 'cloud') {
                     if (this.model.clouds)
                         resource = this.model.clouds[incident['cloud_id']];
                     if (resource) {
                         resource.uri = '/clouds/' + incident['cloud_id'];
                         resource.name = resource.title;
                     }
-                }
-                if (type == 'organization') {
+                } else if (type == 'organization') {
                     resource = {
                         name: "Organization",
                         type: type
+                    }
+                } else { 
+                    resource = this.model[type+'s'][incident[type + '_id']];
+                    if (resource) {
+                        resource.uri = '/' + type + 's/' + resource.id;
+                        resource.name = resource.name || resource.title || resource.domain;
                     }
                 }
                 // Add type information in object. Used to construct the link.
