@@ -275,6 +275,12 @@ VOLUME_CREATE_FIELDS.push({
     }]
 });
 
+VOLUME_CREATE_FIELDS.push({
+    provider: 'lxd',
+    fields: []
+});
+
+
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
     var minimumSize = (p.provider == 'packet' && 10) ||
