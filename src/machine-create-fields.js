@@ -745,16 +745,6 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'lxd',
     fields: [{
-        name: 'architecture',
-        label: 'Architecture *',
-        type: 'dropdown',
-        value: '',
-        defaultValue: '',
-        show: true,
-        required: true,
-        options: [{ title: 'x86_64', val: 'x86_64'},
-                  {title: 'amd64', val: 'amd64'}]
-    }, {
         name: 'ephemeral',
         label: 'Ephemeral *',
         type: 'toggle',
