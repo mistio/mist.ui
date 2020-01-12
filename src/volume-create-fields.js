@@ -277,7 +277,29 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.push({
     provider: 'lxd',
-    fields: []
+    fields: [{
+        name: 'type',
+        label: 'Volume Type *',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [{ title: 'custom', val: 'custom'},
+                  { title: 'copy', val: 'copy'},
+                  { title: 'migration', val: 'migration'}],
+        helptext: 'Specify the volume\'s type',
+    }, {
+        name: 'pool_id',
+        label: 'Pool Id *',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [],
+        helptext: 'Specify the pool id the volume will be created',
+    }]
 });
 
 
