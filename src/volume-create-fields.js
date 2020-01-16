@@ -287,6 +287,26 @@ VOLUME_CREATE_FIELDS.push({
         required: true,
         options: [],
         helptext: 'Specify the pool id the volume will be created',
+    }, {
+        name: 'custom_name',
+        label: 'Custom Name ',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
+        helptext: 'Specify the a custom name of the volume. This is required when attaching the volume to a container',
+    }, {
+        name: 'path',
+        label: 'Path ',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
+        helptext: 'Path in the container the volume is attached. e.g. /opt/my/data. This is required when attaching the volume to a container',
     }]
 });
 
