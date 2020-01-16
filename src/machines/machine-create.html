@@ -725,6 +725,11 @@
                     this._updateFieldsForKvm();
                 }
 
+                // if is lxd, change helptexts
+                if (this.model.clouds[this.selectedCloud].provider == "lxd") {
+                    this._updateFieldsForLxd();
+                }
+
                 // default values, hide empty non required, fill in single options
                 if (this.machineFields) {
                     this.machineFields.forEach(function(f, index) {
@@ -1323,6 +1328,14 @@
             // disable monitoring by default
             if (monInd > -1)
                 this.set('machineFields.' + monInd + '.value', false);
+        },
+        _updateFieldsForLxd: function() {
+            var locInd = this._fieldIndexByName('location');
+            if (locInd > -1) {
+                this.set('machineFields.' + locInd + '.show', false);
+                this.set('machineFields.' + locInd + '.required', false);
+                this.set('machineFields.' + locInd + '.excludeFromPayload', true);
+            }
         },
         _updateFieldsForKvm: function() {
             var imaInd = this._fieldIndexByName('image');
