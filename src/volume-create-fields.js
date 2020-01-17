@@ -288,6 +288,35 @@ VOLUME_CREATE_FIELDS.push({
         options: [],
         helptext: 'Specify the pool id the volume will be created',
     }, {
+        name: 'block_filesystem',
+        label: 'Block Filesystem ',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
+        helptext: 'Filesystem of the storage volume',
+    }, {
+        name: 'block_mount_options',
+        label: 'Block Mount Options',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
+        helptext: 'Mount options for block devices',
+    }, {
+        name: 'security_shifted',
+        label: 'Security Shifted',
+        type: 'toggle',
+        value: '',
+        defaultValue: false,
+        show: true,
+        required: true,
+        helptext: 'Enable id shifting overlay (allows attach by multiple isolated containers..'
+    }, {
         name: 'custom_name',
         label: 'Custom Name ',
         type: 'text',
@@ -295,6 +324,7 @@ VOLUME_CREATE_FIELDS.push({
         defaultValue: '',
         show: true,
         required: false,
+        onForm: 'createForm',
         options: [],
         helptext: 'Specify the a custom name of the volume. This is required when attaching the volume to a container',
     }, {
@@ -305,6 +335,7 @@ VOLUME_CREATE_FIELDS.push({
         defaultValue: '',
         show: true,
         required: false,
+        onForm: 'createForm',
         options: [],
         helptext: 'Path in the container the volume is attached. e.g. /opt/my/data. This is required when attaching the volume to a container',
     }]
