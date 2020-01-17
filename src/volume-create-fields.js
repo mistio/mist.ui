@@ -315,7 +315,7 @@ VOLUME_CREATE_FIELDS.push({
         defaultValue: false,
         show: true,
         required: true,
-        helptext: 'Enable id shifting overlay (allows attach by multiple isolated containers..'
+        helptext: 'Enable id shifting overlay (allows attach by multiple isolated containers).'
     }, {
         name: 'custom_name',
         label: 'Custom Name ',
