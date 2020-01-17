@@ -127,8 +127,8 @@
             </paper-material>
         </div>
         <paper-dialog id="addKvmImage" with-backdrop>
-            <h2>Create Image</h2>
-            <paper-input id="kvmImageInput" label="Image's path" value="{{newImage}}" autofocus></paper-input>
+            <h2>[[_computeAddImageTitle(selectedCloud)]]</h2>
+            <paper-input id="kvmImageInput" label="[[_computeAddImageLabel(selectedCloud)]]" value="{{newImage}}" autofocus></paper-input>
             <div class="btn-group">
                 <paper-button dialog-dismiss>Cancel</paper-button>
                 <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
@@ -402,6 +402,8 @@
             }
         },
         _cloudChanged: function(selectedCloud) {
+            //clear saved new image of lxd or kvm
+            this.set("newImage", "");
             if (selectedCloud && this.model) {
                 this.set('cloud', this.model.clouds[selectedCloud]);
             }
@@ -1329,6 +1331,20 @@
             if (monInd > -1)
                 this.set('machineFields.' + monInd + '.value', false);
         },
+        _computeAddImageTitle: function(selectedCloud) {
+            var provider = "";
+            if (selectedCloud) {
+                provider = this.model.clouds[this.selectedCloud].provider
+            }
+            return provider == 'lxd' ? "Pull image from URL:" : "Create image";
+        },
+        _computeAddImageLabel: function() {
+            var provider = "";
+            if (selectedCloud) {
+                provider = this.model.clouds[this.selectedCloud].provider
+            }
+            return provider == 'lxd' ? "Image URL:" : "Image's path";
+        },
         _updateFieldsForLxd: function() {
             var locInd = this._fieldIndexByName('location');
             if (locInd > -1) {
@@ -1338,16 +1354,11 @@
             }
         },
         _updateFieldsForKvm: function() {
-            var imaInd = this._fieldIndexByName('image');
             var locInd = this._fieldIndexByName('location');
             var keyInd = this._fieldIndexByName('key');
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
 
-            //hide default image and location field
-            if (imaInd > -1) {
-                this.set('machineFields.' + imaInd + '.add', true);
-                this.set('machineFields.' + imaInd + '.required', true);
-            }
+            //hide location field
             if (locInd > -1) {
                 this.set('machineFields.' + locInd + '.show', false);
                 this.set('machineFields.' + locInd + '.required', false);
