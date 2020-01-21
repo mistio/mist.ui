@@ -854,6 +854,17 @@
                     }
                 }
 
+                // if add volume toggler changed value
+                if (changeRecord.path.endsWith('value') && ['addvolume'].indexOf(this.get(changeRecord.path.replace(
+                        '.value', '')).name) > -1) {
+                    var volumesInd = this._fieldIndexByName('volumes');
+                    if (!changeRecord.value) {
+                        this.set('machineFields.' + volumesInd + '.items', []);
+                        this.set('machineFields.' + volumesInd + '.value', null);
+                    }
+                    this.set('machineFields.' + volumesInd + '.excludeFromPayload', !changeRecord.value);
+                }
+
                 // if it's ec2 and location is selected filter subnets
                 if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
                         '.value', '')).name == 'location' && changeRecord.value.length) {
