@@ -312,3 +312,44 @@ NETWORK_CREATE_FIELDS.push({
         inPayloadGroup: 'subnet'
     }]
 });
+
+// LXD
+NETWORK_CREATE_FIELDS.push({
+    provider: 'lxd',
+    fields: [{
+        name: "name",
+        label: "Name *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        errorMessage: "Please enter network's name",
+        show: true,
+        required: true,
+        inPayloadGroup: 'network'
+    }, {
+        name: "cidr",
+        label: "Network CIDR",
+        type: "ip_textarea",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        show: true,
+        required: true,
+        inPayloadGroup: 'network'
+    }, {
+        name: "availability_zone",
+        label: "Availability Zone *",
+        type: "mist_dropdown",
+        value: "",
+        defaultValue: "",
+        show: false,
+        required: false,
+        options: [],
+        showIf: {
+            fieldName: "createSubnet",
+            fieldValues: [true]
+        },
+        inPayloadGroup: 'subnet'
+    }]
+});
