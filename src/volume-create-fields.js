@@ -280,7 +280,7 @@ VOLUME_CREATE_FIELDS.push({
     fields: [{
         name: 'pool_id',
         label: 'Pool Id *',
-        type: 'mist_dropdown',
+        type: 'dropdown',
         value: '',
         defaultValue: '',
         show: true,

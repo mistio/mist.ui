@@ -138,6 +138,8 @@
             on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getStorageAccounts" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageAccountsRequest"
             on-response="_handleGetStorageAccountsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getLXDStoragePools" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetLXDStoragePoolsRequest"
+            on-response="_handleGetLXDStoragePoolsResponse" on-error="_handleGetLXDStoragePoolsError"></iron-ajax>
     </template>
     <script>
     SCHEDULEACTIONS = {
@@ -249,6 +251,9 @@
             },
             resourceGroupsFieldIndex: {
                 type: Number
+            },
+            lxdStoragePoolsField: {
+                type: Object
             },
             constraints: {
                 type: Object
@@ -657,6 +662,16 @@
                         if (fieldset) {
                             var options = this._cleanCopy(fieldset.fields);
                             var locationIndex = options.findIndex(function(f){return f.name == 'location'})
+
+                            if(provider === "lxd"){
+                                var storagePoolsIdx = options.findIndex(function(f){return f.name == 'pool_id'});
+
+                                if(storagePoolsIdx > -1){
+                                    var storagePoolField = options[storagePoolsIdx];
+                                    this.set("lxdStoragePoolsField",storagePoolField);
+                                    this._updateLXDStoragePools(cloudId);
+                                }
+                            }
 
                             if (locationIndex > -1) {
                                 options.splice(locationIndex,1);
@@ -1611,6 +1626,32 @@
         _handleGetResourceGroupsError: function(e) {
             console.error('Got resource groups error', e);
         },
+        _updateLXDStoragePools: function(cloudId) {
+            //var fieldIndex = this._fieldIndexByName('pool_id');
+            //console.warn("!!!!!!!!!!!", fieldIndex,this.get('machineFields.' + this.lxdStoragePoolsFieldIndex));
+            if (this.lxdStoragePoolsField.options && !this.lxdStoragePoolsField.options.length) {
+                this._getLXDStoragePools(cloudId);
+            }
+        },
+        _getLXDStoragePools: function(cloudId) {
+            //this.set("lxdStoragePoolsFieldIndex",index);
+            this.$.getLXDStoragePools.headers["Content-Type"] = 'application/json';
+            this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getLXDStoragePools.url = '/api/v1/clouds/'+ cloudId +'/storage-pools';
+            this.$.getLXDStoragePools.generateRequest();
+        },
+        _handleGetLXDStoragePoolsRequest: function(e) {
+            this.lxdStoragePoolsField.loader = true;
+        },
+        _handleGetLXDStoragePoolsResponse: function(e) {
+            this.lxdStoragePoolsField.options = e.detail.response || [];
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetLXDStoragePoolsResponse()'}}));
+            this.lxdStoragePoolsField.loader =  false;
+        },
+        _handleGetLXDStoragePoolsError: function(e) {
+            console.error('Got LXD storage pools error error', e);
+        },
+
         _updateNetworkValue: function() {
             var createFieldIndex = this._fieldIndexByName('create_network');
             var existingFieldIndex = this._fieldIndexByName('ex_networks');
