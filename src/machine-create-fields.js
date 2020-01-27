@@ -759,6 +759,8 @@ MACHINE_CREATE_FIELDS.push({
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p) {
     var addImage = ['kvm','lxd'].indexOf(p.provider) != -1;
+    var requiredLocation = ['lxd'].indexOf(p.provider) == -1;
+
     // add common machine properties fields
     p.fields.splice(0, 0, {
         name: 'name',
@@ -782,12 +784,12 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         search: '',
     }, {
         name: 'location',
-        label: 'Location *',
+        label: 'Location' + (requiredLocation ? '*' :''),
         type: 'mist_dropdown',
         value: '',
         defaultValue: '',
         show: true,
-        required: true,
+        required: requiredLocation,
         options: [],
     });
 
@@ -1073,6 +1075,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         type: 'ssh_key',
         value: '',
         defaultValue: '',
+        add: true,
         show: true,
         required: true,
         options: [],
@@ -1179,17 +1182,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         })
 
         if(['lxd'].indexOf(p.provider) > -1){
-
-           p.fields[p.fields.length-1].options.push(/*{
-                name: 'location',
-                label: 'Location *',
-                type: 'mist_dropdown',
-                value: '',
-                defaultValue: '',
-                show: true,
-                required: true,
-                options: [],
-           },*/ {
+           p.fields[p.fields.length-1].options.push({
                     name: 'path',
                     label: 'Path *',
                     type: 'text',
@@ -1200,17 +1193,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     onForm: 'createForm',
                     options: [],
                     helptext: 'Path in the container the volume is attached. e.g. /opt/my/data. This is required when attaching the volume to a container',
-           })
-
-           p.fields.push({
-                name: 'location',
-                label: 'Location *',
-                type: 'mist_dropdown',
-                value: '',
-                defaultValue: '',
-                show: true,
-                required: true,
-                options: [],
            })
         }
 
