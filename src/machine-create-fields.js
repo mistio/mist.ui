@@ -1190,17 +1190,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: true,
                 options: [],
            },*/ {
-                    name: 'custom_name',
-                    label: 'Custom Name *',
-                    type: 'text',
-                    value: '',
-                    defaultValue: '',
-                    show: true,
-                    required: true,
-                    onForm: 'createForm',
-                    options: [],
-                    helptext: 'Specify the a custom name of the volume. This is required when attaching the volume to a container',
-           }, {
                     name: 'path',
                     label: 'Path *',
                     type: 'text',
