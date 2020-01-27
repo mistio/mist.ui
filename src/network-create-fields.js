@@ -337,19 +337,5 @@ NETWORK_CREATE_FIELDS.push({
         show: true,
         required: true,
         inPayloadGroup: 'network'
-    }, {
-        name: "availability_zone",
-        label: "Availability Zone *",
-        type: "mist_dropdown",
-        value: "",
-        defaultValue: "",
-        show: false,
-        required: false,
-        options: [],
-        showIf: {
-            fieldName: "createSubnet",
-            fieldValues: [true]
-        },
-        inPayloadGroup: 'subnet'
     }]
 });
