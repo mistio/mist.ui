@@ -783,7 +783,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         search: '',
     }, {
         name: 'location',
-        label: 'Location' + (requiredLocation ? '*' :''),
+        label: 'Location *',
         type: 'mist_dropdown',
         value: '',
         defaultValue: '',
