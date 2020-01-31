@@ -753,6 +753,15 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: true,
         helptext: 'An ephemeral container will be deleted when is stopped.'
+    }, {
+        name: 'networks',
+        label: 'Network',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
     }],
 });
 
