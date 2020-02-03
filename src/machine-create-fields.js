@@ -315,6 +315,16 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
     fields: [{
+        name: 'security_group',
+        label: 'Security group *',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [],
+        helptext: 'Specify the security group for this machine',
+    }, {
         name: 'subnet_id',
         label: 'Subnet',
         type: 'mist_dropdown_searchable',
