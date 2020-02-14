@@ -717,7 +717,15 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         options: [],
-    }],
+    },{
+        name: 'image_extra',
+        label: 'Image extra',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        required: false,
+    },],
 });
 
 // VULTR

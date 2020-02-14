@@ -773,9 +773,10 @@
                     this._mapPortsToDockerPorts(changeRecord.value);
                 }
 
-                // if is gce/linode and image changed, include image extar in payload
+                // if is gce/linode and image changed, include image extra in payload
                 if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[
-                        this.selectedCloud].provider == "gce") && changeRecord.path.endsWith(
+                        this.selectedCloud].provider == "gce" || this.model.clouds[
+                        this.selectedCloud].provider == "vsphere") && changeRecord.path.endsWith(
                         'value') && this.get(changeRecord.path.replace('.value', '')).name ==
                     'image') {
                     this._includeImageExtra(changeRecord.value);
@@ -1162,6 +1163,7 @@
         _includeImageExtra: function(image) {
             if (image) {
                 // save in fields
+                console.log("WALALALA",image)
                 var indImEx = this._fieldIndexByName('image_extra');
                 if (indImEx != undefined)
                     this.set('machineFields.' + indImEx + '.value', this.model.clouds[this.selectedCloud]

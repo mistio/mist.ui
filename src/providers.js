@@ -1107,7 +1107,18 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password"
-    }]
+    }, {
+        name: "ca_cert_file",
+        label: "CA Certificate",
+        helptext: 'CA certificate file',
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext:"It is advised to add it for the SSL to work properly."
+    },
+]
 });
 
 // OTHER SERVER
