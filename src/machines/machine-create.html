@@ -134,6 +134,8 @@
                 <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
             </div>
         </paper-dialog>
+        <iron-ajax id="getSecurityGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetSecurityGroupsRequest"
+            on-response="_handleGetSecurityGroupsResponse" on-error="_handleGetSecurityGroupsError"></iron-ajax>
         <iron-ajax id="getResourceGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetResourceGroupsRequest"
             on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getStorageAccounts" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageAccountsRequest"
@@ -522,6 +524,10 @@
                     this._updateFieldsForPacket();
                 }
 
+                // fetch security groups if necessary
+                if (this.model.clouds[this.selectedCloud].provider == "ec2") {
+                    this._updateSecurityGroups(this.selectedCloud);
+                }
                 var that = this;
                 this.machineFields.forEach(function(f, index) {
                     // clear options
@@ -1592,6 +1598,33 @@
             } else {
                 this.set('machineFields.'+ resourceGroupFieldIndex +'.value', this.get('machineFields.'+ existingFieldIndex +'.value'))
             }
+        },
+        _updateSecurityGroups: function(cloudId) {
+            var fieldIndex = this._fieldIndexByName('security_group');
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
+                this._getSecurityGroups(cloudId, fieldIndex);
+            }
+        },
+        _getSecurityGroups: function(cloudId, index) {
+            this.set("securityGroupsFieldIndex",index);
+            this.$.getSecurityGroups.headers["Content-Type"] = 'application/json';
+            this.$.getSecurityGroups.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getSecurityGroups.url = '/api/v1/clouds/'+ cloudId +'/security-groups';
+            this.$.getSecurityGroups.generateRequest();
+        },
+        _handleGetSecurityGroupsRequest: function(e) {
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.loader', true);
+        },
+        _handleGetSecurityGroupsResponse: function(e) {
+            var secGroups=[];
+            for (var i=0; i<e.detail.response.length; i++)
+                secGroups.push({'title': e.detail.response[i].name, 'val': e.detail.response[i].id});
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.options', secGroups || []);
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetSecurityGroupsResponse()'}}));
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.loader', false);
+        },
+        _handleGetSecurityGroupsError: function(e) {
+            console.error('Got security groups error', e);
         },
         _updateResourceGroups: function(cloudId) {
             var fieldIndex = this._fieldIndexByName('ex_resource_group');
