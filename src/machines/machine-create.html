@@ -1648,8 +1648,14 @@
         },
         _handleGetVirtualNetworkFunctionsResponse: function(e) {
             var vnfs=[];
-            for (var i=0; i<e.detail.response.length; i++)
-                vnfs.push({'name': e.detail.response[i].interface + ' : ' + e.detail.response[i].vendor + ' ' + e.detail.response[i].device, 'id': e.detail.response[i].pci_bdf});
+            for (var i=0; i<e.detail.response.length; i++) {
+                if (e.detail.response[i].interface) {
+                    vnfs.push({
+                        'name': e.detail.response[i].interface + ' : ' + e.detail.response[i].vendor + ' ' + e.detail.response[i].device,
+                        'id': e.detail.response[i].pci_bdf
+                    });
+                }
+            }
             this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options', vnfs || []);
             this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()'}}));
             this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', false);
