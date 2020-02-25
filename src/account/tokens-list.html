@@ -237,7 +237,16 @@
                     this.set('newToken.org_id', this.org.id);
                 }
                 if (user) {
-                    this.set('newToken.email', this.user.email);
+                    if (this.user.email) {
+                        this.set('newToken.email', this.user.email);
+                    } else {
+                        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
+                            msg: 'You cannot create a token as an LDAP user',
+                            duration: 5000
+                        } }));
+                    }
+                    // else if (this.user.username)
+                    //     this.set('newToken.username', this.user.username);
                 }
                 this.set('newToken.session.id', '');
             }
