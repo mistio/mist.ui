@@ -289,7 +289,7 @@
             },
             gravatarName: {
                 type: String,
-                computed: '_computeGravatarName(user.first_name, user.last_name, user.email)'
+                computed: '_computeGravatarName(user.first_name, user.last_name, user.email, user.username)'
             },
             orgs: {
                 type: Array
@@ -323,13 +323,17 @@
             return '';
         },
         _computeGravatar: function (email, size, placeholder) {
-            var avatarString = email && md5(email);
-                // url = '//www.gravatar.com/avatar/' + avatarString + '.jpg?s=' + size + '&d=' + placeholder;
+            var url = '';
+            if (email) {
+                var avatarString = email && md5(email);
+                url = '//www.gravatar.com/avatar/' + avatarString + '.jpg?s=' + size + '&d=' + placeholder;
+            } else {
                 url = placeholder;
+            }
             return url;
         },
-        _computeGravatarName: function (first_name, last_name, email) {
-            return first_name && last_name ? first_name + ' ' + last_name : email;
+        _computeGravatarName: function (first_name, last_name, email, username) {
+            return first_name && last_name ? first_name + ' ' + last_name : (email || username);
         },
         _computeUserName: function (user) {
             var ret = '';
@@ -339,7 +343,7 @@
                 if (user.last_name)
                     ret += user.last_name;
                 if (!ret.length)
-                    ret += user.email;
+                    ret += (user.email  || user.username);
             }
             return ret;
         },
