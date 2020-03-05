@@ -523,6 +523,7 @@
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState == XMLHttpRequest.DONE) {
                         var message = '';
+                        debugger;
                         if (xhr.status == 200) {
                             console.log(action, 'success');
                             message = 'Successfully ' + this.inPast(action.name) + ' machine. Updating...';
@@ -532,7 +533,7 @@
 
                             // for machines destroy only and only if in machine page
                             var app_location = document.querySelector('app-location');
-                            if (action.name == "destroy" && app_location && app_location.path.split(
+                            if (["destroy","remove"].indexOf(action.name) > -1 && document.location.pathname && document.location.pathname.split(
                                     '/machines/')[1] == item.id) {
                                 // kvm machines
                                 if (item.provider != 'kvm') {
@@ -659,6 +660,8 @@
                 return 'suspended'
             else if (action == 'destroy')
                 return 'destroyed'
+            else if (action == 'remove')
+                return 'removed'
             else if (action == 'star')
                 return 'starred'
             else if (action == 'unstar')
