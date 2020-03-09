@@ -69,6 +69,7 @@
                 margin-left: 0;
                 margin-right: 0;
                 max-width: 97%;
+                width: 97%;
             }
 
             :host([inline]) .grid-row h3,
@@ -421,6 +422,16 @@
                 position: relative;
                 height: 40px;
             }
+            span.checkboxes-category {
+                margin-top: 16px;
+                margin-bottom: 8px;
+                display: block;
+            }
+            span.option-description {
+                font-size: 14px;
+                align-self: center;
+                color: rgba(0, 0, 0, 0.54);
+            }
         </style>
 
         <div class$="grid [[_computeLayoutClass(horizontalLayout)]]">
@@ -489,12 +500,18 @@
                                     <span class="checkboxes-label" hidden$="[[!field.label]]">[[field.label]]:</span>
                                 </div>
                                 <template is="dom-repeat" items="[[field.options]]" as="option">
-                                    <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]">
-                                        <template is="dom-if" if="[[option.img]]">
-                                            <img class="item-img" src="[[option.img]]" width="24px"/>
-                                        </template>
-                                        <span class$="item-desc noimg-[[!option.img]]" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[option.name]]</span>
-                                    </paper-checkbox>
+                                    <template is="dom-if" if="[[!option.id]]">
+                                        <span class="checkboxes-category"><strong>[[option]]</strong></span>
+                                    </template>
+                                    <template is="dom-if" if="[[option.id]]">
+                                        <paper-checkbox name$="[[field.name]]" on-change="_updateCheckboxesField" id$="[[option.id]]" title$="[[option.tooltip]]">
+                                            <template is="dom-if" if="[[option.img]]">
+                                                <img class="item-img" src="[[option.img]]" width="24px"/>
+                                            </template>
+                                            <span class$="item-desc noimg-[[!option.img]]" data-prefix$=[[option.prefix]] data-suffix$=[[option.suffix]]>[[option.name]]</span>
+                                            <span class="option-description"><br />[[option.description]]</span>
+                                        </paper-checkbox>
+                                    </template>
                                 </template>
                             </div>
                         </template>

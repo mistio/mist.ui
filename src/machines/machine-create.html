@@ -1650,15 +1650,46 @@
             var vnfs=[];
             for (var i=0; i<e.detail.response.length; i++) {
                 if (e.detail.response[i].interface) {
-                    vnfs.push({
-                        'name': e.detail.response[i].interface + ' : ' + e.detail.response[i].vendor + ' ' + e.detail.response[i].device,
-                        'id': e.detail.response[i].pci_bdf
-                    });
+                    vnfs.push(e.detail.response[i]);
                 }
             }
-            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options', vnfs || []);
+            var categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(vnfs);
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options', categorisedVNFs || []);
             this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()'}}));
             this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', false);
+        },
+        _getCategorizedVirtualNetworkFunctions: function(arr) {
+            var categories = [], // store names
+                categoriesObjects = {}; // store items
+            for  (var i=0; i<arr.length; i++) {
+                var catName = 'NUMA mode ' + arr[i].numa; // Category name
+                if (categories.indexOf(catName) <= -1) {
+                    // store category name and initialise category
+                    categories.push(catName);
+                    categoriesObjects[catName] = [];
+                }
+                var item = {
+                    'name': arr[i].interface,
+                    'id': arr[i].pci_bdf,
+                    'description': arr[i].pci_bdf,
+                    'tooltip': arr[i].device.vendor + ' ' + arr[i].device.name
+                }
+                // store item under its category name
+                categoriesObjects[catName].push(item);
+            }
+            // merge category names with items
+            var categorisedArray = [];
+            categories = categories.reverse();
+            for  (var i=0; i<categories.length; i++) {
+                var cat = categories[i];
+                categorisedArray.push(cat);
+                categorisedArray = categorisedArray.concat(categoriesObjects[cat]);
+            }
+            // return categorisedArray or default array
+            return categorisedArray || arr.map(function(x){ return {
+                'name': x.interface,
+                'id': x.pci_bdf,
+                'description': x.pci_bdf + ' - ' + x.device.vendor + ' ' + x.device.name}});
         },
         _handleGetVirtualNetworkFunctionsError: function(e) {
             console.error('Got security groups error', e);
