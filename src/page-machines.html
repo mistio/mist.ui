@@ -325,10 +325,9 @@
         },
 
         _getVisibleColumns: function() {
-            var ret = ['state', 'cloud', 'cost', 'created', 'expiration', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
+            var ret = ['state', 'cloud', 'cost', 'created', 'expiration', 'created_by', 'tags', 'image_id', 'size', 'location', 'parent', 'hostname', 'public_ips'];
             if (this.model.org && this.model.org.ownership_enabled == true)
                 ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-            // console.log('parent sets visible', ret);
             return ret;
         },
 
@@ -359,6 +358,9 @@
                     'body': function(item, row) {
                         if (!_this.model.clouds[row.cloud])
                             return '';
+                        if (_this.model.clouds[row.cloud].provider == 'libvirt' && row.parent) {
+                            return './assets/providers/kvm.png';
+                        }
                         return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
                             .replace(" ", "") + '.png';
                     }
@@ -414,6 +416,15 @@
                                 return 1;
                         }
                         return 0;
+                    }
+                },
+                'parent': {
+                    'body': function(item, row) {
+                        if (item && _this.model && _this.model.machines && _this.model.machines[item]) {
+                            return '<a href="/machines/' + item + '">' + _this.model.machines[item].name + '</a>';
+                        } else {
+                            return item;
+                        }
                     }
                 },
                 'cost': {
