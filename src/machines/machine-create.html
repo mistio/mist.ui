@@ -138,6 +138,8 @@
             on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getStorageAccounts" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageAccountsRequest"
             on-response="_handleGetStorageAccountsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getFolders" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetFoldersRequest"
+        on-response="_handleGetFoldersResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
     </template>
     <script>
     SCHEDULEACTIONS = {
@@ -249,6 +251,9 @@
             },
             resourceGroupsFieldIndex: {
                 type: Number
+            },
+            foldersField: {
+                type: Object
             },
             constraints: {
                 type: Object
@@ -724,7 +729,12 @@
                 if (this.model.clouds[this.selectedCloud].provider == "libvirt") {
                     this._updateFieldsForKvm();
                 }
-
+                //if it is vsphere add folders
+                if (this.model.clouds[this.selectedCloud].provider == "vsphere") {
+                    var fieldInd = this._fieldIndexByName('folders');
+                    var field = this.get("machineFields."+ fieldInd);
+                    this._updateFolders(this.selectedCloud, field);
+                }
                 // default values, hide empty non required, fill in single options
                 if (this.machineFields) {
                     this.machineFields.forEach(function(f, index) {
@@ -732,8 +742,8 @@
                             'machineFields.' + index + '.defaultValue'));
 
                         if (f.required && f.options && f.options.length == 1) {
-                            if (f.type == "dropdown")
-                                this.set('machineFields.' + index + '.value', f.options[0].val);
+                            if (f.type == "dropdown"){                                
+                                this.set('machineFields.' + index + '.value', f.options[0].val);}
                             else
                                 this.set('machineFields.' + index + '.value', f.options[0].id);
                         }
@@ -1163,7 +1173,6 @@
         _includeImageExtra: function(image) {
             if (image) {
                 // save in fields
-                console.log("WALALALA",image)
                 var indImEx = this._fieldIndexByName('image_extra');
                 if (indImEx != undefined)
                     this.set('machineFields.' + indImEx + '.value', this.model.clouds[this.selectedCloud]
@@ -1214,6 +1223,26 @@
                 this.set('machineFields.' + keyInd + '.required', false);
                 this.set('machineFields.' + keyInd + '.label', "Key");
             }
+            var imgInd = this._fieldIndexByName('image');
+            img = this.get('machineFields.' + imgInd);
+            if(img.value){
+                for(var i = 0; i < img.options.length; i++){
+                    current = img.options[i];
+                    if(current.id == img.value){
+                        break
+                    }
+                }
+                sizeInd = this._fieldIndexByName('size')
+                if(current.extra.type == "ovf"){
+                    this.set('machineFields.' + sizeInd + '.show', false);
+                    this.set('machineFields.' + sizeInd + '.show', false);
+                }
+                else{
+                    this.set('machineFields.' + sizeInd + '.required', true);
+                    this.set('machineFields.' + sizeInd + '.show', true);
+                }
+            }
+            
         },
 
         _updateFieldsForOpenstack: function() {
@@ -1588,6 +1617,34 @@
         },
         _handleGetResourceGroupsError: function(e) {
             console.error('Got resource groups error', e);
+        },
+        _updateFolders: function(cloudId, field){
+            if (field && field.options && !field.options.length){
+                this._getFolders(cloudId, field);                
+            }
+        },
+        _getFolders(cloudId, field){
+            this.set("foldersField", field)
+            this.$.getFolders.headers["Content-Type"] = 'application/json';
+            this.$.getFolders.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getFolders.url = '/api/v1/clouds/' + cloudId + '/folders';
+            this.$.getFolders.generateRequest();
+        },
+        _handleGetFoldersRequest: function(e){
+            this.foldersField.loader = true;
+        },
+        _handleGetFoldersResponse: function(e){
+            const options = [];
+            e.detail.response.forEach(function(item, ind){
+                options.push({title: item.name, val: item.id})
+            });
+            this.foldersField.options = options;
+            //this.set('machineFields.'+this.machineFields.indexOf(this.foldersField)+'.options', options);
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetFoldersResponse()'}}));
+            this.foldersField.loader = false;
+            if(options && options.length > 0){
+                // this.foldersField.value= this.foldersField.options[0].val;
+                this.set('machineFields.'+this.machineFields.indexOf(this.foldersField)+'.show', true);}
         },
         _updateNetworkValue: function() {
             var createFieldIndex = this._fieldIndexByName('create_network');

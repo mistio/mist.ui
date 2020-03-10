@@ -709,6 +709,16 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'vsphere',
     fields: [{
+        name: 'folders',
+        label: 'VM Folder',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false, 
+        helptext: 'VSphere 6.7 required, choose the folder to place the new VM in.',
+        options:[],
+    },{
         name: 'networks',
         label: 'Networks *',
         type: 'mist_dropdown',
