@@ -190,8 +190,8 @@
                         </template>
                     </h2>
                     <template is="dom-repeat" items="[[cat.rules]]">
-                        <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] available-metrics=[[availableMetrics]] model="[[model]]" users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]] resource="[[resource]]"></rule-item>
-                        <rule-edit features="[[features]]" hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] resource-type=[[resourceType]] model="[[model]]" available-metrics=[[availableMetrics]] machines="[[machines]]" users=[[users]] teams=[[teams]]></rule-edit>
+                        <rule-item hidden$=[[item.editing]] editing={{item.editing}} rule=[[item]] model="[[model]]" users=[[users]] teams=[[teams]] open-incident=[[_hasOpenIncident(item,incidents)]] resource="[[resource]]"></rule-item>
+                        <rule-edit features="[[features]]" hidden$=[[!item.editing]] active={{item.editing}} current-rule=[[item]] resource=[[resource]] resource-type=[[resourceType]] model="[[model]]" machines="[[machines]]" users=[[users]] teams=[[teams]]></rule-edit>
                     </template>
                 </paper-material>
             </template>
@@ -199,7 +199,7 @@
                 <paper-button toggles active="{{addingRule}}" hidden$="[[addingRule]]" class="add-rule">
                     <iron-icon icon="icons:add-circle"></iron-icon> add new rule
                 </paper-button>
-                <rule-edit features="[[features]]" active={{addingRule}} available-metrics=[[availableMetrics]] resource=[[resource]] resource-type=[[resourceType]] users=[[users]] teams=[[teams]] model="[[model]]" hidden$=[[!addingRule]]>
+                <rule-edit features="[[features]]" active={{addingRule}} resource=[[resource]] resource-type=[[resourceType]] users=[[users]] teams=[[teams]] model="[[model]]" hidden$=[[!addingRule]]>
                 </rule-edit>
             </paper-material>
         </iron-collapse>
@@ -246,10 +246,6 @@
             },
             customMetrics: {
                 type: Object
-            },
-            availableMetrics: {
-                type: Array,
-                computed: "_computeMetrics(resource, builtinMetrics, customMetrics)"
             },
             addingRule: {
                 type: Boolean,
@@ -501,24 +497,6 @@
                 return names.join(' ,') + missing;
             }
 
-        },
-        _computeMetrics: function(resource, builtinMetrics, customMetrics) {
-            var metrics = [];
-            for (var p in this.builtinMetrics) {
-                metrics.push(this.builtinMetrics[p])
-            }
-            if (this.customMetrics) {
-                for (var q in this.customMetrics) {
-                    if (this.customMetrics[q].machines) {
-                        var machineHasCustomMetric = this.resource && this.customMetrics[q].machines.find(function(m) {
-                            return m[0] == this.resource.cloud && m[1] == this.resource.machine_id;
-                        }, this);
-                        if (machineHasCustomMetric || !this.resource)
-                            metrics.push(this.customMetrics[q])
-                    }
-                }
-            }
-            return metrics;
         },
         _hasOpenIncident: function(rule, incidents) {
             if (!rule || !incidents) {
