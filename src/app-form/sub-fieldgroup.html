@@ -13,7 +13,7 @@
                 border-radius: 5px;
             }
             :host([optional]) app-form {
-                margin-top: -24px;
+                margin-top: 0;
                 padding-bottom: 24px;
             }
 
@@ -31,7 +31,12 @@
             </paper-toggle-button>
         </template>
         <template is="dom-if" if="[[_showForm(field.optional,enabled)]]" restamp>
-            <app-form id$="sub-fieldgroup-[[id]]" fields="{{field.subfields}}" display-buttons="[[_calcDisplayButtons()]]" single-column="[[field.singleColumn]]" inline="[[field.inline]]"></app-form>
+            <template is="dom-if" if="[[field.loader]]" restamp>
+                <div class="spinner-wrapper">
+                    <paper-spinner active="[[field.loader]]"></paper-spinner>
+                </div>
+            </template>
+            <app-form id$="sub-fieldgroup-[[id]]" fields="{{field.subfields}}" display-buttons="[[_calcDisplayButtons()]]" single-column="[[field.singleColumn]]" inline="[[field.inline]]" hidden$=[[field.loader]]></app-form>
         </template>
     </template>
     <script>
@@ -83,11 +88,11 @@
                 '_fieldChanged(field)',
                 '_subfieldsChanged(field.subfields.*)'
             ],
-            ready: function() {
-            },
             _enabledChanged: function(enabled) {
                 if (!this.enabled) {
                     this._resetValue();
+                } else {
+                    this.dispatchEvent(new CustomEvent('subfield-enabled', {bubbles: true, composed: true, detail: {field: this.field}}));
                 }
             },
             _resetValue: function() {
