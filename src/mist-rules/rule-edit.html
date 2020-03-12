@@ -293,7 +293,7 @@
                                 <template is="dom-if" if="[[!resources.length]]">
                                     <paper-item disabled>no [[resourceType]]s found</paper-item>
                                 </template>
-                                <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]">
+                                <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]" initial-count="10">
                                     <paper-item value="[[item.id]]">
                                         <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="monitored machine"></iron-icon>
                                         [[_displayItemName(item, resourceType)]]</paper-item>
@@ -370,10 +370,13 @@
                                         <paper-item class="loader" hidden$="[[!loadingMetrics]]" disabled>
                                             <paper-spinner active="[[loadingMetrics]]"></paper-spinner> &nbsp; Loading metrics.
                                         </paper-item>
-                                        <template is="dom-if" if="[[availableMetrics.length]]">
-                                            <template is="dom-repeat" items="[[availableMetrics]]">
+                                        <template is="dom-if" if="[[availableMetrics.length]]" restamp>
+                                            <template is="dom-repeat" items="[[availableMetrics]]" initial-count="1">
                                                 <rule-metrics metric=[[item]] query-index="[[_getQueryIndex(query)]]"></rule-metrics>
                                             </template>
+                                        </template>
+                                        <template is="dom-if" if="[[!availableMetrics.length]]" restamp>
+                                            <paper-item hidden$="[[loadingMetrics]]" disabled>No metrics available</paper-item>
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
@@ -684,7 +687,7 @@
             // Update uri, unless we are in a single page where we are provided with a resource and resourceType.
             if (this.resource) {
                 return "/api/v1/metrics?resource_type="+ this.resourceType +"&resource_id=" + this.resource.id;
-            } else if (this.rule){
+            } else if (this.rule && !this.isNoData){
                 var typeString = "",
                     idString = "",
                     tagsString = "";
@@ -698,6 +701,7 @@
                     tagsString = (typeString || resourceId ? "&" : "") + "tags=" + this._computeTagsString(this._computeTagsFromString(this.tags))
                 }
                 console.log('_computeMetricsUri =====', "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString);
+
                 return "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString;
             }
         },
@@ -716,7 +720,7 @@
         _handleMetricResponse: function(data) {
             var output = {};
             if (data.detail.response) {
-                console.log('_handleMetricResponse response data', data.detail.response);
+                // console.log('_handleMetricResponse response data', data.detail.response);
                 Object.keys(data.detail.response).forEach(function(metric) {
                     var res = output;
                     var chunks = metric.split(".")
@@ -733,10 +737,10 @@
             }
             this.set('availableMetrics', this._makeArray(output));
             // Store metrics in resource if available, ie we are in a single page, so as to improve performance
-            // TODO: store on model.machine or model.metrics.machines.id might be more performant
-            if (this.resource && this.resourceType) {
-                this.set('resource.availableMetrics', this.availableMetrics);
+            if (!this.model.metrics) {
+                this.model.metrics = {};
             }
+            this.model.metrics[this.metricsUri] = this.availableMetrics;
             // handle empty response
             if (!output) {
                 this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"No metrics available for this resource(s)", duration:3000} }));
@@ -770,15 +774,28 @@
         },
         _getMetrics: function() {
             // Generate request only if these available metrics have not been requested before.
-            if (this.$.metrics.lastRequest && this.$.metrics.lastRequest.xhr.responseURL && this.$.metrics.lastRequest.xhr.responseURL == this.metricsUri) {
-                return;
-            }
-            if (this.resource && this.resourceType && this.resource.availableMetrics && this.resource.availableMetrics.length) {
-                this.set('availableMetrics', this.resource.availableMetrics);
+            if (this.model && this.model.metrics && this.model.metrics[this.metricsUri]) {
+                this._clearAvailableMetrics();
+                this.set('availableMetrics', this.model.metrics[this.metricsUri]);
             } else if (this.rule.data_type == "metrics"){
+                this._clearAvailableMetrics();
                 this.debounce('debounceGetMetrics',function() {
                     this.$.metrics.generateRequest();
-                }.bind(this), 500);
+                }.bind(this), 250);
+            }
+        },
+        _clearAvailableMetrics: function() {
+            this.set('availableMetrics', []);
+            for (var i = 0; i<this.rule.queries.length; i++) {
+                if (!this.editingExistingRule)
+                    if (this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)) {
+                        this.set('rule.queries.'+ i +'.target', "");
+                        this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)
+                            .shadowRoot.querySelector("paper-input")
+                            .shadowRoot.querySelector("paper-input-container")
+                            .querySelector("iron-input").querySelector("input").value = "";
+                        this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i).selected = -1;
+                    }
             }
         },
         _selectMetric: function(e) {
@@ -1168,10 +1185,8 @@
             }
         },
         _focusOnTarget: function(e) {
-            if (this.rule && this.rule.data_type == "metrics")
-                this._getMetrics();
             if (!this.hidden && e.detail.value) {
-                var selector = '#' + e.currentTarget.id.replace("data-type-", "target-" + e.detail.value + "s-");
+                var selector = '#' + e.currentTarget.id.replace("data-type-", "target-" + e.detail.value + "-");
                 // TODO: paper-input#target-logs-0 does not focus
                 if (this.shadowRoot.querySelector(selector)) {
                     console.log('_focusOnTarget', selector, this.shadowRoot.querySelector(selector));
@@ -1182,6 +1197,8 @@
                     if (this.shadowRoot.querySelector(selector).$.menuButton)
                         this.shadowRoot.querySelector(selector).$.menuButton.focus();
                 }
+                if (this.rule && this.rule.data_type == "metrics")
+                    this._getMetrics();
             }
         },
         _focusOnAggregation: function(e) {
