@@ -140,6 +140,8 @@
             on-response="_handleGetStorageAccountsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getFolders" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetFoldersRequest"
         on-response="_handleGetFoldersResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getDatastores" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetDatastoresRequest"
+        on-response="_handleGetDatastoresResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
     </template>
     <script>
     SCHEDULEACTIONS = {
@@ -731,9 +733,12 @@
                 }
                 //if it is vsphere add folders
                 if (this.model.clouds[this.selectedCloud].provider == "vsphere") {
-                    var fieldInd = this._fieldIndexByName('folders');
-                    var field = this.get("machineFields."+ fieldInd);
-                    this._updateFolders(this.selectedCloud, field);
+                    var folderFieldInd = this._fieldIndexByName('folders');
+                    var folderField = this.get("machineFields." + folderFieldInd);
+                    var datastoreFieldInd = this._fieldIndexByName('datastore')
+                    var datastoreField = this.get("machineFields." + datastoreFieldInd)
+                    this._updateFolders(this.selectedCloud, folderField);
+                    this._updateDatastores(this.selectedCloud, datastoreField)
                 }
                 // default values, hide empty non required, fill in single options
                 if (this.machineFields) {
@@ -1232,16 +1237,20 @@
                         break
                     }
                 }
+                
                 sizeInd = this._fieldIndexByName('size')
                 if(current.extra.type == "ovf"){
-                    this.set('machineFields.' + sizeInd + '.show', false);
-                    this.set('machineFields.' + sizeInd + '.show', false);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', 0);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 0);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', 0);
                 }
                 else{
-                    this.set('machineFields.' + sizeInd + '.required', true);
-                    this.set('machineFields.' + sizeInd + '.show', true);
+                    min_size = current.extra.disk_size
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 512);
                 }
             }
+            
             
         },
 
@@ -1645,6 +1654,34 @@
             if(options && options.length > 0){
                 // this.foldersField.value= this.foldersField.options[0].val;
                 this.set('machineFields.'+this.machineFields.indexOf(this.foldersField)+'.show', true);}
+        },
+        _updateDatastores: function(cloudId, field){
+            if (field && field.options && !field.options.length){
+                this._getDatastores(cloudId, field);                
+            }
+        },
+        _getDatastores(cloudId, field){
+            this.set("datastoresField", field)
+            this.$.getDatastores.headers["Content-Type"] = 'application/json';
+            this.$.getDatastores.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getDatastores.url = '/api/v1/clouds/' + cloudId + '/datastores';
+            this.$.getDatastores.generateRequest();
+        },
+        _handleGetDatastoresRequest: function(e){
+            this.datastoresField.loader = true;
+        },
+        _handleGetDatastoresResponse: function(e){
+            const options = [];
+            e.detail.response.forEach(function(item, ind){
+                space = Math.floor(item.free_space / (1024*1024*1024))
+                name = item.name + "  " + "Free: " + space + " GB"
+                options.push({title: name, val: item.id, space: item.free_space})
+            });
+            this.datastoresField.options = options;
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetFoldersResponse()'}}));
+            this.datastoresField.loader = false;
+            if(options && options.length > 0){
+                this.set('machineFields.'+this.machineFields.indexOf(this.datastoresField)+'.show', true);}
         },
         _updateNetworkValue: function() {
             var createFieldIndex = this._fieldIndexByName('create_network');
