@@ -315,6 +315,16 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
     fields: [{
+        name: 'security_group',
+        label: 'Security group *',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [],
+        helptext: 'Specify the security group for this machine',
+    }, {
         name: 'subnet_id',
         label: 'Subnet',
         type: 'mist_dropdown_searchable',
@@ -423,6 +433,29 @@ MACHINE_CREATE_FIELDS.push({
         required: false,
         options: [],
     }, {
+        name: 'vnfs',
+        label: 'Configure Virtual Network Functions',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: false,
+        helptext: '',
+        show: true,
+        required: false,
+        optional: true,
+        inline: true,
+        loader: true,
+        subfields: [{
+            name: 'vnfs',
+            label: 'Available VNFs',
+            type: 'checkboxes',
+            helptext: '',
+            show: true,
+            required: false,
+            options: [],
+            loader: true
+        }]
+    }, {
         name: 'libvirt_disk_path',
         type: 'text',
         label: 'Path to create VM\'s disk',
@@ -443,7 +476,7 @@ MACHINE_CREATE_FIELDS.push({
         pattern: '[0-9]*',
         helptext: 'The VM\'s size will be the size of the image plus the number in GBs provided here',
         helpHref: 'http://docs.mist.io/article/99-managing-kvm-with-mist-io',
-    }],
+    }]
 });
 
 // LINODE

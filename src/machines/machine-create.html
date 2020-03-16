@@ -134,6 +134,8 @@
                 <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
             </div>
         </paper-dialog>
+        <iron-ajax id="getSecurityGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetSecurityGroupsRequest"
+            on-response="_handleGetSecurityGroupsResponse" on-error="_handleGetSecurityGroupsError"></iron-ajax>
         <iron-ajax id="getResourceGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetResourceGroupsRequest"
             on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getStorageAccounts" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageAccountsRequest"
@@ -142,6 +144,9 @@
         on-response="_handleGetFoldersResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getDatastores" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetDatastoresRequest"
         on-response="_handleGetDatastoresResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getVirtualNetworkFunctions" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetVirtualNetworkFunctionsRequest"
+            on-response="_handleGetVirtualNetworkFunctionsResponse" on-error="_handleGetVirtualNetworkFunctionsError"></iron-ajax>
+
     </template>
     <script>
     SCHEDULEACTIONS = {
@@ -257,6 +262,12 @@
             foldersField: {
                 type: Object
             },
+            securityGroupsFieldIndex: {
+                type: Number
+            },
+            virtualNetworkFunctionFieldIndex: {
+                type: Number
+            },
             constraints: {
                 type: Object
             }
@@ -274,7 +285,8 @@
             'keyup': 'hotkeys',
             'add-input': 'addInput',
             'format-payload': 'formatPayload',
-            'fields-changed': 'fieldsChanged'
+            'fields-changed': 'fieldsChanged',
+            'subfield-enabled': '_subfieldEnabled'
         },
         _teamsChanged: function() {
             console.log('_teamsChanged CALL checkPermissions');
@@ -521,6 +533,10 @@
                     this._updateFieldsForPacket();
                 }
 
+                // fetch security groups if necessary
+                if (this.model.clouds[this.selectedCloud].provider == "ec2") {
+                    this._updateSecurityGroups(this.selectedCloud);
+                }
                 var that = this;
                 this.machineFields.forEach(function(f, index) {
                     // clear options
@@ -597,7 +613,7 @@
                     if (f.type == "fieldgroup") {
                         for (var k=0; k<f.subfields.length; k++) {
                             var sf = f.subfields[k];
-                            if (sf.name.endsWith("zone")) {
+                            if (sf.name && sf.name.endsWith("zone")) {
                                 sf.options = this._toArray(this.model.zones);
                                 sf.options.forEach(function(zone) {
                                     if (zone.zone_id+'.' != zone.domain) {
@@ -1603,6 +1619,33 @@
                 this.set('machineFields.'+ resourceGroupFieldIndex +'.value', this.get('machineFields.'+ existingFieldIndex +'.value'))
             }
         },
+        _updateSecurityGroups: function(cloudId) {
+            var fieldIndex = this._fieldIndexByName('security_group');
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
+                this._getSecurityGroups(cloudId, fieldIndex);
+            }
+        },
+        _getSecurityGroups: function(cloudId, index) {
+            this.set("securityGroupsFieldIndex",index);
+            this.$.getSecurityGroups.headers["Content-Type"] = 'application/json';
+            this.$.getSecurityGroups.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getSecurityGroups.url = '/api/v1/clouds/'+ cloudId +'/security-groups';
+            this.$.getSecurityGroups.generateRequest();
+        },
+        _handleGetSecurityGroupsRequest: function(e) {
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.loader', true);
+        },
+        _handleGetSecurityGroupsResponse: function(e) {
+            var secGroups=[];
+            for (var i=0; i<e.detail.response.length; i++)
+                secGroups.push({'title': e.detail.response[i].name, 'val': e.detail.response[i].id});
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.options', secGroups || []);
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetSecurityGroupsResponse()'}}));
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.loader', false);
+        },
+        _handleGetSecurityGroupsError: function(e) {
+            console.error('Got security groups error', e);
+        },
         _updateResourceGroups: function(cloudId) {
             var fieldIndex = this._fieldIndexByName('ex_resource_group');
             if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
@@ -1681,7 +1724,76 @@
             this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetFoldersResponse()'}}));
             this.datastoresField.loader = false;
             if(options && options.length > 0){
-                this.set('machineFields.'+this.machineFields.indexOf(this.datastoresField)+'.show', true);}
+                this.set('machineFields.'+this.machineFields.indexOf(this.datastoresField)+'.show', true);
+            }
+        },
+        _updateVirtualNetworkFunctions: function(cloudId) {
+            var fieldIndex = this._fieldIndexByName('vnfs');
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.subfields.0.options') && !this.get('machineFields.' + fieldIndex + '.subfields.0.options').length) {
+                this._getVirtualNetworkFunctions(cloudId, fieldIndex);
+            }
+        },
+        _getVirtualNetworkFunctions: function(cloudId, index) {
+            this.set("virtualNetworkFunctionFieldIndex",index);
+            this.$.getVirtualNetworkFunctions.headers["Content-Type"] = 'application/json';
+            this.$.getVirtualNetworkFunctions.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getVirtualNetworkFunctions.url = '/api/v1/clouds/'+ cloudId +'/vnfs';
+            this.$.getVirtualNetworkFunctions.generateRequest();
+        },
+        _handleGetVirtualNetworkFunctionsRequest: function(e) {
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', true);
+        },
+        _handleGetVirtualNetworkFunctionsResponse: function(e) {
+            var vnfs=[];
+            for (var i=0; i<e.detail.response.length; i++) {
+                if (e.detail.response[i].interface) {
+                    vnfs.push(e.detail.response[i]);
+                }
+            }
+            var categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(vnfs);
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options', categorisedVNFs || []);
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()'}}));
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', false);
+        },
+        _getCategorizedVirtualNetworkFunctions: function(arr) {
+            var categories = [], // store names
+                categoriesObjects = {}; // store items
+            for  (var i=0; i<arr.length; i++) {
+                var catName = 'NUMA ' + arr[i].numa; // Category name
+                if (categories.indexOf(catName) <= -1) {
+                    // store category name and initialise category
+                    categories.push(catName);
+                    categoriesObjects[catName] = [];
+                }
+                var item = {
+                    'name': arr[i].interface,
+                    'id': arr[i].pci_bdf,
+                    'description': arr[i].pci_bdf,
+                    'tooltip': arr[i].device.vendor + ' ' + arr[i].device.name
+                }
+                // store item under its category name
+                categoriesObjects[catName].push(item);
+            }
+            // merge category names with items
+            var categorisedArray = [];
+            categories = categories.reverse();
+            for  (var i=0; i<categories.length; i++) {
+                var cat = categories[i];
+                categorisedArray.push(cat);
+                categorisedArray = categorisedArray.concat(categoriesObjects[cat]);
+            }
+            // return categorisedArray or default array
+            return categorisedArray || arr.map(function(x){ return {
+                'name': x.interface,
+                'id': x.pci_bdf,
+                'description': x.pci_bdf + ' - ' + x.device.vendor + ' ' + x.device.name}});
+        },
+        _handleGetVirtualNetworkFunctionsError: function(e) {
+            console.error('Got security groups error', e);
+        },
+        _subfieldEnabled: function(e) {
+            if (e.detail.field.name == 'vnfs')
+                this._updateVirtualNetworkFunctions(this.cloud.id)
         },
         _updateNetworkValue: function() {
             var createFieldIndex = this._fieldIndexByName('create_network');
@@ -1928,13 +2040,18 @@
         formatPayload: function(e) {
             var hostnameInd = this._fieldIndexByName("hostname"),
                 composedHostname = '',
-                hostname =  this.get('machineFields.' + hostnameInd + '.value');
+                hostname =  this.get('machineFields.' + hostnameInd + '.value'),
+                vnfsInd = this._fieldIndexByName("vnfs"),
+                vnfs = this.get('machineFields.' + vnfsInd + '.value');
             if (hostname) {
                 if (hostname.record_name && hostname.dns_zone) {
                     var domainName = this.model.zones[hostname.dns_zone].zone_id;
                     composedHostname = hostname.record_name+'.'+domainName+'.';
                 }
                 this.set('machineFields.' + hostnameInd + '.value',composedHostname);
+            }
+            if (vnfs && vnfs.vnfs) {
+                this.set('machineFields.' + vnfsInd + '.value', vnfs.vnfs);
             }
         },
         _hasProviders: function(providers) {

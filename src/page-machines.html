@@ -325,10 +325,9 @@
         },
 
         _getVisibleColumns: function() {
-            var ret = ['state', 'cloud', 'cost', 'created', 'expiration', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
+            var ret = ['state', 'cloud', 'cost', 'created', 'expiration', 'created_by', 'tags', 'image_id', 'size', 'location', 'parent', 'hostname', 'public_ips'];
             if (this.model.org && this.model.org.ownership_enabled == true)
                 ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-            // console.log('parent sets visible', ret);
             return ret;
         },
 
@@ -359,6 +358,9 @@
                     'body': function(item, row) {
                         if (!_this.model.clouds[row.cloud])
                             return '';
+                        if (_this.model.clouds[row.cloud].provider == 'libvirt' && row.parent) {
+                            return './assets/providers/kvm.png';
+                        }
                         return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
                             .replace(" ", "") + '.png';
                     }
@@ -416,10 +418,18 @@
                         return 0;
                     }
                 },
+                'parent': {
+                    'body': function(item, row) {
+                        if (item && _this.model && _this.model.machines && _this.model.machines[item]) {
+                            return '<a href="/machines/' + item + '">' + _this.model.machines[item].name + '</a>';
+                        } else {
+                            return item;
+                        }
+                    }
+                },
                 'cost': {
                     'body': function(item, row) {
-                        var cost = parseFloat(item.monthly);
-                        return item && item.monthly && _this.currency? _this.currency.sign + _this._ratedCost(cost, _this.currency.rate) : '';
+                        return item && item.monthly && _this.currency? _this.currency.sign + _this._ratedCost(parseFloat(item.monthly), _this.currency.rate) : '';
                     },
                     'cmp': function(item1, item2, row1, row2) {
                         if (item1.monthly < item2.monthly)
@@ -434,7 +444,7 @@
                         return 'owner';
                     },
                     'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                     }
                 },
                 'created_by': {
@@ -442,7 +452,7 @@
                         return 'created by';
                     },
                     'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email : '';
+                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                     }
                 },
                 'created': {
