@@ -777,7 +777,7 @@ MACHINE_CREATE_FIELDS.push({
 
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p) {
-    var addImage = ['kvm','lxd'].indexOf(p.provider) != -1;
+    var addImage = ['kvm'].indexOf(p.provider) != -1;
     var showLocation = ['lxd'].indexOf(p.provider) == -1;
 
     // add common machine properties fields

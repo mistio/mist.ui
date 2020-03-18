@@ -425,7 +425,7 @@
             }
             var allMachinesFields;
             if (this.selectedCloud) {
-                var provider = this.model.clouds[selectedCloud].provider;
+                var provider = this.model.clouds[selectedCloud] && this.model.clouds[selectedCloud].provider;
                 allMachinesFields = this.machinesFields.find(function(c) {
                     return c.provider == provider;
                 });
@@ -735,6 +735,11 @@
                 // if is docker, change required values
                 if (this.model.clouds[this.selectedCloud].provider == "docker") {
                     this._updateFieldsForDocker();
+                }
+
+                // if is lxd, change required values
+                if (this.model.clouds[this.selectedCloud].provider == "lxd") {
+                    this._updateFieldsForLxd();
                 }
 
                 // if is azure arm, change required values
@@ -1355,12 +1360,22 @@
                 this.set('machineFields.' + keyInd + '.required', false);
                 this.set('machineFields.' + keyInd + '.label', 'Key');
                 this.set('machineFields.' + keyInd + '.helptext',
-                    "Optional. Keys are valid only for Mist.io images");
+                    "Optional. Only valid if image includes ssh server");
             }
 
             // disable monitoring by default
             if (monInd > -1)
                 this.set('machineFields.' + monInd + '.value', false);
+        },
+        _updateFieldsForLxd: function() {
+            var keyInd = this._fieldIndexByName('key');
+            // optional key
+            if (keyInd > -1) {
+                this.set('machineFields.' + keyInd + '.required', false);
+                this.set('machineFields.' + keyInd + '.label', 'Key');
+                this.set('machineFields.' + keyInd + '.helptext',
+                    "Optional. Only valid if image includes ssh server");
+            }
         },
         _computeAddImageTitle: function(selectedCloud) {
             var provider = "";
@@ -1730,7 +1745,7 @@
                     this.set('machineFields.' + keyInd + '.show', true);
                 }
                 //if the provider is Docker or onapp, the key should not be required
-                if (['docker', 'onapp'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
+                if (['docker', 'lxd', 'onapp'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
                     if (keyInd > -1) {
                         this.set('machineFields.' + keyInd + '.required', true);
                     }
