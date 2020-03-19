@@ -742,6 +742,16 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'vsphere',
     fields: [{
+        name: 'folders',
+        label: 'VM Folder',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false, 
+        helptext: 'VSphere 6.7 required, choose the folder to place the new VM in.',
+        options:[],
+    },{
         name: 'networks',
         label: 'Networks *',
         type: 'mist_dropdown',
@@ -750,7 +760,25 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         options: [],
-    }],
+    },{
+        name: 'datastore',
+        label: 'Datastore',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false, 
+        helptext: 'Optional. Datastore for the VM disk.',
+        options:[],
+    },{
+        name: 'image_extra',
+        label: 'Image extra',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        required: false,
+    },],
 });
 
 // VULTR
@@ -989,6 +1017,19 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 unit: 'cores',
+            }, {
+                name: 'disk_primary',
+                label: 'Disk',
+                type: 'slider',
+                value: 5,
+                defaultValue: 5,
+                min: 5,
+                max: 512,
+                step: 1,
+                show: false,
+                required: false,
+                unit: 'GB',
+                helptext: 'Custom disk size in GB.'
             }],
         });
     } else if (['maxihost'].indexOf(p.provider) != -1){ // size dependent on location for maxihost
