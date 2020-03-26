@@ -81,7 +81,7 @@
                 <paper-item disabled>No networks found</paper-item>
             </div>
             <template id="mist-networks-item-repeater" is="dom-repeat" items="[[field.options]]" as="option">
-                <mist-networks-item id$="[[option.id]]" network="[[option]]" value="{{option.fieldValue}}" type="{{type}}" on-change="_itemChanged"></mist-networks-item>
+                <mist-networks-item id$="[[option.id]]" network="[[option]]" can-configure="[[canConfigure]]" value="{{option.fieldValue}}" type="{{type}}" on-change="_itemChanged"></mist-networks-item>
             </template>
         </div>
     </template>
@@ -97,6 +97,10 @@
             selectedOptions: {
                 type: Array,
                 value: []
+            },
+            canConfigure: {
+                type: Boolean,
+                computed: '_computeCanConfigure(field.canConfigure)'
             }
         },
 
@@ -109,6 +113,12 @@
 
         ready: function() {
             this.set('field.valid', !this.field.required);
+        },
+
+        _computeCanConfigure: function(fieldCc) {
+            if (!this.field)
+                return false;
+            return this.field.canConfigure;
         },
 
         _fieldChanged: function(field) {

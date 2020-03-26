@@ -724,6 +724,54 @@ PROVIDERS.push({
     }]
 });
 
+// G8
+PROVIDERS.push({
+    title: 'GigG8',
+    val: 'gig_g8',
+    className: 'provider-gigg8',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "GigG8",
+        defaultValue: "G8",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "api_key",
+        label: "API key (JWT) *",
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API key",
+        helptext: ""
+    }, {
+        name: "user_id",
+        label: "User ID*",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the User ID",
+        helptext: ""
+    }, {
+        name: "url",
+        label: "API url *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter the API url",
+        helptext: ""
+    }]
+});
+
+
 
 // KVM
 PROVIDERS.push({

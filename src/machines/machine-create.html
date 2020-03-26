@@ -526,14 +526,14 @@
                     this.set('machineFields.' + this._fieldIndexByName('monitoring') + '.show',
                         false);
 
-                // if is onapp change fields
-                if (this.model.clouds[this.selectedCloud].provider == "onapp") {
-                    this._updateFieldsForOnapp();
-                }
-
                 // if is openstack do not require network/locations
                 if (this.model.clouds[this.selectedCloud].provider == "openstack") {
                     this._updateFieldsForOpenstack();
+                }
+
+                // if is gig_g8 require network
+                if (this.model.clouds[this.selectedCloud].provider == "gig_g8") {
+                    this._updateFieldsForGigG8();
                 }
 
                 // if is packet construct ip_addresses value
@@ -712,7 +712,7 @@
                                 }
                             }
                             // Remove new volume name field for now since it's not used by OpenStack
-                            if (provider == "openstack"){
+                            if (provider == "openstack" || provider == "gig_g8"){
                                 var nameIndex = options.findIndex(function(f){return f.name == 'name'})
                                 if (nameIndex > -1) {
                                     options.splice(nameIndex,1);
@@ -728,7 +728,7 @@
                             // add provider dependent fields if they do yet not exist
                             var names = f.options.map(f => f.name);
                             for (var i = options.length-1; i>=0;i--){
-                                if (names.indexOf(options[i].name) == -1) {
+                                if (names.indexOf(options[i].name) == -1 && (options[i].onForm == 'createForm' || !options[i].onForm) ) {
                                     f.options.splice(existingIndex, 0, options[i]);
                                 }
                             }
@@ -757,6 +757,10 @@
                 // if is lxd, change required values
                 if (this.model.clouds[this.selectedCloud].provider == "lxd") {
                     this._updateFieldsForLxd();
+                }
+
+                if (this.model.clouds[this.selectedCloud].provider == "gig_g8") {
+                    this._updateFieldsForGigG8();
                 }
 
                 // if is azure arm, change required values
@@ -1307,12 +1311,11 @@
             }
         },
 
-        _updateFieldsForOnapp: function() {
-            var keyInd = this._fieldIndexByName('key');
-            if (keyInd > -1) {
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', "Key");
-                this.set('machineFields.' + keyInd + '.helptext', "Optional.");
+        _updateFieldsForGigG8: function() {
+            var netInd = this._fieldIndexByName('networks');
+            if (netInd > -1) {
+                this.set('machineFields.' + netInd + '.options', this._toArray(this.model.clouds[this.selectedCloud].networks));
+                this.set('machineFields.' + netInd + '.required', true);
             }
         },
 
@@ -1407,8 +1410,6 @@
 
             // optional key
             if (keyInd > -1) {
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', 'Key');
                 this.set('machineFields.' + keyInd + '.helptext',
                     "Optional. Only valid if image includes ssh server");
             }
@@ -1421,8 +1422,6 @@
             var keyInd = this._fieldIndexByName('key');
             // optional key
             if (keyInd > -1) {
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', 'Key');
                 this.set('machineFields.' + keyInd + '.helptext',
                     "Optional. Only valid if image includes ssh server");
             }
@@ -1919,7 +1918,7 @@
                     this.set('machineFields.' + keyInd + '.show', true);
                 }
                 //if the provider is Docker or onapp, the key should not be required
-                if (['docker', 'lxd', 'onapp'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
+                if (['docker', 'lxd', 'onapp', 'libvirt', 'vshere', 'gig_g8'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
                     if (keyInd > -1) {
                         this.set('machineFields.' + keyInd + '.required', true);
                     }

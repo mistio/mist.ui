@@ -233,6 +233,38 @@ NETWORK_CREATE_FIELDS.push({
     }]
 });
 
+// GIG G8
+NETWORK_CREATE_FIELDS.push({
+    provider: 'gig_g8',
+    fields: [{
+        name: "name",
+        label: "Name *",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        placeholder: "",
+        errorMessage: "Please enter network's name",
+        show: true,
+        required: true,
+        inPayloadGroup: 'network'
+    },{
+        name: "network_type",
+        label: "Type",
+        type: "dropdown",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        options: [{
+            title: 'Virtual Gateway', 
+            val: 'vgw'
+        },{
+            title: 'Router OS',
+            val:'routeros'
+        }],
+        inPayloadGroup: 'network'
+    }]
+});
 
 // EC2
 NETWORK_CREATE_FIELDS.push({
