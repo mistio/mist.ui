@@ -342,6 +342,31 @@ MACHINE_CREATE_FIELDS.push({
     }, ],
 });
 
+// GIG G8
+MACHINE_CREATE_FIELDS.push({
+    provider: 'gig_g8',
+    fields: [{
+        name: 'networks',
+        label: 'Network *',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [],
+        canConfigure: false
+    },{
+        name: 'description',
+        label: 'Description',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false
+    }
+],
+});
+
 
 // Alibaba Cloud
 MACHINE_CREATE_FIELDS.push({
@@ -432,6 +457,7 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         options: [],
+        canConfigure: true
     }, {
         name: 'vnfs',
         label: 'Configure Virtual Network Functions',
@@ -852,16 +878,21 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: true,
         options: [],
         search: '',
-    }, {
-        name: 'location',
-        label: 'Location *',
-        type: 'mist_dropdown',
-        value: '',
-        defaultValue: '',
-        show: showLocation,
-        required: true,
-        options: [],
     });
+
+    // location for non gig_g8 clouds
+    if (['gig_g8'].indexOf(p.provider) == -1) {
+        p.fields.splice(0, 0, {
+            name: 'location',
+            label: 'Location *',
+            type: 'mist_dropdown',
+            value: '',
+            defaultValue: '',
+            show: true,
+            required: true,
+            options: []
+        });
+    }
 
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
@@ -899,6 +930,56 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 unit: 'cores',
+            }],
+        });
+    } else if (['gig_g8'].indexOf(p.provider) != -1) {
+        p.fields.splice(2, 0, {
+            name: 'size',
+            label: 'Size *',
+            type: 'mist_size',
+            value: 'custom',
+            defaultValue: 'custom',
+            custom: true,
+            customValue: null,
+            show: true,
+            required: true,
+            customSizeFields: [{
+                name: 'ram',
+                label: 'RAM MB',
+                type: 'slider',
+                value: 256,
+                defaultValue: 256,
+                min: 512,
+                max: 15872,
+                step: 256,
+                show: true,
+                required: false,
+                unit: 'MB',
+            }, {
+                name: 'cpu',
+                label: 'CPU cores',
+                type: 'slider',
+                value: 1,
+                defaultValue: 1,
+                min: 1,
+                max: 16,
+                step: 1,
+                show: true,
+                required: false,
+                unit: 'cores',
+            }, {
+                name: 'disk_primary',
+                label: 'Primary Disk',
+                type: 'slider',
+                value: 5,
+                defaultValue: 5,
+                min: 1,
+                max: 1024,
+                step: 1,
+                show: true,
+                required: true,
+                unit: 'GB',
+                helptext: 'Custom disk size in GB.'
             }],
         });
     } else if (['onapp'].indexOf(p.provider) != -1) {
@@ -1151,22 +1232,22 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             },
         });
     }
-
+    var requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere'].indexOf(p.provider) == -1;
     p.fields.push({
         name: 'key',
-        label: 'Key *',
+        label: 'Key ' + (requiredKey ? '*' : ''),
         type: 'ssh_key',
         value: '',
         defaultValue: '',
         add: true,
         show: true,
-        required: true,
+        required: requiredKey,
         options: [],
         search: '',
     });
 
     // add cloud init field only to providers that accept and we support
-    if (['azure', 'azure_arm', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer'].indexOf(p.provider) != -1) {
+    if (['azure', 'azure_arm', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer', 'gig_g8'].indexOf(p.provider) != -1) {
         p.fields.push({
             name: 'cloud_init',
             label: 'Cloud Init',
@@ -1203,8 +1284,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd'].indexOf(p.provider) > -1) {
-        var allowedVolumes = ['gce','azure_arm'].indexOf(p.provider) > -1 ? 3 : 1; 
+    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'gig_g8'].indexOf(p.provider) > -1) {
+        var allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
+        var allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
@@ -1245,6 +1327,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 }, {
                     title: 'Attach Existing',
                     val: 'existing',
+                    disabled: !allowExistingVolumes
                 }]
             }, {
                 name: 'volume_id',
