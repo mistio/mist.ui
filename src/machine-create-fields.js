@@ -315,6 +315,16 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'ec2',
     fields: [{
+        name: 'security_group',
+        label: 'Security group *',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [],
+        helptext: 'Specify the security group for this machine',
+    }, {
         name: 'subnet_id',
         label: 'Subnet',
         type: 'mist_dropdown_searchable',
@@ -330,6 +340,31 @@ MACHINE_CREATE_FIELDS.push({
             fieldExists: true,
         },
     }, ],
+});
+
+// GIG G8
+MACHINE_CREATE_FIELDS.push({
+    provider: 'gig_g8',
+    fields: [{
+        name: 'networks',
+        label: 'Network *',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [],
+        canConfigure: false
+    },{
+        name: 'description',
+        label: 'Description',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false
+    }
+],
 });
 
 
@@ -422,6 +457,30 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         options: [],
+        canConfigure: true
+    }, {
+        name: 'vnfs',
+        label: 'Configure Virtual Network Functions',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: false,
+        helptext: '',
+        show: true,
+        required: false,
+        optional: true,
+        inline: true,
+        loader: true,
+        subfields: [{
+            name: 'vnfs',
+            label: 'Available VNFs',
+            type: 'checkboxes',
+            helptext: '',
+            show: true,
+            required: false,
+            options: [],
+            loader: true
+        }]
     }, {
         name: 'libvirt_disk_path',
         type: 'text',
@@ -443,7 +502,7 @@ MACHINE_CREATE_FIELDS.push({
         pattern: '[0-9]*',
         helptext: 'The VM\'s size will be the size of the image plus the number in GBs provided here',
         helpHref: 'http://docs.mist.io/article/99-managing-kvm-with-mist-io',
-    }],
+    }]
 });
 
 // LINODE
@@ -709,6 +768,16 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.push({
     provider: 'vsphere',
     fields: [{
+        name: 'folders',
+        label: 'VM Folder',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false, 
+        helptext: 'VSphere 6.7 required, choose the folder to place the new VM in.',
+        options:[],
+    },{
         name: 'networks',
         label: 'Networks *',
         type: 'mist_dropdown',
@@ -717,7 +786,25 @@ MACHINE_CREATE_FIELDS.push({
         show: true,
         required: false,
         options: [],
-    }],
+    },{
+        name: 'datastore',
+        label: 'Datastore',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false, 
+        helptext: 'Optional. Datastore for the VM disk.',
+        options:[],
+    },{
+        name: 'image_extra',
+        label: 'Image extra',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: false,
+        required: false,
+    },],
 });
 
 // VULTR
@@ -741,8 +828,35 @@ MACHINE_CREATE_FIELDS.push({
     }],
 });
 
+// LXD
+MACHINE_CREATE_FIELDS.push({
+    provider: 'lxd',
+    fields: [{
+        name: 'ephemeral',
+        label: 'Ephemeral *',
+        type: 'toggle',
+        value: '',
+        defaultValue: false,
+        show: true,
+        required: true,
+        helptext: 'An ephemeral container will be deleted when is stopped.'
+    }, {
+        name: 'networks',
+        label: 'Network',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
+    }],
+});
+
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p) {
+    var addImage = ['kvm'].indexOf(p.provider) != -1;
+    var showLocation = ['lxd'].indexOf(p.provider) == -1;
+
     // add common machine properties fields
     p.fields.splice(0, 0, {
         name: 'name',
@@ -760,19 +874,25 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         value: '',
         defaultValue: '',
         show: true,
+        add: addImage,
         required: true,
         options: [],
         search: '',
-    }, {
-        name: 'location',
-        label: 'Location *',
-        type: 'mist_dropdown',
-        value: '',
-        defaultValue: '',
-        show: true,
-        required: true,
-        options: [],
     });
+
+    // location for non gig_g8 clouds
+    if (['gig_g8'].indexOf(p.provider) == -1) {
+        p.fields.splice(0, 0, {
+            name: 'location',
+            label: 'Location *',
+            type: 'mist_dropdown',
+            value: '',
+            defaultValue: '',
+            show: true,
+            required: true,
+            options: []
+        });
+    }
 
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
@@ -810,6 +930,56 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 unit: 'cores',
+            }],
+        });
+    } else if (['gig_g8'].indexOf(p.provider) != -1) {
+        p.fields.splice(2, 0, {
+            name: 'size',
+            label: 'Size *',
+            type: 'mist_size',
+            value: 'custom',
+            defaultValue: 'custom',
+            custom: true,
+            customValue: null,
+            show: true,
+            required: true,
+            customSizeFields: [{
+                name: 'ram',
+                label: 'RAM MB',
+                type: 'slider',
+                value: 256,
+                defaultValue: 256,
+                min: 512,
+                max: 15872,
+                step: 256,
+                show: true,
+                required: false,
+                unit: 'MB',
+            }, {
+                name: 'cpu',
+                label: 'CPU cores',
+                type: 'slider',
+                value: 1,
+                defaultValue: 1,
+                min: 1,
+                max: 16,
+                step: 1,
+                show: true,
+                required: false,
+                unit: 'cores',
+            }, {
+                name: 'disk_primary',
+                label: 'Primary Disk',
+                type: 'slider',
+                value: 5,
+                defaultValue: 5,
+                min: 1,
+                max: 1024,
+                step: 1,
+                show: true,
+                required: true,
+                unit: 'GB',
+                helptext: 'Custom disk size in GB.'
             }],
         });
     } else if (['onapp'].indexOf(p.provider) != -1) {
@@ -893,7 +1063,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 },
             }],
         });
-    } else if (['vsphere'].indexOf(p.provider) != -1) {
+    } else if (['vsphere', 'lxd'].indexOf(p.provider) != -1) {
         p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
@@ -928,6 +1098,19 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 unit: 'cores',
+            }, {
+                name: 'disk_primary',
+                label: 'Disk',
+                type: 'slider',
+                value: 5,
+                defaultValue: 5,
+                min: 5,
+                max: 512,
+                step: 1,
+                show: false,
+                required: false,
+                unit: 'GB',
+                helptext: 'Custom disk size in GB.'
             }],
         });
     } else if (['maxihost'].indexOf(p.provider) != -1){ // size dependent on location for maxihost
@@ -1049,21 +1232,22 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             },
         });
     }
-
+    var requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere'].indexOf(p.provider) == -1;
     p.fields.push({
         name: 'key',
-        label: 'Key *',
+        label: 'Key ' + (requiredKey ? '*' : ''),
         type: 'ssh_key',
         value: '',
         defaultValue: '',
+        add: true,
         show: true,
-        required: true,
+        required: requiredKey,
         options: [],
         search: '',
     });
 
     // add cloud init field only to providers that accept and we support
-    if (['azure', 'azure_arm', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer'].indexOf(p.provider) != -1) {
+    if (['azure', 'azure_arm', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer', 'gig_g8'].indexOf(p.provider) != -1) {
         p.fields.push({
             name: 'cloud_init',
             label: 'Cloud Init',
@@ -1100,8 +1284,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs'].indexOf(p.provider) > -1) {
-        var allowedVolumes = ['gce','azure_arm'].indexOf(p.provider) > -1 ? 3 : 1; 
+    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'gig_g8'].indexOf(p.provider) > -1) {
+        var allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
+        var allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
@@ -1142,6 +1327,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 }, {
                     title: 'Attach Existing',
                     val: 'existing',
+                    disabled: !allowExistingVolumes
                 }]
             }, {
                 name: 'volume_id',
@@ -1160,6 +1346,22 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 }
             }]
         })
+
+        if(['lxd'].indexOf(p.provider) > -1){
+           p.fields[p.fields.length-1].options.push({
+                    name: 'path',
+                    label: 'Path *',
+                    type: 'text',
+                    value: '',
+                    defaultValue: '',
+                    show: true,
+                    required: true,
+                    onForm: 'createForm',
+                    options: [],
+                    helptext: 'Path in the container the volume is attached. e.g. /opt/my/data. This is required when attaching the volume to a container',
+           })
+        }
+
         if (['ec2'].indexOf(p.provider) > -1) {
             p.fields[p.fields.length-1].options.push({
                 name: 'device',

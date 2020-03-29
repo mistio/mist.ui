@@ -269,6 +269,7 @@
                                                 [[item.name]]
                                             </a>
                                             <span hidden$="[[isEqual(item.name,item.email)]]">[[item.email]]</span>
+                                            <span hidden$="[[!item.username]]">[[item.username]]</span>
                                         </span>
                                     </paper-item-body>
                                     <iron-icon icon="icons:delete" on-tap="_deleteMemberFromTeam" class="delete-member" memberid$="[[item.id]]" membername$="[[item.name]]"></iron-icon>
@@ -437,7 +438,7 @@
             this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
         },
         _displayUser: function(id, members) {
-            return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+            return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
         },
         _change: function(item) {
             if (item)
@@ -454,8 +455,8 @@
             } 
         },
         _hasOnlyYou: function(team) {
-            if (team && team.members && team.members.length == 1 && team.members[0].email == this.model
-                .user.email) {
+            if (team && team.members && team.members.length == 1 && (team.members[0].email == this.model
+                .user.email || team.members[0].username == this.model.user.username)) {
                 return true;
             } else {
                 return false;

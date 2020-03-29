@@ -156,6 +156,22 @@ VOLUME_CREATE_FIELDS.push({
     }]
 });
 
+// GIGG8
+VOLUME_CREATE_FIELDS.push({
+    provider: 'gig_g8',
+    fields: [ {
+        name: "description",
+        label: "Description *",
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        helptext: "A human friendly description of the volume.",
+        onForm: 'volume_add',
+    }]
+});
+
 // OPENSTACK
 VOLUME_CREATE_FIELDS.push({
     provider: 'openstack',
@@ -275,6 +291,62 @@ VOLUME_CREATE_FIELDS.push({
     }]
 });
 
+VOLUME_CREATE_FIELDS.push({
+    provider: 'lxd',
+    fields: [{
+        name: 'pool_id',
+        label: 'Pool Id *',
+        type: 'dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: [],
+        helptext: 'Specify the pool id the volume will be created',
+    }, {
+        name: 'block_filesystem',
+        label: 'Block Filesystem ',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
+        helptext: 'Filesystem of the storage volume',
+    }, {
+        name: 'block_mount_options',
+        label: 'Block Mount Options',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: false,
+        options: [],
+        helptext: 'Mount options for block devices',
+    }, {
+        name: 'security_shifted',
+        label: 'Security Shifted',
+        type: 'toggle',
+        value: '',
+        defaultValue: false,
+        show: true,
+        required: true,
+        helptext: 'Enable id shifting overlay (allows attach by multiple isolated containers).'
+    },  {
+        name: 'path',
+        label: 'Path *',
+        type: 'text',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        onForm: 'createForm',
+        options: [],
+        helptext: 'Path in the container the volume is attached. e.g. /opt/my/data. This is required when attaching the volume to a container',
+    }]
+});
+
+
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
     var minimumSize = (p.provider == 'packet' && 10) ||
@@ -307,7 +379,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
             required: true});
     }
 
-    if (p.provider != 'openstack') {
+    if (p.provider != 'openstack' && p.provider != 'gig_g8') {
         p.fields.splice(1, 0, {
             name: 'location',
             label: 'Location *',

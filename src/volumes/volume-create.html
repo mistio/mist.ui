@@ -55,7 +55,7 @@
                 </div>
             </paper-material>
             <paper-material hidden$="[[hasCloudsWithVolumes]]">
-                <p>Creating volumes is available in OpenStack, GCE, AWS, Azure ARM, Packet and Digital Ocean clouds
+                <p>Creating volumes is available in OpenStack, GCE, AWS, Azure ARM, Packet, Aliyun, Gig G8 and Digital Ocean clouds
                     <br/> Add a cloud using the
                     <a href="/clouds/+add" class="blue-link regular">add cloud form</a>.
                 </p>
@@ -85,6 +85,9 @@
         </div>
         <iron-ajax id="getResourceGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetResourceGroupsRequest"
             on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+
+        <iron-ajax id="getLXDStoragePools" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetLXDStoragePoolsRequest"
+            on-response="_handleGetLXDStoragePoolsResponse" on-error="_handleGetLXDStoragePoolsError"></iron-ajax>
     </template>
     <script>
         Polymer({
@@ -124,6 +127,9 @@
                 },
                 resourceGroupsFieldIndex: {
                     type: Number
+                },
+                lxdStoragePoolsFieldIndex: {
+                    type: Number
                 }
             },
             observers: [
@@ -160,7 +166,7 @@
                 // add cloud fields
                 if (volumeFields.fields)
                     this.set('fields', JSON.parse(JSON.stringify(volumeFields.fields.filter(function(f){
-                        return !f.onForm || f.onForm == 'volume_add ';
+                        return f.onForm == 'volume_add' || !f.onForm;
                     }))));
 
                 // set values by provider
@@ -174,6 +180,11 @@
                     if (this.model.clouds[cloudId].provider == "azure_arm") {
                         this._updateResourceGroups(cloudId);
                     }
+
+                    if(this.model.clouds[cloudId].provider == "lxd"){
+                        this._updateLXDStoragePools(cloudId);
+                    }
+
                     this.fields.forEach(function (f, index) {
                         if (f.name.endsWith("location")) {
                             var locations = this.model.clouds[cloudId].locationsArray.slice();
@@ -272,6 +283,30 @@
             },
             _handleGetResourceGroupsError: function(e) {
                 console.error('Got resource groups error', e);
+            },
+            _updateLXDStoragePools: function(cloudId) {
+                var fieldIndex = this._fieldIndexByName('pool_id');
+                if (fieldIndex && this.get('fields.' + fieldIndex + '.options') && !this.get('fields.' + fieldIndex + '.options').length) {
+                    this._getLXDStoragePools(cloudId, fieldIndex);
+                }
+            },
+            _getLXDStoragePools: function(cloudId, index) {
+                this.set("lxdStoragePoolsFieldIndex",index);
+                this.$.getLXDStoragePools.headers["Content-Type"] = 'application/json';
+                this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.getLXDStoragePools.url = '/api/v1/clouds/'+ cloudId +'/storage-pools';
+                this.$.getLXDStoragePools.generateRequest();
+            },
+            _handleGetLXDStoragePoolsRequest: function(e) {
+                this.set('fields.' + this.lxdStoragePoolsFieldIndex + '.loader', true);
+            },
+            _handleGetLXDStoragePoolsResponse: function(e) {
+                this.set('fields.' + this.lxdStoragePoolsFieldIndex + '.options', e.detail.response || []);
+                this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'volume-create.html'}}));
+                this.set('fields.' + this.lxdStoragePoolsFieldIndex + '.loader', false);
+            },
+            _handleGetLXDStoragePoolsError: function(e) {
+                console.error('Got LXD storage pools error error', e);
             },
             _fieldIndexByName: function (name) {
                 var field = this.fields.findIndex(function (f) {

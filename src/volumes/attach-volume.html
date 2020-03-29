@@ -91,6 +91,7 @@
                             </paper-listbox>
                         </paper-dropdown-menu>
                         <paper-input id="device" value="{{device}}" hidden$="[[hideDeviceInput]]"></paper-input>
+                        <paper-input label="Path *" id="path" value="{{path}}" hidden$="[[hidePathInput]]"></paper-input>
                     </template>
                 </p>
             </paper-dialog-scrollable>
@@ -127,6 +128,11 @@
                 value: false,
                 computed: '_computeHideDeviceInput(provider, items.*)'
             },
+            hidePathInput: {
+                type: Boolean,
+                value: false,
+                computed: '_computeHidePathInput(provider, items.*)'
+            },
             selectedMachineId: {
                 type: String,
                 value: false
@@ -134,6 +140,10 @@
             device: {
                 type: String,
                 value: "/dev/xvda"
+            },
+            path: {
+                type: String,
+                value: "/ops/my/data"
             },
             machines: {
                 type: Array,
@@ -155,6 +165,9 @@
         _computeHideDeviceInput: function(provider) {
             return this && this.provider != "ec2";
         },
+        _computeHidePathInput: function(provider) {
+            return this && this.provider != "lxd";
+        },
         _openDialog: function(e) {
             this.clearError();
             this.set('selectedMachineId', false);
@@ -171,7 +184,9 @@
                 var items = this.items.slice(0),
                     selectedMachineId = this.selectedMachineId,
                     device = this.device,
-                    hideDeviceInput = this.hideDeviceInput;
+                    path = this.path,
+                    hideDeviceInput = this.hideDeviceInput,
+                    hidePathInput = this.hidePathInput;
                 var run = function(el) {
                     var item = items.shift(),
                         itemType,
@@ -184,15 +199,13 @@
                         itemId = item.external_id;
                         cloudId = item.cloud;
                     }
-                    if (!hideDeviceInput) {
-                        request.body = {
-                            device: device
-                        };
-                    }
                     request.url = "/api/v1/clouds/" + cloudId + "/volumes/" + itemId;
                     request.body = { action: 'attach', machine: selectedMachineId };
                     if (!hideDeviceInput) {
                         request.body.device = device;
+                    }
+                    if (!hidePathInput) {
+                        request.body.path = path;
                     }
                     request.headers["Content-Type"] = 'application/json';
                     request.headers["Csrf-Token"] = CSRF_TOKEN;

@@ -12,6 +12,7 @@
 
             :host([moderate-top]) app-form {
                 margin-top: -50px !important;
+                margin-bottom: 0 !important;
             }
 
             .title {
@@ -94,6 +95,9 @@
                     value: false,
                     notify: true
                 },
+                show: {
+                    type: Boolean
+                },
                 horizontal: {
                     type: Boolean,
                     value: false
@@ -107,14 +111,15 @@
             observers: [
                 '_optionsChanged(options.*)',
                 '_itemsChanged(items.splices, items.*)',
-                '_minChanged(min)'
+                '_minChanged(min)',
+                '_showChanged(show)'
             ],
             listeners: {
                 'keyup': '_itemsChanged',
                 'tap': '_setActiveItem'
             },
             hideAddButton: function(min, max, itemslength) {
-                return min == max == itemslength;
+                return min != undefined && max != undefined && min == max == itemslength;
             },
             _minChanged: function (min) {
                 for (var i = 1; i <= this.min; i++) {
@@ -151,6 +156,14 @@
             },
             _calcDisplayButtons: function () {
                 return false;
+            },
+            _showChanged: function(show) {
+                if (!show) {
+                    this.clear();
+                }
+            },
+            clear:  function() {
+                this.set('items', []);
             },
             addItem: function () {
                 function copy(o) { // deep copy an array of objects

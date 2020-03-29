@@ -127,17 +127,28 @@
             </paper-material>
         </div>
         <paper-dialog id="addKvmImage" with-backdrop>
-            <h2>Create Image</h2>
-            <paper-input id="kvmImageInput" label="Image's path" value="{{newImage}}" autofocus></paper-input>
+            <h2>[[_computeAddImageTitle(selectedCloud)]]</h2>
+            <paper-input id="kvmImageInput" label="[[_computeAddImageLabel(selectedCloud)]]" value="{{newImage}}" autofocus></paper-input>
             <div class="btn-group">
                 <paper-button dialog-dismiss>Cancel</paper-button>
                 <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
             </div>
         </paper-dialog>
+        <iron-ajax id="getSecurityGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetSecurityGroupsRequest"
+            on-response="_handleGetSecurityGroupsResponse" on-error="_handleGetSecurityGroupsError"></iron-ajax>
         <iron-ajax id="getResourceGroups" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetResourceGroupsRequest"
             on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getStorageAccounts" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageAccountsRequest"
             on-response="_handleGetStorageAccountsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getFolders" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetFoldersRequest"
+        on-response="_handleGetFoldersResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getDatastores" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetDatastoresRequest"
+        on-response="_handleGetDatastoresResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getLXDStoragePools" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetLXDStoragePoolsRequest"
+            on-response="_handleGetLXDStoragePoolsResponse" on-error="_handleGetLXDStoragePoolsError"></iron-ajax>
+        <iron-ajax id="getVirtualNetworkFunctions" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetVirtualNetworkFunctionsRequest"
+            on-response="_handleGetVirtualNetworkFunctionsResponse" on-error="_handleGetVirtualNetworkFunctionsError"></iron-ajax>
+
     </template>
     <script>
     SCHEDULEACTIONS = {
@@ -250,6 +261,18 @@
             resourceGroupsFieldIndex: {
                 type: Number
             },
+            foldersField: {
+                type: Object
+            },
+            lxdStoragePoolsField: {
+                type: Object
+            },
+            securityGroupsFieldIndex: {
+                type: Number
+            },
+            virtualNetworkFunctionFieldIndex: {
+                type: Number
+            },
             constraints: {
                 type: Object
             }
@@ -267,7 +290,8 @@
             'keyup': 'hotkeys',
             'add-input': 'addInput',
             'format-payload': 'formatPayload',
-            'fields-changed': 'fieldsChanged'
+            'fields-changed': 'fieldsChanged',
+            'subfield-enabled': '_subfieldEnabled'
         },
         _teamsChanged: function() {
             console.log('_teamsChanged CALL checkPermissions');
@@ -402,6 +426,8 @@
             }
         },
         _cloudChanged: function(selectedCloud) {
+            //clear saved new image of lxd or kvm
+            this.set("newImage", "");
             if (selectedCloud && this.model) {
                 this.set('cloud', this.model.clouds[selectedCloud]);
             }
@@ -416,7 +442,7 @@
             }
             var allMachinesFields;
             if (this.selectedCloud) {
-                var provider = this.model.clouds[selectedCloud].provider;
+                var provider = this.model.clouds[selectedCloud] && this.model.clouds[selectedCloud].provider;
                 allMachinesFields = this.machinesFields.find(function(c) {
                     return c.provider == provider;
                 });
@@ -436,6 +462,7 @@
                     }
                 }
                 // clear to reset
+                this.set('machineFields', []);
                 this.set('machineFields', fields);
             }
             
@@ -499,14 +526,14 @@
                     this.set('machineFields.' + this._fieldIndexByName('monitoring') + '.show',
                         false);
 
-                // if is onapp change fields
-                if (this.model.clouds[this.selectedCloud].provider == "onapp") {
-                    this._updateFieldsForOnapp();
-                }
-
                 // if is openstack do not require network/locations
                 if (this.model.clouds[this.selectedCloud].provider == "openstack") {
                     this._updateFieldsForOpenstack();
+                }
+
+                // if is gig_g8 require network
+                if (this.model.clouds[this.selectedCloud].provider == "gig_g8") {
+                    this._updateFieldsForGigG8();
                 }
 
                 // if is packet construct ip_addresses value
@@ -514,6 +541,10 @@
                     this._updateFieldsForPacket();
                 }
 
+                // fetch security groups if necessary
+                if (this.model.clouds[this.selectedCloud].provider == "ec2") {
+                    this._updateSecurityGroups(this.selectedCloud);
+                }
                 var that = this;
                 this.machineFields.forEach(function(f, index) {
                     // clear options
@@ -529,10 +560,6 @@
                                 return check_perm == true;
                             });
                         // console.log('LOCATIONS', locations.length);
-                        if (locations.length == 1 && locations[0].name == "") {
-                            // If there's a single location preselect it and hide the field
-                            this._selectSingleLocation(index,locations[0].id);
-                        }
                         // disable maxihost locations that support no sizes
                         if (this.model.clouds[this.selectedCloud].provider == "maxihost") {
                             var sizeLocations = this._toArray(this.model.clouds[this.selectedCloud].sizes).map(x=>x.extra.regions).join();
@@ -541,6 +568,10 @@
                             })
                         }
                         f.options = locations;
+                        if (locations.length == 1 ) {
+                            // If there's a single location preselect it and hide the field
+                            that._selectSingleLocation(index,locations[0].id);
+                        }
                         // console.log(f.options);
                     }
                     if (f.name.endsWith("image")) {
@@ -590,7 +621,7 @@
                     if (f.type == "fieldgroup") {
                         for (var k=0; k<f.subfields.length; k++) {
                             var sf = f.subfields[k];
-                            if (sf.name.endsWith("zone")) {
+                            if (sf.name && sf.name.endsWith("zone")) {
                                 sf.options = this._toArray(this.model.zones);
                                 sf.options.forEach(function(zone) {
                                     if (zone.zone_id+'.' != zone.domain) {
@@ -656,6 +687,16 @@
                             var options = this._cleanCopy(fieldset.fields);
                             var locationIndex = options.findIndex(function(f){return f.name == 'location'})
 
+                            if(provider === "lxd"){
+                                var storagePoolsIdx = options.findIndex(function(f){return f.name == 'pool_id'});
+
+                                if(storagePoolsIdx > -1){
+                                    var storagePoolField = options[storagePoolsIdx];
+                                    this.set("lxdStoragePoolsField",storagePoolField);
+                                    this._updateLXDStoragePools(cloudId);
+                                }
+                            }
+
                             if (locationIndex > -1) {
                                 options.splice(locationIndex,1);
                             }
@@ -671,7 +712,7 @@
                                 }
                             }
                             // Remove new volume name field for now since it's not used by OpenStack
-                            if (provider == "openstack"){
+                            if (provider == "openstack" || provider == "gig_g8"){
                                 var nameIndex = options.findIndex(function(f){return f.name == 'name'})
                                 if (nameIndex > -1) {
                                     options.splice(nameIndex,1);
@@ -687,7 +728,7 @@
                             // add provider dependent fields if they do yet not exist
                             var names = f.options.map(f => f.name);
                             for (var i = options.length-1; i>=0;i--){
-                                if (names.indexOf(options[i].name) == -1) {
+                                if (names.indexOf(options[i].name) == -1 && (options[i].onForm == 'createForm' || !options[i].onForm) ) {
                                     f.options.splice(existingIndex, 0, options[i]);
                                 }
                             }
@@ -701,7 +742,7 @@
 
                     // console.log(this.get('machineFields.' + index + '.options'));
                     // console.log('update fields', f.name, f.value)
-                }, this);
+                }.bind(this));
 
                 // if cloud is Aliyun ECS update locations
                 if (this.model.clouds[this.selectedCloud].provider == "aliyun_ecs") {
@@ -711,6 +752,15 @@
                 // if is docker, change required values
                 if (this.model.clouds[this.selectedCloud].provider == "docker") {
                     this._updateFieldsForDocker();
+                }
+
+                // if is lxd, change required values
+                if (this.model.clouds[this.selectedCloud].provider == "lxd") {
+                    this._updateFieldsForLxd();
+                }
+
+                if (this.model.clouds[this.selectedCloud].provider == "gig_g8") {
+                    this._updateFieldsForGigG8();
                 }
 
                 // if is azure arm, change required values
@@ -724,22 +774,33 @@
                 if (this.model.clouds[this.selectedCloud].provider == "libvirt") {
                     this._updateFieldsForKvm();
                 }
-
+                //if it is vsphere add folders
+                if (this.model.clouds[this.selectedCloud].provider == "vsphere") {
+                    var folderFieldInd = this._fieldIndexByName('folders');
+                    var folderField = this.get("machineFields." + folderFieldInd);
+                    var datastoreFieldInd = this._fieldIndexByName('datastore')
+                    var datastoreField = this.get("machineFields." + datastoreFieldInd)
+                    this._updateFolders(this.selectedCloud, folderField);
+                    this._updateDatastores(this.selectedCloud, datastoreField)
+                }
                 // default values, hide empty non required, fill in single options
                 if (this.machineFields) {
-                    this.machineFields.forEach(function(f, index) {
-                        this.set('machineFields.' + index + '.value', this.get(
-                            'machineFields.' + index + '.defaultValue'));
-
+                    this.machineFields.forEach(function(f, ind) {
+                        this.set('machineFields.' + ind + '.value', this.get(
+                            'machineFields.' + ind + '.defaultValue'));
                         if (f.required && f.options && f.options.length == 1) {
-                            if (f.type == "dropdown")
-                                this.set('machineFields.' + index + '.value', f.options[0].val);
-                            else
-                                this.set('machineFields.' + index + '.value', f.options[0].id);
+                            if (f.type == "dropdown") {
+                                this.set('machineFields.' + ind + '.value', f.options[0].val);
+                            } else {
+                                this.set('machineFields.' + ind + '.value', f.options[0].id);
+                            }
+                            if (f.add != true) {
+                                this.set('machineFields.' + ind + '.show', false);
+                            }
                         }
 
                         if (!f.required && f.options && f.options.length == 0) {
-                            this.set('machineFields.' + index + '.show', false);
+                            this.set('machineFields.' + ind + '.show', false);
                         }
                     }.bind(this));
                 }
@@ -773,9 +834,10 @@
                     this._mapPortsToDockerPorts(changeRecord.value);
                 }
 
-                // if is gce/linode and image changed, include image extar in payload
+                // if is gce/linode and image changed, include image extra in payload
                 if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[
-                        this.selectedCloud].provider == "gce") && changeRecord.path.endsWith(
+                        this.selectedCloud].provider == "gce" || this.model.clouds[
+                        this.selectedCloud].provider == "vsphere") && changeRecord.path.endsWith(
                         'value') && this.get(changeRecord.path.replace('.value', '')).name ==
                     'image') {
                     this._includeImageExtra(changeRecord.value);
@@ -845,6 +907,17 @@
                         this.set('machineFields.' + volumesInd + '.options.' + existingIndex +'.options', volumes);
                         this.notifyPath('machineFields.' + volumesInd + '.options.' + existingIndex +'.options');
                     }
+                }
+
+                // if add volume toggler changed value
+                if (changeRecord.path.endsWith('value') && ['addvolume'].indexOf(this.get(changeRecord.path.replace(
+                        '.value', '')).name) > -1) {
+                    var volumesInd = this._fieldIndexByName('volumes');
+                    if (!changeRecord.value) {
+                        this.set('machineFields.' + volumesInd + '.items', []);
+                        this.set('machineFields.' + volumesInd + '.value', null);
+                    }
+                    this.set('machineFields.' + volumesInd + '.excludeFromPayload', !changeRecord.value);
                 }
 
                 // if it's ec2 and location is selected filter subnets
@@ -1201,6 +1274,30 @@
                 this.set('machineFields.' + keyInd + '.required', false);
                 this.set('machineFields.' + keyInd + '.label', "Key");
             }
+            var imgInd = this._fieldIndexByName('image');
+            img = this.get('machineFields.' + imgInd);
+            if(img && img.value){
+                for(var i = 0; i < img.options.length; i++){
+                    current = img.options[i];
+                    if(current.id == img.value){
+                        break
+                    }
+                }
+                
+                sizeInd = this._fieldIndexByName('size')
+                if(current.extra.type == "ovf"){
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', 1);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 1);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', 1);
+                }
+                else{
+                    min_size = current.extra.disk_size
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 512);
+                }
+            }
+            
+            
         },
 
         _updateFieldsForOpenstack: function() {
@@ -1214,12 +1311,11 @@
             }
         },
 
-        _updateFieldsForOnapp: function() {
-            var keyInd = this._fieldIndexByName('key');
-            if (keyInd > -1) {
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', "Key");
-                this.set('machineFields.' + keyInd + '.helptext', "Optional.");
+        _updateFieldsForGigG8: function() {
+            var netInd = this._fieldIndexByName('networks');
+            if (netInd > -1) {
+                this.set('machineFields.' + netInd + '.options', this._toArray(this.model.clouds[this.selectedCloud].networks));
+                this.set('machineFields.' + netInd + '.required', true);
             }
         },
 
@@ -1314,27 +1410,42 @@
 
             // optional key
             if (keyInd > -1) {
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', 'Key');
                 this.set('machineFields.' + keyInd + '.helptext',
-                    "Optional. Keys are valid only for Mist.io images");
+                    "Optional. Only valid if image includes ssh server");
             }
 
             // disable monitoring by default
             if (monInd > -1)
                 this.set('machineFields.' + monInd + '.value', false);
         },
+        _updateFieldsForLxd: function() {
+            var keyInd = this._fieldIndexByName('key');
+            // optional key
+            if (keyInd > -1) {
+                this.set('machineFields.' + keyInd + '.helptext',
+                    "Optional. Only valid if image includes ssh server");
+            }
+        },
+        _computeAddImageTitle: function(selectedCloud) {
+            var provider = "";
+            if (selectedCloud) {
+                provider = this.model.clouds[this.selectedCloud].provider
+            }
+            return provider == 'lxd' ? "Pull image from URL:" : "Create image";
+        },
+        _computeAddImageLabel: function(selectedCloud) {
+            var provider = "";
+            if (selectedCloud) {
+                provider = this.model.clouds[this.selectedCloud].provider
+            }
+            return provider == 'lxd' ? "Image URL:" : "Image's path";
+        },
         _updateFieldsForKvm: function() {
-            var imaInd = this._fieldIndexByName('image');
             var locInd = this._fieldIndexByName('location');
             var keyInd = this._fieldIndexByName('key');
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
 
-            //hide default image and location field
-            if (imaInd > -1) {
-                this.set('machineFields.' + imaInd + '.add', true);
-                this.set('machineFields.' + imaInd + '.required', true);
-            }
+            //hide location field
             if (locInd > -1) {
                 this.set('machineFields.' + locInd + '.show', false);
                 this.set('machineFields.' + locInd + '.required', false);
@@ -1552,6 +1663,33 @@
                 this.set('machineFields.'+ resourceGroupFieldIndex +'.value', this.get('machineFields.'+ existingFieldIndex +'.value'))
             }
         },
+        _updateSecurityGroups: function(cloudId) {
+            var fieldIndex = this._fieldIndexByName('security_group');
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
+                this._getSecurityGroups(cloudId, fieldIndex);
+            }
+        },
+        _getSecurityGroups: function(cloudId, index) {
+            this.set("securityGroupsFieldIndex",index);
+            this.$.getSecurityGroups.headers["Content-Type"] = 'application/json';
+            this.$.getSecurityGroups.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getSecurityGroups.url = '/api/v1/clouds/'+ cloudId +'/security-groups';
+            this.$.getSecurityGroups.generateRequest();
+        },
+        _handleGetSecurityGroupsRequest: function(e) {
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.loader', true);
+        },
+        _handleGetSecurityGroupsResponse: function(e) {
+            var secGroups=[];
+            for (var i=0; i<e.detail.response.length; i++)
+                secGroups.push({'title': e.detail.response[i].name, 'val': e.detail.response[i].id});
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.options', secGroups || []);
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetSecurityGroupsResponse()'}}));
+            this.set('machineFields.' + this.securityGroupsFieldIndex + '.loader', false);
+        },
+        _handleGetSecurityGroupsError: function(e) {
+            console.error('Got security groups error', e);
+        },
         _updateResourceGroups: function(cloudId) {
             var fieldIndex = this._fieldIndexByName('ex_resource_group');
             if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.options') && !this.get('machineFields.' + fieldIndex + '.options').length) {
@@ -1575,6 +1713,156 @@
         },
         _handleGetResourceGroupsError: function(e) {
             console.error('Got resource groups error', e);
+        },
+        _updateFolders: function(cloudId, field){
+            if (field && field.options && !field.options.length){
+                this._getFolders(cloudId, field);                
+            }
+        },
+        _getFolders(cloudId, field){
+            this.set("foldersField", field)
+            this.$.getFolders.headers["Content-Type"] = 'application/json';
+            this.$.getFolders.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getFolders.url = '/api/v1/clouds/' + cloudId + '/folders';
+            this.$.getFolders.generateRequest();
+        },
+        _handleGetFoldersRequest: function(e){
+            this.foldersField.loader = true;
+        },
+        _handleGetFoldersResponse: function(e){
+            const options = [];
+            e.detail.response.forEach(function(item, ind){
+                options.push({title: item.name, val: item.id})
+            });
+            this.foldersField.options = options;
+            //this.set('machineFields.'+this.machineFields.indexOf(this.foldersField)+'.options', options);
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetFoldersResponse()'}}));
+            this.foldersField.loader = false;
+            if(options && options.length > 0){
+                // this.foldersField.value= this.foldersField.options[0].val;
+                this.set('machineFields.'+this.machineFields.indexOf(this.foldersField)+'.show', true);}
+        },
+        _updateDatastores: function(cloudId, field){
+            if (field && field.options && !field.options.length){
+                this._getDatastores(cloudId, field);                
+            }
+        },
+        _getDatastores(cloudId, field){
+            this.set("datastoresField", field)
+            this.$.getDatastores.headers["Content-Type"] = 'application/json';
+            this.$.getDatastores.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getDatastores.url = '/api/v1/clouds/' + cloudId + '/datastores';
+            this.$.getDatastores.generateRequest();
+        },
+        _handleGetDatastoresRequest: function(e){
+            this.datastoresField.loader = true;
+        },
+        _handleGetDatastoresResponse: function(e){
+            const options = [];
+            e.detail.response.forEach(function(item, ind){
+                space = Math.floor(item.free_space / (1024*1024*1024))
+                name = item.name + "  " + "Free: " + space + " GB"
+                options.push({title: name, val: item.id, space: item.free_space})
+            });
+            this.datastoresField.options = options;
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetFoldersResponse()'}}));
+            this.datastoresField.loader = false;
+            if(options && options.length > 0){
+                this.set('machineFields.'+this.machineFields.indexOf(this.datastoresField)+'.show', true);
+            }
+        },
+        _updateLXDStoragePools: function(cloudId) {
+            //var fieldIndex = this._fieldIndexByName('pool_id');
+            //console.warn("!!!!!!!!!!!", fieldIndex,this.get('machineFields.' + this.lxdStoragePoolsFieldIndex));
+            if (this.lxdStoragePoolsField.options && !this.lxdStoragePoolsField.options.length) {
+                this._getLXDStoragePools(cloudId);
+            }
+        },
+        _getLXDStoragePools: function(cloudId) {
+            //this.set("lxdStoragePoolsFieldIndex",index);
+            this.$.getLXDStoragePools.headers["Content-Type"] = 'application/json';
+            this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getLXDStoragePools.url = '/api/v1/clouds/'+ cloudId +'/storage-pools';
+            this.$.getLXDStoragePools.generateRequest();
+        },
+        _handleGetLXDStoragePoolsRequest: function(e) {
+            this.lxdStoragePoolsField.loader = true;
+        },
+        _handleGetLXDStoragePoolsResponse: function(e) {
+            this.lxdStoragePoolsField.options = e.detail.response || [];
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetLXDStoragePoolsResponse()'}}));
+            this.lxdStoragePoolsField.loader =  false;
+        },
+        _handleGetLXDStoragePoolsError: function(e) {
+            console.error('Got LXD storage pools error error', e);
+        },
+        _updateVirtualNetworkFunctions: function(cloudId) {
+            var fieldIndex = this._fieldIndexByName('vnfs');
+            if (fieldIndex > -1 && this.get('machineFields.' + fieldIndex + '.subfields.0.options') && !this.get('machineFields.' + fieldIndex + '.subfields.0.options').length) {
+                this._getVirtualNetworkFunctions(cloudId, fieldIndex);
+            }
+        },
+        _getVirtualNetworkFunctions: function(cloudId, index) {
+            this.set("virtualNetworkFunctionFieldIndex",index);
+            this.$.getVirtualNetworkFunctions.headers["Content-Type"] = 'application/json';
+            this.$.getVirtualNetworkFunctions.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getVirtualNetworkFunctions.url = '/api/v1/clouds/'+ cloudId +'/vnfs';
+            this.$.getVirtualNetworkFunctions.generateRequest();
+        },
+        _handleGetVirtualNetworkFunctionsRequest: function(e) {
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', true);
+        },
+        _handleGetVirtualNetworkFunctionsResponse: function(e) {
+            var vnfs=[];
+            for (var i=0; i<e.detail.response.length; i++) {
+                if (e.detail.response[i].interface) {
+                    vnfs.push(e.detail.response[i]);
+                }
+            }
+            var categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(vnfs);
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options', categorisedVNFs || []);
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()'}}));
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', false);
+        },
+        _getCategorizedVirtualNetworkFunctions: function(arr) {
+            var categories = [], // store names
+                categoriesObjects = {}; // store items
+            for  (var i=0; i<arr.length; i++) {
+                var catName = 'NUMA ' + arr[i].numa; // Category name
+                if (categories.indexOf(catName) <= -1) {
+                    // store category name and initialise category
+                    categories.push(catName);
+                    categoriesObjects[catName] = [];
+                }
+                var item = {
+                    'name': arr[i].interface,
+                    'id': arr[i].pci_bdf,
+                    'description': arr[i].pci_bdf,
+                    'tooltip': arr[i].device.vendor + ' ' + arr[i].device.name
+                }
+                // store item under its category name
+                categoriesObjects[catName].push(item);
+            }
+            // merge category names with items
+            var categorisedArray = [];
+            categories = categories.reverse();
+            for  (var i=0; i<categories.length; i++) {
+                var cat = categories[i];
+                categorisedArray.push(cat);
+                categorisedArray = categorisedArray.concat(categoriesObjects[cat]);
+            }
+            // return categorisedArray or default array
+            return categorisedArray || arr.map(function(x){ return {
+                'name': x.interface,
+                'id': x.pci_bdf,
+                'description': x.pci_bdf + ' - ' + x.device.vendor + ' ' + x.device.name}});
+        },
+        _handleGetVirtualNetworkFunctionsError: function(e) {
+            console.error('Got security groups error', e);
+        },
+        _subfieldEnabled: function(e) {
+            if (e.detail.field.name == 'vnfs')
+                this._updateVirtualNetworkFunctions(this.cloud.id)
         },
         _updateNetworkValue: function() {
             var createFieldIndex = this._fieldIndexByName('create_network');
@@ -1630,7 +1918,7 @@
                     this.set('machineFields.' + keyInd + '.show', true);
                 }
                 //if the provider is Docker or onapp, the key should not be required
-                if (['docker', 'onapp'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
+                if (['docker', 'lxd', 'onapp', 'libvirt', 'vshere', 'gig_g8'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
                     if (keyInd > -1) {
                         this.set('machineFields.' + keyInd + '.required', true);
                     }
@@ -1666,7 +1954,7 @@
             // exclude bare metals and not allowed clouds from provider dropdown list
             var that = this;
             return this._toArray(this.model.clouds).filter(function(c) {
-                return ["bare_metal", "clearcenter"].indexOf(c.provider) == -1 && that.check_perm("create_resources","cloud",c.id);
+                return ["bare_metal"].indexOf(c.provider) == -1 && that.check_perm("create_resources","cloud",c.id);
             });
         },
         addInput: function(e) {
@@ -1821,13 +2109,18 @@
         formatPayload: function(e) {
             var hostnameInd = this._fieldIndexByName("hostname"),
                 composedHostname = '',
-                hostname =  this.get('machineFields.' + hostnameInd + '.value');
+                hostname =  this.get('machineFields.' + hostnameInd + '.value'),
+                vnfsInd = this._fieldIndexByName("vnfs"),
+                vnfs = this.get('machineFields.' + vnfsInd + '.value');
             if (hostname) {
                 if (hostname.record_name && hostname.dns_zone) {
                     var domainName = this.model.zones[hostname.dns_zone].zone_id;
                     composedHostname = hostname.record_name+'.'+domainName+'.';
                 }
                 this.set('machineFields.' + hostnameInd + '.value',composedHostname);
+            }
+            if (vnfs && vnfs.vnfs) {
+                this.set('machineFields.' + vnfsInd + '.value', vnfs.vnfs);
             }
         },
         _hasProviders: function(providers) {
