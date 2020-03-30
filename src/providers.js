@@ -788,54 +788,68 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter title"
     }, {
-        name: "machine_hostname",
-        label: "KVM hostname *",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'hosts',
+        itemName: 'host',
+        items: [],
+        label: '',
         show: true,
         required: true,
-        errorMessage: "Please enter KVM hostname",
-        helptext: 'The URL or IP that your KVM hypervisor listens to',
-        helpHref: 'http://docs.mist.io/article/24-adding-kvm'
-    }, {
-        name: "machine_key",
-        label: "SSH Key",
-        type: "ssh_key",
-        value: "",
-        defaultValue: "",
-        search: "",
-        show: true,
-        required: false,
-        options: [],
-        helptext: 'If you don\'t specify an SSH key, we assume that you are connecting via tcp (qemu+tcp)',
-        helpHref: 'http://docs.mist.io/article/24-adding-kvm'
-    }, {
-        name: "machine_user",
-        label: "SSH user",
-        type: "text",
-        value: "root",
-        defaultValue: "root",
-        show: true,
-        required: false,
-        helptext: 'The SSH user to connect as'
-    }, {
-        name: "ssh_port",
-        label: "SSH port",
-        type: "text",
-        value: 22,
-        defaultValue: 22,
-        show: true,
-        required: false
-    }, {
-        name: "images_location",
-        label: "Path for *.iso images",
-        type: "text",
-        value: '/var/lib/libvirt/images',
-        defaultValue: '/var/lib/libvirt/images',
-        show: true,
-        required: false,
-        helptext: 'The path that your disk or iso images are located, example /var/lib/libvirt/images'
+        horizontal: true,
+        type: 'list',
+        min: '1',
+        max: '5',
+        options: [
+            {
+                name: "machine_hostname",
+                label: "KVM hostname *",
+                type: "text",
+                value: "",
+                defaultValue: "",
+                show: true,
+                required: true,
+                errorMessage: "Please enter KVM hostname",
+                helptext: 'The URL or IP that your KVM hypervisor listens to',
+                helpHref: 'http://docs.mist.io/article/24-adding-kvm'
+            }, {
+                name: "machine_key",
+                label: "SSH Key",
+                type: "ssh_key",
+                value: "",
+                defaultValue: "",
+                search: "",
+                show: true,
+                required: false,
+                options: [],
+                helptext: 'If you don\'t specify an SSH key, we assume that you are connecting via tcp (qemu+tcp)',
+                helpHref: 'http://docs.mist.io/article/24-adding-kvm'
+            }, {
+                name: "machine_user",
+                label: "SSH user",
+                type: "text",
+                value: "root",
+                defaultValue: "root",
+                show: true,
+                required: false,
+                helptext: 'The SSH user to connect as'
+            }, {
+                name: "ssh_port",
+                label: "SSH port",
+                type: "text",
+                value: 22,
+                defaultValue: 22,
+                show: true,
+                required: false
+            }, {
+                name: "images_location",
+                label: "Path for *.iso images",
+                type: "text",
+                value: '/var/lib/libvirt/images',
+                defaultValue: '/var/lib/libvirt/images',
+                show: true,
+                required: false,
+                helptext: 'The path that your disk or iso images are located, example /var/lib/libvirt/images'
+            }
+        ]
     }]
 });
 
