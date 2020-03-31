@@ -459,15 +459,6 @@ MACHINE_CREATE_FIELDS.push({
         options: [],
         canConfigure: true
     }, {
-        name: 'host',
-        label: 'Host',
-        type: 'mist_dropdown',
-        value: [],
-        defaultValue: [],
-        show: true,
-        required: false,
-        options: []
-    }, {
         name: 'vnfs',
         label: 'Configure Virtual Network Functions',
         type: 'fieldgroup',
@@ -906,6 +897,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
         p.fields.splice(2, 0, {
+            name: 'host',
+            label: 'Host',
+            type: 'mist_dropdown',
+            value: "",
+            defaultValue: "",
+            show: true,
+            required: true,
+            options: []
+        },{
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
