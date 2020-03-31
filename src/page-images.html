@@ -53,7 +53,7 @@
                 <paper-fab id="imageAdd" icon="search" on-tap="_addResource"></paper-fab>
             </div>
         </template>
-        <image-page model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]"
+        <image-page id="imagePage" model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]"
             section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]></image-page>
         <image-provider-search id="imageprovidersearch" clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
 
@@ -84,8 +84,8 @@
             },
             listeners: {},
             _isDetailsPageActive: function (path) {
-                if (path && this.shadowRoot.querySelector('image-page'))
-                    this.shadowRoot.querySelector('image-page').updateState();
+                if (path && this.$.imagePage)
+                    this.$.imagePage.updateState();
                 return path;
             },
             _isListActive: function (path) {
@@ -109,7 +109,7 @@
                 return ['name'];
             },
             _getVisibleColumns: function () {
-                return ['star', 'cloud', 'created_by', 'id'/*, 'tags'*/];
+                return ['starred', 'cloud', 'created_by', 'id'/*, 'tags'*/];
             },
             _getRenderers: function (keys) {
                 var _this = this;
@@ -128,7 +128,7 @@
                             return row && row.cloud ? row.cloud.title : '';
                         }
                     },
-                    'star': {
+                    'starred': {
                         'body': function (item, row) {
                             return item ? '<iron-icon icon="star" class="starred"></iron-icon>' :
                                 '<iron-icon icon="star-border" class="unstarred"></iron-icon>';
