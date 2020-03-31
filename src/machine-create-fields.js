@@ -897,15 +897,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
         p.fields.splice(2, 0, {
-            name: 'host',
-            label: 'Host',
-            type: 'mist_dropdown',
-            value: "",
-            defaultValue: "",
-            show: true,
-            required: true,
-            options: []
-        },{
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -1820,7 +1811,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         helptext: '',
     });
 
-    if (p.provider == 'onapp') {
+    if (['onapp','libvirt'].indexOf(p.provider) > -1) {
         let locationField = p.fields.find(function(f) {
             return f.name == 'location';
         });

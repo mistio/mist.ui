@@ -576,13 +576,13 @@
                     }
                     if (f.name.endsWith("image")) {
                         var images = [];
-                        // kvm images dependent on host
+                        // kvm images dependent on location
                         if (this.model.clouds[this.selectedCloud].provider != "libvirt") {
                             images = this._toArray(this.model.clouds[cloudId].images);
                         } else {
-                            var hostInd = this._fieldIndexByName('host');
-                            if (hostInd > -1) {
-                                images = this._getHostImages(this.get('machineFields.' + hostInd + '.value'));
+                            var locInd = this._fieldIndexByName('location');
+                            if (locInd > -1) {
+                                images = this._getLocationImages(this.get('machineFields.' + locInd + '.value'));
                             }
                         }
                         f.options = images.sort(function(ima, imb) {
@@ -599,9 +599,6 @@
                             }
                         }
                         // console.log('images', f.options);
-                    }
-                    if (f.name.endsWith("host") && this.model.clouds[this.selectedCloud].provider == "libvirt") { // kvm images dependent on host
-                        f.options = this._getCloudHosts(this.selectedCloud);
                     }
 
                     if (f.type.startsWith("mist_") && f.name.endsWith("size")) {
@@ -1185,14 +1182,6 @@
             }
         },
 
-        _getCloudHosts: function(cloud) {
-            if (this.model && this.model.clouds)
-                return this._toArray(this.model.clouds[cloud].machines).filter(function(m){
-                        return m.extra && m.extra.tags && m.extra.tags.type == "hypervisor";
-                    })
-            return [];
-        },
-
         _selectSingleLocation: function(index, value) {
             this.set('machineFields.'+index+'.value', value);
             this.set('machineFields.'+index+'.show', false);
@@ -1465,7 +1454,6 @@
             var locInd = this._fieldIndexByName('location');
             var keyInd = this._fieldIndexByName('key');
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
-            var hostInd = this._fieldIndexByName('host');
             var imgInd = this._fieldIndexByName('image');
 
             //hide location field
@@ -1489,17 +1477,17 @@
                 this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
                     .images_location);
 
-            // if host is selected, we can update image options
-            var hostValue = this.get('machineFields.' + hostInd + '.value');
-            if (hostInd > -1 && imgInd > -1 && hostValue) {
-                var hostImages = this._getHostImages(hostValue);
-                this.set('machineFields.' + imgInd + '.options', hostImages);
+            // if location is selected, we can update image options
+            var location = this.get('machineFields.' + locInd + '.value');
+            if (locInd > -1 && imgInd > -1 && location) {
+                var locImages = this._getLocationImages(location);
+                this.set('machineFields.' + imgInd + '.options', locImages);
             }
         },
-        _getHostImages: function(host) {
-            if (host && this.model && this.model.clouds)
+        _getLocationImages: function(location) {
+            if (location && this.model && this.model.clouds)
                 return this.model.imagesArray.filter(function(im){
-                        return im.extra.machine == host;
+                        return im.extra.locations.indexOf(location) > -1 ;
                     });
             return [];
         },
