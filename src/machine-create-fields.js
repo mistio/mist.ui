@@ -1810,12 +1810,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: false,
         helptext: '',
     });
-
-    if (['onapp','libvirt'].indexOf(p.provider) > -1) {
+    // Move location field to top
+    if (['libvirt', 'onapp'].indexOf(p.provider) > -1) {
         let locationField = p.fields.find(function(f) {
             return f.name == 'location';
         });
         let index = p.fields.indexOf(locationField);
-        p.fields.splice(1, 0, p.fields.splice(index, 1)[0]);
+        p.fields.splice(index, 1);
+        p.fields.splice(1,0,locationField);
+
+        console.log('fields',p.fields);
     }
 });
