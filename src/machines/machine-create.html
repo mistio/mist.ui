@@ -574,7 +574,7 @@
                         }
                         // console.log(f.options);
                     }
-                    if (f.name.endsWith("image")) {
+                    if (f.name.endsWith("image") && this.model.clouds[this.selectedCloud].provider != "libvirt") { // kvm images dependent on host
                         f.options = this._toArray(this.model.clouds[cloudId].images).sort(function(ima, imb) {
                                 if (ima.star) {
                                     return -1;
@@ -1444,6 +1444,8 @@
             var locInd = this._fieldIndexByName('location');
             var keyInd = this._fieldIndexByName('key');
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
+            var hostInd = this._fieldIndexByName('host');
+            var imgInd = this._fieldIndexByName('image');
 
             //hide location field
             if (locInd > -1) {
@@ -1465,6 +1467,20 @@
             if (pathInd > -1)
                 this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
                     .images_location);
+
+            // if host is selected, we can update image options
+            var hostValue = this.get('machineFields.' + hostInd + '.value');
+            if (hostInd > -1 && imgInd > -1 && hostValue) {
+                var hostImages = this._getHostImages(hostValue);
+                this.set('machineFields.' + imgInd + '.options', hostImages);
+            }
+        },
+        _getHostImages: function(host) {
+            if (this.model && this.model.clouds)
+                return this.model.imagesArray.filter(function(im){
+                        return im.extra.machine == host;
+                    });
+            return [];
         },
         _updateFieldsForAzureArm: function() {
             var hostnameInd = this._fieldIndexByName('create_hostname_machine');

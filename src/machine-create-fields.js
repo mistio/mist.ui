@@ -459,6 +459,15 @@ MACHINE_CREATE_FIELDS.push({
         options: [],
         canConfigure: true
     }, {
+        name: 'host',
+        label: 'Host',
+        type: 'mist_dropdown',
+        value: [],
+        defaultValue: [],
+        show: true,
+        required: false,
+        options: []
+    }, {
         name: 'vnfs',
         label: 'Configure Virtual Network Functions',
         type: 'fieldgroup',
