@@ -888,7 +888,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             type: 'mist_dropdown',
             value: '',
             defaultValue: '',
-            show: true,
+            show: showLocation,
             required: true,
             options: []
         });
