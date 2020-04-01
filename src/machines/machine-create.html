@@ -556,12 +556,12 @@
                         var allLocations = this._toArray(this.model.clouds[cloudId].locations);
                         var locations = allLocations.filter(function(l){
                                 var check_perm = that.check_perm('create_resources', 'location', l.id);
-                                //console.log('LOOP', l.name, check_perm);
+                                console.log('LOOP', l.name, check_perm);
                                 return check_perm == true;
                             });
                         // console.log('LOCATIONS', locations.length);
                         // disable maxihost locations that support no sizes
-                        if (this.model.clouds[this.selectedCloud].provider == "maxihost") {
+                        if (this.model.clouds[cloudId].provider == "maxihost") {
                             var sizeLocations = this._toArray(this.model.clouds[this.selectedCloud].sizes).map(x=>x.extra.regions).join();
                             locations.forEach(function(l) {
                                 if (sizeLocations.indexOf(l.external_id) == -1) {l.disabled = true;}
@@ -1453,13 +1453,6 @@
             var keyInd = this._fieldIndexByName('key');
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
             var imgInd = this._fieldIndexByName('image');
-
-            //hide location field
-            if (locInd > -1) {
-                this.set('machineFields.' + locInd + '.show', false);
-                this.set('machineFields.' + locInd + '.required', false);
-                this.set('machineFields.' + locInd + '.excludeFromPayload', true);
-            }
 
             //change key helptexts
             if (keyInd > -1) {
