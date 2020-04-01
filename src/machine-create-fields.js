@@ -893,7 +893,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             options: []
         });
         // for kvm show image only if location is set
-        if (['libvirt'].indexOf(p.provider) != -1) {
+        if (['libvirt', 'onapp'].indexOf(p.provider) != -1) {
             p.fields[1].showIf = {
                 fieldName: 'location',
                 fieldExists: true
