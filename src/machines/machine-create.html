@@ -881,10 +881,18 @@
                 }
 
                 // if its kvm
-                if (this.model.clouds[this.selectedCloud].provider == 'libvirt' && changeRecord
-                    .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
-                    .name == 'name') {
-                    this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                if (this.model.clouds[this.selectedCloud].provider == 'libvirt') {
+                    if (changeRecord
+                        .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
+                        .name == 'name') {
+                        this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
+
+                    if (changeRecord
+                        .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
+                        .name == 'location') {
+                            this._updateImagesBasedOnLocation()
+                    }
                 }
 
                 // if its packet and ips changed
@@ -1449,10 +1457,8 @@
             return provider == 'lxd' ? "Image URL:" : "Image's path";
         },
         _updateFieldsForKvm: function() {
-            var locInd = this._fieldIndexByName('location');
             var keyInd = this._fieldIndexByName('key');
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
-            var imgInd = this._fieldIndexByName('image');
 
             //change key helptexts
             if (keyInd > -1) {
@@ -1469,6 +1475,11 @@
                     .images_location);
 
             // if location is selected, we can update image options
+            this._updateImagesBasedOnLocation();
+        },
+        _updateImagesBasedOnLocation: function() {
+            var locInd = this._fieldIndexByName('location');
+            var imgInd = this._fieldIndexByName('image');
             var location = this.get('machineFields.' + locInd + '.value');
             if (locInd > -1 && imgInd > -1 && location) {
                 var locImages = this._getLocationImages(location);
@@ -1478,7 +1489,7 @@
         _getLocationImages: function(location) {
             if (location && this.model && this.model.clouds)
                 return this.model.imagesArray.filter(function(im){
-                        return im.extra.locations.indexOf(location) > -1 ;
+                        return im.extra && im.extra.locations && im.extra.locations.indexOf(location) > -1 ;
                     });
             return [];
         },
