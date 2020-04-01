@@ -885,13 +885,14 @@
                     if (changeRecord
                         .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                         .name == 'name') {
-                        this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                        this._updateKvmDiskPathName(this.get(changeRecord.path.replace('.value', '')).value);
                     }
 
                     if (changeRecord
                         .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                         .name == 'location') {
-                            this._updateImagesBasedOnLocation()
+                        this._updateImagesBasedOnLocation();
+                        this._updateKvmDiskPathFolder(this.get(changeRecord.path.replace('.value', '')).value);
                     }
                 }
 
@@ -1498,12 +1499,26 @@
             if (hostnameInd > -1)
                 this.set('machineFields.' + hostnameInd + '.show', false);
         },
-        _updateKvmDiskPath: function(machinename) {
+        _updateKvmDiskPath: function(location, machinename) {
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
+            var locationPath = location.length && 
+                                this.model.clouds[this.selectedCloud] &&
+                                this.model.clouds[this.selectedCloud].locations &&
+                                this.model.clouds[this.selectedCloud].locations[location] ? 
+                                this.model.clouds[this.selectedCloud].locations[location].images_location : '';
             //fill in disk path using images_location and machine name
             if (machinename.trim().length && pathInd > -1)
-                this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
-                    .images_location + "/" + machinename.trim() + ".img");
+                this.set('machineFields.' + pathInd + '.value', locationPath + "/" + machinename.trim() + ".img");
+        },
+        _updateKvmDiskPathName: function(name) {
+            var ind = this._fieldIndexByName('location');
+            var location = ind > -1 ? this.machineFields[ind].value : '';
+            this._updateKvmDiskPath(location || '', name || '');
+        },
+        _updateKvmDiskPathFolder: function(location) {
+            var ind = this._fieldIndexByName('name');
+            var name = ind > -1 ? this.machineFields[ind].value : '';
+            this._updateKvmDiskPath(location || '', name || '');
         },
         _updateAzureFields: function(machinename) {
             var networkInd = this._fieldIndexByName('new_network');
