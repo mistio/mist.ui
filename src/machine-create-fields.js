@@ -882,7 +882,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
 
     // location for non gig_g8 clouds
     if (['gig_g8'].indexOf(p.provider) == -1) {
-        p.fields.splice(0, 0, {
+        p.fields.splice(2, 0, {
             name: 'location',
             label: 'Location *',
             type: 'mist_dropdown',
@@ -1818,7 +1818,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         let index = p.fields.indexOf(locationField);
         p.fields.splice(index, 1);
         p.fields.splice(1,0,locationField);
-
-        console.log('fields',p.fields);
     }
+    // console.log('order',p.provider, p.fields.map(x=>x.name));
 });
