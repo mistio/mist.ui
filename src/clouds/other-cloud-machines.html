@@ -55,7 +55,19 @@
                 this.shadowRoot.querySelector('mist-list').fire('resize');
         },
         _computeMachines: function (cloud) {
-            return this.cloud.machines || {};
+            if (cloud.provider != "libvirt") {
+                return this.cloud.machines || {};
+            } else {
+                // filter kvm hosts and push back to object
+                var ms = Object.values(this.cloud.machines).filter(function(m){
+                    return m.extra && m.extra.tags && m.extra.tags.type && m.extra.tags.type == "hypervisor";
+                });
+                var ret = {};
+                for (var i=0; i<ms.length; i++) {
+                    ret[ms[i].id] = ms[i];
+                }
+                return ret;
+            }
         },
         _getFrozenLogColumn: function(){
             return ['name'];
