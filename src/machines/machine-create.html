@@ -531,11 +531,6 @@
                     this._updateFieldsForOpenstack();
                 }
 
-                // if is gig_g8 require network
-                if (this.model.clouds[this.selectedCloud].provider == "gig_g8") {
-                    this._updateFieldsForGigG8();
-                }
-
                 // if is packet construct ip_addresses value
                 if (this.model.clouds[this.selectedCloud].provider == "packet") {
                     this._updateFieldsForPacket();
@@ -711,7 +706,7 @@
                                     options.splice(fieldIndex,1);
                                 }
                             }
-                            // Remove new volume name field for now since it's not used by OpenStack
+                            // Remove new volume name field for openstack and gig_g8
                             if (provider == "openstack" || provider == "gig_g8"){
                                 var nameIndex = options.findIndex(function(f){return f.name == 'name'})
                                 if (nameIndex > -1) {
@@ -759,6 +754,7 @@
                     this._updateFieldsForLxd();
                 }
 
+                // if is gig_g8 require network
                 if (this.model.clouds[this.selectedCloud].provider == "gig_g8") {
                     this._updateFieldsForGigG8();
                 }
@@ -884,6 +880,13 @@
                     .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                     .name.includes('_ipv')) {
                     this._updateFieldsForPacket();
+                }
+
+                // if its gig_g8 and image changed
+                if (this.model.clouds[this.selectedCloud].provider == 'gig_g8' && changeRecord
+                    .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
+                    .name == "image") {
+                    this._updateMinSizeForGigG8(changeRecord.value);
                 }
 
                 // if location changed and volumes are allowed
@@ -1316,6 +1319,26 @@
             if (netInd > -1) {
                 this.set('machineFields.' + netInd + '.options', this._toArray(this.model.clouds[this.selectedCloud].networks));
                 this.set('machineFields.' + netInd + '.required', true);
+            }
+        },
+
+        _updateMinSizeForGigG8: function(image) {
+            if (!image)
+                return;
+
+            var minRam = this.model.images[image].extra.min_memory;
+            var minDisk = this.model.images[image].extra.min_disk_size;
+
+            var sizeInd = this._fieldIndexByName('size');
+            if (sizeInd > -1) {
+                var customSizeFields = this.machineFields[sizeInd].customSizeFields;
+                var ramInd = this._fieldIndexByName('ram', customSizeFields);
+                var diskInd = this._fieldIndexByName('disk_primary', customSizeFields);
+
+                if (minRam)
+                    this.set('machineFields.'+ sizeInd +'.customSizeFields.'+ ramInd +'.min', minRam);
+                if (minDisk)
+                    this.set('machineFields.'+ sizeInd +'.customSizeFields.'+ diskInd +'.min', minDisk);
             }
         },
 
