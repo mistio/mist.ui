@@ -363,8 +363,73 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: '',
         show: true,
         required: false
-    }
-],
+    },
+    {
+        name: 'port_forwardings',
+        label: 'Port Forwardings',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: false,
+        helptext: '',
+        show: true,
+        required: false,
+        optional: true,
+        inline: true,
+        loader: false,
+        subfields: [
+            {
+                name: 'port_forwardings',
+                itemName: 'port-forwarding',
+                type: 'list',
+                items: [],
+                show: true,
+                required: false,
+                horizontal: false,
+                optional: true,
+                min: '1',
+                max: 100,
+                options: [{
+                    name: 'port',
+                    label: 'Port',
+                    type: 'text',
+                    class: 'x12 s12 m12',
+                    value: '',
+                    defaultValue: '',
+                    show: true,
+                    required: true
+                },{
+                    name: 'port_to',
+                    type: 'text',
+                    label: 'Port to',
+                    value: '',
+                    class: 'x12 s12 m12',
+                    defaultValue: '',
+                    show: true,
+                    required: false
+                },{
+                    name: 'protocol',
+                    label: 'Protocol',
+                    type: 'dropdown',
+                    value: 'tcp',
+                    class: 'x12 s12 m12',
+                    defaultValue: 'tcp',
+                    show: true,
+                    required: true,
+                    options: [{
+                        title: 'TCP',
+                        val: 'tcp'
+                    },{
+                        title: 'TCP',
+                        val: 'tcp'
+                    },{
+                        title: 'TCP',
+                        val: 'tcp'
+                    }]
+                }]
+            }
+        ]
+    }]
 });
 
 
