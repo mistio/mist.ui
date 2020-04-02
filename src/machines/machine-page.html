@@ -549,12 +549,17 @@
                                 </div>
                             </div>
                             <br />
-                            <div class="row" hidden$="[[!_getNetworkName(machine,cloud)]]">
+                            <div class="row" hidden$="[[!_getNetworkName(machine)]]">
                                 <div class="cell">
                                     <h4>Network</h4>
                                 </div>
                                 <div class="cell">
-                                    <span>[[_getNetworkName(machine,cloud)]]</span>
+                                    <span hidden$="[[_canLinkToNetwork(machine.network)]]">[[machine.network]]</span>
+                                    <span hidden$="[[!_canLinkToNetwork(machine.network)]]">
+                                        <a class="blue-link regular" href$="/networks/[[machine.network]]">
+                                            [[_getNetworkName(machine)]]
+                                        </a>
+                                    </span>
                                 </div>
                             </div>
                             <br />
@@ -1397,8 +1402,8 @@ Polymer({
             this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
         }
     },
-    _getNetworkName: function(machine, cloud) {
-        if (!machine || !cloud)
+    _getNetworkName: function(machine) {
+        if (!machine)
             return;
         if (this.machine) {
             return this.model &&
@@ -1407,6 +1412,14 @@ Polymer({
                     this.model.networks[machine.network].name != undefined ?
             this.model.networks[machine.network].name : machine.network;
         }
+    },
+    _canLinkToNetwork: function(network) {
+        if (network) {
+            return this.model &&
+                    this.model.networks &&
+                    this.model.networks[this.machine.network] ? true : false;
+        }
+        return false;
     },
     _probeMachine: function(e) {
         var payload = {
