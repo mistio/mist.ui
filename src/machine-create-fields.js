@@ -376,10 +376,11 @@ MACHINE_CREATE_FIELDS.push({
         required: false,
         optional: true,
         inline: true,
+        flatten: true,
         loader: false,
         subfields: [
             {
-                name: 'port_forwardings',
+                name: 'port_forwards',
                 itemName: 'port-forwarding',
                 type: 'list',
                 items: [],
@@ -387,10 +388,11 @@ MACHINE_CREATE_FIELDS.push({
                 required: false,
                 horizontal: false,
                 optional: true,
+                absoluteRemoveButton: true,
                 min: '1',
                 max: 100,
                 options: [{
-                    name: 'port',
+                    name: 'private_port',
                     label: 'Port',
                     type: 'text',
                     class: 'x12 s12 m12',
@@ -399,14 +401,14 @@ MACHINE_CREATE_FIELDS.push({
                     show: true,
                     required: true
                 },{
-                    name: 'port_to',
+                    name: 'public_port',
                     type: 'text',
                     label: 'Port to',
                     value: '',
                     class: 'x12 s12 m12',
                     defaultValue: '',
                     show: true,
-                    required: false
+                    required: true
                 },{
                     name: 'protocol',
                     label: 'Protocol',
@@ -420,11 +422,8 @@ MACHINE_CREATE_FIELDS.push({
                         title: 'TCP',
                         val: 'tcp'
                     },{
-                        title: 'TCP',
-                        val: 'tcp'
-                    },{
-                        title: 'TCP',
-                        val: 'tcp'
+                        title: 'UDP',
+                        val: 'udp'
                     }]
                 }]
             }
