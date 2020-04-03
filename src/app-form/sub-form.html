@@ -4,7 +4,11 @@
 <dom-module id="sub-form">
     <template>
         <style include="shared-styles forms">
-             :host app-form {
+            :host {
+                display: block;
+                position: relative;
+            }
+            :host app-form {
                 margin-left: 24px;
                 margin-top: -80px !important;
                 margin-bottom: 32px;
@@ -27,6 +31,11 @@
             paper-icon-button.remove {
                 margin-top: -40px;
                 float: right;
+            }
+            :host([absolute-remove-button]) paper-icon-button.remove {
+                margin-top: -35px;
+                right: -24px;
+                position: absolute;
             }
         </style>
         <template is="dom-repeat" items="{{items}}">
@@ -61,6 +70,10 @@
                 id: {
                     type: String
                 },
+                field: {
+                    type: Object,
+                    notify: true
+                },
                 options: {
                     type: Array,
                     value: function () {
@@ -76,9 +89,6 @@
                         return []
                     },
                     notify: true
-                },
-                fieldName: {
-                    type: String
                 },
                 min: {
                     type: Number,
@@ -107,6 +117,11 @@
                     value: true,
                     reflectToAttribute: true
                 },
+                absoluteRemoveButton: {
+                    type: Boolean,
+                    value: true,
+                    reflectToAttribute: true
+                }
             },
             observers: [
                 '_optionsChanged(options.*)',
@@ -123,7 +138,9 @@
             },
             _minChanged: function (min) {
                 for (var i = 1; i <= this.min; i++) {
-                    this.addItem();
+                    // Add extra required items, only if they are missing
+                    if (!this.items[i-1])
+                        this.addItem();
                 }
             },
             _setActiveItem: function (e) {
@@ -136,7 +153,15 @@
                 else
                     this.set('activeItem', null);
             },
-            _itemsChanged: function () {
+            _itemsChanged: function (e) {
+                // Update field.value
+                this.set('field.value', this.items.map(function(item){
+                    var ret = {};
+                    for (var i = 0; i < item.length; i++) {
+                        ret[item[i].name] = item[i].value;
+                    }
+                    return ret;
+                }));
                 this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true, file: 'sub-form.html : _itemsChanged()'}));
             },
             _optionsChanged: function (options) {
