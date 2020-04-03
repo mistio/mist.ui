@@ -394,16 +394,18 @@ MACHINE_CREATE_FIELDS.push({
                 options: [{
                     name: 'private_port',
                     label: 'Port',
-                    type: 'text',
+                    type: 'number',
                     class: 'x12 s12 m12',
+                    max: 65535,
                     value: '',
                     defaultValue: '',
                     show: true,
                     required: true
                 },{
                     name: 'public_port',
-                    type: 'text',
+                    type: 'number',
                     label: 'Port to',
+                    max: 65535,
                     value: '',
                     class: 'x12 s12 m12',
                     defaultValue: '',
