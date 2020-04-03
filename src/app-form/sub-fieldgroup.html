@@ -88,6 +88,9 @@
                 '_fieldChanged(field)',
                 '_subfieldsChanged(field.subfields.*)'
             ],
+            listeners: {
+                'subform-fields-changed': '_subfieldsChanged'
+            },
             _enabledChanged: function(enabled) {
                 if (!this.enabled) {
                     this._resetValue();
@@ -112,7 +115,10 @@
                 if (this.field && this.enabled) {
                     var fieldValue = {};
                     for (var i=0; i<this.field.subfields.length; i++) {
-                        fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                        if (!this.field.flatten)
+                            fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                        else
+                            fieldValue = this.field.subfields[i].value;
                     }
                     this.set('field.value', fieldValue);
                     if (this.shadowRoot.querySelector('app-form')) {
