@@ -638,8 +638,8 @@
                                     <strong>[[field.label]]</strong>
                                 </span>
                             </div>
-                            <sub-form item-name="[[field.itemName]]" options="[[field.options]]" min="[[field.min]]" max="[[field.max]]" field-name="[[field.name]]" horizontal="[[f.horizontal]]" moderate-top="[[f.moderateTop]]"
-                                items="[[field.items]]" class$="xs12 m12 [[field.class]]"></sub-form>
+                            <sub-form field="[[field]]" item-name="[[field.itemName]]" options="[[field.options]]" min="[[field.min]]" max="[[field.max]]" field-name="[[field.name]]" horizontal="[[f.horizontal]]" moderate-top="[[f.moderateTop]]"
+                                items="[[field.items]]" class$="xs12 m12 [[field.class]]" absolute-remove-button="[[field.absoluteRemoveButton]]"></sub-form>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'fieldgroup', fieldVisibility, index)]]">
                             <sub-fieldgroup id$="fieldgroup-[[id]]" field="[[field]]" class$="xs12 m6 l6 [[field.class]]" optional></sub-fieldgroup>
@@ -888,7 +888,7 @@
             },
 
             runFieldsChanged: function (e) {
-                console.log('rule form - fields changed by event', e);
+                // console.log('rule form - fields changed by event', e);
                 this._fieldsChanged();
             },
 
@@ -975,7 +975,23 @@
                                 // console.log('form set visibility', el.name , show);
 
                                 // update form values regardless of el.show
-                                if (el.type == "ip_textarea") {
+                                if (el.type == 'list') {
+                                    var subformPayload = [];
+                                    if (el.items && el.items.length) {
+                                        for (var i = 0; i < el.items.length; i++) {
+                                            var o = {};
+                                            for (var j = 0; j < el.items[i].length; j++) {
+                                                if (that._assertToInclude(el.items[i], el.items[
+                                                        i][j]))
+                                                    o[el.items[i][j].name] = el.items[i][j].value;
+                                            }
+                                            subformPayload.push(o);
+                                        }
+                                    }
+                                    el.value = subformPayload;
+                                    that.set('form.' + el.name, el.value);
+                                }
+                                else if (el.type == "ip_textarea") {
                                     var textToArray = el.value.split('\n');
                                     that.set('form.' + el.name, textToArray);
                                 } else if (el.name == "machines_tags") {
@@ -992,7 +1008,23 @@
                                     that.set('form.' + el.name, el.value);
                                 }
                             } else {
-                                if (el.type == "ip_textarea") {
+                                if (el.type == 'list') {
+                                    var subformPayload = [];
+                                    if (el.items && el.items.length) {
+                                        for (var i = 0; i < el.items.length; i++) {
+                                            var o = {};
+                                            for (var j = 0; j < el.items[i].length; j++) {
+                                                if (that._assertToInclude(el.items[i], el.items[
+                                                        i][j]))
+                                                    o[el.items[i][j].name] = el.items[i][j].value;
+                                            }
+                                            subformPayload.push(o);
+                                        }
+                                    }
+                                    el.value = subformPayload;
+                                    that.set('form.' + el.name, el.value);
+                                }
+                                else if (el.type == "ip_textarea") {
                                     var textToArray = el.value.split('\n');
                                     that.set('form.' + el.name, textToArray);
                                 } else if (el.name == "machines_tags") {
@@ -1231,7 +1263,7 @@
                                 for (var i = 0; i < field.items.length; i++) {
                                     var o = {};
                                     for (var j = 0; j < field.items[i].length; j++) {
-                                        if (this._asssertToInclude(field.items[i], field.items[
+                                        if (this._assertToInclude(field.items[i], field.items[
                                                 i][j]))
                                             o[field.items[i][j].name] = field.items[i][j].value;
                                     }
@@ -1262,7 +1294,7 @@
                 return moment().add(span,unit).utc().format("YYYY-MM-DD HH:mm:ss");
             },
 
-            _asssertToInclude: function (list, field) {
+            _assertToInclude: function (list, field) {
                 if (field.excludeFromPayload)
                     return false;
                 if (field.show && !field.showIf)
