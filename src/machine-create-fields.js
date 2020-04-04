@@ -878,21 +878,16 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: true,
         options: [],
         search: '',
+    }, {
+        name: 'location',
+        label: 'Location *',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        show: true,
+        required: true,
+        options: []
     });
-
-    // location for non gig_g8 clouds
-    if (['gig_g8'].indexOf(p.provider) == -1) {
-        p.fields.splice(0, 0, {
-            name: 'location',
-            label: 'Location *',
-            type: 'mist_dropdown',
-            value: '',
-            defaultValue: '',
-            show: true,
-            required: true,
-            options: []
-        });
-    }
 
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
