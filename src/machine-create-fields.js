@@ -365,8 +365,8 @@ MACHINE_CREATE_FIELDS.push({
         required: false
     },
     {
-        name: 'port_forwardings',
-        label: 'Port Forwardings',
+        name: 'port_forwards',
+        label: 'Port Forwards',
         type: 'fieldgroup',
         value: {},
         defaultValue: {},
@@ -380,7 +380,7 @@ MACHINE_CREATE_FIELDS.push({
         loader: false,
         subfields: [
             {
-                name: 'port_forwards',
+                name: 'port_forwardings',
                 itemName: 'port-forwarding',
                 type: 'list',
                 items: [],
