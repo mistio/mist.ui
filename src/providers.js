@@ -797,7 +797,7 @@ PROVIDERS.push({
         horizontal: true,
         type: 'list',
         min: '1',
-        max: '5',
+        max: '25',
         options: [
             {
                 name: "machine_hostname",
