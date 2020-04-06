@@ -828,6 +828,11 @@ MACHINE_CREATE_FIELDS.push({
     }],
 });
 
+// KUBEVIRT
+ MACHINE_CREATE_FIELDS.push({
+     provider: 'kubevirt',
+     fields: [],
+ });
 // LXD
 MACHINE_CREATE_FIELDS.push({
     provider: 'lxd',
@@ -1058,7 +1063,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 },
             }],
         });
-    } else if (['vsphere', 'lxd'].indexOf(p.provider) != -1) {
+    } else if (['vsphere', 'lxd', 'kubevirt'].indexOf(p.provider) != -1) {
         p.fields.splice(2, 0, {
             name: 'size',
             label: 'Size *',
@@ -1135,6 +1140,20 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: true,
             options: [],
             custom: false,
+        });
+    }
+
+    if (['kubevirt'].indexOf(p.provider) != -1) {
+        p.fields.splice(1, 1, {
+            name: 'image',
+            label: 'Image',
+            type: 'text',
+            value: '',
+            defaultValue: '',
+            show: true,
+            required: true,
+            options:[],
+            helptext: 'Enter a valid kubevirt image e.g. kubevirt/fedora-cloud-container-disk-demo:latest'
         });
     }
 
@@ -1227,7 +1246,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             },
         });
     }
-    var requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere'].indexOf(p.provider) == -1;
+    var requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere', 'kubevirt'].indexOf(p.provider) == -1;
     p.fields.push({
         name: 'key',
         label: 'Key ' + (requiredKey ? '*' : ''),
@@ -1279,7 +1298,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // add create volume fields for 'openstack'
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
-    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'gig_g8'].indexOf(p.provider) > -1) {
+    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'kubevirt', 'gig_g8'].indexOf(p.provider) > -1) {
         var allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
         var allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
         p.fields.push({

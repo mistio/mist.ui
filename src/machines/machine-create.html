@@ -140,6 +140,8 @@
             on-response="_handleGetResourceGroupsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getStorageAccounts" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageAccountsRequest"
             on-response="_handleGetStorageAccountsResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
+        <iron-ajax id="getStorageClasses" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetStorageClassesRequest"
+            on-response="_handleGetStorageClassesResponse" on-error="_handleGetStorageClassesError"></iron-ajax>
         <iron-ajax id="getFolders" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetFoldersRequest"
         on-response="_handleGetFoldersResponse" on-error="_handleGetResourceGroupsError"></iron-ajax>
         <iron-ajax id="getDatastores" contentType="application/json" handle-as="json" method="GET" on-request="_handleGetDatastoresRequest"
@@ -260,6 +262,9 @@
             },
             resourceGroupsFieldIndex: {
                 type: Number
+            },
+            storageClassesField: {
+                type: Object
             },
             foldersField: {
                 type: Object
@@ -685,7 +690,24 @@
                         // the location of the machine will be used instead
                         if (fieldset) {
                             var options = this._cleanCopy(fieldset.fields);
-                            var locationIndex = options.findIndex(function(f){return f.name == 'location'})
+                            if(provider == 'kubevirt'){
+                                //update kubernetes/kubevirt storage classes
+                                var storageClassIndex = options.findIndex(function(f){return f.name == 'storage_class_name'});
+                                if(storageClassIndex > -1) {
+                                    var storageClassField = options[storageClassIndex];
+                                    this._updateStorageClasses(cloudId, storageClassField);
+                                }
+                                //remove the static volume creation
+                                var toRemove = ['dynamic', 'volume_type', 'reclaim_policy'];
+                                for (const item of toRemove){
+                                    const ind = options.findIndex(function(f){return f.name == item});
+                                    if(ind>-1){
+                                        options.splice(ind,1);
+                                    }
+                                }
+                            }
+
+                            var locationIndex = options.findIndex(function(f){return f.name == 'location'});
 
                             if(provider === "lxd"){
                                 var storagePoolsIdx = options.findIndex(function(f){return f.name == 'pool_id'});
@@ -1715,6 +1737,33 @@
         _handleGetResourceGroupsError: function(e) {
             console.error('Got resource groups error', e);
         },
+        _updateStorageClasses: function(cloudId,field) {
+            if (field && field.options && !field.options.length){
+                this._getStorageClasses(cloudId, field);
+            }
+        },
+        _getStorageClasses: function(cloudId, field) {
+            this.set("storageClassesField", field)
+            this.$.getStorageClasses.headers["Content-Type"] = 'application/json';
+            this.$.getStorageClasses.headers["Csrf-Token"] = CSRF_TOKEN;
+            this.$.getStorageClasses.url = '/api/v1/clouds/' + cloudId + '/storage-classes';
+            this.$.getStorageClasses.generateRequest();
+        },
+        _handleGetStorageClassesRequest: function(e) {
+           this.storageClassesField.loader = true;
+        },
+        _handleGetStorageClassesResponse: function(e){
+            var options = [];
+            e.detail.response.forEach(function(item, ind){
+                options.push({title: item, val: item});
+            });
+            this.storageClassesField.options = options;
+            this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetStorageClassesResponse()'}}));
+            this.storageClassesField.loader = false;
+        },
+        _handleGetStorageClassesError: function(e){
+            console.error("Got storage classes error ", e);
+        },
         _updateFolders: function(cloudId, field){
             if (field && field.options && !field.options.length){
                 this._getFolders(cloudId, field);                
@@ -1919,7 +1968,7 @@
                     this.set('machineFields.' + keyInd + '.show', true);
                 }
                 //if the provider is Docker or onapp, the key should not be required
-                if (['docker', 'lxd', 'onapp', 'libvirt', 'vshere', 'gig_g8'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
+                if (['docker', 'lxd', 'onapp', 'libvirt', 'vshere', 'gig_g8', 'kubevirt'].indexOf(this.model.clouds[this.selectedCloud].provider) < 0)
                     if (keyInd > -1) {
                         this.set('machineFields.' + keyInd + '.required', true);
                     }
