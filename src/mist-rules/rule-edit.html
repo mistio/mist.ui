@@ -744,7 +744,7 @@
                         var selector = rule.selectors[0];
                         if (selector.type == "tags") {
                             this.set('ruleType', "tagged");
-                            this.set('tags', this._removeBrackets(JSON.stringify(selector.tags)))
+                            this.set('tags', this._removeBrackets(JSON.stringify(selector.include)))
                         } else if (selector.ids && selector.ids.length == 1) {
                             this.set('ruleType', "specific");
                             this.set('resourceId', selector.ids[0]);
@@ -802,7 +802,7 @@
                 this.$.actionsRepeat.render();
         },
         _removeBrackets: function(string) {
-            return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
+            return string && string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
         },
         _currentRuleUpdated: function(event) {
             this.set('rule', {
@@ -1079,7 +1079,7 @@
                 } else if (this.ruleType == 'tagged') {
                     payload.selectors = [{
                         type: 'tags',
-                        tags: this._computeTagsFromString(this.tags)
+                        include: this._computeTagsFromString(this.tags)
                     }];
                 } else if (this.ruleType == 'every') {
                     payload.selectors = [];

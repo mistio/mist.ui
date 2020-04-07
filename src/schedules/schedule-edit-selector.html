@@ -6,7 +6,7 @@
 <link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 
-<dom-module id="schedule-edit-condition">
+<dom-module id="schedule-edit-selector">
     <template>
         <style include="shared-styles dialogs">
             .submit-btn {
@@ -61,7 +61,7 @@
 
         <vaadin-dialog id="editScheduleModal" theme="mist-dialog" with-backdrop>
             <template>
-                <h2>Edit Schedule Conditions </h2>
+                <h2>Edit Schedule Selectors </h2>
                 <div class="paper-dialog-scrollable">
                     <div>
                         <paper-radio-group selected="{{isUuidsOrTags}}">
@@ -116,7 +116,7 @@
             'use strict';
 
             Polymer({
-                is: 'schedule-edit-condition',
+                is: 'schedule-edit-selector',
 
                 properties: {
                     schedule: {
@@ -151,16 +151,16 @@
                         type: Boolean,
                         value: false
                     },
-                    conditions: {
+                    selectors: {
                         type: Array
                     },
                     machinesIds: {
                         type: Array,
-                        computed: "_computeMachinesIds(schedule.conditions)"
+                        computed: "_computeMachinesIds(schedule.selectors)"
                     },
                     payload: {
                         type: Object,
-                        value: {}
+                        value: function () { return {} }
                     },
                     tagsString: {
                         type: Array
@@ -188,7 +188,7 @@
                 observers: [
                     '_computeNewSchedule(schedule.*)',
                     '_isUuidsOrTagsChanged(isUuidsOrTags)',
-                    '_updateTagsString(conditions)',
+                    '_updateTagsString(selectors)',
                     '_updateAgeParts(machinesAge)',
                     '_updateCostDisplay(machinesCost)',
                     '_updatePayload(newSchedule.*,isUuidsOrTags,costDisplay,machinesAgeDisplayNumber,machinesAgeUnit)'
@@ -199,28 +199,28 @@
                 _computeNewSchedule: function(schedule) {
                     if (this.schedule){
                         var newSchedule = {
-                            conditions: this.schedule.conditions
+                            selectors: this.schedule.selectors
                         };
                         this.set('newSchedule', newSchedule);
-                        this.set('conditions', this.schedule.conditions);
+                        this.set('selectors', this.schedule.selectors);
                         this._computeIsUuidsOrTags(schedule, this.machinesIds);
                     }
                 },
-                _computeMachinesIds: function(conditions) {
-                    console.log('schedule cond', conditions)
+                _computeMachinesIds: function(selectors) {
+                    console.log('schedule cond', selectors)
                     var ids = [];
-                    if (!conditions || !conditions.length || !this._findCondition('machines')){
+                    if (!selectors || !selectors.length || !this._findSelector('machines')){
                         return ids;
                     }
                     else {
-                        var cond = conditions.find(function(c){return c.type == "machines"});
+                        var cond = selectors.find(function(c){return c.type == "machines"});
                         ids = cond.ids || [];
                     }
                     return ids;
                 },
-                _findCondition: function(field) {
-                    if (this.schedule.conditions && this.schedule.conditions.length){
-                        var field = this.schedule.conditions.find(function(con){
+                _findSelector: function(field) {
+                    if (this.schedule.selectors && this.schedule.selectors.length){
+                        var field = this.schedule.selectors.find(function(con){
                             return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
                         })
                         if (field)
@@ -312,18 +312,18 @@
                         plLength,
                         valid = false;
 
-                    pl["conditions"] = [];
+                    pl["selectors"] = [];
 
                     console.log('newSchedule uuids', this.isUuids, 'tags', this.isTags);
                     
                     if (this.isUuids){
                         var ids = this._constructCheckboxValue();
-                        pl["conditions"].push({type: 'machines', ids: ids});
+                        pl["selectors"].push({type: 'machines', ids: ids});
                         valid = ids.length; 
                     }
                     else if (this.isTags) {
                         var tags = this._constructTagsValue(this.textToArray(this.tagsString));
-                        pl["conditions"].push({type: 'tags', tags: tags});
+                        pl["selectors"].push({type: 'tags', include: tags});
                         valid = this.textToArray(this.tagsString) ? this.textToArray(this.tagsString).length : false;
                     }
 
@@ -335,10 +335,10 @@
                         else if (this.machinesAgeUnit == 'days'){
                             minutes = this.machinesAgeDisplayNumber * 60 * 24;
                         }
-                        pl["conditions"].push({type: 'age', minutes: minutes});
+                        pl["selectors"].push({type: 'age', minutes: minutes});
                     }
                     if (this.costDisplay && this.costDisplay.length && parseFloat(this.costDisplay) != NaN) {
-                        pl["conditions"].push({type: 'field', field:'cost__monthly', value: parseFloat(this.costDisplay), operator:'gt'})
+                        pl["selectors"].push({type: 'field', field:'cost__monthly', value: parseFloat(this.costDisplay), operator:'gt'})
                     }
                     this.set('payload', pl);
                     this.set('formReady', valid);
@@ -387,9 +387,9 @@
                     }
                     return arr;
                 },
-                _updateTagsString: function(conditions){
-                    if (this.conditions && this.schedule && this.conditions.length) {
-                        var tags = this.conditions.find(function(c){return c.type=="tags"}) ? this.conditions.find(function(c){return c.type=="tags"}).tags : {};
+                _updateTagsString: function(selectors){
+                    if (this.selectors && this.schedule && this.selectors.length) {
+                        var tags = this.selectors.find(function(c){return c.type=="tags"}) ? this.selectors.find(function(c){return c.type=="tags"}).include : {};
                         var arrTags = Object.keys(tags); 
                         for (var i=0; i < arrTags.length; i++) {
                             var t = arrTags[i];
