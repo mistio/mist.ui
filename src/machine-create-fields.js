@@ -430,7 +430,8 @@ MACHINE_CREATE_FIELDS.push({
     //             }]
     //         }
     //     ]
-    // }]
+    // }
+    ]
 });
 
 
