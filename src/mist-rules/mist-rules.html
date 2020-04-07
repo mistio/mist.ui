@@ -331,7 +331,7 @@
             return false;
         },
         _removeBrackets: function(string) {
-            return string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
+            return string && string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
         },
         _categoryHasNoRules: function(rules, category) {
             for (var p in rules) {
@@ -341,12 +341,12 @@
             }
             return true;
         },
-        _ruleAppliesOnResource: function(r, resource) {
+        _ruleAppliesOnResource: function(r, resource) { // FIXME: This is currently unused
             var type = 'machines',
                 that = this;
             var m = !r.selectors || !r.selectors.length || r.selectors && r.selectors.find(function(s) {
                 return (s.type == type && s.ids.indexOf(that.resource.id) > -1) || (s.type ==
-                    'tags' && that._tagsInResource(s.tags, resource))
+                    'tags' && that._tagsInResource(s.include, resource))
             });
             return m ? true : false;
         },
@@ -361,35 +361,33 @@
         computeRuleCategories: function(resource, rules, machines) {
             var categories = [],
                 that = this,
-                rulesArray = [];
-            for (var p in rules) {
-                rulesArray.push(rules[p]);
-            }
+                rulesArray = rules ? Object.values(rules) : [];
             var selectors = rulesArray.map(function(r) {
                 return r.selectors;
             });
-            var resourcesInOrder = ['clouds','machines','volumes','networks', 'subnets',
+            var resourceTypes = ['clouds','machines','volumes','networks', 'subnets',
                 'zones', 'records', 'keys','images','scripts','templates',
                 'schedules','members', 'arbitrary'];
             rulesArray.forEach(function(r) {
                 var s = r.selectors || [];
                 // rule applies on all machines or rule is no-data-rule
                 if (r.arbitrary || !r.resource_type) {
-                    if (!categories.find(function(c) { return c.type == "arbitrary" }))
+                    if (!categories.find(function(c) { return c.type == "arbitrary" })) {
                         categories.push({
                             name: 'Organization Rules',
                             type: 'arbitrary',
                             rules: [r],
                             selectors: []
                         })
-                    else {
+                    } else {
                         categories.find(function(c) { return c.type == "arbitrary" }).rules.push(r);
                     }
                 }
                 if (!resource || (r.resource_type && that.model && that.model[r.resource_type+'s'] && Object.values(that.model[r.resource_type+'s']).map(x=>x.id).indexOf(resource.id) > -1 )){
                     // rule is no-data-rule
                     if (r.title == "NoData") {
-                        if (!categories.find(function(c) { return c.type == "all_machines" }))
+                        var existingCategory = categories.find(function(c) { return c.type == "all_machines" });
+                        if (!existingCategory) {
                             categories.push({
                                 name: 'Apply on all machines',
                                 type: 'all_machines',
@@ -397,13 +395,13 @@
                                 rules: [r],
                                 selectors: []
                             })
-                        else {
-                            categories.find(function(c) { return c.type == "all_machines" }).rules.push(r);
+                        } else {
+                            existingCategory.rules.push(r);
                         }
                     }
                     // rule applies on all of a resource_type
                     if (s && !s.length && r.resource_type) {
-                        if (!categories.find(function(c) { return c.type == "all_"+r.resource_type+"s" }))
+                        if (!categories.find(function(c) { return c.type == "all_"+r.resource_type+"s" })) {
                             categories.push({
                                 name: 'Apply on all '+ r.resource_type +'s',
                                 type: 'all_'+ r.resource_type +'s',
@@ -411,7 +409,7 @@
                                 rules: [r],
                                 selectors: []
                             })
-                        else {
+                        } else {
                             categories.find(function(c) { return c.type == "all_"+ r.resource_type +"s" }).rules.push(r);
                         }
                     }
@@ -422,22 +420,23 @@
                     for (var l = 0; l < s.length; l++) {
                         var sl = s[l];
                         if (sl.type == "tags") {
-                            var stringifiedTags = that._removeBrackets(JSON.stringify(sl.tags));
-                            if (!categories.find(function(c) { return c.type == "tagged_"+ r.resource_type +"s" && c.stringifiedTags == stringifiedTags })) {
+                            var stringifiedTags = that._removeBrackets(JSON.stringify(sl.include)),
+                                existingCategory = categories.find(function(c) { return c.type == "tagged_"+ r.resource_type +"s" && c.stringifiedTags == stringifiedTags })
+                            if (!existingCategory) {
                                 categories.push({
                                     id: 'apply-on-tags-of-'+ r.resource_type +'s',
                                     name: 'Apply on '+ r.resource_type +'s with tags ',
                                     type: 'tagged_'+ r.resource_type +'s',
                                     stringifiedTags: stringifiedTags,
                                     rules: [r],
-                                    selectors: [sl.tags]
+                                    selectors: [sl.include]
                                 });
                             } else {
-                                categories.find(function(c) { return c.type == "tagged_"+ r.resource_type +"s" && c.stringifiedTags == stringifiedTags }).rules.push(r);
+                                existingCategory.rules.push(r);
                             }
 
                         }
-                        if (resourcesInOrder.indexOf(sl.type) > -1 ) {
+                        if (resourceTypes.indexOf(sl.type) > -1 ) {
                             if (!resource || sl.ids.indexOf(resource.id) > -1) {
                                 var thisResource = resource ? 'this ' : '';
                                 var specificCategory = categories.find(function(c) {
@@ -469,9 +468,9 @@
 
             return categories.sort(function(a, b) {
                 var atype = a.type.split('_')[1] || 'arbitrary', btype = b.type.split('_')[1] || 'arbitrary';
-                if (resourcesInOrder.indexOf(atype) < resourcesInOrder.indexOf(btype)) {
+                if (resourceTypes.indexOf(atype) < resourceTypes.indexOf(btype)) {
                     return -1;
-                } else if (resourcesInOrder.indexOf(atype) > resourcesInOrder.indexOf(btype)) {
+                } else if (resourceTypes.indexOf(atype) > resourceTypes.indexOf(btype)) {
                     return 1;
                 } else {
                     if (a.name > b.name)
