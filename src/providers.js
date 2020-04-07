@@ -1244,6 +1244,134 @@ PROVIDERS.push({
 });
 
 
+// KUBEVIRT
+PROVIDERS.push({
+    title: 'KubeVirt',
+    val: 'kubevirt',
+    className: 'provider-kubevirt',
+    options: [{
+        name: "title",
+        label: "Title *",
+        type: "text",
+        value: "KubeVirt",
+        defaultValue: "KubeVirt",
+        show: true,
+        required: true,
+        errorMessage: "Please enter title"
+    }, {
+        name: "host",
+        label: "Host",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: true,
+        errorMessage: "Please enter Kubernetes API host IP or DNS name",
+    },{
+        name: "port",
+        label: "port",
+        type: "text",
+        value: 6443,
+        defaultValue: 6443,
+        show: true,
+        required: false
+    }, {
+        name: "ca_cert_file",
+        label: "CA Certificate",
+        helptext: 'CA certificate file',
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext:"It is advised to add it for the SSL to work properly."
+    }, {
+        name: "authentication",
+        label: "Authentication",
+        type: "dropdown",
+        value: "basic",
+        defaultValue: "tls",
+        options: [{
+            val: "basic",
+            title: "Basic http authentication"
+        }, {
+            val: "tls",
+            title: "TLS"
+        }, {
+            val: "tokenbearer",
+            title: "Token Bearer Authentication",
+        }],
+        show: true,
+        required: true,
+        errorMessage: "Please choose authentication method",
+    }, {
+        name: "username",
+        label: "Username",
+        type: "text",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: 'Username, if you have set basic http authentication',
+        showIf: {
+            fieldName: "authentication",
+            fieldValues: ["basic"]
+        }
+    }, {
+        name: "password",
+        label: "Password",
+        type: "password",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        helptext: 'Password, if you have set basic http authentication',
+        showIf: {
+            fieldName: "authentication",
+            fieldValues: ["basic"]
+        }
+    }, {
+        name: "key_file",
+        label: "Key",
+        type: "textarea",
+        helptext: 'Client private key file',
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: "authentication",
+            fieldValues: ["tls"]
+        }
+    }, {
+        name: "cert_file",
+        label: "Certificate",
+        helptext: 'Client certificate file',
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: "authentication",
+            fieldValues: ["tls"]
+        }
+    },{
+        name: "token",
+        label: "Token",
+        helptext: 'Bearer Token',
+        type: "textarea",
+        value: "",
+        defaultValue: "",
+        show: true,
+        required: false,
+        showIf: {
+            fieldName: "authentication",
+            fieldValues: ["tokenbearer"]
+        }
+    }]
+});
+
 // LXD
 PROVIDERS.push({
     title: 'LXD',
@@ -1276,7 +1404,7 @@ PROVIDERS.push({
         value: 8443,
         defaultValue: 8443,
         show: true,
-        required: false
+        required: true
     }, {
         name: "key_file",
         label: "Key",

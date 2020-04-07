@@ -80,7 +80,7 @@ VOLUME_CREATE_FIELDS.push({
         label: 'Resource Group',
         type: 'mist_dropdown_searchable',
         loader: true,
-        class: 'margin-bottom',
+        class: 'margin-top',
         value: '',
         defaultValue: '',
         search: '',
@@ -290,6 +290,141 @@ VOLUME_CREATE_FIELDS.push({
         }
     }]
 });
+// KubeVirt
+VOLUME_CREATE_FIELDS.push({
+    provider: 'kubevirt',
+    fields: [{
+            name: "storage_class_name",
+            label: "Storage Class",
+            type: "dropdown",
+            class: "margin-bottom",
+            value: "",
+            defaultValue: "",
+            options: [],
+            helptext: `Select a storage class, it should support dynamic provisioning, unless you intend to create 
+            a static peristent volume. Most storage classes by default support dynamic provisioning.`,
+            errorMessage: "Please select a storage class of the cluster.",
+            show: true,
+            required: true,
+            excludeFromPayload:false,
+        },
+        {
+            name: "volume_mode",
+            label: "Volume Mode",
+            type: "dropdown",
+            value: "Filesystem",
+            defaultValue: "Filesystem",
+            placeholder: "",
+            helptext: "The acccepted modes are Filesystem or Block ",
+            show: true,
+            required: false,
+            excludeFromPayload: false,
+            options:[{
+                title: "Filesystem",
+                val: "Filesystem"
+            },
+            {
+                title: "Block",
+                val: "Block"
+            }]
+        },
+        {
+            name: "access_mode",
+            label: "Access Mode",
+            type: "text",
+            value: "ReadWriteOnce",
+            defaultValue: "ReadWriteOnce",
+            placeholder: "",
+            helptext: 'An access mode may be specified, valid examples are ReadWriteOnce, ReadWriteMany, ReadOnlyMany',
+            show: true,
+            required: false,
+        },
+        {
+            name: 'dynamic',
+            label: 'Dynamic',
+            type: 'toggle',
+            value: true,
+            defaultValue: true,
+            excludeFromPayload: false,
+            helptext: `If enabled you will create a Persistent Volume Claim
+             that will be bound to a dynamically created Persistent Volume.
+             If disabled a Persistent Volume will be created statically,
+             admin privileges are required for this. The Persistent Volume
+             will remain unbound. This needs cluster admin privileges.`,
+            show: true,
+            required: true,
+        },{
+            name: 'reclaim_policy',
+            label: 'Reclaim Policy',
+            type: 'text',
+            value: 'Delete',
+            defaultValue: 'Delete',
+            show: true,
+            required: false,
+            helptext: 'Valid reclaim policies are Retain, Recycle and Delete',
+            showIf:{
+                fieldName: 'dynamic',
+                fieldValues: [false],
+            },
+        },
+        {
+            name: 'volume_type',
+            label: 'Volume Type',
+            type: 'dropdown',
+            value: '',
+            defaultValue: '',
+            show: true,
+            required: false,
+            helptext: 'Choose according to the cloud your cluster is located on.',
+            showIf: {
+                fieldName: 'dynamic',
+                fieldValues: [false],
+            },            
+            options: [
+                {val: 'awsElasticBlockStore', title: "AWS ELASTIC BlockStore"},
+                {val: 'azureDisk', title: "Azure Disk"},
+                {val:'azureFile', title: "Azure File"},
+                {val: 'cephfs', title: 'CephFS'},
+                {val: 'cinder', title: 'Cinder'},
+                {val: 'csi', title: 'CSI'},
+                {val: 'fc', title: 'Fibre Channel'},
+                {val: 'flexVolume', title: 'Flex Volume'},
+                {val: 'flocker', title: 'Flocker'},
+                {val: 'gcePersistentDisk', title: "GCE Persistent Disk"},
+                {val: 'glusterfs', title: 'Glusterfs'},
+                {val: 'hostPath', title: 'Host Path (local only!)'},
+                {val: 'iscsi', title: 'iSCSI'},
+                {val: 'nfs', title: "NFS"},
+                {val: 'photonPersistentDisk', title: 'Photon Persistent Disk'},
+                {val: 'portworxVolume', title: 'Portworx Volume'},
+                {val: 'quobyte', title: 'Quodbyte'},
+                {val: 'rbd', title: 'Rados Block Device'},
+                {val: 'scaleIO', title: 'ScaleIO'},
+                {val: 'storageos', title: 'StorageOS'},
+                {val: 'vsphereVolume', title: 'VSphere Volume'},
+            ],
+        schemeLoaderFor: 'volume_params'
+    },
+    {
+        name: 'volume_params',
+        label: 'Params',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        show: true,
+        required: false,
+        optional: false,
+        defaultToggleValue: true,
+        helptext: '',
+        showIf:{
+            "fieldName": "dynamic",
+            "fieldValues": [false]
+        },
+        loadSchemeFolder: '/volumes/volume_params/', // where json schemes are located
+        subfields: []
+    }        
+    ]
+});
 
 VOLUME_CREATE_FIELDS.push({
     provider: 'lxd',
@@ -392,3 +527,4 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         });
     }
 });
+
