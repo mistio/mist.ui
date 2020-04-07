@@ -882,11 +882,11 @@
                     this._updateFieldsForPacket();
                 }
 
-                // if its gig_g8 and image changed
-                if (this.model.clouds[this.selectedCloud].provider == 'gig_g8' && changeRecord
+                // if selected image provides size min/max, update them
+                if (changeRecord
                     .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                     .name == "image") {
-                    this._updateMinSizeForGigG8(changeRecord.value);
+                    this._updateMinSize(changeRecord.value);
                 }
 
                 // if location changed and volumes are allowed
@@ -1322,8 +1322,9 @@
             }
         },
 
-        _updateMinSizeForGigG8: function(image) {
-            if (!image)
+        _updateMinSize: function(image) {
+            console.log('test');
+            if (!image || !this.model || !this.model.images || !this.model.images[image] || !this.model.images[image].extra)
                 return;
 
             var minRam = this.model.images[image].extra.min_memory;
@@ -1335,9 +1336,15 @@
                 var ramInd = this._fieldIndexByName('ram', customSizeFields);
                 var diskInd = this._fieldIndexByName('disk_primary', customSizeFields);
 
-                if (minRam)
+                // some providers use size_ prefix
+                if (ramInd ==  -1)
+                    ramInd = this._fieldIndexByName('size_ram', customSizeFields);
+                if (diskInd ==  -1)
+                    diskInd = this._fieldIndexByName('size_disk_primary', customSizeFields);
+
+                if (minRam && ramInd > -1)
                     this.set('machineFields.'+ sizeInd +'.customSizeFields.'+ ramInd +'.min', minRam);
-                if (minDisk)
+                if (minDisk && diskInd > -1)
                     this.set('machineFields.'+ sizeInd +'.customSizeFields.'+ diskInd +'.min', minDisk);
             }
             // console.log(this.model.images[image].name, 'ram', this.model.images[image].extra.min_memory, 'disk', this.model.images[image].extra.min_disk_size);
