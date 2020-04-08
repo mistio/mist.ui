@@ -1486,7 +1486,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         value: {},
         defaultValue: {},
         defaultToggleValue: false,
-        helptext: 'Set an expiration date when the machine will stop or be destroyed',
+        helptext: 'Run a script immediately after provisioning',
         show: true,
         required: false,
         optional: true,
