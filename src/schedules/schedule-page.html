@@ -111,7 +111,7 @@
                 margin-right: 16px;
             }
 
-            .conditions {
+            .selectors {
                 line-height: 1.85em;
                 padding-bottom: 8px;
             }
@@ -314,7 +314,7 @@
             </paper-material>
             <paper-material>
                 <h4>Machines</h4>
-                <div class="conditions">
+                <div class="selectors">
                     <span hidden$="[[!isSpecificMachines]]" class="smaller"> [[machinesIds.length]] selected machine(s) </span>
                     <span hidden$="[[!isMachinesWithTags]]" class="smaller">
                         Machines with tags
@@ -324,7 +324,7 @@
                         &nbsp; [[filteredItems.length]] machines affected </span>
                     <span class="smaller" hidden$="[[!machineAge]]">when OLDER THAN [[_computeAgeText(machineAge)]]</span>
                     <span class="smaller" hidden$="[[!machineCost]]">and if MACHINE COST is more than [[currency.sign]] [[machineCost]]/month</span>
-                    <paper-button id="editCondition" on-tap="_changeCondition" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
+                    <paper-button id="editSelector" on-tap="_changeSelector" class="simple-button blue-link smaller" noink disabled$="[[hasExpired]]">change</paper-button>
                 </div>
                 <div class='missing-machines'>
                     <template is="dom-repeat" items="[[missingMachines]]">
@@ -436,13 +436,13 @@
                     type: Number,
                     value: 1
                 },
-                conditions: {
+                selectors: {
                     type: Array,
-                    value: []
+                    value: function () { return []; }
                 },
                 machinesIds: {
                     type: Array,
-                    computed: "_computeMachinesIds(conditions)"
+                    computed: "_computeMachinesIds(selectors)"
                 },
                 hasExpired: {
                     type: Boolean,
@@ -451,11 +451,11 @@
                 },
                 isSpecificMachines: {
                     type: Boolean,
-                    computed: "_computeIsSpecificMachines(schedule.conditions)"
+                    computed: "_computeIsSpecificMachines(schedule.selectors)"
                 },
                 isMachinesWithTags: {
                     type: Boolean,
-                    computed: "_computeIsMachinesWithTags(schedule.conditions)"
+                    computed: "_computeIsMachinesWithTags(schedule.selectors)"
                 },
                 isInterval:  {
                     type: Boolean,
@@ -503,12 +503,12 @@
                 machineAge: {
                     type: Number,
                     value: false,
-                    computed: '_computeMachineAge(schedule.conditions)'
+                    computed: '_computeMachineAge(schedule.selectors)'
                 },
                 machineCost: {
                     type: Number,
                     value: false,
-                    computed: '_computeMachineCost(schedule.conditions,currency.rate)'
+                    computed: '_computeMachineCost(schedule.selectors,currency.rate)'
                 },
                 selectedItems: {
                     type: Array
@@ -558,7 +558,7 @@
             _scheduleChanged: function(schedule) {
                 if (this.schedule && this.schedule.id) {
                     this.exists = true;
-                    this.set('conditions', this.schedule.conditions)
+                    this.set('selectors', this.schedule.selectors)
                     this.set('itemArray', [schedule]);
                 }
                 else {
@@ -595,15 +595,15 @@
             },
             _computeIsSpecificMachines: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.conditions && this.schedule.conditions.length > 0 && this._findCondition('machines') ? true : false;
+                    return this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('machines') ? true : false;
             },
             _computeIsMachinesWithTags: function(schedule) {
                 if (this.schedule)
-                    return this.schedule.conditions && this.schedule.conditions.length > 0 && this._findCondition('tags')  ? true : false;
+                    return this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('tags')  ? true : false;
             },
-            _findCondition: function(field) {
-                if (this.schedule && this.schedule.conditions && this.schedule.conditions.length){
-                    var field = this.schedule.conditions.find(function(con){
+            _findSelector: function(field) {
+                if (this.schedule && this.schedule.selectors && this.schedule.selectors.length){
+                    var field = this.schedule.selectors.find(function(con){
                         return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
                     })
                     if (field) {
@@ -613,17 +613,17 @@
                 }
                 return false;
             },
-            _computeMachineAge: function(conditions){
-                if (conditions){
-                    var ageEntry = conditions.find(function(c){
+            _computeMachineAge: function(selectors){
+                if (selectors){
+                    var ageEntry = selectors.find(function(c){
                         return c.type == 'age';
                     });
                     return ageEntry ? ageEntry.minutes || false : false;
                 }
             },
-            _computeMachineCost: function(conditions,rate){
-                if (conditions){
-                    var costEntry = conditions.find(function(c){
+            _computeMachineCost: function(selectors,rate){
+                if (selectors){
+                    var costEntry = selectors.find(function(c){
                         return c.type == 'field' && c.field == 'cost__monthly';
                     });
                     return costEntry && costEntry.value != undefined ? costEntry.value : false;
@@ -752,12 +752,12 @@
                     missingMachines = [],
                     _that = this;
                 filteredMachines = Object.values(this.model.machines).filter(function(m){
-                    return _that.condition(m);
+                    return _that.selector(m);
                 });
 
-                if (this.schedule && this.schedule.conditions && this._findCondition('machines')) {
+                if (this.schedule && this.schedule.selectors && this._findSelector('machines')) {
                     for (var i = 0; i < this.machinesIds.length; i++) {
-                        var machine = this.schedule.conditions.find(function(c){return c.type == "machines"}).ids[i];
+                        var machine = this.schedule.selectors.find(function(c){return c.type == "machines"}).ids[i];
                         if (this.model.machines && !this.model.machines[machine]){
                             missingMachines.push(machine);
                         }
@@ -767,48 +767,47 @@
                 this.set('filteredItems', filteredMachines);
                 this.set('missingMachines', missingMachines);
             },
-            _computeMachinesIds: function(conditions) {
+            _computeMachinesIds: function(selectors) {
                 var ids = [];
-                if (!this.conditions.length || !this._findCondition('machines')){
+                if (!this.selectors.length || !this._findSelector('machines')){
                     return ids;
                 }
                 else {
-                    ids = this.conditions.find(function(c){return c.type == "machines"}).ids;
+                    ids = this.selectors.find(function(c){return c.type == "machines"}).ids;
                 }
                 return ids;
             },
-            condition: function(m) {
+            selector: function(m) {
                 var fulfillsAge = true,
                     fulfillsCost = true;
 
-                if (m) {
-                    if (this._findCondition('age')){
-                        fulfillsAge = m.created && m.created.trim() != "" ? moment().diff(m.created, 'minutes') > this.schedule.conditions.find(function(con){
-                                return con.type == 'age';
-                            }).minutes : false;
-                    }
-                    if (this._findCondition('cost__monthly')){
-                        fulfillsCost = m.cost && m.cost.monthly ? m.cost.monthly > this.schedule.conditions.find(function(con){
-                                return con.field == 'cost__monthly';
-                            }).value : false;
-                    }
+                if (!m)
+                    return false;
 
-                    if (this.isSpecificMachines) {
-                        return this.isSelectedMachine(m.id); // && fulfillsAge && fulfillsCost;
-                    }
-                    else if (this.isMachinesWithTags) {
-                        return this.machineHasTag(m) && fulfillsAge && fulfillsCost;
-                    }
+                if (this._findSelector('age')){
+                    fulfillsAge = m.created && m.created.trim() != "" ? moment().diff(m.created, 'minutes') > this.schedule.selectors.find(function(con){
+                            return con.type == 'age';
+                        }).minutes : false;
                 }
-                return false;
+                if (this._findSelector('cost__monthly')){
+                    fulfillsCost = m.cost && m.cost.monthly ? m.cost.monthly > this.schedule.selectors.find(function(con){
+                            return con.field == 'cost__monthly';
+                        }).value : false;
+                }
+
+                if (this.isSpecificMachines) {
+                    return this.isSelectedMachine(m.id); // && fulfillsAge && fulfillsCost;
+                } else if (this.isMachinesWithTags) {
+                    return this.machineHasTag(m) && fulfillsAge && fulfillsCost;
+                }
             },
             isSelectedMachine: function(machineId) {
-                return !this.schedule.conditions || !this.schedule.conditions.find(function(c){return c.type == "machines"}) ? false : this.schedule.conditions.find(function(c){return c.type == "machines"}).ids.indexOf(machineId) > -1;
+                return !this.schedule.selectors || !this.schedule.selectors.find(function(c){return c.type == "machines"}) ? false : this.schedule.selectors.find(function(c){return c.type == "machines"}).ids.indexOf(machineId) > -1;
             },
             machineHasTag: function(m) {
                 var exists = false;
                 for (var i = 0; i < m.tags.length; i++){
-                    var scheduleTags = this.schedule.conditions.find(function(c){return c.type == "tags"}).tags;
+                    var scheduleTags = this.schedule.selectors.find(function(c){return c.type == "tags"}).include;
 
                     if (scheduleTags.hasOwnProperty(m.tags[i].key)){
                         if (!scheduleTags[m.tags[i].key] && !m.tags[i].value){
@@ -845,29 +844,29 @@
             _computeAbsoluteDateText: function(time) {
                 return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
             },
-            _changeCondition: function() {
-                this.$.actions.$.editScheduleCondition._openEditScheduleModal();
+            _changeSelector: function() {
+                this.$.actions.$.editScheduleSelector._openEditScheduleModal();
             },
             _editTask: function() {
                 this.$.actions.$.editScheduleTask._openEditScheduleModal();
             },
-            _computeTagsArray: function(conditions, isMachinesWithTags ){
+            _computeTagsArray: function(selectors, isMachinesWithTags ){
                 console.log('_computeTagsArray');
-                if (this.isMachinesWithTags && this.schedule.conditions) {
-                    var tagsCond = this.schedule.conditions.find(function(c){
+                if (this.isMachinesWithTags && this.schedule.selectors) {
+                    var tagsSelector = this.schedule.selectors.find(function(c){
                         return c.type == 'tags'
                     });
-                    if (tagsCond) {
-                        var tags = tagsCond.tags;
+                    if (tagsSelector) {
+                        var tags = tagsSelector.include;
 
-                        var arrTags = Object.keys(tags); 
-                        for (var i=0; i < arrTags.length; i++) {
-                            var t = arrTags[i];
+                        var tagsArray = Object.keys(tags);
+                        for (var i=0; i < tagsArray.length; i++) {
+                            var t = tagsArray[i];
                             if (tags[t] != null && tags[t].trim() != '') {
-                                arrTags[i] = arrTags[i]+'='+tags[t];
+                                tagsArray[i] = tagsArray[i]+'='+tags[t];
                             }
                         }
-                        return arrTags;
+                        return tagsArray;
                     }
                 }
             },

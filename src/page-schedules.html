@@ -100,7 +100,7 @@
         },
 
         _getVisibleColumns: function() {
-            var ret = ['task_type', 'schedule', 'conditions', 'created_by', 'total_run_count', 'tags'];
+            var ret = ['task_type', 'schedule', 'selectors', 'created_by', 'total_run_count', 'tags'];
             if (this.model.org && this.model.org.ownership_enabled == true)
                 ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
             return ret;
@@ -172,23 +172,23 @@
                             return item;
                     }
                 },
-                'conditions': {
+                'selectors': {
                     'body': function(item, row) {
-                        var conditions = item;
+                        var selectors = item;
                         var display = '';
 
-                        for (var i = 0; i < conditions.length; i++) {
+                        for (var i = 0; i < selectors.length; i++) {
                             var missingLength = 0;
-                            if (i == conditions.length - 1 && i > 0)
+                            if (i == selectors.length - 1 && i > 0)
                                 display += "and ";
-                            if (conditions[i].type == "machines" && conditions[i].ids.length > 0 && _this.model.machines) {
+                            if (selectors[i].type == "machines" && selectors[i].ids.length > 0 && _this.model.machines) {
                                 display += "on ";
-                                for (var j = 0; j < conditions[i].ids.length; j++) {
-                                    if (_this.model.machines[conditions[i].ids[j]]) {
-                                        if (j == conditions[i].ids.length - 1 && j > 0 && !missingLength)
+                                for (var j = 0; j < selectors[i].ids.length; j++) {
+                                    if (_this.model.machines[selectors[i].ids[j]]) {
+                                        if (j == selectors[i].ids.length - 1 && j > 0 && !missingLength)
                                             display += "and ";
-                                        display += _this.model.machines[conditions[i].ids[j]].name;
-                                        if (j < conditions[i].ids.length - 2)
+                                        display += _this.model.machines[selectors[i].ids[j]].name;
+                                        if (j < selectors[i].ids.length - 2)
                                             display += ",";
                                         display += " ";
                                     } else {
@@ -196,7 +196,7 @@
                                     }
                                 }
                                 if (missingLength) {
-                                    if (missingLength < conditions[i].ids.length)
+                                    if (missingLength < selectors[i].ids.length)
                                         display += " and "
                                     display += missingLength + " missing machine"
                                     if (missingLength > 1)
@@ -204,21 +204,21 @@
                                     else
                                         display += " "
                                 }
-                            } else if (conditions[i].type == "tags") {
+                            } else if (selectors[i].type == "tags") {
                                 display += "on tags ";
-                                for (var p in conditions[i].tags) {
+                                for (var p in selectors[i].include) {
                                     display += "<span class='tag'>" + p;
-                                    if (conditions[i].tags.p != undefined && conditions[i].tags.p != "")
-                                        display += "=" + conditions[i].tags.p;
+                                    if (selectors[i].include[p] != undefined && selectors[i].include[p] != "")
+                                        display += "=" + selectors[i].include[p];
                                     display += "</span>";
                                 }
                             }
-                            if (conditions[i].type == "age")
-                                display += "older than " + conditions[i].minutes + "min ";
-                            else if (conditions[i].type == "field" && conditions[i].field == "cost__monthly")
-                                display += "cost more than $" + conditions[i].value + "/month ";
-                            else if (conditions[i].type == "field")
-                                display += conditions[i].field + " " + conditions[i].value + " ";
+                            if (selectors[i].type == "age")
+                                display += "older than " + selectors[i].minutes + "min ";
+                            else if (selectors[i].type == "field" && selectors[i].field == "cost__monthly")
+                                display += "cost more than $" + selectors[i].value + "/month ";
+                            else if (selectors[i].type == "field")
+                                display += selectors[i].field + " " + selectors[i].value + " ";
                         }
 
                         return display;
