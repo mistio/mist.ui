@@ -726,14 +726,14 @@ PROVIDERS.push({
 
 // G8
 PROVIDERS.push({
-    title: 'GigG8',
+    title: 'G8',
     val: 'gig_g8',
     className: 'provider-gigg8',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "GigG8",
+        value: "G8",
         defaultValue: "G8",
         show: true,
         required: true,
@@ -747,7 +747,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter the API key",
-        helptext: ""
+        helptext: "Created with your itsyou.online identity"
     }, {
         name: "user_id",
         label: "User ID*",
@@ -757,7 +757,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter the User ID",
-        helptext: ""
+        helptext: "Id of your `Account` on the G8"
     }, {
         name: "url",
         label: "API url *",
@@ -767,7 +767,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter the API url",
-        helptext: ""
+        helptext: "‘https://<g8_name>.<domain>/’"
     }]
 });
 
@@ -807,9 +807,17 @@ PROVIDERS.push({
                 defaultValue: "",
                 show: true,
                 required: true,
-                errorMessage: "Please enter KVM hostname",
-                helptext: 'The URL or IP that your KVM hypervisor listens to',
+                errorMessage: "Please enter the hostname or IP address",
+                helptext: 'The hostname or IP address of your KVM hypervisor',
                 helpHref: 'http://docs.mist.io/article/24-adding-kvm'
+            }, {
+                name: "machine_name",
+                label: "Alias (optional)",
+                type: "text",
+                placeholder: '',
+                show: true,
+                required: false,
+                helptext: ""
             }, {
                 name: "machine_key",
                 label: "SSH Key",
@@ -818,9 +826,9 @@ PROVIDERS.push({
                 defaultValue: "",
                 search: "",
                 show: true,
-                required: false,
+                required: true,
                 options: [],
-                helptext: 'If you don\'t specify an SSH key, we assume that you are connecting via tcp (qemu+tcp)',
+                helptext: '',
                 helpHref: 'http://docs.mist.io/article/24-adding-kvm'
             }, {
                 name: "machine_user",
