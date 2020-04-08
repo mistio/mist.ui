@@ -522,7 +522,7 @@
                 input.invalid = false;
             }
         },
-        _updateFields: function(selectedCloud) {
+        _updateFields: function(selectedCloud, path) {
             if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this
                     .selectedCloud]) {
                 var cloudId = this.selectedCloud;
@@ -551,7 +551,10 @@
                     this._updateSecurityGroups(this.selectedCloud);
                 }
                 var that = this;
-                this.machineFields.forEach(function(f, index) {
+                if (!path) {
+                    path = 'machineFields';
+                }
+                this.get(path).forEach(function(f, index) {
                     // clear options
                     if (['duration_field','dropdown','radio','list'].indexOf(f.type) == -1  && f.options) {
                         f.options = [];
@@ -628,23 +631,13 @@
                                 zone.suffix = zone.zone_id;
                             }
                         })
+                        if (sf.options.length && sf.selectFirst)
+                            this.set(path + '.' + index + '.value', sf.options[0].id);
                     }
 
-                    // TODO: Run a recursive _updateFields() for fieldgroup subfields
+                    // Run a recursive _updateFields() for fieldgroup subfields
                     if (f.type == "fieldgroup") {
-                        for (var k=0; k<f.subfields.length; k++) {
-                            var sf = f.subfields[k];
-                            if (sf.name && sf.name.endsWith("zone")) {
-                                sf.options = this._toArray(this.model.zones);
-                                sf.options.forEach(function(zone) {
-                                    if (zone.zone_id+'.' != zone.domain) {
-                                        zone.suffix = zone.zone_id;
-                                    }
-                                })
-                                if (sf.options.length)
-                                    this.set('machineFields.'+index+'.subfields.'+k+'.value', sf.options[0].id);
-                            }
-                        }
+                        this._updateFields(cloudId, path + '.' + index + '.subfields');
                     }
 
                     if (f.name.startsWith("script") || f.name.startsWith(
@@ -661,7 +654,7 @@
                         f.options = this.model.clouds[cloudId].networks ? Object.values(this.model.clouds[
                             cloudId].networks) : [];
                         if (f.options.length < 2)
-                            this.set('machineFields.' + index + '.required', false);
+                            this.set(path + '.' + index + '.required', false);
                     }
 
                     // if is packet construct ip_addresses value
@@ -685,7 +678,7 @@
                         }
                         f.options = subnets;
                         if (f.options.length < 2)
-                            this.set('machineFields.' + index + '.required', false);
+                            this.set(path + '.' + index + '.required', false);
                     }
 
                     // for volumes options
@@ -767,7 +760,7 @@
 
                     // update options
                     if (f.options) {
-                        this.set('machineFields.' + index + '.options', f.options);
+                        this.set(path + '.' + index + '.options', f.options);
                     }
 
                     // console.log(this.get('machineFields.' + index + '.options'));
