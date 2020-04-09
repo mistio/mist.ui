@@ -1,0 +1,149 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<!-- <link rel="import" href="port-validator.html"> -->
+
+<dom-module id="port-item">
+    <template>
+        <style include="shared-styles tags-and-labels">
+             :host {
+                position: relative;
+                display: block;
+                margin-bottom: 16px;
+            }
+
+            .input-box, .input-box-2  {
+                @apply --layout-horizontal;
+                max-width: 100%;
+                align-items: center;
+            }
+            .input-box-2 {
+                padding-left: 30px;
+            }
+
+            strong {
+                margin: 30px 8px 8px;
+                font-size: 16px;
+            }
+            input {
+                border: 0 none;
+                padding: 2px;
+            }
+            paper-input {
+                font-family: monospace !important;
+            }
+            paper-icon-button {
+                padding: 0;
+                position: absolute;
+                right: -23px;
+                width: 16px;
+                height: 16px;
+                opacity: .9;
+                top: 32px;
+            }
+            span {
+                line-height: 1.6em;
+                padding: 8px 2px;
+                align-self: flex-end;
+            }
+        </style>
+        <!-- <ssn-validator></ssn-validator> -->
+        <div class="input-box">
+            <strong>[[newIndex]].</strong>
+            <paper-input value="{{_private}}" aria-label="Private *" label="Private port"  size="15" required always-float-label>
+            </paper-input>
+            <span>:</span>
+            <paper-input value="{{_public}}" aria-label="Public *" label="Public port" size="15" required always-float-label>
+            </paper-input>
+        </div>
+        <div class="input-box-2">
+            <paper-dropdown-menu aria-label="Protocol" label="Protocol *" required always-float-label>
+                <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{_protocol}}">
+                    <paper-item value="tcp">TCP</paper-item>
+                    <paper-item value="udp">UDP</paper-item>
+                </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-input value="{{_params}}" aria-label="Other params, comma-separated" label="Other params. Comma-separated" size="55" always-float-label>
+            </paper-input>
+        </div>
+        <paper-icon-button icon="delete" on-tap="_deletePort"></paper-icon-button>
+    </template>
+</dom-module>
+<script>
+    Polymer({
+        is: 'port-item',
+        // behaviors: [IronValidatableBehavior],
+        properties: {
+            port: {
+                type: Object,
+                notify: true
+            },
+            value: {
+                type: Object,
+                notify: true
+            },
+            index: {
+                type: Number
+            },
+            _private: {
+                type: String, 
+                value: ''
+            },
+            _public: {
+                type: Number
+            },
+            _protocol: {
+                type: String, 
+                value: 'tcp'
+            },
+            _params: {
+                type: String, 
+                value: ''
+            },
+            // validator: {
+            //     type: String, 
+            //     value: 'port-validator'
+            // },
+            newIndex: {
+                type: Number,
+                computed: '_computeNewIndex(index)'
+            }
+        },
+        observers: [
+            '_computeValue(_private,_public,_protocol,_params)',
+            '_portChanged(port)',
+        ],
+        _computeNewIndex: function (index) {
+            return index + 1;
+        },
+        ready: function() {
+        },
+        _portChanged: function(port) {
+            if (port) {
+                this.set('_private', port.private);
+                this.set('_public', port.public);
+                this.set('_protocol', port.protocol);
+                this.set('_params', port.params);
+            }
+        },
+        _deletePort: function (e) {
+            var that = this;
+            this.dispatchEvent(new CustomEvent('port-delete', { bubbles: true, composed: true, detail: {
+                port: that.port
+            } }));
+        },
+        _computeValue: function(_private, _public, _protocol, _params) {
+            if (_private && _public && _protocol) {
+                var key = _private.trim() + ':' + _public.trim();
+                var val = [];
+                    val.push(_protocol);
+                if (_params)
+                    val = val.concat(_params.split(','))
+                this.value = {};
+                this.value[key] = val;
+            }
+        }
+    });
+</script>

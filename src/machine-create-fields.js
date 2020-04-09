@@ -363,74 +363,29 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: '',
         show: true,
         required: false
-    },
-    // {
-    //     name: 'port_forwards',
-    //     label: 'Port Forwards',
-    //     type: 'fieldgroup',
-    //     value: {},
-    //     defaultValue: {},
-    //     defaultToggleValue: false,
-    //     helptext: '',
-    //     show: true,
-    //     required: false,
-    //     optional: true,
-    //     inline: true,
-    //     flatten: true,
-    //     loader: false,
-    //     subfields: [
-    //         {
-    //             name: 'port_forwardings',
-    //             itemName: 'port-forwarding',
-    //             type: 'list',
-    //             items: [],
-    //             show: true,
-    //             required: false,
-    //             horizontal: false,
-    //             optional: true,
-    //             absoluteRemoveButton: true,
-    //             min: '1',
-    //             max: 100,
-    //             options: [{
-    //                 name: 'private_port',
-    //                 label: 'Port',
-    //                 type: 'number',
-    //                 class: 'x12 s12 m12',
-    //                 max: 65535,
-    //                 value: '',
-    //                 defaultValue: '',
-    //                 show: true,
-    //                 required: true
-    //             },{
-    //                 name: 'public_port',
-    //                 type: 'number',
-    //                 label: 'Port to',
-    //                 max: 65535,
-    //                 value: '',
-    //                 class: 'x12 s12 m12',
-    //                 defaultValue: '',
-    //                 show: true,
-    //                 required: true
-    //             },{
-    //                 name: 'protocol',
-    //                 label: 'Protocol',
-    //                 type: 'dropdown',
-    //                 value: 'tcp',
-    //                 class: 'x12 s12 m12',
-    //                 defaultValue: 'tcp',
-    //                 show: true,
-    //                 required: true,
-    //                 options: [{
-    //                     title: 'TCP',
-    //                     val: 'tcp'
-    //                 },{
-    //                     title: 'UDP',
-    //                     val: 'udp'
-    //                 }]
-    //             }]
-    //         }
-    //     ]
-    // }
+    },{
+        name: 'port_forwards',
+        label: 'Port Forwards',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: true,
+        helptext: '',
+        show: true,
+        required: false,
+        optional: true,
+        inline: true,
+        flatten: true,
+        loader: false,
+        subfields: [{
+            name: 'ports',
+            type: 'mist_ports',
+            value: {},
+            defaultValue: {},
+            show: true,
+            required: true,
+        }]
+    }
     ]
 });
 

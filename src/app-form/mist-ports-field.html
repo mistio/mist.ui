@@ -1,0 +1,101 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="port-item.html">
+<dom-module id="mist-ports-field">
+    <template>
+        <style include="shared-styles dialogs">
+        :host {
+            padding: 0;
+            margin: 0;
+            display: block;
+        }
+
+        .port-list {
+            padding: 0 0 24px 0;
+        }
+
+        :host .port-list>p {
+            margin: 24px 0 0 0;
+        }
+
+        .submit-btn.add {
+            margin: 0;
+            padding: 0;
+        }
+
+        iron-icon {
+            color: inherit !important;
+        }
+
+        paper-button.keyboard-focus {
+            font-weight: bold !important;
+        }
+
+        .title {
+            text-transform: capitalize;
+            font-weight: bold;
+        }
+        </style>
+        <div class="title">[[field.label]]</div>
+        <div class="port-list">
+            <template id="ports" is="dom-repeat" items="[[ports]]" as="port">
+                <port-item port="{{port}}" index=[[index]] ></port-item>
+            </template>
+        </div>
+        <paper-button class="submit-btn add" on-tap="_addPort">
+            <iron-icon icon="add"></iron-icon> Add
+        </paper-button>
+    </template>
+    <script>
+        Polymer({
+            is: 'mist-ports-field',
+
+            properties: {
+                field: {
+                    type: Object,
+                    notify: true
+                },
+                ports: {
+                    type: Array,
+                    value: function() {return [];}
+                },
+            },
+            listeners: {
+                'change': '_portsChanged',
+                'iron-select': '_portsChanged',
+                'port-delete': '_portDeleteHandler'
+            },
+            ready: function() {
+                if (!this.ports.length)
+                    this._addPort();
+            },
+            _addPort: function() {
+                var newPort = {
+                    public: '',
+                    private: '',
+                    protocol: '',
+                    params: ''
+                };
+                this.push('ports', newPort);
+                this.$.ports.render();
+            },
+            _portsChanged: function(e) {
+                var elements = this.shadowRoot.querySelectorAll('port-item');
+                var value = {};
+                elements.forEach(function(el){
+                    if (el.value && typeof el.value == "object")
+                        value[Object.keys(el.value)[0]] =  Object.values(el.value)[0];
+                })
+                console.log('_portsChanged value', value);
+                this.set('field.value', value);
+            },
+            _portDeleteHandler: function(e) {
+                var port = e.detail.port,
+                    index = this.ports.indexOf(port);
+                this.splice('ports', index, 1);
+            },
+        });
+    </script>
+</dom-module>
