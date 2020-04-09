@@ -252,10 +252,12 @@
         computeItemActions: function(machine) {
             var arr = [];
             if (this.model && this.model.clouds && ['vsphere', 'openstack', 'libvirt'].indexOf(this.model.clouds[machine.cloud].provider) > -1){
-                if(machine.state == "running"){
-                arr.push('console');}}
+                if(machine.state == "running" && (this.model.clouds[machine.cloud].provider != 'libvirt' || machine.parent)) {
+                    arr.push('console');
+                }
+            }
             if (machine) {
-                if (machine.os_type != 'windows' && machine.machine_type != 'ilo-host') {
+                if (machine.os_type != 'windows' && machine.machine_type != 'ilo-host' && ["terminated", "stopped"].indexOf(machine.state) == -1) {
                     arr.push('shell');
                     arr.push('associate-key');
                 }
