@@ -64,7 +64,6 @@
             },
             listeners: {
                 'change': '_portsChanged',
-                'iron-select': '_portsChanged',
                 'port-delete': '_portDeleteHandler'
             },
             ready: function() {
@@ -88,13 +87,14 @@
                     if (el.value && typeof el.value == "object")
                         value[Object.keys(el.value)[0]] =  Object.values(el.value)[0];
                 })
-                console.log('_portsChanged value', value);
                 this.set('field.value', value);
+                this.dispatchEvent(new CustomEvent('subform-fields-changed', {bubbles: true, composed: true}));
             },
             _portDeleteHandler: function(e) {
                 var port = e.detail.port,
                     index = this.ports.indexOf(port);
                 this.splice('ports', index, 1);
+                this._portsChanged(e);
             },
         });
     </script>
