@@ -1,9 +1,10 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-error.html">
 <link rel="import" href="../../bower_components/iron-input/iron-input.html">
 <link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
-<!-- <link rel="import" href="port-validator.html"> -->
+<link rel="import" href="port-validator.html">
 
 <dom-module id="port-item">
     <template>
@@ -18,6 +19,7 @@
                 @apply --layout-horizontal;
                 max-width: 100%;
                 align-items: center;
+                position: relative;
             }
             .input-box-2 {
                 padding-left: 30px;
@@ -48,25 +50,39 @@
                 padding: 8px 2px;
                 align-self: flex-end;
             }
+            p.error {
+                position: absolute;
+                font-size: 0.8em;
+                display: block;
+                margin-top: 0;
+                color: var(--paper-input-container-invalid-color, var(--error-color));
+            }
         </style>
-        <!-- <ssn-validator></ssn-validator> -->
+        <port-validator validator-name="port-validator"></port-validator>
         <div class="input-box">
             <strong>[[newIndex]].</strong>
-            <paper-input value="{{_public}}" aria-label="Public *" label="Public port" size="15" required always-float-label>
+            <paper-input auto-focus value="{{_public}}" aria-label="Public *" label="Public port" size="15" required always-float-label
+            auto-validate validator='port-validator' error-message="Public port cannot be empty">
             </paper-input>
             <span>:</span>
-            <paper-input value="{{_private}}" aria-label="Private *" label="Private port"  size="15" required always-float-label>
+            <paper-input value="{{_private}}" aria-label="Private *" label="Private port"  size="15" required always-float-label
+            auto-validate validator='port-validator' error-message="Private port cannot be empty">
             </paper-input>
         </div>
         <div class="input-box-2">
-            <paper-dropdown-menu aria-label="Protocol" label="Protocol *" required always-float-label>
+            <paper-dropdown-menu aria-label="Protocol" label="Protocol *" required always-float-label
+            on-focus="_enableValidateProtocol" on-blur="_validateProtocol">
                 <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{_protocol}}">
                     <paper-item value="tcp">TCP</paper-item>
                     <paper-item value="udp">UDP</paper-item>
                 </paper-listbox>
             </paper-dropdown-menu>
-            <paper-input value="{{_params}}" aria-label="Other params, comma-separated" label="Other params. Comma-separated" size="55" always-float-label>
+            <paper-input value="{{_params}}" aria-label="Other params, comma-separated" label="Other params. Comma-separated" size="55" 
+            always-float-label>
             </paper-input>
+        </div>
+        <div class="input-box-2">
+            <p class="error" hidden$="[[!_showError]]">A protocol must be selected</p>
         </div>
         <paper-icon-button icon="delete" on-tap="_deletePort"></paper-icon-button>
     </template>
@@ -74,7 +90,7 @@
 <script>
     Polymer({
         is: 'port-item',
-        // behaviors: [IronValidatableBehavior],
+        behaviors: [Polymer.IronValidatableBehavior],
         properties: {
             port: {
                 type: Object,
@@ -102,23 +118,43 @@
                 type: String, 
                 value: ''
             },
-            // validator: {
-            //     type: String, 
-            //     value: 'port-validator'
-            // },
             newIndex: {
                 type: Number,
                 computed: '_computeNewIndex(index)'
+            },
+            _canValidate: {
+                type: Boolean,
+                value: false
+            },
+            _showError: {
+                type: Boolean,
+                value: false
+            },
+            valid: {
+                type: Boolean,
+                value: false,
+                reflextToAttribute: true
             }
         },
         observers: [
             '_computeValue(_private,_public,_protocol,_params)',
+            '_checkValidity(_private,_public,_protocol)',
             '_portChanged(port)',
         ],
         _computeNewIndex: function (index) {
             return index + 1;
         },
-        ready: function() {
+        _enableValidateProtocol: function(e) {
+            this.set('_canValidate', true);
+        },
+        _validateProtocol: function(e) {
+            // Validate paper-dropdown, if it has been focused once and the the listbox is not open
+            if (this._canValidate && this.shadowRoot.querySelector('paper-listbox').getAttribute('aria-expanded') == "false")
+                this.set('_showError', !this._protocol);
+        },
+        _checkValidity: function(_private,_public,_protocol) {
+            // TODO: This should get .valid values for each paper-inputs according to port-validator 
+            return _private && _public && ['udp', 'tcp'].indexOf(_protocol);
         },
         _portChanged: function(port) {
             if (port) {
