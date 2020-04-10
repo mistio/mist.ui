@@ -133,13 +133,14 @@
             valid: {
                 type: Boolean,
                 value: false,
-                reflextToAttribute: true
+                reflectToAttribute: true,
+                computed: '_computeValid(_private,_public,_protocol)'
             }
         },
         observers: [
             '_computeValue(_private,_public,_protocol,_params)',
-            '_checkValidity(_private,_public,_protocol)',
             '_portChanged(port)',
+            '_validateProtocol(_protocol)'
         ],
         _computeNewIndex: function (index) {
             return index + 1;
@@ -152,9 +153,9 @@
             if (this._canValidate && this.shadowRoot.querySelector('paper-listbox').getAttribute('aria-expanded') == "false")
                 this.set('_showError', !this._protocol);
         },
-        _checkValidity: function(_private,_public,_protocol) {
+        _computeValid: function(_private,_public,_protocol) {
             // TODO: This should get .valid values for each paper-inputs according to port-validator 
-            return _private && _public && ['udp', 'tcp'].indexOf(_protocol);
+            return _private && _public && ['udp', 'tcp'].indexOf(_protocol) > -1;
         },
         _portChanged: function(port) {
             if (port) {
