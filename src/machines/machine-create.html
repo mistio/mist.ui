@@ -914,7 +914,7 @@
                     if (changeRecord
                         .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                         .name == 'location') {
-                        this._updateImagesBasedOnLocation();
+                        this._updateImagesAndNetworksBasedOnLocation();
                         this._updateKvmDiskPathFolder(this.get(changeRecord.path.replace('.value', '')).value);
                     }
                 }
@@ -1086,7 +1086,6 @@
                                     this.set('machineFields.' + index + '.excludeFromPayload',
                                         false);
                                 }
-                                //console.log('FALSE', scheduleFieldFalse[i])
                             }
                         } else {
                             for (var i = 0; i < scheduleFields.length; i++) {
@@ -1094,7 +1093,6 @@
                                 if (index > -1) {
                                     this.set('machineFields.' + index + '.excludeFromPayload', true);
                                 }
-                                //console.log('TRUE', scheduleFields[i])
                             }
                         }
                     }
@@ -1146,11 +1144,6 @@
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', false);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', "");
                         } else if (changeRecord.value == "one_off") {
-                            entry = document.getElementById("schedule_entry_one_off") &&
-                                document.getElementById("schedule_entry_one_off").textContent &&
-                                document.getElementById("schedule_entry_one_off").textContent.split(
-                                    ',')[1] ? document.getElementById("schedule_entry_one_off")
-                                .textContent.split(',')[1].trim() + ":00" : "";
                             if (expInd > -1) this.set('machineFields.' + expInd + '.disabled', true);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', 1);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', true);
@@ -1494,15 +1487,32 @@
             }
 
             // if location is selected, we can update image options
-            this._updateImagesBasedOnLocation();
+            this._updateImagesAndNetworksBasedOnLocation();
+
         },
-        _updateImagesBasedOnLocation: function() {
+        _updateImagesAndNetworksBasedOnLocation: function() {
             var locInd = this._fieldIndexByName('location');
             var imgInd = this._fieldIndexByName('image');
+            var networkInd = this._fieldIndexByName('networks');
+            var vnfInd = this._fieldIndexByName('vnfs');
+            if (locInd == -1 || imgInd == -1 || networkInd == -1) {
+                return;
+            }
             var location = this.get('machineFields.' + locInd + '.value');
-            if (locInd > -1 && imgInd > -1 && location) {
-                var locImages = this._getLocationImages(location);
-                this.set('machineFields.' + imgInd + '.options', locImages);
+            if (!location) return;
+
+            var locImages = this._getLocationImages(location);
+            this.set('machineFields.' + imgInd + '.options', locImages);
+
+            // update networks
+            var networks = this.model.clouds[this.selectedCloud].networks ? Object.values(this.model.clouds[this.selectedCloud].networks).slice() : [];
+
+            var locationNetworks = networks.filter(function(n) {
+                return n.location == location
+            });
+
+            if (networkInd > -1) {
+                this.set('machineFields.' + networkInd + '.options', locationNetworks);
             }
         },
         _getLocationImages: function(location) {
