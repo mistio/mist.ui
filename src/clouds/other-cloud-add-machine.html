@@ -15,150 +15,6 @@
             btncontent="Add Host" show-cancel single-column></app-form>
     </template>
     <script>
-        ADD_HOSTS_FIELDS_KVM = [{
-            name: "machine_ip",
-            label: "KVM hostname *",
-            type: "text",
-            value: "",
-            defaultValue: "",
-            show: true,
-            required: true,
-            errorMessage: "Please enter KVM hostname",
-            helptext: 'The URL or IP that your KVM hypervisor listens to',
-            helpHref: 'http://docs.mist.io/article/24-adding-kvm'
-        }, {
-            name: "machine_key",
-            label: "SSH Key",
-            type: "ssh_key",
-            value: "",
-            defaultValue: "",
-            search: "",
-            show: true,
-            required: false,
-            options: [],
-            helptext: 'If you don\'t specify an SSH key, we assume that you are connecting via tcp (qemu+tcp)',
-            helpHref: 'http://docs.mist.io/article/24-adding-kvm'
-        }, {
-            name: "machine_user",
-            label: "SSH user",
-            type: "text",
-            value: "root",
-            defaultValue: "root",
-            show: true,
-            required: false,
-            helptext: 'The SSH user to connect as'
-        }, {
-            name: "ssh_port",
-            label: "SSH port",
-            type: "text",
-            value: 22,
-            defaultValue: 22,
-            show: true,
-            required: false
-        }, {
-            name: "images_location",
-            label: "Path for *.iso images",
-            type: "text",
-            value: '/var/lib/libvirt/images',
-            defaultValue: '/var/lib/libvirt/images',
-            show: true,
-            required: false,
-            helptext: 'The path that your disk or iso images are located, example /var/lib/libvirt/images'
-        }];
-        ADD_HOSTS_FIELDS_BM = [{
-            name: "machine_ip",
-            label: "Hostname",
-            type: "text",
-            placeholder: 'DNS or IP',
-            show: true,
-            required: true,
-            helptext: '',
-            helpHref: ''
-        }, {
-            name: "machine_name",
-            label: "Alias (optional)",
-            type: "text",
-            placeholder: '',
-            show: true,
-            required: false,
-            helptext: ""
-        }, {
-            name: "operating_system",
-            label: "Operating System",
-            type: "dropdown",
-            value: "unix",
-            defaultValue: "unix",
-            show: true,
-            required: false,
-            options: [{
-                title: "Unix",
-                val: "unix"
-            }, {
-                title: "Windows",
-                val: "windows"
-            }]
-        }, {
-            name: "machine_key",
-            label: "SSH Key",
-            type: "ssh_key",
-            value: "",
-            defaultValue: "",
-            show: false,
-            required: false,
-            options: [],
-            showIf: {
-                fieldName: "operating_system",
-                fieldValues: ["unix"]
-            }
-        }, {
-            name: "machine_user",
-            label: "User",
-            type: "text",
-            value: "root",
-            defaultValue: "root",
-            show: false,
-            required: false,
-            errorMessage: "Please enter user",
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "machine_port",
-            label: "Port",
-            type: "text",
-            value: 22,
-            defaultValue: 22,
-            show: false,
-            required: false,
-            errorMessage: "Please enter port",
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "remote_desktop_port",
-            label: "Remote Desktop Port",
-            type: "text",
-            value: 3389,
-            defaultValue: 3389,
-            errorMessage: "Please enter remote desktop's port",
-            show: false,
-            required: false,
-            showIf: {
-                fieldName: "operating_system",
-                fieldValues: ["windows"]
-            }
-        }, {
-            name: "monitoring",
-            label: "Enable monitoring",
-            type: "toggle",
-            value: false,
-            defaultValue: false,
-            show: true,
-            required: false
-        }];
-
         Polymer({
             is: 'other-cloud-add-machine',
             properties: {
@@ -166,6 +22,9 @@
                     type: Object
                 },
                 keys: {
+                    type: Array
+                },
+                providers: {
                     type: Array
                 },
                 fields: {
@@ -185,13 +44,15 @@
                 'update-keys': 'updateKeys'
             },
 
-            _computeFields: function(provider) {
-                if (!provider)
-                    return [];
-                if (provider != "libvirt")
-                    return ADD_HOSTS_FIELDS_BM;
-                else
-                    return ADD_HOSTS_FIELDS_KVM;
+            _computeFields: function(selectedProvider) {
+                if (!this.providers) return [];
+
+                var provider = this.providers.find(function (p) {
+                    return p.val == selectedProvider
+                });
+                return provider.options.find(function(o) {
+                    return o.name == 'hosts' || o.name == 'machines'
+                }).options;
             },
 
             _fieldIndexByName: function (name, fields) {
