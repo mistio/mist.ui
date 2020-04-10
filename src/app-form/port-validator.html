@@ -7,8 +7,27 @@ Polymer({
     behaviors: [Polymer.IronValidatorBehavior],
 
     validate: function(value) {
-        // TODO: a regex will be needed to validate :port, ip:port and url:port formats
-        return value;
+        var ValidIpAddressRegex = RegExp("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$");
+        var ValidHostnameRegex = RegExp("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$");
+
+        if (!value) {
+            // there must be a value
+            return false;
+        }
+        var valueChunks = value.split(':');
+        console.log('valueChunks', valueChunks);
+        if (valueChunks.length > 2) {
+            // if string value has more than one : characters
+            return false;
+        } else if (valueChunks.length == 1) {
+            // if string value no : characters it must be a valid port number
+            return parseInt(valueChunks[0]) && parseInt(valueChunks[0]) <= 65535;
+        } else {
+            // Validate ip:port and hostname:port formats
+            return value &&
+                    (ValidIpAddressRegex.test(valueChunks[0]) || ValidHostnameRegex.test(valueChunks[0])) &&
+                    parseInt(valueChunks[1]) && parseInt(valueChunks[1]) <= 65535;
+        }
     }
 });
 </script>
