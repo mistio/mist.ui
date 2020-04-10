@@ -369,7 +369,7 @@ MACHINE_CREATE_FIELDS.push({
         type: 'fieldgroup',
         value: {},
         defaultValue: {},
-        defaultToggleValue: true,
+        defaultToggleValue: false,
         helptext: '',
         show: true,
         required: false,
