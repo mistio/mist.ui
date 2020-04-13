@@ -1,0 +1,133 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../app-form/app-form.html">
+<script type="text/javascript" src="../machine-create-fields.js" inline></script>
+
+<dom-module id="expose-ports">
+    <template>
+        <style include="shared-styles dialogs">
+        :host {
+            width: 100%;
+        }
+
+        vaadin-dialog {
+            min-width: 360px;
+        }
+
+        :host .btn-group {
+            margin: 0 0 24px 0;
+        }
+
+        .grey {
+            opacity: 0.54;
+        }
+
+        .progress {
+            margin: 24px -24px 24px -24px;
+            width: 100%;
+        }
+
+        .progress paper-progress {
+            width: 100%;
+        }
+
+        paper-progress.progresserror ::slotted(#primaryProgress) {
+            background-color: var(--red-color);
+        }
+
+        .error {
+            color: var(--red-color);
+            align-self: flex-end;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+
+        iron-icon {
+            color: inherit;
+        }
+
+        .errormsg-container {
+            color: var(--red-color);
+            padding-left: 24px;
+            padding-right: 24px;
+            margin-bottom: 0;
+        }
+
+        .errormsg-container iron-icon {
+            color: inherit;
+            padding-right: 8px;
+        }
+
+        p.red {
+            padding: 4px;
+            margin-top: 0;
+        }
+
+        :host paper-dropdown-menu ::slotted(.dropdown-content) {
+            top: 55px !important;
+        }
+        </style>
+        <vaadin-dialog id="exposePortsDialog" with-backdrop>
+            <template>
+                <h2>Expose machine's ports</h2>
+                <app-form id="expose-machines-ports" inline single-column fields="[[fields]]" form="[[form]]" url="/api/v1/machines/[[machine.id]]/ports" 
+                on-request="_handleRequest" on-response="_handleResponse" on-error="_handleError" btncontent="Update"></app-form>
+                <br/>
+            </template>
+        </vaadin-dialog>
+    </template>
+</dom-module>
+<script>
+Polymer({
+    is: 'expose-ports',
+
+    properties: {
+        machine: {
+            type: Object
+        },
+        provider: {
+            type: String
+        },
+        ports: {
+            type: Array,
+            computed: '_computePorts(machine)'
+        },
+        fields: {
+            type: Array,
+            computed: '_computeFields(machine, provider)'
+        }
+    },
+    _computePorts: function(machine) {
+        var that = this;
+        var ports = [];
+        // TODO: construct ports from machine extra
+        return ports;
+    },
+    _computeFields: function(machine, provider) {
+        var providerFields = MACHINE_CREATE_FIELDS.find(function(x) {
+            return x.provider == provider;
+        });
+        // locate port fieldgroup definition
+        var portFieldGroup = providerFields.fields.find(function(f){
+            return f.name == 'port_forwards';
+        });
+        // locate ports field
+        return portFieldGroup.subfields.filter(function(f){
+            return f.type == 'mist_ports';
+        });
+    },
+    _openDialog: function(e) {
+        this.$.exposePortsDialog.opened = true;
+    },
+    _closeDialog: function(e) {
+        this.$.exposePortsDialog.opened = false;
+    }
+});
+</script>
