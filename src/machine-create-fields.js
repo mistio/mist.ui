@@ -365,7 +365,7 @@ MACHINE_CREATE_FIELDS.push({
         required: false
     },{
         name: 'port_forwards',
-        label: 'Port Forwards',
+        label: 'Expose ports',
         type: 'fieldgroup',
         value: {},
         defaultValue: {},
@@ -383,7 +383,9 @@ MACHINE_CREATE_FIELDS.push({
             value: {},
             defaultValue: {},
             show: true,
-            required: true
+            required: true,
+            portError: "Port must be a port number",
+            portValidator: "port-number"
         }]
     }
     ]

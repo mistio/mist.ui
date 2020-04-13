@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/iron-input/iron-input.html">
 <link rel="import" href="../../bower_components/iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-validator-behavior/iron-validator-behavior.html">
 <link rel="import" href="port-validator.html">
 
 <dom-module id="port-item">
@@ -58,15 +59,16 @@
                 color: var(--paper-input-container-invalid-color, var(--error-color));
             }
         </style>
-        <port-validator validator-name="port-validator"></port-validator>
+        <port-validator validator-name="port"></port-validator>
+        <port-number-validator validator-name="port-number"></port-number-validator>
         <div class="input-box">
             <strong>[[newIndex]].</strong>
-            <paper-input auto-focus value="{{_public}}" aria-label="Public *" label="Public *" size="15" required always-float-label
-            auto-validate validator='port-validator' error-message="Public is empty or wrong">
+            <paper-input auto-focus value="{{_public}}" aria-label="Public port *" label="Public port*" size="15" required always-float-label
+            auto-validate validator='[[portValidator]]' error-message="[[portError]]">
             </paper-input>
             <span>:</span>
-            <paper-input value="{{_private}}" aria-label="Private *" label="Private *"  size="15" required always-float-label
-            auto-validate validator='port-validator' error-message="Private is empty or wrong">
+            <paper-input value="{{_private}}" aria-label="Private port*" label="Private port *"  size="15" required always-float-label
+            auto-validate validator='[[portValidator]]' error-message="[[portError]]">
             </paper-input>
         </div>
         <div class="input-box-2">
@@ -78,7 +80,7 @@
                 </paper-listbox>
             </paper-dropdown-menu>
             <paper-input value="{{_params}}" aria-label="Other params, comma-separated" label="Other params." size="55" 
-            always-float-label>
+            always-float-label hidden$="[[!paramsAllowed]]">
             </paper-input>
         </div>
         <div class="input-box-2">
@@ -130,11 +132,19 @@
                 type: Boolean,
                 value: false
             },
+            paramsAllowed: {
+                type: Boolean,
+                value: false
+            },
             valid: {
                 type: Boolean,
                 value: false,
                 reflectToAttribute: true,
                 computed: '_computeValid(_private,_public,_protocol)'
+            },
+            portValidator: {
+                type: String,
+                value: ''
             }
         },
         observers: [
@@ -176,11 +186,26 @@
                 var key =  _public.trim() + ':' + _private.trim();
                 var val = [];
                     val.push(_protocol);
-                if (_params)
+                if (this.paramsAllowed && params)
                     val = val.concat(_params)
                 this.value = {};
                 this.value[key] = val;
                 this.dispatchEvent(new CustomEvent('change', { bubbles: true, composed: true }));
+            }
+        }
+    });
+</script>
+<script>
+    Polymer({
+        is: 'port-number-validator',
+        behaviors: [Polymer.IronValidatorBehavior],
+        validate: function(value) {
+            if (!value) {
+                // there must be a value
+                return false;
+            }
+            if (value) {
+                return parseInt(value) && parseInt(value) <= 65535;
             }
         }
     });
