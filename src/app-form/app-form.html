@@ -642,8 +642,8 @@
                                     <strong>[[field.label]]</strong>
                                 </span>
                             </div>
-                            <sub-form field="[[field]]" item-name="[[field.itemName]]" options="[[field.options]]" min="[[field.min]]" max="[[field.max]]" field-name="[[field.name]]" horizontal="[[f.horizontal]]" moderate-top="[[f.moderateTop]]"
-                                items="[[field.items]]" class$="xs12 m12 [[field.class]]" absolute-remove-button="[[field.absoluteRemoveButton]]"></sub-form>
+                            <sub-form id$="app-form-[[id]]-[[field.name]]" item-name="[[field.itemName]]" options="[[field.options]]" min="[[field.min]]" max="[[field.max]]" field-name="[[field.name]]" horizontal="[[f.horizontal]]" moderate-top="[[f.moderateTop]]"
+                                items="[[field.items]]" class$="xs12 m12 [[field.class]]"></sub-form>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'fieldgroup', fieldVisibility, index)]]">
                             <sub-fieldgroup id$="fieldgroup-[[id]]" field="[[field]]" class$="xs12 m6 l6 [[field.class]]" optional></sub-fieldgroup>
@@ -691,7 +691,8 @@
                 </div>
             </template>
         </div>
-
+        <iron-ajax id="getJSON" handle-as="json" last-response="{{data}}" on-response="_getJSONResponse" on-request="_getJSONRequest"
+            on-error="_getJSONError"></iron-ajax>
         <iron-ajax id="formAjax" url="[[url]]" contentType="application/json" handle-as="{{handleas}}" method="[[method]]" on-request="_handleRequest"
             on-response="_handleResponse" on-error="_handleError"></iron-ajax>
     </template>
@@ -814,6 +815,10 @@
                 },
                 fieldVisibility: {
                     type: Object
+                },
+                fieldIndex: {
+                    type: Number,
+                    value: -1
                 }
             },
 
@@ -908,11 +913,60 @@
                 }
             },
 
+            _updateScheme: function(fieldname, value) {
+                if (value) {
+                    var fieldIndex = this.fields.findIndex(function(f){
+                        return f.name == fieldname;
+                    });
+                    if (fieldIndex > -1) {
+                        this.set('fieldIndex', fieldIndex);
+                        var field =  this.fields[fieldIndex];
+                        this.$.getJSON.url = './src' + field.loadSchemeFolder + "" + value + ".json";
+                        this.$.getJSON.headers["Content-Type"] = 'application/json';
+                        this.$.getJSON.headers["Csrf-Token"] = CSRF_TOKEN;
+                        this.$.getJSON.generateRequest();
+                    }
+                }
+            },
+
+            _getJSONResponse: function(e) {
+                e.stopPropagation();
+                console.log('getJSON response', e.detail.response);
+                if (this.fieldIndex > -1 ) {
+                    var field = this.get('fields.' + this.fieldIndex);
+                    var options = 'options'
+                    if (field.type == 'fieldgroup'){
+                        options = 'subfields';
+                    }
+
+                    this.set('fields.'+ this.fieldIndex +'.'+ options, e.detail.response[options]);
+                    this.set('fields.'+ this.fieldIndex +'.helptext', e.detail.response.helptext);
+                    this.set('fields.'+ this.fieldIndex +'.label', e.detail.response.label);
+
+                    this.notifyPath('fields.'+ this.fieldIndex+'.'+ options);
+                    this.set('fieldVisibility.'+ this.fieldIndex, true);
+                }
+            },
+
+            _getJSONRequest: function(e) {
+                e.stopPropagation();
+                console.log('_getJSON Request', e);
+            },
+
+            _getJSONError: function(e) {
+                e.stopPropagation();
+                console.log('_getJSON Error', e);
+                this.set('fieldIndex', -1);
+            },
+
             _fieldsChanged: function (fields, sendingData) {
                 // console.log('_fieldsChanged', fields ? fields.path : 'run by event')
                 if (this.formError) {
                     this.set('formError', false);
                 }
+                if (!this.fields)
+                    return;
+
                 if (fields && fields.path && fields.path == 'fields') {
                     // console.log('app form - fields changed. changerecord', fields);
                     this._updateForm();
@@ -946,6 +1000,13 @@
                             }
                             if (el.type == "fieldgroup") {
                                 console.log('fieldgroup', that.id, 'el', el.name, el.value);
+                            }
+                            if (el.loadScheme && el.schemeName) {
+                                console.log('fieldgroup', that.id, 'el', el.name, el.value);
+                            }
+                            // if field determines a scheme for another field
+                            if (el.schemeLoaderFor && (fields.path == 'fields' || fields.path == 'fields.'+ index +'.value')) {
+                                that._updateScheme(el.schemeLoaderFor, el.value);
                             }
                             // if field has a dependency
                             if (el.showIf) {
@@ -1252,6 +1313,7 @@
                             payload[field.name] = field.customValue;
                         }
                         if (field.type == 'fieldgroup') {
+
                             if (JSON.stringify(field.value) == '{}') {
                                 excludeFields.push(field);
                             } else {
@@ -1306,13 +1368,13 @@
                 else if (field.showIf && (field.showIf.fieldExists || field.showIf.fieldName)) {
                     var d = list.find(function (f) {
                         return f.name == field.showIf.fieldName;
-                    })
+                    });
                     // try in fields
                     if (!d) {
                         d = this.fields.find(function (l) {return l.name == field.showIf.fieldName;})
                     }
-                    if (d && (field.showIf.fieldExists && d.value) || (field.showIf.fieldValues && d.value.indexOf(
-                            field.showIf.fieldValues) > -1))
+                    if (d && (field.showIf.fieldExists && d.value) || (field.showIf.fieldValues && field.showIf.fieldValues.indexOf(
+                            d.value) > -1))
                         return true;
                 }
                 return false;
