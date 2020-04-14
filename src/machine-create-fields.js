@@ -1492,9 +1492,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         optional: true,
         singleColumnForm: true,
         inline: true,
+        flatten: true,
         subfields: [
             {
-                name: 'run_script',
+                name: 'type_of_script',
                 label: 'Script Inline or Select',
                 type: 'radio',
                 value: 'inline',
@@ -1502,6 +1503,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 helptext: 'Edit a script to run or choose one from your existing ones.',
                 show: true,
                 required: false,
+                excludeFromPayload: true,
                 class: 'bind-bottom',
                 options: [{
                     title: 'Inline Script',
@@ -1521,7 +1523,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 class: 'bind-top',
                 helptext: 'The inline script will run after provisioning',
                 showIf: {
-                    fieldName: 'run_script',
+                    fieldName: 'type_of_script',
                     fieldValues: ['inline'],
                 },
             }, {
@@ -1533,9 +1535,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 class: 'bind-both',
                 show: true,
                 required: false,
+                options: [],
+                add: true,
                 helptext: 'The selected script will run after provisioning',
                 showIf: {
-                    fieldName: 'run_script',
+                    fieldName: 'type_of_script',
                     fieldValues: ['select'],
                 },
             }, {
@@ -1549,7 +1553,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 class: 'bind-top',
                 helptext: '',
                 showIf: {
-                    fieldName: 'run_script',
+                    fieldName: 'type_of_script',
                     fieldValues: ['select'],
                 },
             }
