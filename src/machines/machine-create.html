@@ -280,6 +280,10 @@
             },
             constraints: {
                 type: Object
+            },
+            updateScriptFieldName: {
+                type: 'String',
+                value: ''
             }
         },
         observers: [
@@ -2072,13 +2076,14 @@
         },
         addInput: function(e) {
             if (e.detail.fieldname == 'schedule_script_id' || e.detail.fieldname == 'script_id') {
+                this.set("updateScriptFieldName", e.detail.fieldname);
                 //set attribute origin
                 var origin = window.location.pathname;
                 var qParams = {
                     'origin': origin
                 }
                 this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                    url: '/machines',
+                    url: '/scripts/+add',
                     params: qParams
                 } }));
 
@@ -2211,13 +2216,31 @@
             return construct;
         },
         updateScripts: function(e) {
-            var scheduleScriptInd = this._fieldIndexByName("schedule_script_id");
-            this.async(function() {
-                if (scheduleScriptInd > -1) {
-                    this.set('machineFields.' + scheduleScriptInd + '.options', this.model.scriptsArray || []);
-                    this.set('machineFields.' + scheduleScriptInd + '.value', e.detail.script);
-                }
-            }.bind(this), 1000);
+            // locate the field groups that need to update their script options
+            var fiedlgroupInd,
+                scriptInd,
+                scheduleFieldgroup = this._fieldIndexByName("post_provision_scheduler"),
+                scriptFieldgroup = this._fieldIndexByName("post_provision_script")
+                scheduleFieldgroup_scriptInd = this._fieldIndexByName("schedule_script_id", this.machineFields[scheduleFieldgroup].subfields),
+                scriptFieldgroup_scriptInd = this._fieldIndexByName("script_id", this.machineFields[scriptFieldgroup].subfields);
+
+            // update both fields script options
+            this.set('machineFields.' + scheduleFieldgroup + '.subfields.' + scheduleFieldgroup_scriptInd + '.options', this.model.scriptsArray || []);
+            this.set('machineFields.' + scriptFieldgroup + '.subfields.' + scriptFieldgroup_scriptInd + '.options', this.model.scriptsArray || []);
+
+            // update the value only for the field that requested addInput()
+            if (this.updateScriptFieldName == "schedule_script_id") {
+                fiedlgroupInd = scheduleFieldgroup;
+                scriptInd = scheduleFieldgroup_scriptInd;
+            } else if (this.updateScriptFieldName == "script_id") {
+                fiedlgroupInd = scriptFieldgroup;
+                scriptInd = scriptFieldgroup_scriptInd;
+            }
+            if (fiedlgroupInd > -1 && scriptInd > -1) {
+                this.async(function() {
+                    this.set('machineFields.' + fiedlgroupInd + '.subfields.' + scriptInd + '.value', e.detail.script);
+                }.bind(this), 1000);
+            }
         },
         formatPayload: function(e) {
             var hostnameInd = this._fieldIndexByName("hostname"),
