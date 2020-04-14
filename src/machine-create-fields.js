@@ -859,8 +859,8 @@ MACHINE_CREATE_FIELDS.push({
 
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p) {
-    var addImage = ['kvm'].indexOf(p.provider) != -1;
-    var showLocation = ['lxd'].indexOf(p.provider) == -1;
+    var addImage = ['libvirt'].indexOf(p.provider) != -1;
+    var showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) == -1;
 
     // add common machine properties fields
     p.fields.splice(0, 0, {
@@ -873,6 +873,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: true,
         helptext: 'Fill in the machine\'s name',
     }, {
+        name: 'location',
+        label: 'Location *',
+        type: 'mist_dropdown',
+        value: '',
+        defaultValue: '',
+        show: showLocation,
+        required: showLocation,
+        options: []
+    }, {
         name: 'image',
         label: 'Image *',
         type: 'mist_dropdown_searchable',
@@ -883,28 +892,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: true,
         options: [],
         search: '',
-    }, {
-        name: 'location',
-        label: 'Location *',
-        type: 'mist_dropdown',
-        value: '',
-        defaultValue: '',
-        show: true,
-        required: true,
-        options: []
     });
-
-    // for kvm show image only if location is set
-    if (['libvirt', 'onapp'].indexOf(p.provider) != -1) {
-        p.fields[1].showIf = {
-            fieldName: 'location',
-            fieldExists: true
-        }
-    }
 
     // mist_size for kvm libvirt
     if (['libvirt'].indexOf(p.provider) != -1) {
-        p.fields.splice(2, 0, {
+        p.fields.splice(3, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -941,7 +933,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             }],
         });
     } else if (['gig_g8'].indexOf(p.provider) != -1) {
-        p.fields.splice(2, 0, {
+        p.fields.splice(3, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -991,7 +983,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             }],
         });
     } else if (['onapp'].indexOf(p.provider) != -1) {
-        p.fields.splice(2, 0, {
+        p.fields.splice(3, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -1072,7 +1064,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             }],
         });
     } else if (['vsphere', 'lxd', 'kubevirt'].indexOf(p.provider) != -1) {
-        p.fields.splice(2, 0, {
+        p.fields.splice(3, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -1138,7 +1130,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             }
         });
     } else { // mist_dropdown for all others
-        p.fields.splice(2, 0, {
+        p.fields.splice(3, 0, {
             name: 'size',
             label: 'Size *',
             type: 'mist_size',
@@ -1767,53 +1759,46 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldName: 'schedule_type',
             fieldValues: ['interval', 'crontab'],
         },
-    });
-
-    if (['onapp'].indexOf(p.provider) == -1) {
-        p.fields.push({
-                name: 'hostname',
-                label: 'Create DNS record',
-                type: 'fieldgroup',
-                value: {},
-                defaultValue: {},
-                defaultToggleValue: false,
-                helptext: 'Create an A record for this machine on an existing DNS zone.',
+    }, {
+        name: 'hostname',
+        label: 'Create DNS record',
+        type: 'fieldgroup',
+        value: {},
+        defaultValue: {},
+        defaultToggleValue: false,
+        helptext: 'Create an A record on an existing DNS zone that will point to the public ip address of the machine.',
+        show: true,
+        required: false,
+        optional: true,
+        singleColumnForm: true,
+        inline: true,
+        subfields: [
+            {
+                name: 'record_name',
+                type: 'text',
+                value: '',
+                label: 'Record name',
+                defaultValue: '',
+                helptext: '',
                 show: true,
-                required: false,
-                optional: true,
-                singleColumnForm: true,
-                inline: true,
-                subfields: [
-                    {
-                        name: 'record_name',
-                        type: 'text',
-                        value: '',
-                        label: 'Record name',
-                        defaultValue: '',
-                        helptext: '',
-                        show: true,
-                        class: 'width-150 inline-block pad-r-0 pad-t',
-                        required: true,
-                        suffix: '.',
-                    }, {
-                        name: 'dns_zone',
-                        type: 'mist_dropdown',
-                        label: 'DNS zone',
-                        value: '',
-                        defaultValue: '',
-                        helptext: '',
-                        display: 'domain',
-                        show: true,
-                        class: 'inline-block pad-l-0 pad-t',
-                        required: true,
-                        options: []
-                    }
-                ]
+                class: 'width-150 inline-block pad-r-0 pad-t',
+                required: true,
+                suffix: '.',
+            }, {
+                name: 'dns_zone',
+                type: 'mist_dropdown',
+                label: 'DNS zone',
+                value: '',
+                defaultValue: '',
+                helptext: '',
+                display: 'domain',
+                show: true,
+                class: 'inline-block pad-l-0 pad-t',
+                required: true,
+                options: []
             }
-        );
-    }
-
-    p.fields.push({
+        ]
+    }, {
         name: 'monitoring',
         label: 'Enable monitoring',
         type: 'toggle',
@@ -1832,14 +1817,4 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: false,
         helptext: '',
     });
-    // Move location field to top
-    if (['libvirt', 'onapp'].indexOf(p.provider) > -1) {
-        let locationField = p.fields.find(function(f) {
-            return f.name == 'location';
-        });
-        let index = p.fields.indexOf(locationField);
-        p.fields.splice(index, 1);
-        p.fields.splice(1,0,locationField);
-    }
-    // console.log('order',p.provider, p.fields.map(x=>x.name));
 });
