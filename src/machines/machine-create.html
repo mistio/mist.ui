@@ -1514,6 +1514,13 @@
             if (networkInd > -1) {
                 this.set('machineFields.' + networkInd + '.options', locationNetworks);
             }
+
+            if (vnfInd > -1) {
+                var allVnfs = this.get('machineFields.' + vnfInd + '.vnfs') || [],
+                    locationVNFs = allVnfs.filter(function(f) {return f.location == location}),
+                    categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(locationVNFs);
+                this.set('machineFields.' + vnfInd + '.subfields.0.options', categorisedVNFs);
+            }
         },
         _getLocationImages: function(location) {
             if (location && this.model && this.model.clouds)
@@ -1917,8 +1924,14 @@
                     vnfs.push(e.detail.response[i]);
                 }
             }
-            var categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(vnfs);
-            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options', categorisedVNFs || []);
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.vnfs', vnfs || []);
+
+            var locInd = this._fieldIndexByName('location'),
+                location = this.get('machineFields.' + locInd + '.value'),
+                locationVNFs = location ? vnfs.filter(function(f) {return f.location == location}) : vnfs,
+                categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(locationVNFs);
+
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options',  categorisedVNFs || []);
             this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()'}}));
             this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', false);
         },
@@ -1936,6 +1949,7 @@
                     'name': arr[i].interface,
                     'id': arr[i].pci_bdf,
                     'description': arr[i].pci_bdf,
+                    'location': arr[i].location,
                     'tooltip': arr[i].device.vendor + ' ' + arr[i].device.name
                 }
                 // store item under its category name
@@ -1953,6 +1967,7 @@
             return categorisedArray || arr.map(function(x){ return {
                 'name': x.interface,
                 'id': x.pci_bdf,
+                'location': x.location,
                 'description': x.pci_bdf + ' - ' + x.device.vendor + ' ' + x.device.name}});
         },
         _handleGetVirtualNetworkFunctionsError: function(e) {
