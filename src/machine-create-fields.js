@@ -1527,7 +1527,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }, {
         name: 'script_id',
         label: 'Script',
-        type: 'mist_dropdown',
+        type: 'mist_dropdown_searchable',
         value: '',
         defaultValue: '',
         class: 'bind-both background',
