@@ -40,7 +40,7 @@
             </paper-dialog-scrollable>
         </paper-dialog>
 
-        <iron-ajax id="tunnelEditAjaxRequest" url="/api/v1/tunnels/[[tunnel.id]]" method="PUT" handle-as="json" on-response="_handleTunnelEditAjaxResponse" on-error="_handleTunnelEditAjaxError"></iron-ajax>
+        <iron-ajax id="tunnelEditAjaxRequest" url="/api/v1/tunnels/[[tunnel.id]]" method="PUT" handle-as="json" on-response="_handleTunnelEditAjaxResponse" on-error="_handleTunnelEditAjaxError" loading="{{loading}}"></iron-ajax>
     </template>
 
     <script>
@@ -59,13 +59,13 @@
                         computed: '_computeNewTunnel(tunnel)',
                         notify: true
                     },
-                    sendingData: {
+                    loading: {
                         type: Boolean,
                         value: false
                     },
                     formReady: {
                         type: Boolean,
-                        computed: '_computeFormReady(newTunnel.name, newTunnel.cidrs, sendingData)'
+                        computed: '_computeFormReady(newTunnel.name, newTunnel.cidrs, loading, fail)'
                     },
                     fail: {
                         type: Boolean,
@@ -74,7 +74,7 @@
                 },
                 listeners: {
                     'iron-overlay-closed': '_modalClosed',
-                    'change': '_editing'
+                    'key-up': '_editing'
                 },
                 _computeNewTunnel: function(tunnel) {
                     if (tunnel) {
@@ -86,18 +86,8 @@
                         };
                     }
                 },
-                _computeFormReady: function(name, cidrs, sendingData) {
-                    var formReady = false;
-
-                    if (name && cidrs) {
-                        formReady = true;
-                    }
-
-                    if (sendingData) {
-                        formReady = false;
-                    }
-
-                    return formReady;
+                _computeFormReady: function(name, cidrs, loading, fail) {
+                    return name && cidrs && !loading && !fail;
                 },
                 _openEditTunnelModal: function(e) {
                     this.$.editTunnelModal.open();
@@ -111,13 +101,6 @@
                     this._formReset();
                 },
                 _submitForm: function(e) {
-                    // var val = this.$.cidrs
-                    // if (typeof(this.$.cidrs.value) == 'array'){
-                    //     var cidrs = this.$.cidrs.value;
-                    // }
-                    // else {
-                    //     var cidrs = this.$.cidrs.value.split('\n');
-                    // }
                     this.$.tunnelEditAjaxRequest.headers["Content-Type"] = 'application/json';
                     this.$.tunnelEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
                     this.$.tunnelEditAjaxRequest.body = {
@@ -125,16 +108,10 @@
                         description: this.newTunnel.description,
                         cidrs: this.newTunnel.cidrs
                     };
-                    
-                    // console.log('CIDRS',cidrs);
-
                     this.$.tunnelEditAjaxRequest.generateRequest();
-
-                    this.set('sendingData', true);
                 },
                 _editing: function(){
                     this.set("fail", false);
-                    this.set('sendingData', false);
                 },
                 _formReset: function() {
                     this.set('tunnel', {
@@ -143,11 +120,9 @@
                         description: this.tunnel.description,
                         cidrs: this.tunnel.cidrs
                     })
-                    this.set('sendingData', false);
                     this.set("fail", false);
                 },
                 _handleTunnelEditAjaxResponse: function(e) {
-                    this.set('sendingData', false);
                     this._closeEditTunnelModal();
                 },
                 _handleTunnelEditAjaxError: function(e){
@@ -156,7 +131,6 @@
                         msg404 = 'Tunnel seems deleted';
                     }
                     this.$.errormsg.textContent = e.detail.error.message+' '+msg404;
-                    this.set('sendingData', true);
                     this.set("fail", true);
                 }
             });
