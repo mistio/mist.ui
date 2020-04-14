@@ -17,7 +17,7 @@
         </style>
         <app-route route="{{route}}" pattern="/:cloud" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <cloud-actions id="actions" items="[[selectedItems]]" actions="{{actions}}">
+            <cloud-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" providers=[[providers]]>
                 <mist-list selectable resizable column-menu multi-sort 
                     id="cloudsList"
                     apiurl="/api/v1/clouds"
@@ -35,12 +35,12 @@
                     <p slot="no-items-found">No clouds found.</p>
                 </mist-list>
             </cloud-actions>
+            <div class="absolute-bottom-right" hidden$="[[!check_perm('add','cloud')]]">
+                <paper-fab id="cloudAdd" icon="add" on-tap="_addResource"></paper-fab>
+            </div>
         </template>
-        <div class="absolute-bottom-right" hidden$="[[!check_perm('add','cloud')]]">
-            <paper-fab id="cloudAdd" icon="add" on-tap="_addResource"></paper-fab>
-        </div>
         <cloud-add providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]" enable-monitoring="[[enableMonitoring]]" hidden$=[[!_isAddPageActive(route.path)]] portal-name=[[portalName]] docs=[[docs]] org="[[model.org]]" enable-billing=[[enableBilling]]></cloud-add>
-        <cloud-page model="[[model]]" cloud="[[cloud]]" section="[[model.sections.clouds]]" resource-id="[[data.cloud]]" hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
+        <cloud-page model="[[model]]" providers="[[providers]]" cloud="[[cloud]]" section="[[model.sections.clouds]]" resource-id="[[data.cloud]]" hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
     </template>
     <script>
     Polymer({
