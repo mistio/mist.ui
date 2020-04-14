@@ -1154,7 +1154,7 @@ PROVIDERS.push({
             min: '1',
             max: '5',
             options: [{
-                name: "machine_ip",
+                name: "machine_hostname",
                 label: "Hostname",
                 type: "text",
                 placeholder: 'DNS or IP',
