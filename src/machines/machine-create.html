@@ -1132,7 +1132,7 @@
                             maxcountInd = this._fieldIndexByName("max_run_count"),
                             entry;
                         if (changeRecord.value == "interval") {
-                            entry = this._processInterval();
+                            entry = this._getInterval();
                             if (expInd > -1) this.set('machineFields.' + expInd + '.disabled', false);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', false);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', "");
@@ -1168,9 +1168,9 @@
 
                     // interval changes in schedule entry
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
-                            "schedule_entry_interval_")) {
+                            "schedule_entry_interval")) {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        if (entryInd > -1) this.set('machineFields.' + entryInd + '.value', this._processInterval());
+                        if (entryInd > -1) this.set('machineFields.' + entryInd + '.value', this._getInterval());
                     }
 
                     if (this.get(changeRecord.path.replace('.value', '')).name == "expires") {
@@ -2122,24 +2122,12 @@
         _goBack: function() {
             history.back();
         },
-        _processInterval: function() {
-            var everyInd = this._fieldIndexByName("schedule_entry_interval_every"),
-                periodInd = this._fieldIndexByName("schedule_entry_interval_period");
-            if (everyInd > -1) {
-                var every = this.get('machineFields.' + everyInd + '.value').trim().length > 0 ?
-                    this.get('machineFields.' + everyInd + '.value') : this.get('machineFields.' +
-                        everyInd + '.defaultValue');
+        _getInterval: function() {
+            var intervalInd = this._fieldIndexByName("schedule_entry_interval"), interval = {};
+            if (intervalInd > -1) {
+                interval = this.get('machineFields.' + intervalInd + '.value') || 
+                    this.get('machineFields.' + intervalInd + '.defaultValue');
             }
-            if (periodInd > -1) {
-                var period = this.get('machineFields.' + periodInd + '.value').trim().length > 0 ?
-                    this.get('machineFields.' + periodInd + '.value') : this.get('machineFields.' +
-                        periodInd + '.defaultValue');
-            }
-            var interval = {
-                'every': every,
-                'period': period
-            };
-
             return interval;
         },
         _updateFieldsForPacket: function(e) {
