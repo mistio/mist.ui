@@ -340,7 +340,8 @@
             'update-dashboard': '_forwardEvent',
             'import-script': '_importScript',
             'list-attached': '_listAttached',
-            'resize': '_stopPropagation'
+            'resize': '_stopPropagation',
+            'cloud-delete': '_cleanUpModelFromCloudResources'
         },
 
         observers: [
@@ -352,6 +353,11 @@
             '_ccRequiredChanged(ccRequired)',
             // '_qChanged(q)' // disable sections count updates
         ],
+
+        _cleanUpModelFromCloudResources: function(e) {
+            if (this.shadowRoot.querySelector('mist-socket') && e.detail.cloud)
+                this.shadowRoot.querySelector('mist-socket').cleanUpResources(e.detail.cloud)
+        },
 
         _listAttached: function(e) {
             if (e.detail && e.detail.id) {
