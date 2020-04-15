@@ -31,6 +31,7 @@
 <link rel="import" href="mist-machine-field.html">
 <link rel="import" href="mist-tags-field.html">
 <link rel="import" href="duration-field.html">
+<link rel="import" href="crontab-validator.html">
 
 <script src="../../bower_components/yaml.js/dist/yaml.min.js"></script>
 
@@ -456,7 +457,7 @@
                 color: rgba(0, 0, 0, 0.54);
             }
         </style>
-
+        <crontab-validator id="cronValidator" name="crontab-validator"></crontab-validator>
         <div class$="grid [[_computeLayoutClass(horizontalLayout)]]">
             <template id="app-form-[[id]]" is="dom-repeat" items="{{fields}}" as="field">
                 <template is="dom-if" if="[[_showField(field, index, fieldVisibility.*)]]" restamp>
@@ -465,7 +466,7 @@
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'text', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" validator="[[field.validator]]"
                                 value="{{field.value}}" auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
-                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"
+                                error-message="[[field.errorMessage]]" validator="[[field.validator]]" disabled="[[field.disabled]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 placeholder=[[field.placeholder]] hidden$="[[field.hidden]]">
                                 <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
                                 <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
@@ -474,7 +475,7 @@
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'number', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" type="number" min="{{field.min}}"
                                 max="{{field.max}}" value="{{field.value}}" auto-validate auto-validate allowed-pattern="[[field.pattern]]" required="[[field.required]]"
-                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
+                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 placeholder=[[field.placeholder]]>
                                 <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
                                 <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
@@ -482,17 +483,17 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'password', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" type="password" placeholder="[[field.placeholder]]"
-                                label="[[field.label]]" value="{{field.value}}" pattern="[[field.pattern]]" auto-validate required="[[field.required]]"
+                                label="[[field.label]]" value="{{field.value}}" pattern="[[field.pattern]]" auto-validate required="[[field.required]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 error-message="[[field.errorMessage]]"></paper-input>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'textarea', fieldVisibility, index)]]" restamp>
                             <paper-textarea class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" label="[[field.label]]" rows="2" max-rows="10"
-                                value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]"
+                                value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-textarea>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'ip_textarea', fieldVisibility, index)]]" restamp>
                             <paper-textarea class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" label="[[field.label]]" rows="2" max-rows="15"
-                                value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]"
+                                value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"></paper-textarea>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'jsoneditor', fieldVisibility, index)]]" restamp>
@@ -539,7 +540,7 @@
                             </div>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'dropdown', fieldVisibility, index)]]" restamp>
-                            <paper-dropdown-menu id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]"
+                            <paper-dropdown-menu id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]" required="[[field.required]]" no-label-float="[[!field.label]]">
                                 <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
@@ -569,7 +570,7 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_dropdown', fieldVisibility, index)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
-                                hidden="[[field.hidden]]" required="[[field.required]]">
+                                hidden="[[field.hidden]]" required="[[field.required]]" always-float-label="[[field.alwaysFloatLabel]]">
                                 <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
@@ -592,7 +593,7 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_dropdown_searchable', fieldVisibility, index)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
-                                hidden="[[field.hidden]]">
+                                hidden="[[field.hidden]]" always-float-label="[[field.alwaysFloatLabel]]">
                                 <div slot="dropdown-content" class="dropdown-content">
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
                                     <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
@@ -626,7 +627,7 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'ssh_key', fieldVisibility, index)]]">
                             <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left" hidden$="[[field.hidden]]">
-                                <div slot="dropdown-content" class="dropdown-content">
+                                <div slot="dropdown-content" class="dropdown-content" always-float-label="[[field.alwaysFloatLabel]]">
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]"></paper-input>
                                     <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
                                         <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
@@ -1126,6 +1127,7 @@
                     customValidators = {
                         'cidr-validator': this._validateCidr,
                         'ip-validator': this._validateIp,
+                        'crontab-validator': this._validateCrontab
                     };
                 return fieldsToValidate.every(function (el, index) {
                     var fieldIndex = this.fields.findIndex(function(f){return f.name === el.name});
@@ -1442,6 +1444,10 @@
                     ret == ret && this._validateCidr(ipArray[i]);
                 }
                 return ret;
+            },
+
+            _validateCrontab: function (field) {
+                return this.$.cronValidator.validate(field.value);
             },
 
             _validateCidr: function (field) {
