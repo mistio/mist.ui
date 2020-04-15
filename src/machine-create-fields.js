@@ -1419,7 +1419,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: false,
         optional: true,
-        singleColumnForm: true,
         inline: true,
         subfields: [{
                 name: 'action',
@@ -1467,6 +1466,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false,
                 prefixText: 'Notify me ',
                 suffixText: 'before',
+                class: 'bind-both',
                 optional: true,
                 defaultCheck: true,
                 disabled: false,
@@ -1490,8 +1490,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: false,
         optional: true,
-        singleColumnForm: true,
-        inline: true,
+        singleColumn: true,
         flatten: true,
         subfields: [
             {
@@ -1500,7 +1499,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 type: 'radio',
                 value: 'inline',
                 defaultValue: 'inline',
-                helptext: 'Edit a script to run or choose one from your existing ones.',
+                helptext: 'Edit an inline script or choose one from the existing ones.',
                 show: true,
                 required: false,
                 excludeFromPayload: true,
@@ -1521,7 +1520,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 class: 'bind-top',
-                helptext: 'The inline script will run after provisioning',
                 showIf: {
                     fieldName: 'type_of_script',
                     fieldValues: ['inline'],
@@ -1537,7 +1535,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false,
                 options: [],
                 add: true,
-                helptext: 'The selected script will run after provisioning',
                 showIf: {
                     fieldName: 'type_of_script',
                     fieldValues: ['select'],
@@ -1569,8 +1566,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: false,
         defaultToggleValue: false,
         optional: true,
-        singleColumnForm: true,
-        inline: true,
+        singleColumn: true,
         subfields: [
             {
                 name: 'action',
@@ -1581,7 +1577,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 excludeFromPayload: true,
                 show: true,
                 required: false,
-                helptext: 'Choose one from the available tasks to schedule.',
+                helptext: 'Choose a task.',
                 options: []
             }, {
                 name: 'schedule_script_id',
@@ -1594,7 +1590,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false,
                 excludeFromPayload: true,
                 add: true,
-                helptext: 'Schedule an existing script to run.',
+                helptext: 'Choose an existing script or add a new.',
                 options: [],
                 showIf: {
                     fieldName: 'action',
@@ -1777,7 +1773,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 required: false,
                 optional: true,
-                singleColumnForm: true,
                 inline: true,
                 subfields: [
                     {
