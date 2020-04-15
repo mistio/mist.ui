@@ -16,10 +16,11 @@
             }
 
             paper-item.button-true {
-                background-color: #2196F3 !important;
-                font-weight: 500 !important;
-                color: #fff !important;
                 text-transform: uppercase;
+            }
+            paper-item.button-true.iron-selected {
+                background-color: #2196F3 !important;
+                color: #fff;
             }
             paper-slider ::slotted(#input) {
                 width: 70px;
@@ -27,6 +28,9 @@
             paper-input.search {
                 padding-left: 16px;
                 padding-right: 16px;
+            }
+            .label:first-of-type {
+                margin-top: 24px;                
             }
         </style>
 
@@ -49,9 +53,9 @@
                 </paper-listbox>
             </div>
         </paper-dropdown-menu>
-        <template is="dom-if" if="[[field.custom]]" restamp>
+        <template is="dom-if" if="[[_showCustomSizeFields(field.custom, field.value)]]" restamp>
             <template is="dom-repeat" items="{{field.customSizeFields}}">
-                <div hidden="[[item.hidden]]">[[item.label]]
+                <div class="label" hidden="[[item.hidden]]">[[item.label]]
                     <span class="field-helptext">min [[item.min]], max [[item.max]] [[item.unit]]</span>
                 </div>
                 <paper-slider id$="[[id]]-[[field.name]]-[[item.name]]" disabled="[[item.disabled]]" hidden="[[item.hidden]]" min="[[item.min]]"
@@ -87,6 +91,10 @@
                     return option.id;
             },
 
+            _showCustomSizeFields: function(custom, value) {
+                return this.field.custom && (!this.field.value || this.field.value == "custom")
+            },
+
             _replaceAsterisk: function (str) {
                 return str.replace(/_/g, " ").replace("*", "").replace("id", "").trim();
             },
@@ -120,9 +128,9 @@
             },
 
             _filter: function (options, search) {
-                return this._sort(options.filter(function (op) {
+                return options ? this._sort(options.filter(function (op) {
                     return op.name && (!search || op.name.toLowerCase().indexOf(search.toLowerCase()) > -1);
-                }));
+                })) : [];
             },
 
             _sort: function(arr) {
