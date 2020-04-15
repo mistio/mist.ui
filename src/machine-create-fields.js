@@ -1825,5 +1825,5 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: false,
             helptext: '',
         }
-    );
+    )}
 });
