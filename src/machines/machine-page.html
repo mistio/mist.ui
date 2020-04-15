@@ -528,8 +528,10 @@
                                     <h4>Image</h4>
                                 </div>
                                 <div class="cell">
-                                    <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
-                                    <span>[[_computeMachineImage(machine,model.images)]]</span>
+                                    <a href$="/images/[[machine.image]]">
+                                        <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
+                                        <span>[[_computeMachineImage(machine,model.images)]]</span>
+                                    </a>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!machineSize]]">
@@ -548,7 +550,7 @@
                                     <span>[[_getLocationName(machine,cloud)]]</span>
                                 </div>
                             </div>
-                            <br />
+                            <br hidden$="[[!_getNetworkName(machine,cloud)]]"/>
                             <div class="row" hidden$="[[!_getNetworkName(machine,cloud)]]">
                                 <div class="cell">
                                     <h4>Network</h4>
@@ -557,7 +559,7 @@
                                     <span>[[_getNetworkName(machine,cloud)]]</span>
                                 </div>
                             </div>
-                            <br />
+                            <br hidden$="[[!machine.probe.ssh.updated_at]]"/>
                             <div class="row" hidden$="[[!machine.probe.ssh.updated_at]]">
                                 <div class="cell" hidden$="[[!machine.probe.ssh.loadavg]]">
                                     <h4>Load</h4>
@@ -578,13 +580,13 @@
                                     <span class="smaller packetloss" hidden$=[[!machine.probe.ping.packets_loss]]>-- [[_computePacketLossPercent(machine.probe.ping.packets_loss)]]% packet loss --</span>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row" hidden$="[[!_canShowProbed(machine)]]">
                                 <div class="cell">
                                     <h4>Probed:</h4>
                                 </div>
                                 <div class="cell">
                                     <span class="smaller"> [[_computeProbeString(machine.probe.ssh.updated_at, machine.probe.ping.updated_at)]]</span>
-                                    <br />
+                                    <br hidden$="[[!_hasProbeInfo(machine.probe)]]"/>
                                     <paper-button id="probeButton" class="blue-link" on-tap="_probeMachine" disabled="{{probeLoading}}" hidden$="[[!machine.key_associations.length]]">probe now</paper-button>
                                     <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
                                 </div>
@@ -946,6 +948,25 @@ Polymer({
         if (this.path.endsWith("expiration")) {
             this.editExpiration();
         }
+    },
+    _canShowProbed: function(machine) {
+        if (!machine)
+            return false;
+        return this.machine.key_associations.length || this._hasProbeInfo(machine.probe);
+    },
+    _hasProbeInfo: function(probe) {
+        if (!probe)
+            return false;
+        return this._hasInfo(probe.ssh) && this._hasInfo(probe.ping);
+    },
+    _hasInfo: function(data) {
+        if (!data)
+            return false;
+        for (var p in data) {
+            if (data[p])
+                return true;
+        }
+        return false;
     },
     _computeCanEditMachine: function (machineId, model) {
         var perm = this.check_perm('edit', 'machine', machineId);
@@ -1337,7 +1358,11 @@ Polymer({
         var item = this.machine;
         if (!item) return;
         if (item && item.image && typeof(item.image) != "object") {
-            return item.image;
+            if (this.model.images && this.model.images[item.image]) {
+                return this.model.images[item.image].name;
+            } else {
+                return item.image;
+            }
         } else if (item && item.extra.image && typeof(item.extra.image) == "string") {
             return item.extra.image;
         } else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {

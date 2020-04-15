@@ -726,14 +726,14 @@ PROVIDERS.push({
 
 // G8
 PROVIDERS.push({
-    title: 'GigG8',
+    title: 'G8',
     val: 'gig_g8',
     className: 'provider-gigg8',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "GigG8",
+        value: "G8",
         defaultValue: "G8",
         show: true,
         required: true,
@@ -747,7 +747,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter the API key",
-        helptext: ""
+        helptext: "Created with your itsyou.online identity"
     }, {
         name: "user_id",
         label: "User ID*",
@@ -757,7 +757,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter the User ID",
-        helptext: ""
+        helptext: "Id of your `Account` on the G8"
     }, {
         name: "url",
         label: "API url *",
@@ -767,7 +767,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter the API url",
-        helptext: ""
+        helptext: "‘https://<g8_name>.<domain>/’"
     }]
 });
 
@@ -788,54 +788,76 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter title"
     }, {
-        name: "machine_hostname",
-        label: "KVM hostname *",
-        type: "text",
-        value: "",
-        defaultValue: "",
+        name: 'hosts',
+        itemName: 'host',
+        items: [],
+        label: '',
         show: true,
         required: true,
-        errorMessage: "Please enter KVM hostname",
-        helptext: 'The URL or IP that your KVM hypervisor listens to',
-        helpHref: 'http://docs.mist.io/article/24-adding-kvm'
-    }, {
-        name: "machine_key",
-        label: "SSH Key",
-        type: "ssh_key",
-        value: "",
-        defaultValue: "",
-        search: "",
-        show: true,
-        required: false,
-        options: [],
-        helptext: 'If you don\'t specify an SSH key, we assume that you are connecting via tcp (qemu+tcp)',
-        helpHref: 'http://docs.mist.io/article/24-adding-kvm'
-    }, {
-        name: "machine_user",
-        label: "SSH user",
-        type: "text",
-        value: "root",
-        defaultValue: "root",
-        show: true,
-        required: false,
-        helptext: 'The SSH user to connect as'
-    }, {
-        name: "ssh_port",
-        label: "SSH port",
-        type: "text",
-        value: 22,
-        defaultValue: 22,
-        show: true,
-        required: false
-    }, {
-        name: "images_location",
-        label: "Path for *.iso images",
-        type: "text",
-        value: '/var/lib/libvirt/images',
-        defaultValue: '/var/lib/libvirt/images',
-        show: true,
-        required: false,
-        helptext: 'The path that your disk or iso images are located, example /var/lib/libvirt/images'
+        horizontal: true,
+        type: 'list',
+        min: '1',
+        max: '25',
+        options: [
+            {
+                name: "machine_hostname",
+                label: "KVM hostname *",
+                type: "text",
+                value: "",
+                defaultValue: "",
+                show: true,
+                required: true,
+                errorMessage: "Please enter the hostname or IP address",
+                helptext: 'The hostname or IP address of your KVM hypervisor',
+                helpHref: 'http://docs.mist.io/article/24-adding-kvm'
+            }, {
+                name: "machine_name",
+                label: "Alias (optional)",
+                type: "text",
+                placeholder: '',
+                show: true,
+                required: false,
+                helptext: ""
+            }, {
+                name: "machine_key",
+                label: "SSH Key",
+                type: "ssh_key",
+                value: "",
+                defaultValue: "",
+                search: "",
+                show: true,
+                required: true,
+                options: [],
+                helptext: '',
+                helpHref: 'http://docs.mist.io/article/24-adding-kvm'
+            }, {
+                name: "machine_user",
+                label: "SSH user",
+                type: "text",
+                value: "root",
+                defaultValue: "root",
+                show: true,
+                required: false,
+                helptext: 'The SSH user to connect as'
+            }, {
+                name: "ssh_port",
+                label: "SSH port",
+                type: "text",
+                value: 22,
+                defaultValue: 22,
+                show: true,
+                required: false
+            }, {
+                name: "images_location",
+                label: "Path for *.iso images",
+                type: "text",
+                value: '/var/lib/libvirt/images',
+                defaultValue: '/var/lib/libvirt/images',
+                show: true,
+                required: false,
+                helptext: 'The path that your disk or iso images are located, example /var/lib/libvirt/images'
+            }
+        ]
     }]
 });
 
@@ -1132,7 +1154,7 @@ PROVIDERS.push({
             min: '1',
             max: '5',
             options: [{
-                name: "machine_ip",
+                name: "machine_hostname",
                 label: "Hostname",
                 type: "text",
                 placeholder: 'DNS or IP',

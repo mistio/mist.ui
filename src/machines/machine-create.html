@@ -568,12 +568,12 @@
                         var allLocations = this._toArray(this.model.clouds[cloudId].locations);
                         var locations = allLocations.filter(function(l){
                                 var check_perm = that.check_perm('create_resources', 'location', l.id);
-                                //console.log('LOOP', l.name, check_perm);
+                                console.log('LOOP', l.name, check_perm);
                                 return check_perm == true;
                             });
                         // console.log('LOCATIONS', locations.length);
                         // disable maxihost locations that support no sizes
-                        if (this.model.clouds[this.selectedCloud].provider == "maxihost") {
+                        if (this.model.clouds[cloudId].provider == "maxihost") {
                             var sizeLocations = this._toArray(this.model.clouds[this.selectedCloud].sizes).map(x=>x.extra.regions).join();
                             locations.forEach(function(l) {
                                 if (sizeLocations.indexOf(l.external_id) == -1) {l.disabled = true;}
@@ -587,7 +587,15 @@
                         // console.log(f.options);
                     }
                     if (f.name.endsWith("image")) {
-                        f.options = this._toArray(this.model.clouds[cloudId].images).sort(function(ima, imb) {
+                        var images = this._toArray(this.model.clouds[cloudId].images);
+                        // kvm images dependent on location
+                        if (this.model.clouds[cloudId].provider == "libvirt"){
+                            var locInd = this._fieldIndexByName('location');
+                            if (locInd > -1) {
+                                images = this._getLocationImages(this.get('machineFields.' + locInd + '.value'));
+                            }
+                        }
+                        f.options = images.sort(function(ima, imb) {
                                 if (ima.star) {
                                     return -1;
                                 }
@@ -893,10 +901,19 @@
                 }
 
                 // if its kvm
-                if (this.model.clouds[this.selectedCloud].provider == 'libvirt' && changeRecord
-                    .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
-                    .name == 'name') {
-                    this._updateKvmDiskPath(this.get(changeRecord.path.replace('.value', '')).value);
+                if (this.model.clouds[this.selectedCloud].provider == 'libvirt') {
+                    if (changeRecord
+                        .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
+                        .name == 'name') {
+                        this._updateKvmDiskPathName(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
+
+                    if (changeRecord
+                        .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
+                        .name == 'location') {
+                        this._updateImagesAndNetworksBasedOnLocation();
+                        this._updateKvmDiskPathFolder(this.get(changeRecord.path.replace('.value', '')).value);
+                    }
                 }
 
                 // if its packet and ips changed
@@ -1066,7 +1083,6 @@
                                     this.set('machineFields.' + index + '.excludeFromPayload',
                                         false);
                                 }
-                                //console.log('FALSE', scheduleFieldFalse[i])
                             }
                         } else {
                             for (var i = 0; i < scheduleFields.length; i++) {
@@ -1074,7 +1090,6 @@
                                 if (index > -1) {
                                     this.set('machineFields.' + index + '.excludeFromPayload', true);
                                 }
-                                //console.log('TRUE', scheduleFields[i])
                             }
                         }
                     }
@@ -1126,11 +1141,6 @@
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', false);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', "");
                         } else if (changeRecord.value == "one_off") {
-                            entry = document.getElementById("schedule_entry_one_off") &&
-                                document.getElementById("schedule_entry_one_off").textContent &&
-                                document.getElementById("schedule_entry_one_off").textContent.split(
-                                    ',')[1] ? document.getElementById("schedule_entry_one_off")
-                                .textContent.split(',')[1].trim() + ":00" : "";
                             if (expInd > -1) this.set('machineFields.' + expInd + '.disabled', true);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', 1);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', true);
@@ -1461,16 +1471,8 @@
             return provider == 'lxd' ? "Image URL:" : "Image's path";
         },
         _updateFieldsForKvm: function() {
-            var locInd = this._fieldIndexByName('location');
             var keyInd = this._fieldIndexByName('key');
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
-
-            //hide location field
-            if (locInd > -1) {
-                this.set('machineFields.' + locInd + '.show', false);
-                this.set('machineFields.' + locInd + '.required', false);
-                this.set('machineFields.' + locInd + '.excludeFromPayload', true);
-            }
 
             //change key helptexts
             if (keyInd > -1) {
@@ -1481,22 +1483,75 @@
                         "http://docs.mist.io/article/99-managing-kvm-with-mist-io");
             }
 
-            //fill in disk path using images_location
-            if (pathInd > -1)
-                this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
-                    .images_location);
+            // if location is selected, we can update image options
+            this._updateImagesAndNetworksBasedOnLocation();
+
+        },
+        _updateImagesAndNetworksBasedOnLocation: function() {
+            var locInd = this._fieldIndexByName('location');
+            var imgInd = this._fieldIndexByName('image');
+            var networkInd = this._fieldIndexByName('networks');
+            var vnfInd = this._fieldIndexByName('vnfs');
+            if (locInd == -1 || imgInd == -1 || networkInd == -1) {
+                return;
+            }
+            var location = this.get('machineFields.' + locInd + '.value');
+            if (!location) return;
+
+            var locImages = this._getLocationImages(location);
+            this.set('machineFields.' + imgInd + '.options', locImages);
+
+            // update networks
+            var networks = this.model.clouds[this.selectedCloud].networks ? Object.values(this.model.clouds[this.selectedCloud].networks).slice() : [];
+
+            var locationNetworks = networks.filter(function(n) {
+                return n.location == location
+            });
+
+            if (networkInd > -1) {
+                this.set('machineFields.' + networkInd + '.options', locationNetworks);
+            }
+
+            if (vnfInd > -1) {
+                var allVnfs = this.get('machineFields.' + vnfInd + '.vnfs') || [],
+                    locationVNFs = allVnfs.filter(function(f) {return f.location == location}),
+                    categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(locationVNFs);
+                this.set('machineFields.' + vnfInd + '.subfields.0.options', categorisedVNFs);
+            }
+        },
+        _getLocationImages: function(location) {
+            if (location && this.model && this.model.clouds)
+                return this.model.imagesArray.filter(function(im){
+                        return im.extra && im.extra.locations && im.extra.locations.indexOf(location) > -1 ;
+                    });
+            return [];
         },
         _updateFieldsForAzureArm: function() {
             var hostnameInd = this._fieldIndexByName('create_hostname_machine');
             if (hostnameInd > -1)
                 this.set('machineFields.' + hostnameInd + '.show', false);
         },
-        _updateKvmDiskPath: function(machinename) {
+        _updateKvmDiskPath: function(location, machinename) {
             var pathInd = this._fieldIndexByName('libvirt_disk_path');
+            var locationPath = location.length && 
+                                this.model.clouds[this.selectedCloud] &&
+                                this.model.clouds[this.selectedCloud].locations &&
+                                this.model.clouds[this.selectedCloud].locations[location] &&
+                                this.model.clouds[this.selectedCloud].locations[location].extra ?
+                                this.model.clouds[this.selectedCloud].locations[location].extra.images_location : '';
             //fill in disk path using images_location and machine name
             if (machinename.trim().length && pathInd > -1)
-                this.set('machineFields.' + pathInd + '.value', this.model.clouds[this.selectedCloud]
-                    .images_location + "/" + machinename.trim() + ".img");
+                this.set('machineFields.' + pathInd + '.value', locationPath + "/" + machinename.trim() + ".img");
+        },
+        _updateKvmDiskPathName: function(name) {
+            var ind = this._fieldIndexByName('location');
+            var location = ind > -1 ? this.machineFields[ind].value : '';
+            this._updateKvmDiskPath(location || '', name || '');
+        },
+        _updateKvmDiskPathFolder: function(location) {
+            var ind = this._fieldIndexByName('name');
+            var name = ind > -1 ? this.machineFields[ind].value : '';
+            this._updateKvmDiskPath(location || '', name || '');
         },
         _updateAzureFields: function(machinename) {
             var networkInd = this._fieldIndexByName('new_network');
@@ -1866,8 +1921,14 @@
                     vnfs.push(e.detail.response[i]);
                 }
             }
-            var categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(vnfs);
-            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options', categorisedVNFs || []);
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.vnfs', vnfs || []);
+
+            var locInd = this._fieldIndexByName('location'),
+                location = this.get('machineFields.' + locInd + '.value'),
+                locationVNFs = location ? vnfs.filter(function(f) {return f.location == location}) : vnfs,
+                categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(locationVNFs);
+
+            this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.subfields.0.options',  categorisedVNFs || []);
             this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()'}}));
             this.set('machineFields.' + this.virtualNetworkFunctionFieldIndex + '.loader', false);
         },
@@ -1885,6 +1946,7 @@
                     'name': arr[i].interface,
                     'id': arr[i].pci_bdf,
                     'description': arr[i].pci_bdf,
+                    'location': arr[i].location,
                     'tooltip': arr[i].device.vendor + ' ' + arr[i].device.name
                 }
                 // store item under its category name
@@ -1902,6 +1964,7 @@
             return categorisedArray || arr.map(function(x){ return {
                 'name': x.interface,
                 'id': x.pci_bdf,
+                'location': x.location,
                 'description': x.pci_bdf + ' - ' + x.device.vendor + ' ' + x.device.name}});
         },
         _handleGetVirtualNetworkFunctionsError: function(e) {
