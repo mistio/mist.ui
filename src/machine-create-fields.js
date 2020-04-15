@@ -385,7 +385,7 @@ MACHINE_CREATE_FIELDS.push({
             show: true,
             required: true,
             portError: "Port must be a port number",
-            portValidator: "port-number"
+            portValidator: "port-number-validator"
         }]
     }
     ]
