@@ -1202,6 +1202,7 @@
                     }
                 }
             }
+
             // if is vsphere change fields
             if (this.model && this.model.clouds && this.model.clouds[this.selectedCloud] && this.model.clouds[
                     this.selectedCloud].provider == "vsphere") {
@@ -2228,18 +2229,20 @@
             this.set('machineFields.' + scheduleFieldgroup + '.subfields.' + scheduleFieldgroup_scriptInd + '.options', this.model.scriptsArray || []);
             this.set('machineFields.' + scriptFieldgroup + '.subfields.' + scriptFieldgroup_scriptInd + '.options', this.model.scriptsArray || []);
 
-            // update the value only for the field that requested addInput()
-            if (this.updateScriptFieldName == "schedule_script_id") {
-                fiedlgroupInd = scheduleFieldgroup;
-                scriptInd = scheduleFieldgroup_scriptInd;
-            } else if (this.updateScriptFieldName == "script_id") {
-                fiedlgroupInd = scriptFieldgroup;
-                scriptInd = scriptFieldgroup_scriptInd;
-            }
-            if (fiedlgroupInd > -1 && scriptInd > -1) {
-                this.async(function() {
-                    this.set('machineFields.' + fiedlgroupInd + '.subfields.' + scriptInd + '.value', e.detail.script);
-                }.bind(this), 1000);
+            if (e.detail.script) {
+                // update the value only for the field that requested addInput()
+                if (this.updateScriptFieldName == "schedule_script_id") {
+                    fiedlgroupInd = scheduleFieldgroup;
+                    scriptInd = scheduleFieldgroup_scriptInd;
+                } else if (this.updateScriptFieldName == "script_id") {
+                    fiedlgroupInd = scriptFieldgroup;
+                    scriptInd = scriptFieldgroup_scriptInd;
+                }
+                if (fiedlgroupInd > -1 && scriptInd > -1) {
+                    this.async(function() {
+                        this.set('machineFields.' + fiedlgroupInd + '.subfields.' + scriptInd + '.value', e.detail.script);
+                    }.bind(this), 1000);
+                }
             }
         },
         formatPayload: function(e) {
