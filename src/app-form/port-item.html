@@ -59,15 +59,15 @@
                 color: var(--paper-input-container-invalid-color, var(--error-color));
             }
         </style>
-        <port-validator validator-name="port"></port-validator>
-        <port-number-validator validator-name="port-number"></port-number-validator>
+        <port-validator validator-name="port-validator"></port-validator>
+        <port-number-validator validator-name="port-number-validator"></port-number-validator>
         <div class="input-box">
             <strong>[[newIndex]].</strong>
-            <paper-input auto-focus value="{{_public}}" aria-label="Public port *" label="Public port *" size="15" required always-float-label
+            <paper-input value="{{_private}}" aria-label="Port*" label="Port *" size="15" required always-float-label
             auto-validate validator='[[portValidator]]' error-message="[[portError]]">
             </paper-input>
             <span>:</span>
-            <paper-input value="{{_private}}" aria-label="Private port*" label="Private port *"  size="15" required always-float-label
+            <paper-input auto-focus value="{{_public}}" aria-label="Target port" label="Target port" size="15" always-float-label
             auto-validate validator='[[portValidator]]' error-message="[[portError]]">
             </paper-input>
         </div>
@@ -200,13 +200,8 @@
         is: 'port-number-validator',
         behaviors: [Polymer.IronValidatorBehavior],
         validate: function(value) {
-            if (!value) {
-                // there must be a value
-                return false;
-            }
-            if (value) {
-                return parseInt(value) && parseInt(value) <= 65535;
-            }
+            var port = RegExp("^()([1-9]|[1-5]?[0-9]{2,4}|6[1-4][0-9]{3}|65[1-4][0-9]{2}|655[1-2][0-9]|6553[1-5])$");
+            return !value || port.test(value);
         }
     });
 </script>

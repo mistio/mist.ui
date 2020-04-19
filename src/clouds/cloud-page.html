@@ -282,7 +282,7 @@
                         </paper-toggle-button>
                     </div>
                 </div>
-                <cloud-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}"></cloud-actions>
+                <cloud-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" providers=[[providers]]></cloud-actions>
             </paper-material>
 
             <paper-material hidden$="[[!isMissing]]">
@@ -321,7 +321,7 @@
                                     <paper-button class="simple blue-link view" on-tap="viewStopped" hidden$="[[!stoppedMachinesLength]]">[[stoppedMachinesLength]] stopped</paper-button>
                                 </div>
                             </div>
-                            <div class="row" hidden$="[[_isBareMetal(cloud.provider)]]">
+                            <div class="row" hidden$="[[!_canShowImages(cloud.provider)]]">
                                 <div class="cell">
                                     <h4>Images:</h4>
                                 </div>
@@ -330,7 +330,7 @@
                                     <paper-button class="simple blue-link view" on-tap="viewImages" hidden$="[[!imagesArrayLength]]">[[imagesArrayLength]] images</paper-button>
                                 </div>
                             </div>
-                            <div class="row" hidden$="[[_isBareMetal(cloud.provider)]]">
+                            <div class="row" hidden$="[[!_canShowLocations(cloud.provider)]]">
                                 <div class="cell">
                                     <h4>Locations:</h4>
                                 </div>
@@ -415,8 +415,8 @@
                     </div>
                 </paper-material>
             </template>
-            <template is="dom-if" if="[[_isBareMetal(cloud.provider)]]" restamp>
-                <paper-material class="separator" hidden$="[[!_isBareMetal(cloud.provider)]]">
+            <template is="dom-if" if="[[_canShowHostsList(cloud.provider)]]" restamp>
+                <paper-material class="separator">
                     <other-cloud-machines cloud="[[cloud]]" model=[[model]]></other-cloud-machines>
                 </paper-material>
             </template>
@@ -528,6 +528,18 @@
 
             _displayUser: function (id, members) {
                 return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email  || this.model.members[id].username : '';
+            },
+
+            _canShowImages: function(provider) {
+                return !this._isBareMetal(provider);
+            },
+
+            _canShowLocations: function(provider) {
+                return !this._isBareMetal(provider);
+            },
+
+            _canShowHostsList: function(provider) {
+                return provider == "libvirt" || this._isBareMetal(provider);
             },
 
             _cloudArraysChanged: function (cloud, cloudchange, imagesArray, locationsArray, networks, machines) {

@@ -9,24 +9,25 @@ Polymer({
     validate: function(value) {
         var ValidIpAddressRegex = RegExp("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$");
         var ValidHostnameRegex = RegExp("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$");
+        var portRegex = RegExp("^()([1-9]|[1-5]?[0-9]{2,4}|6[1-4][0-9]{3}|65[1-4][0-9]{2}|655[1-2][0-9]|6553[1-5])$");
 
         if (!value) {
-            // there must be a value
-            return false;
+            // let field required value assess if empty passes validation
+            return true;
         }
         var valueChunks = value.split(':');
-        console.log('valueChunks', valueChunks);
+        // console.log('valueChunks', valueChunks);
         if (valueChunks.length > 2) {
             // if string value has more than one : characters
             return false;
         } else if (valueChunks.length == 1) {
             // if string value no : characters it must be a valid port number
-            return parseInt(valueChunks[0]) && parseInt(valueChunks[0]) <= 65535;
+            return portRegex.test(valueChunks[0]);
         } else {
             // Validate ip:port and hostname:port formats
             return value &&
                     (ValidIpAddressRegex.test(valueChunks[0]) || ValidHostnameRegex.test(valueChunks[0])) &&
-                    parseInt(valueChunks[1]) && parseInt(valueChunks[1]) <= 65535;
+                    portRegex.test(valueChunks[1])
         }
     }
 });

@@ -66,7 +66,7 @@
       <template>
         <h3>Add Host</h3>
         <div>
-          <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]"></other-cloud-add-machine>
+          <other-cloud-add-machine cloud="[[cloud]]" keys="[[model.keysArray]]" providers=[[providers]]></other-cloud-add-machine>
         </div>
       </template>
     </vaadin-dialog>
@@ -157,6 +157,9 @@
         formReady: {
           type: Boolean,
           computed: '_computeFormReady(cloud.title, newCloud.title, sendingData)'
+        },
+        providers: {
+          type: Array
         }
       },
 
@@ -184,7 +187,7 @@
         if (cloud) {
           arr.push('tag');
           arr.push('rename');
-          if (this._isBareMetal(cloud.provider))
+          if (this._isBareMetal(cloud.provider) || this._isKvmLibvirt(cloud.provider))
             arr.push('add_hosts');
           if (!this._isBareMetal(cloud.provider))
             arr.push('edit_credentials');
@@ -195,6 +198,10 @@
 
       _isBareMetal: function (provider) {
         return provider == 'bare_metal';
+      },
+
+      _isKvmLibvirt: function (provider) {
+        return provider == 'libvirt';
       },
 
       computeActionListDetails: function (actions) {
@@ -287,6 +294,10 @@
       },
 
       _deleteCloud: function () {
+        var cid = this.cloud.id;
+        this.dispatchEvent(new CustomEvent('cloud-delete', { bubbles: true, composed: true, detail: {
+          cloud: cid
+        } }));
         this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
         this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
         this.$.cloudDeleteAjaxRequest.generateRequest();
