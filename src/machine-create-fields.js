@@ -1491,7 +1491,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         required: false,
         optional: true,
         singleColumn: true,
-        flatten: true,
         subfields: [
             {
                 name: 'type_of_script',
@@ -1567,6 +1566,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         defaultToggleValue: false,
         optional: true,
         singleColumn: true,
+        errorMessage: 'Please review scheduler fields',
         subfields: [
             {
                 name: 'action',
@@ -1576,7 +1576,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 defaultValue: '',
                 excludeFromPayload: true,
                 show: true,
-                required: false,
+                required: true,
                 helptext: 'Choose a task.',
                 options: []
             }, {
@@ -1640,7 +1640,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 helptext: '',
                 show: false,
                 excludeFromPayload: true,
-                required: false,
+                required: true,
             }, {
                 name: 'schedule_entry_interval',
                 type: 'duration_field', 
@@ -1649,8 +1649,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 defaultValue: {every: 10, period: 'minutes'},
                 class: 'bind-top',
                 valueType: 'period',
-                show: false,
-                required: false,
+                show: true,
+                required: true,
+                payloadValue: 'schedule_entry',
                 prefixText: 'every ',
                 options: [
                     {val: 'days', title: 'days'},
@@ -1669,8 +1670,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 defaultValue: '*/10 * * * *',
                 excludeFromPayload: true,
                 class: 'bind-top',
-                show: false,
-                required: false,
+                payloadValue: 'schedule_entry',
+                show: true,
+                required: true,
                 validator: 'crontab-validator',
                 helptext: 'Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: Minute, Hour, Day of the Month, Month of the Year, Day of the Week.',
                 helpHref: 'http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules',
@@ -1684,14 +1686,15 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 label: '',
                 type: 'date',
                 value: '',
+                payloadValue: 'schedule_entry',
                 defaultValue: '',
                 class: 'bind-top',
                 icon: 'schedule',
                 validate: 'inFuture',
                 errorMessage: 'Date must be a future date',
                 excludeFromPayload: true,
-                show: false,
-                required: false,
+                show: true,
+                required: true,
                 showIf: {
                     fieldName: 'schedule_type',
                     fieldValues: ['one_off'],
@@ -1709,8 +1712,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 icon: 'schedule',
                 show: true,
                 required: false,
-                disabled: false,
-                excludeFromPayload: true,
                 showIf: {
                     fieldName: 'schedule_type',
                     fieldValues: ['interval', 'crontab'],
@@ -1721,7 +1722,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 type: 'date',
                 value: '',
                 placeholder: 'never',
-                excludeFromPayload: true,
                 defaultValue: '',
                 helptext: '',
                 icon: 'schedule',
@@ -1739,9 +1739,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 type: 'text',
                 value: '',
                 defaultValue: '',
-                excludeFromPayload: true,
                 alwaysFloatLabel: true,
-                show: false,
+                show: true,
                 required: false,
                 helptext: 'Optional. Integers only. Define a maximum run count.',
                 showIf: {

@@ -3,7 +3,7 @@
 
 <dom-module id="sub-fieldgroup">
     <template>
-        <style include="shared-styles forms">
+        <style include="shared-styles forms tags-and-labels">
             :host {
                 display: inline-block;
                 width: 50%;
@@ -24,10 +24,14 @@
                 margin-top: 16px;
                 margin-bottom: 16px;
             }
+            .error {
+                font-size: .9em;
+            }
         </style>
         <template is="dom-if" if="[[field.optional]]" restamp>
             <paper-toggle-button id$="[[id]]-[[field.name]]-toggler" checked="{{enabled}}" disabled="[[_computeDisabled(field.toggleDisabled)]]">
                 <span class="title">[[field.label]]</span>
+                <span class="error" hidden$=[[field.valid]]>[[field.errorMessage]]</span>
             </paper-toggle-button>
         </template>
         <template is="dom-if" if="[[_showForm(field.optional,enabled)]]" restamp>
@@ -36,7 +40,7 @@
                     <paper-spinner active="[[field.loader]]"></paper-spinner>
                 </div>
             </template>
-            <app-form id$="sub-fieldgroup-[[id]]" fields="{{field.subfields}}" display-buttons="[[_calcDisplayButtons()]]" single-column="[[field.singleColumn]]" inline="[[field.inline]]" hidden$=[[field.loader]]></app-form>
+            <app-form id$="sub-fieldgroup-[[id]]" fields="{{field.subfields}}" form-ready="{{innerFormReady}}" display-buttons="[[_calcDisplayButtons()]]" single-column="[[field.singleColumn]]" inline="[[field.inline]]" hidden$=[[field.loader]]></app-form>
         </template>
     </template>
     <script>
@@ -82,11 +86,16 @@
                 inline: {
                     type: Boolean,
                     reflectToAttribute: true
+                },
+                innerFormReady: {
+                    type: Boolean,
+                    value: false
                 }
             },
             observers: [
                 '_fieldChanged(field)',
-                '_subfieldsChanged(field.subfields.*)'
+                '_subfieldsChanged(field.subfields.*)',
+                '_validate(enabled, field.value, innerFormReady)'
             ],
             _enabledChanged: function(enabled) {
                 if (!this.enabled) {
@@ -96,8 +105,7 @@
                 }
             },
             _resetValue: function() {
-                // console.log('reset field value');
-                this.set('field.value', {});
+                this.set('field.value', this.field.defaultValue);
             },
             _computeDisabled: function(disabled) {
                 return this.field.toggleDisabled ? true : false;
@@ -105,27 +113,29 @@
             _fieldChanged: function(field) {
                 this.set('enabled', this.field.defaultToggleValue);
                 this.set('optional', this.field.optional);
-                this._fieldsChangedNotifyEvent();
             },
             _subfieldsChanged: function(subfields) {
                 // console.log('sub fields changed', subfields);
-                if (this.field && this.enabled) {
-                    var fieldValue = {};
-                    for (var i=0; i<this.field.subfields.length; i++) {
-                        fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                if (this.field) {
+                    if (this.enabled) {
+                        var fieldValue = {};
+                        for (var i=0; i<this.field.subfields.length; i++) {
+                            fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                        }
+                        this.set('field.value', fieldValue);
+                    } else {
+                        this._resetValue();
                     }
-                    this.set('field.value', fieldValue);
-                    if (this.shadowRoot.querySelector('app-form')) {
-                        this.shadowRoot.querySelector('app-form').form = fieldValue;
-                    }
-                } else if (!this.enabled) {
-                    this.set('field.value', {});
                 }
+            },
+            _validate: function(enabled, value, innerFormReady) {
+                var valid = !this.enabled ? !this.required : this.innerFormReady;
+                this.set('field.valid', valid);
 
-                this.notifyPath('field.value');
                 this._fieldsChangedNotifyEvent();
             },
             _fieldsChangedNotifyEvent: function(){
+                this.notifyPath('field.value');
                 this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true, detail: {fieldname: this.field.name, file: 'sub-fieldgroup.html'}}));
             },
             _calcDisplayButtons: function(){
