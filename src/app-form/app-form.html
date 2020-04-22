@@ -676,7 +676,7 @@
                                         <datetime-picker id$="app-form-[[id]]-[[field.name]]" value="{{field.value}}"
                                         horizontal-align="right" auto-confirm hide-reset-button></datetime-picker>
                                         <iron-icon class="datetime-clear" icon="clear" on-tap="_clearDateTimeInput"
-                                        hidden$="[[_validateDatetime(field, field.value)]]"></iron-icon>
+                                        hidden$="[[!_showClearDateBtn(field, field.value)]]"></iron-icon>
                                     </div>
                                 </div>
                                 <div class="error" hidden$="[[_validateDatetime(field, field.value)]]">[[field.errorMessage]]</div>
@@ -714,7 +714,7 @@
 
             <template is="dom-if" if="[[displayButtons]]">
                 <div class="progress">
-                    <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
+                    <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                     <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
                     <hr class="appform" />
                     <p class="errormsg-container" hidden$="[[!formError]]">
@@ -740,7 +740,7 @@
         <iron-ajax id="getJSON" handle-as="json" last-response="{{data}}" on-response="_getJSONResponse" on-request="_getJSONRequest"
             on-error="_getJSONError"></iron-ajax>
         <iron-ajax id="formAjax" url="[[url]]" contentType="application/json" handle-as="{{handleas}}" method="[[method]]" on-request="_handleRequest"
-            on-response="_handleResponse" on-error="_handleError"></iron-ajax>
+            on-response="_handleResponse" on-error="_handleError" loading="{{loading}}"></iron-ajax>
     </template>
     <script>
         DEBUG_FORM = false;
@@ -809,7 +809,7 @@
                     type: Boolean,
                     value: true
                 },
-                sendingData: {
+                loading: {
                     type: Boolean,
                     value: false
                 },
@@ -820,7 +820,8 @@
                 formReady: {
                     type: Boolean,
                     value: false,
-                    notify: true
+                    notify: true,
+                    reflectToAttribute: true
                 },
                 formError: {
                     type: Boolean,
@@ -869,7 +870,7 @@
             },
 
             observers: [
-                '_fieldsChanged(fields.*, sendingData)'
+                '_fieldsChanged(fields.*, loading)'
             ],
 
             listeners: {
@@ -934,7 +935,6 @@
 
             _handleResponse: function (e, d) {
                 this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));
-                this.set('sendingData', false);
                 //clear form only on response not on error
                 this._resetForm();
                 var overlay = document.querySelector('vaadin-dialog-overlay');
@@ -944,7 +944,6 @@
             },
 
             _handleError: function (e, d) {
-                this.set('sendingData', false);
                 this.set('formError', true);
                 console.log('FAIL', e)
                 // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
@@ -959,7 +958,7 @@
             runValidateFields: function() {
                 var valid = this._validateFields();
                 var prevFormReady = this.formReady;
-                this.set('formReady', valid && !this.sendingData);
+                this.set('formReady', valid && !this.loading);
 
                 console.log("form validate =====", this.id, this.formReady);
 
@@ -1014,7 +1013,7 @@
                 this.set('fieldIndex', -1);
             },
 
-            _fieldsChanged: function (fields, sendingData) {
+            _fieldsChanged: function (fields, loading) {
                 // console.log('_fieldsChanged', fields ? fields.path : 'run by event')
                 if (this.formError) {
                     this.set('formError', false);
@@ -1042,6 +1041,7 @@
                 }
                 if (fields && !fields.path.endsWith('.show') && !fields.path.endsWith('.loader')) {
                     var that = this;
+
                     this.debounce('fieldsChangedDebouncer', function () {
                         var form = that.form,
                             show = true,
@@ -1093,42 +1093,9 @@
 
                                 that.set('fieldVisibility.' + index, show);
                                 // console.log('form set visibility', el.name , show);
-
-                                // update form values regardless of el.show
-                                if (el.type == "ip_textarea") {
-                                    var textToArray = el.value.split('\n');
-                                    that.set('form.' + el.name, textToArray);
-                                } else if (el.name == "machines_tags") {
-                                    var textToArray = el.value.split(',');
-                                    that.set('form.' + el.name, that._constructTagsValue(
-                                        textToArray));
-                                } else if (el.type == "checkboxes") {
-                                    that.set('form.' + el.name, el.value || []);
-                                } else if (el.type == "number") {
-                                    that.set('form.' + el.name, parseInt(el.value));
-                                } else if (el.type == "date" && el.value) {
-                                    that.set('form.' + el.name, el.value);
-                                } else {
-                                    that.set('form.' + el.name, el.value);
-                                }
-                            } else {
-                                if (el.type == "ip_textarea") {
-                                    var textToArray = el.value.split('\n');
-                                    that.set('form.' + el.name, textToArray);
-                                } else if (el.name == "machines_tags") {
-                                    var textToArray = el.value.split(',');
-                                    that.set('form.' + el.name, that._constructTagsValue(
-                                        textToArray));
-                                } else if (el.type == "checkboxes") {
-                                    that.set('form.' + el.name, el.value || []);
-                                } else if (el.type == "number") {
-                                    that.set('form.' + el.name, parseInt(el.value));
-                                } else if (el.type == "date" && el.value) {
-                                    that.set('form.' + el.name, el.value);
-                                } else {
-                                    that.set('form.' + el.name, el.value);
-                                }
                             }
+                            // update form values regardless of el.show
+                            that._updateFormValues(el, index);
 
                             // if field is a dependency of another field
                             that.fields.forEach(function (depel, index) {
@@ -1145,6 +1112,29 @@
                         that.set('form', form);
                         that.runValidateFields();
                     },100);
+                }
+            },
+            _updateFormValues: function (el, index) {
+                if (el.type == "ip_textarea") {
+                    var textToArray = el.value.split('\n');
+                    this.set('form.' + el.name, textToArray);
+                } else if (el.name == "machines_tags") {
+                    var textToArray = el.value.split(',');
+                    this.set('form.' + el.name, this._constructTagsValue(
+                        textToArray));
+                } else if (el.type == "checkboxes") {
+                    this.set('form.' + el.name, el.value || []);
+                } else if (el.type == "number") {
+                    this.set('form.' + el.name, parseInt(el.value));
+                } else if (el.type == "date" && el.value) {
+                    this.set('form.' + el.name, el.value);
+                } else {
+                    this.set('form.' + el.name, el.value);
+                }
+                // allow form to store a value under a specified name
+                // example: 3 different schedule related fields will eventually store their values under scheduler_entry
+                if (el.payloadValue && this.fieldVisibility[index]) {
+                    this.set('form.' + el.payloadValue, el.value);
                 }
             },
 
@@ -1251,6 +1241,10 @@
                 }
                 el.valid = valid;
                 return valid;
+            },
+
+            _showClearDateBtn: function(el) {
+                return el && el.value;
             },
 
             _validateMistSize: function (el) {
@@ -1372,8 +1366,6 @@
                 this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.formAjax.body = payload;
                 this.$.formAjax.generateRequest();
-
-                this.set('sendingData', true);
             },
 
             _updateDateCalculationOnRequest: function(fieldValue) {
