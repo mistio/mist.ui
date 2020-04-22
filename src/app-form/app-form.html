@@ -664,7 +664,7 @@
 
             <template is="dom-if" if="[[displayButtons]]">
                 <div class="progress">
-                    <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
+                    <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                     <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
                     <hr class="appform" />
                     <p class="errormsg-container" hidden$="[[!formError]]">
@@ -690,7 +690,7 @@
         <iron-ajax id="getJSON" handle-as="json" last-response="{{data}}" on-response="_getJSONResponse" on-request="_getJSONRequest"
             on-error="_getJSONError"></iron-ajax>
         <iron-ajax id="formAjax" url="[[url]]" contentType="application/json" handle-as="{{handleas}}" method="[[method]]" on-request="_handleRequest"
-            on-response="_handleResponse" on-error="_handleError"></iron-ajax>
+            on-response="_handleResponse" on-error="_handleError" loading="{{loading}}"></iron-ajax>
     </template>
     <script>
         DEBUG_FORM = false;
@@ -759,7 +759,7 @@
                     type: Boolean,
                     value: true
                 },
-                sendingData: {
+                loading: {
                     type: Boolean,
                     value: false
                 },
@@ -770,7 +770,8 @@
                 formReady: {
                     type: Boolean,
                     value: false,
-                    notify: true
+                    notify: true,
+                    reflectToAttribute: true
                 },
                 formError: {
                     type: Boolean,
@@ -819,7 +820,7 @@
             },
 
             observers: [
-                '_fieldsChanged(fields.*, sendingData)'
+                '_fieldsChanged(fields.*, loading)'
             ],
 
             listeners: {
@@ -875,7 +876,6 @@
 
             _handleResponse: function (e, d) {
                 this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));
-                this.set('sendingData', false);
                 //clear form only on response not on error
                 this._resetForm();
                 var overlay = document.querySelector('vaadin-dialog-overlay');
@@ -885,7 +885,6 @@
             },
 
             _handleError: function (e, d) {
-                this.set('sendingData', false);
                 this.set('formError', true);
                 console.log('FAIL', e)
                 // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
@@ -900,7 +899,7 @@
             runValidateFields: function() {
                 var valid = this._validateFields();
                 var prevFormReady = this.formReady;
-                this.set('formReady', valid && !this.sendingData);
+                this.set('formReady', valid && !this.loading);
 
                 console.log("form validate =====", this.id, this.formReady);
 
@@ -955,7 +954,7 @@
                 this.set('fieldIndex', -1);
             },
 
-            _fieldsChanged: function (fields, sendingData) {
+            _fieldsChanged: function (fields, loading) {
                 // console.log('_fieldsChanged', fields ? fields.path : 'run by event')
                 if (this.formError) {
                     this.set('formError', false);
@@ -983,6 +982,7 @@
                 }
                 if (fields && !fields.path.endsWith('.show') && !fields.path.endsWith('.loader')) {
                     var that = this;
+
                     this.debounce('fieldsChangedDebouncer', function () {
                         var form = that.form,
                             show = true,
@@ -1308,8 +1308,6 @@
                 this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.formAjax.body = payload;
                 this.$.formAjax.generateRequest();
-
-                this.set('sendingData', true);
             },
 
             _updateDateCalculationOnRequest: function(fieldValue) {
