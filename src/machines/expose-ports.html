@@ -41,8 +41,8 @@
             <template>
                 <h2>Expose machine's ports</h2>
                 <p class="grey" hidden$="[[!ports.length]]">To remove exposed ports, delete them and save.</p>
-                <app-form id="expose-machines-ports" inline single-column fields="[[fields]]" form="[[form]]" url="/api/v1/machines/[[machine.id]]/ports" 
-                on-request="_handleRequest" on-response="_handleResponse" on-error="_handleError" btncontent="Save exposed ports"></app-form>
+                <app-form id="expose-machines-ports" inline single-column fields="[[fields]]" form="{{form}}" url="/api/v1/machines/[[machine.id]]"
+                on-request="_handleRequest" on-response="_handleResponse" on-error="_handleError" btncontent="Save" show-cancel no-auto-update></app-form>
                 <br/>
             </template>
         </vaadin-dialog>
@@ -56,25 +56,46 @@ Polymer({
         machine: {
             type: Object
         },
+        form: {
+            type: Object,
+            value: function(){
+                return {action: 'expose'}
+            }
+        },
         provider: {
             type: String
         },
         ports: {
             type: Array,
-            computed: '_computePorts(machine)'
         },
         fields: {
             type: Array,
-            computed: '_computeFields(machine, provider)'
+            computed: '_computeFields(machine, provider, ports)'
         }
     },
-    _computePorts: function(machine) {
-        var that = this;
-        var ports = [];
-        // TODO: construct ports from machine extra
-        return ports;
+    listeners: {
+        'app-form-cancel': '_computePorts'
     },
-    _computeFields: function(machine, provider) {
+    observers: [
+        '_computePorts(machine.extra.port_forwards.*)',
+    ],
+    _computePorts: function(portForwards) {
+        var ports = [];
+        if (this.machine && this.machine.extra && this.machine.extra.port_forwards) {
+            for (var i=0; i < this.machine.extra.port_forwards.length; i++){
+                var port = this.machine.extra.port_forwards[i];
+                var newPort = {
+                    private: port.local_port,
+                    public: port.public_port,
+                    protocol: port.protocol,
+                    params: port.params || ""
+                }
+                ports.push(newPort);
+            }
+        }
+        this.set('ports', ports);
+    },
+    _computeFields: function(machine, provider, ports) {
         var providerFields = MACHINE_CREATE_FIELDS.find(function(x) {
             return x.provider == provider;
         });
@@ -83,11 +104,18 @@ Polymer({
             return f.name == 'port_forwards';
         });
         // locate ports field
-        return portFieldGroup.subfields.filter(function(f){
+        var fields = portFieldGroup.subfields.filter(function(f){
             return f.type == 'mist_ports';
         });
+        var ports = this.ports;
+        fields.forEach(function(f){
+            f.ports = ports;
+        });
+        return fields;
     },
     _openDialog: function(e) {
+        // Recompute ports on open to reset when canceled
+        this._computePorts();
         this.$.exposePortsDialog.opened = true;
     },
     _closeDialog: function(e) {
