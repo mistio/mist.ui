@@ -543,7 +543,7 @@
                             <mist-tags-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-tags-field>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_ports', fieldVisibility, index)]]" restamp>
-                            <mist-ports-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}"></mist-ports-field>
+                            <mist-ports-field id$="app-form-[[id]]-[[field.name]]" class="xs12 m6" field="{{field}}" ports="[[field.ports]]"></mist-ports-field>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'duration_field', fieldVisibility, index)]]" restamp>
                             <duration-field id$="app-form-[[id]]-[[field.name]]" class$="xs12 m6 {{field.class}}" field="{{field}}"></mist-tags-field>
@@ -819,6 +819,11 @@
                 fieldIndex: {
                     type: Number,
                     value: -1
+                },
+                noAutoUpdate: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
                 }
             },
 
@@ -969,7 +974,9 @@
 
                 if (fields && fields.path && fields.path == 'fields') {
                     // console.log('app form - fields changed. changerecord', fields);
-                    this._updateForm();
+                    if (!this.noAutoUpdate)
+                        this._updateForm();
+
                     // construct fieldVisibility 
                     var fv = {};
                     for (var i = this.fields.length - 1; i >= 0; i--) {
@@ -1378,7 +1385,8 @@
                 return false;
             },
 
-            _cancel: function () {
+            _cancel: function (e) {
+                this.dispatchEvent(new CustomEvent('app-form-cancel', { bubbles: true, composed: true, details: {e:e}}));
                 var overlay = document.querySelector('vaadin-dialog-overlay');
                 if (overlay)
                     overlay.opened = false;
