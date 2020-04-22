@@ -378,7 +378,7 @@ MACHINE_CREATE_FIELDS.push({
         flatten: true,
         loader: false,
         subfields: [{
-            name: 'ports',
+            name: 'port_forwards',
             type: 'mist_ports',
             value: {},
             defaultValue: {},
