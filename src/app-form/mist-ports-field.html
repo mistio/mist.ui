@@ -67,8 +67,7 @@
                     notify: true
                 },
                 ports: {
-                    type: Array,
-                    value: function() {return [];}
+                    type: Array
                 },
                 valid: {
                     type: Boolean
@@ -78,9 +77,15 @@
                 'change': '_portsChanged',
                 'port-delete': '_portDeleteHandler'
             },
+            observers: [
+                '_portsChanged(ports.splices)'
+            ],
             ready: function() {
-                if (!this.ports.length)
+                if (!this.ports || !this.ports.length)
                     this._addPort();
+            },
+            _portsChanged: function() {
+                this.$.ports.render();
             },
             _addPort: function() {
                 var newPort = {
