@@ -67,7 +67,8 @@
                     notify: true
                 },
                 ports: {
-                    type: Array
+                    type: Array,
+                    value: function(){ return []}
                 },
                 valid: {
                     type: Boolean
@@ -81,8 +82,7 @@
                 '_portsChanged(ports.splices)'
             ],
             ready: function() {
-                if (!this.ports || !this.ports.length) {
-                    this.ports = [];
+                if (!this.ports.length) {
                     this._addPort();
                 }
             },
@@ -100,19 +100,25 @@
                 this.$.ports.render();
             },
             _portsChanged: function(e) {
-                if (!this.ports || !this.ports.length) {
+                if (!this.ports.length) {
                     this._reset()
                 } else {
-                    var elements = this.shadowRoot.querySelectorAll('port-item');
-                    var value = {}, validities = [];
-                    elements.forEach(function(el){
-                        if (el.value && typeof el.value == "object")
-                            value[Object.keys(el.value)[0]] =  Object.values(el.value)[0];
-                        validities.push(el.valid)
-                    })
-                    this.set('field.value', value);
-                    this._updateValid(validities);
+                    this.async(function(){
+                        var elements = this.shadowRoot.querySelectorAll('port-item');
+                        var value = {}, validities = [];
+                        elements.forEach(function(el){
+                            if (el.value && typeof el.value == "object")
+                                value[Object.keys(el.value)[0]] =  Object.values(el.value)[0];
+                            validities.push(el.valid)
+                        })
+                        this.set('field.value', value);
+                        this._updateValid(validities);
+        
+                        console.log('portsChanged in =========================', this.field.value);
+
+                    }.bind(this), 300)
                 }
+                console.log('portsChanged out =========================', this.field.value);
                 this.dispatchEvent(new CustomEvent('subform-fields-changed', {bubbles: true, composed: true}));
             },
             _reset: function() {
@@ -121,7 +127,7 @@
             },
             _portDeleteHandler: function(e) {
                 var port = e.detail.port,
-                    index = this.ports.indexOf(port);
+                    index = e.detail.index;
                 this.splice('ports', index, 1);
             },
             _updateValid: function(arr) {
