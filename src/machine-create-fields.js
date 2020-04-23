@@ -383,6 +383,7 @@ MACHINE_CREATE_FIELDS.push({
             value: {},
             defaultValue: {},
             show: true,
+            ports: [],
             required: true,
             portError: "Port must be a port number",
             portValidator: "port-number-validator"
