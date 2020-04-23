@@ -77,9 +77,9 @@ Polymer({
         'app-form-cancel': '_computePorts'
     },
     observers: [
-        '_computePorts(machine.extra.port_forwards.*)',
+        '_computePorts(machine, machine.extra.port_forwards.*)',
     ],
-    _computePorts: function(portForwards) {
+    _computePorts: function(machine, portForwards) {
         var ports = [];
         if (this.machine && this.machine.extra && this.machine.extra.port_forwards) {
             for (var i=0; i < this.machine.extra.port_forwards.length; i++){
@@ -94,7 +94,7 @@ Polymer({
             }
         }
         this.set('form.action', 'expose');
-        this.set('ports', ports);
+        this.set('ports', JSON.parse(JSON.stringify(ports)));
     },
     _computeFields: function(machine, provider, ports) {
         var providerFields = MACHINE_CREATE_FIELDS.find(function(x) {
