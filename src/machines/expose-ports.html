@@ -104,16 +104,20 @@ Polymer({
         var portFieldGroup = providerFields.fields.find(function(f){
             return f.name == 'port_forwards';
         });
-        // locate ports field
-        var fields = portFieldGroup.subfields.filter(function(f){
-            return f.type == 'mist_ports';
-        });
-        var ports = this.ports;
-        var cleanCopy = JSON.parse(JSON.stringify(fields));
-        cleanCopy.forEach(function(f){
-            f.ports = ports;
-        });
-        return cleanCopy;
+        if (portFieldGroup) {
+            // locate ports field
+            var fields = portFieldGroup.subfields.filter(function(f){
+                return f.type == 'mist_ports';
+            });
+            if (fields) {
+                var ports = this.ports;
+                var cleanCopy = JSON.parse(JSON.stringify(fields));
+                cleanCopy.forEach(function(f){
+                    f.ports = ports;
+                });
+                return cleanCopy;
+            }
+        }
     },
     _openDialog: function(e) {
         // Recompute ports on open to reset when canceled
