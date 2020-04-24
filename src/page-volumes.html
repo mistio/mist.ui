@@ -9,7 +9,6 @@
 <link rel="import" href="helpers/mist-lists-behavior.html">
 <link rel="import" href="helpers/owner-filter-behavior.html">
 
-
 <dom-module id="page-volumes">
     <template>
         <style include="shared-styles">
@@ -19,7 +18,7 @@
         </style>
         <app-route route="{{route}}" pattern="/:volume" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <volume-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">
+            <volume-actions id="actions" slot="actions" items="[[selectedItems]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]" machines="[[_computeMachinesCanDetachFrom(selectedItems.*)]]" machines-to-attach-to="[[_computeMachinesToAttachTo(selectedItems.*)]]">
                 <mist-list selectable resizable column-menu multi-sort
                     apiurl="/api/v1/volumes"
                     id="volumesList"
@@ -49,6 +48,7 @@
     Polymer({
         is: 'page-volumes',
         behaviors: [
+            mistListsBehavior,
             ownerFilterBehavior,
             rbacBehavior
         ],
@@ -91,6 +91,27 @@
                 url: this.model.sections.volumes.add
             } }));
 
+        },
+
+        _computeMachinesToAttachTo: function (selectedItems) {
+            // TODO: allow for multiple volumes when possible
+            if (this.selectedItems && this.selectedItems.length == 1) {
+                var volume = this.selectedItems[0],
+                    machinesArray = Object.values(this.model.clouds[volume.cloud].machines);
+                return machinesArray.filter(function(m) {
+                    return m.cloud == volume.cloud && (!volume.location || m.location == volume.location) && volume.attached_to.indexOf(m.id) == -1
+                });
+            }
+            return [];
+        },
+
+        _computeMachinesCanDetachFrom: function(selectedItems) {
+            // TODO: allow for multiple volumes when possible
+            if (this.selectedItems && this.selectedItems.length == 1) {
+                var that = this, volume = this.selectedItems[0];
+                return this.model && this.model.machines && volume.attached_to && volume.attached_to.length ? volume.attached_to.map(i => that.model.machines[i] || { name: 'missing' , id: "#"}) : [];
+            }
+            return [];
         },
 
         _getFrozenColumn: function() {

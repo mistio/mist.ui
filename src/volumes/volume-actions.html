@@ -54,15 +54,13 @@
         'name': 'attach',
         'icon': 'icons:attachment',
         'confirm': false,
-        'multi': false,
-        'single': true
+        'multi': false
       },
       'detach': {
         'name': 'detach',
         'icon': 'icons:eject',
         'confirm': false,
-        'multi': false,
-        'single': true
+        'multi': false
       },
       'delete': {
         'name': 'delete',
@@ -130,13 +128,11 @@
           if (volume.actions.tag) {
             arr.push('tag');
           }
-          if (this.inSingleView && VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(this.provider) > -1) {
-            if (volume.actions.attach) {
-              arr.push('attach');
-            }
-            if (volume.actions.detach) {
-              arr.push('detach');
-            }
+          if (volume.actions.attach) {
+            arr.push('attach');
+          }
+          if (volume.actions.detach) {
+            arr.push('detach');
           }
           if (volume.actions.delete) {
             arr.push('delete');
@@ -248,6 +244,7 @@
             msg: 'Action: ' + this.$.request.body.action + ' successfull',
             duration: 3000
           } }))
+          this.dispatchEvent(new CustomEvent('action-finished'));
         }
         if (e.target && e.target.__data__ && e.target.__data__.method == "DELETE") {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url:'/volumes'} }));
