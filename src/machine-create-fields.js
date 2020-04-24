@@ -1419,7 +1419,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: false,
         optional: true,
-        singleColumnForm: true,
+        singleColumn: true,
         inline: true,
         subfields: [{
                 name: 'action',
@@ -1467,6 +1467,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false,
                 prefixText: 'Notify me ',
                 suffixText: 'before',
+                class: 'bind-both',
                 optional: true,
                 defaultCheck: true,
                 disabled: false,
@@ -1495,7 +1496,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         type: 'radio',
         value: 'inline',
         defaultValue: 'inline',
-        helptext: 'Edit a script to run or choose one from your existing ones.',
+        helptext: 'Edit an inline script or choose one from the existing ones.',
         show: true,
         required: false,
         class: 'bind-bottom radio-highight',
@@ -1571,7 +1572,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         excludeFromPayload: true,
         show: true,
         required: false,
-        helptext: 'Choose one from the available tasks to schedule.',
+        helptext: 'Choose a task.',
         options: [],
         showIf: {
             fieldName: 'post_provision_scheduler',
@@ -1770,7 +1771,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         show: true,
         required: false,
         optional: true,
-        singleColumnForm: true,
         inline: true,
         subfields: [
             {
