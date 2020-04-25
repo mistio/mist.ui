@@ -1705,6 +1705,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         defaultValue: '',
         class: 'bind-top background',
         icon: 'schedule',
+        validate: 'inFuture',
+        errorMessage: 'Date must be a future date',
         excludeFromPayload: true,
         show: false,
         required: false,
@@ -1721,6 +1723,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         defaultValue: '',
         helptext: '',
         icon: 'schedule',
+        validate: 'inFuture',
+        errorMessage: 'Date must be a future date',
         show: false,
         required: false,
         disabled: false,
@@ -1739,6 +1743,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         defaultValue: '',
         helptext: '',
         icon: 'schedule',
+        validate: 'inFuture',
+        errorMessage: 'Date must be a future date',
         show: false,
         required: false,
         showIf: {
@@ -1796,7 +1802,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 class: 'inline-block pad-l-0 pad-t',
                 required: true,
                 options: []
-            }
+           }
         ]
     }, {
         name: 'monitoring',

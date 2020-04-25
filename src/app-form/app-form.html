@@ -289,7 +289,7 @@
             }
 
             .date-label {
-                margin-right: 8px;
+                margin-right: 4px;
             }
 
             paper-dialog>* {
@@ -357,6 +357,30 @@
             }
             #date.valid-false iron-icon {
                 fill: var(--red-color) !important;
+            }
+            datetime-picker {
+                --calendar-cell-hovered-background: var(--mist-blue) !important;
+            }
+            iron-icon.datetime-clear {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                position: absolute;
+                top: 8px;
+            }
+            .date {
+                padding-right: 0;
+                position: relative;
+            }
+            .datetime-picker-with-button {
+                position: relative;
+                display: inline-block;
+            }
+            .date .error {
+                color: var(--red-color);
+                position: absolute;
+                font-size: .9em;
+                bottom: -1.2em;
             }
 
             @media (max-width: 991px) {
@@ -626,10 +650,16 @@
                             <div class$="xs12 m6 date [[field.class]]">
                                 <div class="date-label">[[field.label]]</div>
                                 <div id="date" class$="simple-button valid-[[_validateDatetime(field, field.value)]]">
-                                    <iron-icon icon="schedule"></iron-icon>
                                     [[_displayDate(field, field.value)]]
-                                    <datetime-picker id$="app-form-[[id]]-[[field.name]]" value="{{field.value}}" auto-confirm></datetime-picker>
+                                    <iron-icon icon="schedule"></iron-icon>
+                                    <div class="datetime-picker-with-button">
+                                        <datetime-picker id$="app-form-[[id]]-[[field.name]]" value="{{field.value}}"
+                                        horizontal-align="right" auto-confirm hide-reset-button></datetime-picker>
+                                        <iron-icon class="datetime-clear" icon="clear" on-tap="_clearDateTimeInput"
+                                        hidden$="[[_showClearDateBtn(field, field.value)]]"></iron-icon>
+                                    </div>
                                 </div>
+                                <div class="error" hidden$="[[_validateDatetime(field, field.value)]]">[[field.errorMessage]]</div>
                             </div>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'list', fieldVisibility, index)]]">
@@ -835,6 +865,15 @@
 
             _computeLayoutClass: function (layout) {
                 return this.horizontalLayout ? 'horizontal-grid' : '';
+            },
+            _clearDateTimeInput: function(e) {
+                if (e && e.model && e.model.field) {
+                    var fieldName = e.model.field.name;
+                    var ind = this.fields.findIndex(function(f){ return f.name == fieldName})
+                    if (ind > -1) {
+                        this.set('fields.'+ ind +'.value', "");
+                    }
+                }
             },
 
             _updateForm: function () {
@@ -1098,7 +1137,7 @@
                 return fieldsToValidate.every(function (el, index) {
                     var fieldIndex = this.fields.findIndex(function(f){return f.name === el.name});
 
-                    // If field is not required or not visible then all is well
+                    // If field is not required or not visible then all is well // TODO: a non-required field should also be validated
                     if (!el.required || !this.fieldVisibility[fieldIndex]) return true;
 
                     // If there's a custom validator for the field use it
@@ -1170,14 +1209,22 @@
             },
 
             _validateDatetime: function(el) {
+                if (!el.value)
+                    return !el.required || !el.show;
+
+                var valid;
                 if (el.validate == "inFuture") {
                     var now = moment();
-                    // console.log('validate ',el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true);
-                    return el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true;
+                    valid = moment(el.value).isValid() && !moment(el.value).isBefore(now);
                 } else {
-                    // console.log('validate ',el.show && el.value ? moment(el.value).isValid() : true);
-                    return el.show && el.value ? moment(el.value).isValid() : true;
+                    valid = moment(el.value).isValid();
                 }
+                el.valid = valid;
+                return valid;
+            },
+
+            _showClearDateBtn: function(el) {
+                return el && el.value;
             },
 
             _validateMistSize: function (el) {
