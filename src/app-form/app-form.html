@@ -1096,9 +1096,42 @@
 
                                 that.set('fieldVisibility.' + index, show);
                                 // console.log('form set visibility', el.name , show);
+
+                                // update form values regardless of el.show
+                                if (el.type == "ip_textarea") {
+                                    var textToArray = el.value.split('\n');
+                                    that.set('form.' + el.name, textToArray);
+                                } else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    that.set('form.' + el.name, that._constructTagsValue(
+                                        textToArray));
+                                } else if (el.type == "checkboxes") {
+                                    that.set('form.' + el.name, el.value || []);
+                                } else if (el.type == "number") {
+                                    that.set('form.' + el.name, parseInt(el.value));
+                                } else if (el.type == "date" && el.value) {
+                                    that.set('form.' + el.name, el.value);
+                                } else {
+                                    that.set('form.' + el.name, el.value);
+                                }
+                            } else {
+                                if (el.type == "ip_textarea") {
+                                    var textToArray = el.value.split('\n');
+                                    that.set('form.' + el.name, textToArray);
+                                } else if (el.name == "machines_tags") {
+                                    var textToArray = el.value.split(',');
+                                    that.set('form.' + el.name, that._constructTagsValue(
+                                        textToArray));
+                                } else if (el.type == "checkboxes") {
+                                    that.set('form.' + el.name, el.value || []);
+                                } else if (el.type == "number") {
+                                    that.set('form.' + el.name, parseInt(el.value));
+                                } else if (el.type == "date" && el.value) {
+                                    that.set('form.' + el.name, el.value);
+                                } else {
+                                    that.set('form.' + el.name, el.value);
+                                }
                             }
-                            // update form values regardless of el.show
-                            that._updateFormValues();
 
                             // if field is a dependency of another field
                             that.fields.forEach(function (depel, index) {
@@ -1115,30 +1148,6 @@
                         that.set('form', form);
                         that.runValidateFields();
                     },100);
-                }
-            },
-
-            _updateFormValues: function (el, index) {
-                if (el.type == "ip_textarea") {
-                    var textToArray = el.value.split('\n');
-                    this.set('form.' + el.name, textToArray);
-                } else if (el.name == "machines_tags") {
-                    var textToArray = el.value.split(',');
-                    this.set('form.' + el.name, this._constructTagsValue(
-                        textToArray));
-                } else if (el.type == "checkboxes") {
-                    this.set('form.' + el.name, el.value || []);
-                } else if (el.type == "number") {
-                    this.set('form.' + el.name, parseInt(el.value));
-                } else if (el.type == "date" && el.value) {
-                    this.set('form.' + el.name, el.value);
-                } else {
-                    this.set('form.' + el.name, el.value);
-                }
-                // allow form to store a value also under a specified name
-                // example field: scheduler_entry
-                if (el.payloadValue && this.fieldVisibility[index]) {
-                    this.set('form.' + el.payloadValue, el.value);
                 }
             },
 
