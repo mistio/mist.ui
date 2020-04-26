@@ -230,6 +230,11 @@
                     for (var i=0; i < this.fields.length; i++)
                         this.fields[i].helpHref = '';
             },
+            _fieldIndexByName: function(name) {
+                return this.fields.findIndex(function(f) {
+                    return f.name == name;
+                });
+            },
             _execTypeChanged: function (type) {
                 var placeholder = "";
                 if (type == "executable") {
@@ -238,7 +243,8 @@
                     placeholder =
                         "- name: Dummy ansible playbook\n  hosts: localhost\n  tasks:\n    - name: Dummy task\n      debug:\n        msg: 'Hello World'\n"
                 }
-                this.set('fields.6.value', placeholder);
+                var index = this._fieldIndexByName('script_inline')
+                this.set('fields.' + index + '.value', placeholder);
             },
             _addScriptAjaxResponse: function (e) {
                 var response = JSON.parse(e.detail.xhr.response);
