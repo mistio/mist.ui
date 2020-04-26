@@ -289,7 +289,7 @@
             '_updateCloudOptions(cloud.*)',
             '_machineFieldsChanged(machineFields.*)',
             '_prefillOptions(route.*)',
-            '_locationChanged(machineFields.3.value)'
+            '_locationChanged(machineFields.1.value)'
         ],
         listeners: {
             'keyup': 'hotkeys',
@@ -482,26 +482,30 @@
         _locationChanged: function (locationId) {
             if (!locationId) return;
             var provider = this.model.clouds[this.selectedCloud].provider,
-                location = this.model.clouds[this.selectedCloud].locations[locationId]
-            if (provider == "aliyun_ecs") {
-                var allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort(function(a, b) {
+                location = this.model.clouds[this.selectedCloud].locations[locationId],
+                sizeIndex = this._fieldIndexByName('size'),
+                selectedSize = this.machineFields[sizeIndex].value,
+                allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort(function(a, b) {
                     if (a.cpus < b.cpus) {
                         return -1;
-                    }
-                    if (a.cpus > b.cpus) {
+                    } else if (a.cpus > b.cpus) {
                         return 1;
                     }
                     return 0;
                 }) || [];
+            if (location.extra && location.extra.available_instance_types) { // provider == "aliyun_ecs"
                 var sizeOptions = allSizes.filter(function(option){
                     return location.extra.available_instance_types.indexOf(option.external_id) > -1;
                 });
-                var selectedSize = this.machineFields[2].value;
-                if (sizeOptions.findIndex(function(item){return item.id == selectedSize}) == -1) {
-                    this.set('machineFields.2.value', '');
-                }
-                this.set('machineFields.2.options', sizeOptions);
+            } else {
+                var sizeOptions = allSizes.filter(function(option){
+                    return !option.extra.regions || option.extra.regions.indexOf(location.external_id) > -1;
+                });
             }
+            if (sizeOptions.findIndex(function(item){return item.id == selectedSize}) == -1) {
+                this.set('machineFields' + sizeIndex + '.value', '');
+            }
+            this.set('machineFields.' + sizeIndex + '.options', sizeOptions);
         },
         _resetForm: function () {
             // Reset Form Fields
