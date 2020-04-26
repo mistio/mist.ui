@@ -471,6 +471,7 @@ MACHINE_CREATE_FIELDS.push({
         optional: true,
         inline: true,
         loader: true,
+        singleColumn: true,
         subfields: [{
             name: 'vnfs',
             label: 'Available VNFs',
