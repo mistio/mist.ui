@@ -1644,13 +1644,14 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
         excludeFromPayload: true,
         required: false,
     }, {
-        name: 'schedule_entry_interval_every',
-        label: 'Interval',
-        type: 'text',
-        value: '10',
-        defaultValue: '',
+        name: 'schedule_entry_interval',
+        type: 'duration_field',
         excludeFromPayload: true,
-        class: 'bind-both background',
+        value: {every: 10, period: 'minutes'},
+        defaultValue: {every: 10, period: 'minutes'},
+        valueType: 'period',
+        prefixText: 'every ',
+        class: 'bind-top background',
         show: false,
         required: true,
         helptext: 'Example, every 10 minutes',
@@ -1658,29 +1659,11 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             fieldName: 'schedule_type',
             fieldValues: ['interval'],
         },
-    }, {
-        name: 'schedule_entry_interval_period',
-        type: 'radio',
-        value: 'minutes',
-        defaultValue: 'minutes',
-        excludeFromPayload: true,
-        class: 'bind-top background',
-        show: false,
-        required: false,
-        showIf: {
-            fieldName: 'schedule_type',
-            fieldValues: ['interval'],
-        },
-        options: [{ // days, hours, minutes, seconds, microseconds
-            title: 'days',
-            val: 'days',
-        }, {
-            title: 'hours',
-            val: 'hours',
-        }, {
-            title: 'mins',
-            val: 'minutes',
-        }],
+        options: [
+            {val: 'days', title: 'days'},
+            {val: 'hours', title: 'hours'},
+            {val: 'minutes', title: 'minutes'}
+        ],
     }, {
         name: 'schedule_entry_crontab',
         label: 'Crontab',
