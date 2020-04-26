@@ -403,16 +403,6 @@ PROVIDERS.push({
         errorMessage: "Please enter API Key",
         helptext: 'You can find your API Token on the Packet portal',
         helpHref: 'http://docs.mist.io/article/100-adding-packet'
-    }, {
-        name: "project_id",
-        label: "Project",
-        type: "text",
-        value: "",
-        defaultValue: "",
-        show: true,
-        required: false,
-        errorMessage: "Please enter title",
-        helptext: 'Optionally specify the project name'
     }]
 });
 
