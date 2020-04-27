@@ -1070,7 +1070,7 @@
                             if (el.showIf) {
                                 dependency = form[el.showIf.fieldName];
                                 if (el.showIf.fieldExists) {
-                                    show = (dependency != undefined) ? true : false;
+                                    show = that._isNotEmpty(dependency);
                                 } else {
                                     show = el.showIf.fieldValues.indexOf(dependency) !=
                                         -1;
@@ -1205,6 +1205,14 @@
 
                     return el.value ? true : false;
                 }.bind(this));
+            },
+
+            _isNotEmpty: function(value) {
+                if (value == undefined) return false; // covers null too
+                else if (typeof(value) == "boolean") return true;
+                else if (typeof(value) == "string") return value.length;
+                else if (typeof(value) == "number") return !isNaN(value);
+                else if (typeof(value) == "object") JSON.stringify(value) != '{}';
             },
 
             _validateDurationField: function(field) {
