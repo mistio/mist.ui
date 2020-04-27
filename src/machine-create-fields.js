@@ -862,6 +862,7 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.forEach(function(p) {
     var addImage = ['libvirt'].indexOf(p.provider) != -1;
     var showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) == -1;
+    var showSizeIf = ['aliyun_ecs'].indexOf(p.provider) != -1 ? {fieldName:'location',fieldExists: true} : undefined;
 
     // add common machine properties fields
     p.fields.splice(0, 0, {
@@ -1141,6 +1142,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: true,
             options: [],
             custom: false,
+            showIf: showSizeIf
         });
     }
 
