@@ -293,7 +293,7 @@
             '_updateCloudOptions(cloud.*)',
             '_machineFieldsChanged(machineFields.*)',
             '_prefillOptions(route.*)',
-            '_locationChanged(machineFields.3.value)'
+            '_locationChanged(machineFields.1.value)'
         ],
         listeners: {
             'keyup': 'hotkeys',
@@ -486,26 +486,30 @@
         _locationChanged: function (locationId) {
             if (!locationId) return;
             var provider = this.model.clouds[this.selectedCloud].provider,
-                location = this.model.clouds[this.selectedCloud].locations[locationId]
-            if (provider == "aliyun_ecs") {
-                var allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort(function(a, b) {
+                location = this.model.clouds[this.selectedCloud].locations[locationId],
+                sizeIndex = this._fieldIndexByName('size'),
+                selectedSize = this.machineFields[sizeIndex].value,
+                allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort(function(a, b) {
                     if (a.cpus < b.cpus) {
                         return -1;
-                    }
-                    if (a.cpus > b.cpus) {
+                    } else if (a.cpus > b.cpus) {
                         return 1;
                     }
                     return 0;
                 }) || [];
+            if (location.extra && location.extra.available_instance_types) { // provider == "aliyun_ecs"
                 var sizeOptions = allSizes.filter(function(option){
                     return location.extra.available_instance_types.indexOf(option.external_id) > -1;
                 });
-                var selectedSize = this.machineFields[2].value;
-                if (sizeOptions.findIndex(function(item){return item.id == selectedSize}) == -1) {
-                    this.set('machineFields.2.value', '');
-                }
-                this.set('machineFields.2.options', sizeOptions);
+            } else {
+                var sizeOptions = allSizes.filter(function(option){
+                    return !option.extra.regions || option.extra.regions.indexOf(location.external_id) > -1;
+                });
             }
+            if (sizeOptions.findIndex(function(item){return item.id == selectedSize}) == -1) {
+                this.set('machineFields' + sizeIndex + '.value', '');
+            }
+            this.set('machineFields.' + sizeIndex + '.options', sizeOptions);
         },
         _resetForm: function () {
             // Reset Form Fields
@@ -1136,7 +1140,7 @@
                             maxcountInd = this._fieldIndexByName("max_run_count"),
                             entry;
                         if (changeRecord.value == "interval") {
-                            entry = this._processInterval();
+                            entry = this._getInterval();
                             if (expInd > -1) this.set('machineFields.' + expInd + '.disabled', false);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.disabled', false);
                             if (maxcountInd > -1) this.set('machineFields.' + maxcountInd + '.value', "");
@@ -1172,9 +1176,9 @@
 
                     // interval changes in schedule entry
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
-                            "schedule_entry_interval_")) {
+                            "schedule_entry_interval")) {
                         var entryInd = this._fieldIndexByName("schedule_entry");
-                        if (entryInd > -1) this.set('machineFields.' + entryInd + '.value', this._processInterval());
+                        if (entryInd > -1) this.set('machineFields.' + entryInd + '.value', this._getInterval());
                     }
 
                     if (this.get(changeRecord.path.replace('.value', '')).name == "expires") {
@@ -2128,24 +2132,12 @@
         _goBack: function() {
             history.back();
         },
-        _processInterval: function() {
-            var everyInd = this._fieldIndexByName("schedule_entry_interval_every"),
-                periodInd = this._fieldIndexByName("schedule_entry_interval_period");
-            if (everyInd > -1) {
-                var every = this.get('machineFields.' + everyInd + '.value').trim().length > 0 ?
-                    this.get('machineFields.' + everyInd + '.value') : this.get('machineFields.' +
-                        everyInd + '.defaultValue');
+        _getInterval: function() {
+            var intervalInd = this._fieldIndexByName("schedule_entry_interval"), interval = {};
+            if (intervalInd > -1) {
+                interval = this.get('machineFields.' + intervalInd + '.value') || 
+                    this.get('machineFields.' + intervalInd + '.defaultValue');
             }
-            if (periodInd > -1) {
-                var period = this.get('machineFields.' + periodInd + '.value').trim().length > 0 ?
-                    this.get('machineFields.' + periodInd + '.value') : this.get('machineFields.' +
-                        periodInd + '.defaultValue');
-            }
-            var interval = {
-                'every': every,
-                'period': period
-            };
-
             return interval;
         },
         _updateFieldsForPacket: function(e) {
