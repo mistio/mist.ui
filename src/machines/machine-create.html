@@ -568,7 +568,6 @@
                                 console.log('LOOP', l.name, check_perm);
                                 return check_perm == true;
                             });
-                        // console.log('LOCATIONS', locations.length);
                         // disable maxihost locations that support no sizes
                         if (this.model.clouds[cloudId].provider == "maxihost") {
                             var sizeLocations = this._toArray(this.model.clouds[this.selectedCloud].sizes).map(x=>x.extra.regions).join();
@@ -578,14 +577,13 @@
                         }
                         f.options = locations;
                         if (locations.length == 1 ) {
-                            // If there's a single location preselect it and hide the field
-                            that._selectSingleLocation(index,locations[0].id);
+                            // If there's a single location preselect it
+                            this.set('machineFields.'+index+'.value', locations[0].id);
                         }
-                        // console.log(f.options);
                     }
                     if (f.name.endsWith("image")) {
                         var images = this._toArray(this.model.clouds[cloudId].images);
-                        // kvm images dependent on location
+                        // KVM images depend on location
                         if (this.model.clouds[cloudId].provider == "libvirt"){
                             var locInd = this._fieldIndexByName('location');
                             if (locInd > -1) {
@@ -828,9 +826,6 @@
                                 this.set('machineFields.' + ind + '.value', f.options[0].val);
                             } else {
                                 this.set('machineFields.' + ind + '.value', f.options[0].id);
-                            }
-                            if (f.add != true) {
-                                this.set('machineFields.' + ind + '.show', false);
                             }
                         }
 
@@ -1207,11 +1202,6 @@
                     this.selectedCloud].provider == "vsphere") {
                 this._updateFieldsForVsphere();
             }
-        },
-
-        _selectSingleLocation: function(index, value) {
-            this.set('machineFields.'+index+'.value', value);
-            this.set('machineFields.'+index+'.show', false);
         },
 
         _mapPortsToDockerPorts: function(input) {
