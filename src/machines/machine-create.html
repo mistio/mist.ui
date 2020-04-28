@@ -289,7 +289,7 @@
             '_updateCloudOptions(cloud.*)',
             '_machineFieldsChanged(machineFields.*)',
             '_prefillOptions(route.*)',
-            '_locationChanged(machineFields.1.value)' // TODO: This observer is too much dependent on fields' order.
+            // '_locationChanged(machineFields.1.value)' // TODO: This observer is too much dependent on fields' order.
         ],
         listeners: {
             'keyup': 'hotkeys',
@@ -503,7 +503,7 @@
                 });
             }
             if (sizeOptions.findIndex(function(item){return item.id == selectedSize}) == -1) {
-                this.set('machineFields.' + sizeIndex + '.value', ''); // TODO: This should better be defaultValue
+                this.set('machineFields.' + sizeIndex + '.value', this.machineFields[sizeIndex].defaultValue);
             }
             this.set('machineFields.' + sizeIndex + '.options', sizeOptions);
         },
@@ -884,6 +884,11 @@
                         'value') && this.get(changeRecord.path.replace('.value', '')).name ==
                     'location') {
                     this._includeLocationName(changeRecord.value);
+                }
+
+                // if location changed
+                if (this.get(changeRecord.path.replace('.value', '')).name == 'location'){
+                    this._locationChanged(changeRecord.value);
                 }
 
                 // if its ec2 and image changes update size to match the virtualization_type
