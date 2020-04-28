@@ -1785,7 +1785,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 show: true,
                 class: 'inline-block pad-l-0 pad-t',
                 required: true,
-                selectFirst: true,
                 options: []
            }
         ]
