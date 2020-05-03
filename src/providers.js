@@ -1412,7 +1412,7 @@ PROVIDERS.push({
         required: true
     }, {
         name: "cert_file",
-        label: "Client Certificate",
+        label: "Client Certificate *",
         helptext: "",
         type: "textarea",
         value: "",
