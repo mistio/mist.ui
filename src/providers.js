@@ -765,15 +765,15 @@ PROVIDERS.push({
 
 // KVM
 PROVIDERS.push({
-    title: 'KVM (via libvirt)',
+    title: 'KVM',
     val: 'libvirt',
     className: 'provider-libvirt',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "KVM (libvirt)",
-        defaultValue: "KVM (libvirt)",
+        value: "KVM",
+        defaultValue: "KVM",
         show: true,
         required: true,
         errorMessage: "Please enter title"
