@@ -1289,13 +1289,13 @@ PROVIDERS.push({
         defaultValue: "tls",
         options: [{
             val: "basic",
-            title: "Basic HTTP authentication"
+            title: "Basic HTTP"
         }, {
             val: "tls",
             title: "TLS"
         }, {
             val: "tokenbearer",
-            title: "Token Bearer Authentication",
+            title: "Token Bearer",
         }],
         show: true,
         required: true,
