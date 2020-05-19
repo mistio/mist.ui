@@ -1416,6 +1416,83 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false
             })
         }
+        if (['kubevirt','gig_g8'].indexOf(p.provider) > -1) {
+            p.fields.push({
+                name: 'port_forwards',
+                label: 'Expose ports',
+                type: 'fieldgroup',
+                value: {},
+                defaultValue: {},
+                defaultToggleValue: false,
+                helptext: '',
+                show: true,
+                required: false,
+                optional: true,
+                inline: true,
+                flatten: false,
+                enabled:true,
+                loader: false,
+                subfields: [{
+                    name: 'ports',
+                    itemName: 'ports',
+                    items: [],
+                    label: '',
+                    show: true,
+                    required: false,
+                    horizontal: true,
+                    type: 'list',
+                    min: '1',
+                    options: [{
+                        name: 'port',
+                        label: 'Port *',
+                        type: 'text',
+                        value: '',
+                        defaultValue: "80",
+                        show: true,
+                        required: true,
+                        helptext: 'Fill in either a port eg 8080, or an hostname/ip:port eg: 172.11.234.13:80',
+                    }, {
+                        name: 'target_port',
+                        label: 'Target Port',
+                        type: 'text',
+                        value: '',
+                        defaultValue: '',
+                        show: true,
+                        required: false,
+                        helptext: 'Fill in either a port eg 8080, or an hostname/ip:port eg: 172.11.234.13:80',
+                    },{
+                        name: 'protocol',
+                        label: 'Protocol',
+                        type: 'dropdown',
+                        value: 'TCP',
+                        defaultValue: 'TCP',
+                        helptext: '',
+                        show: true,
+                        required: true,
+                        class: 'width-150 inline-block',
+                        options: [
+                            {val: 'TCP', title: 'TCP'},
+                            {val: 'UDP', title: 'UDP'}
+                        ]
+                    }, {
+                        name: 'service_type',
+                        label: 'Type',
+                        type: 'dropdown',
+                        value: 'NodePort',
+                        defaultValue: 'NodePort',
+                        helptext: '',
+                        show: true,
+                        required: true,
+                        class: 'width-150 inline-block',
+                        options: [
+                            {val: 'ClusterIP', title: 'ClusterIP'},
+                            {val: 'NodePort', title: 'NodePort'},
+                            {val: 'LoadBalancer', title: 'LoadBalancer'}
+                        ]
+                    }]
+                }],
+            })
+        }
     }
 
     // add common post provision fields

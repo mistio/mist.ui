@@ -423,8 +423,8 @@ VOLUME_CREATE_FIELDS.push({
         defaultToggleValue: true,
         helptext: '',
         showIf:{
-            "fieldName": "dynamic",
-            "fieldValues": [false]
+            fieldName: "dynamic",
+            fieldValues: [false]
         },
         loadSchemeFolder: '/volumes/volume_params/', // where json schemes are located
         subfields: []

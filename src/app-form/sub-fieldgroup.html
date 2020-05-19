@@ -111,12 +111,26 @@
                 this._fieldsChangedNotifyEvent();
             },
             _subfieldsChanged: function(subfields) {
-                // console.log('sub fields changed', subfields);
+                //console.log('sub fields changed', subfields);
                 if (this.field && this.enabled) {
                     var fieldValue = {};
                     if (!this.field.flatten) {
                         for (var i=0; i<this.field.subfields.length; i++) {
                             fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
+                            if (this.field.subfields[i].type == 'list') {
+                                var list = this.field.subfields[i]
+                                var subformPayload = [];
+                                if (list && list.items.length) {
+                                    for (var k = 0; k < list.items.length; k++) {
+                                        var o = {};
+                                        for (var j = 0; j < list.items[k].length; j++) {
+                                            o[list.items[k][j].name] = list.items[k][j].value;
+                                        }
+                                        subformPayload.push(o);
+                                    }
+                                }
+                                fieldValue[list.name] = subformPayload
+                            }
                         }
                     } else {
                         fieldValue = this.field.subfields[0].value;
@@ -128,7 +142,6 @@
                 } else if (!this.enabled) {
                     this.set('field.value', {});
                 }
-
                 this.notifyPath('field.value');
                 this._fieldsChangedNotifyEvent();
             },
