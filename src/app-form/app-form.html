@@ -20,9 +20,6 @@
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
-<link rel="import" href="../../bower_components/juicy-jsoneditor/juicy-jsoneditor.html">
-<!-- josdejong/jsoneditor#104 workaround-->
-<!-- <link rel="stylesheet" type="text/css" href="../../bower_components/jsoneditor/dist/jsoneditor.min.css"> -->
 
 <link rel="import" href="sub-fieldgroup.html">
 <link rel="import" href="sub-form.html">
@@ -70,6 +67,9 @@
                 margin-left: 0;
                 margin-right: 0;
                 max-width: 97%;
+            }
+
+            :host([single-column]) .grid-row {
                 width: 97%;
             }
 
@@ -88,6 +88,21 @@
             :host .inline-block {
                 display: inline-block !important;
             }
+            :host([no-helptexts]) .grid-row .field-helptext {
+                display: none;
+            }
+            :host([no-horizontal-margins]) .grid-row {
+                margin-left: 0;
+                margin-right: 0;
+            }
+            :host([single-column]:not([inline])) .grid-row {
+                flex-wrap: wrap-reverse;
+                margin-top: 16px !important;
+                margin-bottom: 16px !important;
+            }
+            :host([single-column]:not([inline])) .grid-row > * {
+                margin-top: 0 !important;
+            }
 
             :host([single-column]) .m6,
             :host([single-column]) .m12 {
@@ -97,6 +112,10 @@
             :host([indialog]) sub-fieldgroup {
                 width: 100%;
                 padding-bottom: 24px;
+            }
+
+            .grid-row {
+                position: relative;
             }
 
             .grid-row>* {
@@ -290,7 +309,7 @@
             }
 
             .date-label {
-                margin-right: 8px;
+                margin-right: 4px;
             }
 
             paper-dialog>* {
@@ -358,6 +377,30 @@
             }
             #date.valid-false iron-icon {
                 fill: var(--red-color) !important;
+            }
+            datetime-picker {
+                --calendar-cell-hovered-background: var(--mist-blue) !important;
+            }
+            iron-icon.datetime-clear {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                position: absolute;
+                top: 8px;
+            }
+            .date {
+                padding-right: 0;
+                position: relative;
+            }
+            .datetime-picker-with-button {
+                position: relative;
+                display: inline-block;
+            }
+            .date .error {
+                color: var(--red-color);
+                position: absolute;
+                font-size: .9em;
+                bottom: -1.2em;
             }
 
             @media (max-width: 991px) {
@@ -443,7 +486,7 @@
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'text', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" validator="[[field.validator]]"
                                 value="{{field.value}}" auto-validate pattern="[[field.pattern]]" required="[[field.required]]"
-                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"
+                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 placeholder=[[field.placeholder]] hidden$="[[field.hidden]]">
                                 <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
                                 <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
@@ -452,7 +495,7 @@
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'number', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" placeholder="[[field.placeholder]]" label="[[field.label]]" type="number" min="{{field.min}}"
                                 max="{{field.max}}" value="{{field.value}}" auto-validate auto-validate allowed-pattern="[[field.pattern]]" required="[[field.required]]"
-                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"
+                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" always-float-label="[[field.alwaysFloatLabel]]"
                                 placeholder=[[field.placeholder]]>
                                 <div suffix hidden$="[[!field.suffix]]" slot="suffix">[[field.suffix]]</div>
                                 <div prefix hidden$="[[!field.prefix]]" slot="prefix">[[field.prefix]]</div>
@@ -461,17 +504,17 @@
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'password', fieldVisibility, index)]]" restamp>
                             <paper-input class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" type="password" placeholder="[[field.placeholder]]"
                                 label="[[field.label]]" value="{{field.value}}" pattern="[[field.pattern]]" auto-validate required="[[field.required]]"
-                                error-message="[[field.errorMessage]]"></paper-input>
+                                error-message="[[field.errorMessage]]" always-float-label="[[field.alwaysFloatLabel]]"></paper-input>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'textarea', fieldVisibility, index)]]" restamp>
                             <paper-textarea class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" label="[[field.label]]" rows="2" max-rows="10"
                                 value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]"
-                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]"></paper-textarea>
+                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" hidden="[[field.hidden]]" always-float-label="[[field.alwaysFloatLabel]]"></paper-textarea>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'ip_textarea', fieldVisibility, index)]]" restamp>
                             <paper-textarea class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" label="[[field.label]]" rows="2" max-rows="15"
                                 value="{{field.value}}" placeholder="[[field.placeholder]]" auto-validate required="[[field.required]]"
-                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]"></paper-textarea>
+                                error-message="[[field.errorMessage]]" disabled="[[field.disabled]]" always-float-label="[[field.alwaysFloatLabel]]"></paper-textarea>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'jsoneditor', fieldVisibility, index)]]" restamp>
                             <juicy-jsoneditor class$="xs12 m6 [[field.class]]" id$="app-form-[[id]]-[[field.name]]" name="[[field.name]]" json="{{field.value}}" mode="code"></juicy-jsoneditor>
@@ -518,7 +561,8 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'dropdown', fieldVisibility, index)]]" restamp>
                             <paper-dropdown-menu id$="app-form-[[id]]-[[field.name]]" class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]"
-                                horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]" required="[[field.required]]">
+                                horizontal-align="left" disabled="[[field.disabled]]" hidden="[[field.hidden]]" required="[[field.required]]" no-label-float="[[!field.label]]"
+                                always-float-label="[[field.alwaysFloatLabel]]">
                                 <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
@@ -550,7 +594,7 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_dropdown', fieldVisibility, index)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
-                                hidden="[[field.hidden]]" required="[[field.required]]">
+                                hidden="[[field.hidden]]" required="[[field.required]]" always-float-label="[[field.alwaysFloatLabel]]">
                                 <paper-listbox slot="dropdown-content" id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}"
                                     class="dropdown-content">
                                     <template is="dom-if" if="[[_noOptions(field.options, field.options.length)]]" restamp>
@@ -573,7 +617,7 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'mist_dropdown_searchable', fieldVisibility, index)]]">
                             <paper-dropdown-menu class$="dropdown-block xs12 m6 [[field.class]]" label="[[field.label]]" horizontal-align="left" disabled="[[field.disabled]]"
-                                hidden="[[field.hidden]]">
+                                hidden="[[field.hidden]]" always-float-label="[[field.alwaysFloatLabel]]">
                                 <div slot="dropdown-content" class="dropdown-content">
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]" hidden$="[[_noOptions(field.options, field.options.length)]]"></paper-input>
                                     <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
@@ -607,7 +651,7 @@
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'ssh_key', fieldVisibility, index)]]">
                             <paper-dropdown-menu class="dropdown-block xs12 m6" label="[[field.label]]" horizontal-align="left" hidden$="[[field.hidden]]">
-                                <div slot="dropdown-content" class="dropdown-content">
+                                <div slot="dropdown-content" class="dropdown-content" always-float-label="[[field.alwaysFloatLabel]]">
                                     <paper-input class="search" label$="Search [[field.name]]s" value="{{field.search}}" data-options$="[[field.name]]"></paper-input>
                                     <paper-listbox id$="app-form-[[id]]-[[field.name]]" attr-for-selected="value" selected="{{field.value}}">
                                         <template is="dom-repeat" items="[[_filter(field.options, field.search)]]" as="option">
@@ -630,10 +674,16 @@
                             <div class$="xs12 m6 date [[field.class]]">
                                 <div class="date-label">[[field.label]]</div>
                                 <div id="date" class$="simple-button valid-[[_validateDatetime(field, field.value)]]">
-                                    <iron-icon icon="schedule"></iron-icon>
                                     [[_displayDate(field, field.value)]]
-                                    <datetime-picker id$="app-form-[[id]]-[[field.name]]" value="{{field.value}}" auto-confirm></datetime-picker>
+                                    <iron-icon icon="schedule"></iron-icon>
+                                    <div class="datetime-picker-with-button">
+                                        <datetime-picker id$="app-form-[[id]]-[[field.name]]" value="{{field.value}}"
+                                        horizontal-align="right" auto-confirm hide-reset-button></datetime-picker>
+                                        <iron-icon class="datetime-clear" icon="clear" on-tap="_clearDateTimeInput"
+                                        hidden$="[[_showClearDateBtn(field, field.value)]]"></iron-icon>
+                                    </div>
                                 </div>
+                                <div class="error" hidden$="[[_validateDatetime(field, field.value)]]">[[field.errorMessage]]</div>
                             </div>
                         </template>
                         <template is="dom-if" if="[[_compareFieldType(field.type, 'list', fieldVisibility, index)]]">
@@ -668,7 +718,7 @@
 
             <template is="dom-if" if="[[displayButtons]]">
                 <div class="progress">
-                    <paper-progress id="progress" indeterminate hidden$="[[!sendingData]]"></paper-progress>
+                    <paper-progress id="progress" indeterminate hidden$="[[!loading]]"></paper-progress>
                     <paper-progress id="progresserror" value="100" hidden$="[[!formError]]"></paper-progress>
                     <hr class="appform" />
                     <p class="errormsg-container" hidden$="[[!formError]]">
@@ -694,7 +744,7 @@
         <iron-ajax id="getJSON" handle-as="json" last-response="{{data}}" on-response="_getJSONResponse" on-request="_getJSONRequest"
             on-error="_getJSONError"></iron-ajax>
         <iron-ajax id="formAjax" url="[[url]]" contentType="application/json" handle-as="{{handleas}}" method="[[method]]" on-request="_handleRequest"
-            on-response="_handleResponse" on-error="_handleError"></iron-ajax>
+            on-response="_handleResponse" on-error="_handleError" loading="{{loading}}"></iron-ajax>
     </template>
     <script>
         DEBUG_FORM = false;
@@ -763,7 +813,7 @@
                     type: Boolean,
                     value: true
                 },
-                sendingData: {
+                loading: {
                     type: Boolean,
                     value: false
                 },
@@ -774,7 +824,8 @@
                 formReady: {
                     type: Boolean,
                     value: false,
-                    notify: true
+                    notify: true,
+                    reflectToAttribute: true
                 },
                 formError: {
                     type: Boolean,
@@ -823,7 +874,7 @@
             },
 
             observers: [
-                '_fieldsChanged(fields.*, sendingData)'
+                '_fieldsChanged(fields.*, loading)'
             ],
 
             listeners: {
@@ -838,6 +889,15 @@
 
             _computeLayoutClass: function (layout) {
                 return this.horizontalLayout ? 'horizontal-grid' : '';
+            },
+            _clearDateTimeInput: function(e) {
+                if (e && e.model && e.model.field) {
+                    var fieldName = e.model.field.name;
+                    var ind = this.fields.findIndex(function(f){ return f.name == fieldName})
+                    if (ind > -1) {
+                        this.set('fields.'+ ind +'.value', "");
+                    }
+                }
             },
 
             _updateForm: function () {
@@ -879,7 +939,6 @@
 
             _handleResponse: function (e, d) {
                 this.dispatchEvent(new CustomEvent("response", { bubbles: true, composed: true, detail:  e.detail }));
-                this.set('sendingData', false);
                 //clear form only on response not on error
                 this._resetForm();
                 var overlay = document.querySelector('vaadin-dialog-overlay');
@@ -889,7 +948,6 @@
             },
 
             _handleError: function (e, d) {
-                this.set('sendingData', false);
                 this.set('formError', true);
                 console.log('FAIL', e)
                 // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
@@ -904,7 +962,7 @@
             runValidateFields: function() {
                 var valid = this._validateFields();
                 var prevFormReady = this.formReady;
-                this.set('formReady', valid && !this.sendingData);
+                this.set('formReady', valid && !this.loading);
 
                 console.log("form validate =====", this.id, this.formReady);
 
@@ -959,7 +1017,7 @@
                 this.set('fieldIndex', -1);
             },
 
-            _fieldsChanged: function (fields, sendingData) {
+            _fieldsChanged: function (fields, loading) {
                 // console.log('_fieldsChanged', fields ? fields.path : 'run by event')
                 if (this.formError) {
                     this.set('formError', false);
@@ -987,6 +1045,7 @@
                 }
                 if (fields && !fields.path.endsWith('.show') && !fields.path.endsWith('.loader')) {
                     var that = this;
+
                     this.debounce('fieldsChangedDebouncer', function () {
                         var form = that.form,
                             show = true,
@@ -1118,12 +1177,6 @@
                                     }
                                 }
                             });
-
-                            if (el.placeholderIf) {
-                                dependency = form[el.placeholderIf.fieldName];
-                                that.set('fields.' + index + '.placeholder', el.placeholderIf
-                                    .fieldOptions[dependency]);
-                            }
                         });
                         that.set('form', form);
                         that.runValidateFields();
@@ -1149,7 +1202,7 @@
                 return fieldsToValidate.every(function (el, index) {
                     var fieldIndex = this.fields.findIndex(function(f){return f.name === el.name});
 
-                    // If field is not required or not visible then all is well
+                    // If field is not required or not visible then all is well // TODO: a non-required field should also be validated
                     if (!el.required || !this.fieldVisibility[fieldIndex]) return true;
 
                     // If there's a custom validator for the field use it
@@ -1221,14 +1274,22 @@
             },
 
             _validateDatetime: function(el) {
+                if (!el.value)
+                    return !el.required || !el.show;
+
+                var valid;
                 if (el.validate == "inFuture") {
                     var now = moment();
-                    // console.log('validate ',el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true);
-                    return el.show && el.value ? moment(el.value).isValid() && !moment(el.value).isBefore(now) : true;
+                    valid = moment(el.value).isValid() && !moment(el.value).isBefore(now);
                 } else {
-                    // console.log('validate ',el.show && el.value ? moment(el.value).isValid() : true);
-                    return el.show && el.value ? moment(el.value).isValid() : true;
+                    valid = moment(el.value).isValid();
                 }
+                el.valid = valid;
+                return valid;
+            },
+
+            _showClearDateBtn: function(el) {
+                return el && el.value;
             },
 
             _validateMistSize: function (el) {
@@ -1350,8 +1411,6 @@
                 this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
                 this.$.formAjax.body = payload;
                 this.$.formAjax.generateRequest();
-
-                this.set('sendingData', true);
             },
 
             _updateDateCalculationOnRequest: function(fieldValue) {
@@ -1573,7 +1632,7 @@
                 });
             },
             _hasHelptext: function (field) {
-                return field ? !field.hidden && field.helptext : false;
+                return field ? !field.hidden && (field.helptext || field.helpHref) : false;
             },
             _getFieldNameById: function (str) {
                 return this.id ? str.split('app-form-' + this.id + '-')[1] : str.split('app-form--')[

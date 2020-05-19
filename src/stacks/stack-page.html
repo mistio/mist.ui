@@ -593,19 +593,20 @@
                     </div>
                 </paper-material>
 
+                <paper-material id="output" class="no-pad">
+                    <div class="output">
+                        <paper-button toggles active={{showOutput}} hidden$="[[showOutput]]">Show output</paper-button>
+                        <paper-icon-button class="close" toggles active={{showOutput}} hidden$="[[!showOutput]]" icon="icons:close"></paper-icon-button>
+                    </div>
+                    <div id="cfyshell" hidden$="[[!showOutput]]"></div>
+                </paper-material>
+
             </div>
 
             <div id="logs" class="page">
                 <mist-list timeseries expands id="stackLogs" items=[[_sortByTimestamp(stack.workflows)]] name="logs" frozen=[[_getFrozenLogColumn()]]
                     visible=[[_getVisibleColumns()]] renderers=[[_getRenderers()]] primary-field-name="time">
                 </mist-list>
-                <paper-material id="output" class="no-pad">
-                    <div class="output">
-                        <paper-button toggles active={{showOutput}} hidden$="[[showOutput]]" class="blue">Show output</paper-button>
-                        <paper-icon-button class="close" toggles active={{showOutput}} hidden$="[[!showOutput]]" icon="icons:close"></paper-icon-button>
-                    </div>
-                    <div id="cfyshell" hidden$="[[!showOutput]]"></div>
-                </paper-material>
             </div>
 
             <template is="dom-if" if="[[showAll]]">
@@ -659,15 +660,6 @@
                 </template>
             </div>
             <br/>
-            <paper-material class="no-pad">
-                <mist-rules id="stackRules" resource-type="stack" incidents="[[model.incidentsArray]]" rules="[[_rulesApplyOnResource(model.rules, stack, stack.tags.*, 'stack')]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]" resource="[[stack]]" model="[[model]]" collapsible></mist-rules>
-            </paper-material>
-            <br/>
-            <paper-material class="no-pad">
-                <template is="dom-if" if=[[stack]] restamp>
-                    <mist-list id="stackLogs" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]] renderers=[[_getRenderers(model.members)]] auto-hide timeseries expands column-menu searchable streaming infinite toolbar rest apiurl="/api/v1/logs" name="stack logs" primary-field-name="time" base-filter="[[stack.id]]"></mist-list>
-                </template>
-            </paper-material>
             <div class="absolute-bottom-right">
                 <paper-fab id="install" icon="av:play-arrow" on-tap="_quickActionsNavigation" hidden$="[[ok]]" disabled$="[[disabled]]"></paper-fab>
             </div>
