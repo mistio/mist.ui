@@ -1441,7 +1441,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                     required: false,
                     horizontal: true,
                     type: 'list',
-                    min: '1',
+                    min: '0',
                     options: [{
                         name: 'port',
                         label: 'Port *',
@@ -1450,7 +1450,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                         defaultValue: "80",
                         show: true,
                         required: true,
-                        helptext: 'Fill in either a port eg 8080, or an hostname/ip:port eg: 172.11.234.13:80',
+                        helptext: 'The public port, fill in either a port or host:port,\n eg: 80 or 172.11.234.13:80',
                     }, {
                         name: 'target_port',
                         label: 'Target Port',
@@ -1459,7 +1459,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                         defaultValue: '',
                         show: true,
                         required: false,
-                        helptext: 'Fill in either a port eg 8080, or an hostname/ip:port eg: 172.11.234.13:80',
+
+                        helptext: 'Optional, fill in only if the local port is different from the public one.',
                     },{
                         name: 'protocol',
                         label: 'Protocol',
@@ -1474,13 +1475,18 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                             {val: 'TCP', title: 'TCP'},
                             {val: 'UDP', title: 'UDP'}
                         ]
-                    }, {
+                    }]
+                }],
+            })
+            if (['kubevirt'].indexOf(p.provider) > -1) {
+                p.fields[p.fields.length-1].subfields.unshift(
+                    {
                         name: 'service_type',
-                        label: 'Type',
+                        label: 'Service Type',
                         type: 'dropdown',
                         value: 'NodePort',
                         defaultValue: 'NodePort',
-                        helptext: '',
+                        helptext: 'The type of the service to be created',
                         show: true,
                         required: true,
                         class: 'width-150 inline-block',
@@ -1489,9 +1495,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                             {val: 'NodePort', title: 'NodePort'},
                             {val: 'LoadBalancer', title: 'LoadBalancer'}
                         ]
-                    }]
-                }],
-            })
+                    }
+                )
+            }
         }
     }
 

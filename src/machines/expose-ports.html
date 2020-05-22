@@ -68,6 +68,9 @@ Polymer({
         ports: {
             type: Array,
         },
+        service_type:{
+            type: String
+        },
         fields: {
             type: Array,
             computed: '_computeFields(machine, provider, ports)'
@@ -85,10 +88,11 @@ Polymer({
             for (var i=0; i < this.machine.extra.port_forwards.length; i++){
                 var port = this.machine.extra.port_forwards[i];
                 var newPort = {
-                    private: port.local_port,
-                    public: port.public_port,
+                    port: port.public_port,
+                    target_port: port.local_port,
                     protocol: port.protocol,
-                    params: port.params || ""
+                    params: port.params || "",
+                    service_type: port.service_type
                 }
                 ports.push(newPort);
             }
@@ -104,17 +108,34 @@ Polymer({
         var portFieldGroup = providerFields.fields.find(function(f){
             return f.name == 'port_forwards';
         });
+        
         if (portFieldGroup) {
             // locate ports field
             var fields = portFieldGroup.subfields.filter(function(f){
-                return f.type == 'mist_ports';
+        
+                return f.type == 'list';
             });
+        
+            var service_t_field = portFieldGroup.subfields.filter(function(f){        
+                return f.type == 'dropdown';
+            });
+            
             if (fields) {
                 var ports = this.ports;
                 var cleanCopy = JSON.parse(JSON.stringify(fields));
-                cleanCopy.forEach(function(f){
-                    f.ports = ports;
-                });
+                if(service_t_field){
+                    cleanCopy.unshift(service_t_field[0])}
+                if(ports){
+                    for(const port of ports){
+                        if(port.service_type == cleanCopy[1].value) {
+                            toAdd = Array.from(cleanCopy[0].options)
+                            toAdd[0].value = port.port
+                            toAdd[1].value = port.target_port
+                            toAdd[2].value = port.protocol
+                            cleanCopy[0].items.push(toAdd)
+                        }
+                    }
+                }
                 return cleanCopy;
             }
         }
