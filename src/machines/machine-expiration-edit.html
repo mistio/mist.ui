@@ -40,7 +40,8 @@
             <template>
                 <h2>Edit expiration date</h2>
                 <div class="paper-dialog-scrollable">
-                    <app-form id="machine-expiration-edit" fields="{{fields}}" single-column indialog show-cancel btncontent="Save" url="/api/v1/machines/[[machine.id]]" method="PUT"></app-form>
+                    <app-form id="machine-expiration-edit" fields="{{fields}}" single-column indialog no-horizontal-margins on-request="_expirationRequest"
+                    show-cancel btncontent="Save" url="/api/v1/machines/[[machine.id]]" method="PUT" btn-class="smaller"></app-form>
                 </div>
             </template>
         </vaadin-dialog>
@@ -93,7 +94,7 @@
                             }, {
                                 name: 'date',
                                 type: 'duration_field',
-                                class: 'bind-both',
+                                class: 'bind-both m8',
                                 value: '',
                                 defaultValue: '',
                                 valueType: 'date',
@@ -154,6 +155,9 @@
             var perm = this.check_perm('edit','machine', machine, org, this.model.user);
             this.set('permissions', perm);
             console.log('permissions', 'edit','machine', machine, perm);
+        },
+        _expirationRequest: function(e) {
+            this.dispatchEvent(new CustomEvent('pending-expiration-request', { bubbles: true, composed: true, detail: 'edit' }));
         },
         _openDialog: function(e) {
             if (this.permissions == false) {
