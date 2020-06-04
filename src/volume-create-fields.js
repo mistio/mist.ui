@@ -295,7 +295,7 @@ VOLUME_CREATE_FIELDS.push({
     provider: 'kubevirt',
     fields: [{
             name: "storage_class_name",
-            label: "Storage Class",
+            label: "Storage Class *",
             type: "dropdown",
             class: "margin-bottom",
             value: "",
@@ -331,13 +331,19 @@ VOLUME_CREATE_FIELDS.push({
         {
             name: "access_mode",
             label: "Access Mode",
-            type: "text",
+            type: "dropdown",
             value: "ReadWriteOnce",
             defaultValue: "ReadWriteOnce",
             placeholder: "",
-            helptext: 'An access mode may be specified, valid examples are ReadWriteOnce, ReadWriteMany, ReadOnlyMany',
+            helptext: 'An access mode may be specified',
             show: true,
             required: false,
+            options: [
+                {val: "ReadWriteOnce",title: "ReadWriteOnce"},
+                {val: "ReadOnlyMany",title: "ReadOnlyMany"},
+                {val: "ReadWriteMany",title: "ReadWriteMany"}
+
+            ]
         },
         {
             name: 'dynamic',

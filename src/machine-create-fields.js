@@ -860,7 +860,7 @@ MACHINE_CREATE_FIELDS.push({
 
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p) {
-    var addImage = ['libvirt'].indexOf(p.provider) != -1;
+    var addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) != -1;
     var showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) == -1;
 
     // add common machine properties fields
@@ -1141,20 +1141,6 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             required: true,
             options: [],
             custom: false,
-        });
-    }
-
-    if (['kubevirt'].indexOf(p.provider) != -1) {
-        p.fields.splice(1, 1, {
-            name: 'image',
-            label: 'Image',
-            type: 'text',
-            value: '',
-            defaultValue: '',
-            show: true,
-            required: true,
-            options:[],
-            helptext: 'Enter a valid kubevirt image e.g. kubevirt/fedora-cloud-container-disk-demo:latest'
         });
     }
 

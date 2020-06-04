@@ -57,7 +57,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        helptext: 'You can find your API key on your Amazon console',
+        helptext: "",
         helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
     }, {
         name: "apisecret",
@@ -67,7 +67,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        helptext: 'You can find your API secret on your Amazon console',
+        helptext: "",
         helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2'
     }, {
         name: "dns_enabled",
@@ -77,7 +77,7 @@ PROVIDERS.push({
         defaultValue: false,
         show: true,
         required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
+        helptext: ""
     }]
 });
 
@@ -104,7 +104,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter subscription id",
-        helptext: "You can find your subscriptionID on the Azure portal",
+        helptext: "",
         helpHref: "http://docs.mist.io/article/18-adding-microsoft-azure"
     }, {
         name: "certificate",
@@ -144,7 +144,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter tenant id",
-        helptext: "You can find your tenant ID on the Azure portal",
+        helptext: "",
         helpHref: "http://docs.mist.io/article/110-adding-azure-arm"
     }, {
         name: "subscription_id",
@@ -155,7 +155,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter subscription id",
-        helptext: "You can find your subscriptionID on the Azure portal",
+        helptext: "",
         helpHref: "http://docs.mist.io/article/110-adding-azure-arm"
     }, {
         name: "key",
@@ -166,7 +166,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter client key",
-        helptext: "You can find your client key on the Azure portal",
+        helptext: "",
         helpHref: "http://docs.mist.io/article/110-adding-azure-arm"
     }, {
         name: "secret",
@@ -177,7 +177,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter client secret",
-        helptext: "You can find your client secret on the Azure portal",
+        helptext: "",
         helpHref: "http://docs.mist.io/article/110-adding-azure-arm"
     }]
 });
@@ -205,7 +205,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter project's ID",
-        helptext: 'You can find your project ID on your GCE portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
     }, {
         name: "private_key",
@@ -216,7 +216,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter private key",
-        helptext: 'You can create a new key on your GCE portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine'
     }, {
         name: "dns_enabled",
@@ -226,7 +226,7 @@ PROVIDERS.push({
         defaultValue: false,
         show: true,
         required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
+        helptext: ''
     }]
 });
 
@@ -281,7 +281,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        helptext: 'You can find your API key on your Alibaba Cloud console'
+        helptext: ''
     }, {
         name: "apisecret",
         label: "API Secret *",
@@ -290,7 +290,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        helptext: 'You can find your API secret on your Alibaba Cloud console'
+        helptext: ''
     }]
 });
 
@@ -317,7 +317,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter username",
-        helptext: 'The username you use to connect to the SoftLayer portal'
+        helptext: ''
     }, {
         name: "apikey",
         label: "API Key *",
@@ -327,7 +327,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter API Key",
-        helptext: 'You can find your API key on your SoftLayer portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/30-adding-softlayer'
     }, {
         name: "dns_enabled",
@@ -337,7 +337,7 @@ PROVIDERS.push({
         defaultValue: false,
         show: true,
         required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
+        helptext: ''
     }]
 });
 
@@ -364,7 +364,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter token",
-        helptext: 'You can find your API Token on the Digital Ocean portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/19-adding-digital-ocean'
     }, {
         name: "dns_enabled",
@@ -374,7 +374,7 @@ PROVIDERS.push({
         defaultValue: false,
         show: true,
         required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
+        helptext: ''
     }]
 });
 
@@ -401,7 +401,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter API Key",
-        helptext: 'You can find your API Token on the Packet portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/100-adding-packet'
     }]
 });
@@ -429,7 +429,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter API Key",
-        helptext: 'You can create an API key on your Linode portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/25-adding-linode'
     }, {
         name: "dns_enabled",
@@ -439,7 +439,7 @@ PROVIDERS.push({
         defaultValue: false,
         show: true,
         required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
+        helptext: ''
     }]
 });
 
@@ -499,8 +499,8 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        errorMessage: "Please enter title",
-        helptext: 'The username you use to connect to the RackSpace portal'
+        errorMessage: "Please enter your username",
+        helptext: ''
     }, {
         name: "apikey",
         label: "API Key *",
@@ -509,8 +509,8 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: true,
-        errorMessage: "Please enter API Key",
-        helptext: 'You can find your API key on your RackSpace portal',
+        errorMessage: "Please enter your API Key",
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/29-adding-rackspace'
     }, {
         name: "dns_enabled",
@@ -520,7 +520,7 @@ PROVIDERS.push({
         defaultValue: false,
         show: true,
         required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
+        helptext: ''
     }]
 });
 
@@ -547,7 +547,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter API Key",
-        helptext: 'You can find your API Token on the Vultr portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/72-adding-vultr'
     }, {
         name: "dns_enabled",
@@ -557,7 +557,7 @@ PROVIDERS.push({
         defaultValue: false,
         show: true,
         required: false,
-        helptext: 'Check this to enable DNS support on this cloud.'
+        helptext: ''
     }]
 });
 
@@ -575,7 +575,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter title",
-        helptext: "If you need help, read the docs on adding a Docker cloud",
+        helptext: "",
         helpHref: "http://docs.mist.io/article/20-adding-docker"
     }, {
         name: "docker_host",
@@ -618,7 +618,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
-        helptext: 'Username, if you have set basic http authentication in front of the Docker API',
+        helptext: '',
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
@@ -631,7 +631,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
-        helptext: 'Password, if you have set basic http authentication in front of the Docker API',
+        helptext: '',
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
@@ -678,7 +678,7 @@ PROVIDERS.push({
     }, {
         name: "show_all",
         label: "Show all containers (including stopped)",
-        helptext: 'Shows all containers, running and stopped. By default only running containers are shown',
+        helptext: '',
         type: "toggle",
         value: false,
         defaultValue: false,
@@ -765,15 +765,15 @@ PROVIDERS.push({
 
 // KVM
 PROVIDERS.push({
-    title: 'KVM (via libvirt)',
+    title: 'KVM',
     val: 'libvirt',
     className: 'provider-libvirt',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "KVM (libvirt)",
-        defaultValue: "KVM (libvirt)",
+        value: "KVM",
+        defaultValue: "KVM",
         show: true,
         required: true,
         errorMessage: "Please enter title"
@@ -790,14 +790,14 @@ PROVIDERS.push({
         options: [
             {
                 name: "machine_hostname",
-                label: "KVM hostname *",
+                label: "KVM hostname or IP *",
                 type: "text",
                 value: "",
                 defaultValue: "",
                 show: true,
                 required: true,
                 errorMessage: "Please enter the hostname or IP address",
-                helptext: 'The hostname or IP address of your KVM hypervisor',
+                helptext: '',
                 helpHref: 'http://docs.mist.io/article/24-adding-kvm'
             }, {
                 name: "machine_name",
@@ -827,7 +827,7 @@ PROVIDERS.push({
                 defaultValue: "root",
                 show: true,
                 required: false,
-                helptext: 'The SSH user to connect as'
+                helptext: ''
             }, {
                 name: "ssh_port",
                 label: "SSH port",
@@ -844,7 +844,7 @@ PROVIDERS.push({
                 defaultValue: '/var/lib/libvirt/images',
                 show: true,
                 required: false,
-                helptext: 'The path that your disk or iso images are located, example /var/lib/libvirt/images'
+                helptext: 'The path where your disk or iso images are located'
             }
         ]
     }]
@@ -891,7 +891,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter url",
-        helptext: 'Your OpenStack Auth URL',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/27-adding-openstack'
     }, {
         name: "tenant_name",
@@ -959,7 +959,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter username",
-        helptext: 'Username you use to connect to OnApp portal'
+        helptext: ''
     }, {
         name: "apikey",
         label: "Password *",
@@ -969,7 +969,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password",
-        helptext: 'Password you use to connect to OnApp portal',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/155-onapp'
     }, {
         name: "host",
@@ -979,8 +979,8 @@ PROVIDERS.push({
         defaultValue: "onapp.com",
         show: true,
         required: true,
-        errorMessage: "Please enter onapp host",
-        helptext: 'URL of the OnApp host',
+        errorMessage: "Please enter OnApp host",
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/155-onapp'
     }, {
         name: "verify",
@@ -1016,7 +1016,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter username",
-        helptext: 'The username you use to login to vCloud Director'
+        helptext: ''
     }, {
         name: "password",
         label: "Password *",
@@ -1026,7 +1026,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter password",
-        helptext: 'The password you use to login to vCloud Director'
+        helptext: ''
     }, {
         name: "organization",
         label: "Organization *",
@@ -1045,7 +1045,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter hostname",
-        helptext: 'The URL or IP vCloud listens to',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/31-adding-vmware-vcloud'
     }, {
         name: "port",
@@ -1081,7 +1081,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter hostname",
-        helptext: 'The URL or IP vSphere listens to',
+        helptext: '',
         helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
     }, {
         name: "username",
@@ -1110,7 +1110,7 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
-        helptext:"It is advised to add it for the SSL to work properly."
+        helptext: ""
     },
 ]
 });
@@ -1257,16 +1257,16 @@ PROVIDERS.push({
         errorMessage: "Please enter title"
     }, {
         name: "host",
-        label: "Host",
+        label: "Hostname or IP *",
         type: "text",
         value: "",
         defaultValue: "",
         show: true,
         required: true,
         errorMessage: "Please enter Kubernetes API host IP or DNS name",
-    },{
+    }, {
         name: "port",
-        label: "port",
+        label: "Port *",
         type: "text",
         value: 6443,
         defaultValue: 6443,
@@ -1275,13 +1275,12 @@ PROVIDERS.push({
     }, {
         name: "ca_cert_file",
         label: "CA Certificate",
-        helptext: 'CA certificate file',
         type: "textarea",
         value: "",
         defaultValue: "",
         show: true,
         required: false,
-        helptext:"It is advised to add it for the SSL to work properly."
+        helptext:"Kubernetes uses self signed certificates and it is best practice to add your CA certificate as trusted. If you don't do that, any untrusted certificate warnings will be silenced."
     }, {
         name: "authentication",
         label: "Authentication",
@@ -1290,48 +1289,48 @@ PROVIDERS.push({
         defaultValue: "tls",
         options: [{
             val: "basic",
-            title: "Basic http authentication"
+            title: "Basic HTTP"
         }, {
             val: "tls",
             title: "TLS"
         }, {
             val: "tokenbearer",
-            title: "Token Bearer Authentication",
+            title: "Token Bearer",
         }],
         show: true,
         required: true,
         errorMessage: "Please choose authentication method",
     }, {
         name: "username",
-        label: "Username",
+        label: "Username *",
         type: "text",
         value: "",
         defaultValue: "",
         show: true,
         required: false,
-        helptext: 'Username, if you have set basic http authentication',
+        helptext: "",
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
         }
     }, {
         name: "password",
-        label: "Password",
+        label: "Password *",
         type: "password",
         value: "",
         defaultValue: "",
         show: true,
         required: false,
-        helptext: 'Password, if you have set basic http authentication',
+        helptext: "",
         showIf: {
             fieldName: "authentication",
             fieldValues: ["basic"]
         }
     }, {
-        name: "key_file",
-        label: "Key",
+        name: "cert_file",
+        label: "User Certificate *",
+        helptext: 'Certificate file for TLS auth.',
         type: "textarea",
-        helptext: 'Client private key file',
         value: "",
         defaultValue: "",
         show: true,
@@ -1341,10 +1340,10 @@ PROVIDERS.push({
             fieldValues: ["tls"]
         }
     }, {
-        name: "cert_file",
-        label: "Certificate",
-        helptext: 'Client certificate file',
+        name: "key_file",
+        label: "Private Key *",
         type: "textarea",
+        helptext: 'Private Key matching the above certificate',
         value: "",
         defaultValue: "",
         show: true,
@@ -1353,10 +1352,10 @@ PROVIDERS.push({
             fieldName: "authentication",
             fieldValues: ["tls"]
         }
-    },{
+    }, {
         name: "token",
-        label: "Token",
-        helptext: 'Bearer Token',
+        label: "Bearer Token *",
+        helptext: '',
         type: "textarea",
         value: "",
         defaultValue: "",
@@ -1383,11 +1382,11 @@ PROVIDERS.push({
         show: true,
         required: true,
         errorMessage: "Please enter title",
-        helptext: "If you need help, read the docs on adding an LXD cloud",
-        helpHref: ""
+        helptext: "",
+        helpHref: "https://docs.mist.io/article/174-lxd"
     }, {
         name: "host",
-        label: "Host",
+        label: "Host *",
         type: "text",
         value: "",
         defaultValue: "",
@@ -1396,7 +1395,7 @@ PROVIDERS.push({
         errorMessage: "Please enter LXD host IP or DNS name",
     }, {
         name: "port",
-        label: "port",
+        label: "Port *",
         type: "text",
         value: 8443,
         defaultValue: 8443,
@@ -1404,17 +1403,17 @@ PROVIDERS.push({
         required: true
     }, {
         name: "key_file",
-        label: "Key",
+        label: "Client Private Key *",
         type: "textarea",
-        helptext: 'Client private key file',
+        helptext: "",
         value: "",
         defaultValue: "",
         show: true,
         required: true
     }, {
         name: "cert_file",
-        label: "Certificate",
-        helptext: 'Client certificate file',
+        label: "Client Certificate *",
+        helptext: "",
         type: "textarea",
         value: "",
         defaultValue: "",
@@ -1423,7 +1422,7 @@ PROVIDERS.push({
     }, {
         name: "ca_cert_file",
         label: "CA Certificate",
-        helptext: 'CA certificate file',
+        helptext: "",
         type: "textarea",
         value: "",
         defaultValue: "",
