@@ -314,9 +314,55 @@
             // console.log('checkPermissions', perm);
         },
         _applyConstraints: function(machinesFields, constraints) {
-            if (this.constraints && this.machinesFields) {
-                if (this.constraints.expiration){
-                    this._applyExpirationConstraints();
+            if (!this.constraints || !this.machinesFields) {
+                return;
+            }
+            if (this.constraints.expiration) {
+                this._applyExpirationConstraints();
+            }
+            if (this.constraints.field) {
+                this._applyFieldConstraints();
+            }
+            if (this.constraints.size) {
+                this._applySizeConstraints();
+            }
+        },
+        _applySizeConstraints: function() {
+            var constraint = this.constraints.size;
+            for (var i=0; i < this.machinesFields.length; i++) {
+                var sizeIndex = this._fieldIndexByName('size', this.machinesFields[i].fields);
+                var path = 'machinesFields.' + i + '.fields.' + sizeIndex;
+                if (constraint.disk && constraint.disk.min) {
+                    this.set(path + '.customSizeFields.2.min', constraint.disk.min);
+                    this.set(path + '.customSizeFields.2.value', constraint.disk.min);
+                }
+                if (constraint.disk && constraint.disk.show != undefined) {
+                    this.set(path + '.customSizeFields.2.hidden', !constraint.disk.show);
+                    this.set(path + '.customSizeFields.2.value', undefined);
+                }
+            }
+        },
+        _applyFieldConstraints: function() {
+            let constraints = [];
+            if (this.constraints.field.length) {
+                constraints = this.constraints.field;
+            } else {
+                constraints = [this.constraints.field];
+            }
+
+            // Iterate available clouds
+            for (var i=0; i < this.machinesFields.length; i++) {
+                // Iterate field constraints
+                for(var c=0; c < constraints.length; c++) {
+                    // Apply constraint to cloud fields if applicable
+                    var fieldIndex = this._fieldIndexByName(constraints[c].name, this.machinesFields[i].fields);
+                    if (fieldIndex == -1) {
+                        continue;
+                    }
+                    var path = 'machinesFields.' + i + '.fields.' + fieldIndex;
+                    if (constraints[c].show != undefined) {
+                        this.set(path + '.show', constraints[c].show);
+                    }
                 }
             }
         },
@@ -594,7 +640,8 @@
                                     return -1;
                                 }
                                 return 0;
-                            });
+                            }
+                        );
                         for (var i = 0; i < f.options.length; i++) {
                             if (f.options[i].starred) {
                                 f.options[i].icon = 'icons:star';
@@ -602,7 +649,6 @@
                                 break;
                             }
                         }
-                        // console.log('images', f.options);
                     }
 
                     if (f.type.startsWith("mist_") && f.name.endsWith("size")) {
@@ -1301,25 +1347,25 @@
                 this.set('machineFields.' + keyInd + '.label', "Key");
             }
             var imgInd = this._fieldIndexByName('image');
-            img = this.get('machineFields.' + imgInd);
-            if(img && img.value){
-                for(var i = 0; i < img.options.length; i++){
+            var img = this.get('machineFields.' + imgInd);
+            if (img && img.value) {
+                for (var i = 0; i < img.options.length; i++) {
                     current = img.options[i];
-                    if(current.id == img.value){
+                    if (current.id == img.value) {
                         break
                     }
                 }
                 
-                sizeInd = this._fieldIndexByName('size')
-                if(current.extra.type == "ovf"){
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', 1);
+                var sizeInd = this._fieldIndexByName('size');
+                var min_size = Math.max(current.extra.disk_size, this.machineFields[sizeInd].customSizeFields[2].min);
+                if (current.extra.type == "ovf"){
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
                     this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 1);
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', 1);
-                }
-                else{
-                    min_size = current.extra.disk_size
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', min_size);
+                } else {
                     this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
                     this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 512);
+                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', Math.max(min_size, this.machineFields[sizeInd].customSizeFields[2].value));
                 }
             }
             
@@ -1865,8 +1911,21 @@
             this.datastoresField.options = options;
             this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetFoldersResponse()'}}));
             this.datastoresField.loader = false;
-            if(options && options.length > 0){
-                this.set('machineFields.'+this.machineFields.indexOf(this.datastoresField)+'.show', true);
+            if (options && options.length > 0) {
+                var showDatastores = true;
+                if (this.constraints && this.constraints.field) {
+                    var fieldConstraints;
+                    if (this.constraints.field.length == undefined) {
+                        fieldConstraints = [this.constraints.field];
+                    } else {
+                        fieldConstraints = this.constraints.field;
+                    }
+                    var datastoreConstraint = fieldConstraints.find(function(c) { return c.name && c.name == 'datastore'});
+                    if (datastoreConstraint.show != undefined) {
+                        showDatastores = datastoreConstraint.show;
+                    }
+                }
+                this.set('machineFields.' + this.machineFields.indexOf(this.datastoresField)+'.show', showDatastores);
             }
         },
         _updateLXDStoragePools: function(cloudId) {
