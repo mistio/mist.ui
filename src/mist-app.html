@@ -386,7 +386,6 @@
         },
 
         _forwardEvent: function (e) {
-            // console.log('event in mist-app', e.detail);
             this.shadowRoot.querySelector('page-machines').shadowRoot.querySelector('machine-page').shadowRoot.querySelector('mist-monitoring').fire('update-dashboard');
         },
 
@@ -416,7 +415,6 @@
         },
 
         _sizeChanged: function(smallscreen) {
-            // console.log('updateResize');
             if (this.$.sidebar) {
                 if (this.smallscreen) {
                     this.$.sidebar.closeSidebar();
@@ -431,7 +429,6 @@
         },
 
         setHeaderCount: function(e) {
-            // console.log('setHeaderCount ', e, e.detail);
             if (!this._isPage('dashboard') && !this._isPage('my-account') && !this._isPage('insights')) {
                 this.set('count', e.detail.length);
             } else {
@@ -441,7 +438,6 @@
         },
 
         setLocationPath: function(e) {
-            // console.log('search: setLocationPath with search query', e.detail);
             if (e.detail.url && this.$.appLocation) {
                 this.$.appLocation.set('path', e.detail.url);
                 if (e.detail.params) {
@@ -449,10 +445,9 @@
                 }
                 // use in redirects to filtered lists, ex from ec2 cloud page to ec2 filtered machine list
                 if (e.detail.search) {
-                    // console.log('setLocationPath', e.detail.search)
                     this.async(function() {
-                        this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: e.detail.search }));
-                    }, 200);
+                        this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: {page: e.detail.url.replace('/',''), q:e.detail.search} }));
+                    }, 400);
                 }
             } else {
                 console.error('redirect url could not be found...');
@@ -561,7 +556,6 @@
         clearSearch: function() {
             document.querySelector('top-search').clearSearch();
             this.set('q', '');
-            // console.log('search: clear search' )
             if (this.model && this.model.sections) {
                 for (var sec in this.model.sections) {
                     this.set('model.sections.' + sec + '.q', '');
@@ -584,7 +578,6 @@
                     this.set('model.sections.' + sec + '.q', this.q.replace(q, ''));
                 }
             }
-            // console.log('search: clear clearSearchPreservingFilters', q)
             this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail:  this.q.replace(q, '') }));
         },
 
@@ -612,11 +605,11 @@
 
         updateSearchQuery: function(e) {
             if (e.detail != undefined && e.detail.q != undefined) {
-                if (this.page == e.detail.page) {
-                    // console.log('search: update Search Query', e.detail);
-                    this.set('q', e.detail.q);
+                console.log('search: update Search Query', e.detail);
+                if (e.detail.page && this.page == e.detail.page) {
                     this.set('model.sections.' + this.page + '.q', e.detail.q || '');
                 }
+                this.set('q', e.detail.q);
             }
         },
 
