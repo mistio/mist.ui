@@ -197,11 +197,12 @@
             }
 
             iron-icon.delete {
-                opacity: 0.13;
                 margin-right: 16px;
-                height: 12px;
-                width: 12px;
-                transition: opacity 100 ease-in;
+                margin-left: 8px;
+            }
+
+            iron-icon.edit {
+                margin-left: 8px;
             }
 
             .expiration iron-icon.delete, .machine-key:hover iron-icon.delete, .machine-volume:hover iron-icon.delete {
@@ -508,7 +509,7 @@
                         <div class="table">
                             <div class="row" hidden$="[[!machine.cloud]]">
                                 <div class="cell">
-                                    <h4>Cloud:</h4>
+                                    <h4>Cloud</h4>
                                 </div>
                                 <div class="cell">
                                     <iron-icon class="cloud icon" src$="[[_computeCloudIcon(cloud.provider)]]"></iron-icon>
@@ -517,7 +518,7 @@
                             </div>
                             <div class="row" hidden$="[[!cloud.tenant]]">
                                 <div class="cell">
-                                    <h4>Tenant:</h4>
+                                    <h4>Tenant</h4>
                                 </div>
                                 <div class="cell">
                                     [[cloud.tenant]]
@@ -525,16 +526,18 @@
                             </div>
                             <div class="row" hidden$="[[!_existsImage(machine.extra)]]">
                                 <div class="cell">
-                                    <h4>Image:</h4>
+                                    <h4>Image</h4>
                                 </div>
                                 <div class="cell">
-                                    <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
-                                    <span>[[_computeMachineImage(machine,model.images)]]</span>
+                                    <a href$="/images/[[machine.image]]">
+                                        <iron-icon class="image icon" src$="[[_computeImageIcon(machine)]]" hidden$="[[!_computeImageIcon(machine)]]"></iron-icon>
+                                        <span>[[_computeMachineImage(machine,model.images)]]</span>
+                                    </a>
                                 </div>
                             </div>
                             <div class="row" hidden$="[[!machineSize]]">
                                 <div class="cell">
-                                    <h4>Size:</h4>
+                                    <h4>Size</h4>
                                 </div>
                                 <div class="cell">
                                     <span>[[machineSize]]</span>
@@ -542,25 +545,25 @@
                             </div>
                             <div class="row" hidden$="[[!_getLocationName(machine,cloud)]]">
                                 <div class="cell">
-                                    <h4>Location:</h4>
+                                    <h4>Location</h4>
                                 </div>
                                 <div class="cell">
                                     <span>[[_getLocationName(machine,cloud)]]</span>
                                 </div>
                             </div>
-                            <br />
+                            <br hidden$="[[!_getNetworkName(machine,cloud)]]"/>
                             <div class="row" hidden$="[[!_getNetworkName(machine,cloud)]]">
                                 <div class="cell">
-                                    <h4>Network:</h4>
+                                    <h4>Network</h4>
                                 </div>
                                 <div class="cell">
                                     <span>[[_getNetworkName(machine,cloud)]]</span>
                                 </div>
                             </div>
-                            <br />
+                            <br hidden$="[[!machine.probe.ssh.updated_at]]"/>
                             <div class="row" hidden$="[[!machine.probe.ssh.updated_at]]">
                                 <div class="cell" hidden$="[[!machine.probe.ssh.loadavg]]">
-                                    <h4>Load:</h4>
+                                    <h4>Load</h4>
                                 </div>
                                 <div class="cell">
                                     <span class$="probe-data [[itemProbeClasses(machine)]]"> </span>
@@ -569,7 +572,7 @@
                             </div>
                             <div class="row" hidden$="[[!machine.probe.ping.updated_at]]">
                                 <div class="cell">
-                                    <h4>RTT:</h4>
+                                    <h4>RTT</h4>
                                 </div>
                                 <div class="cell">
                                     <span class="smaller" hidden$=[[!machine.probe.ping.rtt_avg]]>min/avg/max/std = [[machine.probe.ping.rtt_min]]/[[machine.probe.ping.rtt_avg]]/[[machine.probe.ping.rtt_max]]/[[machine.probe.ping.rtt_std]]
@@ -578,13 +581,13 @@
                                     <span class="smaller packetloss" hidden$=[[!machine.probe.ping.packets_loss]]>-- [[_computePacketLossPercent(machine.probe.ping.packets_loss)]]% packet loss --</span>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row" hidden$="[[!_canShowProbed(machine)]]">
                                 <div class="cell">
                                     <h4>Probed:</h4>
                                 </div>
                                 <div class="cell">
                                     <span class="smaller"> [[_computeProbeString(machine.probe.ssh.updated_at, machine.probe.ping.updated_at)]]</span>
-                                    <br />
+                                    <br hidden$="[[!_hasProbeInfo(machine.probe)]]"/>
                                     <paper-button id="probeButton" class="blue-link" on-tap="_probeMachine" disabled="{{probeLoading}}" hidden$="[[!machine.key_associations.length]]">probe now</paper-button>
                                     <paper-spinner id="probeSpinner" active="{{probeLoading}}"></paper-spinner>
                                 </div>
@@ -596,30 +599,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row" hidden$="[[!machine.probe]]">
-                                <div class="row">
-                                    <div class="cell">
-                                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[machine.probe.ssh.dirty_cow]]">
-                                            Dirty COW check passed.
-                                        </span>
-                                        <span class$="dc-[[machine.probe.ssh.dirty_cow]]" hidden$="[[!machine.probe.ssh.dirty_cow]]">
-                                            <iron-icon hidden$="[[!machine.probe.ssh.dirty_cow]]" icon="icons:report-problem" on-tap="_showRecommendationDialog"></iron-icon> [[dirtyCowAlert]]
-                                            <a class="regular blue-link" on-tap="_showRecommendationDialog">Show recommendation.</a>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="cell">
-                                    <div hidden$="[[!machine.probe]]"></div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </paper-material>
-                <paper-material id="rightcolumn" class="right">
+                <paper-material id="rightcolumn" class="right resource-description">
                     <div hidden$="[[!machine.cost.monthly]]">
-                        <div class="m-info-head cost-head">Monthly Cost:</div>
+                        <div class="m-info-head cost-head">Monthly Cost</div>
                         <div class="cost">
                             [[currency.sign]][[_ratedCost(machine.cost.monthly, currency.rate)]]
                         </div>
@@ -637,7 +622,7 @@
                             <h4>Created:</h4>
                         </div>
                         <div class="cell" hidden$="[[!machine]]">
-                            [[_fromNow(machine.created)]].
+                            [[_fromNow(machine.created)]]
                             <span hidden$="[[!machine.created_by]]">
                                 by <a class="blue-link" href$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
                             </span>
@@ -646,29 +631,32 @@
                     </div>
                     <div class="row">
                         <div class="cell">
-                            <h4>Expires:</h4>
+                            <h4>Expires</h4>
                         </div>
                         <div class="cell expiration" hidden$="[[!machine]]">
                             [[_fromNow(machine.expiration.date, machine.*, model.machines.*)]]
-                            <span hidden$="[[!machine.expiration.date]]">
-                                <template is="dom-if" if="[[canDeleteExpiration]]" restamp>
-                                    <iron-icon icon="icons:cancel" on-tap="deleteExpiration" class="delete"></iron-icon>
-                                </template>
-                            </span>
                             <template is="dom-if" if="[[canEditMachine]]" restamp>
                                 <iron-icon icon="editor:mode-edit" on-tap="editExpiration" class="edit"></iron-icon>
                             </template>
+                            <span hidden$="[[!machineExpiration]]">
+                                <template is="dom-if" if="[[canDeleteExpiration]]" restamp>
+                                    <iron-icon icon="icons:clear" on-tap="deleteExpiration"></iron-icon>
+                                </template>
+                            </span>
+                            <div class="machine-key" id="pendingExpRequest">
+                                <paper-spinner active="[[isPendingExpirationRequest]]" hidden$="[[!isPendingExpirationRequest]]"></paper-spinner>
+                            </div>
                         </div>
                         <br />
                     </div>
                     <div hidden$="[[!machine.key_associations.length]]">
-                        <div class="m-info-head">Associated Keys:</div>
+                        <div class="m-info-head">Associated Keys</div>
                         <div class="associatedKeys">
                             <template is="dom-repeat" items="{{machineKeys}}" as="association" id="machineKeysDomRepeat">
                                 <div class="machine-key" hidden$="[[!_visibleKey(model,association)]]">
                                     <a class="regular blue-link flexchild" href$="/keys/[[association.key]]">
                                         <iron-icon icon="communication:vpn-key"></iron-icon> [[_computeKeyName(association.key, model.keys)]]</a>
-                                    <iron-icon icon="icons:cancel" on-tap="disassociateKey" class="delete"></iron-icon>
+                                    <iron-icon icon="icons:clear" on-tap="disassociateKey" class="delete"></iron-icon>
                                 </div>
                             </template>
                             <div class="machine-key" id="pendingKeyRequest">
@@ -678,13 +666,13 @@
                         <br />
                     </div>
                     <div hidden$="[[!volumes.length]]">
-                        <div class="m-info-head">Attached Volumes:</div>
+                        <div class="m-info-head">Attached Volumes</div>
                         <div class="associatedVolumes">
                             <template is="dom-repeat" items="{{volumes}}" as="volumeId">
                                 <div class="machine-volume">
                                     <a class="regular blue-link flexchild" href$="/volumes/[[volumeId]]">
                                         <iron-icon icon="device:storage"></iron-icon>[[_computeVolumeName(volumeId)]]</a>
-                                    <iron-icon icon="icons:cancel" class="delete" on-tap="detachVolume">
+                                    <iron-icon icon="icons:clear" class="delete" on-tap="detachVolume">
                                 </div>
                             </template>
                             <div class="machine-volume" id="pendingVolumeRequest">
@@ -692,6 +680,16 @@
                             </div>
                         </div>
                         <br />
+                    </div>
+                    <div hidden$="[[!vnfs.length]]">
+                        <div class="m-info-head">Virtual Functions</div>
+                        <div class="vnfs">
+                            <template is="dom-repeat" items="{{vnfs}}" as="vf">
+                                <div class="virtual-function">
+                                    <code>[[_computeVF(vf)]]</code>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                     <div hidden$="[[!machineTags.length]]">
                         <div class="m-info-head tags">TAGS:</div>
@@ -773,7 +771,7 @@
                 </template>
             </paper-material>
         </div>
-        <dialog-element id="machinedialog"></dialog-element>
+        <dialog-element id="machinedialog" btn-class="smaller"></dialog-element>
         <iron-ajax id="deleteExpirationDate" url="/api/v1/machines/[[machine.id]]" method="PUT" on-response="_handleMachineDeleteAjaxResponse" on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="machineDeleteAjaxRequest" url="/api/v1/machines/[[machine.id]]" method="DELETE" on-response="_handleMachineDeleteAjaxResponse" on-error="_handleMachineDeleteAjaxError"></iron-ajax>
         <iron-ajax id="disassociateKeyRequest" url="/api/v1/machines/[[machine.id]]/keys/[[disassociateKeyId]]" method="DELETE" on-response="_disassociateKeyResponse" on-error="_disassociateKeyError" on-request="_disassociateKeyRequest" handle-as="xml"></iron-ajax>
@@ -844,6 +842,10 @@ Polymer({
             type: String,
             computed: "_computeMachineSize(machine, machine.*, model.machines.*, cloud.*)"
         },
+        machineExpiration: {
+            type: String,
+            computed: "_computeMachineExpiration(machine.expiration, machine.*, model.machines.*)"
+        },
         machineTags: {
             type: Array,
             value: function(){ return []}
@@ -877,6 +879,10 @@ Polymer({
             type: Boolean,
             value: false
         },
+        isPendingExpirationRequest: {
+            type: Boolean,
+            value: false
+        },
         hideAssociatedKeys: {
             type: Boolean
         },
@@ -891,10 +897,10 @@ Polymer({
             type: Array,
             computed: '_computeThisItemUid(machine)'
         },
-        dirtyCowAlert: {
-            type: String,
-            computed: '_computeDirtyCowAlert(machine)',
-            value: false
+        vnfs: {
+            type: Array,
+            computed: '_computeVNFs(machine)',
+            value: function () { return [] }
         },
         hidden: {
             type: Boolean,
@@ -946,6 +952,7 @@ Polymer({
     listeners: {
         'confirmation': '_machineActionConfirmation',
         'pending-key-request': '_updateKeyLoader',
+        'pending-expiration-request': '_updateExpirationLoader',
         'select-action': 'selectAction'
     },
     ready: function() {
@@ -954,6 +961,25 @@ Polymer({
         if (this.path.endsWith("expiration")) {
             this.editExpiration();
         }
+    },
+    _canShowProbed: function(machine) {
+        if (!machine)
+            return false;
+        return this.machine.key_associations.length || this._hasProbeInfo(machine.probe);
+    },
+    _hasProbeInfo: function(probe) {
+        if (!probe)
+            return false;
+        return this._hasInfo(probe.ssh) && this._hasInfo(probe.ping);
+    },
+    _hasInfo: function(data) {
+        if (!data)
+            return false;
+        for (var p in data) {
+            if (data[p])
+                return true;
+        }
+        return false;
     },
     _computeCanEditMachine: function (machineId, model) {
         var perm = this.check_perm('edit', 'machine', machineId);
@@ -990,15 +1016,15 @@ Polymer({
                             if (!this.machineTags.length)
                                 check = false; // machine has no tags
                             else {
-                                for (var q in selector.tags) {
+                                for (var q in selector.include) {
                                     var mtag = this.machineTags.find(function(t) { return t.key == q });
                                     if (!mtag) { // machine has no such tag
                                         check = false;
                                     } else {
-                                        if (!selector.tags[q]) {
+                                        if (!selector.include[q]) {
                                             check = mtag.value == ""; // if tag value is null machine tag value must be empty string
-                                        } else if (selector.tags[q]) {
-                                            check = selector.tags[q] == mtag.value; // if tag value is !null machine tag value must be equal 
+                                        } else if (selector.include[q]) {
+                                            check = selector.include[q] == mtag.value; // if tag value is !null machine tag value must be equal 
                                         }
                                     }
                                 }
@@ -1011,7 +1037,6 @@ Polymer({
                 }
             }
         }
-        // console.log('machine rules', machineRules);
         return machineRules;
     },
     _getMachineCloud: function(clouds, id) {
@@ -1028,7 +1053,7 @@ Polymer({
         }
     },
     _displayUser: function(id, members) {
-        return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
+        return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username: '';
     },
     _showRecommendationDialog: function() {
         this.dispatchEvent(new CustomEvent("open-recommendation-dialog", { bubbles: true, composed: true, detail:  {
@@ -1038,7 +1063,6 @@ Polymer({
         } }))
     },
     _machineChanged: function(machine) {
-        // console.log('perform action machine changed', machine);
         if (this.machine) {
             this.set('itemArray', [this.machine]);
             // Check if tags changed, update if they did
@@ -1065,6 +1089,20 @@ Polymer({
     _computeAssociatedKeys: function(machine, keys, keyLength, machineChangeRecord) {
         this.async(function () {this._renderMachineKeys()}, 500);
         return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
+    },
+    _computeVNFs: function(machine) {
+        return this.machine && this.machine.extra && this.machine.extra.vnfs || [];
+    },
+    _computeVF: function(vf) {
+        try {
+            var bus = vf.split(':')[1],
+                slotf = vf.split(':')[2],
+                slot = slotf.split('.')[0],
+                f = slotf.split('.')[1]
+            return vf + ' - enp' + parseInt(bus, 16) + 's' +  parseInt(slot, 16) + 'f' + parseInt(f, 16);
+        } catch (e) {
+            return vf;
+        }
     },
     _renderArray: function(array) {
         if (array && array.length)
@@ -1208,6 +1246,7 @@ Polymer({
     },
     _machineActionConfirmation: function(e) {
         if (e.detail.response == "confirm" && e.detail.reason == "machine.expiration_delete") {
+            this.set('isPendingExpirationRequest', true);
             var emptyExpDate = {expiration: {date:false}};
             this.shadowRoot.querySelector('#deleteExpirationDate').headers["Csrf-Token"] = CSRF_TOKEN;
             this.shadowRoot.querySelector('#deleteExpirationDate').headers["Content-Type"] = 'application/json';
@@ -1236,8 +1275,10 @@ Polymer({
                 msg: e.detail.errormsg,
                 duration: 3000
             } }));
-
         }
+    },
+    _updateExpirationLoader: function(e) {
+        this.set('isPendingExpirationRequest', true);
     },
     _feedbackOnScript: function(e) {
         if (e.detail.response) {
@@ -1279,14 +1320,8 @@ Polymer({
 
         }
     },
-    _computeDirtyCowAlert: function(machine) {
-        var info = "";
-        if (this.machine && this.machine.probe && this.machine.probe.ssh && this.machine.probe.ssh.dirty_cow)
-            info += "Dirty COW vulnerability detected. Update your kernel.";
-        return info.length ? info : '';
-    },
     _fromNow: function(time) {
-        return time && moment(time).isValid() ? moment.utc(time).fromNow() : 'never.';
+        return time && moment(time).isValid() ? moment.utc(time).fromNow() : 'never';
     },
     itemProbeClasses: function(machine) {
         if (!machine || !machine.probe) {
@@ -1337,7 +1372,11 @@ Polymer({
         var item = this.machine;
         if (!item) return;
         if (item && item.image && typeof(item.image) != "object") {
-            return item.image;
+            if (this.model.images && this.model.images[item.image]) {
+                return this.model.images[item.image].name;
+            } else {
+                return item.image;
+            }
         } else if (item && item.extra.image && typeof(item.extra.image) == "string") {
             return item.extra.image;
         } else if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
@@ -1534,7 +1573,8 @@ Polymer({
                     if (_this.model && _this.model.members && item in _this.model.members &&
                         _this.model.members[item] && _this.model.members[item].name &&
                         _this.model.members[item].name != undefined) {
-                        var ret = '<a href="/members/' + item + '">' + _this.model.members[item].name +
+                        var displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
+                        var ret = '<a href="/members/' + item + '">' + displayUser +
                             '</a>';
                         return ret;
                     } else console.log(item);
@@ -1636,7 +1676,6 @@ Polymer({
     },
 
     _isPast: function(time) {
-        // console.log('_isPast', time, moment(time).isValid(), !moment().isBefore(time));
         return time && moment(time).isValid() ? !moment().isBefore(time) : true;
     },
 
@@ -1656,6 +1695,17 @@ Polymer({
             else 
                 return moment.duration(seconds,'months').humanize();
         }
+    },
+
+    _isEmptyExpiration: function(machine) {
+        return !this.machine.expiration;
+    },
+
+    _computeMachineExpiration: function(machine) {
+        if  (this.isPendingExpirationRequest) {
+            this.set('isPendingExpirationRequest', false);
+        }
+        return this.machine && this.machine.expiration && this.machine.expiration.date;
     },
 
     deleteExpiration: function() {

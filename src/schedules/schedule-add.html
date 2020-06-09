@@ -142,7 +142,7 @@
                 'add-input': 'addInput'
             },
             ready: function(){
-                if (!this.docs) {
+                if (!this.docs && this.fields) {
                     for (var i=0; i < this.fields.length; i++) {
                         this.fields[i].helpHref = '';
                     }
@@ -268,7 +268,7 @@
                             fieldValues: ["tags"]
                         }
                     }, {
-                        name: "machines_conditions_age_more_value",
+                        name: "machines_selectors_age_more_value",
                         label: "which are older than",
                         type: "text",
                         value: "",
@@ -281,7 +281,7 @@
                         helptext: "",
                         class: "bind-both background",
                     }, {
-                        name: "machines_conditions_age_more_unit",
+                        name: "machines_selectors_age_more_unit",
                         label: "",
                         type: "radio",
                         value: "days",
@@ -302,7 +302,7 @@
                         }],
                         class: "bind-both background",
                     }, {
-                        name: "machines_conditions_cost",
+                        name: "machines_selectors_cost",
                         label: "and cost more than",
                         type: "text",
                         value: null,
@@ -316,8 +316,8 @@
                         helptext: "Apply an extra filter of costing more than a certain ammount of "+this.currency.sign+" per month",
                         class: "bind-top background",
                     }, {
-                        name: "conditions",
-                        label: "machines conditions",
+                        name: "selectors",
+                        label: "machines selectors",
                         type: "text",
                         value: [],
                         defaultValue: [],
@@ -574,14 +574,14 @@
 
                     // selecting uuids or tags
                     if (this.get(changeRecord.path.replace('.value', '')).name == "ids_or_tags") {
-                        var condsInd = this._fieldIndexByName("conditions"),
+                        var condsInd = this._fieldIndexByName("selectors"),
                             uuidsInd = this._fieldIndexByName("machines_uuids"),
                             tagstInd = this._fieldIndexByName("machines_tags");
 
                         if (changeRecord.value == "ids") {
-                            this._removeObjectFromConditions('tags');
+                            this._removeObjectFromSelectors('tags');
                         } else if (changeRecord.value == "tags") {
-                            this._removeObjectFromConditions('machines');
+                            this._removeObjectFromSelectors('machines');
 
                             // clear checkbox selection
                             this.set('fields.' + uuidsInd + '.value', []);
@@ -595,46 +595,46 @@
                     // changing uuids
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith("machines_uuids")) {
                         // console.log('changeRecord.value', changeRecord.value);
-                        this._updateObjectInConditions('machines', 'ids', changeRecord.value);
-                        this._removeObjectFromConditions('tags');
+                        this._updateObjectInSelectors('machines', 'ids', changeRecord.value);
+                        this._removeObjectFromSelectors('tags');
                     }
 
                     // changing tags
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith("machines_tags")) {
                         var textToArray = changeRecord.value.split(',');
-                        this._updateObjectInConditions('tags', 'tags', this._constructTagsValue(textToArray));
-                        this._removeObjectFromConditions('machines');
+                        this._updateObjectInSelectors('tags', 'include', this._constructTagsValue(textToArray));
+                        this._removeObjectFromSelectors('machines');
                     }
 
-                    // changing age conditions
+                    // changing age selectors
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
-                            "machines_conditions_age_more_")) {
-                        var condsInd = this._fieldIndexByName("conditions"),
-                            perInd = this._fieldIndexByName("machines_conditions_age_more_unit"),
-                            numInd = this._fieldIndexByName("machines_conditions_age_more_value"),
+                            "machines_selectors_age_more_")) {
+                        var condsInd = this._fieldIndexByName("selectors"),
+                            perInd = this._fieldIndexByName("machines_selectors_age_more_unit"),
+                            numInd = this._fieldIndexByName("machines_selectors_age_more_value"),
                             key = this.get('fields.' + perInd + '.value'),
                             num = parseInt(this.get('fields.' + numInd + '.value')),
                             value;
 
                         if (!changeRecord.value.length || !key.length || !parseInt(num)) {
-                            //clear conditions
-                            this._removeObjectFromConditions('age');
+                            //clear selectors
+                            this._removeObjectFromSelectors('age');
                         } else {
-                            this._updateAgeCondition(condsInd, key, num);
+                            this._updateAgeSelector(condsInd, key, num);
                         }
                     }
 
-                    // changing cost conditions
+                    // changing cost selectors
                     if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
-                            "machines_conditions_cost")) {
-                        var condsInd = this._fieldIndexByName("conditions"),
-                            costInd = this._fieldIndexByName("machines_conditions_cost");
+                            "machines_selectors_cost")) {
+                        var condsInd = this._fieldIndexByName("selectors"),
+                            costInd = this._fieldIndexByName("machines_selectors_cost");
 
                         if (!changeRecord.value.length || !parseInt(changeRecord.value)) {
-                            //clear cost condition
-                            this._removeObjectFromConditions('cost__monthly')
+                            //clear cost selector
+                            this._removeObjectFromSelectors('cost__monthly')
                         } else {
-                            this._updateObjectInConditions('cost__monthly', 'value', parseInt(changeRecord.value),
+                            this._updateObjectInSelectors('cost__monthly', 'value', parseInt(changeRecord.value),
                                 'gt')
                         }
                     }
@@ -721,7 +721,7 @@
                 }
             },
 
-            _updateAgeCondition: function (index, key, value) {
+            _updateAgeSelector: function (index, key, value) {
                 var minutes;
                 if (key == 'minutes')
                     minutes = value;
@@ -731,67 +731,67 @@
                     minutes = value * 60 * 24;
 
                 if (minutes)
-                    this._updateObjectInConditions('age', 'minutes', minutes);
+                    this._updateObjectInSelectors('age', 'minutes', minutes);
                 // this.set('fields.'+ index +'.value', [{'type': 'age', 'field': 'age', 'minutes': minutes}]);
             },
 
-            _updateObjectInConditions: function (field, attr, value, operator) {
-                // console.log('_updateObjectInConditions', field, attr, value, operator);
-                var conditions = this.get('fields.' + this._fieldIndexByName("conditions") + '.value'),
-                    conditionsField = conditions.find(function (con) {
+            _updateObjectInSelectors: function (field, attr, value, operator) {
+                // console.log('_updateObjectInSelectors', field, attr, value, operator);
+                var selectors = this.get('fields.' + this._fieldIndexByName("selectors") + '.value'),
+                    selectorsField = selectors.find(function (con) {
                         return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field :
                             con.type == field;
                     }),
-                    index = conditions.indexOf(conditionsField);
+                    index = selectors.indexOf(selectorsField);
                 // console.log('index', index);
                 if (index > -1) {
-                    this.set('fields.' + this._fieldIndexByName("conditions") + '.value.' + index + '.' +
+                    this.set('fields.' + this._fieldIndexByName("selectors") + '.value.' + index + '.' +
                         attr, value);
                 } else {
-                    this._addObjectInConditions(field, value, operator);
+                    this._addObjectInSelectors(field, value, operator);
                 }
 
             },
 
-            _addObjectInConditions: function (field, value, operator) {
-                var newCondition;
+            _addObjectInSelectors: function (field, value, operator) {
+                var newSelector;
                 if (field == 'age') {
-                    newCondition = {
+                    newSelector = {
                         type: 'age',
                         minutes: value
                     };
                 } else if (field == 'machines') {
-                    newCondition = {
+                    newSelector = {
                         type: 'machines',
                         ids: value
                     };
                 } else if (field == 'tags') {
-                    newCondition = {
+                    newSelector = {
                         type: 'tags',
-                        tags: value
+                        include: value
                     };
                 } else {
-                    newCondition = {
+                    newSelector = {
                         type: 'field',
                         field: field,
                         value: value
                     };
                     if (operator)
-                        newCondition['operator'] = operator;
+                        newSelector['operator'] = operator;
                 }
-                this.push('fields.' + this._fieldIndexByName("conditions") + '.value', newCondition);
+                this.push('fields.' + this._fieldIndexByName("selectors") + '.value', newSelector);
             },
 
-            _removeObjectFromConditions: function (field) {
-                var conditions = this.get('fields.' + this._fieldIndexByName("conditions") + '.value'),
-                    field = conditions.find(function (con) {
+            _removeObjectFromSelectors: function (field) {
+                var selectors = this.get('fields.' + this._fieldIndexByName("selectors") + '.value'),
+                    field = selectors.find(function (con) {
                         return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field :
                             con.type == field;
                     }),
-                    index = conditions.indexOf(field);
+                    index = selectors.indexOf(field);
 
                 if (index > -1)
-                    this.splice('fields.' + this._fieldIndexByName("conditions") + '.value', index, 1);
+                    this.splice('fields.' + this._fieldIndexByName("selectors") + '.value', index, 1);
             },
 
             _processInterval: function () {

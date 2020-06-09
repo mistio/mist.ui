@@ -15,100 +15,6 @@
             btncontent="Add Host" show-cancel single-column></app-form>
     </template>
     <script>
-        ADD_MACHINES_FIELDS = [{
-            name: "machine_ip",
-            label: "Hostname",
-            type: "text",
-            placeholder: 'DNS or IP',
-            show: true,
-            required: true,
-            helptext: '',
-            helpHref: ''
-        }, {
-            name: "machine_name",
-            label: "Alias (optional)",
-            type: "text",
-            placeholder: '',
-            show: true,
-            required: false,
-            helptext: ""
-        }, {
-            name: "operating_system",
-            label: "Operating System",
-            type: "dropdown",
-            value: "unix",
-            defaultValue: "unix",
-            show: true,
-            required: false,
-            options: [{
-                title: "Unix",
-                val: "unix"
-            }, {
-                title: "Windows",
-                val: "windows"
-            }]
-        }, {
-            name: "machine_key",
-            label: "SSH Key",
-            type: "ssh_key",
-            value: "",
-            defaultValue: "",
-            show: false,
-            required: false,
-            options: [],
-            showIf: {
-                fieldName: "operating_system",
-                fieldValues: ["unix"]
-            }
-        }, {
-            name: "machine_user",
-            label: "User",
-            type: "text",
-            value: "root",
-            defaultValue: "root",
-            show: false,
-            required: false,
-            errorMessage: "Please enter user",
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "machine_port",
-            label: "Port",
-            type: "text",
-            value: 22,
-            defaultValue: 22,
-            show: false,
-            required: false,
-            errorMessage: "Please enter port",
-            showIf: {
-                fieldName: "machine_key",
-                fieldExists: true
-            }
-        }, {
-            name: "remote_desktop_port",
-            label: "Remote Desktop Port",
-            type: "text",
-            value: 3389,
-            defaultValue: 3389,
-            errorMessage: "Please enter remote desktop's port",
-            show: false,
-            required: false,
-            showIf: {
-                fieldName: "operating_system",
-                fieldValues: ["windows"]
-            }
-        }, {
-            name: "monitoring",
-            label: "Enable monitoring",
-            type: "toggle",
-            value: false,
-            defaultValue: false,
-            show: true,
-            required: false
-        }];
-
         Polymer({
             is: 'other-cloud-add-machine',
             properties: {
@@ -118,11 +24,15 @@
                 keys: {
                     type: Array
                 },
+                providers: {
+                    type: Array
+                },
                 fields: {
                     type: Array,
-                    value: function () {
-                        return ADD_MACHINES_FIELDS;
-                    }
+                    value: function (cloud) {
+                        return [];
+                    },
+                    computed: '_computeFields(cloud.provider)'
                 }
             },
 
@@ -132,6 +42,20 @@
 
             listeners: {
                 'update-keys': 'updateKeys'
+            },
+
+            _computeFields: function(selectedProvider) {
+                if (!this.providers) return [];
+
+                var provider = this.providers.find(function (p) {
+                    return p.val == selectedProvider
+                });
+                if (!provider) return [];
+                var options = provider.options.find(function(o) {
+                    return o.name == 'hosts' || o.name == 'machines'
+                });
+                if (!options) return [];
+                return options.options;
             },
 
             _fieldIndexByName: function (name, fields) {

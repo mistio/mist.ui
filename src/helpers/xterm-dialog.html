@@ -158,8 +158,22 @@
                     } else {
                         payload['cloud_id'] = this.target.cloud;
                         payload['machine_id'] = this.target.id;
+                        this.set("style.position", "fixed");
+                    }
+
+                    if (this.target.provider === 'docker' && this.target.key_associations==false) {
+                        payload['provider'] = 'docker';
+                        payload['host'] = '';
+                    } else if (this.target.provider === 'kubevirt') {
+                        payload['provider'] = 'kubevirt';
+                        payload['host'] = 'kubevirt'; // otherwise an error is thrown in the api
+                    } else if (this.target.provider === 'lxd'){
+                        payload['provider'] = 'lxd';
                         payload['host'] = ips[0];
-                        this.set("style.position", "fixed")
+                    } else {
+                        payload['cloud_id'] = this.target.cloud;
+                        payload['machine_id'] = this.target.id;
+                        payload['host'] = ips[0]; // TODO: Remove this
                     }
 
                     socket.send('msg', 'shell', 'shell_open', [payload]);

@@ -49,15 +49,17 @@
             </template>
             <span class$="item-desc noimg-[[!network.img]]" data-prefix$=[[network.prefix]] data-suffix$=[[network.suffix]]>[[network.name]]</span>
         </paper-checkbox>
-        <div class="options-box m12" hidden$="[[!checked]]">
-	        <paper-radio-group class="options" selected="{{type}}">
-	        	<paper-radio-button name="">dhcp</paper-radio-button>
-	        	<paper-radio-button name="manual">manual configuration</paper-radio-button>
-	        </paper-radio-group>
-	        <div hidden$="[[!type]]">
-	        	<app-form id="manual-net-form" form="{{form}}" fields="{{fields}}" form-ready="{{formValid}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
-	        </div>
-	    </div>	
+        <template is="dom-if" if="[[canConfigure]]">
+            <div class="options-box m12" hidden$="[[!checked]]">
+                <paper-radio-group class="options" selected="{{type}}">
+                    <paper-radio-button name="">dhcp</paper-radio-button>
+                    <paper-radio-button name="manual">manual configuration</paper-radio-button>
+                </paper-radio-group>
+                <div hidden$="[[!type]]">
+                    <app-form id="manual-net-form" form="{{form}}" fields="{{fields}}" form-ready="{{formValid}}" display-buttons="[[_calcDisplayButtons()]]" single-column></app-form>
+                </div>
+            </div>
+        </template>
     </template>
     <script>
     NETWORK_MANUAL_CONFIG_FIELDS = [{
@@ -109,6 +111,9 @@
             	value: false,
             	notify: true,
             	reflectToAttribute: true
+            },
+            canConfigure: {
+                type: Boolean
             },
             type: {
             	type: String,

@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="utf-8">
+	<!-- Use the .htaccess and remove these lines to avoid edge case issues.
+   More info: h5bp.com/b/378 -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>vcentercreated</title>
+	<!-- Mobile viewport optimized: j.mp/bplateviewport -->
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<!-- CSS: implied media=all -->
+	<!-- CSS concatenated and minified via ant build script-->
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="wmks-all.css">
+	<!-- end CSS-->
+	<script type="text/javascript">
+		if (!window.console) {
+			console = {log: function() {} };
+		}
+	</script>
+</head>
+<body>
+
+<!-- Page bar -->
+<div id="bar">
+	<div id="buttonBar">
+		<div class="buttonC">
+			<button id="keyboard" data-toggle="false"
+					  data-alt="Stop Enforcing US Keyboard Layout">
+			Enforce US Keyboard Layout
+			</button>
+			<button id="fullscreen">
+				View Fullscreen
+			</button>
+			<button id="cad">
+				Send Ctrl+Alt+Delete
+			</button>
+		</div>
+	</div>
+	<div id="vmName">
+		<span id="vmTitle">vcentercreated</span>
+	</div>
+</div>
+
+<!-- WMKS container -->
+<div id="container"></div>
+
+<!-- Spinner markup -->
+<div id="spinner">
+	<div class="bar1"></div>
+	<div class="bar2"></div>
+	<div class="bar3"></div>
+	<div class="bar4"></div>
+	<div class="bar5"></div>
+	<div class="bar6"></div>
+	<div class="bar7"></div>
+	<div class="bar8"></div>
+	<div class="bar9"></div>
+	<div class="bar10"></div>
+	<div class="bar11"></div>
+	<div class="bar12"></div>
+</div>
+<!-- JavaScript at the bottom for fast page loading -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+
+
+<!-- WMKS -->
+<script src="https://cdn.jsdelivr.net/npm/vmware-wmks@1.0.0/wmks.min.js"></script>
+<script>
+	$(function() {
+
+		function layout() {
+			var w = $(window).width();
+			var h = $(window).height();
+			if(!wmks.isFullScreen()) {
+				container.css({
+					top: bar.outerHeight() + "px"
+				});
+				container.width(w).height(h - bar.outerHeight());
+				wmks.updateScreen();
+			} else {
+				container.css({
+					top: 0,
+					left: 0
+				});
+				container.width(w).height(h);
+			}
+		}
+
+		function showMessage(message) {
+			container.html(message);
+			bar.slideDown("fast", layout);
+			spinner.hide();
+		}
+
+		function getKeyboardLayout() {
+			var locale = "en-US".
+			replace("-", "_");
+			switch (locale) {
+				case "de": case "de_DE":
+					return "de-DE";
+				case "de_CH":
+					return "de-CH";
+				case "ja": case "ja_JP":
+					return "ja-JP_106/109";
+				case "it": case "it_IT":
+					return "it-IT";
+				case "es": case "es_ES":
+					return "es-ES";
+				case "pt": case "pt_PT":
+					return "pt-PT";
+				case "fr": case "fr_FR":
+					return "fr-FR";
+				case "fr_CH":
+					return "fr-CH";
+				case "sv": case "sv_SE":
+					return "sv_SE";
+				case "en_UK":
+					return "en_UK";
+				case "en-UK":
+					return "en_UK";	
+				default:
+					return "en-US";
+			}
+		}
+
+		var bar = $("#bar");
+		var cad = $("#cad");
+		var container = $("#container");
+		var fullscreen = $("#fullscreen");
+		var keyboard = $("#keyboard");
+		var spinner = $("#spinner");
+
+		var wmks = WMKS.createWMKS("container", {
+			keyboardLayoutId: getKeyboardLayout()
+		});
+		wmks.register(WMKS.CONST.Events.CONNECTION_STATE_CHANGE, function(evt, data) {
+			switch (data.state) {
+				case WMKS.CONST.ConnectionState.CONNECTING:
+					console.log("The console is connecting");
+					bar.slideUp("slow", layout);
+					break;
+				case WMKS.CONST.ConnectionState.CONNECTED:
+					console.log("The console has been connected");
+					spinner.hide();
+					bar.slideDown("fast", layout);
+					break;
+				case WMKS.CONST.ConnectionState.DISCONNECTED:
+					console.log("The console has been disconnected");
+					showMessage("The console has been disconnected. Close this window and re-launch the console to reconnect.");
+					break;
+			}
+		});
+		wmks.register(WMKS.CONST.Events.ERROR, function(evt, data) {
+			console.log("Error: " + data.errorType);
+		});
+		wmks.register(WMKS.CONST.Events.REMOTE_SCREEN_SIZE_CHANGE, function(evt, data) {
+			layout();
+		});
+
+		cad.on("click", function() {
+			wmks.sendCAD();
+		});
+
+		if (wmks.canFullScreen()) {
+			fullscreen.on("click", function (evt) {
+				wmks.enterFullScreen();
+			});
+		} else {
+			fullscreen.hide();
+		}
+
+		keyboard.on("click", function (evt) {
+			var fixANSIEquivalentKeys = keyboard.data("toggle") === "true";
+			var label = keyboard.html();
+			wmks.setOption("fixANSIEquivalentKeys", !fixANSIEquivalentKeys);
+			keyboard.html(keyboard.data("alt"));
+			keyboard.data("toggle", !fixANSIEquivalentKeys);
+			keyboard.data("alt", label);
+		});
+
+		//listen for window events
+		$(window).on("resize", layout);
+
+		// if params are provided, no need to show chrome
+		if (location.search) {
+            var loc = document.location;
+            var params = new URLSearchParams(loc.search);
+			wmks.connect(params.get('url'));
+			layout();
+			spinner.show();
+		}
+	});
+</script>
+</body>
+</html>

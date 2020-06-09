@@ -12,6 +12,7 @@
 
             :host([moderate-top]) app-form {
                 margin-top: -50px !important;
+                margin-bottom: 0 !important;
             }
 
             .title {
@@ -25,7 +26,9 @@
 
             paper-icon-button.remove {
                 margin-top: -40px;
-                float: right;
+                position: absolute;
+                right: 20px;
+                z-index: 2;
             }
         </style>
         <template is="dom-repeat" items="{{items}}">
@@ -110,7 +113,7 @@
             observers: [
                 '_optionsChanged(options.*)',
                 '_itemsChanged(items.splices, items.*)',
-                '_minChanged(min)',
+                '_minChanged(min, items)',
                 '_showChanged(show)'
             ],
             listeners: {
@@ -118,11 +121,12 @@
                 'tap': '_setActiveItem'
             },
             hideAddButton: function(min, max, itemslength) {
-                return min == max == itemslength;
+                return min != undefined && max != undefined && min == max == itemslength;
             },
             _minChanged: function (min) {
                 for (var i = 1; i <= this.min; i++) {
-                    this.addItem();
+                    if (!this.items[i-1])
+                        this.addItem();
                 }
             },
             _setActiveItem: function (e) {

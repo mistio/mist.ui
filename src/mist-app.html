@@ -189,29 +189,22 @@
                 <page-dashboard name="dashboard" model="[[model]]"  q="[[model.sections.dashboard.q]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen=[[xsmallscreen]] docs=[[config.features.docs]] currency=[[config.features.currency]]></page-dashboard>
                 <template is="dom-if" restamp if="[[model.sections]]">
                     <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
-                    <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs=[[config.features.docs]] portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
                     <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring=[[config.features.monitoring]] docs=[[config.features.docs]] portal-name="[[config.portal_name]]" currency=[[config.features.currency]]></page-machines>
                     <page-images name="images" route="{{subroute}}" model="[[model]]" portal-name="[[config.portal_name]]"></page-images>
                     <page-keys name="keys" route="{{subroute}}" model="[[model]]" config=[[config]]></page-keys>
                     <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
                     <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
                     <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
-                    <template is="dom-if" if="[[config.features.tunnels]]">
-                        <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]"></page-tunnels>
-                    </template>
+                    <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden$=[[!config.features.tunnels]]></page-tunnels>
                     <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]]></page-scripts>
                     <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]] currency=[[config.features.currency]]></page-schedules>
                     <page-rules name="rules" route="{{subroute}}" model="[[model]]" docs=[[config.features.docs]] features="[[config.features]]"></page-rules>
-                    <template is="dom-if" if="[[config.features.orchestration]]">
-                        <page-templates name="templates" route="{{subroute}}" model="[[model]]"></page-templates>
-                        <page-stacks name="stacks" route="{{subroute}}" model="[[model]]"></page-stacks>
-                    </template>
+                    <page-templates name="templates" route="{{subroute}}" model="[[model]]" hidden$=[[!config.features.orchestration]]></page-templates>
+                    <page-stacks name="stacks" route="{{subroute}}" model="[[model]]" hidden$=[[!config.features.orchestration]]></page-stacks>
                     <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac=[[config.features.rbac]] billing=[[config.features.billing]] cta=[[config.cta.rbac]] email=[[config.email]] docs=[[config.features.docs]]></page-teams>
                     <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
                     <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
-                    <template is="dom-if" if="[[config.features.insights]]">
-                        <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]" currency=[[config.features.currency]]></page-insights>
-                    </template>
+                    <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]" currency=[[config.features.currency]] insights-enabled="[[model.org.insights_enabled]]" hidden$=[[!config.features.insights]]></page-insights>
                 </template>
                 <page-my-account name="my-account" route="{{subroute}}" user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" config="[[config]]"></page-my-account>
                 <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
@@ -340,7 +333,8 @@
             'update-dashboard': '_forwardEvent',
             'import-script': '_importScript',
             'list-attached': '_listAttached',
-            'resize': '_stopPropagation'
+            'resize': '_stopPropagation',
+            'cloud-delete': '_cleanUpModelFromCloudResources'
         },
 
         observers: [
@@ -352,6 +346,11 @@
             '_ccRequiredChanged(ccRequired)',
             // '_qChanged(q)' // disable sections count updates
         ],
+
+        _cleanUpModelFromCloudResources: function(e) {
+            if (this.shadowRoot.querySelector('mist-socket') && e.detail.cloud)
+                this.shadowRoot.querySelector('mist-socket').cleanUpResources(e.detail.cloud)
+        },
 
         _listAttached: function(e) {
             if (e.detail && e.detail.id) {
@@ -387,7 +386,6 @@
         },
 
         _forwardEvent: function (e) {
-            // console.log('event in mist-app', e.detail);
             this.shadowRoot.querySelector('page-machines').shadowRoot.querySelector('machine-page').shadowRoot.querySelector('mist-monitoring').fire('update-dashboard');
         },
 
@@ -417,7 +415,6 @@
         },
 
         _sizeChanged: function(smallscreen) {
-            // console.log('updateResize');
             if (this.$.sidebar) {
                 if (this.smallscreen) {
                     this.$.sidebar.closeSidebar();
@@ -432,7 +429,6 @@
         },
 
         setHeaderCount: function(e) {
-            // console.log('setHeaderCount ', e, e.detail);
             if (!this._isPage('dashboard') && !this._isPage('my-account') && !this._isPage('insights')) {
                 this.set('count', e.detail.length);
             } else {
@@ -442,7 +438,6 @@
         },
 
         setLocationPath: function(e) {
-            // console.log('search: setLocationPath with search query', e.detail);
             if (e.detail.url && this.$.appLocation) {
                 this.$.appLocation.set('path', e.detail.url);
                 if (e.detail.params) {
@@ -450,10 +445,9 @@
                 }
                 // use in redirects to filtered lists, ex from ec2 cloud page to ec2 filtered machine list
                 if (e.detail.search) {
-                    // console.log('setLocationPath', e.detail.search)
                     this.async(function() {
-                        this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: e.detail.search }));
-                    }, 200);
+                        this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: {page: e.detail.url.replace('/',''), q:e.detail.search} }));
+                    }, 400);
                 }
             } else {
                 console.error('redirect url could not be found...');
@@ -562,7 +556,6 @@
         clearSearch: function() {
             document.querySelector('top-search').clearSearch();
             this.set('q', '');
-            // console.log('search: clear search' )
             if (this.model && this.model.sections) {
                 for (var sec in this.model.sections) {
                     this.set('model.sections.' + sec + '.q', '');
@@ -585,7 +578,6 @@
                     this.set('model.sections.' + sec + '.q', this.q.replace(q, ''));
                 }
             }
-            // console.log('search: clear clearSearchPreservingFilters', q)
             this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail:  this.q.replace(q, '') }));
         },
 
@@ -613,11 +605,11 @@
 
         updateSearchQuery: function(e) {
             if (e.detail != undefined && e.detail.q != undefined) {
-                if (this.page == e.detail.page) {
-                    // console.log('search: update Search Query', e.detail);
-                    this.set('q', e.detail.q);
+                console.log('search: update Search Query', e.detail);
+                if (e.detail.page && this.page == e.detail.page) {
                     this.set('model.sections.' + this.page + '.q', e.detail.q || '');
                 }
+                this.set('q', e.detail.q);
             }
         },
 
@@ -1178,7 +1170,7 @@
                         return false;
                 } else {
                     var ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
-                        return [m.name, m.email, m.id].indexOf(owner) > -1;
+                        return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
                     });
                     if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
                         return false;
