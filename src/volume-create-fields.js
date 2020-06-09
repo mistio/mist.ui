@@ -528,7 +528,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
             value: '',
             defaultValue: '',
             show: true,
-            required: false, // non required for os, do, // required for azure
+            required: true, // non required for os, do, // required for azure
             options: []
         });
     }
