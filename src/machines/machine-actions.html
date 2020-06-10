@@ -20,6 +20,7 @@
 <link rel="import" href="machine-edit.html">
 <link rel="import" href="attach-volume-on-machine.html">
 <link rel="import" href="machine-snapshots.html">
+<link rel="import" href="expose-ports.html">
 <script type="text/javascript" src="../volume-create-fields.js" inline></script>
 <dom-module id="machine-actions">
     <template>
@@ -30,6 +31,7 @@
         </style>
         <machine-edit id="renamedialog" items="[[items]]"></machine-edit>
         <run-script-on-machine id="runscriptdialog" items="[[items]]" scripts="[[model.scriptsArray]]"></run-script-on-machine>
+        <expose-ports id="exposePortsdialog" machine="[[items.0]]" provider="[[getProvider(items.0)]]"></expose-ports>
         <associate-key id="associatekeydialog" items="[[items]]" model="[[model]]"></associate-key>
         <machine-snapshots id="snapshotdialog" machine="[[items.0]]" snapshots="" action=""></machine-snapshots>
         <attach-volume-on-machine id="attachvolumedialog" machine="[[items.0]]" model="[[model]]"></attach-volume-on-machine>
@@ -198,6 +200,13 @@
             'icon': 'delete',
             'confirm': true,
             'multi': true
+        },
+        'expose': {
+            'name': 'expose',
+            'icon': 'icons:forward',
+            'confirm': true,
+            'multi': false
+
         }
     };
 
@@ -249,6 +258,18 @@
             this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
             this.$.request.method = "POST";
         },
+        getProviders: function(machines) {
+            var providers = []
+            for (var i=0; i < machines.length; i++) {
+                providers.push(this.getProvider(machines[i]));
+            }
+            return providers;
+        },
+        getProvider: function(machine) {
+            if (machine && this.model && this.model.clouds && this.model.clouds[machine.cloud]) {
+                return this.model.clouds[machine.cloud].provider;
+            }
+        },
         computeItemActions: function(machine) {
             var arr = [];
             if (this.model && this.model.clouds && ['vsphere', 'openstack', 'libvirt'].indexOf(this.model.clouds[machine.cloud].provider) > -1){
@@ -284,6 +305,7 @@
                 'console',
                 'shell',
                 'webconfig',
+                'expose',
                 'start',
                 'stop',
                 'clone',
@@ -367,7 +389,7 @@
                 var action = e.detail.action;
                 this.set('action', action);
                 // console.log('perform action mist-action', this.items);
-                if (action.confirm && ['tag', 'rename', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
+                if (action.confirm && ['tag', 'rename', 'expose', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
                     -1) {
                     var plural = this.items.length == 1 ? '' : 's',
                         count = this.items.length > 1 ? this.items.length + ' ' : '';
@@ -413,6 +435,8 @@
                     this.$['runscriptdialog']._openDialog();
                 } else if (action.name == 'associate key') {
                     this.$['associatekeydialog']._openDialog();
+                } else if (action.name == 'expose') {
+                    this.$['exposePortsdialog']._openDialog();
                 } else if (!action.confirm) {
                     this.performMachineAction(action, this.items);
                 }
@@ -636,6 +660,8 @@
         inPast: function(action) {
             if (action == 'shell')
                 return 'opened shell'
+            else if (action == 'expose')
+                return 'exposed'
             else if (action == 'tag')
                 return 'tagged'
             else if (action == 'associate key')

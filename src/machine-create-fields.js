@@ -1391,6 +1391,92 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
                 required: false
             })
         }
+        if (['kubevirt','gig_g8'].indexOf(p.provider) > -1) {
+            p.fields.push({
+                name: 'port_forwards',
+                label: 'Expose ports',
+                type: 'fieldgroup',
+                value: {},
+                defaultValue: {},
+                defaultToggleValue: false,
+                helptext: '',
+                show: true,
+                required: false,
+                optional: true,
+                inline: true,
+                flatten: false,
+                enabled:false,
+                loader: false,
+                subfields: [{
+                    name: 'ports',
+                    itemName: 'ports',
+                    items: [],
+                    label: '',
+                    show: true,
+                    required: false,
+                    horizontal: true,
+                    type: 'list',
+                    min: '0',
+                    options: [{
+                        name: 'port',
+                        label: 'Port *',
+                        type: 'text',
+                        value: '',
+                        defaultValue: "80",
+                        show: true,
+                        required: true,
+                        helptext: 'The public port, fill in either a port or host:port,\n eg: 80 or 172.11.234.13:80',
+                    }, {
+                        name: 'target_port',
+                        label: 'Target Port',
+                        type: 'text',
+                        value: '',
+                        defaultValue: '',
+                        show: true,
+                        required: false,
+
+                        helptext: 'Optional, fill in only if the local port is different from the public one.',
+                    },{
+                        name: 'protocol',
+                        label: 'Protocol',
+                        type: 'dropdown',
+                        value: 'TCP',
+                        defaultValue: 'TCP',
+                        helptext: '',
+                        show: true,
+                        required: true,
+                        class: 'width-150 inline-block',
+                        options: [
+                            {val: 'TCP', title: 'TCP'},
+                            {val: 'UDP', title: 'UDP'}
+                        ]
+                    }]
+                }],
+            })
+            if (['kubevirt'].indexOf(p.provider) > -1) {
+                p.fields[p.fields.length-1].subfields.unshift(
+                    {
+                        name: 'service_type',
+                        label: 'Service Type',
+                        type: 'dropdown',
+                        value: 'NodePort',
+                        defaultValue: 'NodePort',
+                        previousValue: 'NodePort',
+                        helptext: 'The type of the service to be created',
+                        eventOnChange: "service-type-updated",
+                        show: true,
+                        required: true,
+                        class: 'width-155 inline-block',
+                        options: [
+                            {val: 'ClusterIP', title: 'ClusterIP'},
+                            {val: 'NodePort', title: 'NodePort'},
+                            {val: 'LoadBalancer', title: 'LoadBalancer'}
+                        ]
+                    }
+                )
+            }
+        }
+
     }
 
     // add common post provision fields
