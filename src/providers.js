@@ -1073,8 +1073,8 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter title"
     }, {
-        name: "host",
-        label: "Hostname *",
+        name: "machine_hostname",
+        label: "Hostname or IP*",
         type: "text",
         value: "",
         defaultValue: "",
@@ -1084,7 +1084,7 @@ PROVIDERS.push({
         helptext: '',
         helpHref: 'http://docs.mist.io/article/73-adding-vsphere'
     }, {
-        name: "username",
+        name: "machine_user",
         label: "Username *",
         type: "text",
         value: "",
