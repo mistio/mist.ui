@@ -1,14 +1,14 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
 
-<link rel="import" href="teams/team-page.html">
-<link rel="import" href="teams/team-actions.html">
-<link rel="import" href="teams/member-page.html">
-<link rel="import" href="teams/members-add.html">
-<link rel="import" href="teams/member-add-in-teams.html">
-<link rel="import" href="teams/team-add.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
+<script type="module" src="./teams/team-page.js"></script>
+<script type="module" src="./teams/team-actions.js"></script>
+<script type="module" src="./teams/member-page.js"></script>
+<script type="module" src="./teams/members-add.js"></script>
+<script type="module" src="./teams/member-add-in-teams.js"></script>
+<script type="module" src="./teams/team-add.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
 
 
 <dom-module id="page-teams">
@@ -53,150 +53,161 @@
             <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
         </div>
     </template>
-    <script>
-    Polymer({
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import './teams/team-page.js';
+import './teams/team-actions.js';
+import './teams/member-page.js';
+import './teams/members-add.js';
+import './teams/member-add-in-teams.js';
+import './teams/team-add.js';
+import './helpers/mist-lists-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
 
-        is: 'page-teams',
-        behaviors: [
-            mistListsBehavior,
-            rbacBehavior
-        ],
+    is: 'page-teams',
+    behaviors: [
+        mistListsBehavior,
+        rbacBehavior
+    ],
 
-        properties: {
-            model: {
-                type: Object
-            },
-            ownership: {
-                type: Boolean
-            },
-            route: {
-                type: Object
-            },
-            actions: {
-                type: Array,
-                notify: true
-            },
-            selectedItems: {
-                type: Array,
-                value: function() { return [] }
-            },
-            rbac: {
-                type: Boolean,
-                value: false
-            },
-            docs: {
-                type: Boolean,
-                value: false
-            }
+    properties: {
+        model: {
+            type: Object
         },
-
-        listeners: {},
-        _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.$.teamPage)
-                this.$.teamPage.updateState();
-            return path && !path.endsWith('+add');
+        ownership: {
+            type: Boolean
         },
-        _isAddMembersPageActive: function(path) {
-            return path != '/+add' && path.endsWith('+add');
+        route: {
+            type: Object
         },
-        _isAddMemberPageActive: function(path) {
-            return path == '/+add';
+        actions: {
+            type: Array,
+            notify: true
         },
-        _isListActive: function(path) {
-            return !path;
+        selectedItems: {
+            type: Array,
+            value: function() { return [] }
         },
-        _isMemberOfFilter: function() {
-            var _this = this;
-            return {
-                'apply': function(item, query) {
-                    var q = query.slice(0) || '',
-                        filterOwner = query.indexOf('owner:') > -1,
-                        ownerRegex = /owner:(\S*)\s?/;
-
-                    if (filterOwner && q) {
-                        if (ownerRegex.exec(q).length) {
-                            var owner = ownerRegex.exec(q)[1];
-                            if (owner) {
-                                if (owner == "$me") {
-                                    if (!item.members.length || item.members.indexOf(_this.model.user.id) == -1)
-                                        return false;
-                                } else {
-                                    var ownerObj = _this.model.membersArray.find(function(m) {
-                                        return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
-                                    });
-                                    if (!ownerObj || (!item.members.length || item.members.indexOf(ownerObj.id) == -1))
-                                        return false;
-                                }
-                                q = q.replace('owner:', '').replace(owner, '');
-                                return q;
-                            }
-                        }
-                    }
-                    return query;
-                }
-            }
+        rbac: {
+            type: Boolean,
+            value: false
         },
-        _hasNoSelectedItems: function() {
-            return !(this.selectedItems && this.selectedItems.length);
-        },
-        _getTeam: function(id) {
-            if (this.model.teams && id)
-                return this.model.teams[id];
-        },
-
-        _getFrozenColumn: function() {
-            return ['name'];
-        },
-
-        _getVisibleColumns: function() {
-            return ['description', 'members'];
-        },
-
-        _getRenderers: function(teams, members) {
-            var _this = this;
-            return {
-                'name': {
-                    'body': function(item, row) {
-                        if (row.parent && _this.model && _this.model.org && _this.model.org.parent_org_name) {
-                            var ret = "[" + _this.model.org.parent_org_name + "] <strong>" + item + "</strong>";
-                            return ret;
-                        }
-                        return "<strong class='name'>" + item + "</strong>";
-                    }
-                },
-                'members': {
-                    'body': function(item, row) {
-                        if (_this.model && _this.model.members && item && item.length && item.length > 0) {
-                            var names = item.map(function(i) {
-                                if (_this.model.members[i])
-                                    var displayName = _this.model.members[i].name || _this.model.members[i].email || _this.model.members[i].username;
-                                return " " + displayName;
-                            })
-                            var ret = names;
-                            return ret;
-                        }
-                        return item;
-                    }
-                }
-            };
-        },
-
-        _addTeam: function(e) {
-            var dialog = this.shadowRoot.querySelector('team-add#isTeamsPage');
-            dialog.openDialog();
-        },
-
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#teamsList')) {
-                this.shadowRoot.querySelector('#teamsList').shadowRoot.querySelector('#actions').selectAction(e);
-            }
-        },
-
-        _showAddTeam: function(path, user) {
-            return this.model && this._isListActive(path) && this.check_perm('add','key', null, this.model.org, this.model.user);
+        docs: {
+            type: Boolean,
+            value: false
         }
+    },
 
-    });
-    </script>
+    listeners: {},
+    _isDetailsPageActive: function(path) {
+        if (path && path != '/+add' && this.$.teamPage)
+            this.$.teamPage.updateState();
+        return path && !path.endsWith('+add');
+    },
+    _isAddMembersPageActive: function(path) {
+        return path != '/+add' && path.endsWith('+add');
+    },
+    _isAddMemberPageActive: function(path) {
+        return path == '/+add';
+    },
+    _isListActive: function(path) {
+        return !path;
+    },
+    _isMemberOfFilter: function() {
+        var _this = this;
+        return {
+            'apply': function(item, query) {
+                var q = query.slice(0) || '',
+                    filterOwner = query.indexOf('owner:') > -1,
+                    ownerRegex = /owner:(\S*)\s?/;
+
+                if (filterOwner && q) {
+                    if (ownerRegex.exec(q).length) {
+                        var owner = ownerRegex.exec(q)[1];
+                        if (owner) {
+                            if (owner == "$me") {
+                                if (!item.members.length || item.members.indexOf(_this.model.user.id) == -1)
+                                    return false;
+                            } else {
+                                var ownerObj = _this.model.membersArray.find(function(m) {
+                                    return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
+                                });
+                                if (!ownerObj || (!item.members.length || item.members.indexOf(ownerObj.id) == -1))
+                                    return false;
+                            }
+                            q = q.replace('owner:', '').replace(owner, '');
+                            return q;
+                        }
+                    }
+                }
+                return query;
+            }
+        }
+    },
+    _hasNoSelectedItems: function() {
+        return !(this.selectedItems && this.selectedItems.length);
+    },
+    _getTeam: function(id) {
+        if (this.model.teams && id)
+            return this.model.teams[id];
+    },
+
+    _getFrozenColumn: function() {
+        return ['name'];
+    },
+
+    _getVisibleColumns: function() {
+        return ['description', 'members'];
+    },
+
+    _getRenderers: function(teams, members) {
+        var _this = this;
+        return {
+            'name': {
+                'body': function(item, row) {
+                    if (row.parent && _this.model && _this.model.org && _this.model.org.parent_org_name) {
+                        var ret = "[" + _this.model.org.parent_org_name + "] <strong>" + item + "</strong>";
+                        return ret;
+                    }
+                    return "<strong class='name'>" + item + "</strong>";
+                }
+            },
+            'members': {
+                'body': function(item, row) {
+                    if (_this.model && _this.model.members && item && item.length && item.length > 0) {
+                        var names = item.map(function(i) {
+                            if (_this.model.members[i])
+                                var displayName = _this.model.members[i].name || _this.model.members[i].email || _this.model.members[i].username;
+                            return " " + displayName;
+                        })
+                        var ret = names;
+                        return ret;
+                    }
+                    return item;
+                }
+            }
+        };
+    },
+
+    _addTeam: function(e) {
+        var dialog = this.shadowRoot.querySelector('team-add#isTeamsPage');
+        dialog.openDialog();
+    },
+
+    selectAction: function(e) {
+        e.stopImmediatePropagation();
+        if (this.shadowRoot.querySelector('#teamsList')) {
+            this.shadowRoot.querySelector('#teamsList').shadowRoot.querySelector('#actions').selectAction(e);
+        }
+    },
+
+    _showAddTeam: function(path, user) {
+        return this.model && this._isListActive(path) && this.check_perm('add','key', null, this.model.org, this.model.user);
+    }
+
+});
+</script>
 </dom-module>

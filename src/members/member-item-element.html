@@ -1,5 +1,5 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<script type="module" src="../../../../@polymer/polymer/polymer-legacy.js"></script>
+<script type="module" src="../../../../@polymer/paper-styles/typography.js"></script>
 <dom-module id="member-item-element">
     <template>
         <style include="shared-styles">
@@ -26,60 +26,60 @@
             <slot></slot>
         </paper-item>
     </template>
-    <script>
-    (function() {
-        'use strict';
+    <script type="module">
+import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../../../@polymer/paper-styles/typography.js';
+import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
 
-        Polymer({
-            is: 'member-item-element',
+Polymer({
+    is: 'member-item-element',
 
-            properties: {
-                member: {
-                    type: Object
-                },
-                selected: {
-                    type: Boolean,
-                    value: false,
-                    notify: true
-                },
-                index: {
-                    type: Number
-                },
-                count: {
-                    type: Number
-                },
-                indexClass: {
-                    type: String,
-                    computed: '_computeIsIndexClass(index, count)'
-                }
-            },
-            listeners: {
-                'selected-changed': '_selectMemberChanged'
-            },
-            _computeIsIndexClass: function(index, count) {
-                var classes = [];
-                classes.push(
-                    (index + 1) % 2 == 0 ? 'even' : 'odd',
-                    index + 1 == count ? 'last' : null
-                );
-                return classes.join(' ');
-            },
-            _selectMemberChanged: function(e) {
-                var selected = e.detail.value;
-                this.dispatchEvent(new CustomEvent('toggleSelectedMember', { bubbles: true, composed: true, detail: {
-                    member: this.member,
-                    selected: selected
-                } }));
+    properties: {
+        member: {
+            type: Object
+        },
+        selected: {
+            type: Boolean,
+            value: false,
+            notify: true
+        },
+        index: {
+            type: Number
+        },
+        count: {
+            type: Number
+        },
+        indexClass: {
+            type: String,
+            computed: '_computeIsIndexClass(index, count)'
+        }
+    },
+    listeners: {
+        'selected-changed': '_selectMemberChanged'
+    },
+    _computeIsIndexClass: function(index, count) {
+        var classes = [];
+        classes.push(
+            (index + 1) % 2 == 0 ? 'even' : 'odd',
+            index + 1 == count ? 'last' : null
+        );
+        return classes.join(' ');
+    },
+    _selectMemberChanged: function(e) {
+        var selected = e.detail.value;
+        this.dispatchEvent(new CustomEvent('toggleSelectedMember', { bubbles: true, composed: true, detail: {
+            member: this.member,
+            selected: selected
+        } }));
 
-            },
-            _viewMember: function(e) {
-                this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  { url: '/members/' + this.member.id } }));
-            },
-            _selectMember: function(e) {
-                // This is used to prevent event bubbling
-                e.stopPropagation();
-            }
-        });
-    })();
-    </script>
+    },
+    _viewMember: function(e) {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  { url: '/members/' + this.member.id } }));
+    },
+    _selectMember: function(e) {
+        // This is used to prevent event bubbling
+        e.stopPropagation();
+    }
+});
+</script>
 </dom-module>

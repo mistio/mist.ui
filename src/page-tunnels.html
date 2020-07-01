@@ -1,12 +1,12 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
 
-<link rel="import" href="tunnels/tunnel-add.html">
-<link rel="import" href="tunnels/tunnel-actions.html">
-<link rel="import" href="tunnels/tunnel-page.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="helpers/owner-filter-behavior.html">
+<script type="module" src="./tunnels/tunnel-add.js"></script>
+<script type="module" src="./tunnels/tunnel-actions.js"></script>
+<script type="module" src="./tunnels/tunnel-page.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
+<script type="module" src="./helpers/owner-filter-behavior.js"></script>
 
 
 <dom-module id="page-tunnels">
@@ -45,117 +45,126 @@
         <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels, model.tunnels.*)]]" resource-id="[[data.tunnel]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]>
             </key-page>
     </template>
-    <script>
-    Polymer({
-        is: 'page-tunnels',
-        behaviors: [
-            mistListsBehavior,
-            ownerFilterBehavior,
-            rbacBehavior
-        ],
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import './tunnels/tunnel-add.js';
+import './tunnels/tunnel-actions.js';
+import './tunnels/tunnel-page.js';
+import './helpers/mist-lists-behavior.js';
+import './helpers/owner-filter-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-tunnels',
+    behaviors: [
+        mistListsBehavior,
+        ownerFilterBehavior,
+        rbacBehavior
+    ],
 
-        properties: {
-            model: {
-                type: Object
-            },
-            ownership: {
-                type: Boolean
-            },
-            actions: {
-                type: Array,
-                notify: true
-            },
-            selectedItems: {
-                type: Array,
-                notify: true
-            }
+    properties: {
+        model: {
+            type: Object
         },
+        ownership: {
+            type: Boolean
+        },
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+            type: Array,
+            notify: true
+        }
+    },
 
-        listeners: {
-            'select-action': 'selectAction',
-        },
-        _isAddPageActive: function(path) {
-            return path == '/+add';
-        },
-        _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('tunnel-page'))
-                this.shadowRoot.querySelector('tunnel-page').updateState();
-            return path && path != '/+add';
-        },
-        _isListActive: function(path) {
-            return !path;
-        },
-        _getTunnel: function(id) {
-            if (this.model.tunnels)
-                return this.model.tunnels[id];
-        },
-        _addResource: function(e) {
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                url: this.model.sections.tunnels.add
-            } }));
-        },
-        _getFrozenLogColumn: function() {
-            return ['name'];
-        },
+    listeners: {
+        'select-action': 'selectAction',
+    },
+    _isAddPageActive: function(path) {
+        return path == '/+add';
+    },
+    _isDetailsPageActive: function(path) {
+        if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('tunnel-page'))
+            this.shadowRoot.querySelector('tunnel-page').updateState();
+        return path && path != '/+add';
+    },
+    _isListActive: function(path) {
+        return !path;
+    },
+    _getTunnel: function(id) {
+        if (this.model.tunnels)
+            return this.model.tunnels[id];
+    },
+    _addResource: function(e) {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+            url: this.model.sections.tunnels.add
+        } }));
+    },
+    _getFrozenLogColumn: function() {
+        return ['name'];
+    },
 
-        _getVisibleColumns: function() {
-            var ret = ['cidrs', 'created_by', 'id', 'tags'];
-            if (this.model.org && this.model.org.ownership_enabled == true)
-                ret.push('owned_by');
-            return ret;
-        },
-        _getRenderers: function(tunnels) {
-            var _this = this;
-            return {
-                'name': {
-                    'body': function(item, row) {
-                        return '<strong class="name">' + item + '</strong>';
-                    }
+    _getVisibleColumns: function() {
+        var ret = ['cidrs', 'created_by', 'id', 'tags'];
+        if (this.model.org && this.model.org.ownership_enabled == true)
+            ret.push('owned_by');
+        return ret;
+    },
+    _getRenderers: function(tunnels) {
+        var _this = this;
+        return {
+            'name': {
+                'body': function(item, row) {
+                    return '<strong class="name">' + item + '</strong>';
+                }
+            },
+            'cidrs': {
+                'body': function(item, row) {
+                    if (item)
+                        return item.join(', ');
+                }
+            },
+            'owned_by': {
+                'title': function(item, row) {
+                    return 'owner';
                 },
-                'cidrs': {
-                    'body': function(item, row) {
-                        if (item)
-                            return item.join(', ');
-                    }
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'created_by': {
+                'title': function(item, row) {
+                    return 'created by';
                 },
-                'owned_by': {
-                    'title': function(item, row) {
-                        return 'owner';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'tags': {
+                'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (key in tags) {
+                        display += "<span class='tag'>" + key;
+                        if (tags[key] != undefined && tags[key] != "")
+                            display += "=" + tags[key];
+                        display += "</span>";
                     }
-                },
-                'created_by': {
-                    'title': function(item, row) {
-                        return 'created by';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'tags': {
-                    'body': function(item, row) {
-                        var tags = item,
-                            display = "";
-                        for (key in tags) {
-                            display += "<span class='tag'>" + key;
-                            if (tags[key] != undefined && tags[key] != "")
-                                display += "=" + tags[key];
-                            display += "</span>";
-                        }
-                        return display;
-                    }
+                    return display;
                 }
             }
-        },
-
-        selectAction: function(e) {
-            e.stopImmediatePropagation();
-            if (this.shadowRoot.querySelector('#tunnelsList')) {
-                this.shadowRoot.querySelector('#tunnelsList').shadowRoot.querySelector('#actions').selectAction(e);
-            }
         }
-    });
-    </script>
+    },
+
+    selectAction: function(e) {
+        e.stopImmediatePropagation();
+        if (this.shadowRoot.querySelector('#tunnelsList')) {
+            this.shadowRoot.querySelector('#tunnelsList').shadowRoot.querySelector('#actions').selectAction(e);
+        }
+    }
+});
+</script>
 </dom-module>

@@ -1,12 +1,12 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
 
-<link rel="import" href="schedules/schedule-add.html">
-<link rel="import" href="schedules/schedule-page.html">
-<link rel="import" href="schedules/schedule-actions.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="helpers/owner-filter-behavior.html">
+<script type="module" src="./schedules/schedule-add.js"></script>
+<script type="module" src="./schedules/schedule-page.js"></script>
+<script type="module" src="./schedules/schedule-actions.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
+<script type="module" src="./helpers/owner-filter-behavior.js"></script>
 
 
 <dom-module id="page-schedules">
@@ -46,186 +46,195 @@
         <schedule-add model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]] currency=[[currency]]></schedule-add>
         <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules, model.schedules.*)]]" resource-id="[[data.schedule]]" section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]] currency=[[currency]]></schedule-page>
     </template>
-    <script>
-    Polymer({
-        is: 'page-schedules',
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import './schedules/schedule-add.js';
+import './schedules/schedule-page.js';
+import './schedules/schedule-actions.js';
+import './helpers/mist-lists-behavior.js';
+import './helpers/owner-filter-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-schedules',
 
-        behaviors: [
-            mistListsBehavior,
-            ownerFilterBehavior,
-            rbacBehavior
-        ],
+    behaviors: [
+        mistListsBehavior,
+        ownerFilterBehavior,
+        rbacBehavior
+    ],
 
-        properties: {
-            model: {
-                type: Object
+    properties: {
+        model: {
+            type: Object
+        },
+        actions: {
+            type: Array
+        },
+        selectedItems: {
+            type: Array
+        },
+        currency: {
+            type: Object
+        }
+    },
+
+    _isAddPageActive: function(path) {
+        return path == '/+add';
+    },
+
+    _isDetailsPageActive: function(path) {
+        return path && path != '/+add';
+    },
+
+    _isListActive: function(path) {
+        return !path;
+    },
+
+    _getSchedule: function(id) {
+        if (this.model.schedules)
+            return this.model.schedules[id];
+    },
+
+    _addResource: function(e) {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+            url: this.model.sections.schedules.add
+        } }));
+
+    },
+
+    _getFrozenColumn: function() {
+        return ['name'];
+    },
+
+    _getVisibleColumns: function() {
+        var ret = ['task_type', 'schedule', 'selectors', 'created_by', 'total_run_count', 'tags'];
+        if (this.model.org && this.model.org.ownership_enabled == true)
+            ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+        return ret;
+    },
+
+    _getRenderers: function(schedules) {
+        var _this = this;
+        return {
+            'name': {
+                'body': function(item, row) {
+                    return '<strong class="name">' + item + '</strong>';
+                }
             },
-            actions: {
-                type: Array
+            'task_type': {
+                'title': function(item, row) {
+                    return 'task';
+                },
+                'body': function(item, row) {
+                    if (item.action)
+                        return item && item.action.toUpperCase();
+                    else if (item.script_id) {
+                        var scriptName = _this.model.scripts[item.script_id] ? _this.model.scripts[item.script_id].name : "missing script";
+                        return "RUN "+ scriptName;
+                    }
+                }
             },
-            selectedItems: {
-                type: Array
+            'tags': {
+                'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (key in tags) {
+                        display += "<span class='tag'>" + key;
+                        if (tags[key] != undefined && tags[key] != "")
+                            display += "=" + tags[key];
+                        display += "</span>";
+                    }
+                    return display;
+                }
             },
-            currency: {
-                type: Object
-            }
-        },
-
-        _isAddPageActive: function(path) {
-            return path == '/+add';
-        },
-
-        _isDetailsPageActive: function(path) {
-            return path && path != '/+add';
-        },
-
-        _isListActive: function(path) {
-            return !path;
-        },
-
-        _getSchedule: function(id) {
-            if (this.model.schedules)
-                return this.model.schedules[id];
-        },
-
-        _addResource: function(e) {
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                url: this.model.sections.schedules.add
-            } }));
-
-        },
-
-        _getFrozenColumn: function() {
-            return ['name'];
-        },
-
-        _getVisibleColumns: function() {
-            var ret = ['task_type', 'schedule', 'selectors', 'created_by', 'total_run_count', 'tags'];
-            if (this.model.org && this.model.org.ownership_enabled == true)
-                ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-            return ret;
-        },
-
-        _getRenderers: function(schedules) {
-            var _this = this;
-            return {
-                'name': {
-                    'body': function(item, row) {
-                        return '<strong class="name">' + item + '</strong>';
-                    }
+            'owned_by': {
+                'title': function(item, row) {
+                    return 'owner';
                 },
-                'task_type': {
-                    'title': function(item, row) {
-                        return 'task';
-                    },
-                    'body': function(item, row) {
-                        if (item.action)
-                            return item && item.action.toUpperCase();
-                        else if (item.script_id) {
-                            var scriptName = _this.model.scripts[item.script_id] ? _this.model.scripts[item.script_id].name : "missing script";
-                            return "RUN "+ scriptName;
-                        }
-                    }
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'created_by': {
+                'title': function(item, row) {
+                    return 'created by';
                 },
-                'tags': {
-                    'body': function(item, row) {
-                        var tags = item,
-                            display = "";
-                        for (key in tags) {
-                            display += "<span class='tag'>" + key;
-                            if (tags[key] != undefined && tags[key] != "")
-                                display += "=" + tags[key];
-                            display += "</span>";
-                        }
-                        return display;
-                    }
-                },
-                'owned_by': {
-                    'title': function(item, row) {
-                        return 'owner';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'created_by': {
-                    'title': function(item, row) {
-                        return 'created by';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'schedule': {
-                    'body': function(item, row) {
-                        if (item.startsWith("Interval")) {
-                            return item.replace("Interval ", "")
-                        } else if (item.startsWith("OneOff")) {
-                            var isValid = moment().isValid(item.replace("OneOff date to run ", ""));
-                            var time;
-                            if (isValid)
-                                time = moment.utc(item.replace("OneOff date to run ", "")).fromNow();
-                            return time ? time : item;
-                        } else if (item.startsWith("Crontab")) {
-                            return item.replace("Crontab ", "").replace("(m/h/d/dM/MY)", "");
-                        } else
-                            return item;
-                    }
-                },
-                'selectors': {
-                    'body': function(item, row) {
-                        var selectors = item;
-                        var display = '';
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'schedule': {
+                'body': function(item, row) {
+                    if (item.startsWith("Interval")) {
+                        return item.replace("Interval ", "")
+                    } else if (item.startsWith("OneOff")) {
+                        var isValid = moment().isValid(item.replace("OneOff date to run ", ""));
+                        var time;
+                        if (isValid)
+                            time = moment.utc(item.replace("OneOff date to run ", "")).fromNow();
+                        return time ? time : item;
+                    } else if (item.startsWith("Crontab")) {
+                        return item.replace("Crontab ", "").replace("(m/h/d/dM/MY)", "");
+                    } else
+                        return item;
+                }
+            },
+            'selectors': {
+                'body': function(item, row) {
+                    var selectors = item;
+                    var display = '';
 
-                        for (var i = 0; i < selectors.length; i++) {
-                            var missingLength = 0;
-                            if (i == selectors.length - 1 && i > 0)
-                                display += "and ";
-                            if (selectors[i].type == "machines" && selectors[i].ids.length > 0 && _this.model.machines) {
-                                display += "on ";
-                                for (var j = 0; j < selectors[i].ids.length; j++) {
-                                    if (_this.model.machines[selectors[i].ids[j]]) {
-                                        if (j == selectors[i].ids.length - 1 && j > 0 && !missingLength)
-                                            display += "and ";
-                                        display += _this.model.machines[selectors[i].ids[j]].name;
-                                        if (j < selectors[i].ids.length - 2)
-                                            display += ",";
-                                        display += " ";
-                                    } else {
-                                        missingLength++;
-                                    }
-                                }
-                                if (missingLength) {
-                                    if (missingLength < selectors[i].ids.length)
-                                        display += " and "
-                                    display += missingLength + " missing machine"
-                                    if (missingLength > 1)
-                                        display += "s "
-                                    else
-                                        display += " "
-                                }
-                            } else if (selectors[i].type == "tags") {
-                                display += "on tags ";
-                                for (var p in selectors[i].include) {
-                                    display += "<span class='tag'>" + p;
-                                    if (selectors[i].include[p] != undefined && selectors[i].include[p] != "")
-                                        display += "=" + selectors[i].include[p];
-                                    display += "</span>";
+                    for (var i = 0; i < selectors.length; i++) {
+                        var missingLength = 0;
+                        if (i == selectors.length - 1 && i > 0)
+                            display += "and ";
+                        if (selectors[i].type == "machines" && selectors[i].ids.length > 0 && _this.model.machines) {
+                            display += "on ";
+                            for (var j = 0; j < selectors[i].ids.length; j++) {
+                                if (_this.model.machines[selectors[i].ids[j]]) {
+                                    if (j == selectors[i].ids.length - 1 && j > 0 && !missingLength)
+                                        display += "and ";
+                                    display += _this.model.machines[selectors[i].ids[j]].name;
+                                    if (j < selectors[i].ids.length - 2)
+                                        display += ",";
+                                    display += " ";
+                                } else {
+                                    missingLength++;
                                 }
                             }
-                            if (selectors[i].type == "age")
-                                display += "older than " + selectors[i].minutes + "min ";
-                            else if (selectors[i].type == "field" && selectors[i].field == "cost__monthly")
-                                display += "cost more than $" + selectors[i].value + "/month ";
-                            else if (selectors[i].type == "field")
-                                display += selectors[i].field + " " + selectors[i].value + " ";
+                            if (missingLength) {
+                                if (missingLength < selectors[i].ids.length)
+                                    display += " and "
+                                display += missingLength + " missing machine"
+                                if (missingLength > 1)
+                                    display += "s "
+                                else
+                                    display += " "
+                            }
+                        } else if (selectors[i].type == "tags") {
+                            display += "on tags ";
+                            for (var p in selectors[i].include) {
+                                display += "<span class='tag'>" + p;
+                                if (selectors[i].include[p] != undefined && selectors[i].include[p] != "")
+                                    display += "=" + selectors[i].include[p];
+                                display += "</span>";
+                            }
                         }
-
-                        return display;
+                        if (selectors[i].type == "age")
+                            display += "older than " + selectors[i].minutes + "min ";
+                        else if (selectors[i].type == "field" && selectors[i].field == "cost__monthly")
+                            display += "cost more than $" + selectors[i].value + "/month ";
+                        else if (selectors[i].type == "field")
+                            display += selectors[i].field + " " + selectors[i].value + " ";
                     }
+
+                    return display;
                 }
             }
         }
-    });
-    </script>
+    }
+});
+</script>
 </dom-module>

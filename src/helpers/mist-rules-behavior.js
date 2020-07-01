@@ -1,0 +1,46 @@
+import '../../../../@polymer/polymer/polymer-legacy.js';
+/**
+ * Behavior that empties the list selection.
+ *
+ * @polymerBehavior
+ */
+mistRulesBehavior = {
+    properties: {},
+    _rulesApplyOnResource: function(rules, resource, resourceTags, type) {
+        var that = this;
+        if (!resource || !this.model || !this.model.rules)
+            return
+        return Object.values(this.model.rules).filter(function(r) {
+            return r.resource_type == type &&
+                // applies on all resources
+                (!r.selectors || !r.selectors.length ||
+                // applies on this resource
+                r.selectors.filter(function(s){return s.type == type+'s'}).map(x=>x.ids).join().indexOf(resource.id) >- 1 ||
+                // applies on tags
+                that.resourceHasTags(resource,r.resourceTags));
+        });
+    },
+
+    resourceHasTags: function(resource,selectors) {
+        // CAUTION: Selectors' format is as follows
+        //      selectors = [{type:'tags',tags:{test:null,xtest:true}}, {type:'volumes',ids:[]}]
+        // whereas volume tags are in the format
+        //      volume.tags = {test:"", xtest:true, ...}
+        // A selector-tag tupple where value is null, equals to the corresponding volume-tag tupple where value is "" empty string.
+        //      i.e. selectors[0].tags["test"] = null 'EQUALS' volume.tags["test"] = "".
+        // The following returns true if the volume has at least one of the selectors tags
+        if (!resource || !selectors)
+            return false;
+        var bool =  selectors.filter(function(t){return t.type == 'tags'})
+                        .map(x=>x.tags)
+                        .findIndex(function(s){
+                            for (var p in s ) {
+                                if (resource.tags[p] === s[p] || (resource.tags[p] === "" && s[p]=== null)) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }) > -1;
+        return bool;
+    },
+};

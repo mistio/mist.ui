@@ -1,0 +1,356 @@
+import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../../../@polymer/paper-button/paper-button.js';
+import '../../../../@polymer/paper-styles/typography.js';
+import '../../../../@polymer/neon-animation/animations/scale-up-animation.js';
+import '../../../../@polymer/neon-animation/animations/fade-out-animation.js';
+import '../../../../@polymer/paper-progress/paper-progress.js';
+import '../../../../@polymer/iron-icons/iron-icons.js';
+import './tag-item.js';
+import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+
+Polymer({
+  _template: html`
+        <style include="shared-styles dialogs">
+            :host {
+                width: 100%;
+            }
+
+            .tag-list {
+                padding: 0 0 24px 0;
+            }
+
+            .bottom-actions {
+                padding-bottom: 2px;
+                margin-top: 16px;
+                margin-bottom: 16px;
+                overflow: hidden;
+                vertical-align: middle;
+                display: block;
+                width: 100%;
+            }
+
+            paper-dialog {
+                max-width: 450px;
+            }
+
+            paper-button {
+                display: inline;
+            }
+
+            .pull-right {
+                float: right;
+            }
+
+            .submit-btn.add {
+                line-height: 40px;
+                margin: 0;
+            }
+
+            .submit-btn.save {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            #progress {
+                margin-bottom: 16px;
+                margin-top: 0;
+                border-bottom: 1px solid #ddd;
+            }
+            .errorarea {
+                padding: 16px 0;
+                color: var(--red-color) !important;
+            }
+            .errorarea iron-icon {
+                padding-right: 8px;
+            }
+            iron-icon {
+                color: inherit !important;
+            }
+            #progress paper-progress {
+                width: calc(100% + 48px);
+                margin: 0 -24px;
+            }
+            #progress paper-progress[error]>::slotted(#primaryProgress) {
+                background-color: var(--red-color) !important;
+            }
+            paper-dialog-scrollable {
+                margin: 0;
+            }
+        </style>
+
+        <paper-dialog id="tagsModal" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop="">
+            <h2>Tags</h2>
+            <paper-dialog-scrollable>
+                <div class="tag-list">
+                    <p hidden\$="[[!showEmpty]]"><em>No tags. Save to clear all tags.</em></p>
+                    <template is="dom-repeat" items="[[tags]]" as="tag">
+                        <tag-item tag="[[tag]]" index="[[index]]"></tag-item>
+                    </template>
+                </div>
+            </paper-dialog-scrollable>
+            <div id="progress">
+                <paper-progress indeterminate="" hidden\$="[[!showProgress]]"></paper-progress>
+                <paper-progress error="" hidden\$="[[!hasError]]"></paper-progress>
+                <div class="errorarea" hidden\$="[[!hasError]]">
+                    <iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg" hidden\$="[[!hasError]]"></span>
+                </div>
+            </div>
+
+            <div class="clearfix bottom-actions xs12">
+                <paper-button class="submit-btn add" on-tap="_addTag">
+                    <iron-icon icon="add"></iron-icon> Add Tag</paper-button>
+                <paper-button class="submit-btn pull-right blue save" on-tap="_saveTags">Save <span hidden\$="[[showEmpty]]"> Tags</span></paper-button>
+                <paper-button class="pull-right blue-link" dialog-dismiss="">Cancel</paper-button>
+            </div>
+        </paper-dialog>
+        <iron-ajax id="tagsAjaxRequest" url="/api/v1/tags" method="POST" handle-as="xml" on-response="_handleTagsAjaxResponse" on-error="_handleTagsAjaxError"></iron-ajax>
+`,
+
+  is: 'tags-list',
+
+  properties: {
+      resource: {
+          type: String,
+      },
+      model: {
+          type: Object,
+      },
+      items: {
+          type: Array,
+          notify: true
+      },
+      tags: {
+          type: Array
+      },
+      tagsToDelete: {
+          type: Array
+      },
+      hasError: {
+          type: Boolean,
+          value: false
+      },
+      showProgress: {
+          type: Boolean,
+          value: false
+      },
+      showEmpty: {
+          type: Boolean,
+          computed: "_computeShowEmpty(tags, tags.length)",
+          value: false,
+          notify: true
+      }
+  },
+
+  observers: [
+      'selectedItemsChanged(items.splices)'
+  ],
+
+  listeners: {
+      'iron-overlay-closed': '_modalClosed',
+      'tag-delete': '_tagDeleteHandler',
+      'tag-change': '_tagUpdate'
+  },
+
+  ready: function(){
+      this.set('items', []);
+      this.set('tags', []);
+      this.set('tagsToDelete', []);
+  },
+
+  _openDialog: function(e) {
+      this.shadowRoot.querySelector('paper-dialog').open();
+  },
+
+  _closeDialog: function() {
+      this.shadowRoot.querySelector('paper-dialog').close();
+  },
+
+  _modalClosed: function(e) {
+      this.set('tagsToDelete', []);
+      this.set('showProgress', false);
+      this.set('hasError', false);
+      this.$.errormsg.textContent = '';
+  },
+
+  selectedItemsChanged: function(splices){
+      // console.log('selectedItemsChanged', splices);
+      // freeze updating of selectedItems when dialog is open
+      if (!this.$.tagsModal.opened)
+          this._computeTags(this.items);
+  },
+
+  _computeShowEmpty: function(tags, length){
+      if (this.tags && this.tags.length>0)
+          return false;
+      else
+          return true;
+  },
+
+  _computeTags: function(lengths) {
+      var tags = this._computeCommonTags(this.items);
+      // console.log('_computeTags',tags.length);
+      if (!tags.length) {
+          tags = [{
+              key: '',
+              value: ''
+          }];
+      }
+      this.set('tags', tags);
+  },
+
+  _computeCommonTags: function(items) {
+      var tags = [],
+          tagset = new swiftSet.Set(),
+          isection = new swiftSet.Set();
+
+      for (var i = 0; i < items.length; i++) {
+
+          var item = items[i];
+
+          var itemType = item.split(":")[0],
+              itemCloudId = item.split(":")[1],
+              itemId = item.split(":")[2],
+              itemObj = {};
+          if (['machine', 'image'].indexOf(itemType) != -1 && itemCloudId)
+              itemObj = this.model.clouds[itemCloudId][itemType+'s'][itemId];
+          else {
+              itemObj = this.model[itemType+'s'][itemId];
+          }
+          if (itemObj) {
+
+              if (!itemObj.tags)
+                  itemObj.tags = [];
+              // TO FIX: network tags should not be type 'object', but Array of objects
+              // only networks return their tags in such format. Below code patches it.
+              else if (itemObj.tags && typeof(itemObj.tags) == 'object') {
+                  var foo = []
+                  for (var p in itemObj.tags) {
+                      foo.push(itemObj.tags[p])
+                  }
+                  itemObj.tags = foo;
+              }
+
+              if (i == 0) {
+                  // console.log('itemObj.tags',itemObj.tags);
+                  tagset.addItems(itemObj.tags.map(function(tag){
+                      return tag.key+'='+tag.value;
+                  }));
+              }
+              else {
+                  isection.clear()
+                  isection.addItems(tagset.intersection(itemObj.tags.map(function(tag){
+                          return tag.key+'='+tag.value;
+                      }) || []));
+                  tagset.clear();
+                  tagset.addItems(isection.items());
+              }
+          }
+      }
+
+      return tagset.items().map(function(item){
+          return {key: item.split('=')[0],
+                  value: item.split('=')[1]};
+      }) || [];
+  },
+
+  _addTag: function() {
+      var newTag = {
+          key: '',
+          value: ''
+      };
+      this.push('tags', newTag);
+  },
+
+  _tagDeleteHandler: function(e) {
+      var tag = e.detail.tag,
+          index = this.tags.indexOf(tag);
+          this.splice('tags', index, 1);
+      if (tag.key && !this._inArray(tag, this.tagsToDelete)) {
+          tag.op = "-";
+          this.push('tagsToDelete', tag);
+      }
+  },
+
+  _tagUpdate: function(e){
+      // this._tagDeleteHandler(e);
+      console.log(e.detail);
+
+      var oldTag = e.detail.oldTag;
+      var newTag = e.detail.newTag;
+
+      //move old tag to tags to delete
+      if (oldTag.key && oldTag.key != newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
+          oldTag.op = "-";
+          this.push('tagsToDelete', oldTag);
+      }
+  },
+
+  _inArray: function(tag, tagstodelete){
+      var tin = this.tagsToDelete.find(function(t){
+          return t.key == tag.key;
+      })
+      console.log('tin', tin);
+      return tin ? true : false;
+  },
+
+  _saveTags: function() {
+      // console.log('_saveTags', this.items);
+      var newTags = this.tags.filter(function(tag) {
+              return tag.key;
+          }),
+          payload = [],
+          deltags = [];
+
+      if (this.tagsToDelete.length > 0) {
+          deltags = this.tagsToDelete.filter(function(tag){
+              return tag.key != "";
+          });
+      }
+
+      payload = this.items.map(function(item) {
+          var itemType = item.split(":")[0],
+              itemCloudId = item.split(":")[1],
+              itemId = item.split(":")[2];
+
+          var newItem = {};
+
+          if (itemType == "machine") {
+              newItem.resource = {
+                  type: itemType,
+                  item_id: this.model.machines[itemId].machine_id,
+                  cloud_id: this.model.machines[itemId].cloud.id
+              };
+          }
+          else {
+              newItem.resource = {
+                  type: itemType,
+                  item_id: itemId,
+                  cloud_id: ['image', 'network'].indexOf(itemType) != -1 ? itemCloudId : ''
+              };
+          }
+          newItem.tags = newTags.concat(deltags);
+          return newItem;
+      }, this);
+      console.log('payload',payload);
+
+      this.$.tagsAjaxRequest.body = payload;
+      this.$.tagsAjaxRequest.headers["Content-Type"] = 'application/json';
+      this.$.tagsAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.tagsAjaxRequest.generateRequest();
+
+      this.set('showProgress', true);
+  },
+
+  _handleTagsAjaxResponse: function(e) {
+      this._closeDialog();
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Tags were updated!',duration:3000} }));
+
+  },
+
+  _handleTagsAjaxError: function(e){
+      console.log('Tags Error',e, e.detail.request.xhr.responseText);
+      this.set('showProgress', false);
+      this.set('hasError', true);
+      this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+  }
+});

@@ -1,13 +1,13 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<script type="module" src="../../../@polymer/polymer/polymer-legacy.js"></script>
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
 
-<link rel="import" href="volumes/volume-create.html">
-<link rel="import" href="volumes/volume-page.html">
-<link rel="import" href="volumes/volume-actions.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="helpers/owner-filter-behavior.html">
+<script type="module" src="./volumes/volume-create.js"></script>
+<script type="module" src="./volumes/volume-page.js"></script>
+<script type="module" src="./volumes/volume-actions.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
+<script type="module" src="./helpers/owner-filter-behavior.js"></script>
 
 
 <dom-module id="page-volumes">
@@ -45,144 +45,154 @@
         <volume-create model="[[model]]" section="[[model.sections.volumes]]" hidden$=[[!_isAddPageActive(route.path)]]></volume-create>
         <volume-page model="[[model]]" volume="[[_getVolume(data.volume, model.volumes, model.volumes.*)]]" resource-id="[[data.volume]]" section="[[model.sections.volumes]]" hidden$=[[!_isDetailsPageActive(route.path)]]></volume-page>
     </template>
-    <script>
-    Polymer({
-        is: 'page-volumes',
-        behaviors: [
-            ownerFilterBehavior,
-            rbacBehavior
-        ],
+    <script type="module">
+import '../../../@polymer/polymer/polymer-legacy.js';
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import './volumes/volume-create.js';
+import './volumes/volume-page.js';
+import './volumes/volume-actions.js';
+import './helpers/mist-lists-behavior.js';
+import './helpers/owner-filter-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-volumes',
+    behaviors: [
+        ownerFilterBehavior,
+        rbacBehavior
+    ],
 
-        properties: {
-            model: {
-                type: Object
+    properties: {
+        model: {
+            type: Object
+        },
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+            type: Array,
+            notify: true
+        }
+    },
+
+    _isAddPageActive: function(path) {
+        return path == '/+add';
+    },
+
+    _isDetailsPageActive: function(path) {
+        return path && path != '/+add';
+    },
+
+    _isListActive: function(path) {
+        return !path;
+    },
+
+    _getVolume: function(id) {
+        // console.log('_getVolume',this.model.volumes);
+        if (this.model.volumes) {
+            return this.model.volumes[id];
+        }
+    },
+
+    _addResource: function(e) {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+            url: this.model.sections.volumes.add
+        } }));
+
+    },
+
+    _getFrozenColumn: function() {
+        return ['name'];
+    },
+
+    _getVisibleColumns: function() {
+        var ret = ['provider', 'size', 'attached_to', 'owned_by', 'created_by', 'tags'];
+        if (this.model.org && this.model.org.ownership_enabled != true)
+            ret.splice(ret.indexOf('owned_by'), 1);
+        return ret;
+    },
+
+    _getRenderers: function(volumes, clouds) {
+        var _this = this;
+        return {
+            'name': {
+                'body': function(item, row) {
+                    return '<strong class="name">' + (item || row.external_id) + '</strong>';
+                }
             },
-            actions: {
-                type: Array,
-                notify: true
-            },
-            selectedItems: {
-                type: Array,
-                notify: true
-            }
-        },
-
-        _isAddPageActive: function(path) {
-            return path == '/+add';
-        },
-
-        _isDetailsPageActive: function(path) {
-            return path && path != '/+add';
-        },
-
-        _isListActive: function(path) {
-            return !path;
-        },
-
-        _getVolume: function(id) {
-            // console.log('_getVolume',this.model.volumes);
-            if (this.model.volumes) {
-                return this.model.volumes[id];
-            }
-        },
-
-        _addResource: function(e) {
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                url: this.model.sections.volumes.add
-            } }));
-
-        },
-
-        _getFrozenColumn: function() {
-            return ['name'];
-        },
-
-        _getVisibleColumns: function() {
-            var ret = ['provider', 'size', 'attached_to', 'owned_by', 'created_by', 'tags'];
-            if (this.model.org && this.model.org.ownership_enabled != true)
-                ret.splice(ret.indexOf('owned_by'), 1);
-            return ret;
-        },
-
-        _getRenderers: function(volumes, clouds) {
-            var _this = this;
-            return {
-                'name': {
-                    'body': function(item, row) {
-                        return '<strong class="name">' + (item || row.external_id) + '</strong>';
-                    }
-                },
-                'icon': {
-                    'body': function(item, row) {
-                        if (!_this.model.clouds[row.cloud])
-                            return '';
-                        return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                            .replace(" ", "") + '.png';
-                    }
-                },
-                'provider': {
-                    'title': 'cloud',
-                    'body': function(item, row) {
-                        return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
-                            _this.model.clouds[row.cloud].title : item;
-                    }
-                },
-                'owned_by': {
-                    'title': 'owner',
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'created_by': {
-                    'title': 'created by',
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'size': {
-                    'body': function(item, row) {
-                        return '<span style="display:block;text-align:right; padding-right:50px;">' + item + ' GΒ</span>';
-                    }
-                },
-                'attached_to': {
-                    'title': 'attached to',
-                    'body': function(item, row) {
-                        if (item)
-                            return item.map(x => _this.model.machines[x] && _this.model.machines[x].name || '').join(' ');
+            'icon': {
+                'body': function(item, row) {
+                    if (!_this.model.clouds[row.cloud])
                         return '';
+                    return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
+                        .replace(" ", "") + '.png';
+                }
+            },
+            'provider': {
+                'title': 'cloud',
+                'body': function(item, row) {
+                    return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
+                        _this.model.clouds[row.cloud].title : item;
+                }
+            },
+            'owned_by': {
+                'title': 'owner',
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'created_by': {
+                'title': 'created by',
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'size': {
+                'body': function(item, row) {
+                    return '<span style="display:block;text-align:right; padding-right:50px;">' + item + ' GΒ</span>';
+                }
+            },
+            'attached_to': {
+                'title': 'attached to',
+                'body': function(item, row) {
+                    if (item)
+                        return item.map(x => _this.model.machines[x] && _this.model.machines[x].name || '').join(' ');
+                    return '';
+                }
+            },
+            'volume_type': {
+                'title': 'volume type',
+                'body': function(item, row) {
+                    return row && row.extra && row.extra.volume_type || '';
+                }
+            },
+            'state': {
+                'body': function(item, row) {
+                    return row && row.extra && row.extra.state || '';
+                }
+            },
+            'location': {
+                'body': function(item, row) {
+                    return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] && _this.model.clouds[row.cloud].locations && _this.model.clouds[row.cloud].locations[item] ? _this.model.clouds[row.cloud].locations[item].name : item;
+                }
+            },
+            'tags': {
+                'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (key in tags) {
+                        display += "<span class='tag'>" + key;
+                        if (tags[key] != undefined && tags[key] != "")
+                            display += "=" + tags[key];
+                        display += "</span>";
                     }
-                },
-                'volume_type': {
-                    'title': 'volume type',
-                    'body': function(item, row) {
-                        return row && row.extra && row.extra.volume_type || '';
-                    }
-                },
-                'state': {
-                    'body': function(item, row) {
-                        return row && row.extra && row.extra.state || '';
-                    }
-                },
-                'location': {
-                    'body': function(item, row) {
-                        return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] && _this.model.clouds[row.cloud].locations && _this.model.clouds[row.cloud].locations[item] ? _this.model.clouds[row.cloud].locations[item].name : item;
-                    }
-                },
-                'tags': {
-                    'body': function(item, row) {
-                        var tags = item,
-                            display = "";
-                        for (key in tags) {
-                            display += "<span class='tag'>" + key;
-                            if (tags[key] != undefined && tags[key] != "")
-                                display += "=" + tags[key];
-                            display += "</span>";
-                        }
-                        return display;
-                    }
+                    return display;
                 }
             }
         }
-    });
-    </script>
+    }
+});
+</script>
 </dom-module>

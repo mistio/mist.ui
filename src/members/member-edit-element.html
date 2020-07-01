@@ -1,8 +1,8 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
-<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<script type="module" src="../../../../@polymer/polymer/polymer-legacy.js"></script>
+<script type="module" src="../../../../@polymer/paper-styles/typography.js"></script>
+<script type="module" src="../../../../@polymer/paper-button/paper-button.js"></script>
+<script type="module" src="../../../../@polymer/neon-animation/animations/scale-up-animation.js"></script>
+<script type="module" src="../../../../@polymer/neon-animation/animations/fade-out-animation.js"></script>
 <dom-module id="member-edit-element">
     <template>
         <style include="shared-styles dialogs">
@@ -26,68 +26,71 @@
         </paper-dialog>
         <iron-ajax id="editMemberAjax" url="/members/[[member.id]]" method="POST" on-request="_ajaxRequest" on-response="_ajaxResponse"></iron-ajax>
     </template>
-    <script>
-    (function() {
-        'use strict';
+    <script type="module">
+import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../../../@polymer/paper-styles/typography.js';
+import '../../../../@polymer/paper-button/paper-button.js';
+import '../../../../@polymer/neon-animation/animations/scale-up-animation.js';
+import '../../../../@polymer/neon-animation/animations/fade-out-animation.js';
+import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
 
-        Polymer({
-            is: 'member-edit-element',
+Polymer({
+    is: 'member-edit-element',
 
-            properties: {
-                member: {
-                    type: Object
-                },
-                sendingData: {
-                    type: Boolean,
-                    value: false
-                },
-                formReady: {
-                    type: Boolean,
-                    computed: '_computeFormReady(member.name, member.role, sendingData)'
-                }
-            },
-            ready: function() {
+    properties: {
+        member: {
+            type: Object
+        },
+        sendingData: {
+            type: Boolean,
+            value: false
+        },
+        formReady: {
+            type: Boolean,
+            computed: '_computeFormReady(member.name, member.role, sendingData)'
+        }
+    },
+    ready: function() {
 
-            },
-            _computeFormReady: function(name, role, sendingData) {
-                var formReady = false;
+    },
+    _computeFormReady: function(name, role, sendingData) {
+        var formReady = false;
 
-                if (name && role) {
-                    formReady = true;
-                }
+        if (name && role) {
+            formReady = true;
+        }
 
-                if (sendingData) {
-                    formReady = false;
-                }
+        if (sendingData) {
+            formReady = false;
+        }
 
-                return formReady;
-            },
-            _closeEditMemberModal: function(e) {
-                this.shadowRoot.querySelector('paper-dialog').close();
-            },
-            _openEditMemberModal: function(e) {
-                this.shadowRoot.querySelector('paper-dialog').open();
-            },
-            _submitForm: function(e) {
-                this.dispatchEvent(new CustomEvent('updateSelectedMember', { bubbles: true, composed: true, detail: {
-                    member: this.member
-                } }));
+        return formReady;
+    },
+    _closeEditMemberModal: function(e) {
+        this.shadowRoot.querySelector('paper-dialog').close();
+    },
+    _openEditMemberModal: function(e) {
+        this.shadowRoot.querySelector('paper-dialog').open();
+    },
+    _submitForm: function(e) {
+        this.dispatchEvent(new CustomEvent('updateSelectedMember', { bubbles: true, composed: true, detail: {
+            member: this.member
+        } }));
 
-                this._closeEditMemberModal();
-            },
-            _formReset: function() {
+        this._closeEditMemberModal();
+    },
+    _formReset: function() {
 
-            },
-            _editMemberAjax: function(e) {
-                //   this.$.editMemberAjax.generateRequest();
-            },
-            _editMemberRequest: function() {
-                this.set('sendingData', true);
-            },
-            _editMemberResponse: function(e) {
-                this.set('sendingData', false);
-            }
-        });
-    })();
-    </script>
+    },
+    _editMemberAjax: function(e) {
+        //   this.$.editMemberAjax.generateRequest();
+    },
+    _editMemberRequest: function() {
+        this.set('sendingData', true);
+    },
+    _editMemberResponse: function(e) {
+        this.set('sendingData', false);
+    }
+});
+</script>
 </dom-module>

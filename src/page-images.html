@@ -1,12 +1,12 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
 
-<link rel="import" href="images/image-page.html">
-<link rel="import" href="images/image-actions.html">
-<link rel="import" href="images/image-provider-search.html">
+<script type="module" src="./images/image-page.js"></script>
+<script type="module" src="./images/image-actions.js"></script>
+<script type="module" src="./images/image-provider-search.js"></script>
 
-<link rel="import" href="helpers/mist-lists-behavior.html">
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
 
 <dom-module id="page-images">
     <template>
@@ -59,138 +59,146 @@
 
     </template>
 
-    <script>
-        Polymer({
-            is: 'page-images',
-            behaviors: [
-                mistListsBehavior
-            ],
-            properties: {
-                model: {
-                    type: Object
-                },
-                items: {
-                    type: Array
-                },
-                filteredItems: {
-                    type: Array
-                },
-                combinedFilter: {
-                    type: String
-                },
-                filteredItemsLength: {
-                    type: String
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import './images/image-page.js';
+import './images/image-actions.js';
+import './images/image-provider-search.js';
+import './helpers/mist-lists-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-images',
+    behaviors: [
+        mistListsBehavior
+    ],
+    properties: {
+        model: {
+            type: Object
+        },
+        items: {
+            type: Array
+        },
+        filteredItems: {
+            type: Array
+        },
+        combinedFilter: {
+            type: String
+        },
+        filteredItemsLength: {
+            type: String
+        }
+    },
+    listeners: {},
+    _isDetailsPageActive: function (path) {
+        if (path && this.$.imagePage)
+            this.$.imagePage.updateState();
+        return path;
+    },
+    _isListActive: function (path) {
+        return !path;
+    },
+    _getImage: function (route) {
+        // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
+        if (this.model.images)
+            return this.model.images[route.path.slice(1, route.path.length)];
+    },
+    _getImageId: function (route) {
+        if (route.path.slice(1, route.path.length) && this.shadowRoot && this.shadowRoot.querySelector('image-page')) {
+            this.shadowRoot.querySelector('image-page').updateState();
+        }
+        return route.path.slice(1, route.path.length);
+    },
+    _addResource: function (e) {
+        this.searchOnProviders();
+    },
+    _getFrozenColumn: function () {
+        return ['name'];
+    },
+    _getVisibleColumns: function () {
+        return ['starred', 'cloud', 'created_by', 'id'/*, 'tags'*/];
+    },
+    _getRenderers: function (keys) {
+        var _this = this;
+        return {
+            'name': {
+                'body': function (item, row) {
+                    var name = item == "<none>:<none>" ? row.id : item;
+                    if (row.star)
+                        return '<strong class="name starred">' + name + '</strong>';
+                    else
+                        return '<strong class="name unstarred">' + name + '</strong>';
                 }
             },
-            listeners: {},
-            _isDetailsPageActive: function (path) {
-                if (path && this.$.imagePage)
-                    this.$.imagePage.updateState();
-                return path;
-            },
-            _isListActive: function (path) {
-                return !path;
-            },
-            _getImage: function (route) {
-                // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
-                if (this.model.images)
-                    return this.model.images[route.path.slice(1, route.path.length)];
-            },
-            _getImageId: function (route) {
-                if (route.path.slice(1, route.path.length) && this.shadowRoot && this.shadowRoot.querySelector('image-page')) {
-                    this.shadowRoot.querySelector('image-page').updateState();
-                }
-                return route.path.slice(1, route.path.length);
-            },
-            _addResource: function (e) {
-                this.searchOnProviders();
-            },
-            _getFrozenColumn: function () {
-                return ['name'];
-            },
-            _getVisibleColumns: function () {
-                return ['starred', 'cloud', 'created_by', 'id'/*, 'tags'*/];
-            },
-            _getRenderers: function (keys) {
-                var _this = this;
-                return {
-                    'name': {
-                        'body': function (item, row) {
-                            var name = item == "<none>:<none>" ? row.id : item;
-                            if (row.star)
-                                return '<strong class="name starred">' + name + '</strong>';
-                            else
-                                return '<strong class="name unstarred">' + name + '</strong>';
-                        }
-                    },
-                    'cloud': {
-                        'body': function (item, row) {
-                            return row && row.cloud ? row.cloud.title : '';
-                        }
-                    },
-                    'starred': {
-                        'body': function (item, row) {
-                            return item ? '<iron-icon icon="star" class="starred"></iron-icon>' :
-                                '<iron-icon icon="star-border" class="unstarred"></iron-icon>';
-                        }
-                    },
-                    'owned_by': {
-                        'title': function (item, row) {
-                            return 'owner';
-                        },
-                        'body': function (item, row) {
-                            return _this.model.members[item] ? _this.model.members[item].name || _this.model
-                                .members[item].email || _this.model.members[item].username : '';
-                        }
-                    },
-                    'created_by': {
-                        'title': function (item, row) {
-                            return 'created by';
-                        },
-                        'body': function (item, row) {
-                            return _this.model.members[item] ? _this.model.members[item].name || _this.model
-                                .members[item].email|| _this.model.members[item].username : '';
-                        }
-                    },
-                    'tags': {
-                        'body': function (item, row) {
-                            var tags = item,
-                                display = "";
-                            for (key in tags) {
-                                display += "<span class='tag'>" + key;
-                                if (tags[key] != undefined && tags[key] != "")
-                                    display += "=" + tags[key];
-                                display += "</span>";
-                            }
-                            return display;
-                        }
-                    }
+            'cloud': {
+                'body': function (item, row) {
+                    return row && row.cloud ? row.cloud.title : '';
                 }
             },
-            searchableClouds: function (clouds) {
-                return clouds.filter(function (c) {
-                    return ['ec2', 'docker'].indexOf(c.provider) > -1;
-                });
+            'starred': {
+                'body': function (item, row) {
+                    return item ? '<iron-icon icon="star" class="starred"></iron-icon>' :
+                        '<iron-icon icon="star-border" class="unstarred"></iron-icon>';
+                }
             },
-            sortedImages: function (images) {
-                return this.model.imagesArray.sort(function (a, b) {
-                    //if both properties exist
-                    if (a.star > b.star) {
-                        return -1;
-                    }
-                    if (a.star < b.star) {
-                        return 1;
-                    }
-                    return 0;
-                }.bind(this));
+            'owned_by': {
+                'title': function (item, row) {
+                    return 'owner';
+                },
+                'body': function (item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model
+                        .members[item].email || _this.model.members[item].username : '';
+                }
             },
-
-            searchOnProviders: function () {
-                if (this.$.imageprovidersearch) {
-                    this.$.imageprovidersearch._openDialog();
+            'created_by': {
+                'title': function (item, row) {
+                    return 'created by';
+                },
+                'body': function (item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model
+                        .members[item].email|| _this.model.members[item].username : '';
+                }
+            },
+            'tags': {
+                'body': function (item, row) {
+                    var tags = item,
+                        display = "";
+                    for (key in tags) {
+                        display += "<span class='tag'>" + key;
+                        if (tags[key] != undefined && tags[key] != "")
+                            display += "=" + tags[key];
+                        display += "</span>";
+                    }
+                    return display;
                 }
             }
-
+        }
+    },
+    searchableClouds: function (clouds) {
+        return clouds.filter(function (c) {
+            return ['ec2', 'docker'].indexOf(c.provider) > -1;
         });
-    </script>
+    },
+    sortedImages: function (images) {
+        return this.model.imagesArray.sort(function (a, b) {
+            //if both properties exist
+            if (a.star > b.star) {
+                return -1;
+            }
+            if (a.star < b.star) {
+                return 1;
+            }
+            return 0;
+        }.bind(this));
+    },
+
+    searchOnProviders: function () {
+        if (this.$.imageprovidersearch) {
+            this.$.imageprovidersearch._openDialog();
+        }
+    }
+
+});
+</script>
 </dom-module>

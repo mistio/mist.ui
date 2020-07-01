@@ -1,0 +1,79 @@
+import '../../../../@polymer/polymer/polymer-legacy.js';
+/**
+ * Behavior that validates a rule.
+ *
+ * @polymerBehavior
+ */
+validateRuleBehavior = {
+    _validateRule: function(rule, actions, queries) {
+        this.debounce('_validateRule', function () {
+            this._actuallyValidateRule(rule, actions, queries);
+        }, 100);
+    },
+    _actuallyValidateRule: function (rule, actions, queries) {
+        var valid = true,
+            validActions,
+            validQueries;
+        if (!this.rule || !this.rule.actions || !this.rule.queries) {
+            valid = false;
+        } else {
+            for (var p in this.rule) {
+                // console.log('this.rule[p]', p, this.rule[p])
+                // don't break on resource_type or selectors, 
+                if (['resource_type','selectors'].indexOf(p) == -1 && this.rule[p] == undefined) {
+                    valid = false;
+                    break;
+                }
+            }
+            for (var i = 0; i < this.rule.actions.length; i++) {
+                validActions = this._validateAction(this.rule.actions[i]);
+                if (!validActions) {
+                    break;
+                }
+            }
+            for (var j = 0; j < this.rule.queries.length; j++) {
+                validQueries = this._validateQuery(this.rule.queries[j]);
+                if (!validQueries) {
+                    break;
+                }
+            }
+        }
+        this.set('isValidRule', valid && validActions && validQueries);
+        console.log('isValidRule', valid,  validActions, validQueries);
+    },
+    _validateAction: function(action) {
+        var valid = false;
+        if (action.type == 'reboot' || action.type == 'destroy') {
+            valid = true;
+        } else if (action.type == 'alert') {
+            if ((action.emails && action.emails.length && !action.emailsInvalid) ||
+                (action.teams && action.teams.length) ||
+                (action.users && action.users.length)) {
+                valid = true;
+            }
+        } else if (action.type == 'run') {
+            if (action.command && action.command.length) {
+                valid = true;
+            }
+        } else if (action.type == 'no_data') {
+            valid = true;
+        } else if (action.type == 'webhook') {
+            if (action.url && action.method) {
+                valid = true;
+            }
+        }
+        return valid;
+    },
+    _validateQuery: function(query) {
+        var valid = false;
+        if (query.target && query.operator && query.threshold != undefined)
+            valid = true;
+        return valid;
+    },
+    _validateSelectors: function(selector) {
+        var valid = false;
+        if (selector.type && selector.ids && selector.ids.length)
+            valid = true;
+        return valid;
+    }
+};

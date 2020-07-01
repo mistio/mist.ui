@@ -1,12 +1,12 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
 
-<link rel="import" href="zones/zone-add.html">
-<link rel="import" href="zones/zone-actions.html">
-<link rel="import" href="zones/zone-page.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="helpers/owner-filter-behavior.html">
+<script type="module" src="./zones/zone-add.js"></script>
+<script type="module" src="./zones/zone-actions.js"></script>
+<script type="module" src="./zones/zone-page.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
+<script type="module" src="./helpers/owner-filter-behavior.js"></script>
 
 
 <dom-module id="page-zones">
@@ -47,136 +47,145 @@
         <zone-add model="[[model]]" section="[[model.sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></zone-add>
         <zone-page model="[[model]]" zone="[[_getZone(data.zone, model.zones, model.zones.*)]]" resource-id="[[data.zone]]" section="[[model.sections.zones]]" hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
     </template>
-    <script>
-    Polymer({
-        is: 'page-zones',
-        behaviors: [
-            mistListsBehavior,
-            ownerFilterBehavior,
-            rbacBehavior
-        ],
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import './zones/zone-add.js';
+import './zones/zone-actions.js';
+import './zones/zone-page.js';
+import './helpers/mist-lists-behavior.js';
+import './helpers/owner-filter-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-zones',
+    behaviors: [
+        mistListsBehavior,
+        ownerFilterBehavior,
+        rbacBehavior
+    ],
 
-        properties: {
-            model: {
-                type: Object
+    properties: {
+        model: {
+            type: Object
+        },
+        ownership: {
+            type: Boolean
+        },
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+            type: Array,
+            notify: true
+        }
+    },
+
+    listeners: {},
+
+    _isAddPageActive: function(path) {
+        return path == '/+add';
+    },
+    _isDetailsPageActive: function(path) {
+        if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('zone-page'))
+            this.shadowRoot.querySelector('zone-page').updateState();
+        return path && path != '/+add';
+    },
+    _isListActive: function(path) {
+        return !path;
+    },
+    _getZone: function(id) {
+        if (this.model.zones)
+            return this.model.zones[id];
+    },
+    _addResource: function(e) {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+            url: this.model.sections.zones.add
+        } }));
+
+    },
+    _getFrozenColumn: function() {
+        return ['domain'];
+    },
+
+    _getVisibleColumns: function() {
+        var ret = ['provider', 'type', 'created_by', 'id', 'ttl', 'records', 'tags'];
+        if (this.model.org && this.model.org.ownership_enabled == true)
+            ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+        return ret;
+    },
+
+    _getRenderers: function(zones) {
+        var _this = this,
+            providerMap = {
+                'gce': 'Google',
+                'ec2': 'Route53',
+                'digitalocean': 'DigitalOcean',
+                'linode': 'Linode',
+                'vultr': 'Vultr',
+                'softlayer': 'SoftLayer'
+            };
+        return {
+            'domain': {
+                'body': function(item, row) {
+                    return '<strong class="name">' + item + '</strong>';
+                }
             },
-            ownership: {
-                type: Boolean
-            },
-            actions: {
-                type: Array,
-                notify: true
-            },
-            selectedItems: {
-                type: Array,
-                notify: true
-            }
-        },
-
-        listeners: {},
-
-        _isAddPageActive: function(path) {
-            return path == '/+add';
-        },
-        _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('zone-page'))
-                this.shadowRoot.querySelector('zone-page').updateState();
-            return path && path != '/+add';
-        },
-        _isListActive: function(path) {
-            return !path;
-        },
-        _getZone: function(id) {
-            if (this.model.zones)
-                return this.model.zones[id];
-        },
-        _addResource: function(e) {
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                url: this.model.sections.zones.add
-            } }));
-
-        },
-        _getFrozenColumn: function() {
-            return ['domain'];
-        },
-
-        _getVisibleColumns: function() {
-            var ret = ['provider', 'type', 'created_by', 'id', 'ttl', 'records', 'tags'];
-            if (this.model.org && this.model.org.ownership_enabled == true)
-                ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-            return ret;
-        },
-
-        _getRenderers: function(zones) {
-            var _this = this,
-                providerMap = {
-                    'gce': 'Google',
-                    'ec2': 'Route53',
-                    'digitalocean': 'DigitalOcean',
-                    'linode': 'Linode',
-                    'vultr': 'Vultr',
-                    'softlayer': 'SoftLayer'
-                };
-            return {
-                'domain': {
-                    'body': function(item, row) {
-                        return '<strong class="name">' + item + '</strong>';
-                    }
-                },
-                'icon': {
-                    'body': function(item, row) {
-                        if (!_this.model.clouds[row.cloud])
-                            return '';
-                        return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                            .replace(" ", "") + '.png';
-                    }
-                },
-                'provider': {
-                    'body': function(item, row) {
-                        if (_this.model.clouds && _this.model.clouds[row.cloud]) {
-                            var provider = _this.model.clouds[row.cloud].provider;
-                            return providerMap[provider] || provider;
-                        }
+            'icon': {
+                'body': function(item, row) {
+                    if (!_this.model.clouds[row.cloud])
                         return '';
+                    return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
+                        .replace(" ", "") + '.png';
+                }
+            },
+            'provider': {
+                'body': function(item, row) {
+                    if (_this.model.clouds && _this.model.clouds[row.cloud]) {
+                        var provider = _this.model.clouds[row.cloud].provider;
+                        return providerMap[provider] || provider;
                     }
+                    return '';
+                }
+            },
+            'records': {
+                'body': function(item, row) {
+                    var ids = item ? Object.keys(item) : [];
+                    return ids.length;
+                }
+            },
+            'owned_by': {
+                'title': function(item, row) {
+                    return 'owner';
                 },
-                'records': {
-                    'body': function(item, row) {
-                        var ids = item ? Object.keys(item) : [];
-                        return ids.length;
-                    }
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'created_by': {
+                'title': function(item, row) {
+                    return 'created by';
                 },
-                'owned_by': {
-                    'title': function(item, row) {
-                        return 'owner';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'tags': {
+                'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (key in tags) {
+                        display += "<span class='tag'>" + key;
+                        if (tags[key] != undefined && tags[key] != "")
+                            display += "=" + tags[key];
+                        display += "</span>";
                     }
-                },
-                'created_by': {
-                    'title': function(item, row) {
-                        return 'created by';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'tags': {
-                    'body': function(item, row) {
-                        var tags = item,
-                            display = "";
-                        for (key in tags) {
-                            display += "<span class='tag'>" + key;
-                            if (tags[key] != undefined && tags[key] != "")
-                                display += "=" + tags[key];
-                            display += "</span>";
-                        }
-                        return display;
-                    }
+                    return display;
                 }
             }
         }
-    });
-    </script>
+    }
+});
+</script>
 </dom-module>

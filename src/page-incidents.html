@@ -1,7 +1,7 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="helpers/get-resource-from-incident-behavior.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
+<script type="module" src="./helpers/get-resource-from-incident-behavior.js"></script>
 
 <dom-module id="page-incidents">
     <template>
@@ -25,105 +25,110 @@
             </mist-list>
         </template>
     </template>
-    <script>
-        Polymer({
-            is: 'page-incidents',
-            behaviors: [
-                mistListsBehavior,
-                getResourceFromIncidentBehavior
-            ],
-            properties: {
-                model: {
-                    type: Object
-                }
-            },
-            listeners: {
-                click: 'resizeList'
-            },
-            observers: [
-                'incidentsChanged(model.incidents.*)'
-            ],
-            incidentsChanged: function (incidents) {
-                if (incidents.path == 'model.incidents' && this.shadowRoot.querySelector('mist-list')) {
-                    this.shadowRoot.querySelector('mist-list').fire('resize');
-                }
-            },
-            _isListActive: function (path) {
-                return !path;
-            },
-            _getFrozenLogColumn: function () {
-                return ['started_at'];
-            },
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import './helpers/mist-lists-behavior.js';
+import './helpers/get-resource-from-incident-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-incidents',
+    behaviors: [
+        mistListsBehavior,
+        getResourceFromIncidentBehavior
+    ],
+    properties: {
+        model: {
+            type: Object
+        }
+    },
+    listeners: {
+        click: 'resizeList'
+    },
+    observers: [
+        'incidentsChanged(model.incidents.*)'
+    ],
+    incidentsChanged: function (incidents) {
+        if (incidents.path == 'model.incidents' && this.shadowRoot.querySelector('mist-list')) {
+            this.shadowRoot.querySelector('mist-list').fire('resize');
+        }
+    },
+    _isListActive: function (path) {
+        return !path;
+    },
+    _getFrozenLogColumn: function () {
+        return ['started_at'];
+    },
 
-            _getVisibleColumns: function () {
-                return ['resource_id', 'cloud_id', 'incident_id', 'error'];
-            },
-            // TODO compute columns for all resources' incidents
-            _getRenderers: function () {
-                var _this = this;
-                return {
-                    'started_at': {
-                        'title': function (item) {
-                            return item ? item.replace(/_/g, " ") : 'started at';
-                        },
-                        'body': function (item, row) {
-                            var active = '';
-                            if (!row.finished_at) {
-                                active = '<strong class="error"> - Active now </strong>'
-                            }
-                            return '<span title="' + moment(item * 1000).format() + '">' + moment(item *
-                                1000).fromNow() + '</span>' + active;
-                        },
-                        'cmp': function (item1, item2, row1, row2) {
-                            if (item1 > item2) {
-                                return 1;
-                            } else if (item1 < item2) {
-                                return -1;
-                            }
-                            return 0;
-                        }
-                    },
-                    'resource_id': {
-                        'title': function (item) {
-                            return 'resource';
-                        },
-                        'body': function (item, row) {
-                            var resource = _this._getResource(row, _this.model);
-                            console.log('RESOURCE ===', resource)
-                            // Resource may be missing. If not display link
-                            if (resource) {
-                                if (resource.id)
-                                    return '<a href="/'+ resource.type +'s/' + resource.id +
-                                        '" class="regular" style="color: #2196F3;">' + resource.name + '</a>';
-                                if (resource.type == "organization")
-                                    return 'Organization';
-                                if (!resource.id && resource.type != "organization")
-                                    return resource.name;
-                            }
-                            return row[resource.type+'_id']
-                        }
-                    },
-                    'cloud_id': {
-                        'title': function (item) {
-                            return item ? item.replace(/_/g, " ") : 'cloud';
-                        },
-                        'body': function (item, row) {
-                            return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[
-                                item].title : (item || '');
-                        }
-                    },
-                    'error': {
-                        'body': function (item, row) {
-                            var classname = item ? 'error' : '';
-                            return '<span class="' + classname + '">' + item + '</span>';
-                        }
+    _getVisibleColumns: function () {
+        return ['resource_id', 'cloud_id', 'incident_id', 'error'];
+    },
+    // TODO compute columns for all resources' incidents
+    _getRenderers: function () {
+        var _this = this;
+        return {
+            'started_at': {
+                'title': function (item) {
+                    return item ? item.replace(/_/g, " ") : 'started at';
+                },
+                'body': function (item, row) {
+                    var active = '';
+                    if (!row.finished_at) {
+                        active = '<strong class="error"> - Active now </strong>'
                     }
+                    return '<span title="' + moment(item * 1000).format() + '">' + moment(item *
+                        1000).fromNow() + '</span>' + active;
+                },
+                'cmp': function (item1, item2, row1, row2) {
+                    if (item1 > item2) {
+                        return 1;
+                    } else if (item1 < item2) {
+                        return -1;
+                    }
+                    return 0;
                 }
             },
-            resizeList: function (e) {
-                if (e.path.indexOf(this.shadowRoot.querySelector('mist-list')))
-                    this.shadowRoot.querySelector('mist-list').fire('resize');
+            'resource_id': {
+                'title': function (item) {
+                    return 'resource';
+                },
+                'body': function (item, row) {
+                    var resource = _this._getResource(row, _this.model);
+                    console.log('RESOURCE ===', resource)
+                    // Resource may be missing. If not display link
+                    if (resource) {
+                        if (resource.id)
+                            return '<a href="/'+ resource.type +'s/' + resource.id +
+                                '" class="regular" style="color: #2196F3;">' + resource.name + '</a>';
+                        if (resource.type == "organization")
+                            return 'Organization';
+                        if (!resource.id && resource.type != "organization")
+                            return resource.name;
+                    }
+                    return row[resource.type+'_id']
+                }
+            },
+            'cloud_id': {
+                'title': function (item) {
+                    return item ? item.replace(/_/g, " ") : 'cloud';
+                },
+                'body': function (item, row) {
+                    return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[
+                        item].title : (item || '');
+                }
+            },
+            'error': {
+                'body': function (item, row) {
+                    var classname = item ? 'error' : '';
+                    return '<span class="' + classname + '">' + item + '</span>';
+                }
             }
-        });
-    </script>
+        }
+    },
+    resizeList: function (e) {
+        if (e.path.indexOf(this.shadowRoot.querySelector('mist-list')))
+            this.shadowRoot.querySelector('mist-list').fire('resize');
+    }
+});
+</script>
 </dom-module>

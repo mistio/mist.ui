@@ -1,12 +1,12 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
 
-<link rel="import" href="networks/network-create.html">
-<link rel="import" href="networks/network-page.html">
-<link rel="import" href="networks/network-actions.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="helpers/owner-filter-behavior.html">
+<script type="module" src="./networks/network-create.js"></script>
+<script type="module" src="./networks/network-page.js"></script>
+<script type="module" src="./networks/network-actions.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
+<script type="module" src="./helpers/owner-filter-behavior.js"></script>
 
 
 <dom-module id="page-networks">
@@ -45,141 +45,150 @@
         <network-create model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-create>
         <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networks, model.networks.*)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
     </template>
-    <script>
-    Polymer({
-        is: 'page-networks',
-        behaviors: [
-            ownerFilterBehavior,
-            rbacBehavior
-        ],
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import './networks/network-create.js';
+import './networks/network-page.js';
+import './networks/network-actions.js';
+import './helpers/mist-lists-behavior.js';
+import './helpers/owner-filter-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-networks',
+    behaviors: [
+        ownerFilterBehavior,
+        rbacBehavior
+    ],
 
-        properties: {
-            model: {
-                type: Object
+    properties: {
+        model: {
+            type: Object
+        },
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+            type: Array,
+            notify: true
+        }
+    },
+
+    listeners: {},
+
+    _isAddPageActive: function(path) {
+        return path == '/+add';
+    },
+
+    _isDetailsPageActive: function(path) {
+        if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('network-page')) {
+            this.shadowRoot.querySelector('network-page').updateState();
+        }
+        return path && path != '/+add';
+    },
+
+    _isListActive: function(path) {
+        return !path;
+    },
+
+    _getNetwork: function(id) {
+        if (this.model.networks)
+            return this.model.networks[id];
+    },
+
+    _addResource: function(e) {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true , detail:{url: this.model.sections.networks.add}}));
+    },
+
+    _getFrozenColumn: function() {
+        return ['name'];
+    },
+
+    _getVisibleColumns: function() {
+        var ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
+        if (this.model.org && this.model.org.ownership_enabled == true)
+            ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+        return ret;
+    },
+
+    _getRenderers: function(networks, clouds) {
+        var _this = this;
+        return {
+            'name': {
+                'body': function(item, row) {
+                    return '<strong class="name">' + item + '</strong>';
+                }
             },
-            actions: {
-                type: Array,
-                notify: true
-            },
-            selectedItems: {
-                type: Array,
-                notify: true
-            }
-        },
-
-        listeners: {},
-
-        _isAddPageActive: function(path) {
-            return path == '/+add';
-        },
-
-        _isDetailsPageActive: function(path) {
-            if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('network-page')) {
-                this.shadowRoot.querySelector('network-page').updateState();
-            }
-            return path && path != '/+add';
-        },
-
-        _isListActive: function(path) {
-            return !path;
-        },
-
-        _getNetwork: function(id) {
-            if (this.model.networks)
-                return this.model.networks[id];
-        },
-
-        _addResource: function(e) {
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true , detail:{url: this.model.sections.networks.add}}));
-        },
-
-        _getFrozenColumn: function() {
-            return ['name'];
-        },
-
-        _getVisibleColumns: function() {
-            var ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
-            if (this.model.org && this.model.org.ownership_enabled == true)
-                ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-            return ret;
-        },
-
-        _getRenderers: function(networks, clouds) {
-            var _this = this;
-            return {
-                'name': {
-                    'body': function(item, row) {
-                        return '<strong class="name">' + item + '</strong>';
-                    }
-                },
-                'icon': {
-                    'body': function(item, row) {
-                        if (!_this.model.clouds[row.cloud])
-                            return '';
-                        return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                            .replace(" ", "") + '.png';
-                    }
-                },
-                'provider': {
-                    'title': 'cloud',
-                    'body': function(item, row) {
-                        return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
-                            _this.model.clouds[row.cloud].title : item;
-                    }
-                },
-                'machines': {
-                    'title': 'machines',
-                    'body': function(item, row) {
-                        var machines = Object.values(_this.model.machines).filter(function(m){ return m.network == row.id });
-                        if (machines)
-                            return machines.length;
+            'icon': {
+                'body': function(item, row) {
+                    if (!_this.model.clouds[row.cloud])
                         return '';
+                    return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
+                        .replace(" ", "") + '.png';
+                }
+            },
+            'provider': {
+                'title': 'cloud',
+                'body': function(item, row) {
+                    return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
+                        _this.model.clouds[row.cloud].title : item;
+                }
+            },
+            'machines': {
+                'title': 'machines',
+                'body': function(item, row) {
+                    var machines = Object.values(_this.model.machines).filter(function(m){ return m.network == row.id });
+                    if (machines)
+                        return machines.length;
+                    return '';
+                }
+            },
+            'owned_by': {
+                'title': 'owner',
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'created_by': {
+                'title': 'created by',
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'subnets': {
+                'body': function(item, row) {
+                    return item && Object.keys(item) ? Object.keys(item).length : '';
+                }
+            },
+            'state': {
+                'body': function(item, row) {
+                    var provider = _this.model.clouds[row.cloud].provider;
+                    if (provider == 'ec2')
+                        return row.extra && row.extra.state != undefined ? row.extra.state : '';
+                    else if (provider == 'openstack')
+                        return row.admin_state_up != undefined ? 'admin state up:' + row.admin_state_up :
+                            '';
+                    else
+                        return '';
+                }
+            },
+            'tags': {
+                'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (key in tags) {
+                        display += "<span class='tag'>" + key;
+                        if (tags[key] != undefined && tags[key] != "")
+                            display += "=" + tags[key];
+                        display += "</span>";
                     }
-                },
-                'owned_by': {
-                    'title': 'owner',
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'created_by': {
-                    'title': 'created by',
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'subnets': {
-                    'body': function(item, row) {
-                        return item && Object.keys(item) ? Object.keys(item).length : '';
-                    }
-                },
-                'state': {
-                    'body': function(item, row) {
-                        var provider = _this.model.clouds[row.cloud].provider;
-                        if (provider == 'ec2')
-                            return row.extra && row.extra.state != undefined ? row.extra.state : '';
-                        else if (provider == 'openstack')
-                            return row.admin_state_up != undefined ? 'admin state up:' + row.admin_state_up :
-                                '';
-                        else
-                            return '';
-                    }
-                },
-                'tags': {
-                    'body': function(item, row) {
-                        var tags = item,
-                            display = "";
-                        for (key in tags) {
-                            display += "<span class='tag'>" + key;
-                            if (tags[key] != undefined && tags[key] != "")
-                                display += "=" + tags[key];
-                            display += "</span>";
-                        }
-                        return display;
-                    }
+                    return display;
                 }
             }
         }
-    });
-    </script>
+    }
+});
+</script>
 </dom-module>

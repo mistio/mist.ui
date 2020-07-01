@@ -1,13 +1,13 @@
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
-<link rel="import" href="../bower_components/mist-list/mist-list.html">
+<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
+<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
+<script type="module" src="../../../mist-list/mist-list.js"></script>
 
-<link rel="import" href="templates/template-add.html">
-<link rel="import" href="templates/template-page.html">
-<link rel="import" href="templates/template-actions.html">
-<link rel="import" href="helpers/mist-lists-behavior.html">
-<link rel="import" href="helpers/owner-filter-behavior.html">
+<script type="module" src="./templates/template-add.js"></script>
+<script type="module" src="./templates/template-page.js"></script>
+<script type="module" src="./templates/template-actions.js"></script>
+<script type="module" src="./helpers/mist-lists-behavior.js"></script>
+<script type="module" src="./helpers/owner-filter-behavior.js"></script>
 
 
 <dom-module id="page-templates">
@@ -46,110 +46,120 @@
         <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
         <template-page model="[[model]]" template-id="[[data.template]]" resource-id="[[data.template]]" stacks="[[_getTemplateStacks(data.template, model.templates, model.stacks, model.templates.*, model.stacks.*)]]" section="[[model.sections.templates]]" hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
     </template>
-    <script>
-    Polymer({
-        is: 'page-templates',
-        behaviors: [
-            mistListsBehavior,
-            ownerFilterBehavior,
-            rbacBehavior
-        ],
+    <script type="module">
+import '../../../@polymer/app-route/app-route.js';
+import '../../../mist-list/mist-list.js';
+import '../../../@polymer/paper-fab/paper-fab.js';
+import '../../../mist-list/mist-list.js';
+import './templates/template-add.js';
+import './templates/template-page.js';
+import './templates/template-actions.js';
+import './helpers/mist-lists-behavior.js';
+import './helpers/owner-filter-behavior.js';
+import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+Polymer({
+    is: 'page-templates',
+    behaviors: [
+        mistListsBehavior,
+        ownerFilterBehavior,
+        rbacBehavior
+    ],
 
-        properties: {
-            model: {
-                type: Object
+    properties: {
+        model: {
+            type: Object
+        },
+        ownership: {
+            type: Boolean
+        },
+        actions: {
+            type: Array,
+            notify: true
+        },
+        selectedItems: {
+            type: Array,
+            notify: true
+        }
+    },
+
+    listeners: {
+        'action-finished': 'clearListSelection'
+    },
+    clearListSelection: function() {
+        this.set('selectedItems', []);
+    },
+    _isAddPageActive: function(path) {
+        return path == '/+add';
+    },
+    _isDetailsPageActive: function(path) {
+        return path && path != '/+add';
+    },
+    _isListActive: function(path) {
+        return !path;
+    },
+    _addResource: function(e) {
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
+            url: this.model.sections.templates.add
+        } }));
+
+    },
+    _getTemplateStacks: function(id) {
+        return this.model.stacksArray.filter(
+            function(stack) {
+                return stack.template == id;
             },
-            ownership: {
-                type: Boolean
+            this);
+    },
+    _getFrozenColumn: function() {
+        return ['name'];
+    },
+
+    _getVisibleColumns: function() {
+        var ret = ['exec_type', 'location_type', 'created_by', 'tags'];
+        if (this.model.org && this.model.org.ownership_enabled == true)
+            ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
+        return ret;
+    },
+
+    _getRenderers: function(templates) {
+        var _this = this;
+        return {
+            'name': {
+                'body': function(item, row) {
+                    return '<strong class="name">' + item + '</strong>';
+                }
             },
-            actions: {
-                type: Array,
-                notify: true
+            'owned_by': {
+                'title': function(item, row) {
+                    return 'owner';
+                },
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
             },
-            selectedItems: {
-                type: Array,
-                notify: true
-            }
-        },
-
-        listeners: {
-            'action-finished': 'clearListSelection'
-        },
-        clearListSelection: function() {
-            this.set('selectedItems', []);
-        },
-        _isAddPageActive: function(path) {
-            return path == '/+add';
-        },
-        _isDetailsPageActive: function(path) {
-            return path && path != '/+add';
-        },
-        _isListActive: function(path) {
-            return !path;
-        },
-        _addResource: function(e) {
-            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-                url: this.model.sections.templates.add
-            } }));
-
-        },
-        _getTemplateStacks: function(id) {
-            return this.model.stacksArray.filter(
-                function(stack) {
-                    return stack.template == id;
+            'created_by': {
+                'title': function(item, row) {
+                    return 'created by';
                 },
-                this);
-        },
-        _getFrozenColumn: function() {
-            return ['name'];
-        },
-
-        _getVisibleColumns: function() {
-            var ret = ['exec_type', 'location_type', 'created_by', 'tags'];
-            if (this.model.org && this.model.org.ownership_enabled == true)
-                ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
-            return ret;
-        },
-
-        _getRenderers: function(templates) {
-            var _this = this;
-            return {
-                'name': {
-                    'body': function(item, row) {
-                        return '<strong class="name">' + item + '</strong>';
+                'body': function(item, row) {
+                    return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
+                }
+            },
+            'tags': {
+                'body': function(item, row) {
+                    var tags = item,
+                        display = "";
+                    for (key in tags) {
+                        display += "<span class='tag'>" + key;
+                        if (tags[key] != undefined && tags[key] != "")
+                            display += "=" + tags[key];
+                        display += "</span>";
                     }
-                },
-                'owned_by': {
-                    'title': function(item, row) {
-                        return 'owner';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'created_by': {
-                    'title': function(item, row) {
-                        return 'created by';
-                    },
-                    'body': function(item, row) {
-                        return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
-                    }
-                },
-                'tags': {
-                    'body': function(item, row) {
-                        var tags = item,
-                            display = "";
-                        for (key in tags) {
-                            display += "<span class='tag'>" + key;
-                            if (tags[key] != undefined && tags[key] != "")
-                                display += "=" + tags[key];
-                            display += "</span>";
-                        }
-                        return display;
-                    }
+                    return display;
                 }
             }
         }
-    });
-    </script>
+    }
+});
+</script>
 </dom-module>

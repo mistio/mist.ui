@@ -1,12 +1,12 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-styles/typography.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
-<link rel="import" href="../../bower_components/paper-material/paper-material.html">
-<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<script type="module" src="../../../../@polymer/polymer/polymer-legacy.js"></script>
+<script type="module" src="../../../../@polymer/paper-styles/typography.js"></script>
+<script type="module" src="../../../../@polymer/paper-button/paper-button.js"></script>
+<script type="module" src="../../../../@polymer/paper-tooltip/paper-tooltip.js"></script>
+<script type="module" src="../../../../@polymer/paper-material/paper-material.js"></script>
+<script type="module" src="../../../../@polymer/paper-progress/paper-progress.js"></script>
 
-<link rel="import" href="plan-selection-widget.html">
-<link rel="import" href="card-form.html">
+<script type="module" src="./plan-selection-widget.js"></script>
+<script type="module" src="./card-form.js"></script>
 
 <dom-module id="cc-required">
     <template>
@@ -100,148 +100,154 @@
         <iron-ajax id="addCard" url="/api/v1/billing" method="POST" loading="{{loading}}" handle-as="xml" on-response="_handleCardResponse" on-error="_handleCardError"></iron-ajax>
 
     </template>
-    <script>
-        (function() {
-            'use strict';
+    <script type="module">
+import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../../../@polymer/paper-styles/typography.js';
+import '../../../../@polymer/paper-button/paper-button.js';
+import '../../../../@polymer/paper-tooltip/paper-tooltip.js';
+import '../../../../@polymer/paper-material/paper-material.js';
+import '../../../../@polymer/paper-progress/paper-progress.js';
+import './plan-selection-widget.js';
+import './card-form.js';
+import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
 
-            Polymer({
-                is: 'cc-required',
+Polymer({
+    is: 'cc-required',
 
-                properties: {
-                    cardValid: {
-                        type: Boolean,
-                        value: false
-                    },
-                    formError: {
-                        type: Boolean,
-                        value: false
-                    },
-                    cardErrors: {
-                        type: String
-                    },
-                    loading: {
-                        type: Boolean,
-                        value: false
-                    },
-                    plan: {
-                        type: String,
-                        value: false,
-                        notify: true
-                    },
-                    planObject: {
-                        type: Object,
-                        computed: '_computePlanObject(plan)'
-                    },
-                    showProgress: {
-                        type: Boolean,
-                        value: false,
-                        computed: '_computeShowProgress(formError,loading)'
-                    },
-                    hasCancel: {
-                        type: Boolean,
-                        value: false
-                    },
-                    hasBack: {
-                        type: Boolean,
-                        value: false
-                    },
-                    title: {
-                        type: String
-                    }
-                },
-                listeners: {
-                    'open-cc-required': 'open',
-                    'close-cc-required': 'close',
-                    'card-response': '_gotCardResponse',
-                    'refit': '_refit'
-                },
-                attached: function() {
-                },
-                _refit: function(e){
-                    this.$.ccRequired.refit();
-                },
-                open: function() {
-                    this._clearErrors();
-                    this.$.ccRequired.open();
-                },
-                close: function() {
-                    this.$.ccRequired.close();
-                    this.shadowRoot.querySelector('card-form#inAddCloud').reset();
-                    this._clearErrors();
-                },
-                _submitCard: function(e){
-                    this._clearErrors();
-                    if (this.cardValid) {
-                        this.shadowRoot.querySelector('card-form#inAddCloud').verify();
-                    }
-                },
-                _gotCardResponse: function(e){
-                    if (this.cardValid) {
-                        var card = this.shadowRoot.querySelector('card-form#inAddCloud');
-                        if (e.detail.token) {
-                            var payload = {token: e.detail.token};
-                            if (this.plan)
-                                payload.plan = this.plan;
-                            this.$.addCard.headers["Content-Type"] = 'application/json';
-                            this.$.addCard.headers["Csrf-Token"] = CSRF_TOKEN;
-                            this.$.addCard.body = payload;
-                            this.$.addCard.generateRequest();
-                        }
-                        else if (card.errors) {
-                            this.set('formError', true);
-                            this.set('cardErrors', card.errors);
-                        }
-                        else {
-                            this.set('loading', true)
-                        }
-                    }
-                    this.$.ccRequired.refit();
-                },
-                _handleCardResponse: function(e){
-                    this.dispatchEvent(new CustomEvent('close-cc-required'));
+    properties: {
+        cardValid: {
+            type: Boolean,
+            value: false
+        },
+        formError: {
+            type: Boolean,
+            value: false
+        },
+        cardErrors: {
+            type: String
+        },
+        loading: {
+            type: Boolean,
+            value: false
+        },
+        plan: {
+            type: String,
+            value: false,
+            notify: true
+        },
+        planObject: {
+            type: Object,
+            computed: '_computePlanObject(plan)'
+        },
+        showProgress: {
+            type: Boolean,
+            value: false,
+            computed: '_computeShowProgress(formError,loading)'
+        },
+        hasCancel: {
+            type: Boolean,
+            value: false
+        },
+        hasBack: {
+            type: Boolean,
+            value: false
+        },
+        title: {
+            type: String
+        }
+    },
+    listeners: {
+        'open-cc-required': 'open',
+        'close-cc-required': 'close',
+        'card-response': '_gotCardResponse',
+        'refit': '_refit'
+    },
+    attached: function() {
+    },
+    _refit: function(e){
+        this.$.ccRequired.refit();
+    },
+    open: function() {
+        this._clearErrors();
+        this.$.ccRequired.open();
+    },
+    close: function() {
+        this.$.ccRequired.close();
+        this.shadowRoot.querySelector('card-form#inAddCloud').reset();
+        this._clearErrors();
+    },
+    _submitCard: function(e){
+        this._clearErrors();
+        if (this.cardValid) {
+            this.shadowRoot.querySelector('card-form#inAddCloud').verify();
+        }
+    },
+    _gotCardResponse: function(e){
+        if (this.cardValid) {
+            var card = this.shadowRoot.querySelector('card-form#inAddCloud');
+            if (e.detail.token) {
+                var payload = {token: e.detail.token};
+                if (this.plan)
+                    payload.plan = this.plan;
+                this.$.addCard.headers["Content-Type"] = 'application/json';
+                this.$.addCard.headers["Csrf-Token"] = CSRF_TOKEN;
+                this.$.addCard.body = payload;
+                this.$.addCard.generateRequest();
+            }
+            else if (card.errors) {
+                this.set('formError', true);
+                this.set('cardErrors', card.errors);
+            }
+            else {
+                this.set('loading', true)
+            }
+        }
+        this.$.ccRequired.refit();
+    },
+    _handleCardResponse: function(e){
+        this.dispatchEvent(new CustomEvent('close-cc-required'));
 
-                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Successfull subscription. Welcome onboard!', duration: 3000} }));
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Successfull subscription. Welcome onboard!', duration: 3000} }));
 
-                },
-                _handleCardError: function(e){;
-                    this.set('cardErrors', e.detail.request.xhr.responseText);
-                    this.set('formError', true);
-                },
-                _computeShowProgress: function(formError,loading){
-                    return this.formError || this.loading;
-                },
-                _clearErrors: function(){
-                    this.set('formError', false);
-                    this.set('cardErrors', '');
-                },
-                _cloudAddAjaxResponse: function(response) {
-                    this._unsetProvider();
-                    this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/'} }));
-                    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Cloud added successfully!',duration:3000} }));
+    },
+    _handleCardError: function(e){;
+        this.set('cardErrors', e.detail.request.xhr.responseText);
+        this.set('formError', true);
+    },
+    _computeShowProgress: function(formError,loading){
+        return this.formError || this.loading;
+    },
+    _clearErrors: function(){
+        this.set('formError', false);
+        this.set('cardErrors', '');
+    },
+    _cloudAddAjaxResponse: function(response) {
+        this._unsetProvider();
+        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/'} }));
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Cloud added successfully!',duration:3000} }));
 
-                },
-                _cloudAddAjaxError: function(response) {
-                    console.error('add-cloud error', response);
-                },
-                _computePlanObject: function(plan){
-                    if (!plan)
-                        return {};
-                    else {
-                        // TODO get plan object from org
-                    }
-                },
-                _goBack: function(e) {
-                    e.stopImmediatePropagation();
-                    if (history)
-                        history.back();
-                    else
-                        this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: '/' }));
+    },
+    _cloudAddAjaxError: function(response) {
+        console.error('add-cloud error', response);
+    },
+    _computePlanObject: function(plan){
+        if (!plan)
+            return {};
+        else {
+            // TODO get plan object from org
+        }
+    },
+    _goBack: function(e) {
+        e.stopImmediatePropagation();
+        if (history)
+            history.back();
+        else
+            this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: '/' }));
 
-                },
-                _cancel: function(e) {
-                    this.close();
-                }
-            });
-        })();
-    </script>
+    },
+    _cancel: function(e) {
+        this.close();
+    }
+});
+</script>
 </dom-module>
