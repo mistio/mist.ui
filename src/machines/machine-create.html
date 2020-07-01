@@ -1248,7 +1248,35 @@
             // if is vsphere change fields
             if (this.model && this.model.clouds && this.model.clouds[this.selectedCloud] && this.model.clouds[
                     this.selectedCloud].provider == "vsphere") {
-                this._updateFieldsForVsphere();
+                let imgInd = this._fieldIndexByName('image');
+                if (changeRecord.path.includes("."+imgInd+".")) {
+                    var img = this.get('machineFields.' + imgInd);
+                    for (var i = 0; i < img.options.length; i++) {
+                        currentImg = img.options[i];
+                        if (currentImg.id == img.value) {
+                            break
+                        }
+                    }
+                    var datastoreInd = this._fieldIndexByName('datastore');
+                    var datastoreField = this.get('machineFields.' + datastoreInd);
+                    for (let opt of datastoreField.options){
+                        if(opt.title.includes(currentImg.extra.datastore)){
+                            this.set('machineFields.' + datastoreInd + '.value', opt.val);
+                            break;
+                        }
+                    }
+                    var sizeInd = this._fieldIndexByName('size');
+                    var min_size = Math.max(currentImg.extra.disk_size, this.machineFields[sizeInd].customSizeFields[2].min);
+                    if (currentImg.extra.type == "ovf"){
+                        this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
+                        this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 1);
+                        this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', min_size);
+                    } else {
+                        this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
+                        this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 512);
+                        this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', Math.max(min_size, this.machineFields[sizeInd].customSizeFields[2].value));
+                    }
+                }
             }
         },
 
@@ -1342,39 +1370,6 @@
                 this.set('machineFields.' + locationIndex + '.options', filteredLocations);
             }
         },
-
-        _updateFieldsForVsphere: function() {
-            var keyInd = this._fieldIndexByName('key');
-            if (keyInd > -1 && this.get('machineFields.' + keyInd + '.required')) {
-                this.set('machineFields.' + keyInd + '.required', false);
-                this.set('machineFields.' + keyInd + '.label', "Key");
-            }
-            var imgInd = this._fieldIndexByName('image');
-            var img = this.get('machineFields.' + imgInd);
-            if (img && img.value) {
-                for (var i = 0; i < img.options.length; i++) {
-                    current = img.options[i];
-                    if (current.id == img.value) {
-                        break
-                    }
-                }
-                
-                var sizeInd = this._fieldIndexByName('size');
-                var min_size = Math.max(current.extra.disk_size, this.machineFields[sizeInd].customSizeFields[2].min);
-                if (current.extra.type == "ovf"){
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 1);
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', min_size);
-                } else {
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.min', min_size);
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.max', 512);
-                    this.set('machineFields.' + sizeInd + '.customSizeFields.' + 2 + '.value', Math.max(min_size, this.machineFields[sizeInd].customSizeFields[2].value));
-                }
-            }
-            
-            
-        },
-
         _updateFieldsForOpenstack: function() {
             var locInd = this._fieldIndexByName('location');
             if (locInd > -1) {
