@@ -53,6 +53,12 @@
             vertical-align: bottom;
             margin-right: 8px;
         }
+
+        paper-input.search {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
     </style>
 
     <paper-dialog id="dialogModal" with-backdrop>
@@ -71,11 +77,16 @@
             </template>
             <template is="dom-if" if="[[members.length]]" restamp>
                 <paper-dropdown-menu label="Users">
-                     <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{newOwner}}" class="dropdown-content" verticalAlign="top">
-                        <template id="membersDomRepeat" is="dom-repeat" items="[[members]]" as="member">
-                            <paper-item value="[[member.id]]">[[_displayUser(member)]]</paper-item>
-                        </template>
-                     </paper-listbox>
+                    <div slot="dropdown-content" class="dropdown-content">
+                        <paper-input class="search" type="search" label$="Search members" value="{{membersFilter}}">
+                            <iron-icon icon="search" slot="prefix"></iron-icon>
+                        </paper-input>
+                        <paper-listbox attr-for-selected="value" selected="{{newOwner}}" verticalAlign="top">
+                            <template id="membersDomRepeat" is="dom-repeat" items="[[_filteredMembers(members, membersFilter)]]" as="member">
+                                <paper-item value="[[member.id]]">[[_displayUser(member)]]</paper-item>
+                            </template>
+                        </paper-listbox>
+                    </div>
                 </paper-dropdown-menu>
             </template>
         </paper-dialog-scrollable>
@@ -157,6 +168,10 @@
         },
         _plural: function (arr) {
             return arr.length && arr.length>1 ? 's' : '';
+        },
+        _filteredMembers: function(members, membersFilter) {
+            if (!membersFilter) return members;
+            return members.filter(member => member.name.indexOf(membersFilter) != -1)
         }
     })
 </script>

@@ -45,6 +45,7 @@
                 align-items: flex-start;
                 flex-direction: column;
                 flex: 1 50%;
+                font-size: .9em;
             }
 
             .left h3,
@@ -194,6 +195,9 @@
                 margin-right: 8px;
                 opacity: 0.32;
                 cursor: pointer;
+                width: 16px;
+                height: 16px;
+                color: initial;
             }
 
             iron-icon.delete {
@@ -460,6 +464,7 @@
 
             .cell {
                 display: table-cell;
+                font-size: .9em;
             }
 
             .cell h4 {
@@ -548,11 +553,17 @@
                                     <h4>Location</h4>
                                 </div>
                                 <div class="cell">
-                                    <span>[[_getLocationName(machine,cloud)]]</span>
+                                    <span hidden$="[[_canLinkToNetwork(machine.network)]]">[[machine.network]]</span>
+                                    <span hidden$="[[!_canLinkToNetwork(machine.network)]]">
+                                        <a class="blue-link regular" href$="/networks/[[machine.network]]">
+                                            [[_getNetworkName(machine)]]
+                                        </a>
+                                    </span>
+
                                 </div>
                             </div>
-                            <br hidden$="[[!_getNetworkName(machine,cloud)]]"/>
-                            <div class="row" hidden$="[[!_getNetworkName(machine,cloud)]]">
+                            <br hidden$="[[!_getNetworkName(machine)]]"/>
+                            <div class="row" hidden$="[[!_getNetworkName(machine)]]">
                                 <div class="cell">
                                     <h4>Network</h4>
                                 </div>
@@ -1387,6 +1398,8 @@ Polymer({
                 item.extra.image)) {
             return item.extra['image_id'] || item.imageId || item.image_id || item.extra.image.slug ||
                 item.extra.image.name;
+        } else if (item && item.image && typeof(item.image) != "object") {
+            return this.model.images[item.image].name  || item.image;
         } else
             return "not found";
     },
@@ -1436,14 +1449,25 @@ Polymer({
             this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
         }
     },
-    _getNetworkName: function(machine, cloud) {
-        if (!machine || !cloud)
+    _getNetworkName: function(machine) {
+        if (!machine)
             return;
         if (this.machine) {
-            return this.model.clouds && this.model.clouds[machine.cloud] && this.model.clouds[machine.cloud].networks && this.model.clouds[machine.cloud].networks[
-                machine.networks] && this.model.clouds[machine.cloud].networks[machine.network].name != undefined ?
-            this.model.clouds[machine.cloud].networks[machine.network].name : machine.network;
+            return this.model &&
+                    this.model.networks &&
+                    this.model.networks[machine.network] &&
+                    this.model.networks[machine.network].name != undefined ?
+            this.model.networks[machine.network].name : machine.network;
+
         }
+    },
+    _canLinkToNetwork: function(network) {
+        if (network) {
+            return this.model &&
+                    this.model.networks &&
+                    this.model.networks[this.machine.network] ? true : false;
+        }
+        return false;
     },
     _probeMachine: function(e) {
         var payload = {
