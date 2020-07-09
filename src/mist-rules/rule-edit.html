@@ -66,6 +66,10 @@
                 position: relative;
             }
 
+            paper-input#resources-rule-type-tags{
+                margin-bottom: -2px;
+            }
+
             .rule.incident-true {
                 color: var(--red-color);
             }
@@ -132,9 +136,8 @@
                 padding: 0 8px;
             }
 
-            paper-dropdown-menu,
-            paper-input {
-                top: 2px;
+            paper-dropdown-menu{
+               top: 2px;
             }
 
             span.keyword {
@@ -184,7 +187,9 @@
                 width: 32px;
                 height: 32px;
             }
-
+            paper-spinner[hidden]{
+                display:none;
+            }
             .monitored-icon {
                 opacity: .54;
                 padding: 8px 8px 8px 0;
@@ -370,9 +375,6 @@
                             <span hidden$=[[isDataTypeLogs(rule.data_type)]]>
                                 <paper-dropdown-menu id$="target-metrics-[[index]]" class="dropdown-block target" auto-focus value="[[query.target]]" on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
                                     <paper-listbox id$="metricsListbox-[[index]]" slot="dropdown-content" attr-for-selected="value" selected="[[query.target]]" slot="dropdown-content" class="dropdown-content">
-                                        <paper-item class="loader" hidden$="[[!loadingMetrics]]" disabled>
-                                            <paper-spinner active="[[loadingMetrics]]"></paper-spinner> &nbsp; Loading metrics.
-                                        </paper-item>
                                         <template is="dom-if" if="[[availableMetrics.length]]" restamp>
                                             <template is="dom-repeat" items="[[availableMetrics]]" initial-count="1">
                                                 <rule-metrics metric=[[item]] query-index="[[_getQueryIndex(query)]]"></rule-metrics>
@@ -383,6 +385,7 @@
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
+                                <paper-spinner active="[[loadingMetrics]]" hidden$=[[!loadingMetrics]]></paper-spinner>
                             </span>
 
                             <span hidden$=[[!query.target]]>
