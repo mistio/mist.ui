@@ -490,7 +490,7 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
-    var minimumSize = (p.provider == 'packet' && 10) ||
+    var minimumSize = (p.provider == 'packet' && 100) ||
                       (p.provider == 'aliyun_ecs' && 5) || 1;
     p.fields.splice(0, 0, {
         name: 'size',
