@@ -10,6 +10,8 @@
 <link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="mist-dropdown-multi.html">
 <link rel="import" href="validate-rule-behavior.html">
+<link rel="import" href="rule-metrics.html">
+
 <dom-module id="rule-edit">
     <template>
         <style>
@@ -62,6 +64,10 @@
                 display: inline-block;
                 top: 2px;
                 position: relative;
+            }
+
+            paper-input#resources-rule-type-tags{
+                margin-bottom: -2px;
             }
 
             .rule.incident-true {
@@ -130,9 +136,8 @@
                 padding: 0 8px;
             }
 
-            paper-dropdown-menu,
-            paper-input {
-                top: 2px;
+            paper-dropdown-menu{
+               top: 2px;
             }
 
             span.keyword {
@@ -143,10 +148,16 @@
                 position: relative;
             }
 
-            paper-dropdown-menu.target,
+            paper-dropdown-menu.target {
+                min-width: 250px;
+            }
             paper-dropdown-menu.type,
             paper-dropdown-menu.ruleAction {
                 width: 150px;
+            }
+            paper-dropdown-menu.target::slotted(input){
+                min-width: 250px;
+                width: min-content;
             }
 
             .errormsg-container {
@@ -176,7 +187,9 @@
                 width: 32px;
                 height: 32px;
             }
-
+            paper-spinner[hidden]{
+                display:none;
+            }
             .monitored-icon {
                 opacity: .54;
                 padding: 8px 8px 8px 0;
@@ -215,6 +228,23 @@
                 padding: 4px;
                 width: 20px;
                 height: 20px;
+            }
+            paper-listbox[id^="metricsListbox-"] {
+                min-width: 300px;
+                min-height: 200px;
+            }
+            paper-listbox:focus {
+                outline: none;
+            }
+            .loader {
+                user-select: none;
+                text-align: center;
+            }
+            .loader::selection {
+                border: 0 none;
+            }
+            .error {
+                color: var(--red-color);
             }
         </style>
         <custom-style>
@@ -271,7 +301,7 @@
                                 <template is="dom-if" if="[[!resources.length]]">
                                     <paper-item disabled>no [[resourceType]]s found</paper-item>
                                 </template>
-                                <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]">
+                                <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]" initial-count="10">
                                     <paper-item value="[[item.id]]">
                                         <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="monitored machine"></iron-icon>
                                         [[_displayItemName(item, resourceType)]]</paper-item>
@@ -280,7 +310,7 @@
                         </paper-dropdown-menu>
                     </div>
                     <div class="inline" hidden$=[[!_showTags(ruleType,resourceType)]]>
-                        <paper-input id="resources-rule-type-tags" class="tags" auto-focus value="{{tags}}" placeholder="enter tags" tabindex="0"></paper-input>
+                        <paper-input id="resources-rule-type-tags" class="tags" auto-focus value="{{tags}}" placeholder="enter tags" tabindex="0" on-blur="_getMetrics"></paper-input>
                     </div>
                 </div>
                 <div hidden$="[[!isNoData]]">
@@ -343,17 +373,23 @@
 
                             <!--  metric option -->
                             <span hidden$=[[isDataTypeLogs(rule.data_type)]]>
-                                <paper-dropdown-menu id$="target-metrics-[[index]]" class="dropdown-block target" auto-focus on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
-                                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
-                                        <template is="dom-repeat" items="{{availableMetrics}}" as="option">
-                                            <paper-item value="[[option.id]]">[[option.name]]</paper-item>
+                                <paper-dropdown-menu id$="target-metrics-[[index]]" class="dropdown-block target" auto-focus value="[[query.target]]" on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
+                                    <paper-listbox id$="metricsListbox-[[index]]" slot="dropdown-content" attr-for-selected="value" selected="[[query.target]]" slot="dropdown-content" class="dropdown-content">
+                                        <template is="dom-if" if="[[availableMetrics.length]]" restamp>
+                                            <template is="dom-repeat" items="[[availableMetrics]]" initial-count="1">
+                                                <rule-metrics metric=[[item]] query-index="[[_getQueryIndex(query)]]"></rule-metrics>
+                                            </template>
+                                        </template>
+                                        <template is="dom-if" if="[[!availableMetrics.length]]" restamp>
+                                            <paper-item hidden$="[[loadingMetrics]]" disabled>No metrics available</paper-item>
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
+                                <paper-spinner active="[[loadingMetrics]]" hidden$=[[!loadingMetrics]]></paper-spinner>
                             </span>
 
                             <span hidden$=[[!query.target]]>
-                                 <!--  aggregation: aggr value / count for logs -->
+                                <!--  aggregation: aggr value / count for logs -->
                                 <span hidden$=[[!isDataTypeLogs(rule.data_type)]]>
                                     <span class="keyword">count</span>
                                 </span>
@@ -468,6 +504,8 @@
         </div>
         <iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" method="POST" on-request="_handleUpdateRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
         <iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+        <iron-ajax id="metrics" url="[[metricsUri]]" handle-as="json" method="GET" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleMetricResponse" on-error="_handleMetricError">
+        </iron-ajax>
     </template>
     <script>
     Polymer({
@@ -482,7 +520,8 @@
                 type: Object
             },
             hidden: {
-                type: Boolean
+                type: Boolean,
+                value: true
             },
             ruleTypes: {
                 type: Array,
@@ -548,7 +587,10 @@
                 type: Boolean
             },
             availableMetrics: {
-                type: Array
+                type: Array,
+                value: function() {
+                    return [];
+                }
             },
             active: {
                 type: Boolean,
@@ -609,6 +651,14 @@
             },
             features: {
                 type: Object
+            },
+            metricsUri: {
+                type: String,
+                computed: '_computeMetricsUri(resource.id, resourceId, rule.resource_type, tags, ruleType)'
+            },
+            loadingMetrics: {
+                type: Boolean,
+                value: false
             }
         },
         observers: [
@@ -619,11 +669,155 @@
             "_initialiseEdit(currentRule, resource, rule.id)",
             "_computeResourcesAndActions(model, resourceType, ruleType)",
             "_validateCondition(rule.*)",
-            "_resourceTypeChanged(resourceType)"
+            "_resourceTypeChanged(resourceType)",
+            "_metricsUriChanged(metricsUri)",
+            "_ruleDataTypeChanged(rule.data_type)"
         ],
+        listeners: {
+            "choose-metric": "_selectMetric"
+        },
         ready: function() {
             if (!this.rule) {
                 this._resetRule();
+            }
+        },
+        _getQueryIndex: function(query) {
+            return this.rule.queries.indexOf(query);
+        },
+        _metricsUriChanged: function(metricsUri){
+            // Get metrics unless we're not editing, or the rule is on tags (if on tags, get metrics will be triggered on-blur)
+            if (!this.hidden && this.rule && this.rule.data_type == "metrics" && !this._isTagged(this.ruleType))
+                this._getMetrics();
+        },
+        _computeMetricsUri: function (resource_id, resourceId, resource_type, tags, ruleType) {
+            // Update uri, unless we are in a single page where we are provided with a resource and resourceType.
+            if (this.resource) {
+                return "/api/v1/metrics?resource_type="+ this.resourceType +"&resource_id=" + this.resource.id;
+            } else if (this.rule && !this.isNoData){
+                var typeString = "",
+                    idString = "",
+                    tagsString = "";
+                if (this.rule.resource_type && !this._isOrg(this.resourceType)) {
+                    typeString = "resource_type="+ this.rule.resource_type;
+                }
+                if (this.resourceId && this._isSpecific(this.ruleType)) {
+                    idString = (typeString ? "&" : "") + "resource_id="+ this.resourceId;
+                }
+                if (this.tags && this._isTagged(this.ruleType)) {
+                    tagsString = (typeString || resourceId ? "&" : "") + "tags=" + this._computeTagsString(this._computeTagsFromString(this.tags))
+                }
+                console.log('_computeMetricsUri =====', "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString);
+
+                return "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString;
+            }
+        },
+        _computeTagsString: function(tags) {
+            // Compute tags string in the form "tagkey1:tagvalue1,tagkey2,..""
+            var tagsString = "";
+            for (var p in tags) {
+                tagsString += p;
+                if (tags[p])
+                    tagsString += ":" + tags[p];
+                tagsString += ","
+            }
+            console.log(tagsString);
+            return tagsString.length ? tagsString.substring(0, tagsString.length-1) : "";
+        },
+        _handleMetricResponse: function(data) {
+            var output = {};
+            if (data.detail.response) {
+                // console.log('_handleMetricResponse response data', data.detail.response);
+                Object.keys(data.detail.response).forEach(function(metric) {
+                    var res = output;
+                    var chunks = metric.split(".")
+                    for (var i = 0; i < chunks.length; i++) {
+                        if (!res[chunks[i]]) {
+                            res[chunks[i]] = {};
+                        }
+                        if (i == chunks.length - 1) {
+                            res[chunks[i]] = data.detail.response[metric].id;
+                        }
+                        res = res[chunks[i]];
+                    }
+                });
+            }
+            this.set('availableMetrics', this._makeArray(output));
+            // Store metrics in resource if available, ie we are in a single page, so as to improve performance
+            if (!this.model.metrics) {
+                this.model.metrics = {};
+            }
+            this.model.metrics[this.metricsUri] = this.availableMetrics;
+            // handle empty response
+            if (!output) {
+                this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"No metrics available for this resource(s)", duration:3000} }));
+            }
+        },
+        _makeArray: function(output) {
+            var arr = [];
+            if (output) {
+                if (output && typeof(output) == 'object') {
+                    var obj = {};
+                    for (var p in output) {
+                        if (typeof(output[p]) == 'object') {
+                            obj = { name: p, options: this._makeArray(output[p]) };
+                        } else {
+                            obj = { name: output[p], options: [] };
+                        }
+                        arr.push(obj);
+                    }
+                }
+            }
+            return arr;
+        },
+        _handleMetricError: function (error) {
+            console.error('_handleMetricError', error);
+            this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Error fetching available metrics.", duration:3000} }));
+        },
+        _ruleDataTypeChanged: function(dataType){
+            console.log('get metrics', dataType)
+            if (this.rule && this.rule.data_type == "metrics")
+                this._getMetrics();
+        },
+        _getMetrics: function() {
+            // Generate request only if these available metrics have not been requested before.
+            if (this.model && this.model.metrics && this.model.metrics[this.metricsUri]) {
+                this._clearAvailableMetrics();
+                this.set('availableMetrics', this.model.metrics[this.metricsUri]);
+            } else if (this.rule.data_type == "metrics"){
+                this._clearAvailableMetrics();
+                this.debounce('debounceGetMetrics',function() {
+                    this.$.metrics.generateRequest();
+                }.bind(this), 250);
+            }
+        },
+        _clearAvailableMetrics: function() {
+            this.set('availableMetrics', []);
+            for (var i = 0; i<this.rule.queries.length; i++) {
+                if (!this.editingExistingRule)
+                    if (this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)) {
+                        this.set('rule.queries.'+ i +'.target', "");
+                        this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)
+                            .shadowRoot.querySelector("paper-input")
+                            .shadowRoot.querySelector("paper-input-container")
+                            .querySelector("iron-input").querySelector("input").value = "";
+                        this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i).selected = -1;
+                    }
+            }
+        },
+        _selectMetric: function(e) {
+            // Choose metric, need to implement selection for paper-dropdown-menu with custom-components nested in listbox
+            console.log('_selectMetric', e);
+            if (e.detail && e.detail.metric) {
+                var selectedMetric = e.detail.metric,
+                    queryIndex = e.detail.queryIndex;
+                this.set('rule.queries.'+ queryIndex +'.target', selectedMetric);
+                this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ queryIndex)
+                    .shadowRoot.querySelector("paper-input")
+                    .shadowRoot.querySelector("paper-input-container")
+                    .querySelector("iron-input").querySelector("input").value = selectedMetric;
+                this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ queryIndex).selected = selectedMetric;
+
+                this._focusOnOperator(e, queryIndex);
             }
         },
         _configUpdates: function(features) {
@@ -998,7 +1192,7 @@
         },
         _focusOnTarget: function(e) {
             if (!this.hidden && e.detail.value) {
-                var selector = '#' + e.currentTarget.id.replace("data-type-", "target-" + e.detail.value + "s-");
+                var selector = '#' + e.currentTarget.id.replace("data-type-", "target-" + e.detail.value + "-");
                 // TODO: paper-input#target-logs-0 does not focus
                 if (this.shadowRoot.querySelector(selector)) {
                     console.log('_focusOnTarget', selector, this.shadowRoot.querySelector(selector));
@@ -1009,6 +1203,8 @@
                     if (this.shadowRoot.querySelector(selector).$.menuButton)
                         this.shadowRoot.querySelector(selector).$.menuButton.focus();
                 }
+                if (this.rule && this.rule.data_type == "metrics")
+                    this._getMetrics();
             }
         },
         _focusOnAggregation: function(e) {
@@ -1026,18 +1222,20 @@
             }
             // this._validateCondition();
         },
-        _focusOnOperator: function(e) {
-            if (!this.hidden && e.detail.value && e.currentTarget.id && e.currentTarget.id.split('target-metrics-').length > 0) {
+        _focusOnOperator: function(e, index) {
+            if (!this.hidden && [undefined, null].indexOf(index) == -1) {
+                var selector = "#operator-" + index;
+            } else if (!this.hidden && e.detail.value && e.currentTarget.id && e.currentTarget.id.split('target-metrics-').length > 0) {
                 var selector = '#' + e.currentTarget.id.replace("target-metrics-", "operator-");
-                if (this.shadowRoot.querySelector(selector)) {
-                    console.log('_focusOnOperator', selector, this.shadowRoot.querySelector(selector));
-                    this.shadowRoot.querySelector(selector).focus();
-                    if (this.shadowRoot.querySelector(selector).open) {
-                        this.shadowRoot.querySelector(selector).open();
-                    }
-                    if (this.shadowRoot.querySelector(selector).$.menuButton)
-                        this.shadowRoot.querySelector(selector).$.menuButton.focus();
+            } 
+            if (this.shadowRoot.querySelector(selector)) {
+                console.log('_focusOnOperator', selector, this.shadowRoot.querySelector(selector));
+                this.shadowRoot.querySelector(selector).focus();
+                if (this.shadowRoot.querySelector(selector).open) {
+                    this.shadowRoot.querySelector(selector).open();
                 }
+                if (this.shadowRoot.querySelector(selector).$.menuButton)
+                    this.shadowRoot.querySelector(selector).$.menuButton.focus();
             }
         },
         _focusOnThreshold: function(e) {
