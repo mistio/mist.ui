@@ -1,13 +1,13 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/iron-icons/iron-icons.js';
-import '../../../../@polymer/iron-a11y-keys/iron-a11y-keys.js';
-import '../../../../@polymer/paper-material/paper-material.js';
-import '../../../../@polymer/paper-dialog/paper-dialog.js';
-import '../../../../@polymer/paper-progress/paper-progress.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-a11y-keys/iron-a11y-keys.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/paper-progress/paper-progress.js';
 import '../helpers/card-form.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles forms">

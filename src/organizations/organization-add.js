@@ -1,11 +1,11 @@
-import '../../../../vaadin-dialog/vaadin-dialog.js';
-import '../../../../@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../../@polymer/paper-input/paper-input.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import '../../../../@polymer/paper-toggle-button/paper-toggle-button.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

@@ -1,15 +1,15 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/app-layout/app-layout.js';
-import '../../../../@polymer/app-layout/app-toolbar/app-toolbar.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../../@polymer/iron-image/iron-image.js';
-import '../../../../@polymer/iron-media-query/iron-media-query.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/app-layout/app-layout.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-image/iron-image.js';
+import '@polymer/iron-media-query/iron-media-query.js';
 import '../app-user-menu/app-user-menu.js';
 import '../notifications/notifications-indicator.js';
 import './top-search.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
             <style include="shared-styles">

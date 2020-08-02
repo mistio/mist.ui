@@ -1,16 +1,16 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/iron-icons/iron-icons.js';
-import '../../../../@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../../@polymer/paper-item/paper-item.js';
-import '../../../../@polymer/paper-item/paper-item-body.js';
-import '../../../../@polymer/paper-badge/paper-badge.js';
-import '../../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../../@polymer/paper-menu-button/paper-menu-button.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import '../../../../@polymer/paper-listbox/paper-listbox.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
-import '../../../../moment/moment.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-item/paper-item-body.js';
+import '@polymer/paper-badge/paper-badge.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import 'moment/moment.js';
 Polymer({
   _template: html`
         <style include="shared-styles">

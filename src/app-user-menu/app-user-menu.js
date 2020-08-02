@@ -1,13 +1,13 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../../@polymer/paper-listbox/paper-listbox.js';
-import '../../../../@polymer/iron-icons/iron-icons.js';
-import '../../../../@polymer/iron-icons/social-icons.js';
-import '../../../../@polymer/paper-item/paper-item.js';
-import '../../../../@polymer/paper-menu-button/paper-menu-button.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
-import '../../../../md5/build/md5.min.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-icons/social-icons.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+//import '@md5/build/md5.min.js';
 Polymer({
   _template: html`
         <style include="shared-styles">

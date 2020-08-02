@@ -4,30 +4,30 @@
   from HTML and may be out of place here. Review them and
   then delete this comment!
 */
-import '../../../@polymer/polymer/polymer-legacy.js';
+import '@polymer/polymer/polymer-legacy.js';
 
-import '../../../@polymer/app-route/app-location.js';
-import '../../../@polymer/app-route/app-route.js';
-import '../../../@polymer/app-layout/app-layout.js';
-import '../../../@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
-import '../../../@polymer/app-layout/app-drawer/app-drawer.js';
-import '../../../@polymer/app-layout/app-header/app-header.js';
-import '../../../@polymer/app-layout/app-toolbar/app-toolbar.js';
-import '../../../@polymer/app-layout/app-header-layout/app-header-layout.js';
-import '../../../@polymer/paper-material/paper-material.js';
-import '../../../@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../@polymer/iron-icons/iron-icons.js';
-import '../../../@polymer/iron-pages/iron-pages.js';
-import '../../../@polymer/iron-selector/iron-selector.js';
-import '../../../@polymer/iron-media-query/iron-media-query.js';
-import '../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../@polymer/paper-toast/paper-toast.js';
-import '../../../app-notifications/app-notifications.js';
-import { IronResizableBehavior } from '../../../@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import '../../../vaadin-dialog/vaadin-dialog.js';
-import '../../../vaadin-icons/vaadin-icons.js';
-import '../../../mist-list/mist-list.js';
-import '../../../web-animations-js/web-animations-next.min.js';
+import '@polymer/app-route/app-location.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/app-layout/app-layout.js';
+import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
+import '@polymer/app-layout/app-drawer/app-drawer.js';
+import '@polymer/app-layout/app-header/app-header.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/app-layout/app-header-layout/app-header-layout.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-pages/iron-pages.js';
+import '@polymer/iron-selector/iron-selector.js';
+import '@polymer/iron-media-query/iron-media-query.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-toast/paper-toast.js';
+//import '../../../app-notifications/app-notifications.js';
+import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/vaadin-icons/vaadin-icons.js';
+import '@mistio/mist-list/mist-list.js';
+//import '../../../web-animations-js/web-animations-next.min.js';
 import './styles/shared-styles.js';
 import './mist-header/mist-header.js';
 import './mist-sidebar.js';
@@ -37,13 +37,13 @@ import './mist-notice.js';
 import './mist-icons.js';
 import './organizations/organization-add.js';
 import './account/plan-purchase.js';
-import { setPassiveTouchGestures } from '../../../@polymer/polymer/lib/utils/settings.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { dom } from '../../../@polymer/polymer/lib/legacy/polymer.dom.js';
-import '../../../moment/moment.js';
-import '../../../swiftSet/swiftSet.js';
-import '../../../fingerprintjs2/fingerprint2.js';
-import '../../../numeral/min/numeral.min.js';
+import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
+//import '../../../moment/moment.js';
+//import '../../../swiftSet/swiftSet.js';
+//import '../../../fingerprintjs2/fingerprint2.js';
+//import '../../../numeral/min/numeral.min.js';
 const $_documentContainer = document.createElement('template');
 
 $_documentContainer.innerHTML = `<dom-module id="mist-app">
@@ -219,7 +219,7 @@ $_documentContainer.innerHTML = `<dom-module id="mist-app">
             <paper-toast id="mist-toast"></paper-toast>
         </app-header-layout>
         <mist-socket model="{{model}}"></mist-socket>
-        <app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications>
+        <!--app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications-->
         <organization-add id="organizationAdd" current-org="[[model.org]]"></organization-add>
         <plan-purchase id="mistAppCcRequired" org="[[model.org]]" button-text="Enable"></plan-purchase>
     </template>
@@ -1672,7 +1672,7 @@ setPassiveTouchGestures(true);
 Polymer({
     is: 'mist-app',
     behaviors: [
-        IronResizableBehavior, rbacBehavior
+        IronResizableBehavior //, rbacBehavior
     ],
 
     properties: {

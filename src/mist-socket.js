@@ -1,8 +1,8 @@
-import '../../../@polymer/polymer/polymer-legacy.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-CSRF_TOKEN = '';
-DEBUG_SOCKET = false;
-STRIPE_PUBLIC_APIKEY = ''
+import '@polymer/polymer/polymer-legacy.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+let CSRF_TOKEN = '';
+let DEBUG_SOCKET = false;
+let STRIPE_PUBLIC_APIKEY = ''
 Polymer({
     is: 'mist-socket',
     url: '/socket',
