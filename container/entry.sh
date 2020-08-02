@@ -1,9 +1,12 @@
 #!/bin/sh
+
 cd /ui
-if ! diff -q bower.json /bower.json; then
-    echo "bower.json changed"
-    echo "Running bower install"
-    GIT_DIR= bower install --config.interactive=false --allow-root
+if ! diff -q package.json /package.json; then
+    echo "package.json changed"
+    echo "Running npm install"
+    npm install
 fi
-cp /ui/container/nginx.conf /etc/nginx/nginx.conf
+
+polymer serve --npm -H 0.0.0.0 -p 8000 --compile=always &
+
 exec nginx
