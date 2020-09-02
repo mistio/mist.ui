@@ -1933,7 +1933,7 @@ Polymer({
 
     addImages: function(e) {
         var images = e.detail.images;
-        for (var i = 0; i < images.length; i++) {
+        for (let i = 0; i < images.length; i++) {
             images[i].cloud = {
                 'id': e.detail.cloud.id,
                 'title': e.detail.cloud.title,
@@ -2008,7 +2008,7 @@ Polymer({
         document.querySelector('top-search').clearSearch();
         this.set('q', '');
         if (this.model && this.model.sections) {
-            for (var sec in this.model.sections) {
+            for (let sec in this.model.sections) {
                 this.set('model.sections.' + sec + '.q', '');
             }
         }
@@ -2025,7 +2025,7 @@ Polymer({
         }
         this.set('q', this.q.replace(q, ''));
         if (this.model && this.model.sections) {
-            for (var sec in this.model.sections) {
+            for (let sec in this.model.sections) {
                 this.set('model.sections.' + sec + '.q', this.q.replace(q, ''));
             }
         }
@@ -2036,8 +2036,9 @@ Polymer({
         this.set('count','');
         this.set('loading', true);
         // Load page import on demand. Show 404 page if fails
-        var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
-        this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
+        // var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
+        // this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
+        import('./page-' + page + '.html').then(null, this._showPage404.bind(this));
     },
 
     _hideLoader: function() {
@@ -2238,7 +2239,7 @@ Polymer({
             }
         };
 
-        for (i = 1; i <= model.teamsArray.length; i++) {
+        for (let i = 1; i <= model.teamsArray.length; i++) {
             model.teams = model.teamsArray[i].teams[i].id;
         };
         this.set('model', model);
@@ -2432,8 +2433,8 @@ Polymer({
         this.set('model.sections', _generateMap(sectionsArray));
         // console.log('config updated', this.model.sections)
         if (!this.config || !this.config.features || !this.config.features.docs) {
-            for (var i = 0; i < PROVIDERS.length; i++) {
-                for (var j = 0; j < PROVIDERS[i].options.length; j++) {
+            for (let i = 0; i < PROVIDERS.length; i++) {
+                for (let j = 0; j < PROVIDERS[i].options.length; j++) {
                     PROVIDERS[i].options[j].helpHref = '';
                 }
             }
@@ -2588,7 +2589,7 @@ Polymer({
     },
     _restoreSectionsCounts: function() {
         var that = this;
-        for (var prop in this.model) {
+        for (let prop in this.model) {
             if (this.model.sections[prop] && this.model[prop]) {
                 // set counts to full model resources length
                 this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).length);
@@ -2636,7 +2637,7 @@ Polymer({
 
         if (q && q.trim().length > 0) {
             // Check if all terms exist in stringified item
-            for (var i = 0; i < queryTerms.length; i++) {
+            for (let i = 0; i < queryTerms.length; i++) {
                 if (queryTerms[i] && queryTerms[i].length &&
                     str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
                     return false;
@@ -2678,7 +2679,7 @@ function itemUid(item, section) {
 function mapToArray(obj) {
     var arr = [];
     if (obj) {
-        for (var id in obj) {
+        for (let id in obj) {
             arr.push(obj[id]);
         }
     }

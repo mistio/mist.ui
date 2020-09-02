@@ -337,7 +337,7 @@ Polymer({
       var ntf = false;
       var rec = false;
       if (notifications) {
-          for (i = 0; i < notifications.length; ++i) {
+          for (let i = 0; i < notifications.length; ++i) {
               var item = notifications[i];
               if (item.source == "InAppRecommendation") {
                   rec = true;
