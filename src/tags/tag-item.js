@@ -1,8 +1,8 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../../vaadin-combo-box/vaadin-combo-box.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
+import '../../node_modules/@vaadin/vaadin-combo-box/vaadin-combo-box.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels">

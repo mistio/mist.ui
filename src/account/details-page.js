@@ -1,20 +1,20 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/paper-material/paper-material.js';
-import '../../../../@polymer/paper-radio-group/paper-radio-group.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../../@polymer/paper-progress/paper-progress.js';
-import '../../../../@polymer/paper-input/paper-input.js';
-import '../../../../@polymer/paper-input/paper-textarea.js';
-import '../../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../../../@polymer/paper-radio-group/paper-radio-group.js';
-import '../../../../vaadin-upload/vaadin-upload.js';
-import '../../../../@polymer/paper-toggle-button/paper-toggle-button.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import '../../../../@polymer/iron-image/iron-image.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/paper-material/paper-material.js';
+import '../../node_modules/@polymer/paper-radio-group/paper-radio-group.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
+import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../node_modules/@polymer/paper-input/paper-textarea.js';
+import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '../../node_modules/@polymer/paper-radio-group/paper-radio-group.js';
+import '../../node_modules/@vaadin/vaadin-upload/vaadin-upload.js';
+import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../node_modules/@polymer/iron-image/iron-image.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

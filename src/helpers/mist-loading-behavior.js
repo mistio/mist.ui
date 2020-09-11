@@ -1,10 +1,10 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 /**
 * Behavior that asserts whether a resource is loading, missing or found
 *
 * @polymerBehavior
 */
-mistLoadingBehavior = {
+export const mistLoadingBehavior = {
     properties: {
         resourceId: {
             type: String

@@ -1,10 +1,10 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 /**
  * Behavior that enables the owner filter behavior for lists.
  *
  * @polymerBehavior
  */
-mistLogsBehavior = {
+export const mistLogsBehavior = {
     properties: {},
     _getVisibleColumns: function() {
         return ['type', 'action', 'user_id']

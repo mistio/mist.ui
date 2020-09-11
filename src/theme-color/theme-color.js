@@ -1,5 +1,5 @@
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { dom } from '../../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 //import '../../../../color/one-color.js';
 Polymer({
     is: 'theme-color',

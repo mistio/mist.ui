@@ -1,14 +1,14 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./stacks/stack-create.js"></script>
-<script type="module" src="./stacks/stack-page.js"></script>
-<script type="module" src="./stacks/stack-actions.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-
-<dom-module id="page-stacks">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './stacks/stack-create.js';
+import './stacks/stack-page.js';
+import './stacks/stack-actions.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -44,16 +44,7 @@
         <stack-create model="[[model]]" section="[[model.sections.stacks]]" params="[[route.__queryParams]]" hidden$=[[!_isAddPageActive(route.path)]]></stack-create>
         <stack-page model="[[model]]" stack="[[_getStack(data.stack, model.stacks, model.stacks.*)]]" resource-id="[[data.stack]]" section="[[model.sections.stacks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></stack-page>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './stacks/stack-create.js';
-import './stacks/stack-page.js';
-import './stacks/stack-actions.js';
-import './helpers/owner-filter-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-stacks',
     behaviors: [
         ownerFilterBehavior,
@@ -167,5 +158,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

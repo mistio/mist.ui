@@ -1,11 +1,11 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-dialog/paper-dialog.js';
-import '../../../../@polymer/paper-input/paper-input.js';
-import '../../../../@polymer/paper-checkbox/paper-checkbox.js';
-import '../../../../@polymer/paper-input/paper-input-error.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-dialog/paper-dialog.js';
+import '../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
+import '../../node_modules/@polymer/paper-input/paper-input-error.js';
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
     <style include="shared-styles dialogs forms">

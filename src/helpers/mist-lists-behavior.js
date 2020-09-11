@@ -1,10 +1,10 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 /**
  * Behavior that empties the list selection.
  *
  * @polymerBehavior
  */
-mistListsBehavior = {
+export const mistListsBehavior = {
     properties: {},
     listeners: {
         'action-finished': 'clearListSelection'

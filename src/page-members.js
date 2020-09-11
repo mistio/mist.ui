@@ -1,7 +1,10 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="./teams/member-page.js"></script>
-<dom-module id="page-members">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import './teams/member-page.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
         [hidden] {
@@ -16,13 +19,7 @@
         </template>
         <member-page model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" resource-id="[[data.member]]" hidden$=[[_isListActive(route.path)]]></member-page>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import './teams/member-page.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
-
+    `,
     is: 'page-members',
 
     properties: {
@@ -53,5 +50,3 @@ Polymer({
         return ['email']
     },
 });
-</script>
-</dom-module>

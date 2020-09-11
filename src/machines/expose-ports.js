@@ -1,14 +1,14 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import '../../../../vaadin-dialog/vaadin-dialog.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-input/paper-textarea.js';
-import '../../../../@polymer/paper-progress/paper-progress.js';
-import '../../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../../../@polymer/paper-listbox/paper-listbox.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-input/paper-textarea.js';
+import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 const $_documentContainer = document.createElement('template');
 
 $_documentContainer.innerHTML = `<dom-module id="expose-ports">

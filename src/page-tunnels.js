@@ -1,15 +1,15 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./tunnels/tunnel-add.js"></script>
-<script type="module" src="./tunnels/tunnel-actions.js"></script>
-<script type="module" src="./tunnels/tunnel-page.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-
-<dom-module id="page-tunnels">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './tunnels/tunnel-add.js';
+import './tunnels/tunnel-actions.js';
+import './tunnels/tunnel-page.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -45,17 +45,7 @@
         <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels, model.tunnels.*)]]" resource-id="[[data.tunnel]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]>
             </key-page>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './tunnels/tunnel-add.js';
-import './tunnels/tunnel-actions.js';
-import './tunnels/tunnel-page.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/owner-filter-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-tunnels',
     behaviors: [
         mistListsBehavior,
@@ -166,5 +156,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

@@ -1,7 +1,9 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="./mist-rules/mist-rules.js"></script>
-
-<dom-module id="page-rules">
+import '../node_modules/@polymer/app-route/app-route.js';
+import './mist-rules/mist-rules.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -18,12 +20,7 @@
                 incidents="[[model.incidentsArray]]" rules="[[model.monitoring.rules]]" model="[[model]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]"></mist-rules>
         </paper-material>
     </template>
-
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import './mist-rules/mist-rules.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-rules',
     properties: {
         model: {
@@ -37,5 +34,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

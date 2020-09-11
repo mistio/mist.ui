@@ -1,8 +1,8 @@
-import '../../../../@polymer/paper-item/paper-item.js';
-import '../../../../@polymer/paper-spinner/paper-spinner.js';
+import '../../node_modules/@polymer/paper-item/paper-item.js';
+import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../element-for-in/element-for-in.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles">

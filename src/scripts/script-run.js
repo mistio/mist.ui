@@ -1,12 +1,12 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-toggle-button/paper-toggle-button.js';
-import '../../../../@polymer/paper-checkbox/paper-checkbox.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
+import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
 import '../app-icons/app-icons.js';
 import '../app-form/app-form.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

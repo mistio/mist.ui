@@ -1,17 +1,17 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./teams/team-page.js"></script>
-<script type="module" src="./teams/team-actions.js"></script>
-<script type="module" src="./teams/member-page.js"></script>
-<script type="module" src="./teams/members-add.js"></script>
-<script type="module" src="./teams/member-add-in-teams.js"></script>
-<script type="module" src="./teams/team-add.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-
-
-<dom-module id="page-teams">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './teams/team-page.js';
+import './teams/team-actions.js';
+import './teams/member-page.js';
+import './teams/members-add.js';
+import './teams/member-add-in-teams.js';
+import './teams/team-add.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -53,20 +53,7 @@
             <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
         </div>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './teams/team-page.js';
-import './teams/team-actions.js';
-import './teams/member-page.js';
-import './teams/members-add.js';
-import './teams/member-add-in-teams.js';
-import './teams/team-add.js';
-import './helpers/mist-lists-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
-
+    `,
     is: 'page-teams',
     behaviors: [
         mistListsBehavior,
@@ -209,5 +196,3 @@ Polymer({
     }
 
 });
-</script>
-</dom-module>

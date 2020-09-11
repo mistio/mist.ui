@@ -1,10 +1,10 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 /**
  * Behavior that empties the list selection.
  *
  * @polymerBehavior
  */
-stackFormsBehavior = {
+export const stackFormsBehavior = {
     properties: {},
     listeners: {
     },

@@ -1,16 +1,15 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-
-<script type="module" src="./templates/template-add.js"></script>
-<script type="module" src="./templates/template-page.js"></script>
-<script type="module" src="./templates/template-actions.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-
-<dom-module id="page-templates">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './templates/template-add.js';
+import './templates/template-page.js';
+import './templates/template-actions.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -46,18 +45,7 @@
         <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
         <template-page model="[[model]]" template-id="[[data.template]]" resource-id="[[data.template]]" stacks="[[_getTemplateStacks(data.template, model.templates, model.stacks, model.templates.*, model.stacks.*)]]" section="[[model.sections.templates]]" hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import '../../../mist-list/mist-list.js';
-import './templates/template-add.js';
-import './templates/template-page.js';
-import './templates/template-actions.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/owner-filter-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-templates',
     behaviors: [
         mistListsBehavior,
@@ -161,5 +149,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

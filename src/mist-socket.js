@@ -1,5 +1,5 @@
-import '@polymer/polymer/polymer-legacy.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import '../node_modules/@polymer/polymer/polymer-legacy.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 let CSRF_TOKEN = '';
 let DEBUG_SOCKET = false;
 let STRIPE_PUBLIC_APIKEY = ''

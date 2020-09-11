@@ -1,17 +1,17 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-checkbox/paper-checkbox.js';
-import '../../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../../@polymer/paper-input/paper-input.js';
-import '../../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../../../@polymer/paper-input/paper-textarea.js';
-import '../../../../@polymer/paper-listbox/paper-listbox.js';
-import '../../../../@polymer/paper-tooltip/paper-tooltip.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
+import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '../../node_modules/@polymer/paper-input/paper-textarea.js';
+import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import './mist-dropdown-multi.js';
 import './validate-rule-behavior.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style>

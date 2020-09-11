@@ -1,17 +1,18 @@
-<script type="module" src="../../../@polymer/polymer/polymer-legacy.js"></script>
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../@polymer/paper-material/paper-material.js"></script>
-<script type="module" src="../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js"></script>
-<script type="module" src="../../../@polymer/paper-spinner/paper-spinner.js"></script>
-<script type="module" src="../../../@polymer/iron-icons/iron-icons.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/iron-media-query/iron-media-query.js"></script>
-<script type="module" src="../../../@polymer/iron-resizable-behavior/iron-resizable-behavior.js"></script>
-<script type="module" src="../../../mist-insights/mist-insights.js"></script>
-
-<script src="../../../moment/moment.js"></script>
-
-<dom-module id="page-insights">
+//<script src="../node_modules/moment/moment.js"></script>
+import '../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@polymer/paper-material/paper-material.js';
+import '../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../node_modules/@polymer/iron-icons/iron-icons.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/iron-media-query/iron-media-query.js';
+import { IronResizableBehavior } from '../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import '../node_modules/@mistio/mist-insights/mist-insights.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
     <style include="shared-styles forms single-page tags-and-labels">
         :host {
@@ -107,19 +108,7 @@
     </div>
 
     </template>
-    <script type="module">
-import '../../../@polymer/polymer/polymer-legacy.js';
-import '../../../@polymer/app-route/app-route.js';
-import '../../../@polymer/paper-material/paper-material.js';
-import '../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../@polymer/iron-icons/iron-icons.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/iron-media-query/iron-media-query.js';
-import { IronResizableBehavior } from '../../../@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import '../../../mist-insights/mist-insights.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-insights',
     behaviors: [
         IronResizableBehavior
@@ -143,5 +132,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

@@ -4,29 +4,29 @@
   from HTML and may be out of place here. Review them and
   then delete this comment!
 */
-import '@polymer/polymer/polymer-legacy.js';
+import '../node_modules/@polymer/polymer/polymer-legacy.js';
 
-import '@polymer/app-route/app-location.js';
-import '@polymer/app-route/app-route.js';
-import '@polymer/app-layout/app-layout.js';
-import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
-import '@polymer/app-layout/app-drawer/app-drawer.js';
-import '@polymer/app-layout/app-header/app-header.js';
-import '@polymer/app-layout/app-toolbar/app-toolbar.js';
-import '@polymer/app-layout/app-header-layout/app-header-layout.js';
-import '@polymer/paper-material/paper-material.js';
-import '@polymer/paper-icon-button/paper-icon-button.js';
-import '@polymer/iron-icons/iron-icons.js';
-import '@polymer/iron-pages/iron-pages.js';
-import '@polymer/iron-selector/iron-selector.js';
-import '@polymer/iron-media-query/iron-media-query.js';
-import '@polymer/paper-spinner/paper-spinner.js';
-import '@polymer/paper-toast/paper-toast.js';
+import '../node_modules/@polymer/app-route/app-location.js';
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@polymer/app-layout/app-layout.js';
+import '../node_modules/@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
+import '../node_modules/@polymer/app-layout/app-drawer/app-drawer.js';
+import '../node_modules/@polymer/app-layout/app-header/app-header.js';
+import '../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '../node_modules/@polymer/app-layout/app-header-layout/app-header-layout.js';
+import '../node_modules/@polymer/paper-material/paper-material.js';
+import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
+import '../node_modules/@polymer/iron-icons/iron-icons.js';
+import '../node_modules/@polymer/iron-pages/iron-pages.js';
+import '../node_modules/@polymer/iron-selector/iron-selector.js';
+import '../node_modules/@polymer/iron-media-query/iron-media-query.js';
+import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../node_modules/@polymer/paper-toast/paper-toast.js';
 //import '../../../app-notifications/app-notifications.js';
-import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
-import '@vaadin/vaadin-icons/vaadin-icons.js';
-import '@mistio/mist-list/mist-list.js';
+import { IronResizableBehavior } from '../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import '../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '../node_modules/@vaadin/vaadin-icons/vaadin-icons.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
 //import '../../../web-animations-js/web-animations-next.min.js';
 import './styles/shared-styles.js';
 import './mist-header/mist-header.js';
@@ -37,15 +37,14 @@ import './mist-notice.js';
 import './mist-icons.js';
 import './organizations/organization-add.js';
 import './account/plan-purchase.js';
-import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
+import { setPassiveTouchGestures } from '../node_modules/@polymer/polymer/lib/utils/settings.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 //import '../../../moment/moment.js';
 //import '../../../swiftSet/swiftSet.js';
 //import '../../../fingerprintjs2/fingerprint2.js';
 //import '../../../numeral/min/numeral.min.js';
 const $_documentContainer = document.createElement('template');
-
 $_documentContainer.innerHTML = `<dom-module id="mist-app">
     <!-- styles/app-theme  -->
     <!-- <slot name="theme">
@@ -2038,7 +2037,7 @@ Polymer({
         // Load page import on demand. Show 404 page if fails
         // var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
         // this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-        import('./page-' + page + '.html').then(null, this._showPage404.bind(this));
+        import('./page-' + page + '.js').then(null, this._showPage404.bind(this));
     },
 
     _hideLoader: function() {
@@ -2047,8 +2046,9 @@ Polymer({
     },
 
     _showPage404: function() {
-        this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
-        this.page = 'not-found';
+        // this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
+        // this.page = 'not-found';
+        import('./page-not-found.js');
     },
 
     _isPage: function(page) {

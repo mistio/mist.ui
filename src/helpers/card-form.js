@@ -1,11 +1,11 @@
-import '@polymer/polymer/polymer-legacy.js';
-import '@polymer/paper-styles/typography.js';
-import '@polymer/paper-input/paper-input.js';
-import '@polymer/iron-icons/iron-icons.js';
-import '@polymer/gold-cc-input/gold-cc-input.js';
-import '@polymer/gold-cc-cvc-input/gold-cc-cvc-input.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../node_modules/@polymer/iron-icons/iron-icons.js';
+import '../../node_modules/@polymer/gold-cc-input/gold-cc-input.js';
+import '../../node_modules/@polymer/gold-cc-cvc-input/gold-cc-cvc-input.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles forms">

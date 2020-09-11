@@ -1,12 +1,12 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-spinner/paper-spinner-lite.js';
-import '../../../../@polymer/paper-tooltip/paper-tooltip.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-spinner/paper-spinner-lite.js';
+import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import '../helpers/dialog-element.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles">

@@ -1,15 +1,15 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-<script type="module" src="./keys/key-actions.js"></script>
-<script type="module" src="./keys/key-add.js"></script>
-<script type="module" src="./keys/key-page.js"></script>
-
-<dom-module id="page-keys">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './keys/key-actions.js';
+import './keys/key-add.js';
+import './keys/key-page.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -39,17 +39,7 @@
         <key-page model="[[model]]" key="[[_getKeyPair(data.key, model.keys)]]" resource-id="[[data.key]]" section="[[model.sections.keys]]"
             hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/owner-filter-behavior.js';
-import './keys/key-actions.js';
-import './keys/key-add.js';
-import './keys/key-page.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-keys',
     behaviors: [
         mistListsBehavior,
@@ -167,5 +157,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

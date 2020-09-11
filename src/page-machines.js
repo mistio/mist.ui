@@ -1,14 +1,17 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../@polymer/paper-spinner/paper-spinner.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-<script type="module" src="./machines/machine-create.js"></script>
-<script type="module" src="./machines/machine-page.js"></script>
-<script type="module" src="./machines/machine-actions.js"></script>
-
-<dom-module id="page-machines">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './machines/machine-create.js';
+import './machines/machine-page.js';
+import './machines/machine-actions.js';
+import moment from '../node_modules/moment/src/moment.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -96,18 +99,7 @@
         </template>
         <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './helpers/owner-filter-behavior.js';
-import './machines/machine-create.js';
-import './machines/machine-page.js';
-import './machines/machine-actions.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { dom } from '../../../@polymer/polymer/lib/legacy/polymer.dom.js';
-Polymer({
+    `,
     is: 'page-machines',
     behaviors: [
         ownerFilterBehavior,
@@ -757,5 +749,3 @@ Polymer({
             return prefix + "low ";
     }
 });
-</script>
-</dom-module>

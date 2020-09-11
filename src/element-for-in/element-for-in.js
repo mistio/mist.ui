@@ -1,8 +1,8 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../json-viewer/json-viewer.js';
-import '../../../../xml-viewer/xml-viewer.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@advanced-rest-client/json-viewer/json-viewer';
+import '../../node_modules/@advanced-rest-client/xml-viewer/xml-viewer.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles info-table-style">

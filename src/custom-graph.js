@@ -1,12 +1,12 @@
-import '../../../@polymer/polymer/polymer-legacy.js';
-import '../../../@polymer/paper-item/paper-item.js';
-import '../../../@polymer/iron-collapse/iron-collapse.js';
-import '../../../@polymer/iron-icons/iron-icons.js';
-import '../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../@polymer/paper-progress/paper-progress.js';
-import '../../../@polymer/iron-ajax/iron-ajax.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../@polymer/polymer/lib/utils/html-tag.js';
+import '../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../node_modules/@polymer/paper-item/paper-item.js';
+import '../node_modules/@polymer/iron-collapse/iron-collapse.js';
+import '../node_modules/@polymer/iron-icons/iron-icons.js';
+import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../node_modules/@polymer/paper-progress/paper-progress.js';
+import '../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles">

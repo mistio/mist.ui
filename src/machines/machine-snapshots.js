@@ -1,16 +1,16 @@
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-input/paper-textarea.js';
-import '../../../../@polymer/paper-radio-button/paper-radio-button.js';
-import '../../../../@polymer/paper-progress/paper-progress.js';
-import '../../../../@polymer/paper-checkbox/paper-checkbox.js';
-import '../../../../@polymer/neon-animation/animations/scale-up-animation.js';
-import '../../../../@polymer/neon-animation/animations/fade-out-animation.js';
-import '../../../../@polymer/paper-listbox/paper-listbox.js';
-import '../../../../@polymer/paper-item/paper-item-body.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-input/paper-textarea.js';
+import '../../node_modules/@polymer/paper-radio-button/paper-radio-button.js';
+import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
+import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
+import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
+import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '../../node_modules/@polymer/paper-item/paper-item-body.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">

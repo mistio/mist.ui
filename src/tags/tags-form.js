@@ -1,12 +1,12 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../vaadin-dialog/vaadin-dialog.js';
-import '../../../../@polymer/paper-progress/paper-progress.js';
-import '../../../../@polymer/iron-icons/iron-icons.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import './tag-item.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

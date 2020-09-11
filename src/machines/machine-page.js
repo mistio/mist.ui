@@ -1,8 +1,8 @@
-import '../../../../@polymer/paper-material/paper-material.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-toast/paper-toast.js';
-import '../../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../../mist-list/mist-list.js';
+import '../../node_modules/@polymer/paper-material/paper-material.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-toast/paper-toast.js';
+import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../../node_modules/@mistio/mist-list/mist-list.js';
 import '../helpers/dialog-element.js';
 import '../helpers/mist-loading-behavior.js';
 import '../element-for-in/element-for-in.js';
@@ -11,8 +11,9 @@ import '../mist-monitoring.js';
 import './machine-expiration-edit.js';
 import './machine-actions.js';
 import './machine-r12ns.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels info-table-style single-page">

@@ -1,15 +1,15 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./networks/network-create.js"></script>
-<script type="module" src="./networks/network-page.js"></script>
-<script type="module" src="./networks/network-actions.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-
-<dom-module id="page-networks">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './networks/network-create.js';
+import './networks/network-page.js';
+import './networks/network-actions.js';
+//import './helpers/mist-lists-behavior.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -45,17 +45,7 @@
         <network-create model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-create>
         <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networks, model.networks.*)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './networks/network-create.js';
-import './networks/network-page.js';
-import './networks/network-actions.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/owner-filter-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-networks',
     behaviors: [
         ownerFilterBehavior,
@@ -190,5 +180,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

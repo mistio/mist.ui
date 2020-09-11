@@ -1,10 +1,10 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 /**
 * Behavior that defines the machine list columns
 *
 * @polymerBehavior
 */
-machinesListBehavior = {
+export const machinesListBehavior = {
     properties: {},
     _getFrozenColumn: function() {
         return ['name'];

@@ -1,14 +1,14 @@
-import '../../../../@polymer/paper-material/paper-material.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-progress/paper-progress.js';
-import '../../../../@polymer/paper-input/paper-input.js';
-import '../../../../@polymer/paper-input/paper-textarea.js';
-import '../../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
+import '../../node_modules/@polymer/paper-material/paper-material.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../node_modules/@polymer/paper-input/paper-textarea.js';
+import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../helpers/custom-validator.js';
 import '../helpers/file-upload.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles forms single-page">

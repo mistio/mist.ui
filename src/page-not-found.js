@@ -1,6 +1,8 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-
-<dom-module id="page-not-found">
+import '../node_modules/@polymer/app-route/app-route.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+  _template: html`
   <template>
     <style include="shared-styles">
       :host {
@@ -16,12 +18,6 @@
         <a href="/"><paper-button>Back to home</paper-button></a>
     </div>
   </template>
-
-  <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+  `,
   is: 'page-not-found'
 });
-</script>
-</dom-module>

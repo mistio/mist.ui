@@ -1,12 +1,12 @@
-import '../../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../../../@polymer/paper-listbox/paper-listbox.js';
-import '../../../../@polymer/paper-item/paper-item.js';
-import '../../../../@polymer/paper-input/paper-input.js';
-import '../../../../juicy-jsoneditor/juicy-jsoneditor.js';
+import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '../../node_modules/@polymer/paper-item/paper-item.js';
+import '../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../node_modules/juicy-jsoneditor/juicy-jsoneditor.js';
 import '../element-for-in/element-for-in.js';
 import '../helpers/dialog-element.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const RBAC_CONSTRAINTS_FIELDS = [{
         name: 'constraints',
         label: 'Constraints in JSON',

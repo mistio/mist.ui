@@ -1,15 +1,15 @@
-import '../../../../@polymer/paper-item/paper-item.js';
-import '../../../../sortable-list/sortable-list.js';
-import '../../../../@polymer/paper-toggle-button/paper-toggle-button.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-progress/paper-progress.js';
-import '../../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../../../@polymer/paper-item/paper-item.js';
-import '../../../../@polymer/paper-tooltip/paper-tooltip.js';
+import '../../node_modules/@polymer/paper-item/paper-item.js';
+import '../../node_modules/sortable-list/sortable-list.js';
+import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '../../node_modules/@polymer/paper-item/paper-item.js';
+import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import './rbac-rule-item.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
-import '../../../../swiftSet/swiftSet.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/swiftSet/swiftSet.js';
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels">

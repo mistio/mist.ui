@@ -1,15 +1,15 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./scripts/script-add.js"></script>
-<script type="module" src="./scripts/script-page.js"></script>
-<script type="module" src="./scripts/script-actions.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-
-<dom-module id="page-scripts">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './scripts/script-add.js';
+import './scripts/script-page.js';
+import './scripts/script-actions.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             :host {
@@ -53,17 +53,7 @@
         </template>
 
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './scripts/script-add.js';
-import './scripts/script-page.js';
-import './scripts/script-actions.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/owner-filter-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-scripts',
     behaviors: [
         mistListsBehavior,
@@ -177,5 +167,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

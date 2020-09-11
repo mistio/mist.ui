@@ -1,15 +1,16 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./schedules/schedule-add.js"></script>
-<script type="module" src="./schedules/schedule-page.js"></script>
-<script type="module" src="./schedules/schedule-actions.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-
-<dom-module id="page-schedules">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './schedules/schedule-add.js';
+import './schedules/schedule-page.js';
+import './schedules/schedule-actions.js';
+import moment from '../node_modules/moment/src/moment.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -46,17 +47,7 @@
         <schedule-add model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]] currency=[[currency]]></schedule-add>
         <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules, model.schedules.*)]]" resource-id="[[data.schedule]]" section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]] currency=[[currency]]></schedule-page>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './schedules/schedule-add.js';
-import './schedules/schedule-page.js';
-import './schedules/schedule-actions.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/owner-filter-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-schedules',
 
     behaviors: [
@@ -236,5 +227,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

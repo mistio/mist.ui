@@ -1,11 +1,11 @@
-import '@polymer/paper-icon-button/paper-icon-button.js';
-import { IronOverlayBehavior } from '@polymer/iron-overlay-behavior/iron-overlay-behavior.js';
-import '@polymer/paper-listbox/paper-listbox.js';
+import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
+import { IronOverlayBehavior } from '../node_modules/@polymer/iron-overlay-behavior/iron-overlay-behavior.js';
+import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './section-symbol/section-symbol.js';
 import './tag-link/tag-link.js';
 import './theme-color/theme-color.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles">

@@ -1,10 +1,8 @@
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/neon-animation/animations/scale-up-animation.js';
-import '../../../../@polymer/neon-animation/animations/fade-out-animation.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import '../../../../xterm.js/dist/xterm.js';
-import '../../../../xterm.js/dist/addons/fit/fit.js';
-import '../../../../xterm.js/dist/addons/fullscreen/fullscreen.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
+import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { Terminal } from '../../node_modules/xterm/lib/xterm.js';
 const $_documentContainer = document.createElement('template');
 
 $_documentContainer.innerHTML = `<style>

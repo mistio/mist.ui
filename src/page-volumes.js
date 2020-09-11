@@ -1,16 +1,16 @@
-<script type="module" src="../../../@polymer/polymer/polymer-legacy.js"></script>
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./volumes/volume-create.js"></script>
-<script type="module" src="./volumes/volume-page.js"></script>
-<script type="module" src="./volumes/volume-actions.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/owner-filter-behavior.js"></script>
-
-
-<dom-module id="page-volumes">
+import '../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './volumes/volume-create.js';
+import './volumes/volume-page.js';
+import './volumes/volume-actions.js';
+//import './helpers/mist-lists-behavior.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -45,18 +45,7 @@
         <volume-create model="[[model]]" section="[[model.sections.volumes]]" hidden$=[[!_isAddPageActive(route.path)]]></volume-create>
         <volume-page model="[[model]]" volume="[[_getVolume(data.volume, model.volumes, model.volumes.*)]]" resource-id="[[data.volume]]" section="[[model.sections.volumes]]" hidden$=[[!_isDetailsPageActive(route.path)]]></volume-page>
     </template>
-    <script type="module">
-import '../../../@polymer/polymer/polymer-legacy.js';
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './volumes/volume-create.js';
-import './volumes/volume-page.js';
-import './volumes/volume-actions.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/owner-filter-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-volumes',
     behaviors: [
         ownerFilterBehavior,
@@ -194,5 +183,3 @@ Polymer({
         }
     }
 });
-</script>
-</dom-module>

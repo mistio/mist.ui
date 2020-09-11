@@ -1,14 +1,14 @@
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/paper-spinner/paper-spinner.js';
-import '../../../../mist-list/mist-list.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../../node_modules/@mistio/mist-list/mist-list.js';
 import '../mist-rules/mist-rules.js';
 import '../helpers/mist-logs-behavior.js';
 import '../helpers/dialog-element.js';
 import '../helpers/mist-loading-behavior.js';
 import '../helpers/mist-rules-behavior.js';
 import '../tags/tags-list.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

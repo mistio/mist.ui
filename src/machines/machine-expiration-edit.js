@@ -1,15 +1,15 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import '../../../../@polymer/paper-styles/typography.js';
-import '../../../../@polymer/iron-collapse/iron-collapse.js';
-import '../../../../@polymer/paper-button/paper-button.js';
-import '../../../../@polymer/neon-animation/animations/scale-up-animation.js';
-import '../../../../@polymer/neon-animation/animations/fade-out-animation.js';
-import '../../../../@polymer/paper-listbox/paper-listbox.js';
-import '../../../../vaadin-dialog/vaadin-dialog.js';
-import '../../../../mist-list/mist-list-actions-behavior.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../node_modules/@polymer/paper-styles/typography.js';
+import '../../node_modules/@polymer/iron-collapse/iron-collapse.js';
+import '../../node_modules/@polymer/paper-button/paper-button.js';
+import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
+import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
+import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">

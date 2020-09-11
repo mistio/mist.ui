@@ -1,21 +1,21 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../@polymer/paper-tabs/paper-tabs.js"></script>
-<script type="module" src="../../../@polymer/iron-pages/iron-pages.js"></script>
-<script type="module" src="../../../@polymer/paper-tooltip/paper-tooltip.js"></script>
-
-<script type="module" src="./account/details-page.js"></script>
-<script type="module" src="./account/password-page.js"></script>
-<script type="module" src="./account/plans-list.js"></script>
-<script type="module" src="./account/subscriptions-list.js"></script>
-<script type="module" src="./account/sessions-list.js"></script>
-<script type="module" src="./account/tokens-list.js"></script>
-<script type="module" src="./account/whitelisted-ips.js"></script>
-<script type="module" src="./account/notifications-settings.js"></script>
-<script type="module" src="./account/metering-graphs.js"></script>
-
-<script src="../../../moment/min/moment.min.js"></script>
-
-<dom-module id="page-my-account">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@polymer/paper-tabs/paper-tabs.js';
+import '../node_modules/@polymer/iron-pages/iron-pages.js';
+import '../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
+import './account/details-page.js';
+import './account/password-page.js';
+import './account/plans-list.js';
+import './account/subscriptions-list.js';
+import './account/sessions-list.js';
+import './account/tokens-list.js';
+import './account/whitelisted-ips.js';
+import './account/notifications-settings.js';
+import './account/metering-graphs.js';
+//import moment from '../node_modules/moment/src/moment.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="single-page shared-styles">
         #container {
@@ -67,22 +67,7 @@
             </iron-pages>
         </div>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../@polymer/paper-tabs/paper-tabs.js';
-import '../../../@polymer/iron-pages/iron-pages.js';
-import '../../../@polymer/paper-tooltip/paper-tooltip.js';
-import './account/details-page.js';
-import './account/password-page.js';
-import './account/plans-list.js';
-import './account/subscriptions-list.js';
-import './account/sessions-list.js';
-import './account/tokens-list.js';
-import './account/whitelisted-ips.js';
-import './account/notifications-settings.js';
-import './account/metering-graphs.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-my-account',
     properties: {
         config: {
@@ -117,5 +102,3 @@ Polymer({
         return is_owner && has_billing;
     }
 });
-</script>
-</dom-module>

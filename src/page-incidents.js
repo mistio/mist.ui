@@ -1,9 +1,12 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-<script type="module" src="./helpers/get-resource-from-incident-behavior.js"></script>
-
-<dom-module id="page-incidents">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import moment from '../node_modules/moment/src/moment.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             .error {
@@ -25,13 +28,7 @@
             </mist-list>
         </template>
     </template>
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import './helpers/mist-lists-behavior.js';
-import './helpers/get-resource-from-incident-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-incidents',
     behaviors: [
         mistListsBehavior,
@@ -130,5 +127,3 @@ Polymer({
             this.shadowRoot.querySelector('mist-list').fire('resize');
     }
 });
-</script>
-</dom-module>

@@ -1,14 +1,14 @@
-<script type="module" src="../../../@polymer/app-route/app-route.js"></script>
-<script type="module" src="../../../mist-list/mist-list.js"></script>
-<script type="module" src="../../../@polymer/paper-fab/paper-fab.js"></script>
-
-<script type="module" src="./images/image-page.js"></script>
-<script type="module" src="./images/image-actions.js"></script>
-<script type="module" src="./images/image-provider-search.js"></script>
-
-<script type="module" src="./helpers/mist-lists-behavior.js"></script>
-
-<dom-module id="page-images">
+import '../node_modules/@polymer/app-route/app-route.js';
+import '../node_modules/@mistio/mist-list/mist-list.js';
+import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import './images/image-page.js';
+import './images/image-actions.js';
+import './images/image-provider-search.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+Polymer({
+    _template: html`
     <template>
         <style include="shared-styles">
             [hidden] {
@@ -58,17 +58,7 @@
         <image-provider-search id="imageprovidersearch" clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
 
     </template>
-
-    <script type="module">
-import '../../../@polymer/app-route/app-route.js';
-import '../../../mist-list/mist-list.js';
-import '../../../@polymer/paper-fab/paper-fab.js';
-import './images/image-page.js';
-import './images/image-actions.js';
-import './images/image-provider-search.js';
-import './helpers/mist-lists-behavior.js';
-import { Polymer } from '../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-Polymer({
+    `,
     is: 'page-images',
     behaviors: [
         mistListsBehavior
@@ -200,5 +190,3 @@ Polymer({
     }
 
 });
-</script>
-</dom-module>

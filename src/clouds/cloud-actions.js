@@ -1,20 +1,20 @@
-import '../../../../@polymer/polymer/polymer-legacy.js';
-import '../../../../vaadin-dialog/vaadin-dialog.js';
-import '../../../../@polymer/paper-input/paper-input.js';
-import '../../../../@polymer/paper-input/paper-input-error.js';
-import '../../../../@polymer/paper-input/paper-textarea.js';
-import '../../../../@polymer/iron-ajax/iron-ajax.js';
-import '../../../../@polymer/iron-icons/iron-icons.js';
-import '../../../../vaadin-icons/vaadin-icons.js';
-import '../../../../mist-list/mist-list-actions.js';
-import '../../../../mist-list/mist-list-actions-behavior.js';
+import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../node_modules/@polymer/paper-input/paper-input-error.js';
+import '../../node_modules/@polymer/paper-input/paper-textarea.js';
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../node_modules/@polymer/iron-icons/iron-icons.js';
+import '../../node_modules/@vaadin/vaadin-icons/vaadin-icons.js';
+import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
+import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import './cloud-edit.js';
 import './other-cloud-add-machine.js';
 import '../tags/tags-form.js';
 import '../helpers/xterm-dialog.js';
 import '../helpers/dialog-element.js';
-import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../../../@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 CLOUD_ACTIONS = {
   'tag': {
     'name': 'tag',
