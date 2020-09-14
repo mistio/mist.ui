@@ -5,7 +5,7 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import moment from '../node_modules/moment/src/moment.js';
+import '../node_modules/moment/src/moment.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';

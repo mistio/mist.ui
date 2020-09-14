@@ -2037,7 +2037,9 @@ Polymer({
         // Load page import on demand. Show 404 page if fails
         // var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
         // this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-        import('./page-' + page + '.js').then(null, this._showPage404.bind(this));
+        // import('./page-' + page + '.js').then(console.log("SUCCESS"),console.log("FAILURE!! "));
+        // import('./page-' + page + '.js').then(()=>{console.log("SUCCESS");},(reason)=>{console.log("FAILURE!! ", reason);});
+        import('./page-' + page + '.js').then(this._hideLoader.bind(this), this._showPage404.bind(this));
     },
 
     _hideLoader: function() {
@@ -2048,7 +2050,7 @@ Polymer({
     _showPage404: function() {
         // this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
         // this.page = 'not-found';
-        import('./page-not-found.js');
+        import('./page-not-found.js').then(null);
     },
 
     _isPage: function(page) {

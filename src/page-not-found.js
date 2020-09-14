@@ -3,7 +3,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
-  <template>
     <style include="shared-styles">
       :host {
         padding: 10px 20px;
@@ -17,7 +16,6 @@ Polymer({
         <p>Page can not be found.</p>
         <a href="/"><paper-button>Back to home</paper-button></a>
     </div>
-  </template>
   `,
   is: 'page-not-found'
 });

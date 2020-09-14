@@ -1,6 +1,6 @@
 import '../node_modules/@polymer/app-route/app-route.js';
 import '../node_modules/@mistio/mist-list/mist-list.js';
-import moment from '../node_modules/moment/src/moment.js';
+import '../node_modules/moment/src/moment.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';

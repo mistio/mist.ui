@@ -22,8 +22,8 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
-    _template: html`
-    <template>
+    is: 'page-dashboard',
+    _template: html `
         <style include="headings shared-styles">
         :host {
             --layout-margin: 16px;
@@ -391,9 +391,7 @@ Polymer({
             </div>
         </div>
         <iron-ajax id="monitoringRequest" method="POST" on-response="_monitoringResponse" on-error="_monitoringError" on-request="_monitoringRequest" handle-as="xml"></iron-ajax>
-    </template>
     `,
-    is: 'page-dashboard',
     enableCustomStyleProperties: true,
     behaviors: [
         rbacBehavior
