@@ -4,6 +4,7 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './networks/network-create.js';
 import './networks/network-page.js';
 import './networks/network-actions.js';
+import { rbacBehavior } from './rbac-behavior.js';
 //import './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';

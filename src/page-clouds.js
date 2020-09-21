@@ -6,6 +6,8 @@ import './clouds/cloud-add.js';
 import './clouds/cloud-page.js';
 import './clouds/cloud-actions.js';
 import './helpers/mist-lists-behavior.js';
+import PROVIDERS from './helpers/providers.js';
+import { rbacBehavior } from './rbac-behavior.js';
 import {ownerFilterBehavior} from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';

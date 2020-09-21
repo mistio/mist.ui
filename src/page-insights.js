@@ -1,4 +1,3 @@
-//<script src="../node_modules/moment/moment.js"></script>
 import '../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../node_modules/@polymer/app-route/app-route.js';
 import '../node_modules/@polymer/paper-material/paper-material.js';

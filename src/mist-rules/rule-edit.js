@@ -9,7 +9,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import './mist-dropdown-multi.js';
-import './validate-rule-behavior.js';
+import { validateRuleBehavior } from './validate-rule-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({

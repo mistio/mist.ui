@@ -36,7 +36,7 @@ import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import '../../node_modules/@fooloomanzoo/datetime-picker/datetime-picker.js';
 import YAML from '../../node_modules/yaml/browser/dist/index.js';
-DEBUG_FORM = false;
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">

@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../teams/team-add.js';
+import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({

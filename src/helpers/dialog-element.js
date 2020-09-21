@@ -5,7 +5,7 @@ import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import '../../node_modules/@polymer/paper-dialog/paper-dialog.js';
 import '../../node_modules/@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';

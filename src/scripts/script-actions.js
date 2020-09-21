@@ -5,7 +5,7 @@ import '../../node_modules/@polymer/paper-input/paper-input-error.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './script-edit.js';

@@ -10,7 +10,7 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import moment from '../../node_modules/moment/src/moment.js';
+import dayjs from '../../node_modules/dayjs/esm/index.js';
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -318,7 +318,7 @@ Polymer({
 
   _computeRelativeTime: function (notification, timestamp_counter) {
       var date = new Date(notification.created_date.$date);
-      return moment(date).fromNow();
+      return dayjs(date).fromNow();
   },
 
   computeBadgeCaption: function (notifications) {

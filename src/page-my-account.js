@@ -11,7 +11,6 @@ import './account/tokens-list.js';
 import './account/whitelisted-ips.js';
 import './account/notifications-settings.js';
 import './account/metering-graphs.js';
-//import moment from '../node_modules/moment/src/moment.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({

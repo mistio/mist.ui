@@ -4,7 +4,7 @@ import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../machines/machine-page.js';
 import '../section-tile/section-tile.js';
-import '../helpers/get-resource-from-incident-behavior.js';
+import { getResourceFromIncidentBehavior } from '../helpers/get-resource-from-incident-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({

@@ -4,11 +4,11 @@ import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/paper-input/paper-input-error.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-OTHER_CLOUD_MACHINE_ACTIONS = {
+const OTHER_CLOUD_MACHINE_ACTIONS = {
   'remove': {
     'name': 'remove',
     'icon': 'remove',

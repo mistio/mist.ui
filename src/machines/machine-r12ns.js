@@ -9,7 +9,6 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/paper-item/paper-item-body.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-//import { moment } from '../../node_modules/moment/moment.js';
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels info-table-style single-page">

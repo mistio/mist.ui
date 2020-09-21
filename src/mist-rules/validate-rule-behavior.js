@@ -4,7 +4,7 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
  *
  * @polymerBehavior
  */
-validateRuleBehavior = {
+export const validateRuleBehavior = {
     _validateRule: function(rule, actions, queries) {
         this.debounce('_validateRule', function () {
             this._actuallyValidateRule(rule, actions, queries);

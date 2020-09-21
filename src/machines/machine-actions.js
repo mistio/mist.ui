@@ -6,7 +6,7 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../../node_modules/@vaadin/vaadin-icons/vaadin-icons.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../tags/tags-form.js';
 import '../helpers/xterm-dialog.js';
 import '../helpers/dialog-element.js';

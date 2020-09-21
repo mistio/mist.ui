@@ -7,7 +7,7 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../../node_modules/@vaadin/vaadin-icons/vaadin-icons.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import './cloud-edit.js';
 import './other-cloud-add-machine.js';
 import '../tags/tags-form.js';
@@ -15,7 +15,7 @@ import '../helpers/xterm-dialog.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-CLOUD_ACTIONS = {
+const CLOUD_ACTIONS = {
   'tag': {
     'name': 'tag',
     'icon': 'label',

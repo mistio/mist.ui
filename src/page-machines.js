@@ -5,11 +5,14 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import '../node_modules/moment/src/moment.js';
+import ratedCost from '../helpers/utils.js';
+import dayjs from '../node_modules/dayjs/esm';
+import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
     <template>
@@ -459,7 +462,7 @@ Polymer({
             },
             'created': {
                 'body': function(item, row) {
-                    return moment(item).isValid() ? moment.utc(item).fromNow() : "";
+                    return dayjs(item).isValid() ? dayjs.utc(item).fromNow() : "";
                 }
             },
             'size': {
@@ -515,11 +518,11 @@ Polymer({
                     return 'expiration';
                 },
                 'body': function(item, row) {
-                    return item && item.date ? moment.utc(item.date).fromNow() : '';
+                    return item && item.date ? dayjs.utc(item.date).fromNow() : '';
                 },
                 'cmp': function(item1, item2, row1, row2) {
-                    var exp1 = item1 && item1.date ? moment(item1.date) : moment(''),
-                        exp2 = item2 && item2.date ? moment(item2.date) : moment('');
+                    var exp1 = item1 && item1.date ? dayjs(item1.date) : dayjs(''),
+                        exp2 = item2 && item2.date ? dayjs(item2.date) : dayjs('');
 
                     if (!exp1.isValid() && !exp2.isValid())
                         return 0;

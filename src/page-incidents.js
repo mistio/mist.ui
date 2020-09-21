@@ -1,6 +1,6 @@
 import '../node_modules/@polymer/app-route/app-route.js';
 import '../node_modules/@mistio/mist-list/mist-list.js';
-import '../node_modules/moment/src/moment.js';
+import dayjs from '../node_modules/dayjs/esm/index.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -73,7 +73,7 @@ Polymer({
                     if (!row.finished_at) {
                         active = '<strong class="error"> - Active now </strong>'
                     }
-                    return '<span title="' + moment(item * 1000).format() + '">' + moment(item *
+                    return '<span title="' + dayjs(item * 1000).format() + '">' + dayjs(item *
                         1000).fromNow() + '</span>' + active;
                 },
                 'cmp': function (item1, item2, row1, row2) {

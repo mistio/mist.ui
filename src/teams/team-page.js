@@ -8,7 +8,7 @@ import '../mist-rules/mist-rules.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import '../helpers/dialog-element.js';
-import { mistLoadingBehavior }from '../helpers/mist-loading-behavior.js';
+import { mistLoadingBehavior} from '../helpers/mist-loading-behavior.js';
 import './team-actions.js';
 import './team-policy.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';

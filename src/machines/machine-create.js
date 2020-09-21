@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
+import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 let MACHINE_CREATE_FIELDS = [];

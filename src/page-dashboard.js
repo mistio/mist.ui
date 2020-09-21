@@ -1,4 +1,4 @@
-import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
+// import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
 import '../node_modules/@polymer/paper-button/paper-button.js';
 import '../node_modules/@polymer/paper-input/paper-input.js';
 import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
@@ -18,6 +18,8 @@ import '../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../node_modules/@mistio/mist-list/mist-list.js';
 import './onb-element/onb-element.js';
 import './clouds/cloud-chip.js';
+import moment from '../node_modules/moment/src/moment.js'
+import { rbacBehavior } from './rbac-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 

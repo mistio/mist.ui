@@ -6,6 +6,7 @@ import './volumes/volume-create.js';
 import './volumes/volume-page.js';
 import './volumes/volume-actions.js';
 //import './helpers/mist-lists-behavior.js';
+import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';

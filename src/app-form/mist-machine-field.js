@@ -13,6 +13,7 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './mist-size-field.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+let DEBUG_FORM = false;
 Polymer({
   _template: html`
         <style include="shared-styles forms">

@@ -4,11 +4,11 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './schedules/schedule-add.js';
 import './schedules/schedule-page.js';
 import './schedules/schedule-actions.js';
-import moment from '../node_modules/moment/src/moment.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import dayjs from 'dayjs/esm';
 Polymer({
     _template: html`
     <template>
@@ -161,10 +161,10 @@ Polymer({
                     if (item.startsWith("Interval")) {
                         return item.replace("Interval ", "")
                     } else if (item.startsWith("OneOff")) {
-                        var isValid = moment().isValid(item.replace("OneOff date to run ", ""));
+                        var isValid = dayjs(item.replace("OneOff date to run ", "")).isValid();
                         var time;
                         if (isValid)
-                            time = moment.utc(item.replace("OneOff date to run ", "")).fromNow();
+                            time = dayjs.utc(item.replace("OneOff date to run ", "")).fromNow();
                         return time ? time : item;
                     } else if (item.startsWith("Crontab")) {
                         return item.replace("Crontab ", "").replace("(m/h/d/dM/MY)", "");

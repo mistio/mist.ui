@@ -1,6 +1,7 @@
 import '../../node_modules/@polymer/paper-card/paper-card.js';
 import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
+import { ratedCost } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({

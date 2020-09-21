@@ -7,6 +7,7 @@ import './teams/member-page.js';
 import './teams/members-add.js';
 import './teams/member-add-in-teams.js';
 import './teams/team-add.js';
+import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';

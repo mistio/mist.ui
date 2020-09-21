@@ -9,7 +9,7 @@ import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import './app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-NETWORK_MANUAL_CONFIG_FIELDS = [{
+let NETWORK_MANUAL_CONFIG_FIELDS = [{
     name: 'ip',
     label: 'IP *',
     type: 'text',
