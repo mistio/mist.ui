@@ -6,6 +6,7 @@ import './tag-link/tag-link.js';
 import './theme-color/theme-color.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 Polymer({
   _template: html`
         <style include="shared-styles">

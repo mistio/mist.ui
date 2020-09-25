@@ -36,6 +36,7 @@ import './mist-notice.js';
 import './mist-icons.js';
 import './organizations/organization-add.js';
 import './account/plan-purchase.js';
+import PROVIDERS from './helpers/providers.js';
 import { setPassiveTouchGestures } from '../node_modules/@polymer/polymer/lib/utils/settings.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
@@ -603,12 +604,15 @@ Polymer({
         // Load page import on demand. Show 404 page if fails
         // var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
         // this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-        import('./page-' + page + '.js').then(console.log("SUCCESS"),console.log("FAILURE!! "));
+        console.log("LOADING PAGE "+page);
+        import('./page-' + page + '.js').then(this._hideLoader.bind(this),(reason)=>{console.log("FAILURE!! ", reason);});
         // import('./page-' + page + '.js').then(()=>{console.log("SUCCESS");},(reason)=>{console.log("FAILURE!! ", reason);});
         //  import('./page-' + page + '.js').then(this._hideLoader.bind(this), this._showPage404.bind(this));
     },
 
     _hideLoader: function() {
+        debugger;
+        console.log("success");
         this.set('loading', false);
         this.$['iron-pages'].selected = this.page;
     },
@@ -997,7 +1001,6 @@ Polymer({
         }];
 
         this.set('config.features.currency', currency);
-
         this.set('model.sections', _generateMap(sectionsArray));
         // console.log('config updated', this.model.sections)
         if (!this.config || !this.config.features || !this.config.features.docs) {

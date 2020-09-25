@@ -92,6 +92,7 @@ Polymer({
     },
 
     _getVisibleColumns: function() {
+        debugger;
         var ret = ['state', 'provider', 'region', 'machines', 'volumes', 'locations', 'id', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.length - 1, 0, 'owned_by');
