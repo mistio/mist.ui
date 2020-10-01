@@ -5,8 +5,8 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import ratedCost from '../helpers/utils.js';
-import dayjs from '../node_modules/dayjs/esm';
+import ratedCost from './helpers/utils.js';
+import moment from '../node_modules/moment/src/moment.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -15,7 +15,6 @@ import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -101,7 +100,6 @@ Polymer({
             <machine-page path="[[route.path]]" model="[[model]]" machine="[[currentMachine]]" section="[[model.sections.machines]]" monitoring=[[monitoring]] user="[[model.user.id]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name="[[portalName]]" resource-id="[[data.machine]]" currency="[[currency]]"></machine-page>
         </template>
         <iron-ajax id="getJobLog" method="GET" url="/api/v1/jobs/[[jobId]]" handle-as="json" on-response="handleGetJobLog" on-error="handleGetJobLogError"></iron-ajax>
-    </template>
     `,
     is: 'page-machines',
     behaviors: [
@@ -462,7 +460,7 @@ Polymer({
             },
             'created': {
                 'body': function(item, row) {
-                    return dayjs(item).isValid() ? dayjs.utc(item).fromNow() : "";
+                    return moment(item).isValid() ? moment.utc(item).fromNow() : "";
                 }
             },
             'size': {
@@ -518,11 +516,11 @@ Polymer({
                     return 'expiration';
                 },
                 'body': function(item, row) {
-                    return item && item.date ? dayjs.utc(item.date).fromNow() : '';
+                    return item && item.date ? moment.utc(item.date).fromNow() : '';
                 },
                 'cmp': function(item1, item2, row1, row2) {
-                    var exp1 = item1 && item1.date ? dayjs(item1.date) : dayjs(''),
-                        exp2 = item2 && item2.date ? dayjs(item2.date) : dayjs('');
+                    let exp1 = item1 && item1.date ? moment(item1.date) : moment('');
+                    let exp2 = item2 && item2.date ? moment(item2.date) : moment('');
 
                     if (!exp1.isValid() && !exp2.isValid())
                         return 0;

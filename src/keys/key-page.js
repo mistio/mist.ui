@@ -6,6 +6,7 @@ import '../helpers/dialog-element.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import '../tags/tags-list.js';
+import { itemUid, CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -381,7 +382,7 @@ Polymer({
   _keyUpdated: function(key){
       if (key){
           this.$.keyPublicRequest.headers["Content-Type"] = 'application/json';
-          this.$.keyPublicRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.keyPublicRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.keyPublicRequest.body = {};
           this.$.keyPublicRequest.generateRequest();
 
@@ -482,7 +483,7 @@ Polymer({
 
   showPrivateKey: function() {
       this.$.keyPrivateRequest.headers["Content-Type"] = 'application/json';
-      this.$.keyPrivateRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.keyPrivateRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyPrivateRequest.body = {};
       this.$.keyPrivateRequest.generateRequest();
       this.visiblePrivateKey = true;

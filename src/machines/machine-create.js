@@ -2426,7 +2426,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
     }
 });
 
-SCHEDULEACTIONS = {
+const SCHEDULEACTIONS = {
     'reboot': {
         'name': 'reboot',
         'icon': 'av:replay',

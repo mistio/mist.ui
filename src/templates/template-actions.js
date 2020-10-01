@@ -9,8 +9,10 @@ import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './template-edit.js';
+import { intersection, union } from '../../node_modules/sets'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { setSanitizeDOMValue } from '@polymer/polymer/lib/utils/settings';
 TEMPLATE_ACTIONS = {
     'create': {
         'name': 'create stack',
@@ -250,17 +252,18 @@ Polymer({
       // recompute the actions array property as the intersection
       // of the available actions of the selected items
       this.set('actions', []);
-      var actions = new swiftSet.Set(),
-          isection = new swiftSet.Set();
+      let actions = new Set();
+      let isection = new Set();
 
       if (this.items.length > 0) {
-          actions.addItems(this.itemActions(this.items[0]) || []);
-
+          //actions.addItems(this.itemActions(this.items[0]) || []);
+          actions = union(actions,this.itemActions(this.items[0]) || []);
           for (var i = 1; i < this.items.length; i++) {
-              isection.clear()
-              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-              actions.clear();
-              actions.addItems(isection.items());
+              isection = new Set();
+              //isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+              isection = intersection(actions, this.itemActions(this.items[i]));
+              //actions.addItems(isection.items());
+              actions = new Set(isection);
           }
 
           var multiActions;

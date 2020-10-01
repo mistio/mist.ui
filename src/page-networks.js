@@ -11,7 +11,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -45,7 +44,6 @@ Polymer({
         </template>
         <network-create model="[[model]]" section="[[model.sections.networks]]" hidden$=[[!_isAddPageActive(route.path)]]></network-create>
         <network-page model="[[model]]" network="[[_getNetwork(data.network, model.networks, model.networks.*)]]" resource-id="[[data.network]]" section="[[model.sections.networks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></network-page>
-    </template>
     `,
     is: 'page-networks',
     behaviors: [

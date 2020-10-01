@@ -1,7 +1,8 @@
 import '../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../node_modules/sockjs-client/dist/sockjs.min.js';
+import { _generateMap } from './helpers/utils.js'
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-let CSRF_TOKEN = '';
+import { CSRFToken } from './helpers/utils.js'
 let DEBUG_SOCKET = false;
 let STRIPE_PUBLIC_APIKEY = ''
 Polymer({
@@ -18,7 +19,7 @@ Polymer({
         },
         model: {
             type: Object,
-            value: function () { return { sections: {}} },
+            value: function () { return { sections: {}}; },
             notify: true
         },
         initialized: {
@@ -74,7 +75,6 @@ Polymer({
             that.send('msg', 'logs', 'ready');
             that.set('initialized', true);
         };
-
         // Initialize main handlers
         this.handlers = {
             main: {
@@ -464,7 +464,7 @@ Polymer({
             }
 
             if (changed) {
-                console.debug('updating', section);
+                //console.warn('updating', section);
                 this.set('model.' + section, _generateMap(data, primaryField));
                 this.set('model.' + section + 'Array', data);
             } else {
@@ -557,7 +557,7 @@ Polymer({
     _updateUser: function (data) {
         this.set('model.user', data);
         if (data) {
-            CSRF_TOKEN = data.csrf_token;
+            CSRFToken.value = data.csrf_token;
             STRIPE_PUBLIC_APIKEY = data.stripe_public_apikey;
         }
     },
@@ -931,15 +931,3 @@ Polymer({
         }
     }
 });
-
-function _generateMap(list, field) {
-    var out = {};
-    if (field == undefined) {
-        field = 'id';
-    }
-    for (var i = 0; i < list.length; i++) {
-        out[list[i][field]] = list[i];
-    }
-    // console.log('generate map', list, field, JSON.stringify(out));
-    return out;
-}

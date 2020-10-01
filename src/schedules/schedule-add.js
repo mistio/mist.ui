@@ -5,7 +5,7 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-SCHEDULEACTIONS = {
+const SCHEDULEACTIONS = {
     'reboot': {
         'name': 'reboot',
         'icon': 'av:replay',

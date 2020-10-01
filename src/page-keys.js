@@ -11,7 +11,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -39,7 +38,6 @@ Polymer({
         <key-add model="[[model]]" section="[[model.sections.keys]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[config.features.docs]]></key-add>
         <key-page model="[[model]]" key="[[_getKeyPair(data.key, model.keys)]]" resource-id="[[data.key]]" section="[[model.sections.keys]]"
             hidden$=[[!_isDetailsPageActive(route.path)]]></key-page>
-    </template>
     `,
     is: 'page-keys',
     behaviors: [

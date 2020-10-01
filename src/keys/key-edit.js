@@ -2,7 +2,8 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -111,7 +112,7 @@ Polymer({
       //     key: this.key
       // } }));
       this.$.keyEditAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.keyEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.keyEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyEditAjaxRequest.body = {
           new_name: this.newKey.name
       };

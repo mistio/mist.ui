@@ -11,11 +11,13 @@ import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import { ownerFilterBehavior } from '../helpers/owner-filter-behavior.js';
 import '../helpers/dialog-element.js';
 import '../machines/machine-actions.js';
+import moment from '../../node_modules/moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { machinesListBehavior } from '../helpers/machines-list-behavior.js';
 import './schedule-date.js';
 import './schedule-actions.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -669,7 +671,7 @@ Polymer({
           }
           this.$.editExpirationSchedule.body = payload;
           this.$.editExpirationSchedule.headers["Content-Type"] = 'application/json';
-          this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.editExpirationSchedule.headers["Csrf-Token"] = CSRFToken.value;
           this.$.editExpirationSchedule.generateRequest();
 
           this.expError = false;
@@ -836,7 +838,7 @@ Polymer({
   toggleEnable: function(){
       this.$.editToggleSchedule.body = {task_enabled: !this.schedule.task_enabled};
       this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
-      this.$.editToggleSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.editToggleSchedule.headers["Csrf-Token"] = CSRFToken.value;
       this.$.editToggleSchedule.generateRequest();
   },
 

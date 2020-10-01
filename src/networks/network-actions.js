@@ -8,9 +8,11 @@ import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
+import { intersection } from '../../node_modules/sets';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-NETWORK_ACTIONS = {
+const NETWORK_ACTIONS = {
   'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -90,7 +92,7 @@ Polymer({
 
   attached: function () {
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
@@ -128,7 +130,7 @@ Polymer({
   _delete: function () {
     //set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "DELETE";
     this.$.request.body = null;
 
@@ -193,7 +195,7 @@ Polymer({
     console.log('transferOwnership', e.detail, payload);
     this.$.request.url = '/api/v1/ownership';
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
     this.$.request.body = payload;
     this.$.request.generateRequest();
@@ -234,27 +236,25 @@ Polymer({
     // recompute the actions array property as the intersection
     // of the available actions of the selected items
     this.set('actions', []);
-    var actions = new swiftSet.Set(),
-      isection = new swiftSet.Set();
+    var actions = new Set(),
+      isection = new Set();
 
     if (this.items.length > 0) {
-      actions.addItems(this.itemActions(this.items[0]) || []);
+      actions = new Set(this.itemActions(this.items[0]) || []);
 
       for (var i = 1; i < this.items.length; i++) {
-        isection.clear()
-        isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-        actions.clear();
-        actions.addItems(isection.items());
+        isection = intersection(actions, this.itemActions(this.items[i]));
+        actions = new Set(isection);
       }
 
       var multiActions;
 
       if (this.items.length > 1) {
-        multiActions = this.actionDetails(actions.items()).filter(function (a) {
+        multiActions = this.actionDetails(Array.from(actions)).filter(function (a) {
           return a.multi;
         });
       } else {
-        multiActions = this.actionDetails(actions.items());
+        multiActions = this.actionDetails(Array.from(actions));
       }
     }
     this.set('actions', multiActions);

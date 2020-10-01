@@ -34,4 +34,19 @@ function mapToArray(obj) {
     return arr;
 }
 
-export { ratedCost, itemUid, mapToArray };
+function _generateMap(list, field) {
+    var out = {};
+    if (field == undefined) {
+        field = 'id';
+    }
+    for (var i = 0; i < list.length; i++) {
+        out[list[i][field]] = list[i];
+    }
+    // console.log('generate map', list, field, JSON.stringify(out));
+    return out;
+}
+
+var CSRFToken = { value: undefined };
+
+export { ratedCost, itemUid, mapToArray, _generateMap, CSRFToken };
+

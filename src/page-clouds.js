@@ -9,11 +9,11 @@ import './helpers/mist-lists-behavior.js';
 import PROVIDERS from './helpers/providers.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import {ownerFilterBehavior} from './helpers/owner-filter-behavior.js';
+import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -92,7 +92,6 @@ Polymer({
     },
 
     _getVisibleColumns: function() {
-        debugger;
         var ret = ['state', 'provider', 'region', 'machines', 'volumes', 'locations', 'id', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.length - 1, 0, 'owned_by');

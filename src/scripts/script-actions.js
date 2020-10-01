@@ -9,6 +9,7 @@ import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mi
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './script-edit.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const SCRIPT_ACTIONS = {
@@ -103,7 +104,7 @@ Polymer({
 
   attached: function() {
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
   },
 
@@ -143,7 +144,7 @@ Polymer({
   _delete: function() {
       //set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "DELETE";
 
       for (var i = 0; i < this.items.length; i++) {
@@ -208,7 +209,7 @@ Polymer({
       console.log('transferOwnership', e.detail, payload);
       this.$.request.url = '/api/v1/ownership';
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
       this.$.request.body = payload;
       this.$.request.generateRequest();

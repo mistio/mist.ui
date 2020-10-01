@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import './tag-item.js';
+import { intersection, union } from '../../node_modules/sets'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -106,251 +107,248 @@ Polymer({
         <iron-ajax id="tagsAjaxRequest" url="/api/v1/tags" method="POST" handle-as="xml" on-response="_handleTagsAjaxResponse" on-error="_handleTagsAjaxError"></iron-ajax>
 `,
 
-  is: 'tags-list',
+    is: 'tags-list',
 
-  properties: {
-      resource: {
-          type: String,
-      },
-      model: {
-          type: Object,
-      },
-      items: {
-          type: Array,
-          notify: true
-      },
-      tags: {
-          type: Array
-      },
-      tagsToDelete: {
-          type: Array
-      },
-      hasError: {
-          type: Boolean,
-          value: false
-      },
-      showProgress: {
-          type: Boolean,
-          value: false
-      },
-      showEmpty: {
-          type: Boolean,
-          computed: "_computeShowEmpty(tags, tags.length)",
-          value: false,
-          notify: true
-      }
-  },
+    properties: {
+        resource: {
+            type: String,
+        },
+        model: {
+            type: Object,
+        },
+        items: {
+            type: Array,
+            notify: true
+        },
+        tags: {
+            type: Array
+        },
+        tagsToDelete: {
+            type: Array
+        },
+        hasError: {
+            type: Boolean,
+            value: false
+        },
+        showProgress: {
+            type: Boolean,
+            value: false
+        },
+        showEmpty: {
+            type: Boolean,
+            computed: "_computeShowEmpty(tags, tags.length)",
+            value: false,
+            notify: true
+        }
+    },
 
-  observers: [
-      'selectedItemsChanged(items.splices)'
-  ],
+    observers: [
+        'selectedItemsChanged(items.splices)'
+    ],
 
-  listeners: {
-      'iron-overlay-closed': '_modalClosed',
-      'tag-delete': '_tagDeleteHandler',
-      'tag-change': '_tagUpdate'
-  },
+    listeners: {
+        'iron-overlay-closed': '_modalClosed',
+        'tag-delete': '_tagDeleteHandler',
+        'tag-change': '_tagUpdate'
+    },
 
-  ready: function(){
-      this.set('items', []);
-      this.set('tags', []);
-      this.set('tagsToDelete', []);
-  },
+    ready: function(){
+        this.set('items', []);
+        this.set('tags', []);
+        this.set('tagsToDelete', []);
+    },
 
-  _openDialog: function(e) {
-      this.shadowRoot.querySelector('paper-dialog').open();
-  },
+    _openDialog: function(e) {
+        this.shadowRoot.querySelector('paper-dialog').open();
+    },
 
-  _closeDialog: function() {
-      this.shadowRoot.querySelector('paper-dialog').close();
-  },
+    _closeDialog: function() {
+        this.shadowRoot.querySelector('paper-dialog').close();
+    },
 
-  _modalClosed: function(e) {
-      this.set('tagsToDelete', []);
-      this.set('showProgress', false);
-      this.set('hasError', false);
-      this.$.errormsg.textContent = '';
-  },
+    _modalClosed: function(e) {
+        this.set('tagsToDelete', []);
+        this.set('showProgress', false);
+        this.set('hasError', false);
+        this.$.errormsg.textContent = '';
+    },
 
-  selectedItemsChanged: function(splices){
-      // console.log('selectedItemsChanged', splices);
-      // freeze updating of selectedItems when dialog is open
-      if (!this.$.tagsModal.opened)
-          this._computeTags(this.items);
-  },
+    selectedItemsChanged: function(splices){
+        // console.log('selectedItemsChanged', splices);
+        // freeze updating of selectedItems when dialog is open
+        if (!this.$.tagsModal.opened)
+            this._computeTags(this.items);
+    },
 
-  _computeShowEmpty: function(tags, length){
-      if (this.tags && this.tags.length>0)
-          return false;
-      else
-          return true;
-  },
+    _computeShowEmpty: function(tags, length){
+        if (this.tags && this.tags.length>0)
+            return false;
+        else
+            return true;
+    },
 
-  _computeTags: function(lengths) {
-      var tags = this._computeCommonTags(this.items);
-      // console.log('_computeTags',tags.length);
-      if (!tags.length) {
-          tags = [{
-              key: '',
-              value: ''
-          }];
-      }
-      this.set('tags', tags);
-  },
+    _computeTags: function(lengths) {
+        var tags = this._computeCommonTags(this.items);
+        // console.log('_computeTags',tags.length);
+        if (!tags.length) {
+            tags = [{
+                key: '',
+                value: ''
+            }];
+        }
+        this.set('tags', tags);
+    },
 
-  _computeCommonTags: function(items) {
-      var tags = [],
-          tagset = new swiftSet.Set(),
-          isection = new swiftSet.Set();
+    _computeCommonTags: function(items) {
+        let tagset = new Set();
+        let isection = new Set();
 
-      for (var i = 0; i < items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
 
-          var item = items[i];
+            var item = items[i];
 
-          var itemType = item.split(":")[0],
-              itemCloudId = item.split(":")[1],
-              itemId = item.split(":")[2],
-              itemObj = {};
-          if (['machine', 'image'].indexOf(itemType) != -1 && itemCloudId)
-              itemObj = this.model.clouds[itemCloudId][itemType+'s'][itemId];
-          else {
-              itemObj = this.model[itemType+'s'][itemId];
-          }
-          if (itemObj) {
+            var itemType = item.split(":")[0],
+                itemCloudId = item.split(":")[1],
+                itemId = item.split(":")[2],
+                itemObj = {};
+            if (['machine', 'image'].indexOf(itemType) != -1 && itemCloudId)
+                itemObj = this.model.clouds[itemCloudId][itemType+'s'][itemId];
+            else {
+                itemObj = this.model[itemType+'s'][itemId];
+            }
+            if (itemObj) {
 
-              if (!itemObj.tags)
-                  itemObj.tags = [];
-              // TO FIX: network tags should not be type 'object', but Array of objects
-              // only networks return their tags in such format. Below code patches it.
-              else if (itemObj.tags && typeof(itemObj.tags) == 'object') {
-                  var foo = []
-                  for (var p in itemObj.tags) {
-                      foo.push(itemObj.tags[p])
-                  }
-                  itemObj.tags = foo;
-              }
+                if (!itemObj.tags)
+                    itemObj.tags = [];
+                // TO FIX: network tags should not be type 'object', but Array of objects
+                // only networks return their tags in such format. Below code patches it.
+                else if (itemObj.tags && typeof(itemObj.tags) == 'object') {
+                    var foo = []
+                    for (var p in itemObj.tags) {
+                        foo.push(itemObj.tags[p])
+                    }
+                    itemObj.tags = foo;
+                }
 
-              if (i == 0) {
-                  // console.log('itemObj.tags',itemObj.tags);
-                  tagset.addItems(itemObj.tags.map(function(tag){
-                      return tag.key+'='+tag.value;
-                  }));
-              }
-              else {
-                  isection.clear()
-                  isection.addItems(tagset.intersection(itemObj.tags.map(function(tag){
-                          return tag.key+'='+tag.value;
-                      }) || []));
-                  tagset.clear();
-                  tagset.addItems(isection.items());
-              }
-          }
-      }
+                if (i == 0) {
+                    // console.log('itemObj.tags',itemObj.tags);
+                    tagset = new Set(itemObj.tags.map(function(tag){
+                        return tag.key+'='+tag.value;
+                    }));
+                }
+                else {
+                    isection = intersection(tagset, itemObj.tags.map(function(tag){
+                            return tag.key+'='+tag.value;
+                        }) || []);
+                    tagset = new Set(isection);
+                }
+            }
+        }
 
-      return tagset.items().map(function(item){
-          return {key: item.split('=')[0],
-                  value: item.split('=')[1]};
-      }) || [];
-  },
+        return Array.from(tagset).map(function(item){
+            return {key: item.split('=')[0],
+                    value: item.split('=')[1]};
+        }) || [];
+    },
 
-  _addTag: function() {
-      var newTag = {
-          key: '',
-          value: ''
-      };
-      this.push('tags', newTag);
-  },
+    _addTag: function() {
+        var newTag = {
+            key: '',
+            value: ''
+        };
+        this.push('tags', newTag);
+    },
 
-  _tagDeleteHandler: function(e) {
-      var tag = e.detail.tag,
-          index = this.tags.indexOf(tag);
-          this.splice('tags', index, 1);
-      if (tag.key && !this._inArray(tag, this.tagsToDelete)) {
-          tag.op = "-";
-          this.push('tagsToDelete', tag);
-      }
-  },
+    _tagDeleteHandler: function(e) {
+        var tag = e.detail.tag,
+            index = this.tags.indexOf(tag);
+            this.splice('tags', index, 1);
+        if (tag.key && !this._inArray(tag, this.tagsToDelete)) {
+            tag.op = "-";
+            this.push('tagsToDelete', tag);
+        }
+    },
 
-  _tagUpdate: function(e){
-      // this._tagDeleteHandler(e);
-      console.log(e.detail);
+    _tagUpdate: function(e){
+        // this._tagDeleteHandler(e);
+        console.log(e.detail);
 
-      var oldTag = e.detail.oldTag;
-      var newTag = e.detail.newTag;
+        var oldTag = e.detail.oldTag;
+        var newTag = e.detail.newTag;
 
-      //move old tag to tags to delete
-      if (oldTag.key && oldTag.key != newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
-          oldTag.op = "-";
-          this.push('tagsToDelete', oldTag);
-      }
-  },
+        //move old tag to tags to delete
+        if (oldTag.key && oldTag.key != newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
+            oldTag.op = "-";
+            this.push('tagsToDelete', oldTag);
+        }
+    },
 
-  _inArray: function(tag, tagstodelete){
-      var tin = this.tagsToDelete.find(function(t){
-          return t.key == tag.key;
-      })
-      console.log('tin', tin);
-      return tin ? true : false;
-  },
+    _inArray: function(tag, tagstodelete){
+        var tin = this.tagsToDelete.find(function(t){
+            return t.key == tag.key;
+        })
+        console.log('tin', tin);
+        return tin ? true : false;
+    },
 
-  _saveTags: function() {
-      // console.log('_saveTags', this.items);
-      var newTags = this.tags.filter(function(tag) {
-              return tag.key;
-          }),
-          payload = [],
-          deltags = [];
+    _saveTags: function() {
+        // console.log('_saveTags', this.items);
+        var newTags = this.tags.filter(function(tag) {
+                return tag.key;
+            }),
+            payload = [],
+            deltags = [];
 
-      if (this.tagsToDelete.length > 0) {
-          deltags = this.tagsToDelete.filter(function(tag){
-              return tag.key != "";
-          });
-      }
+        if (this.tagsToDelete.length > 0) {
+            deltags = this.tagsToDelete.filter(function(tag){
+                return tag.key != "";
+            });
+        }
 
-      payload = this.items.map(function(item) {
-          var itemType = item.split(":")[0],
-              itemCloudId = item.split(":")[1],
-              itemId = item.split(":")[2];
+        payload = this.items.map(function(item) {
+            var itemType = item.split(":")[0],
+                itemCloudId = item.split(":")[1],
+                itemId = item.split(":")[2];
 
-          var newItem = {};
+            var newItem = {};
 
-          if (itemType == "machine") {
-              newItem.resource = {
-                  type: itemType,
-                  item_id: this.model.machines[itemId].machine_id,
-                  cloud_id: this.model.machines[itemId].cloud.id
-              };
-          }
-          else {
-              newItem.resource = {
-                  type: itemType,
-                  item_id: itemId,
-                  cloud_id: ['image', 'network'].indexOf(itemType) != -1 ? itemCloudId : ''
-              };
-          }
-          newItem.tags = newTags.concat(deltags);
-          return newItem;
-      }, this);
-      console.log('payload',payload);
+            if (itemType == "machine") {
+                newItem.resource = {
+                    type: itemType,
+                    item_id: this.model.machines[itemId].machine_id,
+                    cloud_id: this.model.machines[itemId].cloud.id
+                };
+            }
+            else {
+                newItem.resource = {
+                    type: itemType,
+                    item_id: itemId,
+                    cloud_id: ['image', 'network'].indexOf(itemType) != -1 ? itemCloudId : ''
+                };
+            }
+            newItem.tags = newTags.concat(deltags);
+            return newItem;
+        }, this);
+        console.log('payload',payload);
 
-      this.$.tagsAjaxRequest.body = payload;
-      this.$.tagsAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.tagsAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-      this.$.tagsAjaxRequest.generateRequest();
+        this.$.tagsAjaxRequest.body = payload;
+        this.$.tagsAjaxRequest.headers["Content-Type"] = 'application/json';
+        this.$.tagsAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.tagsAjaxRequest.generateRequest();
 
-      this.set('showProgress', true);
-  },
+        this.set('showProgress', true);
+    },
 
-  _handleTagsAjaxResponse: function(e) {
-      this._closeDialog();
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Tags were updated!',duration:3000} }));
+    _handleTagsAjaxResponse: function(e) {
+        this._closeDialog();
+        this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Tags were updated!',duration:3000} }));
 
-  },
+    },
 
-  _handleTagsAjaxError: function(e){
-      console.log('Tags Error',e, e.detail.request.xhr.responseText);
-      this.set('showProgress', false);
-      this.set('hasError', true);
-      this.$.errormsg.textContent = e.detail.request.xhr.responseText;
-  }
-});
+    _handleTagsAjaxError: function(e){
+        console.log('Tags Error',e, e.detail.request.xhr.responseText);
+        this.set('showProgress', false);
+        this.set('hasError', true);
+        this.$.errormsg.textContent = e.detail.request.xhr.responseText;
+    }
+    });

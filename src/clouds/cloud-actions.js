@@ -13,6 +13,7 @@ import './other-cloud-add-machine.js';
 import '../tags/tags-form.js';
 import '../helpers/xterm-dialog.js';
 import '../helpers/dialog-element.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const CLOUD_ACTIONS = {
@@ -171,7 +172,7 @@ Polymer({
 
   attached: function () {
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
@@ -296,7 +297,7 @@ Polymer({
       cloud: cid
     } }));
     this.$.cloudDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-    this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.cloudDeleteAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
     this.$.cloudDeleteAjaxRequest.generateRequest();
   },
 
@@ -383,7 +384,7 @@ Polymer({
 
   _changeTitle: function() {
     this.$.cloudEditAjaxRequest.headers["Content-Type"] = 'application/json';
-    this.$.cloudEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.cloudEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
     this.$.cloudEditAjaxRequest.body = {
       new_name: this.newCloud.title
     };

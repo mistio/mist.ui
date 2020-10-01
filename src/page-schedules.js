@@ -4,14 +4,14 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './schedules/schedule-add.js';
 import './schedules/schedule-page.js';
 import './schedules/schedule-actions.js';
+import moment from '../node_modules/moment/src/moment.js';
+import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import dayjs from 'dayjs/esm';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -46,7 +46,6 @@ Polymer({
         </template>
         <schedule-add model="[[model]]" section="[[model.sections.schedules]]" hidden$=[[!_isAddPageActive(route.path)]] docs=[[docs]] currency=[[currency]]></schedule-add>
         <schedule-page model="[[model]]" schedule="[[_getSchedule(data.schedule, model.schedules, model.schedules.*)]]" resource-id="[[data.schedule]]" section="[[model.sections.schedules]]" hidden$=[[!_isDetailsPageActive(route.path)]] currency=[[currency]]></schedule-page>
-    </template>
     `,
     is: 'page-schedules',
 
@@ -161,10 +160,10 @@ Polymer({
                     if (item.startsWith("Interval")) {
                         return item.replace("Interval ", "")
                     } else if (item.startsWith("OneOff")) {
-                        var isValid = dayjs(item.replace("OneOff date to run ", "")).isValid();
+                        var isValid = moment().isValid(item.replace("OneOff date to run ", ""));
                         var time;
                         if (isValid)
-                            time = dayjs.utc(item.replace("OneOff date to run ", "")).fromNow();
+                            time = moment.utc(item.replace("OneOff date to run ", "")).fromNow();
                         return time ? time : item;
                     } else if (item.startsWith("Crontab")) {
                         return item.replace("Crontab ", "").replace("(m/h/d/dM/MY)", "");

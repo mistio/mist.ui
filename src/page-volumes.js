@@ -12,7 +12,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -45,7 +44,6 @@ Polymer({
         </template>
         <volume-create model="[[model]]" section="[[model.sections.volumes]]" hidden$=[[!_isAddPageActive(route.path)]]></volume-create>
         <volume-page model="[[model]]" volume="[[_getVolume(data.volume, model.volumes, model.volumes.*)]]" resource-id="[[data.volume]]" section="[[model.sections.volumes]]" hidden$=[[!_isDetailsPageActive(route.path)]]></volume-page>
-    </template>
     `,
     is: 'page-volumes',
     behaviors: [

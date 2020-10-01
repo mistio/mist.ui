@@ -11,7 +11,7 @@ import './team-edit.js';
 import './team-policy.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-TEAM_ACTIONS = {
+const TEAM_ACTIONS = {
     'edit': {
         'name': 'edit',
         'icon': 'editor:mode-edit',

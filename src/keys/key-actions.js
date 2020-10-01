@@ -5,10 +5,11 @@ import '../../node_modules/@polymer/paper-input/paper-input-error.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './key-edit.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const KEY_ACTIONS = {
@@ -107,7 +108,7 @@ Polymer({
 
   attached: function() {
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
@@ -200,7 +201,7 @@ Polymer({
     console.log('transferOwnership', e.detail, payload);
     this.$.request.url = '/api/v1/ownership';
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
     this.$.request.body = payload;
     this.$.request.generateRequest();
@@ -209,7 +210,7 @@ Polymer({
   _delete: function() {
     //set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "DELETE";
 
     for (var i = 0; i < this.items.length; i++) {
@@ -222,7 +223,7 @@ Polymer({
   _makeDefault: function(){
     //set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
 
     for (var i = 0; i < this.items.length; i++) {

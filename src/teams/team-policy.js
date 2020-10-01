@@ -1,5 +1,5 @@
 import '../../node_modules/@polymer/paper-item/paper-item.js';
-import '../../node_modules/sortable-list/sortable-list.js';
+import '../../node_modules/@longlost/drag-drop-list/drag-drop-list.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
@@ -7,9 +7,10 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import './rbac-rule-item.js';
+import { CSRFToken } from '../helpers/utils.js';
+import { intersection } from '../../node_modules/sets';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import '../../node_modules/swiftSet/swiftSet.js';
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels">
@@ -201,7 +202,7 @@ Polymer({
         </custom-style>
         <div id="ruleslist">
             <div class="loading-data" hidden="{{!sendingData}}"></div>
-            <sortable-list id="rules" sortable=".rule-item" dragging="{{dragging}}" on-sort-finish="_onSortFinish" on-sort-start="_onSortStart">
+            <drag-drop-list id="rules" sortable=".rule-item">
                 <div id="ruleHead" class="rule head" hidden="[[!rules.length]]">
                     <span class="index">ord.</span>
                     <span>operator</span>
@@ -220,7 +221,7 @@ Polymer({
                 <template is="dom-repeat" items="{{rules}}" id="rulesrepeat">
                     <rbac-rule-item class="rule-item" rule="[[item]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rbac-rule-item>
                 </template>
-            </sortable-list>
+            </paper-list>
         </div>
         <div class="rules">
             <div class="rule add">
@@ -340,10 +341,10 @@ Polymer({
       var commonPermissions = this.model.permissions['cloud'],
           that = this;
       Object.keys(this.model.permissions).forEach(function(t) {
-          var s = new swiftSet.Set(commonPermissions);
-          commonPermissions = s.intersection(that.model.permissions[t]);
+          var s = new Set(commonPermissions);
+          commonPermissions = intersection(s, that.model.permissions[t]);
       });
-      return commonPermissions;
+      return Array.from(commonPermissions);
   },
 
   _draggingChanged: function(newDragging, oldDragging) {
@@ -553,7 +554,7 @@ Polymer({
 
       policy.operator = this.defaultOperator;
       this.$.postPolicy.headers["Content-Type"] = 'application/json';
-      this.$.postPolicy.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.postPolicy.headers["Csrf-Token"] = CSRFToken.value;
       this.$.postPolicy.body = {
           'policy': policy
       };

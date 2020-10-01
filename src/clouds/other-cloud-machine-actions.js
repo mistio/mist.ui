@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const OTHER_CLOUD_MACHINE_ACTIONS = {
@@ -58,7 +59,7 @@ Polymer({
 
   attached: function() {
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
@@ -82,7 +83,7 @@ Polymer({
   _remove: function() {
     //set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
     payload = {'action': 'remove'};
     this.$.request.body = payload;

@@ -460,7 +460,7 @@ Polymer({
         'close-cloud-info': '_closeCloudChips'
     },
     ready: function() {
-
+        console.log('ready dashboard');
     },
     attached: function() {
         // initialise chips position matrix

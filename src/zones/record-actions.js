@@ -5,12 +5,13 @@ import '../../node_modules/@polymer/paper-input/paper-input-error.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../tags/tags-form.js';
 import '../helpers/dialog-element.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-RECORD_ACTIONS = {
+const RECORD_ACTIONS = {
   /*'tag': {
     'name': 'tag',
     'icon': 'label',
@@ -73,7 +74,7 @@ Polymer({
 
   attached: function () {
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
@@ -98,7 +99,7 @@ Polymer({
   _delete: function () {
     //set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "DELETE";
     for (var i = 0; i < this.items.length; i++) {
       this.$.request.url = "/api/v1/clouds/" + this.cloud + "/zones/" + this.items[i].zone + "/records/" +

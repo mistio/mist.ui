@@ -37,6 +37,7 @@ import './mist-icons.js';
 import './organizations/organization-add.js';
 import './account/plan-purchase.js';
 import PROVIDERS from './helpers/providers.js';
+import { _generateMap } from './helpers/utils.js'
 import { setPassiveTouchGestures } from '../node_modules/@polymer/polymer/lib/utils/settings.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
@@ -264,7 +265,8 @@ Polymer({
         },
         model: {
             type: Object,
-            observer: '_observeModel'
+            observer: '_observeModel',
+            notify: true
         },
         title: {
             type: String,
@@ -611,7 +613,6 @@ Polymer({
     },
 
     _hideLoader: function() {
-        debugger;
         console.log("success");
         this.set('loading', false);
         this.$['iron-pages'].selected = this.page;
@@ -819,32 +820,31 @@ Polymer({
 
     _configUpdated: function(config) {
         if (!Object.keys(config).length) return;
-        console.log('Config updated');
-        var orchestration = this.config && this.config.features && this.config.features.orchestration ? this.config.features.orchestration : false,
-            tunnels = this.config && this.config.features && this.config.features.tunnels ? this.config.features.tunnels : false,
-            insights = this.config && this.config.features && this.config.features.insights ? this.config.features.insights : false;
-            currency = this.config && this.config.features && this.config.features.currency ? this.config.features.currency : {sign: '$', rate: 1};
+        var orchestration = this.config && this.config.features && this.config.features.orchestration ? this.config.features.orchestration : false;
+        var tunnels = this.config && this.config.features && this.config.features.tunnels ? this.config.features.tunnels : false;
+        var insights = this.config && this.config.features && this.config.features.insights ? this.config.features.insights : false;
+        var currency = this.config && this.config.features && this.config.features.currency ? this.config.features.currency : {sign: '$', rate: 1};
             // currency =  {sign: '$', rate: 1}; 
             // test {sign: '₹', rate:0.014}
             // currency = {sign:'Rp', rate: 68.73};
 
-        var cloudsCount = this.model.clouds ? Object.keys(this.model.clouds).length : 0,
-            stacksCount = this.model.stacks ? Object.keys(this.model.stacks).length : 0,
-            machinesCount = this.model.machines ? Object.keys(this.model.machines).length : 0,
-            volumesCount = this.model.volumes ? Object.keys(this.model.volumes).length : 0,
-            networksCount = this.model.networks ? Object.keys(this.model.networks).length : 0,
-            zonesCount = this.model.zones ? Object.keys(this.model.zones).length : 0,
-            keysCount = this.model.keys ? Object.keys(this.model.keys).length : 0,
-            imagesCount = this.model.images ? Object.keys(this.model.images).length : 0,
-            scriptsCount = this.model.scripts ? Object.keys(this.model.scripts).length : 0,
-            templatesCount = this.model.templates ? Object.keys(this.model.templates).length : 0,
-            tunnelsCount = this.model.tunnels ? Object.keys(this.model.tunnels).length : 0,
-            schedulesCount = this.model.schedules ? Object.keys(this.model.schedules).length : 0,
-            rulesCount = this.model.rules ? Object.keys(this.model.rules).length : 0,
-            teamsCount = this.model.teams ? Object.keys(this.model.teams).length : 0,
-            membersCount = this.model.members ? Object.keys(this.model.members).length : 0;
+        var cloudsCount = this.model.clouds ? Object.keys(this.model.clouds).length : 0;
+        var stacksCount = this.model.stacks ? Object.keys(this.model.stacks).length : 0;
+        var machinesCount = this.model.machines ? Object.keys(this.model.machines).length : 0;
+        var volumesCount = this.model.volumes ? Object.keys(this.model.volumes).length : 0;
+        var networksCount = this.model.networks ? Object.keys(this.model.networks).length : 0;
+        var zonesCount = this.model.zones ? Object.keys(this.model.zones).length : 0;
+        var keysCount = this.model.keys ? Object.keys(this.model.keys).length : 0;
+        var imagesCount = this.model.images ? Object.keys(this.model.images).length : 0;
+        var scriptsCount = this.model.scripts ? Object.keys(this.model.scripts).length : 0;
+        var templatesCount = this.model.templates ? Object.keys(this.model.templates).length : 0;
+        var tunnelsCount = this.model.tunnels ? Object.keys(this.model.tunnels).length : 0;
+        var schedulesCount = this.model.schedules ? Object.keys(this.model.schedules).length : 0;
+        var rulesCount = this.model.rules ? Object.keys(this.model.rules).length : 0;
+        var teamsCount = this.model.teams ? Object.keys(this.model.teams).length : 0;
+        var membersCount = this.model.members ? Object.keys(this.model.members).length : 0;
 
-        let sectionsArray = [{
+        var sectionsArray = [{
             id: 'dashboard',
             icon: 'icons:dashboard',
             color: '#424242',
@@ -1002,7 +1002,7 @@ Polymer({
 
         this.set('config.features.currency', currency);
         this.set('model.sections', _generateMap(sectionsArray));
-        // console.log('config updated', this.model.sections)
+        console.log('config updated', this.model.sections)
         if (!this.config || !this.config.features || !this.config.features.docs) {
             for (let i = 0; i < PROVIDERS.length; i++) {
                 for (let j = 0; j < PROVIDERS[i].options.length; j++) {

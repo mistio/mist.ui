@@ -9,7 +9,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -56,8 +55,6 @@ Polymer({
         <image-page id="imagePage" model="[[model]]" image$="[[_getImage(route, model.images)]]" resource-id="[[_getImageId(route)]]"
             section="[[model.sections.images]]" hidden$=[[!_isDetailsPageActive(route.path)]]></image-page>
         <image-provider-search id="imageprovidersearch" clouds="[[searchableClouds(model.cloudsArray)]]" query-term="[[model.sections.images.q]]"></image-provider-search>
-
-    </template>
     `,
     is: 'page-images',
     behaviors: [

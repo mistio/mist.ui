@@ -12,9 +12,11 @@ import './schedule-edit.js';
 import './schedule-edit-mrc.js';
 import './schedule-edit-selector.js';
 import './schedule-edit-task.js';
+import { CSRFToken } from '../helpers/utils.js'
+import { intersection } from '../../node_modules/sets'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-SCHEDULE_ACTIONS = {
+const SCHEDULE_ACTIONS = {
   'run': {
     'name': 'run',
     'icon': 'av:play-arrow',
@@ -120,7 +122,7 @@ Polymer({
 
   attached: function() {
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
@@ -173,7 +175,7 @@ Polymer({
   _delete: function(items) {
     //set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "DELETE";
 
     for (var i = 0; i < items.length; i++) {
@@ -249,7 +251,7 @@ Polymer({
     console.log('transferOwnership', e.detail, payload);
     this.$.request.url = '/api/v1/ownership';
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
     this.$.request.body = payload;
     this.$.request.generateRequest();
@@ -275,28 +277,26 @@ Polymer({
 
   _mapPolicyToActions: function (items) {
     this.set('actions', []);
-    var actions = new swiftSet.Set(), 
-        isection = new swiftSet.Set();
+    var actions = new Set(), 
+        isection = new Set();
 
     if (this.items.length > 0) {
-      actions.addItems(this.itemActions(this.items[0]) || []);
+      actions = new Set(this.itemActions(this.items[0]) || []);
 
       for (var i=1; i<this.items.length; i++) {
-          isection.clear()
-          isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-          actions.clear();
-          actions.addItems(isection.items());
+          isection = intersection(actions, this.itemActions(this.items[i]));
+          actions = new Set(isection);
       }
 
       var multiActions;
 
       if (this.items.length > 1) {
-          multiActions = this.actionDetails(actions.items()).filter(function(a){
+          multiActions = this.actionDetails(Array.from(actions)).filter(function(a){
               return a.multi;
           });
       }
       else {
-          multiActions = this.actionDetails(actions.items());
+          multiActions = this.actionDetails(Array.from(actions));
       }
     }
     this.set('actions', multiActions);
@@ -345,7 +345,7 @@ Polymer({
           this.$.request.method = "PATCH";
           this.$.request.body = {'run_immediately': true}
           this.$.request.headers["Content-Type"] = 'application/json';
-          this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.request.headers["Csrf-Token"] = CSRFToken.value;
           this.$.request.generateRequest();
       }
   }

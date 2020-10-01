@@ -11,7 +11,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             :host {
                 display: block;
@@ -52,8 +51,6 @@ Polymer({
         <template is="dom-if" if="[[_isRunPageActive(route.path)]]" restamp>
             <script-run model="[[model]]" script="[[_getScript(data.script, model.scripts)]]" section="[[model.sections.scripts]]" hidden$="[[!_isRunPageActive(route.path)]]"></script-run>
         </template>
-
-    </template>
     `,
     is: 'page-scripts',
     behaviors: [

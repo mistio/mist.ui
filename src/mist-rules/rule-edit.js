@@ -9,6 +9,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import './mist-dropdown-multi.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { validateRuleBehavior } from './validate-rule-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -1203,14 +1204,14 @@ Polymer({
       if (!this.rule.id) { // Add new rule
           this.$.addRuleRequest.body = payload;
           this.$.addRuleRequest.headers["Content-Type"] = 'application/json';
-          this.$.addRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.addRuleRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.addRuleRequest.generateRequest();
       } else { // Update existing rule
           // backend does not accept data_type on rule updates
           delete payload.data_type;
           this.$.updateRuleRequest.body = payload;
           this.$.updateRuleRequest.headers["Content-Type"] = 'application/json';
-          this.$.updateRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.updateRuleRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.updateRuleRequest.generateRequest();
       }
   },

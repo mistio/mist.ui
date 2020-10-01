@@ -4,7 +4,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -19,7 +18,6 @@ Polymer({
             <mist-rules id="allRules" features="[[features]]" builtin-metrics="[[model.monitoring.builtin_metrics]]" custom-metrics="[[model.monitoring.custom_metrics]]" machines="[[model.machines]]"
                 incidents="[[model.incidentsArray]]" rules="[[model.monitoring.rules]]" model="[[model]]" teams="[[model.teamsArray]]" users="[[model.membersArray]]"></mist-rules>
         </paper-material>
-    </template>
     `,
     is: 'page-rules',
     properties: {

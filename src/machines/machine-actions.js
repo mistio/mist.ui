@@ -19,6 +19,7 @@ import './machine-edit.js';
 import './attach-volume-on-machine.js';
 import './machine-snapshots.js';
 import './expose-ports.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 var VOLUME_CREATE_FIELDS = []
@@ -793,7 +794,7 @@ Polymer({
 
   attached: function() {
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
   },
 
@@ -908,7 +909,7 @@ Polymer({
   _delete: function(items) {
       //set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "DELETE";
 
       for (var i = 0; i < this.items.length; i++) {
@@ -1016,7 +1017,7 @@ Polymer({
       console.log('transferOwnership', e.detail, payload);
       this.$.request.url = '/api/v1/ownership';
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
       this.$.request.body = payload;
       this.$.request.generateRequest();
@@ -1084,7 +1085,7 @@ Polymer({
               var hiddenField = document.createElement("input");
               hiddenField.setAttribute("type", "hidden");
               hiddenField.setAttribute("name", "Csrf-Token");
-              hiddenField.setAttribute("value", CSRF_TOKEN);
+              hiddenField.setAttribute("value", CSRFToken.value);
               form.appendChild(hiddenField);
               document.body.appendChild(form);
 

@@ -11,7 +11,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -47,7 +46,6 @@ Polymer({
         </template>
         <zone-add model="[[model]]" section="[[model.sections.zones]]" hidden$=[[!_isAddPageActive(route.path)]]></zone-add>
         <zone-page model="[[model]]" zone="[[_getZone(data.zone, model.zones, model.zones.*)]]" resource-id="[[data.zone]]" section="[[model.sections.zones]]" hidden$=[[!_isDetailsPageActive(route.path)]]></zone-page>
-    </template>
     `,
     is: 'page-zones',
     behaviors: [
