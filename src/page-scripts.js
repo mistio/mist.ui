@@ -37,7 +37,8 @@ Polymer({
                     item-map="[[model.scripts]]"
                     user-filter=[[model.sections.scripts.q]]
                     filter-method="[[_ownerFilter()]]"
-                    actions=[[actions]]><p slot="no-items-found">No scripts found.</p></mist-list>
+                    actions=[[actions]]><p slot="no-items-found">No scripts found.</p>
+                </mist-list>
             </script-actions>
 
             <div class="absolute-bottom-right" hidden$="[[!check_perm('add','script', null, model.org, model.user)]]">
@@ -93,6 +94,7 @@ Polymer({
         }
     },
     _addResource: function(e) {
+        debugger;
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.scripts.add
         } }));

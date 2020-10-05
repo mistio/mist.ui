@@ -57,7 +57,7 @@ Polymer({
         <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
         <dialog-element id="confirm"></dialog-element>
         <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
-        <script-edit script="[[items.0]]">&lt;/script-edit>
+        <script-edit script="[[items.0]]"></script-edit>
         <slot>
             <mist-list-actions actions="[[actions]]"></mist-list-actions>
         </slot>

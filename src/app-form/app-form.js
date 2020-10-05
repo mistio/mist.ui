@@ -32,6 +32,7 @@ import './mist-networks-field.js';
 import './mist-machine-field.js';
 import './mist-tags-field.js';
 import './duration-field.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import '../../node_modules/@fooloomanzoo/datetime-picker/datetime-picker.js';
@@ -967,7 +968,7 @@ Polymer({
               var field =  this.fields[fieldIndex];
               this.$.getJSON.url = './src' + field.loadSchemeFolder + "" + value + ".json";
               this.$.getJSON.headers["Content-Type"] = 'application/json';
-              this.$.getJSON.headers["Csrf-Token"] = CSRF_TOKEN;
+              this.$.getJSON.headers["Csrf-Token"] = CSRFToken.value;
               this.$.getJSON.generateRequest();
           }
       }
@@ -1416,7 +1417,7 @@ Polymer({
       console.log('form _submitForm', payload, this.form);
 
       this.$.formAjax.headers["Content-Type"] = 'application/json';
-      this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.formAjax.headers["Csrf-Token"] = CSRFToken.value;
       this.$.formAjax.body = payload;
       this.$.formAjax.generateRequest();
   },

@@ -13,7 +13,6 @@ import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -53,7 +52,6 @@ Polymer({
         <div class="absolute-bottom-right" hidden$=[[!_showAddTeam(route.path,model.user)]]>
             <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
         </div>
-    </template>
     `,
     is: 'page-teams',
     behaviors: [

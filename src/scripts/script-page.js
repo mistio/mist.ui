@@ -5,13 +5,13 @@ import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../../node_modules/@mistio/mist-list/mist-list.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import '../mist-rules/mist-rules.js';
-import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import '../helpers/dialog-element.js';
 import{ mistRulesBehavior } from  '../helpers/mist-rules-behavior.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../tags/tags-list.js';
 import './script-run.js';
 import './script-actions.js';
+import moment from '../../node_modules/moment/src/moment.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({

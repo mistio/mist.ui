@@ -9,6 +9,8 @@ import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mi
 import './team-actions.js';
 import './team-edit.js';
 import './team-policy.js';
+import { CSRFToken } from '../helpers/utils.js';
+import { intersection } from '../../node_modules/sets'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const TEAM_ACTIONS = {
@@ -87,7 +89,7 @@ Polymer({
 
   attached: function() {
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
   },
 
@@ -115,7 +117,7 @@ Polymer({
   _delete: function() {
       //set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
-      this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "DELETE";
 
       for (var i = 0; i < this.items.length; i++) {
@@ -183,28 +185,26 @@ Polymer({
       // recompute the actions array property as the intersection
       // of the available actions of the selected items
       this.set('actions', []);
-      var actions = new swiftSet.Set(),
-          isection = new swiftSet.Set();
+      var actions = new Set(),
+          isection = new Set();
 
       if (this.items.length > 0) {
           console.log(this.items[0], this.items.length);
-          actions.addItems(this.itemActions(this.items[0]) || []);
+          actions = new Set(this.itemActions(this.items[0]) || []);
 
           for (var i = 1; i < this.items.length; i++) {
-              isection.clear();
-              isection.addItems(actions.intersection(this.itemActions(this.items[i])));
-              actions.clear();
-              actions.addItems(isection.items());
+              isection = intersection(actions, this.itemActions(this.items[i]));
+              actions = new Set(isection);
           }
 
           var multiActions;
 
           if (this.items.length > 1) {
-              multiActions = this.actionDetails(actions.items()).filter(function(a) {
+              multiActions = this.actionDetails(Array.from(actions)).filter(function(a) {
                   return a.multi;
               });
           } else {
-              multiActions = this.actionDetails(actions.items());
+              multiActions = this.actionDetails(Array.from(actions));
           }
       }
       this.set('actions', multiActions);

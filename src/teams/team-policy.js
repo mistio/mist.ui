@@ -1,5 +1,3 @@
-import '../../node_modules/@polymer/paper-item/paper-item.js';
-import '../../node_modules/@longlost/drag-drop-list/drag-drop-list.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
@@ -7,6 +5,7 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import './rbac-rule-item.js';
+import Sortable from "sortablejs";
 import { CSRFToken } from '../helpers/utils.js';
 import { intersection } from '../../node_modules/sets';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -202,7 +201,7 @@ Polymer({
         </custom-style>
         <div id="ruleslist">
             <div class="loading-data" hidden="{{!sendingData}}"></div>
-            <drag-drop-list id="rules" sortable=".rule-item">
+            <div id="rules" sortable=".rule-item">
                 <div id="ruleHead" class="rule head" hidden="[[!rules.length]]">
                     <span class="index">ord.</span>
                     <span>operator</span>
@@ -221,7 +220,7 @@ Polymer({
                 <template is="dom-repeat" items="{{rules}}" id="rulesrepeat">
                     <rbac-rule-item class="rule-item" rule="[[item]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rbac-rule-item>
                 </template>
-            </paper-list>
+            </div>
         </div>
         <div class="rules">
             <div class="rule add">
@@ -335,7 +334,11 @@ Polymer({
       'update-constraints': '_updateConstraints'
   },
 
-  attached: function() {},
+  attached: function() {
+      let el = document.getElementById("rules");
+      let sortable = Sortable.create(el);
+
+  },
 
   _computeCommonPermissions: function(model) {
       var commonPermissions = this.model.permissions['cloud'],

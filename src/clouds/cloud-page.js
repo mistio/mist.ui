@@ -13,6 +13,7 @@ import './cloud-edit.js';
 import './cloud-actions.js';
 import './other-cloud-machines.js';
 import './other-cloud-add-machine.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -647,7 +648,7 @@ Polymer({
   _changeState: function (e) {
       this.$['enable-disable-cloud'].disabled = true;
       this.$['cloudStateAjaxRequest'].headers["Content-Type"] = 'application/json';
-      this.$['cloudStateAjaxRequest'].headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$['cloudStateAjaxRequest'].headers["Csrf-Token"] = CSRFToken.value;
       this.$['cloudStateAjaxRequest'].body = {
           new_state: this.cloud.enabled ? '0' : '1'
       };
@@ -675,7 +676,7 @@ Polymer({
   _changeOBSLOGSenabled: function(e) {
       var observation_logs_enabled = this.cloud.observation_logs_enabled ? 0 : 1;
       this.$.cloudEditOBSLOGSAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.cloudEditOBSLOGSAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.cloudEditOBSLOGSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.cloudEditOBSLOGSAjaxRequest.body = {
           observation_logs_enabled: observation_logs_enabled
       };
@@ -695,7 +696,7 @@ Polymer({
   _changeDNSenabled: function(e) {
       var dns_enabled = this.cloud.dns_enabled ? 0 : 1;
       this.$.cloudEditDNSAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.cloudEditDNSAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.cloudEditDNSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.cloudEditDNSAjaxRequest.body = {
           dns_enabled: dns_enabled
       };
