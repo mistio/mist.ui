@@ -9,8 +9,7 @@ import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mi
 import './team-actions.js';
 import './team-edit.js';
 import './team-policy.js';
-import { CSRFToken } from '../helpers/utils.js';
-import { intersection } from '../../node_modules/sets'
+import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const TEAM_ACTIONS = {

@@ -9,6 +9,7 @@ import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@polymer/paper-item/paper-item-body.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -217,7 +218,7 @@ Polymer({
       var request = this.$.snapshotRequest;
       request.url = "/api/v1/machines/" + this.machine.id;
       request.headers["Content-Type"] = 'application/json';
-      request.headers["Csrf-Token"] = CSRF_TOKEN;
+      request.headers["Csrf-Token"] = CSRFToken.value;
       if (this.isCreate) {
           request.body = {
               action: 'create_snapshot',

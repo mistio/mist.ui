@@ -1,5 +1,6 @@
 import '../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../node_modules/sockjs-client/dist/sockjs.min.js';
+import * as jsonpatch from '../node_modules/fast-json-patch/index.mjs';
 import { _generateMap } from './helpers/utils.js'
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { CSRFToken } from './helpers/utils.js'

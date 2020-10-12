@@ -11,8 +11,8 @@ import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './attach-volume.js';
 import './detach-volume.js';
-import { CSRFToken } from '../helpers/utils.js'
-import { intersection } from '../../node_modules/sets'
+import { CSRFToken, intersection } from '../helpers/utils.js';
+import { VOLUME_CREATE_FIELDS } from './volume-create.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const VOLUME_ACTIONS = {

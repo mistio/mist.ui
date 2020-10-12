@@ -4,6 +4,7 @@ import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -110,7 +111,7 @@ Polymer({
   _submitForm: function(e) {
       this.$.editSchedule.body = this.payload;
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
-      this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.editSchedule.headers["Csrf-Token"] = CSRFToken.value;
       this.$.editSchedule.generateRequest();
   },
 

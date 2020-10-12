@@ -8,9 +8,11 @@ import '../mist-rules/mist-rules.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import '../helpers/dialog-element.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { mistLoadingBehavior} from '../helpers/mist-loading-behavior.js';
 import './team-actions.js';
 import './team-policy.js';
+
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -544,13 +546,13 @@ Polymer({
       if (response == 'confirm' && reason == "team.delete") {
           this.$.teamDeleteAjaxRequest.body = {};
           this.$.teamDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-          this.$.teamDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.teamDeleteAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.teamDeleteAjaxRequest.generateRequest();
       }
       if (response == 'confirm' && reason == "member.delete") {
           this.$.deleteMember.body = {};
           this.$.deleteMember.headers["Content-Type"] = 'application/json';
-          this.$.deleteMember.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.deleteMember.headers["Csrf-Token"] = CSRFToken.value;
           this.$.deleteMember.generateRequest();
       }
   },
@@ -608,7 +610,7 @@ Polymer({
           'emails': email
       };
       this.$._resendInvitation.headers["Content-Type"] = 'application/json';
-      this.$._resendInvitation.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$._resendInvitation.headers["Csrf-Token"] = CSRFToken.value;
       this.$._resendInvitation.generateRequest();
   },
 

@@ -4,10 +4,9 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
+import '../../node_modules/@mistio/mist-list/sortablelist.js'
 import './rbac-rule-item.js';
-import Sortable from "sortablejs";
-import { CSRFToken } from '../helpers/utils.js';
-import { intersection } from '../../node_modules/sets';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -201,7 +200,7 @@ Polymer({
         </custom-style>
         <div id="ruleslist">
             <div class="loading-data" hidden="{{!sendingData}}"></div>
-            <div id="rules" sortable=".rule-item">
+            <sortable-list id="rules" sortable=".rule-item" dragging="{{dragging}}" on-sort-finish="_onSortFinish" on-sort-start="_onSortStart">
                 <div id="ruleHead" class="rule head" hidden="[[!rules.length]]">
                     <span class="index">ord.</span>
                     <span>operator</span>
@@ -220,7 +219,7 @@ Polymer({
                 <template is="dom-repeat" items="{{rules}}" id="rulesrepeat">
                     <rbac-rule-item class="rule-item" rule="[[item]]" index="[[index]]" model="[[model]]" common-permissions="[[commonPermissions]]"></rbac-rule-item>
                 </template>
-            </div>
+            </sortable-list>
         </div>
         <div class="rules">
             <div class="rule add">
@@ -335,20 +334,19 @@ Polymer({
   },
 
   attached: function() {
-      let el = document.getElementById("rules");
-      let sortable = Sortable.create(el);
-
+    //   let el = document.getElementById("rules");
+    //   let sortable = Sortable.create(el);
   },
 
-  _computeCommonPermissions: function(model) {
-      var commonPermissions = this.model.permissions['cloud'],
-          that = this;
-      Object.keys(this.model.permissions).forEach(function(t) {
-          var s = new Set(commonPermissions);
-          commonPermissions = intersection(s, that.model.permissions[t]);
-      });
-      return Array.from(commonPermissions);
-  },
+    _computeCommonPermissions: function(model) {
+        var commonPermissions = this.model.permissions['cloud'];
+        let that = this;
+        Object.keys(this.model.permissions).forEach(function(t) {
+            var s = new Set(commonPermissions);
+            commonPermissions = intersection(s, that.model.permissions[t]);
+        });
+        return Array.from(commonPermissions);
+    },
 
   _draggingChanged: function(newDragging, oldDragging) {
       if (newDragging === true) {

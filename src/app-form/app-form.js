@@ -32,6 +32,7 @@ import './mist-networks-field.js';
 import './mist-machine-field.js';
 import './mist-tags-field.js';
 import './duration-field.js';
+import moment from '../../node_modules/moment/src/moment.js'
 import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';

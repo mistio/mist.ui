@@ -12,8 +12,7 @@ import './schedule-edit.js';
 import './schedule-edit-mrc.js';
 import './schedule-edit-selector.js';
 import './schedule-edit-task.js';
-import { CSRFToken } from '../helpers/utils.js'
-import { intersection } from '../../node_modules/sets'
+import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const SCHEDULE_ACTIONS = {

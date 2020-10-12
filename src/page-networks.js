@@ -167,6 +167,7 @@ Polymer({
                 'body': function(item, row) {
                     var tags = item,
                         display = "";
+                    let key;
                     for (key in tags) {
                         display += "<span class='tag'>" + key;
                         if (tags[key] != undefined && tags[key] != "")

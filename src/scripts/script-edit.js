@@ -2,6 +2,7 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -133,7 +134,7 @@ Polymer({
 
   _submitForm: function(e) {
       this.$.scriptEditAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.scriptEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.scriptEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.scriptEditAjaxRequest.body = {
           new_name: this.newScript.name,
           new_description: this.newScript.description

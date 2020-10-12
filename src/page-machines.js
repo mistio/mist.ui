@@ -5,7 +5,7 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import ratedCost from './helpers/utils.js';
+import { ratedCost } from './helpers/utils.js';
 import moment from '../node_modules/moment/src/moment.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
@@ -548,6 +548,7 @@ Polymer({
                 'body': function(item, row) {
                     var tags = item,
                         display = "";
+                    let key;
                     for (key in tags) {
                         display += "<span class='tag'>" + key;
                         if (tags[key] != undefined && tags[key] != "")

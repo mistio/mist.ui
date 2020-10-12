@@ -7,7 +7,7 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-var VOLUME_CREATE_FIELDS = []
+export var VOLUME_CREATE_FIELDS = [];
 
 // cloud:
 //   in: path

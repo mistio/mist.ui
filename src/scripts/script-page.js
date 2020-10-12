@@ -138,7 +138,7 @@ Polymer({
                         </span>
                     </div>
                 </div>
-                <script-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]">&lt;/script-actions>
+                <script-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></script-actions>
             </paper-material>
             <div class="columns">
                 <div id="leftcolumn" class="left command-container" hidden\$="[[!isInline]]">

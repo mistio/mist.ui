@@ -6,7 +6,7 @@ import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import './tag-item.js';
-import { intersection, union } from '../../node_modules/sets'
+import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -333,7 +333,7 @@ Polymer({
 
         this.$.tagsAjaxRequest.body = payload;
         this.$.tagsAjaxRequest.headers["Content-Type"] = 'application/json';
-        this.$.tagsAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.tagsAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
         this.$.tagsAjaxRequest.generateRequest();
 
         this.set('showProgress', true);

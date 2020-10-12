@@ -1158,7 +1158,7 @@ Polymer({
 
           xhr.open(method, uri);
           xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-          xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
+          xhr.setRequestHeader("Csrf-Token", CSRFToken.value);
           xhr.send(JSON.stringify(payload));
 
           var logMessage = 'Performing action ' + action.name.toUpperCase() + ' on machine ' + this.model.machines[

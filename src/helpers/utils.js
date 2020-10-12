@@ -46,7 +46,14 @@ function _generateMap(list, field) {
     return out;
 }
 
+function intersection(a, b){
+    a = a instanceof Set ? a : new Set(a);
+    b = b instanceof Set ? b : new Set(b);
+    return new Set( [ ...a ].filter(v => b.has(v)) );
+
+}
+
 var CSRFToken = { value: undefined };
 
-export { ratedCost, itemUid, mapToArray, _generateMap, CSRFToken };
+export { ratedCost, itemUid, mapToArray, _generateMap, intersection, CSRFToken };
 

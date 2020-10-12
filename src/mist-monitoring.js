@@ -4,13 +4,14 @@ import '../node_modules/@polymer/paper-material/paper-material.js';
 import '../node_modules/@polymer/paper-button/paper-button.js';
 import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-// import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
+import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
 import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './helpers/dialog-element.js';
 import './add-graph.js';
+import { CSRFToken } from './helpers/utils.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import YAML from '../node_modules/yaml/browser/dist/index.js';
+import { YAML } from '../node_modules/yaml/browser/dist/index.js';
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -544,7 +545,7 @@ Polymer({
       payload.no_ssh = !this.resource.key_associations || this.resource.key_associations.length == 0 ?
           "true" : "";
       console.log("toggleMonitoring", payload);
-      this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.monitoringRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.monitoringRequest.params = payload;
       this.$.monitoringRequest.generateRequest();
       this.set("failed", false);
@@ -740,7 +741,7 @@ Polymer({
           if (target.target.startsWith("mist.python")) {
               this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id +
                   "/plugins/" + target.target;
-              this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+              this.$.disassociateMetric.headers["Csrf-Token"] = CSRFToken.value;
               this.$.disassociateMetric.params = {
                   plugin_type: "python"
               };
@@ -751,7 +752,7 @@ Polymer({
               metric_id: target.target
           };
           this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id + "/metrics";
-          this.$.disassociateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.disassociateMetric.headers["Csrf-Token"] = CSRFToken.value;
           this.$.disassociateMetric.params = payload;
           this.$.disassociateMetric.generateRequest();
       }, this);

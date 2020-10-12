@@ -2,6 +2,7 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -400,7 +401,7 @@ Polymer({
   deleteRule: function (e) {
       var ruleid = this.rule.id;
       this.$.deleteRuleRequest.url = '/api/v1/rules/' + ruleid;
-      this.$.deleteRuleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.deleteRuleRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.deleteRuleRequest.generateRequest();
   },
 

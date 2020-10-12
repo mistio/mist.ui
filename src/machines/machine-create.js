@@ -7,6 +7,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import { rbacBehavior } from '../rbac-behavior.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 let MACHINE_CREATE_FIELDS = [];
@@ -3782,6 +3783,7 @@ Polymer({
       var imgInd = this._fieldIndexByName('image');
       var img = this.get('machineFields.' + imgInd);
       if (img && img.value) {
+          let current;
           for (var i = 0; i < img.options.length; i++) {
               current = img.options[i];
               if (current.id == img.value) {
@@ -4207,7 +4209,7 @@ Polymer({
   _getStorageAccounts: function(cloudId, index) {
       this.set("storageAccountsFieldIndex",index);
       this.$.getStorageAccounts.headers["Content-Type"] = 'application/json';
-      this.$.getStorageAccounts.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getStorageAccounts.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getStorageAccounts.url = '/api/v1/clouds/'+ cloudId +'/storage-accounts';
       this.$.getStorageAccounts.generateRequest();
   },
@@ -4284,7 +4286,7 @@ Polymer({
   _getSecurityGroups: function(cloudId, index) {
       this.set("securityGroupsFieldIndex",index);
       this.$.getSecurityGroups.headers["Content-Type"] = 'application/json';
-      this.$.getSecurityGroups.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getSecurityGroups.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getSecurityGroups.url = '/api/v1/clouds/'+ cloudId +'/security-groups';
       this.$.getSecurityGroups.generateRequest();
   },
@@ -4316,7 +4318,7 @@ Polymer({
   _getResourceGroups: function(cloudId, index) {
       this.set("resourceGroupsFieldIndex",index);
       this.$.getResourceGroups.headers["Content-Type"] = 'application/json';
-      this.$.getResourceGroups.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getResourceGroups.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getResourceGroups.url = '/api/v1/clouds/'+ cloudId +'/resource-groups';
       this.$.getResourceGroups.generateRequest();
   },
@@ -4344,7 +4346,7 @@ Polymer({
   _getStorageClasses: function(cloudId, field) {
       this.set("storageClassesField", field)
       this.$.getStorageClasses.headers["Content-Type"] = 'application/json';
-      this.$.getStorageClasses.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getStorageClasses.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getStorageClasses.url = '/api/v1/clouds/' + cloudId + '/storage-classes';
       this.$.getStorageClasses.generateRequest();
   },
@@ -4376,7 +4378,7 @@ Polymer({
   _getFolders(cloudId, field){
       this.set("foldersField", field)
       this.$.getFolders.headers["Content-Type"] = 'application/json';
-      this.$.getFolders.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getFolders.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getFolders.url = '/api/v1/clouds/' + cloudId + '/folders';
       this.$.getFolders.generateRequest();
   },
@@ -4408,7 +4410,7 @@ Polymer({
   _getDatastores(cloudId, field){
       this.set("datastoresField", field)
       this.$.getDatastores.headers["Content-Type"] = 'application/json';
-      this.$.getDatastores.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getDatastores.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getDatastores.url = '/api/v1/clouds/' + cloudId + '/datastores';
       this.$.getDatastores.generateRequest();
   },
@@ -4420,9 +4422,9 @@ Polymer({
   _handleGetDatastoresResponse: function(e){
       const options = [];
       e.detail.response.forEach(function(item, ind){
-          space = Math.floor(item.free_space / (1024*1024*1024))
-          name = item.name + "  " + "Free: " + space + " GB"
-          options.push({title: name, val: item.id, space: item.free_space})
+          let space = Math.floor(item.free_space / (1024*1024*1024));
+          let name = item.name + "  " + "Free: " + space + " GB";
+          options.push({title: name, val: item.id, space: item.free_space});
       });
       this.datastoresField.options = options;
       this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'machine-create.html : _handleGetFoldersResponse()'}}));
@@ -4456,7 +4458,7 @@ Polymer({
   _getLXDStoragePools: function(cloudId) {
       //this.set("lxdStoragePoolsFieldIndex",index);
       this.$.getLXDStoragePools.headers["Content-Type"] = 'application/json';
-      this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getLXDStoragePools.url = '/api/v1/clouds/'+ cloudId +'/storage-pools';
       this.$.getLXDStoragePools.generateRequest();
   },
@@ -4485,7 +4487,7 @@ Polymer({
   _getVirtualNetworkFunctions: function(cloudId, index) {
       this.set("virtualNetworkFunctionFieldIndex",index);
       this.$.getVirtualNetworkFunctions.headers["Content-Type"] = 'application/json';
-      this.$.getVirtualNetworkFunctions.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getVirtualNetworkFunctions.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getVirtualNetworkFunctions.url = '/api/v1/clouds/'+ cloudId +'/vnfs';
       this.$.getVirtualNetworkFunctions.generateRequest();
   },

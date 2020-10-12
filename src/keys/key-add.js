@@ -7,6 +7,7 @@ import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../helpers/custom-validator.js';
 import '../helpers/file-upload.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -258,7 +259,7 @@ Polymer({
 
   _submitForm: function () {
       this.$.keyAddAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.keyAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.keyAddAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyAddAjaxRequest.body = {
           name: this.key.name,
           priv: this.key.privateKey
@@ -341,7 +342,7 @@ Polymer({
 
   _generateKey: function (e) {
       this.$.keyGenerateAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.keyGenerateAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.keyGenerateAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyGenerateAjaxRequest.body = {};
       this.$.keyGenerateAjaxRequest.generateRequest();
 

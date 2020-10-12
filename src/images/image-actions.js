@@ -7,8 +7,7 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../tags/tags-form.js';
-import { CSRFToken } from '../helpers/utils.js'
-import { intersection } from '../../node_modules/sets'
+import { CSRFToken, intersection } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const IMAGE_ACTIONS = {
@@ -192,10 +191,11 @@ Polymer({
   _mapPolicyToActions: function (items) {
     // recompute the actions array property as the intersection
     // of the available actions of the selected items
+    console.log("WTF IS THIS", intersection);
     this.set('actions', []);
     var actions = new Set(), 
         isection = new Set();
-
+    debugger;
     if (this.items.length > 0) {
       actions= new Set(this.itemActions(this.items[0]) || []);
 

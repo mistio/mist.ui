@@ -8,8 +8,7 @@ import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
-import { intersection } from '../../node_modules/sets';
-import { CSRFToken } from '../helpers/utils.js'
+import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 const NETWORK_ACTIONS = {
