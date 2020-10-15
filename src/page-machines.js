@@ -5,7 +5,7 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import { ratedCost } from './helpers/utils.js';
+import { ratedCost, CSRFToken } from './helpers/utils.js';
 import moment from '../node_modules/moment/src/moment.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
@@ -87,7 +87,7 @@ Polymer({
                     sorters=[[sorters]] item-map="[[model.machines]]" name="Machines" selected-items={{selectedItems}}
                     filtered-items-length="{{filteredItemsLength}}" frozen=[[_getFrozenLogColumn()]] visible=[[_getVisibleColumns()]]
                     renderers=[[_getRenderers()]] route={{route}} user-filter=[[model.sections.machines.q]] primary-field-name="id"
-                    actions=[[actions]] filter-method="[[_ownerFilter()]]" apiurl="/api/v1/machines">
+                    actions=[[actions]] filter-method="[[_ownerFilter()]]" apiurl="/api/v1/machines" csrfToken=[[CSRFToken.value]]>
                     <p slot="no-items-found">No machines found.</p>
                 </mist-list>
             </machine-actions>

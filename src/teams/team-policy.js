@@ -4,7 +4,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
-import '../../node_modules/@mistio/mist-list/sortablelist.js'
+import '../../node_modules/@mistio/sortable-list/sortable-list.js'
 import './rbac-rule-item.js';
 import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
